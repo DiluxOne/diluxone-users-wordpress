@@ -6685,7 +6685,7 @@ msgid "JPG, PNG, GIF or WebP, up to %s."
 msgstr ""
 
 #: templates/account/handle-field.php:20
-msgid "It is your short name on the site: the one that goes in the address of your profile and the one other people use to find you. It is not how you sign in —that is always your email— and it is not the name shown on your certificates, which comes from your first and last name."
+msgid "It is your short name on the site: the one that goes in the address of your profile and the one other people use to find you. It is not how you sign in: that is always your email."
 msgstr ""
 
 #: templates/account/handle-field.php:30

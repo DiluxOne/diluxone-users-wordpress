@@ -17,7 +17,7 @@ $diluxone_users_url_actual = diluxone_users_handle_base_url() . $handle . '/';
 	<label for="diluxone-users-handle"><?php esc_html_e( 'Public name', 'diluxone-users' ); ?></label>
 
 	<p class="diluxone-users-handle__what">
-		<?php esc_html_e( 'It is your short name on the site: the one that goes in the address of your profile and the one other people use to find you. It is not how you sign in —that is always your email— and it is not the name shown on your certificates, which comes from your first and last name.', 'diluxone-users' ); ?>
+		<?php esc_html_e( 'It is your short name on the site: the one that goes in the address of your profile and the one other people use to find you. It is not how you sign in: that is always your email.', 'diluxone-users' ); ?>
 	</p>
 
 	<input type="text" id="diluxone-users-handle" name="diluxone_users_handle" value="<?php echo esc_attr( $handle ); ?>"

@@ -2411,8 +2411,8 @@ msgid "JPG, PNG, GIF or WebP, up to %s."
 msgstr "JPG, PNG, GIF o WebP, hasta %s."
 
 #: templates/account/handle-field.php:20
-msgid "It is your short name on the site: the one that goes in the address of your profile and the one other people use to find you. It is not how you sign in —that is always your email— and it is not the name shown on your certificates, which comes from your first and last name."
-msgstr "Es tu nombre corto en el sitio: el que va en la dirección de tu perfil y con el que te encuentra el resto. No es con lo que entras —eso es siempre tu correo— ni el nombre que sale en tus certificados, que se forma con tu nombre y tus apellidos."
+msgid "It is your short name on the site: the one that goes in the address of your profile and the one other people use to find you. It is not how you sign in: that is always your email."
+msgstr "Es tu nombre corto en el sitio: el que va en la dirección de tu perfil y con el que te encuentra el resto. No es con lo que entras: eso es siempre tu correo."
 
 #: templates/account/handle-field.php:30
 msgid "Your profile:"

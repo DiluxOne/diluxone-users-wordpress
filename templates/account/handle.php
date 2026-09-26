@@ -25,20 +25,12 @@ defined( 'ABSPATH' ) || exit;
 
 		<?php echo diluxone_users_handle_field(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- plantilla, ya escapada. ?>
 
-		<?php if ( $can ) : ?>
+		<?php
+		// When the name cannot change yet, the field itself says until when:
+		// the panel only offers the button while there is something to save.
+		if ( $can ) :
+			?>
 			<button type="submit" class="diluxone-users-button"><?php esc_html_e( 'Save', 'diluxone-users' ); ?></button>
-		<?php else : ?>
-			<p class="diluxone-users-note-block">
-				<?php
-				echo esc_html(
-					sprintf(
-					/* translators: %s: date from which it can be changed */
-						__( 'You changed it recently. You can change it again on %s.', 'diluxone-users' ),
-						wp_date( 'j M Y', $next )
-					)
-				);
-				?>
-			</p>
 		<?php endif; ?>
 	</form>
 </div>
