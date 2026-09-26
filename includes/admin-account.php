@@ -900,12 +900,9 @@ function diluxone_users_screen_account_page(): void {
 
 	// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- wp_dropdown_pages() escapes its own and prints it.
 	wp_dropdown_pages( $dropdown );
+	diluxone_users_create_page_link( 'diluxone_users_account_page' );
 
-	$help = sprintf(
-		/* translators: %s: the shortcode, literal */
-		esc_html__( 'The page with %s in it.', 'diluxone-users' ),
-		'<code>[diluxone_users_account]</code>'
-	);
+	$help = esc_html__( 'The account area appears on this page, below whatever the page already says.', 'diluxone-users' );
 
 	if ( '' === (string) get_option( 'permalink_structure' ) ) {
 		$help .= ' ' . esc_html__( 'With plain permalinks the sections go as ?seccion=…; turn on pretty permalinks in Settings → Permalinks and they become /page/section/ on their own.', 'diluxone-users' );

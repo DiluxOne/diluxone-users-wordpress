@@ -378,7 +378,7 @@ function diluxone_users_screen_login_page(): void {
 	$link   = diluxone_users_login_has_link();
 	$brand  = (bool) diluxone_users_option( 'diluxone_users_wp_login_brand' );
 
-	diluxone_users_intro( __( 'The page holding the sign-in form, and what becomes of wp-login.php. Put the [diluxone_users_login] shortcode on the page you pick.', 'diluxone-users' ) );
+	diluxone_users_intro( __( 'The page holding the sign-in form, and what becomes of wp-login.php. The form appears on the page you pick, below whatever the page already says.', 'diluxone-users' ) );
 
 	diluxone_users_ui_field_open( __( 'The sign-in page', 'diluxone-users' ), 'diluxone_users_login_page' );
 
@@ -393,6 +393,7 @@ function diluxone_users_screen_login_page(): void {
 
 	// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- wp_dropdown_pages() escapes its own and prints it.
 	wp_dropdown_pages( $diluxone_users_dropdown );
+	diluxone_users_create_page_link( 'diluxone_users_login_page' );
 
 	diluxone_users_ui_field_close( __( 'With none chosen, everybody signs in on wp-login.php and nothing below applies.', 'diluxone-users' ) );
 

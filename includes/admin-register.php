@@ -269,12 +269,13 @@ function diluxone_users_register_doors( array $social ): array {
 
 				// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- wp_dropdown_pages() escapes its own and prints it.
 				wp_dropdown_pages( $diluxone_users_dropdown );
+				diluxone_users_create_page_link( 'diluxone_users_register_page' );
 
 				if ( $page <= 0 ) {
 					diluxone_users_not_now( __( 'Without a page nobody can reach the form, so this door is not open yet.', 'diluxone-users' ) );
 				}
 
-				diluxone_users_ui_field_close( __( 'The page with the [diluxone_users_register] shortcode. What the form says is on Design → Registration.', 'diluxone-users' ) );
+				diluxone_users_ui_field_close( __( 'The form appears on this page, below whatever the page already says. What the form says is on Design → Registration.', 'diluxone-users' ) );
 			},
 		),
 		array(

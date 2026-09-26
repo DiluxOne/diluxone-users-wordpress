@@ -289,7 +289,7 @@ msgstr "Salva sezione"
 msgid "The account page"
 msgstr "La pagina dell’account"
 
-#: includes/admin-account.php:911
+#: includes/admin-account.php:908
 msgid "With plain permalinks the sections go as ?seccion=…; turn on pretty permalinks in Settings → Permalinks and they become /page/section/ on their own."
 msgstr "Con permalink semplici le sezioni vanno come ?seccion=…; attiva i permalink belli in Impostazioni → Permalink e diventano /pagina/sezione/ da sole."
 
@@ -374,7 +374,7 @@ msgstr "Come usarli"
 
 #: includes/admin-fields.php:254
 #: includes/admin-fields.php:578
-#: includes/admin-register.php:389
+#: includes/admin-register.php:390
 #: includes/admin.php:77
 msgid "User fields"
 msgstr "Campi utente"
@@ -623,7 +623,7 @@ msgstr "Pagina di accesso"
 msgid "Two-step verification"
 msgstr "Verifica in due passaggi"
 
-#: includes/admin-login.php:694
+#: includes/admin-login.php:695
 #: includes/admin-passkeys.php:28
 #: includes/admin-passkeys.php:210
 #: includes/admin-people.php:205
@@ -635,7 +635,7 @@ msgstr "Passkey"
 #: includes/admin-design.php:253
 #: includes/admin-home.php:315
 #: includes/admin-login.php:328
-#: includes/admin-login.php:686
+#: includes/admin-login.php:687
 #: includes/admin-social.php:58
 #: includes/admin-status.php:396
 #: includes/admin-status.php:407
@@ -654,14 +654,15 @@ msgid "If you get locked out"
 msgstr "Se rimani fuori"
 
 #: includes/admin-design.php:228
-#: includes/admin-login.php:701
+#: includes/admin-login.php:702
 #: includes/admin-register.php:35
 #: includes/admin-social.php:480
 msgid "Registration"
 msgstr "Registrazione"
 
-#: includes/admin-login.php:924
+#: includes/admin-login.php:925
 #: includes/login-ways.php:615
+#: includes/pages.php:26
 #: includes/passwordless.php:233
 #: templates/account-guest.php:15
 #: templates/login.php:82
@@ -678,11 +679,11 @@ msgstr "Accedi"
 msgid "Public name"
 msgstr "Nome pubblico"
 
-#: includes/admin-login.php:563
+#: includes/admin-login.php:564
 msgid "The link expires after"
 msgstr "Il link scade dopo"
 
-#: includes/admin-login.php:566
+#: includes/admin-login.php:567
 msgid "minutes"
 msgstr "minuti"
 
@@ -694,89 +695,89 @@ msgstr "Oggetto"
 msgid "Message"
 msgstr "Messaggio"
 
-#: includes/admin-account.php:1198
+#: includes/admin-account.php:1195
 msgid "The email is the identity and nobody chooses it. This is the short name people see, the one that goes in the address of their profile."
 msgstr "L’e-mail è l’identità e non la sceglie nessuno. Questo è il nome corto che le persone vedono, quello che finisce nell’indirizzo del loro profilo."
 
-#: includes/admin-account.php:1207
+#: includes/admin-account.php:1204
 msgid "Let people choose their public name"
 msgstr "Lasciare che le persone scelgano il proprio nome pubblico"
 
-#: includes/admin-account.php:1208
+#: includes/admin-account.php:1205
 msgid "Turned off, the name comes from what they wrote as their first and last name, and the profile address is made from that."
 msgstr "Disattivato, il nome viene da quello che hanno scritto come nome e cognome, e l’indirizzo del profilo si costruisce da lì."
 
-#: includes/admin-account.php:1224
+#: includes/admin-account.php:1221
 msgid "Length"
 msgstr "Lunghezza"
 
-#: includes/admin-account.php:1235
+#: includes/admin-account.php:1232
 msgid "to"
 msgstr "a"
 
-#: includes/admin-account.php:1236
+#: includes/admin-account.php:1233
 msgid "characters"
 msgstr "caratteri"
 
-#: includes/admin-account.php:1243
+#: includes/admin-account.php:1240
 msgid "Letters"
 msgstr "Lettere"
 
-#: includes/admin-account.php:1249
+#: includes/admin-account.php:1246
 msgid "Plain: a–z, digits, dot, dash and underscore"
 msgstr "Semplice: a–z, cifre, punto, trattino e trattino basso"
 
-#: includes/admin-account.php:1255
+#: includes/admin-account.php:1252
 msgid "Also accents and ñ"
 msgstr "Anche accenti e ñ"
 
-#: includes/admin-account.php:1258
+#: includes/admin-account.php:1255
 msgid "Whatever is typed is turned into the same thing WordPress would put in a URL, so what passes here is exactly what ends up in the address. Anything that does not fit —punctuation, symbols, emoji— is dropped, and the person sees what it turned into before saving."
 msgstr "Quello che si scrive diventa esattamente ciò che WordPress metterebbe in una URL, quindi ciò che passa qui è esattamente ciò che finisce nell’indirizzo. Tutto quello che non entra —punteggiatura, simboli, emoji— cade, e la persona vede in che cosa si è trasformato prima di salvare."
 
-#: includes/admin-account.php:1264
+#: includes/admin-account.php:1261
 msgid "Spaces"
 msgstr "Spazi"
 
-#: includes/admin-account.php:1270
+#: includes/admin-account.php:1267
 msgid "Turn them into dashes: “Ana Gómez” becomes ana-gomez"
 msgstr "Trasformarli in trattini: «Ana Gómez» diventa ana-gomez"
 
-#: includes/admin-account.php:1276
+#: includes/admin-account.php:1273
 msgid "Refuse them and say so"
 msgstr "Rifiutarli e dirlo"
 
-#: includes/admin-account.php:1279
+#: includes/admin-account.php:1276
 msgid "A web address cannot have spaces, so one of the two has to happen. The first is what almost everybody expects; the second is for a site that would rather nobody ends up with a name they did not type."
 msgstr "Un indirizzo web non può contenere spazi, quindi deve succedere una delle due cose. La prima è quello che si aspettano quasi tutti; la seconda è per un sito che preferisce che nessuno resti con un nome che non ha scritto."
 
-#: includes/admin-account.php:1320
+#: includes/admin-account.php:1317
 msgid "Taken names"
 msgstr "Nomi già presi"
 
 #. translators: 1: user_nicename, 2: user_login
-#: includes/admin-account.php:1323
+#: includes/admin-account.php:1320
 #, php-format
 msgid "Always checked, and against two things: the public names already in use (%1$s) and the usernames that came with the accounts (%2$s). The second one matters because a site that lets people sign in by public name would otherwise have two people answering to the same text, and the link would go to the wrong account."
 msgstr "Sempre controllato, e contro due cose: i nomi pubblici già in uso (%1$s) e i nomi utente arrivati con gli account (%2$s). Il secondo conta perché, su un sito che permette di accedere con il nome pubblico, due persone risponderebbero allo stesso testo e il link andrebbe all’account sbagliato."
 
-#: includes/admin-account.php:1284
+#: includes/admin-account.php:1281
 msgid "How often it can change"
 msgstr "Ogni quanto può cambiare"
 
-#: includes/admin-account.php:1287
+#: includes/admin-account.php:1284
 msgid "days between one change and the next"
 msgstr "giorni tra un cambio e il successivo"
 
-#: includes/admin-account.php:1289
+#: includes/admin-account.php:1286
 msgid "0 means whenever they like. A name that changes every day does not identify anybody, and the old address stops working each time."
 msgstr "0 significa quando vogliono. Un nome che cambia ogni giorno non identifica nessuno, e l’indirizzo vecchio smette di funzionare ogni volta."
 
-#: includes/admin-account.php:1295
+#: includes/admin-account.php:1292
 msgid "Names nobody can take"
 msgstr "Nomi che nessuno può prendere"
 
-#: includes/admin-account.php:1300
+#: includes/admin-account.php:1297
 msgid "One per line, or separated by commas. The obvious ones —admin, support, api, login— are already blocked; these are yours to add."
 msgstr "Uno per riga, o separati da virgole. Quelli ovvi —admin, supporto, api, login— sono già bloccati; questi sono i tuoi."
 
@@ -830,11 +831,11 @@ msgstr "Un cookie firmato, niente di più: non fa entrare nessuno, evita solo di
 msgid "Their data"
 msgstr "I suoi dati"
 
-#: includes/admin-account.php:1384
+#: includes/admin-account.php:1381
 msgid "They can ask for a copy of everything and download it"
 msgstr "Può chiedere una copia di tutto e scaricarla"
 
-#: includes/admin-account.php:1392
+#: includes/admin-account.php:1389
 msgid "They can ask for their account to be deleted"
 msgstr "Può chiedere che il suo account venga eliminato"
 
@@ -1151,7 +1152,7 @@ msgid "A window opens, %s asks you to authorise, and it comes back here. Nobody 
 msgstr "Si apre una finestra, %s ti chiede di autorizzare, e torna qui. Non entra nessuno e non viene salvato niente sul tuo account — si controlla solo che l’andata e ritorno funzioni. Finché non funziona, il pulsante non si può attivare."
 
 #: includes/admin-account.php:800
-#: includes/admin-account.php:938
+#: includes/admin-account.php:935
 #: includes/admin-login.php:210
 #: includes/admin-status.php:115
 msgid "No page chosen yet."
@@ -1331,6 +1332,7 @@ msgstr "Incolla questo in una richiesta di supporto e metà dei botta e risposta
 
 #: includes/admin-tools.php:74
 #: includes/admin-tools.php:331
+#: includes/pages.php:119
 #: includes/sessions.php:334
 msgid "You are not allowed to do this."
 msgstr "Non hai il permesso di farlo."
@@ -2419,7 +2421,7 @@ msgstr "Scegli una foto"
 
 #: includes/admin-tools.php:501
 #: templates/account/avatar.php:32
-#: templates/account/handle.php:29
+#: templates/account/handle.php:33
 #: templates/account/notifications.php:99
 #: templates/fields.php:64
 msgid "Save"
@@ -2450,7 +2452,6 @@ msgstr "Guarda se è libero"
 
 #. translators: %s: date from which it can be changed
 #: templates/account/handle-field.php:47
-#: templates/account/handle.php:36
 #, php-format
 msgid "You changed it recently. You can change it again on %s."
 msgstr "L’hai cambiato da poco. Potrai cambiarlo di nuovo il %s."
@@ -2825,7 +2826,7 @@ msgstr "Oppure usa:"
 msgid "Lost the phone and the email? Use one of your backup codes: they go in the same box."
 msgstr "Hai perso il telefono e l’e-mail? Usa uno dei tuoi codici di riserva: vanno nella stessa casella."
 
-#: includes/admin-login.php:952
+#: includes/admin-login.php:953
 #: templates/login.php:38
 msgid "Check your email"
 msgstr "Guarda la tua e-mail"
@@ -2840,7 +2841,7 @@ msgstr "Abbiamo mandato un link di accesso a"
 msgid "Click the link and you are in. It expires in %d minutes and works once."
 msgstr "Clicca il link e sei dentro. Scade tra %d minuti e vale una volta sola."
 
-#: includes/admin-login.php:959
+#: includes/admin-login.php:960
 #: templates/login.php:67
 #: templates/register.php:31
 msgid "Did not arrive? Check your spam or promotions folder."
@@ -3011,12 +3012,12 @@ msgid "Username and password"
 msgstr "Nome utente e password"
 
 #: includes/admin-login.php:240
-#: includes/admin-login.php:645
+#: includes/admin-login.php:646
 msgid "A social account"
 msgstr "Un account social"
 
 #: includes/admin-login.php:250
-#: includes/admin-login.php:660
+#: includes/admin-login.php:661
 msgid "A passkey"
 msgstr "Una passkey"
 
@@ -3114,15 +3115,15 @@ msgstr "Tutti quelli che hanno un account, o solo i ruoli spuntati. Chi non ha e
 msgid "The dashboard profile"
 msgstr "Il profilo della bacheca"
 
-#: includes/admin-account.php:1002
+#: includes/admin-account.php:999
 msgid "Leave it as WordPress ships it"
 msgstr "Lasciarlo come lo fornisce WordPress"
 
-#: includes/admin-account.php:1009
+#: includes/admin-account.php:1006
 msgid "Send people to their account on the site instead"
 msgstr "Mandarli al loro account sul sito"
 
-#: includes/admin-account.php:1022
+#: includes/admin-account.php:1019
 msgid "For whom"
 msgstr "A chi"
 
@@ -3142,7 +3143,7 @@ msgstr "Con copertina"
 msgid "The person on a coloured band the full width of the window, with the menu in a bar of its own underneath. The way a profile looks."
 msgstr "La persona su una fascia colorata larga quanto la finestra, con il menu in una barra propria sotto. Come appare un profilo."
 
-#: includes/admin-account.php:927
+#: includes/admin-account.php:924
 #: includes/admin-social.php:677
 msgid "The account area"
 msgstr "L'area account"
@@ -3321,153 +3322,153 @@ msgstr "La riga sotto il titolo"
 msgid "Optional. One sentence saying what this section is for, under its title."
 msgstr "Facoltativa. Una frase che dica a cosa serve questa sezione, sotto il suo titolo."
 
-#: includes/admin-login.php:900
+#: includes/admin-login.php:901
 msgid "The sentences on the sign-in screen. Leave a box empty and the plugin says its own, which is what the grey text in each box shows — so a site that changes nothing still reads correctly, and changing one is never a step somebody has to remember."
 msgstr "Le frasi della schermata di accesso. Lascia un campo vuoto e il plugin dice la sua, quella che si vede in grigio dentro ogni campo — così un sito che non cambia nulla si legge comunque bene, e cambiarne una non è mai un passaggio da ricordare."
 
 #: includes/admin-design.php:315
-#: includes/admin-login.php:923
-#: includes/admin-login.php:1073
+#: includes/admin-login.php:924
+#: includes/admin-login.php:1074
 msgid "The heading"
 msgstr "Il titolo"
 
-#: includes/admin-login.php:925
+#: includes/admin-login.php:926
 msgid "Writing one shows it even when the shortcode was not asked for a heading: naming this screen is meant to be read."
 msgstr "Scriverne uno lo mostra anche se allo shortcode non è stato chiesto un titolo: dare un nome a questa schermata serve perché venga letto."
 
 #: includes/admin-design.php:321
-#: includes/admin-login.php:930
+#: includes/admin-login.php:931
 msgid "The line under it"
 msgstr "La riga sotto"
 
-#: includes/admin-login.php:932
+#: includes/admin-login.php:933
 msgid "Nothing by default. This is where a site says something like “if it is your first time, the account is created in the same step”."
 msgstr "Niente per impostazione predefinita. Qui è dove un sito dice qualcosa come «se è la prima volta, l'account viene creato nello stesso passaggio»."
 
-#: includes/admin-login.php:937
+#: includes/admin-login.php:938
 msgid "The terms line"
 msgstr "La riga delle condizioni"
 
-#: includes/admin-login.php:939
+#: includes/admin-login.php:940
 msgid "Goes under the form, small. On a site where signing in also creates the account, this is the only place the rules can be stated — there is no separate registration form to put them on."
 msgstr "Va sotto il modulo, in piccolo. Su un sito dove entrare crea anche l'account, questo è l'unico posto in cui si possono enunciare le regole: non c'è un modulo di registrazione separato dove metterle."
 
 #. translators: %s: an example of a link, literal HTML
-#: includes/admin-login.php:942
+#: includes/admin-login.php:943
 #, php-format
 msgid "Links are allowed, and they are the point: %s"
 msgstr "I link sono ammessi, ed è proprio il punto: %s"
 
-#: includes/admin-login.php:943
+#: includes/admin-login.php:944
 msgid "terms"
 msgstr "condizioni"
 
-#: includes/admin-login.php:951
+#: includes/admin-login.php:952
 msgid "After the link is sent"
 msgstr "Dopo che il link è stato inviato"
 
-#: includes/admin-login.php:953
+#: includes/admin-login.php:954
 msgid "The screen somebody lands on once the e-mail is on its way."
 msgstr "La schermata su cui si arriva una volta che l'e-mail è partita."
 
-#: includes/admin-login.php:958
+#: includes/admin-login.php:959
 msgid "And the note under it"
 msgstr "E la nota sotto"
 
-#: includes/admin-login.php:976
+#: includes/admin-login.php:977
 msgid "In the page"
 msgstr "Nella pagina"
 
-#: includes/admin-login.php:977
+#: includes/admin-login.php:978
 msgid "The form where the theme put it, with nothing around it. For a site that already designed this page."
 msgstr "Il modulo dove lo ha messo il tema, senza nulla attorno. Per un sito che questa pagina l'ha già disegnata."
 
-#: includes/admin-login.php:981
+#: includes/admin-login.php:982
 msgid "A centred card"
 msgstr "Una scheda centrata"
 
-#: includes/admin-login.php:982
+#: includes/admin-login.php:983
 msgid "The form in a box in the middle of the page. The safe answer when there is no design for this screen."
 msgstr "Il modulo in un riquadro al centro della pagina. La risposta sicura quando per questa schermata non c'è un disegno."
 
-#: includes/admin-login.php:986
+#: includes/admin-login.php:987
 msgid "Split with a picture"
 msgstr "Divisa, con un'immagine"
 
-#: includes/admin-login.php:987
+#: includes/admin-login.php:988
 msgid "Half the window is a picture and the other half is the form. On a phone the picture goes and the form stays."
 msgstr "Metà finestra è un'immagine e l'altra metà è il modulo. Sul telefono l'immagine se ne va e il modulo resta."
 
-#: includes/admin-login.php:991
+#: includes/admin-login.php:992
 msgid "On a full background"
 msgstr "Su uno sfondo pieno"
 
-#: includes/admin-login.php:992
+#: includes/admin-login.php:993
 msgid "The picture behind everything and the form on top of it, darkened enough to stay readable."
 msgstr "L'immagine dietro a tutto e il modulo sopra, scurita quanto basta per restare leggibile."
 
-#: includes/admin-login.php:1018
+#: includes/admin-login.php:1019
 msgid "The shape of the page"
 msgstr "La forma della pagina"
 
-#: includes/admin-login.php:1016
+#: includes/admin-login.php:1017
 msgid "What surrounds the form. Three of the four take over the page, edge to edge; the first leaves it exactly where your theme put it."
 msgstr "Cosa circonda il modulo. Tre delle quattro prendono la pagina intera, da bordo a bordo; la prima lo lascia esattamente dove lo ha messo il tuo tema."
 
-#: includes/admin-login.php:1035
+#: includes/admin-login.php:1036
 msgid "The picture"
 msgstr "L'immagine"
 
-#: includes/admin-login.php:1037
+#: includes/admin-login.php:1038
 msgid "Used by the two templates that have one. It is decoration, so it carries no alternative text: nothing that has to be read should live in it."
 msgstr "La usano i due modelli che ne hanno una. È decorazione, quindi non porta testo alternativo: nulla che debba essere letto dovrebbe viverci dentro."
 
-#: includes/admin-login.php:1040
+#: includes/admin-login.php:1041
 msgid "Which side"
 msgstr "Da che lato"
 
-#: includes/admin-login.php:1046
+#: includes/admin-login.php:1047
 msgid "Picture on the left, form on the right"
 msgstr "Immagine a sinistra, modulo a destra"
 
-#: includes/admin-login.php:1052
+#: includes/admin-login.php:1053
 msgid "Picture on the right, form on the left"
 msgstr "Immagine a destra, modulo a sinistra"
 
-#: includes/admin-login.php:1055
+#: includes/admin-login.php:1056
 msgid "Only the split template uses this."
 msgstr "Questo lo usa solo il modello diviso."
 
 #: includes/admin-appearance.php:692
-#: includes/admin-login.php:1102
+#: includes/admin-login.php:1103
 msgid "Your mark"
 msgstr "Il tuo marchio"
 
-#: includes/admin-login.php:1119
+#: includes/admin-login.php:1120
 msgid "Even with everybody sent to the page above, this one is still shown to somebody: an administrator coming in through the emergency door, and anybody finishing a password reset — WordPress builds that link and it goes here and nowhere else. Left alone it is a grey box with the WordPress logo on it."
 msgstr "Anche mandando tutti alla pagina qui sopra, questa continua a vederla qualcuno: un amministratore che entra dalla porta d'emergenza, e chiunque stia finendo una reimpostazione della password — quel link lo costruisce WordPress e porta qui e da nessun'altra parte. Senza toccarla è un riquadro grigio con sopra il logo di WordPress."
 
-#: includes/admin-login.php:1128
+#: includes/admin-login.php:1129
 msgid "Put the site’s name, mark and colour on wp-login.php"
 msgstr "Mettere il nome, il marchio e il colore del sito su wp-login.php"
 
-#: includes/admin-login.php:1129
+#: includes/admin-login.php:1130
 msgid "Off by default: a plugin that repaints a screen nobody asked it about is a plugin that gets blamed for the repaint."
 msgstr "Spento per impostazione predefinita: un plugin che ridipinge una schermata su cui nessuno gli ha chiesto nulla è un plugin a cui daranno la colpa della ridipintura."
 
-#: includes/admin-login.php:1134
+#: includes/admin-login.php:1135
 msgid "The mark there"
 msgstr "Il marchio lì"
 
-#: includes/admin-login.php:1136
+#: includes/admin-login.php:1137
 msgid "Replaces the WordPress logo above the box. Without one, the site’s name is written there instead — which is still better than somebody else’s logo."
 msgstr "Sostituisce il logo di WordPress sopra il riquadro. Senza immagine, al suo posto viene scritto il nome del sito — che è comunque meglio del logo di qualcun altro."
 
-#: includes/admin-login.php:1138
+#: includes/admin-login.php:1139
 msgid "The colour there"
 msgstr "Il colore lì"
 
-#: includes/admin-login.php:1142
+#: includes/admin-login.php:1143
 msgid "Left as the accent colour it follows the accent, instead of becoming a second colour that drifts from the first."
 msgstr "Lasciato sul colore d'accento, segue l'accento invece di diventare un secondo colore che si stacca dal primo."
 
@@ -3513,6 +3514,7 @@ msgid "Copy any file from the plugin’s templates/ folder into the folder below
 msgstr "Copia qualunque file dalla cartella templates/ del plugin nella cartella qui sotto e modificalo lì. Il plugin userà il tuo."
 
 #: includes/admin-design.php:316
+#: includes/pages.php:36
 #: templates/register.php:47
 msgid "Create your account"
 msgstr "Crea il tuo account"
@@ -3951,7 +3953,7 @@ msgid "The name comes from their first and last name."
 msgstr "Il nome viene dal loro nome e cognome."
 
 #: includes/admin-account.php:846
-#: includes/admin-account.php:1031
+#: includes/admin-account.php:1028
 msgid "The WordPress toolbar"
 msgstr "La barra degli strumenti di WordPress"
 
@@ -3983,57 +3985,51 @@ msgstr "Quale pagina è “il mio account”. Dichiararla qui è ciò che permet
 msgid "— None: this site has no account area —"
 msgstr "— Nessuna: questo sito non ha un’area account —"
 
-#. translators: %s: the shortcode, literal
-#: includes/admin-account.php:906
-#, php-format
-msgid "The page with %s in it."
-msgstr "La pagina che contiene %s."
-
-#: includes/admin-account.php:945
+#: includes/admin-account.php:942
 msgid "Links to “my account” from the rest of the site go to the front page."
 msgstr "I link a “il mio account” dal resto del sito vanno alla pagina iniziale."
 
-#: includes/admin-account.php:947
+#: includes/admin-account.php:944
 msgid "The shortcode still works wherever somebody puts it."
 msgstr "Lo shortcode continua a funzionare ovunque qualcuno lo metta."
 
-#: includes/admin-account.php:989
+#: includes/admin-account.php:986
 msgid "Two things WordPress shows to anybody signed in — its own profile screen and its toolbar — that a site with an account area of its own may not want."
 msgstr "Due cose che WordPress mostra a chiunque abbia effettuato l’accesso — la sua schermata del profilo e la sua barra degli strumenti — che un sito con un’area account propria potrebbe non volere."
 
-#: includes/admin-account.php:992
+#: includes/admin-account.php:989
 msgid "The dashboard profile (wp-admin/profile.php)"
 msgstr "Il profilo della bacheca (wp-admin/profile.php)"
 
-#: includes/admin-account.php:1016
+#: includes/admin-account.php:1013
 msgid "Close it — their details are edited on the site only"
 msgstr "Chiuderlo — i dati si modificano solo sul sito"
 
-#: includes/admin-account.php:1026
+#: includes/admin-account.php:1023
 msgid "Whoever can edit users is never reached: they are the person who has to be able to fix what broke, and the dashboard profile is where it gets fixed."
 msgstr "Chi può modificare gli utenti non è mai toccato: è la persona che deve poter sistemare quello che si è rotto, e il profilo della bacheca è dove si sistema."
 
-#: includes/admin-account.php:1041
+#: includes/admin-account.php:1038
 msgid "Show it to everybody, as WordPress does"
 msgstr "Mostrarla a tutti, come fa WordPress"
 
-#: includes/admin-account.php:1048
+#: includes/admin-account.php:1045
 msgid "Hide it on the site for everybody"
 msgstr "Nasconderla sul sito per tutti"
 
-#: includes/admin-account.php:1055
+#: includes/admin-account.php:1052
 msgid "Hide it on the site only for some roles"
 msgstr "Nasconderla sul sito solo per alcuni ruoli"
 
-#: includes/admin-account.php:1076
+#: includes/admin-account.php:1073
 msgid "— always keeps it"
 msgstr "— la conserva sempre"
 
-#: includes/admin-account.php:1111
+#: includes/admin-account.php:1108
 msgid "Whoever can edit users always keeps it, whatever is chosen above"
 msgstr "Chi può modificare gli utenti la conserva sempre, qualunque cosa si scelga sopra"
 
-#: includes/admin-account.php:1127
+#: includes/admin-account.php:1124
 msgid "Their name, their picture and “Edit profile” lead to the account page instead of the dashboard."
 msgstr "Il nome, la foto e “Modifica profilo” portano alla pagina dell’account invece che alla bacheca."
 
@@ -4069,7 +4065,7 @@ msgstr "Accesso › Riepilogo →"
 #: includes/admin-login.php:50
 #: includes/admin-login.php:206
 #: includes/admin-login.php:383
-#: includes/admin-login.php:509
+#: includes/admin-login.php:510
 #: includes/admin-social.php:672
 msgid "The sign-in page"
 msgstr "La pagina di accesso"
@@ -4101,7 +4097,7 @@ msgid "Closed: on this site a password opens nothing."
 msgstr "Chiuso: su questo sito una password non apre niente."
 
 #: includes/admin-login.php:242
-#: includes/admin-login.php:648
+#: includes/admin-login.php:649
 #: includes/admin-register.php:245
 msgid "no provider is working yet"
 msgstr "nessun provider funziona ancora"
@@ -4168,31 +4164,31 @@ msgstr "Ogni modo di entrare in questo sito e lo stato in cui si trova ciascuno,
 msgid "— None: wp-login.php does the job —"
 msgstr "— Nessuna: il lavoro lo fa wp-login.php —"
 
-#: includes/admin-login.php:397
+#: includes/admin-login.php:398
 msgid "With none chosen, everybody signs in on wp-login.php and nothing below applies."
 msgstr "Senza nessuna scelta, tutti accedono da wp-login.php e niente di quanto segue si applica."
 
-#: includes/admin-login.php:400
+#: includes/admin-login.php:401
 msgid "What happens to wp-login.php"
 msgstr "Cosa succede a wp-login.php"
 
-#: includes/admin-login.php:405
+#: includes/admin-login.php:406
 msgid "There is no sign-in page to send anybody to. What is chosen here waits for one."
 msgstr "Non c’è una pagina di accesso a cui mandare nessuno. Quello che si sceglie qui ne aspetta una."
 
-#: includes/admin-login.php:414
+#: includes/admin-login.php:415
 msgid "Send everybody to the sign-in page above"
 msgstr "Manda tutti alla pagina di accesso qui sopra"
 
-#: includes/admin-login.php:421
+#: includes/admin-login.php:422
 msgid "Keep it as a second sign-in screen"
 msgstr "Tienilo come seconda schermata di accesso"
 
-#: includes/admin-login.php:428
+#: includes/admin-login.php:429
 msgid "Send people to the page only while the e-mail link is the only way in"
 msgstr "Manda le persone alla pagina solo finché il link via e-mail è l’unico modo di entrare"
 
-#: includes/admin-login.php:491
+#: includes/admin-login.php:492
 msgid "How wp-login.php looks"
 msgstr "Come appare wp-login.php"
 
@@ -4200,23 +4196,23 @@ msgstr "Come appare wp-login.php"
 msgid "Change it →"
 msgstr "Cambialo →"
 
-#: includes/admin-login.php:574
+#: includes/admin-login.php:575
 msgid "Wait between two requests"
 msgstr "Attesa tra due richieste"
 
-#: includes/admin-login.php:577
+#: includes/admin-login.php:578
 msgid "seconds, for the same address"
 msgstr "secondi, per lo stesso indirizzo"
 
-#: includes/admin-login.php:579
+#: includes/admin-login.php:580
 msgid "Stops the form being used as a machine for e-mailing third parties."
 msgstr "Evita che il modulo venga usato come macchina per mandare e-mail a terzi."
 
-#: includes/admin-login.php:589
+#: includes/admin-login.php:590
 msgid "Turn them on →"
 msgstr "Accendili →"
 
-#: includes/admin-login.php:604
+#: includes/admin-login.php:605
 msgid "The link still goes to the address on the account, never to what was typed. It only saves people from remembering which address they used."
 msgstr "Il link va comunque all’indirizzo dell’account, mai a quello che è stato scritto. Serve solo a risparmiare alle persone di ricordare quale indirizzo hanno usato."
 
@@ -4272,33 +4268,33 @@ msgstr "Accedere con il link via e-mail crea l’account"
 msgid "Signing in with a social account creates the account"
 msgstr "Accedere con un account social crea l’account"
 
-#: includes/admin-register.php:286
+#: includes/admin-register.php:287
 msgid "WordPress’s own form (wp-login.php?action=register)"
 msgstr "Il modulo proprio di WordPress (wp-login.php?action=register)"
 
-#: includes/admin-register.php:277
-msgid "The page with the [diluxone_users_register] shortcode. What the form says is on Design → Registration."
-msgstr "La pagina con lo shortcode [diluxone_users_register]. Quello che dice il modulo è in Design → Registrazione."
+#: includes/admin-register.php:278
+msgid "The form appears on this page, below whatever the page already says. What the form says is on Design → Registration."
+msgstr "Il modulo compare in questa pagina, sotto quello che la pagina già contiene. Quello che dice il modulo è in Design → Registrazione."
 
-#: includes/admin-register.php:340
+#: includes/admin-register.php:341
 msgid "Role of new accounts"
 msgstr "Ruolo dei nuovi account"
 
-#: includes/admin-register.php:369
+#: includes/admin-register.php:370
 msgid "What the form asks for"
 msgstr "Cosa chiede il modulo"
 
-#: includes/admin-register.php:372
+#: includes/admin-register.php:373
 msgid "Only the e-mail address: no field is marked as required."
 msgstr "Solo l’indirizzo e-mail: nessun campo è segnato come obbligatorio."
 
 #. translators: %s: the required fields, separated by dots
-#: includes/admin-register.php:376
+#: includes/admin-register.php:377
 #, php-format
 msgid "The address, plus: %s"
 msgstr "L’indirizzo, più: %s"
 
-#: includes/admin-register.php:380
+#: includes/admin-register.php:381
 msgid "Only the required ones, on purpose: a form that asks for everything is a form nobody finishes. The rest waits in their account. The e-mail is the username and never changes; there is no password unless the person sets one."
 msgstr "Solo quelli obbligatori, di proposito: un modulo che chiede tutto è un modulo che nessuno finisce. Il resto aspetta nel loro account. L’e-mail è il nome utente e non cambia mai; non c’è password a meno che la persona non ne imposti una."
 
@@ -4448,27 +4444,27 @@ msgstr "“Chiunque può registrarsi” è spento e bloccato: su questo sito il 
 msgid "Open it →"
 msgstr "Aprilo →"
 
-#: includes/admin-login.php:904
+#: includes/admin-login.php:905
 msgid "The envelope on “check your email”"
 msgstr "La busta su “Guarda la tua e-mail”"
 
-#: includes/admin-login.php:910
+#: includes/admin-login.php:911
 msgid "On its own"
 msgstr "Da sola"
 
-#: includes/admin-login.php:916
+#: includes/admin-login.php:917
 msgid "In a circle of washed colour"
 msgstr "In un cerchio di colore slavato"
 
-#: includes/admin-login.php:1109
+#: includes/admin-login.php:1110
 msgid "The site’s logo, above the form in every template."
 msgstr "Il logo del sito, sopra il modulo in ogni template."
 
-#: includes/admin-login.php:1110
+#: includes/admin-login.php:1111
 msgid "None yet."
 msgstr "Ancora nessuno."
 
-#: includes/admin-login.php:1112
+#: includes/admin-login.php:1113
 msgid "It is set on Your brand →"
 msgstr "Si imposta in Il tuo marchio →"
 
@@ -4597,79 +4593,79 @@ msgstr "Ricordare un browser"
 msgid "For how long"
 msgstr "Per quanto tempo"
 
-#: includes/admin-account.php:993
+#: includes/admin-account.php:990
 msgid "It does not know about the required fields or the edit limits set up here. Two screens for the same data is how somebody ends up editing their name in one and their phone in the other, under different rules."
 msgstr "Non sa niente dei campi obbligatori né dei limiti di modifica impostati qui. Due schermate per gli stessi dati sono il modo in cui qualcuno finisce per modificare il nome in una e il telefono nell’altra, con regole diverse."
 
-#: includes/admin-account.php:1003
+#: includes/admin-account.php:1000
 msgid "Anybody who can reach the dashboard edits their details there as well as on the site."
 msgstr "Chi arriva alla bacheca modifica i propri dati lì oltre che sul sito."
 
-#: includes/admin-account.php:1010
+#: includes/admin-account.php:1007
 msgid "Opening it lands them on the account page. One screen for their details, and it is the one this plugin knows the rules of."
 msgstr "Aprirla li porta alla pagina dell’account. Una sola schermata per i loro dati, ed è quella di cui questo plugin conosce le regole."
 
-#: includes/admin-account.php:1017
+#: includes/admin-account.php:1014
 msgid "The screen answers that it is not available. For a site where the dashboard is not part of what people were given."
 msgstr "La schermata risponde che non è disponibile. Per un sito in cui la bacheca non fa parte di quello che è stato dato alle persone."
 
-#: includes/admin-account.php:1032
+#: includes/admin-account.php:1029
 msgid "The black strip across the top of the site. Hiding it locks nobody out — /wp-admin stays open — which is why this is a choice and not a rule."
 msgstr "La striscia nera in cima al sito. Nasconderla non chiude fuori nessuno — /wp-admin resta aperto — ed è per questo che è una scelta e non una regola."
 
-#: includes/admin-account.php:1042
+#: includes/admin-account.php:1039
 msgid "Whoever is signed in sees the strip on the site, with the way back to the dashboard in it."
 msgstr "Chi ha effettuato l’accesso vede la striscia sul sito, con dentro la strada di ritorno alla bacheca."
 
-#: includes/admin-account.php:1049
+#: includes/admin-account.php:1046
 msgid "The site looks the same signed in as signed out. The dashboard keeps its own toolbar."
 msgstr "Il sito ha lo stesso aspetto con e senza accesso. La bacheca mantiene la propria barra degli strumenti."
 
-#: includes/admin-account.php:1056
+#: includes/admin-account.php:1053
 msgid "The usual answer for a site with members: the strip goes for them and stays for whoever runs the place."
 msgstr "La risposta abituale per un sito con soci: la striscia sparisce per loro e resta per chi gestisce il posto."
 
-#: includes/admin-account.php:1063
+#: includes/admin-account.php:1060
 msgid "The roles it is hidden from"
 msgstr "I ruoli a cui viene nascosta"
 
-#: includes/admin-account.php:1091
+#: includes/admin-account.php:1088
 msgid "Nothing ticked and the strip stays for everybody, which is the same as the first answer."
 msgstr "Senza niente spuntato la striscia resta per tutti, che è come la prima risposta."
 
-#: includes/admin-account.php:1103
+#: includes/admin-account.php:1100
 msgid "The exception"
 msgstr "L’eccezione"
 
-#: includes/admin-account.php:1112
+#: includes/admin-account.php:1109
 msgid "It is on because the person who administers the site is the one who most needs the way back."
 msgstr "È acceso perché la persona che amministra il sito è quella che ha più bisogno della strada di ritorno."
 
-#: includes/admin-account.php:1118
+#: includes/admin-account.php:1115
 msgid "Its user menu"
 msgstr "Il suo menu utente"
 
-#: includes/admin-account.php:1126
+#: includes/admin-account.php:1123
 msgid "While the toolbar is shown, its user menu points at the account area"
 msgstr "Finché la barra degli strumenti è mostrata, il suo menu utente punta all’area account"
 
-#: includes/admin-account.php:1369
+#: includes/admin-account.php:1366
 msgid "What people can do with their data"
 msgstr "Cosa possono fare le persone con i propri dati"
 
-#: includes/admin-account.php:1370
+#: includes/admin-account.php:1367
 msgid "This is what the section holds. With neither of them on there is nothing in it, and it is not shown."
 msgstr "Questo è ciò che contiene la sezione. Senza nessuno dei due acceso non c’è niente dentro, e non viene mostrata."
 
-#: includes/admin-account.php:1385
+#: includes/admin-account.php:1382
 msgid "The export WordPress already knows how to make: it asks the person to confirm by email and leaves the file ready."
 msgstr "L’esportazione che WordPress sa già fare: chiede alla persona di confermare via e-mail e lascia il file pronto."
 
-#: includes/admin-account.php:1393
+#: includes/admin-account.php:1390
 msgid "Confirmed by email too, and never for an account that administers the site: it would leave the site with nobody in charge."
 msgstr "Confermata anche questa via e-mail, e mai per un account che amministra il sito: lascerebbe il sito senza nessuno al comando."
 
-#: includes/admin-account.php:1398
+#: includes/admin-account.php:1395
 msgid "Save what they can do"
 msgstr "Salva cosa possono fare"
 
@@ -4732,56 +4728,56 @@ msgid "Unticked it leaves every form and keeps both its definition and everythin
 msgstr "Non spuntato esce da tutti i moduli e conserva sia la sua definizione sia tutto ciò che è già stato risposto, in attesa del giorno in cui torna."
 
 #: includes/admin-login.php:381
-msgid "The page holding the sign-in form, and what becomes of wp-login.php. Put the [diluxone_users_login] shortcode on the page you pick."
-msgstr "La pagina che contiene il modulo di accesso, e che fine fa wp-login.php. Metti lo shortcode [diluxone_users_login] nella pagina che scegli."
+msgid "The page holding the sign-in form, and what becomes of wp-login.php. The form appears on the page you pick, below whatever the page already says."
+msgstr "La pagina che contiene il modulo di accesso, e che fine fa wp-login.php. Il modulo compare nella pagina che scegli, sotto quello che la pagina già contiene."
 
-#: includes/admin-login.php:401
+#: includes/admin-login.php:402
 msgid "wp-login.php is the sign-in screen WordPress brings with it, at /wp-login.php: the grey box with the logo on it that everybody has seen. It keeps working whatever is chosen here — what changes is whether anybody still lands on it."
 msgstr "wp-login.php è la schermata di accesso che porta con sé WordPress, su /wp-login.php: la scatola grigia con il logo che tutti hanno visto. Continua a funzionare qualunque cosa si scelga qui: quello che cambia è se qualcuno ci finisce ancora sopra."
 
-#: includes/admin-login.php:415
+#: includes/admin-login.php:416
 msgid "wp-login.php stops being a screen: an old bookmark, a plugin’s link or its “register” link all land on this site’s own pages. Whoever administers the site keeps the emergency way in on the Summary tab."
 msgstr "wp-login.php smette di essere una schermata: un vecchio segnalibro, il link di un plugin o il suo link «registrati» finiscono tutti sulle pagine proprie del sito. Chi amministra il sito conserva l’entrata di emergenza nella scheda Riepilogo."
 
-#: includes/admin-login.php:422
+#: includes/admin-login.php:423
 msgid "The site has two screens that sign people in: yours, and the one WordPress brings. Anybody arriving on wp-login.php from a bookmark or a plugin sees the second."
 msgstr "Il sito ha due schermate che fanno entrare le persone: la tua e quella che porta WordPress. Chi arriva su wp-login.php da un segnalibro o da un plugin vede la seconda."
 
-#: includes/admin-login.php:429
+#: includes/admin-login.php:430
 msgid "While a password still opens something here, wp-login.php is left alone. The day the link is the only way in, its form could not work anyway."
 msgstr "Finché una password apre ancora qualcosa qui, wp-login.php viene lasciato in pace. Il giorno in cui il link sarà l’unico modo di entrare, il suo modulo non potrebbe funzionare comunque."
 
-#: includes/admin-login.php:435
+#: includes/admin-login.php:436
 msgid "If somebody forgets their password"
 msgstr "Se qualcuno dimentica la password"
 
-#: includes/admin-login.php:440
+#: includes/admin-login.php:441
 msgid "There is no password on this site, so there is nothing to forget. What is chosen here waits for one."
 msgstr "Su questo sito non c’è password, quindi non c’è niente da dimenticare. Quello che si sceglie qui aspetta che ce ne sia una."
 
-#: includes/admin-login.php:468
+#: includes/admin-login.php:469
 msgid "the e-mail link is not one of the ways in, so this sends them nowhere they can use"
 msgstr "il link via e-mail non è uno dei modi di entrare, quindi questo li manda in un posto che non possono usare"
 
-#: includes/admin-login.php:627
+#: includes/admin-login.php:628
 msgid "Other ways in"
 msgstr "Altri modi di entrare"
 
-#: includes/admin-login.php:629
+#: includes/admin-login.php:630
 msgid "The buttons under the form. Off, they go, and whoever already linked a social account keeps it and can unlink it from their account."
 msgstr "I pulsanti sotto il modulo. Spenti, spariscono, e chi ha già collegato un account social lo mantiene e può scollegarlo dal proprio account."
 
 #. translators: %s: providers working, comma separated
-#: includes/admin-login.php:634
+#: includes/admin-login.php:635
 #, php-format
 msgid "Working right now: %s. Off, the buttons go, and whoever already linked a social account keeps it."
 msgstr "Funzionanti adesso: %s. Spenti, i pulsanti spariscono, e chi ha già collegato un account social lo mantiene."
 
-#: includes/admin-login.php:661
+#: includes/admin-login.php:662
 msgid "A key that stays on the person’s device or keychain: nothing to type, nothing to phish, and it counts as both steps at once."
 msgstr "Una chiave che resta sul dispositivo o nel portachiavi della persona: niente da scrivere, niente da phishare, e vale tutti e due i passaggi insieme."
 
-#: includes/admin-login.php:663
+#: includes/admin-login.php:664
 msgid "this site is not on HTTPS, and browsers refuse passkeys until it is"
 msgstr "questo sito non è in HTTPS, e i browser rifiutano le passkey finché non lo è"
 
@@ -4852,15 +4848,15 @@ msgstr "La pagina che lo contiene"
 msgid "— Choose one —"
 msgstr "— Scegline una —"
 
-#: includes/admin-register.php:274
+#: includes/admin-register.php:275
 msgid "Without a page nobody can reach the form, so this door is not open yet."
 msgstr "Senza una pagina nessuno può arrivare al modulo, quindi questa porta non è ancora aperta."
 
-#: includes/admin-register.php:287
+#: includes/admin-register.php:288
 msgid "The same switch as Settings → General → “Anyone can register”: changing it here or there changes both."
 msgstr "Lo stesso interruttore di Impostazioni → Generali → «Chiunque può registrarsi»: cambiarlo qui o lì cambia entrambi."
 
-#: includes/admin-register.php:289
+#: includes/admin-register.php:290
 msgid "locked: the e-mail link is the only way in, and that form hands out passwords"
 msgstr "chiuso a chiave: il link via e-mail è l’unico modo di entrare, e quel modulo distribuisce password"
 
@@ -4925,35 +4921,35 @@ msgstr "Qui non c’è niente da scegliere: questo sito decide cosa manda. Quest
 msgid "Always sent"
 msgstr "Mandato sempre"
 
-#: includes/admin-login.php:436
+#: includes/admin-login.php:437
 msgid "Forgetting a password is about changing it, not about getting in. This is where the new one is typed — or whether one is typed at all."
 msgstr "Dimenticare la password riguarda cambiarla, non entrare. Qui si decide dove si scrive quella nuova — o se se ne scrive una."
 
-#: includes/admin-login.php:449
+#: includes/admin-login.php:450
 msgid "WordPress’s screen"
 msgstr "La schermata di WordPress"
 
-#: includes/admin-login.php:450
+#: includes/admin-login.php:451
 msgid "They ask for a reset e-mail on wp-login.php, and the link in it lands on wp-login.php to type the new password. Two screens that look like WordPress, at the moment somebody is worried about their account."
 msgstr "Chiedono l’e-mail di reimpostazione su wp-login.php, e il link che arriva finisce su wp-login.php per scrivere la password nuova. Due schermate con la faccia di WordPress, proprio quando qualcuno è preoccupato per il proprio account."
 
-#: includes/admin-login.php:456
+#: includes/admin-login.php:457
 msgid "This site’s screen"
 msgstr "La schermata di questo sito"
 
-#: includes/admin-login.php:457
+#: includes/admin-login.php:458
 msgid "They still ask on WordPress’s form — it is the only place that sends the e-mail — but the link lands on your sign-in page, and the new password is typed there, in your design."
 msgstr "Continuano a chiederlo sul modulo di WordPress — è l’unico posto che manda l’e-mail — ma il link atterra sulla tua pagina di accesso, e la password nuova si scrive lì, con il tuo design."
 
-#: includes/admin-login.php:459
+#: includes/admin-login.php:460
 msgid "there is no sign-in page to land on yet"
 msgstr "non c’è ancora una pagina di accesso su cui atterrare"
 
-#: includes/admin-login.php:465
+#: includes/admin-login.php:466
 msgid "Nowhere: “I forgot my password” leads to the sign-in page"
 msgstr "Da nessuna parte: «Ho dimenticato la password» porta alla pagina di accesso"
 
-#: includes/admin-login.php:466
+#: includes/admin-login.php:467
 msgid "Nothing is reset and the password is left as it was. On a site where a link already opens the door, a reset asks for the same address to send a second e-mail doing what the first one does."
 msgstr "Non viene reimpostato nulla e la password resta com’era. In un sito dove un link apre già la porta, una reimpostazione chiede lo stesso indirizzo per mandare una seconda e-mail che fa quello che fa la prima."
 
@@ -4965,27 +4961,27 @@ msgstr "Dietro tutta l’area"
 msgid "The shade the area sits on. Unticked it sits on whatever the page is, which is what it always did — and on a white page white boxes have no edge, so this is how they get one."
 msgstr "Il tono su cui poggia l’area. Non spuntato, poggia su quello che è la pagina, che è ciò che ha sempre fatto — e su una pagina bianca le scatole bianche non hanno bordo, quindi è qui che ne prendono uno."
 
-#: includes/admin-login.php:1059
+#: includes/admin-login.php:1060
 msgid "What the panel says"
 msgstr "Cosa dice il pannello"
 
-#: includes/admin-login.php:1060
+#: includes/admin-login.php:1061
 msgid "Half the window, with something written on it. Leave it all empty and the panel is the picture on its own, which is what it was. With a picture behind them the words get a shade over it so they stay readable, and with no picture they sit on the colour."
 msgstr "Metà della finestra, con qualcosa scritto sopra. Lascia tutto vuoto e il pannello è la foto da sola, che è quello che era. Con una foto dietro, le parole prendono un’ombra sopra per restare leggibili; senza foto, poggiano sul colore."
 
-#: includes/admin-login.php:1064
+#: includes/admin-login.php:1065
 msgid "Only the split template has a panel. What is written here waits for the day that is the shape chosen above."
 msgstr "Solo il modello diviso ha un pannello. Quello che si scrive qui aspetta il giorno in cui quella sarà la forma scelta sopra."
 
-#: includes/admin-login.php:1067
+#: includes/admin-login.php:1068
 msgid "The mark on it"
 msgstr "Il marchio sopra"
 
-#: includes/admin-login.php:1069
+#: includes/admin-login.php:1070
 msgid "It sits at the top of the panel. Rarely the same file as the one above the form: this one lands on a block of colour and usually has to be the light version."
 msgstr "Sta in cima al pannello. Raramente è lo stesso file di quello sopra il modulo: questo cade su un blocco di colore e quasi sempre deve essere la versione chiara."
 
-#: includes/admin-login.php:1074
+#: includes/admin-login.php:1075
 msgid ""
 "One account.\n"
 "No passwords."
@@ -4993,23 +4989,23 @@ msgstr ""
 "Un account.\n"
 "Nessuna password."
 
-#: includes/admin-login.php:1075
+#: includes/admin-login.php:1076
 msgid "One line per line. A heading on a panel is written in deliberate lines, not broken wherever the column happens to end."
 msgstr "Una riga per riga. Un titolo su un pannello si scrive in righe volute, non spezzato dove finisce la colonna."
 
-#: includes/admin-login.php:1081
+#: includes/admin-login.php:1082
 msgid "The paragraph under it"
 msgstr "Il paragrafo sotto"
 
-#: includes/admin-login.php:1082
+#: includes/admin-login.php:1083
 msgid "Sign in with the account you already have, or with a link we email you."
 msgstr "Entra con l’account che hai già, o con un link che ti mandiamo via e-mail."
 
-#: includes/admin-login.php:1089
+#: includes/admin-login.php:1090
 msgid "What they get"
 msgstr "Cosa ottengono"
 
-#: includes/admin-login.php:1090
+#: includes/admin-login.php:1091
 msgid ""
 "Everything on the site\n"
 "Your certificates\n"
@@ -5019,19 +5015,19 @@ msgstr ""
 "I tuoi attestati\n"
 "Un avviso quando andiamo in diretta"
 
-#: includes/admin-login.php:1091
+#: includes/admin-login.php:1092
 msgid "One per line, each with a tick beside it. Three or four: a panel is not a features page."
 msgstr "Uno per riga, ciascuno con il suo segno di spunta a fianco. Tre o quattro: un pannello non è una pagina di funzionalità."
 
-#: includes/admin-login.php:1097
+#: includes/admin-login.php:1098
 msgid "The line at the foot"
 msgstr "La riga in fondo"
 
-#: includes/admin-login.php:1098
+#: includes/admin-login.php:1099
 msgid "Already 25,000 of us."
 msgstr "Siamo già in 25.000."
 
-#: includes/admin-login.php:1099
+#: includes/admin-login.php:1100
 msgid "It holds the bottom of the panel. Somewhere for the one fact that makes signing up feel less like a form."
 msgstr "Regge il fondo del pannello. Un posto per il dato che fa sembrare l’iscrizione meno un modulo."
 
@@ -5047,7 +5043,7 @@ msgstr "0 per chiederlo ogni volta."
 msgid "Nothing to show right now."
 msgstr "Adesso non c’è niente da mostrare."
 
-#: includes/admin-account.php:1220
+#: includes/admin-account.php:1217
 msgid "What a name may be"
 msgstr "Come può essere un nome"
 
@@ -5103,51 +5099,51 @@ msgstr "modifiche, e poi si chiude"
 msgid "The sign-in form has to take at least one of these. A site nobody can sign in to is not a site, and the buttons underneath the form cannot stand in for it."
 msgstr "Il modulo di accesso deve accettare almeno uno di questi. Un sito in cui nessuno può entrare non è un sito, e i pulsanti sotto il modulo non lo sostituiscono."
 
-#: includes/admin-login.php:536
+#: includes/admin-login.php:537
 msgid "With what somebody who already has an account gets in. Every way in is a box: tick the ones this site offers. What each one does once it is on is set where that feature lives, and who gets an account at all is the Registration tab."
 msgstr "Con che cosa entra chi ha già un account. Ogni modo di entrare è una casella: spunta quelli che questo sito offre. Che cosa fa ciascuno una volta attivo si imposta dove vive quella funzione, e chi arriva ad avere un account è la scheda Registrazione."
 
-#: includes/admin-login.php:544
+#: includes/admin-login.php:545
 msgid "What the sign-in form takes"
 msgstr "Che cosa accetta il modulo di accesso"
 
-#: includes/admin-login.php:544
+#: includes/admin-login.php:545
 msgid "The form draws these two itself. Whatever else is switched on below sits under them, on the same screen."
 msgstr "Questi due li disegna il modulo da sé. Tutto il resto che attivi qui sotto sta sotto di loro, nella stessa schermata."
 
-#: includes/admin-login.php:555
+#: includes/admin-login.php:556
 msgid "A link e-mailed to the address on the account"
 msgstr "Un link via e-mail all’indirizzo dell’account"
 
-#: includes/admin-login.php:556
+#: includes/admin-login.php:557
 msgid "The form takes an address and sends a single-use link. Nothing to remember, and nothing on the site worth stealing."
 msgstr "Il modulo prende un indirizzo e manda un link usa e getta. Niente da ricordare, e sul sito niente che valga la pena rubare."
 
-#: includes/admin-login.php:587
+#: includes/admin-login.php:588
 msgid "Public names are off, so the box only takes the e-mail address."
 msgstr "I nomi pubblici sono disattivati, quindi il campo accetta solo l’indirizzo e-mail."
 
-#: includes/admin-login.php:594
+#: includes/admin-login.php:595
 msgid "What the box takes"
 msgstr "Che cosa accetta il campo"
 
-#: includes/admin-login.php:601
+#: includes/admin-login.php:602
 msgid "The public name as well as the e-mail address"
 msgstr "Il nome pubblico oltre all’indirizzo e-mail"
 
-#: includes/admin-login.php:613
+#: includes/admin-login.php:614
 msgid "A username and a password"
 msgstr "Un nome utente e una password"
 
-#: includes/admin-login.php:614
+#: includes/admin-login.php:615
 msgid "WordPress’s own form, under the link. Off, a password opens nothing here: wp-login.php stops showing its form and WordPress’s own registration is locked shut, because the account it hands out a password for could not use one."
 msgstr "Il modulo di WordPress, sotto il link. Disattivato, qui una password non apre niente: wp-login.php smette di mostrare il suo modulo e la registrazione di WordPress resta chiusa a chiave, perché l’account per cui consegna una password non potrebbe usarla."
 
-#: includes/admin-login.php:627
+#: includes/admin-login.php:628
 msgid "Switched on here, one by one, and none of them is needed: they are buttons under the form above, not a replacement for it."
 msgstr "Si attivano qui, uno alla volta, e nessuno è necessario: sono pulsanti sotto il modulo qui sopra, non un sostituto."
 
-#: includes/admin-login.php:899
+#: includes/admin-login.php:900
 msgid "What the screen says"
 msgstr "Che cosa dice la schermata"
 
@@ -5245,23 +5241,23 @@ msgstr "Togliere un modo di entrare a questo account"
 msgid "With registration open, at least one of these has to be ticked: a door nobody can walk through is a closed door. Tick one, or say that nobody registers themselves."
 msgstr "Con la registrazione aperta, almeno una di queste deve essere spuntata: una porta da cui nessuno può passare è una porta chiusa. Spuntane una, o di’ che nessuno si iscrive da solo."
 
-#: includes/admin-register.php:301
+#: includes/admin-register.php:302
 msgid "Who can create an account on this site, and what that account is once it exists. First whether anybody can at all; then, if they can, through which doors — they are independent, and a site can open as many as it likes."
 msgstr "Chi può creare un account su questo sito, e che cos’è quell’account una volta che esiste. Prima se qualcuno può in assoluto; poi, se può, da quali porte — sono indipendenti, e un sito ne può aprire quante vuole."
 
-#: includes/admin-register.php:309
+#: includes/admin-register.php:310
 msgid "Nobody can register on their own"
 msgstr "Nessuno può iscriversi da solo"
 
-#: includes/admin-register.php:310
+#: includes/admin-register.php:311
 msgid "Accounts are made by whoever administers the site, under Users. Every door below is shut, WordPress’s own form on Settings → General included."
 msgstr "Gli account li crea chi amministra il sito, in Utenti. Ogni porta qui sotto è chiusa, compreso il modulo di WordPress in Impostazioni → Generali."
 
-#: includes/admin-register.php:316
+#: includes/admin-register.php:317
 msgid "Registration is open"
 msgstr "La registrazione è aperta"
 
-#: includes/admin-register.php:317
+#: includes/admin-register.php:318
 msgid "Through the doors ticked below and no others, and what they get is the role underneath them."
 msgstr "Dalle porte spuntate qui sotto e da nessun’altra, e quello che ottengono è il ruolo lì sotto."
 
@@ -5445,88 +5441,88 @@ msgstr "Accesso › Modi di entrare"
 msgid "Whether there is a sign-in link at all — the arrival the rule above is about — is decided there."
 msgstr "Se esista o no un link di accesso — l’arrivo di cui parla la regola qui sopra — si decide lì."
 
-#: includes/admin-account.php:934
+#: includes/admin-account.php:931
 msgid "This site has not got one."
 msgstr "Questo sito non ce l’ha."
 
-#: includes/admin-account.php:944
+#: includes/admin-account.php:941
 msgid "What that means"
 msgstr "Cosa vuol dire"
 
-#: includes/admin-account.php:946
+#: includes/admin-account.php:943
 msgid "The toolbar’s user menu is not redirected, and “send people to their account” on the dashboard tab has nowhere to send them."
 msgstr "Il menu utente della barra degli strumenti non viene reindirizzato, e «mandarli al loro account» nella scheda della bacheca non ha dove mandarli."
 
-#: includes/admin-account.php:954
+#: includes/admin-account.php:951
 msgid "What goes on it"
 msgstr "Che cosa ci va sopra"
 
-#: includes/admin-account.php:958
+#: includes/admin-account.php:955
 msgid "The sections it is made of"
 msgstr "Le sezioni di cui è fatta"
 
-#: includes/admin-account.php:959
+#: includes/admin-account.php:956
 msgid "What people find inside, and the order they find it in."
 msgstr "Che cosa trovano le persone dentro, e in che ordine lo trovano."
 
-#: includes/admin-account.php:963
+#: includes/admin-account.php:960
 msgid "What it looks like"
 msgstr "Che aspetto ha"
 
-#: includes/admin-account.php:964
+#: includes/admin-account.php:961
 msgid "Its shape, its cover and its menu, with the page itself beside the settings."
 msgstr "La sua forma, la sua copertina e il suo menu, con la pagina stessa accanto alle impostazioni."
 
-#: includes/admin-account.php:1142
+#: includes/admin-account.php:1139
 msgid "Where they are sent"
 msgstr "Dove vengono mandate"
 
-#: includes/admin-account.php:1149
+#: includes/admin-account.php:1146
 msgid "Nowhere yet: this site has no account area, so sending people to theirs does nothing until it has one."
 msgstr "Da nessuna parte per ora: questo sito non ha un’area account, quindi mandare le persone alla propria non fa niente finché non ce n’è una."
 
-#: includes/admin-account.php:1154
+#: includes/admin-account.php:1151
 #: includes/admin-notices.php:277
 msgid "The other half of this"
 msgstr "L’altra metà di questo"
 
-#: includes/admin-account.php:1158
+#: includes/admin-account.php:1155
 msgid "The page that is “my account”"
 msgstr "La pagina che è «il mio account»"
 
-#: includes/admin-account.php:1159
+#: includes/admin-account.php:1156
 msgid "Declared once, and every redirect on this tab reads it."
 msgstr "Dichiarata una volta, e ogni reindirizzamento di questa scheda la legge."
 
-#: includes/admin-account.php:1163
+#: includes/admin-account.php:1160
 msgid "What they find when they get there"
 msgstr "Che cosa trovano quando arrivano"
 
-#: includes/admin-account.php:1164
+#: includes/admin-account.php:1161
 msgid "The account area is the screen replacing the dashboard profile, so it is worth a look."
 msgstr "L’area account è la schermata che sostituisce il profilo della bacheca, quindi vale la pena guardarla."
 
-#: includes/admin-account.php:1315
+#: includes/admin-account.php:1312
 msgid "Nobody is choosing a name while this is turned off. What is set here is kept, and it applies the day it is turned on."
 msgstr "Con questo spento nessuno sceglie un nome. Quello che si imposta qui resta, e vale il giorno in cui viene acceso."
 
-#: includes/admin-account.php:1330
+#: includes/admin-account.php:1327
 msgid "Where the name is used"
 msgstr "Dove viene usato il nome"
 
-#: includes/admin-account.php:1334
+#: includes/admin-account.php:1331
 msgid "Signing in with it"
 msgstr "Entrare con quello"
 
-#: includes/admin-account.php:1335
+#: includes/admin-account.php:1332
 msgid "Whether the sign-in box takes a public name as well as an e-mail address."
 msgstr "Se la casella di accesso accetta un nome pubblico oltre a un indirizzo e-mail."
 
-#: includes/admin-account.php:1339
+#: includes/admin-account.php:1336
 msgid "Their first and last name"
 msgstr "Il suo nome e il suo cognome"
 
-#: includes/admin-account.php:1340
+#: includes/admin-account.php:1337
 msgid "Where the public name comes from while nobody is choosing one."
 msgstr "Da dove arriva il nome pubblico finché nessuno ne sceglie uno."
 
@@ -5644,7 +5640,7 @@ msgid "Decided somewhere else"
 msgstr "Si decide da un’altra parte"
 
 #: includes/admin-login.php:329
-#: includes/admin-login.php:687
+#: includes/admin-login.php:688
 msgid "Which providers the buttons offer, and the keys each one needs before it works."
 msgstr "Quali provider offrono i pulsanti, e le chiavi che servono a ognuno prima di funzionare."
 
@@ -5660,55 +5656,55 @@ msgstr "L’e-mail che porta il link"
 msgid "Its subject and its words live with the rest of what this site sends."
 msgstr "Il suo oggetto e le sue parole stanno insieme al resto di quello che manda questo sito."
 
-#: includes/admin-login.php:492
+#: includes/admin-login.php:493
 msgid "People still land on that screen, so it is worth it looking like the rest of the site."
 msgstr "Su quella schermata le persone ci finiscono comunque, quindi vale la pena che assomigli al resto del sito."
 
-#: includes/admin-login.php:495
+#: includes/admin-login.php:496
 msgid "with the site’s logo and colour on it"
 msgstr "con il logo e il colore del sito sopra"
 
-#: includes/admin-login.php:496
+#: includes/admin-login.php:497
 msgid "as WordPress ships it"
 msgstr "com’è di serie in WordPress"
 
-#: includes/admin-login.php:505
+#: includes/admin-login.php:506
 msgid "What these pages look like"
 msgstr "Che aspetto hanno queste pagine"
 
-#: includes/admin-login.php:510
+#: includes/admin-login.php:511
 msgid "Its shape, its picture and every sentence on it, with a preview beside them."
 msgstr "La sua forma, la sua immagine e ogni frase che porta, con un’anteprima accanto."
 
-#: includes/admin-login.php:515
+#: includes/admin-login.php:516
 msgid "The site’s name, mark and colour on the screen WordPress brings with it."
 msgstr "Il nome, il marchio e il colore del sito sulla schermata che porta WordPress."
 
-#: includes/admin-login.php:519
+#: includes/admin-login.php:520
 msgid "What the form takes"
 msgstr "Che cosa accetta il modulo"
 
-#: includes/admin-login.php:520
+#: includes/admin-login.php:521
 msgid "Whether a password opens anything here, which is what decides if a reset has anywhere to go."
 msgstr "Se una password apre qualcosa qui, che è quello che decide se una reimpostazione ha dove andare."
 
-#: includes/admin-login.php:679
+#: includes/admin-login.php:680
 msgid "What this tab does not decide"
 msgstr "Che cosa non decide questa scheda"
 
-#: includes/admin-login.php:680
+#: includes/admin-login.php:681
 msgid "A way in is switched on here, with the other ways in. What it does once it is on — which providers the buttons offer, what a passkey has to prove — is set where that feature lives."
 msgstr "Un modo di entrare si accende qui, insieme agli altri. Quello che fa una volta acceso — quali provider offrono i pulsanti, che cosa deve dimostrare una passkey — si imposta dove vive quella funzione."
 
-#: includes/admin-login.php:695
+#: includes/admin-login.php:696
 msgid "Which passkeys are accepted, and whether a fingerprint, a face or a PIN is required."
 msgstr "Quali passkey vengono accettate, e se serve un’impronta, un volto o un PIN."
 
-#: includes/admin-login.php:702
+#: includes/admin-login.php:703
 msgid "Who gets an account at all. These boxes only say how somebody who has one gets in."
 msgstr "Chi arriva ad avere un account. Queste caselle dicono solo come entra chi già ne ha uno."
 
-#: includes/admin-login.php:705
+#: includes/admin-login.php:706
 msgid "Where the rest of each one is"
 msgstr "Dov’è il resto di ognuna"
 
@@ -5817,23 +5813,23 @@ msgstr "Tutte le sessioni che questo account ha aperte"
 msgid "Where it signed in from, on what, and the button that closes them all."
 msgstr "Da dove è entrato, con che cosa, e il pulsante che le chiude tutte."
 
-#: includes/admin-register.php:344
+#: includes/admin-register.php:345
 msgid "The same one whichever door they came through: a role per door is a quiet way of handing out privileges. Roles that can edit the site are not offered: this is what anybody who registers themselves becomes, and that is not a decision to make from a drop-down."
 msgstr "Lo stesso da qualunque porta siano entrati: un ruolo per porta è un modo silenzioso di distribuire privilegi. I ruoli che possono modificare il sito non vengono offerti: questo è quello che diventa chiunque si registri da solo, e non è una decisione da prendere da un menu a tendina."
 
-#: includes/admin-register.php:385
+#: includes/admin-register.php:386
 msgid "The rest of the form"
 msgstr "Il resto del modulo"
 
-#: includes/admin-register.php:390
+#: includes/admin-register.php:391
 msgid "Which ones exist, and which of them a form will not go through without."
 msgstr "Quali esistono, e senza quali di loro un modulo non passa."
 
-#: includes/admin-register.php:394
+#: includes/admin-register.php:395
 msgid "What the form says"
 msgstr "Che cosa dice il modulo"
 
-#: includes/admin-register.php:395
+#: includes/admin-register.php:396
 msgid "Its heading, its sentences and the terms line, with a preview beside them."
 msgstr "Il suo titolo, le sue frasi e la riga delle condizioni, con un’anteprima accanto."
 
@@ -6362,87 +6358,87 @@ msgstr "Spuntalo e salva: quello che è scritto sopra viene scartato e questo to
 msgid "Activity log"
 msgstr "Registro attività"
 
-#: includes/log.php:189
+#: includes/log.php:222
 msgid "Ways in and out"
 msgstr "Entrate e uscite"
 
-#: includes/log.php:190
+#: includes/log.php:223
 msgid "Every sign-in, every sign-out, and every attempt that was refused."
 msgstr "Ogni accesso, ogni uscita e ogni tentativo rifiutato."
 
-#: includes/log.php:191
+#: includes/log.php:224
 msgid "A few rows per person per day: this is the group that grows with how often people come back."
 msgstr "Poche righe per persona al giorno: è il gruppo che cresce con la frequenza con cui le persone tornano."
 
-#: includes/log.php:194
+#: includes/log.php:227
 msgid "Changes to the account"
 msgstr "Modifiche all’account"
 
-#: includes/log.php:195
+#: includes/log.php:228
 msgid "The e-mail address, the password, the public name, and the details this site asks people for."
 msgstr "L’indirizzo e-mail, la password, il nome pubblico e i dati che questo sito chiede alle persone."
 
-#: includes/log.php:196
+#: includes/log.php:229
 msgid "Almost nothing: most people change these once and never again."
 msgstr "Quasi nulla: la maggior parte delle persone lo cambia una volta e mai più."
 
-#: includes/log.php:199
+#: includes/log.php:232
 msgid "Changes to the security"
 msgstr "Modifiche alla sicurezza"
 
-#: includes/log.php:200
+#: includes/log.php:233
 msgid "Two-step verification turned on or off, a passkey added or removed, sessions closed."
 msgstr "Verifica in due passaggi attivata o disattivata, una passkey aggiunta o rimossa, sessioni chiuse."
 
-#: includes/log.php:201
+#: includes/log.php:234
 msgid "Almost nothing, and it is the group worth having when an account is taken over."
 msgstr "Quasi nulla, ed è il gruppo che conviene avere quando un account viene rubato."
 
-#: includes/log.php:246
+#: includes/log.php:279
 msgid "Signed in"
 msgstr "Accesso"
 
-#: includes/log.php:247
+#: includes/log.php:280
 msgid "Signed out"
 msgstr "Uscita"
 
-#: includes/log.php:248
+#: includes/log.php:281
 msgid "Sign-in refused"
 msgstr "Accesso rifiutato"
 
-#: includes/log.php:250
+#: includes/log.php:283
 msgid "E-mail address changed"
 msgstr "Indirizzo e-mail cambiato"
 
-#: includes/log.php:251
+#: includes/log.php:284
 msgid "Password changed"
 msgstr "Password cambiata"
 
-#: includes/log.php:252
+#: includes/log.php:285
 msgid "Public name changed"
 msgstr "Nome pubblico cambiato"
 
-#: includes/log.php:253
+#: includes/log.php:286
 msgid "Details saved"
 msgstr "Dati salvati"
 
-#: includes/log.php:254
+#: includes/log.php:287
 msgid "Two-step verification turned on"
 msgstr "Verifica in due passaggi attivata"
 
-#: includes/log.php:255
+#: includes/log.php:288
 msgid "Two-step verification turned off"
 msgstr "Verifica in due passaggi disattivata"
 
-#: includes/log.php:256
+#: includes/log.php:289
 msgid "Passkey added"
 msgstr "Passkey aggiunta"
 
-#: includes/log.php:257
+#: includes/log.php:290
 msgid "Passkey removed"
 msgstr "Passkey rimossa"
 
-#: includes/log.php:258
+#: includes/log.php:291
 msgid "Sessions closed"
 msgstr "Sessioni chiuse"
 
@@ -6830,91 +6826,91 @@ msgstr "Come sono disposti"
 msgid "The sign-in page, at the width shown. Drag a way in and this follows: the order here is the order of the tabs, and stacked it is the order down the page."
 msgstr "La pagina di accesso, nella larghezza mostrata. Trascini un modo di entrare e questo la segue: l’ordine qui è l’ordine delle schede e, impilati, l’ordine scendendo lungo la pagina."
 
-#: includes/admin-login.php:500
+#: includes/admin-login.php:501
 msgid "Dressed"
 msgstr "Con il marchio"
 
-#: includes/admin-login.php:500
+#: includes/admin-login.php:501
 msgid "Plain"
 msgstr "Senza marchio"
 
-#: includes/admin-login.php:771
+#: includes/admin-login.php:772
 msgid "What the sign-in screen does with the ways in the tab before this one switched on. Which ones there are is decided there; this is how they are laid out once there are several, and in what order."
 msgstr "Che cosa fa la schermata di accesso con i modi di entrare che la scheda precedente ha acceso. Quali ce ne siano si decide là; qui si tratta di come vengono disposti quando sono più d’uno, e in che ordine."
 
-#: includes/admin-login.php:777
+#: includes/admin-login.php:778
 msgid "Stacked or in tabs"
 msgstr "Impilati o in schede"
 
-#: includes/admin-login.php:778
+#: includes/admin-login.php:779
 msgid "Stacked is every way in on the screen at once, one under the other. In tabs they share one place and the screen stops growing downwards, which is what a laptop notices."
 msgstr "Impilati vuol dire tutti i modi di entrare sullo schermo insieme, uno sotto l’altro. In schede condividono un solo posto e la schermata smette di crescere verso il basso, che è quello che un portatile nota."
 
-#: includes/admin-login.php:789
+#: includes/admin-login.php:790
 msgid "Whichever suits how many there are"
 msgstr "Secondo quanti ce ne sono"
 
 #. translators: %d: how many ways in this site would put behind tabs
-#: includes/admin-login.php:792
+#: includes/admin-login.php:793
 #, php-format
 msgid "Stacked with two ways in or fewer, tabs from three. Two doors read better one under the other than behind a strip that asks you to choose before you can see either; four are what makes the screen too tall. Right now this site has %d."
 msgstr "Impilati con due modi di entrare o meno, schede da tre in su. Due porte si leggono meglio una sotto l’altra che dietro una striscia che obbliga a scegliere prima di vederne una; quattro sono quelle che rendono la schermata troppo alta. In questo momento questo sito ne ha %d."
 
-#: includes/admin-login.php:800
+#: includes/admin-login.php:801
 msgid "Always stacked"
 msgstr "Sempre impilati"
 
-#: includes/admin-login.php:801
+#: includes/admin-login.php:802
 msgid "Everything on the screen, nothing behind a tab. The arrangement that needs no JavaScript, and the one somebody without it always gets."
 msgstr "Tutto sullo schermo, niente dietro una scheda. La disposizione che non richiede JavaScript, e quella che riceve sempre chi non ce l’ha."
 
-#: includes/admin-login.php:807
+#: includes/admin-login.php:808
 msgid "Always in tabs"
 msgstr "Sempre in schede"
 
-#: includes/admin-login.php:808
+#: includes/admin-login.php:809
 msgid "Even with two. Worth it on a site where one way in is for almost everybody and the other is the exception."
 msgstr "Anche con due. Ne vale la pena su un sito in cui un modo di entrare è quello di quasi tutti e l’altro è l’eccezione."
 
-#: includes/admin-login.php:814
+#: includes/admin-login.php:815
 msgid "In what order"
 msgstr "In che ordine"
 
-#: includes/admin-login.php:815
+#: includes/admin-login.php:816
 msgid "Drag them. It is the order of the tabs and, stacked, the order down the page — so it is what somebody sees first either way. A way in that is switched off keeps its place here, so turning it off for a week does not move it to the end."
 msgstr "Li trascini. È l’ordine delle schede e, impilati, l’ordine scendendo lungo la pagina — cioè quello che si vede per primo in entrambi i casi. Un modo di entrare spento mantiene il suo posto qui, quindi spegnerlo per una settimana non lo manda in fondo."
 
-#: includes/admin-login.php:820
+#: includes/admin-login.php:821
 msgid "Above all of them, always"
 msgstr "Sopra tutti, sempre"
 
 #. translators: %s: the ways in that are never behind a tab, comma separated
-#: includes/admin-login.php:823
+#: includes/admin-login.php:824
 #, php-format
 msgid "%s is not in this list and never goes behind a tab: it is the fastest way in there is, a tab would cost it a click, and inside one the browser never gets to offer it as the address field is focused."
 msgstr "%s non è in questo elenco e non finisce mai dietro una scheda: è il modo di entrare più veloce che ci sia, una scheda gli costerebbe un clic, e dentro una il browser non arriva mai a proporlo perché il fuoco è nel campo dell’indirizzo."
 
-#: includes/admin-login.php:842
+#: includes/admin-login.php:843
 msgid "Which tab opens"
 msgstr "Quale scheda si apre"
 
-#: includes/admin-login.php:843
+#: includes/admin-login.php:844
 msgid "Only the first time. After that it is whichever one that person used last, which their browser remembers — one id in a cookie, nothing about who they are."
 msgstr "Solo la prima volta. Dopo è quella che quella persona ha usato per ultima, di cui il suo browser si ricorda: un id in un cookie, niente su chi sia."
 
-#: includes/admin-login.php:848
+#: includes/admin-login.php:849
 msgid "For somebody this site has never seen"
 msgstr "Per qualcuno che questo sito non ha mai visto"
 
-#: includes/admin-login.php:851
+#: includes/admin-login.php:852
 msgid "The first one in the order above"
 msgstr "Il primo nell’ordine qui sopra"
 
-#: includes/admin-login.php:855
+#: includes/admin-login.php:856
 msgid "A screen that comes back from a refused attempt ignores this and shows the way in that was refused, whatever it says here: a message about an address, read over a password form, explains nothing."
 msgstr "Una schermata che torna da un tentativo rifiutato ignora questo e mostra il modo di entrare che è stato rifiutato, qualunque cosa dica qui: un messaggio su un indirizzo, letto sopra un modulo di password, non spiega nulla."
 
-#: includes/admin-login.php:861
+#: includes/admin-login.php:862
 msgid "Save the arrangement"
 msgstr "Salva la disposizione"
 
@@ -7085,7 +7081,7 @@ msgstr "Troppi tentativi. Aspetta un momento e riprova."
 msgid "None — read the connection"
 msgstr "Nessuna — leggere la connessione"
 
-#: includes/log.php:249
+#: includes/log.php:282
 msgid "Second step refused"
 msgstr "Secondo passaggio rifiutato"
 
@@ -7185,3 +7181,21 @@ msgstr "Chi riguarda"
 #: includes/admin-social.php:458
 msgid "The roles ticked can use the buttons. Everybody else signs in with the email link."
 msgstr "I ruoli spuntati possono usare i pulsanti. Gli altri accedono con il link via e-mail."
+
+#: includes/pages.php:109
+msgid "Create the page"
+msgstr "Crea la pagina"
+
+#: includes/pages.php:31
+msgid "My account"
+msgstr "Il mio account"
+
+#. translators: %s: the title of the page, linked to it
+#: includes/pages.php:161
+#, php-format
+msgid "The page %s was created and chosen."
+msgstr "La pagina %s è stata creata e scelta."
+
+#: includes/admin-account.php:905
+msgid "The account area appears on this page, below whatever the page already says."
+msgstr "L’area account compare in questa pagina, sotto quello che la pagina già contiene."
