@@ -109,9 +109,11 @@ function diluxone_users_menu_items( $items, $args ) {
 	$user  = wp_get_current_user();
 	$name  = '' !== $user->first_name ? $user->first_name : $user->display_name;
 	$style = (string) diluxone_users_option( 'diluxone_users_menu_style' );
+	// get_avatar_url() and not the uploaded photo alone: it is the same
+	// picture the rest of the site shows, and it always has one to give.
 	$photo = sprintf(
 		'<img class="diluxone-users-menu__avatar" src="%s" alt="" width="32" height="32" loading="lazy" decoding="async">',
-		esc_url( diluxone_users_avatar_url( (int) $user->ID, 64 ) )
+		esc_url( (string) get_avatar_url( (int) $user->ID, array( 'size' => 64 ) ) )
 	);
 	$title = match ( $style ) {
 		'avatar' => $photo . '<span class="screen-reader-text">' . esc_html( $name ) . '</span>',
