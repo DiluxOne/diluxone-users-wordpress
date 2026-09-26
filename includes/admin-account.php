@@ -253,6 +253,17 @@ function diluxone_users_account_panels(): void {
 
 	diluxone_users_register_panel(
 		'diluxone-users-account',
+		'menu',
+		array(
+			'label'    => __( 'In the site menu', 'diluxone-users' ),
+			'position' => 35,
+			'render'   => 'diluxone_users_screen_account_menu',
+			'save'     => 'diluxone_users_account_menu_save',
+		)
+	);
+
+	diluxone_users_register_panel(
+		'diluxone-users-account',
 		'dashboard',
 		array(
 			'label'    => __( 'The WordPress dashboard', 'diluxone-users' ),
@@ -276,6 +287,64 @@ function diluxone_users_account_page_save(): void {
 
 	// The page changed: the /account/<section>/ rules have to be rebuilt.
 	delete_option( 'diluxone_users_rewrite_version' );
+}
+
+/** Which menu gets the person, and how the person looks in it. */
+function diluxone_users_account_menu_save(): void {
+	// phpcs:disable WordPress.Security.NonceVerification.Missing -- the panel verifies it.
+	$location = sanitize_key( wp_unslash( $_POST['diluxone_users_menu_location'] ?? '' ) );
+	$style    = sanitize_key( wp_unslash( $_POST['diluxone_users_menu_style'] ?? 'avatar-name' ) );
+	// phpcs:enable
+
+	diluxone_users_save_options(
+		array(
+			'diluxone_users_menu_location' => isset( diluxone_users_menu_locations()[ $location ] ) ? $location : '',
+			'diluxone_users_menu_style'    => isset( diluxone_users_menu_styles()[ $style ] ) ? $style : 'avatar-name',
+		)
+	);
+}
+
+/** The person in the site's menu: where, and how. */
+function diluxone_users_screen_account_menu(): void {
+	diluxone_users_ui_aside_open();
+
+	diluxone_users_intro( __( 'A door in the site’s own menu: “Sign in” for visitors, and for whoever is signed in their photo or their name, with their account, the dashboard if they can use it, and a way out underneath. The theme draws it like the rest of the menu.', 'diluxone-users' ) );
+
+	diluxone_users_ui_select(
+		array(
+			'label'   => __( 'Which menu', 'diluxone-users' ),
+			'name'    => 'diluxone_users_menu_location',
+			'value'   => (string) diluxone_users_option( 'diluxone_users_menu_location' ),
+			'options' => diluxone_users_menu_locations(),
+			'help'    => __( 'It goes at the end of the menu assigned to that place, wherever the theme shows it — the mobile menu included when it is the same menu.', 'diluxone-users' ),
+		)
+	);
+
+	diluxone_users_ui_select(
+		array(
+			'label'   => __( 'How the person looks', 'diluxone-users' ),
+			'name'    => 'diluxone_users_menu_style',
+			'value'   => (string) diluxone_users_option( 'diluxone_users_menu_style' ),
+			'options' => diluxone_users_menu_styles(),
+		)
+	);
+
+	$menu = diluxone_users_menu_id();
+	diluxone_users_ui_aside_close(
+		static function () use ( $menu ): void {
+			$term = $menu > 0 ? get_term( $menu, 'nav_menu' ) : null;
+			diluxone_users_ui_note(
+				__( 'The person in the menu', 'diluxone-users' ),
+				$term instanceof WP_Term
+					? esc_html( $term->name )
+					: esc_html__( 'Not shown in any menu.', 'diluxone-users' ),
+				$term instanceof WP_Term ? 'active' : 'pending',
+				$term instanceof WP_Term || '' === (string) diluxone_users_option( 'diluxone_users_menu_location' )
+					? ''
+					: __( 'That place has no menu assigned in Appearance → Menus.', 'diluxone-users' )
+			);
+		}
+	);
 }
 
 /** The two things WordPress shows a signed-in person that the site may not want. */

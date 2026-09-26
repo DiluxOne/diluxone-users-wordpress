@@ -183,6 +183,13 @@ function diluxone_users_option_defaults(): array {
 		'diluxone_users_sso_button_text'       => '',
 		'diluxone_users_sso_button_columns'    => 2,
 
+		// ── The person in the site's menu ─────────────────────────────
+		// The menu location (of the active theme) that gets "Sign in" or the
+		// signed-in person as its last item. Empty: none.
+		'diluxone_users_menu_location'         => '',
+		// How the signed-in person shows there: 'avatar-name', 'avatar' or 'name'.
+		'diluxone_users_menu_style'            => 'avatar-name',
+
 		// ── The account area ──────────────────────────────────────────
 		// The page holding the [diluxone_users_account] shortcode. With that
 		// declared in a single place, everyone who needs to send somebody to
