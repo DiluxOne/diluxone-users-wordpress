@@ -1603,8 +1603,8 @@ msgstr "A foto é pesada demais: no máximo %s."
 msgid "That is not a photo. It has to be a JPG, PNG, GIF or WebP."
 msgstr "Isso não é uma foto. Tem que ser JPG, PNG, GIF ou WebP."
 
-#: includes/fields-forms.php:126
-#: includes/fields-forms.php:152
+#: includes/fields-forms.php:133
+#: includes/fields-forms.php:159
 msgid "— Choose —"
 msgstr "— Escolher —"
 
@@ -1613,7 +1613,7 @@ msgid "Additional details"
 msgstr "Dados adicionais"
 
 #. translators: %s: field name
-#: includes/fields-forms.php:364
+#: includes/fields-forms.php:371
 #, php-format
 msgid "Error: “%s” is required."
 msgstr "Erro: “%s” é obrigatório."
@@ -1733,57 +1733,57 @@ msgid_plural "You can change this one %d more times."
 msgstr[0] "Você pode alterar este %d vez a mais."
 msgstr[1] "Você pode alterar este %d vezes a mais."
 
-#: includes/handle.php:97
+#: includes/handle.php:112
 msgid "You have to write something."
 msgstr "Você tem que escrever alguma coisa."
 
-#: includes/handle.php:104
+#: includes/handle.php:119
 msgid "It cannot have spaces: this goes in a web address."
 msgstr "Não pode ter espaços: isto vai em um endereço web."
 
-#: includes/handle.php:108
+#: includes/handle.php:123
 msgid "It cannot be an email address: that is how you sign in, not how people see you."
 msgstr "Não pode ser um endereço de e-mail: é assim que você entra, não como as pessoas veem você."
 
 #. translators: %d: minimum number of characters
-#: includes/handle.php:116
+#: includes/handle.php:131
 #, php-format
 msgid "It is too short: at least %d characters."
 msgstr "É curto demais: pelo menos %d caracteres."
 
 #. translators: %d: maximum number of characters
-#: includes/handle.php:127
+#: includes/handle.php:142
 #, php-format
 msgid "It is too long: at most %d characters."
 msgstr "É longo demais: no máximo %d caracteres."
 
-#: includes/handle.php:134
+#: includes/handle.php:149
 msgid "That one is taken by the site itself. Pick another."
 msgstr "Esse é usado pelo próprio site. Escolha outro."
 
-#: includes/handle.php:138
+#: includes/handle.php:153
 msgid "Somebody already has that one."
 msgstr "Alguém já tem esse."
 
 #. translators: %s: date from which it can be changed
-#: includes/handle.php:184
+#: includes/handle.php:199
 #, php-format
 msgid "You can change it again on %s."
 msgstr "Você pode alterar de novo em %s."
 
-#: includes/handle.php:345
+#: includes/handle.php:358
 msgid "This is the one you have now."
 msgstr "É o que você tem agora."
 
-#: includes/handle.php:346
+#: includes/handle.php:359
 msgid "Nobody is using it: it is yours when you save."
 msgstr "Ninguém está usando: é seu quando você salvar."
 
-#: includes/handle.php:398
+#: includes/handle.php:411
 msgid "Checking…"
 msgstr "Verificando…"
 
-#: includes/handle.php:399
+#: includes/handle.php:412
 msgid "We could not check it right now."
 msgstr "Não conseguimos verificar agora."
 
@@ -6685,14 +6685,6 @@ msgstr "De onde vem a aparência do plugin"
 msgid "From your theme — %s"
 msgstr "Do seu tema — %s"
 
-#: includes/admin-appearance.php:631
-msgid "Your theme publishes no palette, so there is nothing to take. A theme declares one in its theme.json, and most themes written since 2022 do."
-msgstr "O seu tema não publica nenhuma paleta, então não há nada a aproveitar. Um tema declara a paleta no seu theme.json, e a maioria dos temas escritos desde 2022 faz isso."
-
-#: includes/admin-appearance.php:632
-msgid "The plugin paints itself with the palette your theme publishes, and goes on following it — into the theme’s own dark mode as well, where it hands over a variable rather than a colour. There is nothing else to choose."
-msgstr "O plugin se pinta com a paleta que o seu tema publica e continua seguindo ela — até o modo escuro do próprio tema, onde ele entrega uma variável em vez de uma cor. Não há mais nada a escolher."
-
 #: includes/admin-appearance.php:652
 msgid "I choose it here"
 msgstr "Eu escolho aqui"
@@ -7249,10 +7241,18 @@ msgstr "Só a foto"
 msgid "Name only"
 msgstr "Só o nome"
 
-#: includes/site-menu.php:132
+#: includes/site-menu.php:134
 msgid "Go to the WordPress dashboard"
 msgstr "Ir para o painel do WordPress"
 
-#: includes/site-menu.php:134
+#: includes/site-menu.php:136
 msgid "Sign out"
 msgstr "Sair"
+
+#: includes/admin-appearance.php:631
+msgid "Your theme publishes no palette, so the plugin takes the colours your theme paints: the colour of its links and buttons, of its text, its page ground and the edge of its fields, measured on the site itself. There is nothing else to choose."
+msgstr "Seu tema não publica paleta, então o plugin usa as cores que o tema pinta: a dos links e botões, a do texto, o fundo da página e a borda dos campos, medidas no próprio site. Não há mais nada a escolher."
+
+#: includes/admin-appearance.php:632
+msgid "The plugin paints itself with the palette your theme publishes, and goes on following it — into the theme’s own dark mode as well, where it hands over a variable rather than a colour. Any part the palette does not name is taken from what your theme paints on the site. There is nothing else to choose."
+msgstr "O plugin se pinta com a paleta que seu tema publica e continua a segui-la — inclusive no modo escuro do tema, onde passa uma variável em vez de uma cor. O que a paleta não nomeia é tirado do que o tema pinta no site. Não há mais nada a escolher."
