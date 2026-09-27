@@ -561,6 +561,30 @@ class ActivityLogTest extends IntegrationTestCase {
 		$this->assertSame( array( 0, $other ), array_column( $left, 'user_id' ) );
 	}
 
+	/**
+	 * A refused sign-in is filed under nobody, and what was typed is the
+	 * person's own address or username: it is their data, so it goes out with
+	 * their export, and the erasure says it was kept and why instead of
+	 * answering a silent "nothing retained".
+	 */
+	public function test_refused_sign_ins_that_typed_somebodys_name_follow_that_person(): void {
+		$mine = get_userdata( $this->make_user() );
+
+		diluxone_users_log_record( 'sign_in_failed', 0, array( 'tried' => $mine->user_email ) );
+		diluxone_users_log_record( 'sign_in_failed', 0, array( 'tried' => $mine->user_login ) );
+		diluxone_users_log_record( 'sign_in_failed', 0, array( 'tried' => 'somebody-else@example.test' ) );
+
+		$export = diluxone_users_log_export( $mine->user_email );
+
+		$this->assertCount( 2, $export['data'] );
+
+		$answer = diluxone_users_log_erase( $mine->user_email );
+
+		$this->assertTrue( $answer['items_retained'] );
+		$this->assertNotEmpty( $answer['messages'] );
+		$this->assertCount( 3, $this->rows(), 'Security evidence is not erased on request' );
+	}
+
 	public function test_deleting_an_account_takes_its_rows_with_it(): void {
 		require_once ABSPATH . 'wp-admin/includes/user.php';
 

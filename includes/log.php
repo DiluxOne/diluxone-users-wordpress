@@ -716,6 +716,54 @@ function diluxone_users_log_of( int $user_id, int $page = 1, int $per = 500 ): a
 }
 
 /**
+ * The refused sign-ins that typed one of these names.
+ *
+ * They are filed under nobody (see diluxone_users_log_login_failed()), and
+ * what ties them to a person is what was typed: their username or their
+ * address. The detail is JSON, so the name is looked for as the JSON it was
+ * written as.
+ *
+ * @param array<int, string> $names A login and an address, usually.
+ * @return array<int, array{id: int, event: string, happened: int, ip: string, agent: string, detail: array<string, mixed>}>
+ */
+function diluxone_users_log_tried( array $names ): array {
+	global $wpdb;
+
+	$table = diluxone_users_log_table();
+	$rows  = array();
+
+	foreach ( array_unique( array_filter( $names ) ) as $name ) {
+		$found = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT id, event, happened, ip, agent, detail
+				   FROM {$table}
+				  WHERE user_id = 0 AND event = %s AND detail LIKE %s
+			   ORDER BY id ASC
+				  LIMIT 1000",
+				'sign_in_failed',
+				'%' . $wpdb->esc_like( '"tried":' . wp_json_encode( $name ) ) . '%'
+			),
+			ARRAY_A
+		);
+
+		foreach ( (array) $found as $row ) {
+			$detail = json_decode( (string) $row['detail'], true );
+
+			$rows[ (int) $row['id'] ] = array(
+				'id'       => (int) $row['id'],
+				'event'    => (string) $row['event'],
+				'happened' => (int) strtotime( (string) $row['happened'] . ' UTC' ),
+				'ip'       => (string) $row['ip'],
+				'agent'    => (string) $row['agent'],
+				'detail'   => is_array( $detail ) ? $detail : array(),
+			);
+		}
+	}
+
+	return array_values( $rows );
+}
+
+/**
  * Everything about one person, gone.
  *
  * @return int How many rows went.

@@ -384,9 +384,11 @@ function diluxone_users_privacy_policy(): void {
 		. '<p><strong>' . __( 'What is stored in your profile', 'diluxone-users' ) . '</strong> — '
 		. __( 'the answers to the fields this site asks for, your public name, your profile picture, which social accounts you have linked, your passkeys, whether two-step verification is on, and a hash of each browser you have signed in from so that a new one can be announced once.', 'diluxone-users' ) . '</p>'
 		. '<p><strong>' . __( 'What is stored in the activity log', 'diluxone-users' ) . '</strong> — '
-		. __( 'for each recorded event: the date, the account, your IP address and your browser’s user-agent string. Which events are recorded, and for how many days, are settings of this site.', 'diluxone-users' ) . '</p>'
+		. __( 'for each recorded event: the date, the account, your IP address and your browser’s user-agent string. When a sign-in is refused, what was typed in the username box is kept with it, because that is how an attempt to guess an account is recognised. Which events are recorded, and for how many days, are settings of this site.', 'diluxone-users' ) . '</p>'
+		. '<p><strong>' . __( 'Cookies', 'diluxone-users' ) . '</strong> — '
+		. __( 'while you sign in, short-lived cookies hold the progress of the attempt: a social sign-in, a password reset, the address you asked a link for. If you ask not to be asked for the second step again on a browser, a cookie remembers that browser for the number of days this site sets. And a cookie remembers which way of signing in you used last, so the sign-in page opens on it.', 'diluxone-users' ) . '</p>'
 		. '<p><strong>' . __( 'Where it goes', 'diluxone-users' ) . '</strong> — '
-		. __( 'nowhere. The plugin sends nothing anywhere on its own. If this site offers social sign-in, the provider you choose receives what it needs to identify you, and only when you use it.', 'diluxone-users' ) . '</p>';
+		. __( 'the plugin sends nothing anywhere on its own. If this site offers social sign-in, the provider you choose receives what it needs to identify you, and only when you use it; the account id it answers with is kept in your profile so it can recognise you next time. If your profile has no picture of its own and this site shows Gravatar pictures, your browser asks Gravatar (gravatar.com) for one using a hash of your e-mail address.', 'diluxone-users' ) . '</p>';
 
 	wp_add_privacy_policy_content( diluxone_users_plugin_name(), wp_kses_post( wpautop( $text ) ) );
 }

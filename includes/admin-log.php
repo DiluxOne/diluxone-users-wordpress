@@ -234,8 +234,9 @@ function diluxone_users_log_via( string $via ): string {
  * What one row says, beyond its name.
  *
  * The event's own label answers "what happened"; this answers "to what". It is
- * built from the detail the row was written with, which is only ever a handful
- * of short strings — never a value somebody typed into a field of their own.
+ * built from the detail the row was written with: a handful of short strings,
+ * and for a refused sign-in the name that was typed in the username box. That
+ * one is somebody's input, and it is escaped like any other on the way out.
  *
  * @param array<string, mixed> $row One row as diluxone_users_log_search() returns it.
  */

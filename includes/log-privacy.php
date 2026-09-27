@@ -60,7 +60,15 @@ function diluxone_users_log_export( string $email, int $page = 1 ): array {
 	}
 
 	$rows  = diluxone_users_log_of( (int) $user->ID, max( 1, $page ), DILUXONE_USERS_LOG_EXPORT_PAGE );
+	$full  = count( $rows ) >= DILUXONE_USERS_LOG_EXPORT_PAGE;
 	$items = array();
+
+	// The refused sign-ins that typed this person's name or address are filed
+	// under nobody, but they are data about this person all the same: they
+	// go out with the first page.
+	if ( 1 === max( 1, $page ) ) {
+		$rows = array_merge( $rows, diluxone_users_log_tried( array( $user->user_login, $user->user_email ) ) );
+	}
 
 	foreach ( $rows as $row ) {
 		$data = array(
@@ -99,7 +107,7 @@ function diluxone_users_log_export( string $email, int $page = 1 ): array {
 
 	return array(
 		'data' => $items,
-		'done' => count( $rows ) < DILUXONE_USERS_LOG_EXPORT_PAGE,
+		'done' => ! $full,
 	);
 }
 
@@ -133,18 +141,43 @@ add_filter( 'wp_privacy_personal_data_erasers', 'diluxone_users_log_eraser' );
  * filing it under nobody — and there is no way to tell one that was this
  * person mistyping from one that was somebody trying to get into their account.
  * Erasing them on request would hand whoever asked a way to clear the evidence
- * of their own attempts.
+ * of their own attempts. So they are kept, and the answer says so: WordPress
+ * shows the site owner what was retained and why, which is what the law asks
+ * of a retention and what a silent `false` would hide. They leave with the
+ * rest of the log when their retention runs out.
  *
  * @return array{items_removed: bool, items_retained: bool, messages: array<int, string>, done: bool}
  */
 function diluxone_users_log_erase( string $email, int $page = 1 ): array {
 	$user = get_user_by( 'email', $email );
-	$gone = $user instanceof WP_User ? diluxone_users_log_forget( (int) $user->ID ) : 0;
+
+	if ( ! $user instanceof WP_User ) {
+		return array(
+			'items_removed'  => false,
+			'items_retained' => false,
+			'messages'       => array(),
+			'done'           => true,
+		);
+	}
+
+	$gone = diluxone_users_log_forget( (int) $user->ID );
+	$kept = count( diluxone_users_log_tried( array( $user->user_login, $user->user_email ) ) );
 
 	return array(
 		'items_removed'  => $gone > 0,
-		'items_retained' => false,
-		'messages'       => array(),
+		'items_retained' => $kept > 0,
+		'messages'       => $kept > 0 ? array(
+			sprintf(
+				/* translators: %d: how many refused sign-in attempts are kept. */
+				_n(
+					'%d refused sign-in attempt that typed this person\'s username or e-mail was kept: it is security evidence, and it is deleted when the activity log\'s retention runs out.',
+					'%d refused sign-in attempts that typed this person\'s username or e-mail were kept: they are security evidence, and they are deleted when the activity log\'s retention runs out.',
+					$kept,
+					'diluxone-users'
+				),
+				$kept
+			),
+		) : array(),
 		'done'           => true,
 	);
 }
