@@ -77,6 +77,15 @@ scripts
 .claude
 .cursor
 
+# Bundled translations are never loaded from the plugin folder: without
+# load_plugin_textdomain() (discouraged for directory-hosted plugins) WordPress
+# reads plugin translations from wp-content/languages/plugins/, where
+# translate.wordpress.org's language packs go. The .pot stays; the .po/.mo are
+# the source for translate.wordpress.org once the plugin is published, and
+# `make deploy-test` puts the .mo where WordPress reads them on the test site.
+languages/*.po
+languages/*.mo
+
 # Build artifacts and logs
 build
 phpcs.json

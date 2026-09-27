@@ -238,14 +238,14 @@ add_filter( 'diluxone_users_account_heading', 'diluxone_users_account_heading_ho
 
 /** Section home. */
 function diluxone_users_section_home( WP_User $user ): void {
-	// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- template, already escaped.
+	// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- a template of the plugin's, which escapes its output.
 	echo diluxone_users_render(
 		'account/home',
 		array(
 			'user'  => $user,
 			'cards' => diluxone_users_summaries(),
 		)
-	); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- a template of the plugin's, which escapes its output.
+	);
 }
 
 /* ── Personal data ─────────────────────────────────────────────────── */

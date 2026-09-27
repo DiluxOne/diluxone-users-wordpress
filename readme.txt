@@ -12,58 +12,41 @@ Custom user fields, a front-end account area, passwordless sign-in, social login
 
 == Description ==
 
-Everything about the people who use your site: the details you ask them for,
-how they sign in, what they see of their own, and what they can do with it.
-In most sites that gets solved again every time, with four plugins that do not
-talk to each other. Here it lives once.
+Everything about the people who use your site, in one place.
 
-* **User fields** defined from the dashboard: name, type, whether it is
-  required, where it goes, and who can change it and how many times. The ones
-  WordPress already has — first and last name — are in the same list and follow
-  the same rules.
+* **User fields** defined from the dashboard: type, whether it is required,
+  where it shows and who can change it, and how many times. WordPress's own
+  first and last name follow the same rules.
 * **An account area on the front end**: Home, Your details, Linked accounts,
-  Security, Your data and Notifications, with tabs on top or a menu down the
-  side. Sections can be renamed, reordered, turned off and added; one of your
-  own is a name, an address and a shortcode.
-* **How people get in**: a link sent to their email with no password at all,
-  username and password, or both. With control over what happens to the
-  WordPress registration and to its profile screen.
-* **Social login** with twelve providers, a step-by-step guide for each
-  console, buttons with the real brand marks, and a live test before you turn
-  one on.
-* **Two-step verification**: a code by email, an authenticator app with a QR
-  code, and backup codes. With a policy per role and per way in.
+  Security, Your data and Notifications, as tabs or a side menu. Sections can
+  be renamed, reordered, turned off and added.
+* **How people get in**: a link sent to their e-mail with no password, username
+  and password, or both, plus control over WordPress's own registration and
+  profile screens.
+* **Social login** with twelve providers, a step-by-step guide for each console
+  and a live test before one is turned on.
+* **Two-step verification**: a code by e-mail, an authenticator app with a QR
+  code, and backup codes, with a policy per role and per way in.
 * **Passkeys** (WebAuthn), each one with a name of its own.
-* **Sessions**: how long they last, where they are open and how to close them.
-* **An activity log** of its own: who signed in, who was refused, and what
-  changed about an account. It records IP addresses — see the Privacy section
-  below, which says exactly what is kept and for how long.
-* **Privacy**: the export and erasure requests WordPress already knows how to
-  handle, answering for everything this plugin stores.
-
-None of this depends on another plugin. What belongs to someone else — a
-course, a membership, a forum — comes in through a filter or a shortcode.
-
-= What it will not do =
-
-Whatever an administrator turns off disappears from the front end, with no
-second switch to remember. With no social provider enabled there is no
-"Linked accounts" section at all; with neither data download nor account
-deletion allowed there is no "Your data" section.
+* **Sessions**: how long they last, where they are open, and how to close them.
+* **An activity log** of its own: who signed in, who was refused and what
+  changed. It records IP addresses; see Privacy below.
+* **Privacy**: WordPress's own export and erasure requests answer for
+  everything this plugin stores.
 
 == External services ==
 
-This plugin talks to a third-party service only when an administrator has
-pasted that provider's credentials and turned it on, and only when somebody
-clicks its button on the sign-in page (or when an administrator runs the live
-test on its settings screen). With no provider enabled, the plugin makes no
-outbound request at all.
+The plugin talks to a third-party service only when an administrator has
+entered that provider's credentials and turned it on, and only when somebody
+clicks its button on the sign-in page (or an administrator runs its live test).
+With no provider on, it makes no outbound request at all.
 
-What is sent to a provider, in every case, is the same: the client ID and
-client secret you registered with them, the authorisation code the browser came
-back with, and the redirect URL of your site. What comes back is the person's
-identifier at that provider, their e-mail address and their name. Nothing else
-about your site or its visitors is transmitted.
+What is sent: the client ID and secret you registered with the provider, the
+authorisation code the browser came back with and your site's redirect URL
+(and, for X, a PKCE verifier); then the access token the provider issued, to
+read the person's profile. What comes back: the person's identifier at that
+provider, their name and their e-mail address (X does not provide one).
+Nothing else about your site or its visitors is sent.
 
 * **Google** — accounts.google.com, oauth2.googleapis.com, openidconnect.googleapis.com. [Terms](https://policies.google.com/terms), [Privacy](https://policies.google.com/privacy)
 * **Microsoft** — login.microsoftonline.com, graph.microsoft.com. [Terms](https://www.microsoft.com/servicesagreement), [Privacy](https://privacy.microsoft.com/privacystatement)
@@ -78,109 +61,104 @@ about your site or its visitors is transmitted.
 * **GitLab** — gitlab.com. [Terms](https://handbook.gitlab.com/handbook/legal/subscription-agreement/), [Privacy](https://handbook.gitlab.com/handbook/legal/privacy/)
 * **Amazon** — www.amazon.com, api.amazon.com. [Terms](https://www.amazon.com/gp/help/customer/display.html?nodeId=508088), [Privacy](https://www.amazon.com/gp/help/customer/display.html?nodeId=468496)
 
+The settings screens also link to each provider's developer console and docs;
+those are links, not requests.
+
 **Gravatar** (Automattic) is WordPress's own avatar service, not a call this
-plugin makes — but this plugin has a switch for it, and it comes on. While it
-is on, every visitor's browser requests each author's avatar from
-gravatar.com, which receives a hash of that person's e-mail address and the
-visitor's IP. Turn it off on **DiluxOne Users+ → Design → Profile photo**.
+plugin makes, but the plugin has a switch for it and it comes on. While it is
+on, visitors' browsers request avatars from gravatar.com, which receives a hash
+of the person's e-mail address and the visitor's IP. With it off, no picture
+comes from gravatar.com: the plugin draws one. The switch is on
+**DiluxOne Users+ → Design → Profile photo**.
 [Terms](https://automattic.com/terms/), [Privacy](https://automattic.com/privacy/)
 
 == Installation ==
 
-1. Upload the plugin folder to `/wp-content/plugins/`.
-2. Activate it from the Plugins screen.
-3. Go to **DiluxOne Users+ → Account area** and pick the page that holds the
-   `[diluxone_users_account]` shortcode.
-4. Go to **DiluxOne Users+ → Access** and pick the page that holds the
-   `[diluxone_users_login]` shortcode.
+1. Upload the plugin folder to `/wp-content/plugins/` and activate it.
+2. Go to **DiluxOne Users+ → Access** and pick (or create) the sign-in page.
+3. Go to **DiluxOne Users+ → Account area** and pick (or create) the account page.
+
+Whether people may create their own accounts starts as your site had it
+(**Settings → General → Anyone can register**, or the network's setting) and is
+changed on **Access → Registration**.
 
 == Privacy ==
 
-= What this plugin stores about a person =
+= What it stores =
 
-In their WordPress profile: the answers to the fields you define, their public
-name, their profile picture, which social accounts are linked, their passkeys,
-whether two-step verification is on and which browsers have already been seen
-(as a hash, so that "a new device signed in" is only said once).
+In each person's profile: the answers to your fields, their public name and
+picture, which social accounts are linked, their passkeys, whether two-step
+verification is on, and a hash of each browser they signed in from (so "a new
+device signed in" is said once).
 
-In a table of its own, `{prefix}diluxone_users_log`: one row per event, with
-the date, the account, the **IP address** and the browser's user-agent string.
-Out of the box it records only signing in, signing out and sign-ins that were
-refused. The other groups — changes to an account, changes to its security —
-are ticked by hand on **DiluxOne Users+ → Reports → Log settings**, as is how
-long a row is kept, which starts at 90 days. With no group ticked, the log
-records nothing at all.
+In its own table, `{prefix}diluxone_users_log`: one row per event with the
+date, the account, the **IP address** and the browser's user-agent. When a
+sign-in is refused, the name typed in the username box is kept with it. Out of
+the box it records signing in, signing out and refused sign-ins; other groups
+and how long rows are kept (90 days to start) are set on
+**DiluxOne Users+ → Reports → Log settings**.
 
-Nothing is ever sent anywhere by the plugin itself: there is no telemetry, no
-usage reporting, no licence check and no call home of any kind.
+Cookies: short-lived ones while somebody signs in, one for a browser that need
+not be asked the second step again, and one for the way in used last.
+
+The plugin itself sends nothing anywhere: no telemetry, no licence check.
 
 = Export and erasure =
 
-Both of WordPress's own tools, under **Tools → Export Personal Data** and
-**Tools → Erase Personal Data**, answer for everything above. The export leaves
-out anything that is a credential rather than a fact about somebody — the
-authenticator secret, the backup-code hashes, a passkey's public key — because
-those say nothing about a person and a copy of them travelling by e-mail is a
-copy of the keys to the account. The erasure removes them all the same.
+**Tools → Export Personal Data** and **Tools → Erase Personal Data** answer for
+all of the above. The export leaves out credentials (the authenticator secret,
+backup-code hashes, passkey public keys); the erasure removes them too. Refused
+sign-ins that typed a person's name are exported, and kept on erasure as
+security evidence until the log's retention removes them; the erasure says so.
 
 = Deleting the plugin =
 
-By default, deleting the plugin leaves everything where it is: the settings,
-the log, and everything in people's profiles. That is deliberate — a plugin
-deleted by accident, or deleted in order to be installed again, should not be
-what loses somebody their account. To have it all removed on delete, tick
-**Remove everything this plugin wrote** on **DiluxOne Users+ → Maintenance →
-Tools** first.
+By default deleting the plugin leaves everything in place, so a plugin deleted
+by accident does not lose anybody's account. To remove it all, tick **Remove
+everything this plugin wrote** on **DiluxOne Users+ → Maintenance → Tools**
+first. On a network, people's profile data goes only when every site that uses
+the plugin has ticked it.
 
 == Third-party resources ==
 
-The social buttons carry each network's own logo, drawn as inline SVG in
-`includes/sso-icons.php`. Those marks belong to their owners and are used for
-the single purpose their brand guidelines allow without prior permission:
-identifying the button you sign in to that service with. They are not covered
-by this plugin's licence. A provider with no mark of its own is drawn with a
-plain globe.
-
-Everything else in the plugin is original work under GPLv2 or later. No
-third-party library is bundled: the QR encoder, the TOTP implementation and
-the WebAuthn verification are all written for this plugin.
+The social buttons show each network's logo as inline SVG
+(`includes/sso-icons.php`). The logos are trademarks of their owners, shown
+only to identify the button that signs in with that service, as their brand
+guidelines allow. Everything else is original work under GPLv2 or later; no
+third-party library is bundled (the QR encoder, TOTP and WebAuthn verification
+are written for this plugin).
 
 == Frequently Asked Questions ==
 
+= Which shortcodes are there? =
+
+`[diluxone_users_login]` and `[diluxone_users_register]` for the sign-in and
+registration pages, `[diluxone_users_account]` for the account area and
+`[diluxone_users_account_nav]` for its menu alone. The account's pieces work on
+their own too: `[diluxone_users_fields]`, `[diluxone_users_avatar]`,
+`[diluxone_users_handle]`, `[diluxone_users_accounts]`,
+`[diluxone_users_sessions]` and `[diluxone_users_notifications]`.
+
 = Does it work with any theme? =
 
-Yes. It ships its own styles, its templates can be overridden from the theme
-at `wp-content/themes/<theme>/diluxone-users/`, and its colours come
-from CSS custom properties a site can redefine without copying a stylesheet.
+Yes. Templates can be overridden at `wp-content/themes/<theme>/diluxone-users/`.
 
 = Does it work on multisite? =
 
-Yes. Configuration is per site; users are network-wide, so anything that
-grants access joins the person to the current site.
-
-= Does it record IP addresses? =
-
-Yes, in its own activity log, and only for the groups of events you have
-ticked. A fresh install records signing in, signing out and refused sign-ins.
-Rows are deleted after 90 days by default, and both the groups and the number
-of days are settings. See the Privacy section above.
-
-= Does it send anything to me, or to anyone? =
-
-No. There is no telemetry, no usage reporting and no licence check. The only
-outbound requests are to the social-login providers you configure yourself,
-listed under External Services above.
-
-= I deleted the plugin. Is the data still there? =
-
-Yes, unless you asked for it to go. See "Deleting the plugin" above.
+Yes. Settings are per site; accounts are the network's. Whether new accounts
+may be created at all is the network's **Allow new registrations**. Somebody
+becomes a member of a site when they sign in there through one of its doors,
+if that site takes new people. The second step is asked wherever a person signs
+in when any site they belong to asks it. Each site's reports count its own
+members. For social login, use the same app credentials on every site: some
+providers give a different account id per app.
 
 = Is it behind a proxy or a CDN? =
 
-Then tell it so on **DiluxOne Users+ → Reports → Behind a proxy**: pick the
-header your proxy writes and list its addresses. Until you do, the plugin reads
-the connection and ignores every header, because a header nobody is writing is
-a header the visitor can write.
+Then say so on **DiluxOne Users+ → Security → Behind a proxy**: pick the
+header your proxy writes and list its addresses. Until then the plugin ignores
+every forwarding header, because a header nobody is writing is one a visitor
+can write.
 
 == Screenshots ==
 
@@ -199,28 +177,6 @@ a header the visitor can write.
 13. Maintenance: every check, including the ones that fail.
 
 == Changelog ==
-
-= 1.0.0 =
-First public release.
-
-* User fields with their own admin screen: text, email, phone, date, select, checkbox and country, plus WordPress's own first and last name.
-* Per-field edit policy — read only, editable, or editable a fixed number of times — and a switch to allow or block access to WordPress's own profile screen.
-* Front-end account area with default sections out of the box, in one of two templates — a panel in the page or a full-width cover with the person on it — with the header, the menu and the content width chosen piece by piece.
-* Overridable templates and CSS custom properties, so a theme can restyle it without touching the plugin.
-* Passwordless sign-in by e-mail link, optionally alongside or instead of the password form.
-* Social login for twelve providers, with path-based callback URLs that every provider accepts.
-* Two-step verification by e-mail code or authenticator app, with its own policy per sign-in method, and a lockout that counts wrong codes against the account rather than against one attempt.
-* Passkeys with friendly names, which need no second step of their own.
-* Session control: see where an account is signed in and close any session.
-* An activity log with its own table, off for everything but signing in and out until you say otherwise, with a retention setting and a daily purge.
-* Public names, with a live availability check against the same validation used on save.
-* Avatars: uploaded photo, Gravatar or generated initials, each one switchable.
-* Data export and account deletion from the front end, each one switchable.
-* WordPress's own export and erasure requests answer for everything the plugin stores.
-* Multisite aware.
-* Translations included for es_AR, es_ES, es_MX, pt_BR, pt_PT, fr_FR, de_DE and it_IT.
-
-== Upgrade Notice ==
 
 = 1.0.0 =
 First public release.
