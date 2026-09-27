@@ -35,7 +35,9 @@ export default defineConfig({
 	forbidOnly: !!process.env.CI,
 	retries: process.env.CI ? 1 : 0,
 	reporter: process.env.CI ? [['github'], ['list']] : [['list']],
-	outputDir: 'build/e2e-results/network',
+	// Beside the single-site suite's folder, not inside it: Playwright empties
+	// its output folder when a run starts, and the two suites can run at once.
+	outputDir: 'build/e2e-network-results',
 	use: {
 		baseURL: NETWORK_URL,
 		trace: 'retain-on-failure',
