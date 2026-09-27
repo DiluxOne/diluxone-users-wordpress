@@ -1,7 +1,7 @@
 import type { Page } from '@playwright/test';
 import { mkdirSync } from 'node:fs';
 import { test, expect } from '../support/fixtures';
-import { codeIn, freshEmail, waitForMail } from '../support/api';
+import { Site, codeIn, waitForMail } from '../support/api';
 import { accountSection, adminUrl, challengeCode, challengeScreen, signInWithPassword } from '../support/ui';
 import { ADMIN_STATE } from '../../../playwright.config';
 
@@ -51,7 +51,31 @@ const SHOP_WINDOW = {
 	WPLANG: '',
 	blogname: 'Rivera Club',
 	blogdescription: 'Members, courses and the odd asado',
+	// The account area's sections as the plugin names them: a development
+	// site keeps whatever labels somebody typed into it, in their language.
+	diluxone_users_account_sections: {},
 };
+
+/** The member the front-end pictures are of: an address, not a test id. */
+const MEMBER = 'ana.gomez@riveraclub.example';
+
+/*
+ * The development site keeps what the other suites leave behind when a run is
+ * interrupted — accounts called shot-mu7n3709@e2e.test with expired sessions,
+ * the page the menu spec draws its menu on — and a listing picture with those
+ * in it is a picture of a test run. They go before the first picture, and the
+ * member of the pictures goes after the last.
+ */
+test.beforeAll(async ({ baseURL }) => {
+	const site = await Site.open(baseURL!);
+
+	await site.deleteE2EUsers();
+	await site.forgetMenu();
+});
+
+test.afterAll(async ({ baseURL }) => {
+	await (await Site.open(baseURL!)).deleteUser(MEMBER);
+});
 
 /**
  * How tall a listing picture is allowed to be.
@@ -154,7 +178,8 @@ test.describe('The front end', () => {
 			diluxone_users_2fa_methods: ['email'],
 		});
 
-		const email = freshEmail('shot');
+		const email = MEMBER;
+		await site.deleteUser(email);
 		await site.makeUser({ email, password: PASSWORD, name: 'Ana Gómez' });
 
 		await page.goto(pages.login.url);
@@ -179,8 +204,9 @@ test.describe('The account area', () => {
 
 	/** Signs one person in and hands back where their account lives. */
 	async function asMember(page: Page, site: any, pages: any): Promise<string> {
-		const email = freshEmail('shot');
+		const email = MEMBER;
 
+		await site.deleteUser(email);
 		await site.makeUser({
 			email,
 			password: PASSWORD,
@@ -238,6 +264,12 @@ test.describe('The account area', () => {
 test.describe('The dashboard', () => {
 	test.use({ storageState: ADMIN_STATE });
 
+	/*
+	 * The development site keeps what the other suites leave behind when a
+	 * run is interrupted — accounts called shot-mu7n3709@e2e.test with
+	 * sessions that expired an hour ago — and a listing picture of the users
+	 * list or the open sessions with those in it is a picture of a test run.
+	 */
 	test.beforeEach(async ({ options }) => {
 		await options.set(SHOP_WINDOW);
 	});

@@ -98,6 +98,11 @@ export class Site {
 		return this.call('post', '/menu');
 	}
 
+	/** The page the menu above is drawn on, deleted. */
+	forgetMenu(): Promise<unknown> {
+		return this.call('delete', '/menu');
+	}
+
 	/**
 	 * Writes settings and hands back what they were.
 	 *

@@ -23,5 +23,6 @@ teardown('put the site back the way it was', async ({ baseURL }) => {
 
 	// Every account the suite made carries the e2e domain; nothing else does.
 	await site.deleteE2EUsers();
+	await site.forgetMenu();
 	await site.clearMail();
 });

@@ -220,6 +220,20 @@ function diluxone_e2e_menu_seed(): WP_REST_Response {
 	);
 }
 
+/**
+ * The menu page, gone: a published page is in every theme's list of pages,
+ * and a page called "Menu" there is a test run showing through the site.
+ */
+function diluxone_e2e_menu_forget(): WP_REST_Response {
+	$page = get_page_by_path( 'e2e-menu' );
+
+	if ( $page instanceof WP_Post ) {
+		wp_delete_post( (int) $page->ID, true );
+	}
+
+	return new WP_REST_Response( array( 'deleted' => $page instanceof WP_Post ) );
+}
+
 /* ── The routes ────────────────────────────────────────────────────── */
 
 /** Is this request allowed to drive the site? */
@@ -311,9 +325,16 @@ function diluxone_e2e_routes(): void {
 		DILUXONE_E2E_NS,
 		'/menu',
 		array(
-			'methods'             => 'POST',
-			'permission_callback' => $guard,
-			'callback'            => 'diluxone_e2e_menu_seed',
+			array(
+				'methods'             => 'POST',
+				'permission_callback' => $guard,
+				'callback'            => 'diluxone_e2e_menu_seed',
+			),
+			array(
+				'methods'             => 'DELETE',
+				'permission_callback' => $guard,
+				'callback'            => 'diluxone_e2e_menu_forget',
+			),
 		)
 	);
 
