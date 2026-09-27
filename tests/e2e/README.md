@@ -38,6 +38,19 @@ npx playwright test magic-link
 npx playwright test -g "the second time it is spent"
 ```
 
+### On a network
+
+```bash
+make env               # once, as above: it also brings the tests site (8893)
+make test-e2e-network  # converts the tests site into a subdirectory network, then runs network/
+```
+
+`make test-e2e-network` is `make env-multisite` followed by
+`npx playwright test -c playwright.network.config.ts`. The conversion is
+idempotent and puts the network's `.htaccess` back every time, since anything
+that flushes permalinks writes the single-site one. Point it at another network
+with `WP_NETWORK_URL`. Traces land in `build/e2e-network-results/`.
+
 A failed run leaves a trace in `build/e2e-results/`. Open it with
 `npx playwright show-trace build/e2e-results/<...>/trace.zip` and you get the
 browser back, frame by frame.
@@ -48,7 +61,13 @@ browser back, frame by frame.
   what runs is the working tree.
 - **The e2e mu-plugin**, which `.wp-env.json` maps into `wp-content/mu-plugins/`
   from `tests/e2e/mu-plugin/diluxone-e2e.php`. If you change `.wp-env.json` you
-  have to `npx @wordpress/env start` again for the mapping to take.
+  have to `npx @wordpress/env start` again for the mapping to take. The mapping
+  is a single-file bind mount, so an editor that saves by writing a new file
+  and renaming it over the old one leaves the container looking at the old
+  file: `npx wp-env stop && npx wp-env start` after editing it.
+- For the network suite, the tests site on port 8893 as a network
+  (`make env-multisite`, which `make test-e2e-network` runs), and WP-CLI
+  through `npx wp-env run tests-cli` — the setup makes its sites with it.
 - Nothing else. No mail server: the mu-plugin catches the mail. No OAuth
   credentials: the mu-plugin answers as the provider. No HTTPS: `localhost`
   counts as a secure context, which is what passkeys need.
@@ -64,8 +83,12 @@ tests/e2e/
                        run made
   mu-plugin/           the three things a browser cannot do on its own
   support/             the REST side door, the locators, a TOTP app, the
-                       registry of screens and the layout measurements
+                       registry of screens, the layout measurements, the
+                       baseline settings and WP-CLI for the network suite
   specs/               the flows, and the two suites that look at the screens
+  network/             the network suite: its setup and teardown, its fixtures
+                       (one handle per site) and its specs
+  COVERAGE.md          every feature and state, and the test that covers it
   snapshots/           one picture per tab, the baseline the pictures compare
                        against
 ```
@@ -114,7 +137,14 @@ each rule means and why the pictures are not in CI.
   expiry is tested in a second rather than in fifteen minutes.
 - **The pages.** `POST /seed` makes the three pages the shortcodes live on —
   `e2e-login`, `e2e-register`, `e2e-account` — once, and reuses them after
-  that.
+  that. `POST /menu` makes a classic menu in a location of the mu-plugin's own
+  and a page, `e2e-menu`, that draws it with `wp_nav_menu()`: the wp-env theme
+  is a block theme, and the plugin's menu items only reach classic menus.
+- **Networks.** Every route answers on a site of a network at that site's own
+  address (`/alpha/wp-json/…`), with that site's options and mailbox. The user
+  read says whether the person is a member of this site (`member`) and of
+  which ones (`sites`); deleting uses `wpmu_delete_user()`, because on a
+  network `wp_delete_user()` only takes somebody off one site.
 
 The one open route is `/oauth/authorize`: the browser walks into it following
 a plain redirect and can carry no header there. It signs nobody in; it
@@ -169,7 +199,16 @@ deletes all of them. Nothing else on the site has that domain.
 | `sso.spec.ts` | A new social account, one that matches an existing address, and **H-01**: an unverified address must not be handed an existing account. Silence treated as silence. "Verified only". Cancelling at the provider. Linking and unlinking. **H-02**: a link trip with no nonce. A forged `state`. |
 | `admin-settings.spec.ts` | Every tab of every settings screen renders with no PHP notice and no footer riding up into the layout; and eight settings changed by pressing Save, each checked on the public page afterwards — including **M-10**, the legal line keeping its link. |
 | `passkeys.spec.ts` | Register a passkey from the account screen and sign in with it, against Chrome's virtual authenticator; and a key the account has removed no longer opening it. |
+| `account-area.spec.ts` | The account area as its owner: the guest screen, the menu, the sections that exist only while offered, details and a required field, the photo and its attachment, the public name, the new-device notice and its switch, export and erasure requests, two-step on and off, the app removed with a backup code, new backup codes, closing browsers. |
+| `site-menu.spec.ts` | The person in the site's own menu, on the mu-plugin's classic menu: the stranger's sign-in item, the person's sections and sign-out, the three styles, and the tab that saves them. |
+| `admin-effects.spec.ts` | The rest of the dashboard's saves, each checked on the public side: wp-login.php branding, photos, initials, the registration heading, the account menu down the side, the toolbar, profile.php, the sessions list, notice rules, a provider switched off, and what happens to wp-login.php. |
+| `admin-tools.spec.ts` | Status › Tools (export, import, close sessions, fresh code, rebuild, test message), Reports › Sessions and Activity, WordPress's Users screens and Add New User, a field added and deleted, a section of the site's own. |
+| `network/*.spec.ts` | Two sites of one network: each site's door, membership only by using a link, the network's registration setting, settings per site, the sessions report per site, Add New User, the photo across sites, two-step per site, a social identity across sites, a site born after activation, deactivating and activating, WP-CLI. |
 | `login-ways.spec.ts` | The four ways in as one screen: with all of them on, the sign-in card fits a 1366×768 laptop in tabs and does not stacked — both halves, so the measurement cannot pass on the broken arrangement. The passkey staying above the strip. The tab that opens: the site's choice for a stranger, the cookie after that, and the way in that just failed over both. The site's order, in tabs and stacked. Every way in visible with JavaScript off. And the dashboard end: the order saved from the drag list and read back off the public page. |
+
+A test that fails today on a product bug says so in its assertion message and
+is listed as **bug** in [COVERAGE.md](COVERAGE.md). It stays red until the
+product is fixed; it is not loosened and not marked `fixme`.
 
 ### Skipped, and why
 

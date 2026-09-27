@@ -9,6 +9,7 @@ What every quality gate enforces, why, and how to run each one locally.
 | Unit tests | PHPUnit + brain/monkey + mockery | Logic regressions in pure-PHP units. | `pr-checks.yml` | `make test` |
 | Integration tests | PHPUnit + wp-env | Behaviour against a real WordPress runtime + DB. | `pr-checks.yml` | `make test-integration` |
 | End-to-end tests | Playwright + wp-env | Whole flows in a real browser: sign-in, registration, 2FA, passkeys, saving a settings screen. | `tests-e2e.yml` | `make test-e2e` |
+| End-to-end tests on a network | Playwright + wp-env (tests site as a multisite) | Two sites of one network: membership, the network's registration setting, settings per site, reports per site, the photo, two-step and social identities across sites, a new site, deactivation. | `tests-e2e-network.yml` | `make test-e2e-network` |
 | Layout invariants | Playwright (measurements) | Geometry: blocks overlapping, anything past the right edge, blocks with no space between them, bordered boxes with nothing in them, something still on screen with `hidden` on it, the rail falling underneath. | `tests-e2e.yml` | `make test-layout` |
 | Visual regression | Playwright (`toHaveScreenshot`) | Everything else about how a screen looks — a line nobody asked for, a heading that grew, a ground that went grey. | (local, on purpose — see below) | `make test-visual` |
 | Coding style | PHP_CodeSniffer + WordPress Coding Standards | Style, naming, escaping, sanitisation, prepared statements, deprecated APIs. | `pr-checks.yml` | `make lint` |
@@ -125,6 +126,8 @@ Located in [`tests/e2e/`](../tests/e2e/). They drive a real Chromium against the
 make env        # once
 make test-e2e   # every spec, including the layout measurements
 ```
+
+The same plugin network-activated has a suite of its own, in [`tests/e2e/network/`](../tests/e2e/network/) with [`playwright.network.config.ts`](../playwright.network.config.ts). It drives the wp-env tests site (port 8893) converted into a subdirectory network, makes `/alpha/` and `/beta/` with WP-CLI and deletes them afterwards. `make test-e2e-network` does the conversion and the run. [`tests/e2e/COVERAGE.md`](../tests/e2e/COVERAGE.md) maps every feature to the test that covers it, in both suites.
 
 ## Layout invariants
 
