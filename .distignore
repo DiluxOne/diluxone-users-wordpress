@@ -48,7 +48,7 @@ psalm-baseline.xml
 .psalm
 
 # End-to-end runner (browser tests; never part of what ships)
-playwright.config.ts
+playwright*.config.ts
 playwright-report
 test-results
 
