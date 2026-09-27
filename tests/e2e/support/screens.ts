@@ -21,7 +21,7 @@ export const SCREENS: Record<string, string[]> = {
 	'diluxone-users-login': ['summary', 'page', 'ways', 'arrangement', 'register', 'messages'],
 	'diluxone-users-security': ['summary', '2fa', 'passkeys', 'sessions', 'proxy'],
 	'diluxone-users-social': ['providers', 'general'],
-	'diluxone-users-account': ['summary', 'page', 'sections', 'handle', 'dashboard'],
+	'diluxone-users-account': ['summary', 'page', 'sections', 'handle', 'menu', 'dashboard'],
 	'diluxone-users-fields': ['list', 'usage'],
 	'diluxone-users-design': ['brand', 'login', 'register', 'account', 'social', 'photo', 'wp'],
 	'diluxone-users-notices': ['summary', 'rules', 'templates'],
