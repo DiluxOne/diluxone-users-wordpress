@@ -319,6 +319,19 @@ if (!function_exists('set_transient')) {
 	}
 }
 
+if (!function_exists('is_multisite')) {
+	// A single site unless a test says otherwise.
+	function is_multisite(): bool {
+		return !empty($GLOBALS['_test_multisite']);
+	}
+}
+
+if (!function_exists('is_super_admin')) {
+	function is_super_admin($user_id = false): bool {
+		return false;
+	}
+}
+
 if (!function_exists('get_transient')) {
 	function get_transient(string $key) {
 		return $GLOBALS['_test_wp_transients'][$key] ?? false;

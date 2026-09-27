@@ -465,7 +465,19 @@ function diluxone_users_scope_includes( int $user_id, string $prefix ): bool {
 
 	$user = get_userdata( $user_id );
 
-	return $user instanceof WP_User && array() !== array_intersect( $roles, (array) $user->roles );
+	if ( ! $user instanceof WP_User ) {
+		return false;
+	}
+
+	// A super admin administers every site of the network, member or not, and
+	// is in scope wherever administrators are.
+	$has = (array) $user->roles;
+
+	if ( is_multisite() && is_super_admin( $user_id ) ) {
+		$has[] = 'administrator';
+	}
+
+	return array() !== array_intersect( $roles, $has );
 }
 
 /**

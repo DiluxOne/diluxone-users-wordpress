@@ -189,9 +189,78 @@ function diluxone_users_2fa_available( int $user_id ): array {
  *      is a separate setting and comes turned off: a site that wants the
  *      second factor anyway turns it on.
  *
+ * On a network there is a fourth: the session this sign-in opens is valid on
+ * every site of the network, so a site that asks for the second step would be
+ * bypassed by signing in on one that does not. The person is asked when any
+ * site they can reach through that session asks it of them.
+ *
  * @param string $via 'password', 'link' or 'sso'.
  */
 function diluxone_users_2fa_required( int $user_id, string $via ): bool {
+	if ( diluxone_users_2fa_required_here( $user_id, $via ) ) {
+		return true;
+	}
+
+	foreach ( diluxone_users_2fa_other_sites( $user_id ) as $site ) {
+		switch_to_blog( $site );
+		$asked = diluxone_users_plugin_active_here() && diluxone_users_2fa_required_here( $user_id, $via );
+		restore_current_blog();
+
+		if ( $asked ) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+/**
+ * The other sites of the network this person's session reaches with a role.
+ *
+ * Their own sites, and for a super admin every site: a super admin has no role
+ * on most of them and administers all of them.
+ *
+ * @return array<int, int>
+ */
+function diluxone_users_2fa_other_sites( int $user_id ): array {
+	if ( ! is_multisite() ) {
+		return array();
+	}
+
+	$sites = is_super_admin( $user_id )
+		? array_map(
+			'intval',
+			get_sites(
+				array(
+					'fields' => 'ids',
+					'number' => 0,
+				)
+			)
+		)
+		: array_map( 'intval', array_keys( get_blogs_of_user( $user_id ) ) );
+
+	return array_values( array_diff( $sites, array( get_current_blog_id() ) ) );
+}
+
+/** Is the plugin running on the current site (on its own or for the whole network)? */
+function diluxone_users_plugin_active_here(): bool {
+	$file = plugin_basename( DILUXONE_USERS_FILE );
+
+	return isset( ( (array) get_site_option( 'active_sitewide_plugins', array() ) )[ $file ] )
+		|| in_array( $file, (array) get_option( 'active_plugins', array() ), true );
+}
+
+/**
+ * The same question as diluxone_users_2fa_required(), about the current site only.
+ *
+ * Asked again after `switch_to_blog()`, where the same arguments get another
+ * site's answer — hence the tag, or the analyser reuses the first one.
+ *
+ * @param string $via 'password', 'link' or 'sso'.
+ *
+ * @phpstan-impure
+ */
+function diluxone_users_2fa_required_here( int $user_id, string $via ): bool {
 	$mode = (string) diluxone_users_option( 'diluxone_users_2fa_mode' );
 
 	if ( 'off' === $mode ) {

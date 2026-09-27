@@ -237,4 +237,44 @@ class MultisiteTest extends IntegrationTestCase {
 
 		$this->assertSame( $user, diluxone_users_passkey_owner( $id ) );
 	}
+
+	/**
+	 * The session a sign-in opens is valid on every site of the network, so a
+	 * site that asks for the second step is asked about wherever the person
+	 * signs in: here it asks nothing, the other site asks, and the answer is
+	 * yes.
+	 */
+	public function test_a_site_that_asks_for_the_second_step_is_not_bypassed_from_another(): void {
+		$user = $this->make_user( 'administrator' );
+		add_user_to_blog( $this->site, $user, 'administrator' );
+
+		update_option( 'diluxone_users_2fa_mode', 'off' );
+
+		switch_to_blog( $this->site );
+		update_option( 'diluxone_users_2fa_mode', 'required' );
+		update_option( 'diluxone_users_2fa_methods', array( 'email' ) );
+		restore_current_blog();
+
+		$this->assertFalse( diluxone_users_2fa_required_here( $user, 'password' ) );
+		$this->assertTrue( diluxone_users_2fa_required( $user, 'password' ) );
+	}
+
+	/** A super admin is an administrator everywhere, member or not. */
+	public function test_a_super_admin_is_in_scope_where_administrators_are(): void {
+		$admin = $this->make_user();
+		grant_super_admin( $admin );
+
+		update_option( 'diluxone_users_2fa_mode', 'off' );
+
+		switch_to_blog( $this->site );
+		update_option( 'diluxone_users_2fa_mode', 'required' );
+		update_option( 'diluxone_users_2fa_methods', array( 'email' ) );
+		update_option( 'diluxone_users_2fa_scope', 'some' );
+		update_option( 'diluxone_users_2fa_roles', array( 'administrator' ) );
+		restore_current_blog();
+
+		$this->assertTrue( diluxone_users_2fa_required( $admin, 'password' ) );
+
+		revoke_super_admin( $admin );
+	}
 }
