@@ -567,7 +567,14 @@ function diluxone_users_data_request(): void {
 		exit;
 	}
 
-	$request_id = wp_create_user_request( $user->user_email, $kind );
+	// An erasure asked for here is the person deleting their account, and it
+	// says so, so the account is closed when the request has been carried out
+	// (see includes/account-closing.php). One filed from Tools does not.
+	$request_id = wp_create_user_request(
+		$user->user_email,
+		$kind,
+		'remove_personal_data' === $kind ? array( DILUXONE_USERS_CLOSE_KEY => (int) $user->ID ) : array()
+	);
 
 	if ( is_wp_error( $request_id ) ) {
 		wp_safe_redirect( add_query_arg( 'diluxone-users', 'error', diluxone_users_account_url( 'privacy' ) ) );

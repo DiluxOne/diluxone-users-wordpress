@@ -516,7 +516,7 @@ msgstr "Quante volte"
 
 #: includes/admin-appearance.php:262
 #: includes/admin-fields.php:711
-#: includes/privacy.php:395
+#: includes/privacy.php:397
 msgid "Where it goes"
 msgstr "Dove va"
 
@@ -958,7 +958,7 @@ msgid "Expired"
 msgstr "Scaduta"
 
 #: includes/admin-sessions.php:372
-#: includes/admin-tools.php:550
+#: includes/admin-tools.php:557
 msgid "Close sessions"
 msgstr "Chiudi le sessioni"
 
@@ -1325,7 +1325,7 @@ msgid "Copy this into a support message and half the back-and-forth disappears."
 msgstr "Incolla questo in una richiesta di supporto e metà dei botta e risposta sparisce."
 
 #: includes/admin-tools.php:74
-#: includes/admin-tools.php:431
+#: includes/admin-tools.php:438
 #: includes/pages.php:121
 #: includes/sessions.php:358
 msgid "You are not allowed to do this."
@@ -1360,16 +1360,16 @@ msgstr "Tutte le sessioni del sito sono chiuse. Rientrano tutti, tu compreso."
 msgid "Every session for %s is closed."
 msgstr "Tutte le sessioni di %s sono chiuse."
 
-#: includes/admin-tools.php:388
+#: includes/admin-tools.php:395
 msgid "No file uploaded."
 msgstr "Nessun file caricato."
 
-#: includes/admin-tools.php:405
+#: includes/admin-tools.php:412
 msgid "That file is not a DiluxOne Users+ export."
 msgstr "Quel file non è un’esportazione di DiluxOne Users+."
 
 #. translators: %d: number of settings written
-#: includes/admin-tools.php:413
+#: includes/admin-tools.php:420
 #, php-format
 msgid "%d setting restored."
 msgid_plural "%d settings restored."
@@ -1381,83 +1381,85 @@ msgstr[1] "%d impostazioni ripristinate."
 msgid "Tools"
 msgstr "Strumenti"
 
-#: includes/admin-tools.php:518
+#: includes/admin-tools.php:525
 msgid "Rebuild the rewrite rules"
 msgstr "Rigenerare le regole di riscrittura"
 
-#: includes/admin-tools.php:519
+#: includes/admin-tools.php:526
 msgid "Use this when a section of the account area returns a 404. The account area routes its sections through rewrite rules, and those go stale when permalinks change or another plugin rewrites them."
 msgstr "Usalo quando una sezione dell’area account dà 404. L’area account instrada le sue sezioni con regole di riscrittura, e quelle invecchiano quando cambiano i permalink o un altro plugin le riscrive."
 
-#: includes/admin-tools.php:522
+#: includes/admin-tools.php:529
 msgid "Rebuild"
 msgstr "Rigenera"
 
-#: includes/admin-tools.php:527
+#: includes/admin-tools.php:534
 msgid "Send a test message"
 msgstr "Inviare un messaggio di prova"
 
-#: includes/admin-tools.php:528
+#: includes/admin-tools.php:535
 msgid "It goes to your own address. If it does not arrive, the sign-in links and the second-step codes are not arriving either."
 msgstr "Va al tuo indirizzo. Se non arriva, non arrivano nemmeno i link di accesso e i codici del secondo passaggio."
 
-#: includes/admin-tools.php:530
+#: includes/admin-tools.php:537
 msgid "Send it"
 msgstr "Invialo"
 
-#: includes/admin-tools.php:537
+#: includes/admin-tools.php:544
 msgid "Send someone a fresh code"
 msgstr "Mandare a qualcuno un codice nuovo"
 
-#: includes/admin-tools.php:538
+#: includes/admin-tools.php:545
 msgid "For when a person says the second-step code never arrived. It sends a new one and voids the previous one. You never get to see it — the code is stored hashed, which is the point."
 msgstr "Per quando una persona dice che il codice del secondo passaggio non è mai arrivato. Ne manda uno nuovo e annulla il precedente. Tu non lo vedi mai — il codice è salvato con hash, ed è proprio questo il punto."
 
-#: includes/admin-tools.php:543
-#: includes/admin-tools.php:558
+#: includes/admin-tools.php:550
+#: includes/admin-tools.php:565
 msgid "their e-mail address"
 msgstr "il suo indirizzo e-mail"
 
-#: includes/admin-tools.php:545
+#: includes/admin-tools.php:552
 msgid "Send the code"
 msgstr "Invia il codice"
 
-#: includes/admin-tools.php:551
+#: includes/admin-tools.php:558
 msgid "Closing every session on the site signs you out too. That is on purpose: if you are doing this, the session you are least sure about might be your own."
 msgstr "Chiudere tutte le sessioni del sito disconnette anche te. È di proposito: se stai facendo questo, la sessione di cui sei meno sicuro potrebbe essere la tua."
 
-#: includes/admin-tools.php:555
+#: includes/admin-tools.php:562
 msgid "Just this person:"
 msgstr "Solo questa persona:"
 
-#: includes/admin-tools.php:561
+#: includes/admin-tools.php:568
 msgid "Everyone on the site, me included"
 msgstr "Tutti sul sito, me compreso"
 
-#: includes/admin-tools.php:563
+#: includes/admin-tools.php:570
 msgid "Close them"
 msgstr "Chiudile"
 
-#: includes/admin-tools.php:568
+#: includes/admin-tools.php:575
 msgid "Settings as a file"
 msgstr "Le impostazioni come file"
 
-#: includes/admin-tools.php:569
+#: includes/admin-tools.php:576
 msgid "Take the settings and the user fields from one site to another — staging to production, or a site you set up once and want to repeat. Social login credentials are deliberately left out: those are secrets, and a JSON file that travels by e-mail is no place for one."
 msgstr "Porta le impostazioni e i campi utente da un sito all’altro — da staging a produzione, o verso un sito che hai montato una volta e vuoi ripetere. Le credenziali del login social restano fuori di proposito: sono segreti, e un file JSON che viaggia via e-mail non è il posto giusto."
 
-#: includes/admin-tools.php:573
+#: includes/admin-tools.php:580
 msgid "Download them"
 msgstr "Scaricale"
 
-#: includes/admin-tools.php:580
+#: includes/admin-tools.php:587
 msgid "Restoring overwrites what is set right now. Only keys this plugin knows are read, so a file from somewhere else cannot write settings that are not ours."
 msgstr "Ripristinare sovrascrive quello che è impostato adesso. Vengono lette solo le chiavi che questo plugin conosce, quindi un file che viene da altrove non può scrivere impostazioni che non sono nostre."
 
-#: includes/admin-tools.php:585
+#: includes/admin-tools.php:592
 msgid "Restore them"
 msgstr "Ripristinale"
 
+#. Plugin Name of the plugin
+#: diluxone-users.php
 #: includes/admin.php:25
 msgid "DiluxOne Users+"
 msgstr "DiluxOne Users+"
@@ -1816,16 +1818,16 @@ msgstr ""
 "Se non l’hai chiesto tu, ignora questo messaggio: senza di esso nessuno entra nel tuo account."
 
 #. translators: %s: site name
-#: includes/admin-tools.php:442
+#: includes/admin-tools.php:449
 #, php-format
 msgid "Test from %s"
 msgstr "Prova da %s"
 
-#: includes/admin-tools.php:445
+#: includes/admin-tools.php:452
 msgid "If this arrived, the site can send the sign-in links, the second-step codes and the data requests. If it did not, none of those work either."
 msgstr "Se questo è arrivato, il sito può mandare i link di accesso, i codici del secondo passaggio e le richieste di dati. Se non è arrivato, non funziona nemmeno il resto."
 
-#: includes/admin-tools.php:452
+#: includes/admin-tools.php:459
 msgid "wp_mail() returned false and said nothing else."
 msgstr "wp_mail() ha restituito false e non ha detto altro."
 
@@ -2316,55 +2318,55 @@ msgstr "Salva, poi copia il «Client ID» e premi «Show Secret» per copiare il
 msgid "The return URL lives under “Web Settings”, not on the profile’s main page — that is the step everyone misses."
 msgstr "La URL di ritorno sta in «Web Settings», non nella pagina principale del profilo — è il passo che sfugge a tutti."
 
-#: includes/sso.php:941
+#: includes/sso.php:939
 msgid "The provider did not hand over an access token. Check the client ID and the secret."
 msgstr "Il provider non ha consegnato nessun token di accesso. Controlla il client ID e il secret."
 
-#: includes/sso.php:952
+#: includes/sso.php:950
 msgid "The token worked but the profile came back empty. The app is probably missing the permissions this provider needs."
 msgstr "Il token ha funzionato ma il profilo è tornato vuoto. Probabilmente all’app mancano i permessi di cui questo provider ha bisogno."
 
 #. translators: %s: name of the social network
-#: includes/sso.php:980
+#: includes/sso.php:978
 #, php-format
 msgid "The %s account was linked, and it now gets into this account."
 msgstr "L’account %s è stato collegato, e adesso entra in questo account."
 
 #. translators: %s: name of the social network
-#: includes/sso.php:1042
+#: includes/sso.php:1040
 #, php-format
 msgid "The %s account was unlinked."
 msgstr "L’account %s è stato scollegato."
 
-#: includes/sso.php:1083
+#: includes/sso.php:1081
 msgid "It works"
 msgstr "Funziona"
 
-#: includes/sso.php:1084
+#: includes/sso.php:1082
 msgid "It did not work"
 msgstr "Non ha funzionato"
 
 #. translators: %s: provider name
-#: includes/sso.php:1089
+#: includes/sso.php:1087
 #, php-format
 msgid "The round trip with %s finished correctly. You can enable the button now."
 msgstr "L’andata e ritorno con %s si è chiusa correttamente. Ora puoi attivare il pulsante."
 
 #. translators: %s: provider name
-#: includes/sso.php:1094
+#: includes/sso.php:1092
 #, php-format
 msgid "The round trip with %s failed."
 msgstr "L’andata e ritorno con %s è fallita."
 
 #. translators: %s: e-mail address
-#: includes/sso.php:1100
+#: includes/sso.php:1098
 #, php-format
 msgid "The provider handed over this email: %s"
 msgstr "Il provider ha consegnato questa e-mail: %s"
 
 #: includes/admin-fields.php:558
 #: includes/admin-panels.php:684
-#: includes/sso.php:1125
+#: includes/sso.php:1123
 #: templates/sessions.php:63
 msgid "Close"
 msgstr "Chiudi"
@@ -2411,7 +2413,7 @@ msgstr "La tua foto"
 msgid "Choose a photo"
 msgstr "Scegli una foto"
 
-#: includes/admin-tools.php:610
+#: includes/admin-tools.php:617
 #: templates/account/avatar.php:32
 #: templates/account/handle.php:33
 #: templates/account/notifications.php:99
@@ -2520,11 +2522,11 @@ msgstr "Questo non si può annullare."
 msgid "What you wrote in public stays, with no name on it."
 msgstr "Quello che hai scritto in pubblico resta, senza nessun nome sopra."
 
-#: templates/account/privacy.php:111
+#: templates/account/privacy.php:112
 msgid "If you want a copy of anything, download your data first."
 msgstr "Se vuoi una copia di qualcosa, scarica prima i tuoi dati."
 
-#: templates/account/privacy.php:112
+#: templates/account/privacy.php:113
 msgid "Asking is not deleting: we send you an email and nothing happens until you click the link in it. That is what stops somebody who borrowed your screen for a minute."
 msgstr "Chiedere non è eliminare: ti mandiamo un’e-mail e non succede niente finché non clicchi il link dentro. È questo che ferma chi ti ha preso in prestito lo schermo per un minuto."
 
@@ -2886,11 +2888,6 @@ msgstr "Questa sessione"
 msgid "Close the others"
 msgstr "Chiudi le altre"
 
-#. Plugin Name of the plugin
-#: diluxone-users.php
-msgid "DiluxOne Users+ – Accounts & Login"
-msgstr "DiluxOne Users+ – Accounts & Login"
-
 #: includes/admin-fields.php:530
 msgid "What each field IS —its name, type and behaviour— is one WordPress option. What each PERSON answered is user meta: one row per person and per field, with the field key as the name. No extra tables."
 msgstr "Quello che ogni campo È —il suo nome, tipo e comportamento— è un’opzione di WordPress. Quello che ogni PERSONA ha risposto è user meta: una riga per persona e per campo, con la chiave del campo come nome. Nessuna tabella in più."
@@ -2956,13 +2953,13 @@ msgid "“%1$s” does not contain %2$s. If your theme draws it from a template,
 msgstr "«%1$s» non contiene %2$s. Se il tuo tema lo disegna da un template va bene; altrimenti la pagina resta vuota."
 
 #. translators: %s: e-mail address
-#: includes/admin-tools.php:459
+#: includes/admin-tools.php:466
 #, php-format
 msgid "A test message is on its way to %s. If it does not arrive, nothing else will either."
 msgstr "Un messaggio di prova sta arrivando a %s. Se non arriva, non arriverà nient’altro."
 
 #. translators: %s: the reason the send failed
-#: includes/admin-tools.php:468
+#: includes/admin-tools.php:475
 #, php-format
 msgid "The message could not be sent: %s"
 msgstr "Non è stato possibile inviare il messaggio: %s"
@@ -4365,7 +4362,7 @@ msgstr "Quell’indirizzo mostra il modulo di WordPress con nome utente e passwo
 msgid "The code could not be sent. Check outgoing mail on the Status tab."
 msgstr "Non è stato possibile inviare il codice. Controlla la posta in uscita nella scheda Stato."
 
-#: includes/admin-tools.php:515
+#: includes/admin-tools.php:522
 msgid "Six buttons for when something went wrong and somebody is waiting on the other side."
 msgstr "Sei pulsanti per quando qualcosa è andato storto e qualcuno sta aspettando dall’altra parte."
 
@@ -4621,10 +4618,6 @@ msgstr "Questo è ciò che contiene la sezione. Senza nessuno dei due acceso non
 #: includes/admin-account.php:1455
 msgid "The export WordPress already knows how to make: it asks the person to confirm by email and leaves the file ready."
 msgstr "L’esportazione che WordPress sa già fare: chiede alla persona di confermare via e-mail e lascia il file pronto."
-
-#: includes/admin-account.php:1463
-msgid "Confirmed by email too, and never for an account that administers the site: it would leave the site with nobody in charge."
-msgstr "Confermata anche questa via e-mail, e mai per un account che amministra il sito: lascerebbe il sito senza nessuno al comando."
 
 #: includes/admin-account.php:1468
 msgid "Save what they can do"
@@ -7002,27 +6995,27 @@ msgstr "Lascia «Nessuna» a meno che questo sito non sia davvero dietro un prox
 msgid "A secret is saved. Leave this empty to keep it, or paste a new one to replace it."
 msgstr "C’è un segreto salvato. Lascia vuoto per mantenerlo, oppure incollane uno nuovo per sostituirlo."
 
-#: includes/admin-tools.php:398
+#: includes/admin-tools.php:405
 msgid "That file is too big to be a settings export."
 msgstr "Questo file è troppo grande per essere un’esportazione di impostazioni."
 
-#: includes/admin-tools.php:592
+#: includes/admin-tools.php:599
 msgid "What happens when the plugin is deleted"
 msgstr "Cosa succede quando il plugin viene eliminato"
 
-#: includes/admin-tools.php:593
+#: includes/admin-tools.php:600
 msgid "By default, nothing. The settings stay, the activity log stays, and so does everything in people’s profiles — their details, their public names, their passkeys and their second factors. That is on purpose: a plugin deleted by accident, or deleted to be installed again, should not be what loses somebody their account. Tick this only when the plugin is going for good and the data is meant to go with it. It cannot be undone, and it runs on delete, not on deactivate."
 msgstr "Per impostazione predefinita, niente. Restano le impostazioni, resta il registro delle attività e resta tutto ciò che sta nei profili: i dati delle persone, i loro nomi pubblici, le loro passkey e i loro secondi fattori. È voluto: un plugin eliminato per sbaglio, o eliminato per essere reinstallato, non deve essere ciò che fa perdere l’account a qualcuno. Spunta questa casella solo se il plugin se ne va per sempre e i dati devono andarsene con lui. Non è reversibile, e viene eseguito all’eliminazione, non alla disattivazione."
 
-#: includes/admin-tools.php:599
+#: includes/admin-tools.php:606
 msgid "Remove everything this plugin wrote when it is deleted"
 msgstr "Rimuovere tutto ciò che questo plugin ha scritto quando viene eliminato"
 
-#: includes/admin-tools.php:626
+#: includes/admin-tools.php:633
 msgid "Deleting the plugin will now remove everything it wrote."
 msgstr "D’ora in poi, eliminare il plugin rimuoverà tutto ciò che ha scritto."
 
-#: includes/admin-tools.php:627
+#: includes/admin-tools.php:634
 msgid "Deleting the plugin will leave the data where it is."
 msgstr "Eliminare il plugin lascerà i dati dove sono."
 
@@ -7213,23 +7206,15 @@ msgstr "Il plugin si dipinge con la tavolozza che il tuo tema pubblica e continu
 msgid "The username is the e-mail address, as for every account on this site."
 msgstr "Il nome utente è l’indirizzo e-mail, come per ogni account di questo sito."
 
-#: includes/admin-account.php:938
-msgid "can ask for their data to be erased"
-msgstr "può chiedere la cancellazione dei propri dati"
-
 #: includes/admin-account.php:981
 msgid "With plain permalinks the sections go as ?section=…; turn on pretty permalinks in Settings → Permalinks and they become /page/section/ on their own."
 msgstr "Con i permalink semplici le sezioni vanno come ?section=…; attiva i permalink personalizzati in Impostazioni → Permalink e diventano /pagina/sezione/ da sole."
-
-#: includes/admin-account.php:1462
-msgid "They can ask for their data to be erased"
-msgstr "Possono chiedere la cancellazione dei propri dati"
 
 #: includes/admin-sessions.php:257
 msgid "Their sessions are closed: they are signed out everywhere."
 msgstr "Le sessioni sono chiuse: la persona è disconnessa ovunque."
 
-#: includes/admin-tools.php:607
+#: includes/admin-tools.php:614
 msgid "On this network, ticking it removes this site’s settings and activity log. What is in people’s profiles is shared by every site, so it is removed only when every site that uses the plugin has ticked it too."
 msgstr "In questa rete, spuntarla rimuove le impostazioni e il registro delle attività di questo sito. Ciò che è nei profili delle persone è condiviso da tutti i siti, quindi viene rimosso solo quando anche tutti i siti che usano il plugin l’hanno spuntata."
 
@@ -7267,7 +7252,7 @@ msgstr "Cookie"
 msgid "while you sign in, short-lived cookies hold the progress of the attempt: a social sign-in, a password reset, the address you asked a link for. If you ask not to be asked for the second step again on a browser, a cookie remembers that browser for the number of days this site sets. And a cookie remembers which way of signing in you used last, so the sign-in page opens on it."
 msgstr "mentre accedi, cookie di breve durata tengono lo stato del tentativo: un accesso con un social network, un cambio di password, l’indirizzo per cui hai chiesto un link. Se chiedi di non ricevere più la richiesta del secondo passaggio su un browser, un cookie ricorda quel browser per il numero di giorni stabilito da questo sito. E un cookie ricorda il modo di accedere che hai usato l’ultima volta, così la schermata di accesso si apre su quello."
 
-#: includes/privacy.php:396
+#: includes/privacy.php:398
 msgid "the plugin sends nothing anywhere on its own. If this site offers social sign-in, the provider you choose receives what it needs to identify you, and only when you use it; the account id it answers with is kept in your profile so it can recognise you next time. If your profile has no picture of its own and this site shows Gravatar pictures, your browser asks Gravatar (gravatar.com) for one using a hash of your e-mail address."
 msgstr "il plugin non invia nulla da nessuna parte di sua iniziativa. Se questo sito offre l’accesso con i social network, il fornitore che scegli riceve ciò che gli serve per identificarti, e solo quando lo usi; l’identificativo dell’account con cui risponde viene conservato nel tuo profilo per riconoscerti la volta successiva. Se il tuo profilo non ha una foto propria e questo sito mostra le foto di Gravatar, il tuo browser ne chiede una a Gravatar (gravatar.com) usando un hash del tuo indirizzo e-mail."
 
@@ -7275,29 +7260,9 @@ msgstr "il plugin non invia nulla da nessuna parte di sua iniziativa. Se questo 
 msgid "A file with everything this site keeps about you: your details, and what the site and its plugins record about you. You get an email to confirm; once you do, we prepare it and it shows up here to download."
 msgstr "Un file con tutto ciò che questo sito conserva su di te: i tuoi dati, e ciò che il sito e i suoi plugin registrano su di te. Ti arriva un’e-mail per confermare; quando confermi, lo prepariamo e compare qui da scaricare."
 
-#: templates/account/privacy.php:98
-msgid "Erase your data"
-msgstr "Cancella i tuoi dati"
-
-#: templates/account/privacy.php:102
-msgid "This account administers the site, so it cannot ask for its data to be erased: the site would be left with nobody in charge. Another administrator has to lower its role first, and then it can ask."
-msgstr "Questo account amministra il sito, quindi non può chiedere la cancellazione dei propri dati: il sito resterebbe senza nessuno al comando. Un altro amministratore deve prima abbassargli il ruolo, e poi potrà chiederla."
-
 #: templates/account/privacy.php:107
 msgid "What this site keeps about you is erased: your details, and what the site and its plugins record about you."
 msgstr "Ciò che questo sito conserva su di te viene cancellato: i tuoi dati, e ciò che il sito e i suoi plugin registrano su di te."
-
-#: templates/account/privacy.php:109
-msgid "Once the site has done it, nothing can be recovered — not by you and not by us."
-msgstr "Una volta che il sito l’ha fatto, non si può recuperare nulla — né da te né da noi."
-
-#: templates/account/privacy.php:117
-msgid "Ask to erase your data? You still have to confirm it by email, and after that there is no going back."
-msgstr "Chiedere la cancellazione dei tuoi dati? Devi comunque confermarlo via e-mail, e dopo non si torna indietro."
-
-#: templates/account/privacy.php:121
-msgid "Ask to erase my data"
-msgstr "Chiedi la cancellazione dei miei dati"
 
 #: templates/accounts.php:22
 msgid "That social account already opens another account on this site, so it was not linked to this one."
@@ -7310,3 +7275,55 @@ msgstr "Accedi per creare il tuo account"
 #: templates/register.php:38
 msgid "There is no form to fill in: sign in with your e-mail and the account is created the first time."
 msgstr "Non c’è nessun modulo da compilare: accedi con la tua e-mail e l’account viene creato la prima volta."
+
+#: includes/account-closing.php:90
+msgid "Deleted account"
+msgstr "Account eliminato"
+
+#: includes/account-closing.php:175
+msgid "This account was closed."
+msgstr "Questo account è stato chiuso."
+
+#: includes/admin-account.php:938
+msgid "can ask to be deleted"
+msgstr "può chiedere l’eliminazione del proprio account"
+
+#: includes/admin-account.php:1462
+msgid "They can ask for their account to be deleted"
+msgstr "Può chiedere che il suo account venga eliminato"
+
+#: includes/admin-account.php:1463
+msgid "They confirm it by e-mail, and you carry it out from Tools → Erase Personal Data: their data is erased and the account deleted, or left with no name, e-mail or password if they published something. Never for an account that administers the site."
+msgstr "La persona conferma via e-mail, e tu la esegui da Strumenti → Cancella dati personali: i suoi dati vengono cancellati e l’account eliminato, oppure resta senza nome, e-mail né password se ha pubblicato qualcosa. Mai per un account che amministra il sito."
+
+#: includes/privacy.php:395
+msgid "Deleting your account"
+msgstr "Elimina il tuo account"
+
+#: includes/privacy.php:396
+msgid "you can ask for it from your account; once you confirm it by e-mail and the site carries it out, your data is erased and the account deleted, or, if you published something here, left with no name, e-mail or password so what you wrote stays without your name."
+msgstr "puoi chiederlo dal tuo account; quando lo confermi via e-mail e il sito lo esegue, i tuoi dati vengono cancellati e l’account eliminato, oppure, se hai pubblicato qualcosa qui, resta senza nome, e-mail né password così ciò che hai scritto resta senza il tuo nome."
+
+#: templates/account/privacy.php:98
+msgid "Delete your account"
+msgstr "Eliminare il tuo account"
+
+#: templates/account/privacy.php:102
+msgid "This account administers the site, so it cannot delete itself: the site would be left with nobody in charge. Another administrator has to lower its role first, and then it can ask."
+msgstr "Questo account amministra il sito, quindi non può eliminarsi da solo: il sito resterebbe senza nessuno al comando. Un altro amministratore deve prima abbassargli il ruolo, e poi potrà chiederlo."
+
+#: templates/account/privacy.php:109
+msgid "Your account is closed: deleted if you have nothing published here, or left with no name, e-mail or password if you do."
+msgstr "Il tuo account viene chiuso: eliminato se non hai pubblicato nulla qui, oppure lasciato senza nome, e-mail né password se l’hai fatto."
+
+#: templates/account/privacy.php:110
+msgid "You stop being able to sign in, and nothing can be recovered afterwards — not by you and not by us."
+msgstr "Non potrai più accedere, e dopo non si recupera niente — né tu né noi."
+
+#: templates/account/privacy.php:118
+msgid "Ask to delete your account? You still have to confirm it by email, and after that there is no going back."
+msgstr "Chiedere che il tuo account venga eliminato? Devi ancora confermarlo via e-mail, e dopo non si torna indietro."
+
+#: templates/account/privacy.php:122
+msgid "Ask to delete my account"
+msgstr "Chiedi l’eliminazione del mio account"
