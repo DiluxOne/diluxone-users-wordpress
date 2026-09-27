@@ -224,6 +224,8 @@ function diluxone_users_field_key_allowed( string $key ): bool {
 	$taken = array(
 		'session_tokens',
 		'capabilities',
+		'primary_blog',
+		'source_domain',
 		'user_level',
 		'admin_color',
 		'locale',
@@ -251,7 +253,12 @@ function diluxone_users_field_key_allowed( string $key ): bool {
 		return false;
 	}
 
-	foreach ( array( 'wp_', '_diluxone_users', 'diluxone_users_pk_', 'diluxone_users_sso_', 'diluxone_users_notify_', 'diluxone_users_edits_' ) as $start ) {
+	// WordPress keeps a site's roles under the table prefix — `wp_`, or
+	// whatever this install chose, and `wp_2_` for the second site of a
+	// network — so the prefix is read, not assumed.
+	global $wpdb;
+
+	foreach ( array( 'wp_', $wpdb->base_prefix, '_diluxone_users', 'diluxone_users_pk_', 'diluxone_users_sso_', 'diluxone_users_notify_', 'diluxone_users_edits_' ) as $start ) {
 		if ( 0 === strpos( $key, $start ) ) {
 			return false;
 		}

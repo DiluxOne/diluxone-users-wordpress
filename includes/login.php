@@ -824,12 +824,13 @@ function diluxone_users_login_request(): void {
 		exit;
 	}
 
-	if ( get_transient( $throttle ) ) {
+	// Per network, like the count above: one inbox is one inbox on every site.
+	if ( get_site_transient( $throttle ) ) {
 		wp_safe_redirect( $done );
 		exit;
 	}
 
-	set_transient( $throttle, 1, max( 1, (int) diluxone_users_option( 'diluxone_users_login_throttle' ) ) );
+	set_site_transient( $throttle, 1, max( 1, (int) diluxone_users_option( 'diluxone_users_login_throttle' ) ) );
 
 	// An address nobody has seen before is an account about to be created,
 	// and accounts are counted per machine, on the same count the

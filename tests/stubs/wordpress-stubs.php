@@ -319,6 +319,25 @@ if (!function_exists('set_transient')) {
 	}
 }
 
+if (!function_exists('get_site_transient')) {
+	// One store for both kinds: a single site keeps them in the same table.
+	function get_site_transient(string $key) {
+		return get_transient('site_' . $key);
+	}
+}
+
+if (!function_exists('set_site_transient')) {
+	function set_site_transient(string $key, $value, int $expiration = 0): bool {
+		return set_transient('site_' . $key, $value, $expiration);
+	}
+}
+
+if (!function_exists('delete_site_transient')) {
+	function delete_site_transient(string $key): bool {
+		return delete_transient('site_' . $key);
+	}
+}
+
 if (!function_exists('is_multisite')) {
 	// A single site unless a test says otherwise.
 	function is_multisite(): bool {

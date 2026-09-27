@@ -195,3 +195,29 @@ function diluxone_users_log_user_deleted( int $user_id ): void {
 	diluxone_users_log_forget( $user_id );
 }
 add_action( 'deleted_user', 'diluxone_users_log_user_deleted' );
+
+/**
+ * The same, for an account deleted from a whole network.
+ *
+ * `deleted_user` fires on the site the deletion was made from; the person's
+ * rows are in the log of every site they signed in to.
+ *
+ * @param int $user_id The account being deleted.
+ */
+function diluxone_users_log_user_deleted_everywhere( $user_id ): void {
+	foreach ( get_sites(
+		array(
+			'fields' => 'ids',
+			'number' => 0,
+		)
+	) as $site ) {
+		switch_to_blog( (int) $site );
+
+		if ( DILUXONE_USERS_LOG_SCHEMA === (int) get_option( DILUXONE_USERS_LOG_SCHEMA_OPTION ) ) {
+			diluxone_users_log_forget( (int) $user_id );
+		}
+
+		restore_current_blog();
+	}
+}
+add_action( 'wpmu_delete_user', 'diluxone_users_log_user_deleted_everywhere' );

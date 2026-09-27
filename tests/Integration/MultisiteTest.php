@@ -277,4 +277,41 @@ class MultisiteTest extends IntegrationTestCase {
 
 		revoke_super_admin( $admin );
 	}
+
+	/**
+	 * The count per machine is the network's: the accounts and the mail it
+	 * limits are the network's, and a count per site would be one more full
+	 * allowance for every site of it.
+	 */
+	public function test_one_machine_has_one_allowance_on_the_whole_network(): void {
+		for ( $i = 0; $i < diluxone_users_register_burst(); $i++ ) {
+			$this->assertTrue( diluxone_users_register_allowed() );
+		}
+
+		switch_to_blog( $this->site );
+
+		$this->assertFalse( diluxone_users_register_allowed() );
+	}
+
+	/** An account deleted from the network leaves no rows in any site's log. */
+	public function test_deleting_an_account_from_the_network_empties_every_log(): void {
+		require_once ABSPATH . 'wp-admin/includes/ms.php';
+		global $wpdb;
+
+		$user = $this->make_user();
+
+		switch_to_blog( $this->site );
+		diluxone_users_log_record( 'signed_in', $user );
+		$table = diluxone_users_log_table();
+		restore_current_blog();
+
+		wpmu_delete_user( $user );
+
+		$this->assertSame( 0, (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$table} WHERE user_id = %d", $user ) ) );
+	}
+
+	/** Add New User keeps WordPress's usernames on a network, where an address is not one. */
+	public function test_add_new_user_is_left_alone_on_a_network(): void {
+		$this->assertFalse( diluxone_users_admin_login_is_email() );
+	}
 }

@@ -41,3 +41,12 @@ if (!defined('DILUXONE_USERS_VERSION')) {
 
 // Load WordPress function stubs
 require_once __DIR__ . '/stubs/wordpress-stubs.php';
+
+// The database object, as far as code without a database reads it: the table
+// prefixes. Anything that queries still needs the integration suite.
+if (!isset($GLOBALS['wpdb'])) {
+	$GLOBALS['wpdb'] = (object) array(
+		'prefix'      => 'wp_',
+		'base_prefix' => 'wp_',
+	);
+}

@@ -21,6 +21,13 @@ defined( 'ABSPATH' ) || exit;
  * @since 1.0.0
  */
 function diluxone_users_admin_login_is_email(): bool {
+	// Not on a network: there a username may only hold lowercase letters and
+	// numbers, so an address is refused as one, and every account made from
+	// that screen would fail.
+	if ( is_multisite() ) {
+		return false;
+	}
+
 	/**
 	 * Filters whether Add New User uses the e-mail as the username.
 	 *
@@ -39,7 +46,9 @@ function diluxone_users_admin_new_user_login(): void {
 	if ( ! diluxone_users_admin_login_is_email() || 'createuser' !== sanitize_key( wp_unslash( $_POST['action'] ?? '' ) ) || empty( $_POST['email'] ) ) {
 		return;
 	}
-	$_POST['user_login'] = sanitize_email( wp_unslash( $_POST['email'] ) );
+	// $_POST arrives slashed and WordPress unslashes it when it reads it, so
+	// what is put back has to be slashed the same way.
+	$_POST['user_login'] = wp_slash( sanitize_email( wp_unslash( $_POST['email'] ) ) );
 	// phpcs:enable
 }
 add_action( 'load-user-new.php', 'diluxone_users_admin_new_user_login' );
@@ -50,11 +59,14 @@ function diluxone_users_admin_new_user_script( string $hook ): void {
 		return;
 	}
 
-	$note = esc_js( __( 'The username is the e-mail address, as for every account on this site.', 'diluxone-users' ) );
+	wp_enqueue_script( 'diluxone-users-new-user', DILUXONE_USERS_URL . 'assets/diluxone-users-new-user.js', array(), diluxone_users_asset_version( 'assets/diluxone-users-new-user.js' ), true );
 
-	wp_add_inline_script(
-		'jquery-core',
-		"document.addEventListener('DOMContentLoaded',function(){var login=document.getElementById('user_login'),mail=document.getElementById('email');if(!login||!mail)return;var row=login.closest('tr');var sync=function(){login.value=mail.value;};mail.addEventListener('input',sync);sync();if(row){row.style.display='none';var p=document.createElement('p');p.className='description';p.textContent='{$note}';var cell=mail.closest('td');if(cell)cell.appendChild(p);}});"
+	wp_localize_script(
+		'diluxone-users-new-user',
+		'diluxOneUsersNewUser',
+		array(
+			'note' => __( 'The username is the e-mail address, as for every account on this site.', 'diluxone-users' ),
+		)
 	);
 }
 add_action( 'admin_enqueue_scripts', 'diluxone_users_admin_new_user_script' );

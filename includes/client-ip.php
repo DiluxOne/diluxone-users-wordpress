@@ -330,14 +330,26 @@ function diluxone_users_ip_burst( string $what, int $many, int $window = HOUR_IN
 		return true;
 	}
 
+	// A network transient: on a network the accounts and the mail are the
+	// network's, so the count is too — otherwise every site of it is another
+	// full allowance for the same machine. The window is fixed from the first
+	// request; renewing it on every hit would let one steady sender keep it
+	// open for ever.
 	$key  = 'diluxone_users_burst_' . sanitize_key( $what ) . '_' . md5( diluxone_users_client_ip() );
-	$seen = (int) get_transient( $key );
+	$now  = time();
+	$seen = get_site_transient( $key );
+	$seen = is_array( $seen ) && (int) ( $seen['until'] ?? 0 ) > $now ? $seen : array(
+		'n'     => 0,
+		'until' => $now + $window,
+	);
 
-	if ( $seen >= $many ) {
+	if ( (int) $seen['n'] >= $many ) {
 		return false;
 	}
 
-	set_transient( $key, $seen + 1, $window );
+	$seen['n'] = (int) $seen['n'] + 1;
+
+	set_site_transient( $key, $seen, max( 1, (int) $seen['until'] - $now ) );
 
 	return true;
 }
