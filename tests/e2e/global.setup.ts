@@ -4,6 +4,7 @@ import { Site } from './support/api';
 import { BASELINE } from './support/baseline';
 import { BASELINE_FILE, PAGES_FILE } from './support/fixtures';
 import { ADMIN_STATE } from '../../playwright.config';
+import { fillCredentials } from './support/ui';
 
 /**
  * Puts the site into the state every spec assumes, and remembers what it was.
@@ -55,8 +56,7 @@ setup('keep an administrator session for the specs that need one', async ({ page
 	const login = page.locator('input[name="log"]');
 
 	await expect(login, 'wp-login.php has to draw its own form for the hatch').toBeVisible();
-	await login.fill(user);
-	await page.locator('input[name="pwd"]').fill(pass);
+	await fillCredentials(page, user, pass);
 
 	await Promise.all([page.waitForURL(/wp-admin/), page.locator('#wp-submit').click()]);
 	await context.storageState({ path: ADMIN_STATE });

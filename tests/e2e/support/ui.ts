@@ -150,6 +150,28 @@ export async function signInWithPassword(page: Page, user: string, pass: string)
 	await passwordForm(page).locator('input[type="submit"], button[type="submit"]').first().click();
 }
 
+/**
+ * Types a username and a password into wp-login.php's own form, and checks
+ * they are both where they were typed before anything is pressed.
+ *
+ * wp-login.php focuses and selects the username box from a timer of its own,
+ * 200 ms after the page draws. A fill that lands in the same moment can end
+ * up with the password in the username box, and the setup then waits a minute
+ * for a dashboard that a wrong password never opens. So the two values are
+ * read back, and typed again until they are right.
+ */
+export async function fillCredentials(page: Page, user: string, pass: string): Promise<void> {
+	const login = page.locator('input[name="log"]');
+	const password = page.locator('input[name="pwd"]');
+
+	await expect(async () => {
+		await login.fill(user);
+		await password.fill(pass);
+		await expect(login).toHaveValue(user, { timeout: 500 });
+		await expect(password).toHaveValue(pass, { timeout: 500 });
+	}).toPass({ timeout: 10_000 });
+}
+
 /** Signs out, whatever the session is. */
 export async function signOut(page: Page): Promise<void> {
 	await page.context().clearCookies();
