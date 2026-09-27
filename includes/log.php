@@ -612,7 +612,11 @@ function diluxone_users_log_search( array $filters = array(), int $page = 1, int
 	$args  = array();
 
 	if ( '' !== $who ) {
-		$where[] = '( u.user_email LIKE %s OR u.user_login LIKE %s OR u.display_name LIKE %s )';
+		// And the refused sign-ins, filed under no account on purpose, whose
+		// typed name is what somebody searching for an account is after: is
+		// somebody guessing at it?
+		$where[] = '( u.user_email LIKE %s OR u.user_login LIKE %s OR u.display_name LIKE %s OR ( l.user_id = 0 AND l.detail LIKE %s ) )';
+		$args[]  = $like;
 		$args[]  = $like;
 		$args[]  = $like;
 		$args[]  = $like;

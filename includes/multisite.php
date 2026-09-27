@@ -66,7 +66,9 @@ function diluxone_users_join_site( int $user_id ): void {
 	// Existing on the network is not enough to become a member here: the site
 	// has to take new people through some door of its own — the ones that
 	// would have created the account had it not existed yet.
-	if ( ! diluxone_users_option( 'diluxone_users_login_register' ) && ! diluxone_users_option( 'diluxone_users_sso_register' ) && ! diluxone_users_option( 'diluxone_users_register_form' ) ) {
+	$social = diluxone_users_option( 'diluxone_users_sso_register' ) && array() !== diluxone_users_sso_for_login();
+
+	if ( ! diluxone_users_option( 'diluxone_users_login_register' ) && ! diluxone_users_option( 'diluxone_users_register_form' ) && ! $social ) {
 		return;
 	}
 
@@ -142,12 +144,15 @@ add_action( 'wp_initialize_site', 'diluxone_users_site_born', 11 );
  * Whether people may create their own accounts, as the site had it.
  *
  * Written once, when the plugin arrives, from the site's own answer: turning
- * a plugin on is not deciding that strangers may create accounts. From then
- * on it is the plugin's switch, on its Registration screen.
+ * a plugin on is not deciding that strangers may create accounts, by e-mail
+ * link or by social sign-in. From then on they are the plugin's switches, on
+ * its Registration screen.
  */
 function diluxone_users_seed_registration(): void {
-	if ( null === get_option( 'diluxone_users_login_register', null ) ) {
-		add_option( 'diluxone_users_login_register', (int) diluxone_users_site_takes_accounts() );
+	foreach ( array( 'diluxone_users_login_register', 'diluxone_users_sso_register' ) as $door ) {
+		if ( null === get_option( $door, null ) ) {
+			add_option( $door, (int) diluxone_users_site_takes_accounts() );
+		}
 	}
 }
 

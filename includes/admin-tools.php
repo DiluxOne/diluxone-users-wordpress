@@ -247,6 +247,7 @@ function diluxone_users_tool_sections( $value ): array {
 		foreach ( $config as $field => $data ) {
 			switch ( $field ) {
 				case 'position':
+				case 'enabled':
 					$one[ $field ] = (int) $data;
 					break;
 				case 'custom':
@@ -259,7 +260,7 @@ function diluxone_users_tool_sections( $value ): array {
 					$one[ $field ] = sanitize_title( (string) $data );
 					break;
 				case 'intro':
-					$one[ $field ] = sanitize_textarea_field( (string) $data );
+					$one[ $field ] = sanitize_text_field( (string) $data );
 					break;
 				case 'content':
 					$one[ $field ] = wp_kses_post( (string) $data );

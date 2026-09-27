@@ -987,6 +987,28 @@ function diluxone_users_2fa_after_password( string $login, WP_User $user ): void
 add_action( 'wp_login', 'diluxone_users_2fa_after_password', 10, 2 );
 
 /**
+ * A password sign-in that actually opened a session, told the way every other
+ * door tells it.
+ *
+ * At 999 and not at 10, and the number is the whole trick. The second step
+ * hangs off this same hook at 10: when it applies, it clears the session and
+ * redirects to the challenge without returning, so a listener further down the
+ * line never runs. That is exactly right — at that moment nobody has signed
+ * in, they have typed a password correctly — and it means this fires only when
+ * the session really is open. Whoever finishes the second step is announced by
+ * the challenge instead. Everything that listens for somebody coming in — the
+ * log, the new-device notice — then hears the password too.
+ *
+ * @param string  $login The username, which is not used: the account is.
+ * @param WP_User $user
+ */
+function diluxone_users_password_logged_in( string $login, WP_User $user ): void {
+	/** This action is documented in includes/auth.php */
+	do_action( 'diluxone_users_logged_in', (int) $user->ID, 'password' );
+}
+add_action( 'wp_login', 'diluxone_users_password_logged_in', 999, 2 );
+
+/**
  * The sessions this request opened, by person.
  *
  * `wp_signon()` creates the session and sends its cookie before `wp_login`

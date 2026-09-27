@@ -17,6 +17,10 @@ class SsoLinkTest extends IntegrationTestCase {
 		parent::setUp();
 		MockProvider::install();
 
+		// Social sign-in may create accounts here: the tests about what it
+		// does with them start from a site that said yes.
+		update_option( 'diluxone_users_sso_register', 1 );
+
 		$this->sub = 'sub-' . wp_generate_password( 8, false );
 	}
 

@@ -581,8 +581,19 @@ function diluxone_users_way_email(): void {
 		<input type="hidden" name="action" value="diluxone_users_acceso">
 		<?php wp_nonce_field( 'diluxone_users_login', 'diluxone_users_nonce' ); ?>
 
-		<label for="diluxone-users-email"><?php esc_html_e( 'Email address', 'diluxone-users' ); ?></label>
-		<input type="email" id="diluxone-users-email" name="diluxone_users_email" required autocomplete="email" placeholder="<?php echo esc_attr_x( 'you@example.com', 'placeholder for the e-mail field', 'diluxone-users' ); ?>">
+		<?php if ( diluxone_users_option( 'diluxone_users_handle_login' ) ) : ?>
+			<?php
+			// A public name is not an address, and a box of type "email" would
+			// have the browser refuse it before the site is ever asked. It is
+			// still an address the box expects most of the time, so the phone
+			// keyboard offers the @.
+			?>
+			<label for="diluxone-users-email"><?php esc_html_e( 'Email address or public name', 'diluxone-users' ); ?></label>
+			<input type="text" inputmode="email" autocapitalize="none" spellcheck="false" id="diluxone-users-email" name="diluxone_users_email" required autocomplete="username" placeholder="<?php echo esc_attr_x( 'you@example.com', 'placeholder for the e-mail field', 'diluxone-users' ); ?>">
+		<?php else : ?>
+			<label for="diluxone-users-email"><?php esc_html_e( 'Email address', 'diluxone-users' ); ?></label>
+			<input type="email" id="diluxone-users-email" name="diluxone_users_email" required autocomplete="email" placeholder="<?php echo esc_attr_x( 'you@example.com', 'placeholder for the e-mail field', 'diluxone-users' ); ?>">
+		<?php endif; ?>
 
 		<button type="submit" class="diluxone-users-button"><?php echo diluxone_users_button_icon( 'mail' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- our own markup. ?><?php esc_html_e( 'Send me the sign-in link', 'diluxone-users' ); ?></button>
 	</form>

@@ -157,7 +157,7 @@ function diluxone_users_option_defaults(): array {
 		'diluxone_users_sent_title'            => '',
 		'diluxone_users_sent_note'             => '',
 
-		'diluxone_users_sso_register'          => 1,
+		'diluxone_users_sso_register'          => 0,
 		// Whether the buttons show on the sign-in form at all. Separate from
 		// registering with them: a site can let the people who already linked
 		// an account keep using it while it stops handing out new ones, and a

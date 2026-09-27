@@ -24,27 +24,10 @@ defined( 'ABSPATH' ) || exit;
 /* ── The way in and the way out ────────────────────────────────────── */
 
 /**
- * A password sign-in that actually opened a session.
- *
- * At 999 and not at 10, and the number is the whole trick. The second step
- * hangs off this same hook at 10: when it applies, it clears the cookie and
- * redirects to the challenge without returning, so a listener further down the
- * line never runs. That is exactly right — at that moment nobody has signed
- * in, they have typed a password correctly — and it means this one fires only
- * when the session really is open. Whoever finishes the second step comes back
- * through `diluxone_users_logged_in` below.
- *
- * @param string  $login The username, which is not used: the account is.
- * @param WP_User $user
- */
-function diluxone_users_log_password_login( string $login, WP_User $user ): void {
-	diluxone_users_log_record( 'signed_in', (int) $user->ID, array( 'via' => 'password' ) );
-}
-add_action( 'wp_login', 'diluxone_users_log_password_login', 999, 2 );
-
-/**
- * Every other door: the e-mail link, a social account, a passkey, and the
- * password once the second step is done.
+ * Every door: the e-mail link, a social account, a passkey, the password —
+ * directly or once the second step is done. The password arrives here through
+ * diluxone_users_password_logged_in(), which says why it only fires once the
+ * session really is open.
  */
 function diluxone_users_log_login( int $user_id, string $via ): void {
 	diluxone_users_log_record( 'signed_in', $user_id, array( 'via' => $via ) );
