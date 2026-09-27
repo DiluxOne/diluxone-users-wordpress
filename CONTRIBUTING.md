@@ -1,155 +1,60 @@
 # Contributing to DiluxOne Users+
 
-Thanks for your interest in contributing. This document covers how to report issues, submit pull requests, and what to expect from the review process.
+Thanks for helping. This page covers issues, pull requests and what CI enforces. The organisation's [contributing guide](https://github.com/DiluxOne/.github/blob/main/CONTRIBUTING.md) has the general rules; this one adds what is specific to the plugin.
 
-## Reporting bugs and requesting features
+## Bugs, ideas and questions
 
-Open a [new issue](https://github.com/soydiloreto/diluxone-users-wordpress/issues/new/choose) and pick the appropriate template:
+- **A bug or a feature request:** open a [new issue](https://github.com/DiluxOne/diluxone-users-wordpress/issues/new/choose) with the matching template. Say which WordPress and PHP, single site or network, and which way in (e-mail link, password, a social provider, a passkey, a second factor): most sign-in bugs depend on the combination.
+- **Using the plugin** (how do I…?, my sign-in link does not arrive): the [wordpress.org support forum](https://wordpress.org/support/plugin/diluxone-users/), once the plugin is published, where answers stay public for the next person.
+- **A security vulnerability:** [SECURITY.md](SECURITY.md), never a public issue. A plugin that decides who gets into a site is worth reporting privately even when you are not sure.
 
-- **Bug report** — something is broken or behaves unexpectedly.
-- **Feature request** — you'd like the plugin to do something it doesn't do today.
+## Pull requests
 
-For **end-user support questions** (how do I configure this?, my upload is not working, etc.) please use the [wp.org support forum](https://wordpress.org/support/plugin/diluxone-users/) instead — that's where most users look for answers and where we maintain a public Q&A.
+1. Branch from `main`: in your fork if you are an outside contributor, in the repository if you are a maintainer. Name it `<type>/<kebab-case>`, for example `fix/totp-replay-window`.
+2. Make the change with its tests at every layer it touches: unit, integration on a network, end-to-end on a single site and on a network, and the listing screenshots when a screen changes (see [`docs/testing-and-quality.md`](docs/testing-and-quality.md#the-rule-tests-at-every-layer-a-change-touches)). Update any doc that describes what you changed, and the eight translations when you add or change a string. A change a user notices adds one bullet to the newest `= X.Y.Z =` entry of `readme.txt` ([`docs/release.md`](docs/release.md)).
+3. Run `make check` (PHPCS, PHPStan, Psalm, unit tests). Integration, end-to-end, i18n and Plugin Check have their own targets ([`docs/development.md`](docs/development.md)); CI runs all of them.
+4. Open the pull request and fill in the template: 📝 What changes and 💡 Why are required, 🧪 How I tested it and 📸 Screenshots help the review. The description becomes the commit body on `main`, word for word, so write it for the person who reads the history in a year: plain words, short paragraphs.
+5. If AI took part, end the description with one line: `🤖 AI-assisted · <model> (<maker>)`. The rules for contributing with AI are in [`docs/ai.md`](docs/ai.md).
 
-For **security vulnerabilities**, see [SECURITY.md](SECURITY.md). Do not open a public issue.
+Pull requests are squash-merged: the title becomes the commit title on `main`, the description its body, and the branch's `Co-authored-by` trailers are kept. Nothing reaches `main` without a green pull request, maintainers included.
 
-## Pull request workflow
+### Titles and commits
 
-1. **Fork** the repository and clone your fork locally.
-2. **Branch** from `main` using a descriptive name following the convention below.
-3. **Commit** your changes (see commit message conventions below).
-4. **Push** the branch to your fork.
-5. **Open a pull request** against `main`. Fill in the PR template — explain *why* the change matters, not just *what* it does.
-6. **Wait for CI to pass.** All required checks must be green before review.
-7. **Address review feedback** by pushing additional commits to the same branch (we squash on merge, so commit count doesn't matter).
-
-### Branch naming
-
-Use one of these prefixes, followed by a short kebab-case description:
-
-| Prefix | Used for |
-|--------|----------|
-| `feat/` | New user-visible functionality |
-| `fix/` | Bug fixes |
-| `chore/` | Maintenance tasks, version bumps, no behavior change |
-| `docs/` | Documentation-only changes |
-| `ci/` | CI/CD configuration changes |
-| `refactor/` | Internal restructure with no behavior change |
-| `style/` | Code style / linter / formatting changes |
-
-Examples: `feat/s3-provider`, `fix/decrypt-fallback-banner`, `docs/contributing-guide`.
-
-### Commit messages
-
-We follow [Conventional Commits](https://www.conventionalcommits.org/). The first line is `<type>(<optional-scope>): <subject>`, where type is one of `feat`, `fix`, `chore`, `docs`, `ci`, `refactor`, `style`, `test`. Examples:
+[Conventional Commits](https://www.conventionalcommits.org/): `<type>(<optional-scope>): <subject>`, with type one of `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert`, at most 100 characters, no trailing period. The same format applies to the pull request title and to every commit on the branch. Bodies are plain paragraphs, one line each, never hard-wrapped.
 
 ```
-feat(provider): add S3 cloud storage provider
-fix(admin): surface decrypt failures in the connection-health banner
-chore: bump to 1.2.0
+feat(2fa): let a site offer the authenticator app without the e-mail code
+fix(sso): refuse a link trip that carries no nonce
 ```
 
-The body explains the *why* — context, motivation, alternatives considered. Wrap at ~72 characters.
+### What CI enforces
 
-## Coding conventions
+Once the repository lives in the DiluxOne organisation, the shared [`conventions`](https://github.com/DiluxOne/.github/blob/main/.github/workflows/conventions.yml) workflow fails a pull request when the branch name, the title or a commit breaks the format above, when a commit carries a `Claude-Session:` trailer, when "📝 What changes" or "💡 Why" is empty, when the description ends with a "Generated with …" footer, when a relative link in the docs is broken, or when a retired product name comes back.
 
-The project enforces a strict quality stack on every PR. Run `make check` locally before pushing — it runs the same gates CI does.
+Then the quality gates: syntax and unit tests on PHP 8.0 to 8.5, PHPCS with the WordPress Coding Standards, PHPStan level 8, Psalm taint analysis, i18n extraction and locale completeness, WordPress Plugin Check, readme and version alignment, integration tests on a wp-env network, and Playwright end-to-end tests on a single site and on a network. What each one catches, and how to run it: [`docs/testing-and-quality.md`](docs/testing-and-quality.md).
 
-| Gate | Tool | Make target |
-| --- | --- | --- |
-| Code style | PHP_CodeSniffer + WordPress Coding Standards (full ruleset, no relaxations) | `make lint` (auto-fix: `make lint-fix`) |
-| Static analysis | PHPStan level 8, no baseline | `make stan` |
-| Security taint analysis | Psalm in taint-only mode (XSS, SQLi, RCE) | `make psalm` |
-| i18n | `wp i18n make-pot` + warning-grep | `make i18n` |
-| Unit tests | PHPUnit + brain/monkey + mockery | `make test` |
-| Integration tests | PHPUnit against `wp-env` | `make test-integration` |
+Every job that runs on a pull request is a required check on `main`, except CodeQL, which runs only when JavaScript changes.
 
-See [`docs/testing-and-quality.md`](docs/testing-and-quality.md) for what each layer enforces and the configuration files that drive it.
+### The review
 
-A few hard rules the linters can't fully express:
+After the move, Claude reviews every pull request from a branch of this repository, guided by [`docs/architecture.md`](docs/architecture.md), [`AGENTS.md`](AGENTS.md) and the organisation's WordPress review profile. It comments inline on blockers and majors, lists minor findings in its summary, labels the risk, the complexity and the type of the change (`type:*`, read from the diff; a `type:*` label a person sets wins), and checks that the description matches the code. Fix the code and push, or answer in the thread mentioning `@dilux-bot`; every conversation must be resolved before merging. Changes to sign-in, two-step, passkeys, social login, sessions, privacy, the templates and the other paths in [`.github/review-policy.yml`](.github/review-policy.yml) are always high risk and always merged by a person. Pull requests from forks are not reviewed automatically; the maintainer reviews them. Details: [`docs/ai.md`](docs/ai.md).
 
-- **PHP 7.4+** is the minimum supported version. Do not use syntax or functions added in later versions without a fallback. (PHPCS's PHPCompatibility ruleset catches most of this.)
-- **No hard dependencies on Composer packages** in the runtime path. The plugin must run on a fresh WordPress install with no extra setup. `composer install` produces only dev tooling — `vendor/` never ships to wp.org.
-- **All user-facing strings** must be wrapped in WordPress translation functions (`__()`, `_e()`, `_n()`, etc.) with the text domain `diluxone-users`. `sprintf()` placeholders need a `/* translators: */` comment **on the line immediately preceding** the translation call (a blank line in between makes the comment invisible to gettext).
-- **All user input** must be sanitised (`sanitize_text_field`, `wp_kses`, etc.) and all output must be escaped (`esc_html`, `esc_attr`, `esc_url`). Psalm taint analysis enforces this for the obvious sinks; PHPCS catches the rest.
-- **Never log credentials.** API keys, access keys, and decrypted secrets must not appear in `error_log` even when debug mode is on. PHPStan can't catch this — be deliberate.
+## Coding rules the linters cannot express
 
-## Versioning
+- **PHP 8.0 and WordPress 6.2** are the minimums. No syntax or function from later versions without a fallback.
+- **No Composer dependencies at runtime.** `composer install` brings dev tooling only; `vendor/` never ships.
+- **The plugin depends on no other plugin.** What belongs to another domain enters through a filter or a shortcode ([`docs/extending.md`](docs/extending.md)).
+- **Every user-facing string** goes through a translation function with the text domain `diluxone-users`, with a `/* translators: */` comment on the line right before any `sprintf()` placeholder.
+- **Input unslashed and sanitised, output escaped, SQL prepared.** Psalm and PHPCS catch the obvious cases; you catch the rest.
+- **Codes, backup codes and sign-in tokens are stored hashed, used once, and never logged**, even with debug logging on.
+- **What an administrator turns off disappears from the front end**, and a notice is true for every way in the site left open.
 
-We follow [Semantic Versioning](https://semver.org/) for the plugin's public version (`MAJOR.MINOR.PATCH`):
+The full list, with the architecture and the review priorities, is in [`docs/architecture.md`](docs/architecture.md).
 
-- **PATCH** (1.1.0 → 1.1.1): bug fixes only, no behavior change for the user beyond the fix itself.
-- **MINOR** (1.1.0 → 1.2.0): new user-visible functionality, backwards-compatible.
-- **MAJOR** (1.x → 2.0): backwards-incompatible changes (rare; plugins try hard to avoid).
+## Versions and releases
 
-Repository-only changes (this CONTRIBUTING.md, CI workflows, dev tooling, etc.) **do not** trigger a version bump — they are excluded from the wp.org deploy via [`.distignore`](.distignore) and are invisible to end users.
+Versions follow [Semantic Versioning](https://semver.org/) and nobody types them in a pull request. The plugin is at 1.0.0 and not yet published: the first version goes to wordpress.org as a zip for review. After the move and the approval, the next version is computed from the `type:*` labels of merged pull requests, every push to `main` publishes a development build, and the maintainer decides when a version is ready and approves its publication. Never bump the version in your pull request. The whole flow, and what applies when: [`docs/release.md`](docs/release.md).
 
-### `-dev` suffix on `main`
+## Code of Conduct and licence
 
-The `Version:` header in `diluxone-users.php` (and the
-`DILUX_CS_VERSION` constant alongside it) carry a **`-dev` suffix on
-`main`** to signal that the working tree is in active development and
-not a tagged release. The pattern matches what Symfony, Laravel,
-WordPress core, npm packages, and most other professional open-source
-projects use:
-
-| Where | Looks like | Means |
-|---|---|---|
-| `main` between releases | `Version: 1.2.0-dev` | "Working towards 1.2.0; this is NOT a release" |
-| Final release commit | `Version: 1.2.0` | "This commit IS the 1.2.0 release; tag it" |
-| Tag (e.g. `1.2.0`) | snapshot of the release commit | What ends up at wp.org and on user sites |
-| `main` after release | `Version: 1.3.0-dev` | "Now working towards 1.3.0" |
-
-Why: a developer who clones `main` between releases sees `1.2.0-dev`
-and immediately knows they are NOT looking at the published version.
-Without the suffix, the same clone would show `1.2.0`, indistinguishable
-from the actual published 1.2.0 release.
-
-The `Stable tag:` in `readme.txt` does NOT carry the suffix — it always
-holds the **last published release version** (or, before any release,
-the next intended one). The CI's version-alignment check accepts this
-asymmetry: it strips the suffix from the PHP `Version:` header before
-comparing to `Stable tag`.
-
-Concretely:
-
-- Open a PR that adds a feature: leave `Version: 1.2.0-dev` alone.
-- When ready to release: in a final "release prep" PR, change
-  `Version: 1.2.0-dev` → `Version: 1.2.0` (drop the suffix), update
-  `Stable tag: 1.2.0` if needed, add the `= 1.2.0 =` changelog entry.
-- Push the tag `1.2.0` after merge — the deploy workflow handles wp.org.
-- In a follow-up PR, bump `Version: 1.3.0-dev` (or whatever the next
-  planned release is) on `main`.
-
-Accepted pre-release suffixes are `-dev`, `-alpha`, `-beta`, `-rc`
-(optionally followed by `.N`). All four signal "not a release" to the
-CI version-alignment rule and to humans reading the file.
-
-## Releasing (maintainers only)
-
-Release flow is documented for maintainers. Briefly:
-
-1. All PRs targeting the next release are merged into `main`.
-2. The maintainer drops the `-dev` suffix in `diluxone-users.php`
-   (`Version:` header and `DILUX_CS_VERSION` constant), updates
-   `Stable tag:` in `readme.txt` if needed, and adds a `== Changelog ==`
-   entry. This is typically a single small "release prep" PR.
-3. The maintainer creates and pushes a git tag matching the version
-   (bare number, no `v` prefix — e.g. `1.2.0`).
-4. The GitHub Action `deploy.yml` automatically pushes the release to
-   wp.org SVN and uploads a zip to GitHub Releases.
-5. After the release lands on wp.org, the maintainer opens another PR
-   that bumps `Version:` to `1.3.0-dev` (or whatever the next intended
-   release is) so `main` reflects "in development" again.
-
-## AI-assisted contributions
-
-If you use Copilot, Claude, GPT, Cursor, or any other AI tool to help write code, read [`docs/ai-policy.md`](docs/ai-policy.md) before opening a PR. The summary: use any tool you want, but you sign the commit and you own the code — every line, every test, every behaviour. The model isn't going to answer the bug report.
-
-## Code of Conduct
-
-This project follows the [Contributor Covenant Code of Conduct](CODE_OF_CONDUCT.md). By participating, you agree to abide by its terms.
-
-## License
-
-By contributing, you agree that your contributions will be licensed under the [GPL-2.0-or-later](LICENSE).
+By participating you agree to the organisation's [Code of Conduct](https://github.com/DiluxOne/.github/blob/main/CODE_OF_CONDUCT.md). Your contributions are licensed under the [GPL-2.0-or-later](LICENSE).

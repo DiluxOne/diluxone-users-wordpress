@@ -56,8 +56,8 @@ jobs:
         run: npm install --no-audit --no-fund
 
       - name: Start wp-env
-        # Brings up two WordPress containers — dev (port 8888) and tests
-        # (port 8889) — plus a shared MySQL. Plugin is auto-mounted.
+        # Brings up two WordPress containers — dev (port 8892) and tests
+        # (port 8893) — plus a shared MySQL. Plugin is auto-mounted.
         run: npx wp-env start
 
       - name: Convert the tests site into a network, and network-activate the plugin

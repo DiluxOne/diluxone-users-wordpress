@@ -8,16 +8,16 @@ body:
       value: |
         Thanks for taking the time to report a bug. Before submitting, please confirm:
 
-        - This is a **defect in the plugin code**, not a usage question (those go to the [wp.org support forum](https://wordpress.org/support/plugin/diluxone-users/)).
-        - This is **not a security vulnerability** (those go to [GitHub Security Advisories](https://github.com/soydiloreto/diluxone-users-wordpress/security/advisories/new)).
-        - You have searched [existing issues](https://github.com/soydiloreto/diluxone-users-wordpress/issues?q=is%3Aissue) and this is not a duplicate.
+        - This is a **defect in the plugin code**, not a usage question (those go to the [wordpress.org support forum](https://wordpress.org/support/plugin/diluxone-users/) once the plugin is published).
+        - This is **not a security vulnerability**, such as someone getting into an account that is not theirs (those go to [GitHub Security Advisories](https://github.com/DiluxOne/diluxone-users-wordpress/security/advisories/new)).
+        - You have searched [existing issues](https://github.com/DiluxOne/diluxone-users-wordpress/issues?q=is%3Aissue) and this is not a duplicate.
 
   - type: textarea
     id: what-happened
     attributes:
       label: What happened?
       description: A clear, concise description of the bug. What did you expect to happen, and what happened instead?
-      placeholder: When I click X, the plugin shows error Y instead of Z.
+      placeholder: When I open the sign-in link from the e-mail, I land on the sign-in page again instead of being signed in.
     validations:
       required: true
 
@@ -25,10 +25,10 @@ body:
     id: reproduction
     attributes:
       label: Steps to reproduce
-      description: Minimal, ordered steps that reliably trigger the bug.
+      description: Minimal, ordered steps that reliably trigger the bug, starting from the settings that matter (Access, Security, Social login…).
       placeholder: |
-        1. Go to '...'
-        2. Click on '...'
+        1. In Access, set the ways in to '...'
+        2. Sign out and open '...'
         3. See error
     validations:
       required: true
@@ -37,8 +37,8 @@ body:
     id: plugin-version
     attributes:
       label: Plugin version
-      description: From "Plugins" screen in WordPress admin, or from the plugin header.
-      placeholder: "1.1.0"
+      description: As shown on the Plugins screen, or under DiluxOne Users+ → Maintenance.
+      placeholder: "1.0.0"
     validations:
       required: true
 
@@ -46,7 +46,7 @@ body:
     id: wordpress-version
     attributes:
       label: WordPress version
-      placeholder: "6.9"
+      placeholder: "7.1"
     validations:
       required: true
 
@@ -59,37 +59,62 @@ body:
       required: true
 
   - type: dropdown
-    id: provider
+    id: multisite
     attributes:
-      label: Cloud provider in use
+      label: Single site or multisite network?
       options:
-        - Azure Blob Storage
-        - Both / multiple
-        - None / not applicable
-        - Other
+        - Single site
+        - Multisite, plugin network-activated
+        - Multisite, plugin activated on some sites
     validations:
       required: true
 
   - type: dropdown
-    id: multisite
+    id: way-in
     attributes:
-      label: Is this a WordPress multisite install?
+      label: Which way in is involved?
+      description: Pick every one that is part of the problem.
+      multiple: true
       options:
-        - "No"
-        - "Yes — per-site configuration"
-        - "Yes — network-wide configuration"
+        - E-mail link (passwordless)
+        - Username and password
+        - Social provider
+        - Passkey
+        - Second factor by e-mail code
+        - Second factor by authenticator app
+        - Backup code
+        - None, it is not about signing in
     validations:
       required: true
+
+  - type: input
+    id: social-provider
+    attributes:
+      label: Social provider, if any
+      placeholder: Google, Microsoft, GitHub…
+
+  - type: input
+    id: theme
+    attributes:
+      label: Theme
+      description: The active theme, and whether it is a block theme or a classic one if you know.
+      placeholder: Twenty Twenty-Five
+
+  - type: textarea
+    id: other-plugins
+    attributes:
+      label: Other authentication or security plugins
+      description: Anything else that touches sign-in, registration, sessions or users (security suites, other 2FA, other social login, membership plugins, caching of logged-in pages). "None" is a useful answer.
 
   - type: textarea
     id: logs
     attributes:
       label: Relevant logs / error messages
-      description: Paste any relevant entries from `wp-content/debug.log`, browser console, or admin notices. **Redact any credentials, API keys, or personal data before pasting.**
+      description: Entries from `wp-content/debug.log`, the browser console, or the plugin's activity log. **Redact codes, links, client secrets, e-mail addresses and any other personal data before pasting.**
       render: shell
 
   - type: textarea
     id: additional-context
     attributes:
       label: Additional context
-      description: Other plugins active, theme in use, host environment, anything else that might be relevant.
+      description: Host, cache or CDN in front of the site, anything else that might be relevant.
