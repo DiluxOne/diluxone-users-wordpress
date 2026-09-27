@@ -92,6 +92,27 @@ function diluxone_users_passkeys( int $user_id ): array {
 }
 
 /**
+ * The keys of this person that work here.
+ *
+ * On a network of subdomains each site is its own passkey domain, while the
+ * list is the person's everywhere: a key made on one site cannot be used on
+ * another, so it is neither listed nor counted there. A key saved without its
+ * domain is shown everywhere, as it always was.
+ *
+ * @return array<int, array<string, mixed>>
+ */
+function diluxone_users_passkeys_here( int $user_id ): array {
+	$here = diluxone_users_passkey_rp_id();
+
+	return array_values(
+		array_filter(
+			diluxone_users_passkeys( $user_id ),
+			static fn( array $k ): bool => ! isset( $k['rp'] ) || '' === (string) $k['rp'] || (string) $k['rp'] === $here
+		)
+	);
+}
+
+/**
  * Stores one person's list of passkeys.
  *
  * @param array<int, array<string, mixed>> $keys
@@ -346,7 +367,7 @@ function diluxone_users_passkeys_register_options(): array {
 				'id'   => $k['id'],
 				'type' => 'public-key',
 			),
-			diluxone_users_passkeys( $user->ID )
+			diluxone_users_passkeys_here( $user->ID )
 		),
 		'authenticatorAttachment' => 'device' === (string) diluxone_users_option( 'diluxone_users_passkey_where' ) ? 'platform' : null,
 		'userVerification'        => diluxone_users_option( 'diluxone_users_passkey_verify' ) ? 'required' : 'preferred',
@@ -506,6 +527,9 @@ function diluxone_users_passkeys_register( array $post ): array {
 		'created' => time(),
 		'used'    => 0,
 		'counter' => 0,
+		// The domain the key was made for. The list is the person's, on every
+		// site of a network, and a key only works on its own domain.
+		'rp'      => diluxone_users_passkey_rp_id(),
 	);
 
 	diluxone_users_passkeys_save( $user_id, $keys );

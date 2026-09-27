@@ -23,7 +23,7 @@ defined( 'ABSPATH' ) || exit;
  */
 function diluxone_users_person( int $user_id ): array {
 	return array(
-		'passkeys'    => count( diluxone_users_passkeys( $user_id ) ),
+		'passkeys'    => count( diluxone_users_passkeys_here( $user_id ) ),
 		'totp'        => diluxone_users_totp_ready( $user_id ),
 		'social'      => diluxone_users_sso_linked( $user_id ),
 		'handle'      => diluxone_users_public_handle( $user_id ),
@@ -129,7 +129,7 @@ function diluxone_users_profile_block( WP_User $user ): void {
 	}
 
 	$person   = diluxone_users_person( (int) $user->ID );
-	$passkeys = diluxone_users_passkeys( (int) $user->ID );
+	$passkeys = diluxone_users_passkeys_here( (int) $user->ID );
 	$sessions = diluxone_users_sessions( (int) $user->ID );
 	$last     = $sessions[0] ?? null;
 	$networks = array();

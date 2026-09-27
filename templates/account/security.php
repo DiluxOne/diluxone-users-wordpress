@@ -79,7 +79,7 @@ if ( diluxone_users_has_passkeys() ) {
 
 		<p class="diluxone-users-notice" data-diluxone-users-passkey-notice hidden></p>
 
-		<?php $diluxone_users_keys = diluxone_users_passkeys( $diluxone_users_id ); ?>
+		<?php $diluxone_users_keys = diluxone_users_passkeys_here( $diluxone_users_id ); ?>
 
 		<?php if ( array() !== $diluxone_users_keys ) : ?>
 			<ul class="diluxone-users-keys">

@@ -149,4 +149,35 @@ class PasskeyStoreTest extends IntegrationTestCase {
 			'label'          => 'Test key',
 		);
 	}
+
+	/**
+	 * A key works only on the domain it was made for. On a network of
+	 * subdomains the list is the person's everywhere, so each site lists and
+	 * counts only the keys that work on it; a key saved before the domain was
+	 * recorded is listed everywhere, as it was.
+	 */
+	public function test_a_key_is_listed_where_it_works(): void {
+		$user = $this->make_user();
+
+		diluxone_users_passkeys_save(
+			$user,
+			array(
+				array(
+					'id'  => 'here-' . $user,
+					'rp'  => diluxone_users_passkey_rp_id(),
+				),
+				array(
+					'id'  => 'elsewhere-' . $user,
+					'rp'  => 'other.example.test',
+				),
+				array(
+					'id'  => 'unknown-' . $user,
+				),
+			)
+		);
+
+		$ids = array_column( diluxone_users_passkeys_here( $user ), 'id' );
+
+		$this->assertSame( array( 'here-' . $user, 'unknown-' . $user ), $ids );
+	}
 }
