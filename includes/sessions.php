@@ -330,18 +330,19 @@ function diluxone_users_sessions_search( string $search = '', int $page = 1, int
 
 /** Closes every session of one user. For whoever administers only. */
 function diluxone_users_sessions_admin_close(): void {
-	if ( ! current_user_can( 'edit_users' ) ) {
+	check_admin_referer( 'diluxone_users_sessions_admin' );
+
+	$user_id = absint( wp_unslash( $_POST['diluxone_users_user'] ?? 0 ) );
+
+	// Asked about this person, not about users in general: a role that may
+	// edit users is not thereby allowed to act on an administrator, and
+	// `edit_user` is the capability WordPress maps that rule onto.
+	if ( $user_id <= 0 || ! current_user_can( 'edit_user', $user_id ) ) {
 		wp_die( esc_html__( 'You are not allowed to do this.', 'diluxone-users' ) );
 	}
 
-	check_admin_referer( 'diluxone_users_sessions_admin' );
-
-	$user_id = absint( $_POST['diluxone_users_user'] ?? 0 );
-
-	if ( $user_id > 0 ) {
-		diluxone_users_2fa_forget_browsers( $user_id );
-		WP_Session_Tokens::get_instance( $user_id )->destroy_all();
-	}
+	diluxone_users_2fa_forget_browsers( $user_id );
+	WP_Session_Tokens::get_instance( $user_id )->destroy_all();
 
 	$back = wp_get_referer();
 	wp_safe_redirect( add_query_arg( 'diluxone_users_done', 'closed', $back ? $back : diluxone_users_admin_url( DILUXONE_USERS_SECURITY, array( 'tab' => 'sessions' ) ) ) );

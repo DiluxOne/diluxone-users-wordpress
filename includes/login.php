@@ -756,6 +756,14 @@ function diluxone_users_login_request(): void {
 		exit;
 	}
 
+	// A site that signs in with a password only does not mail links, and a
+	// request made by hand to this address gets what the missing form would
+	// have given it: nothing.
+	if ( ! diluxone_users_login_has_link() ) {
+		wp_safe_redirect( add_query_arg( 'diluxone-users', 'error', $redirect ) );
+		exit;
+	}
+
 	// What was typed can be an e-mail or, if the site allows it, somebody's
 	// public name. In the second case it goes on with that account's e-mail:
 	// the link never goes out to an address typed on the spot.

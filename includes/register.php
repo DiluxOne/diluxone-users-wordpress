@@ -123,7 +123,8 @@ function diluxone_users_shortcode_register(): string {
 			'state'     => diluxone_users_state(),
 			'email'     => '',
 			'fields'    => diluxone_users_register_fields(),
-			'open'      => 'closed' !== diluxone_users_register_mode(),
+			'open'      => diluxone_users_register_form_open(),
+			'by_link'   => 'login' === diluxone_users_register_mode(),
 			'providers' => diluxone_users_sso_for_login(),
 		)
 	) . $close;
@@ -183,7 +184,7 @@ function diluxone_users_register_request(): void {
 		exit;
 	}
 
-	if ( 'closed' === diluxone_users_register_mode() ) {
+	if ( ! diluxone_users_register_form_open() ) {
 		wp_safe_redirect( add_query_arg( 'diluxone-users', 'closed', $back ) );
 		exit;
 	}

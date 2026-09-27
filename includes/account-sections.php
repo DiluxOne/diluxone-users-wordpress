@@ -548,8 +548,16 @@ function diluxone_users_data_request(): void {
 	check_admin_referer( 'diluxone_users_data_request' );
 
 	$user = wp_get_current_user();
-	// phpcs:ignore WordPress.Security.NonceVerification.Missing -- verificado arriba.
 	$kind = 'erase' === sanitize_key( wp_unslash( $_POST['diluxone_users_request'] ?? '' ) ) ? 'remove_personal_data' : 'export_personal_data';
+
+	// Switching a request off hides its button, and it also closes the door
+	// the button posted to: a hand-made request is refused the same way.
+	$allowed = 'remove_personal_data' === $kind ? 'diluxone_users_privacy_delete' : 'diluxone_users_privacy_export';
+
+	if ( ! diluxone_users_option( $allowed ) ) {
+		wp_safe_redirect( add_query_arg( 'diluxone-users', 'error', diluxone_users_account_url( 'privacy' ) ) );
+		exit;
+	}
 
 	if ( 'remove_personal_data' === $kind && ! diluxone_users_can_request_erase( $user->ID ) ) {
 		wp_safe_redirect( add_query_arg( 'diluxone-users', 'admin', diluxone_users_account_url( 'privacy' ) ) );

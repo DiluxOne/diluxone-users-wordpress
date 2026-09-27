@@ -7,7 +7,8 @@
  *
  * @var string                              $state     What happened.
  * @var array<int, array<string, mixed>>    $fields    What is asked for, besides the address.
- * @var bool                                $open      Whether anybody may register at all.
+ * @var bool                                $open      Whether the form takes accounts.
+ * @var bool                                $by_link   Whether accounts are created by signing in with an e-mail link instead.
  * @var array<string, array<string, mixed>> $providers Networks, when they can create accounts.
  *
  * @package DiluxOneUsers
@@ -29,6 +30,16 @@ defined( 'ABSPATH' ) || exit;
 		<p class="diluxone-users-note diluxone-users-note--icon">
 			<?php echo diluxone_users_icon( 'info' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- our own markup. ?>
 			<span><?php echo esc_html( diluxone_users_text( 'diluxone_users_sent_note', __( 'Did not arrive? Check your spam or promotions folder.', 'diluxone-users' ) ) ); ?></span>
+		</p>
+
+	<?php elseif ( ! $open && ! empty( $by_link ) ) : ?>
+
+		<h2 class="diluxone-users-login__title"><?php esc_html_e( 'Sign in to create your account', 'diluxone-users' ); ?></h2>
+		<p><?php esc_html_e( 'There is no form to fill in: sign in with your e-mail and the account is created the first time.', 'diluxone-users' ); ?></p>
+		<p>
+			<a class="diluxone-users-button diluxone-users-button--soft" href="<?php echo esc_url( diluxone_users_login_url() ); ?>">
+				<?php esc_html_e( 'Sign in', 'diluxone-users' ); ?>
+			</a>
 		</p>
 
 	<?php elseif ( ! $open ) : ?>

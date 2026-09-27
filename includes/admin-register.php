@@ -413,7 +413,8 @@ function diluxone_users_register_preview(): void {
 			'state'     => '',
 			'email'     => '',
 			'fields'    => diluxone_users_register_fields(),
-			'open'      => 'closed' !== diluxone_users_register_mode(),
+			'open'      => diluxone_users_register_form_open(),
+			'by_link'   => 'login' === diluxone_users_register_mode(),
 			'providers' => diluxone_users_sso_for_login(),
 		)
 	);
