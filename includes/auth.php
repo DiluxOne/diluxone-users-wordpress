@@ -423,8 +423,15 @@ function diluxone_users_complete_login( int $user_id, string $via, bool $remembe
  * depend on a session cookie that does not exist yet.
  */
 function diluxone_users_2fa_challenge( int $user_id, string $via, bool $remember, string $redirect ): void {
-	// Just in case: if some door left the cookie set, it is taken away. A
-	// session opened before the second factor is having no second factor.
+	// If some door already opened a session, it is closed: a session opened
+	// before the second factor is having no second factor. Clearing the
+	// cookie is not enough — the valid one is already in the response
+	// headers, ahead of the expired one, and a client that keeps the first
+	// is signed in. The session it names has to stop existing.
+	foreach ( diluxone_users_2fa_session_tokens( $user_id ) as $token ) {
+		WP_Session_Tokens::get_instance( $user_id )->destroy( $token );
+	}
+
 	wp_clear_auth_cookie();
 
 	$nonce = diluxone_users_2fa_pending_start( $user_id, $via, $remember, $redirect );
@@ -837,6 +844,43 @@ function diluxone_users_2fa_after_password( string $login, WP_User $user ): void
 	diluxone_users_2fa_challenge( (int) $user->ID, 'password', $remember, $redirect );
 }
 add_action( 'wp_login', 'diluxone_users_2fa_after_password', 10, 2 );
+
+/**
+ * The sessions this request opened, by person.
+ *
+ * `wp_signon()` creates the session and sends its cookie before `wp_login`
+ * fires, and nothing hands the session over afterwards. This listens as it
+ * is created, so the challenge can destroy exactly that one and no other
+ * session the person has open elsewhere.
+ *
+ * @param int         $user_id Whose sessions.
+ * @param string|null $token   A session to remember; null to only read.
+ * @return array<int, string>
+ */
+function diluxone_users_2fa_session_tokens( int $user_id, ?string $token = null ): array {
+	static $tokens = array();
+
+	if ( null !== $token && '' !== $token ) {
+		$tokens[ $user_id ][] = $token;
+	}
+
+	return $tokens[ $user_id ] ?? array();
+}
+
+/**
+ * Hears every session this request opens.
+ *
+ * @param string $cookie     The cookie value (unused).
+ * @param int    $expire     When the cookie expires (unused).
+ * @param int    $expiration When the session expires (unused).
+ * @param int    $user_id    Whose session.
+ * @param string $scheme     The cookie scheme (unused).
+ * @param string $token      The session token.
+ */
+function diluxone_users_2fa_hear_session( $cookie, $expire, $expiration, $user_id, $scheme, $token ): void {
+	diluxone_users_2fa_session_tokens( (int) $user_id, (string) $token );
+}
+add_action( 'set_logged_in_cookie', 'diluxone_users_2fa_hear_session', 10, 6 );
 
 /*
  * The doors with no screen.

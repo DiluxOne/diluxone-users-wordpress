@@ -24,6 +24,29 @@ class TwoFactorFlowTest extends IntegrationTestCase {
 		$this->user = $this->make_user();
 	}
 
+	/**
+	 * The password door: WordPress opens the session before `wp_login`, and
+	 * the valid cookie is already in the response when the challenge starts.
+	 * Unless the session it names is destroyed, whoever keeps that cookie is
+	 * in without a second step.
+	 */
+	public function test_the_session_the_password_opened_does_not_survive_the_challenge(): void {
+		$password = 'Correct-Horse-9';
+		wp_set_password( $password, $this->user );
+		$login = get_userdata( $this->user )->user_login;
+
+		$this->expectRedirect(
+			fn() => wp_signon(
+				array(
+					'user_login'    => $login,
+					'user_password' => $password,
+				)
+			)
+		);
+
+		$this->assertSame( array(), \WP_Session_Tokens::get_instance( $this->user )->get_all() );
+	}
+
 	/** Starts the challenge and returns the key the screen would carry. */
 	private function challenge(): string {
 		wp_set_current_user( 0 );

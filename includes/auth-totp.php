@@ -100,19 +100,34 @@ function diluxone_users_totp_code( string $secret, int $timestamp = 0 ): string 
 
 /** Does this code match this secret, now or a moment ago? */
 function diluxone_users_totp_check( string $secret, string $code ): bool {
+	return null !== diluxone_users_totp_step( $secret, $code );
+}
+
+/**
+ * The time step this code belongs to, or null when it matches none.
+ *
+ * The step, not the code, is what makes a code spent: the same six digits can
+ * come back in a later step, and a code from the step before the last one
+ * used is still inside the drift window for another thirty seconds.
+ */
+function diluxone_users_totp_step( string $secret, string $code ): ?int {
 	$code = preg_replace( '/\D/', '', $code ) ?? '';
 
 	if ( strlen( $code ) !== DILUXONE_USERS_TOTP_DIGITS ) {
-		return false;
+		return null;
 	}
 
+	$now = time();
+
 	for ( $i = -DILUXONE_USERS_TOTP_DRIFT; $i <= DILUXONE_USERS_TOTP_DRIFT; $i++ ) {
-		if ( hash_equals( diluxone_users_totp_code( $secret, time() + $i * DILUXONE_USERS_TOTP_STEP ), $code ) ) {
-			return true;
+		$timestamp = $now + $i * DILUXONE_USERS_TOTP_STEP;
+
+		if ( hash_equals( diluxone_users_totp_code( $secret, $timestamp ), $code ) ) {
+			return intdiv( $timestamp, DILUXONE_USERS_TOTP_STEP );
 		}
 	}
 
-	return false;
+	return null;
 }
 
 /* ── What the plugin sees ──────────────────────────────────────────── */
@@ -153,22 +168,27 @@ function diluxone_users_totp_verify( int $user_id, string $code ): bool {
 		return false;
 	}
 
-	// A code is used once: without this, whoever glimpses it over a shoulder
-	// has thirty seconds to type it too.
-	$used = (string) get_user_meta( $user_id, 'diluxone_users_totp_used', true );
-	$code = preg_replace( '/\D/', '', $code ) ?? '';
+	$step = diluxone_users_totp_step( $secret, $code );
 
-	if ( '' !== $used && hash_equals( $used, $code ) ) {
+	if ( null === $step ) {
 		return false;
 	}
 
-	if ( ! diluxone_users_totp_check( $secret, $code ) ) {
+	// A code is used once, and so is every code before it: whoever glimpses
+	// one over a shoulder cannot type it, nor the one from the step before,
+	// once the person has. The write is conditional on the value it read, so
+	// two requests carrying the same code cannot both pass.
+	$last = get_user_meta( $user_id, 'diluxone_users_totp_step', true );
+
+	if ( '' === $last || false === $last ) {
+		return (bool) add_user_meta( $user_id, 'diluxone_users_totp_step', $step, true );
+	}
+
+	if ( $step <= (int) $last ) {
 		return false;
 	}
 
-	update_user_meta( $user_id, 'diluxone_users_totp_used', $code );
-
-	return true;
+	return (bool) update_user_meta( $user_id, 'diluxone_users_totp_step', $step, $last );
 }
 
 /**
@@ -219,5 +239,5 @@ function diluxone_users_totp_activate( int $user_id, string $code ): bool {
 function diluxone_users_totp_forget( int $user_id ): void {
 	delete_user_meta( $user_id, 'diluxone_users_totp' );
 	delete_user_meta( $user_id, 'diluxone_users_totp_pending' );
-	delete_user_meta( $user_id, 'diluxone_users_totp_used' );
+	delete_user_meta( $user_id, 'diluxone_users_totp_step' );
 }

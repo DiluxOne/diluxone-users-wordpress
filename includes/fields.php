@@ -237,7 +237,7 @@ function diluxone_users_field_key_allowed( string $key ): bool {
 		'diluxone_users_2fa_lock',
 		'diluxone_users_totp',
 		'diluxone_users_totp_pending',
-		'diluxone_users_totp_used',
+		'diluxone_users_totp_step',
 		'diluxone_users_backup_codes',
 		'diluxone_users_passkeys',
 		'diluxone_users_handle',
