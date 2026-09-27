@@ -363,7 +363,7 @@ function diluxone_users_screen_log(): void {
 
 		<label class="diluxone-users-search__by">
 			<?php esc_html_e( 'Show', 'diluxone-users' ); ?>
-			<select name="per" onchange="this.form.submit()">
+			<select name="per" data-diluxone-users-autosubmit>
 				<?php foreach ( array( 10, 20, 50, 100 ) as $option ) : ?>
 					<option value="<?php echo esc_attr( (string) $option ); ?>" <?php selected( $per, $option ); ?>><?php echo esc_html( number_format_i18n( $option ) ); ?></option>
 				<?php endforeach; ?>

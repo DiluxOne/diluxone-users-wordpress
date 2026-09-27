@@ -29,22 +29,31 @@ function diluxone_users_measure_key(): string {
  * Before anything is painted: the colours measured on an earlier page, if
  * the browser kept them. Without this the plugin's own blue would show for a
  * moment on every page until the measurement below replaced it.
+ *
+ * Inline and in the head, on purpose: a file would be one more request in
+ * front of the first paint, which is the moment this exists for. It is a
+ * script of its own in the queue all the same, so it prints where WordPress
+ * prints scripts and a site's content-security policy can reach it.
  */
 function diluxone_users_measure_early(): void {
-	$roles = diluxone_users_color_measured_roles();
-	if ( array() === $roles || is_admin() ) {
+	if ( array() === diluxone_users_color_measured_roles() || is_admin() ) {
 		return;
 	}
 
-	$js = '(function(k){try{var v=JSON.parse(localStorage.getItem(k)||"null");if(!v)return;var s=document.documentElement.style;for(var r in v){s.setProperty("--diluxone-users-"+r,v[r]);}}catch(e){}})(' . wp_json_encode( diluxone_users_measure_key() ) . ');';
-
-	wp_print_inline_script_tag( $js, array( 'id' => 'diluxone-users-theme-colors-early' ) );
+	wp_register_script( 'diluxone-users-theme-colors-early', false, array(), DILUXONE_USERS_VERSION, false );
+	wp_enqueue_script( 'diluxone-users-theme-colors-early' );
+	wp_add_inline_script(
+		'diluxone-users-theme-colors-early',
+		'(function(k){try{var v=JSON.parse(localStorage.getItem(k)||"null");if(!v)return;var s=document.documentElement.style;for(var r in v){s.setProperty("--diluxone-users-"+r,v[r]);}}catch(e){}})(' . wp_json_encode( diluxone_users_measure_key() ) . ');'
+	);
 }
-add_action( 'wp_head', 'diluxone_users_measure_early', 1 );
+add_action( 'wp_enqueue_scripts', 'diluxone_users_measure_early', 1 );
 
 /**
  * After the page is drawn: measure, apply, keep. Only on pages that carry the
- * plugin's own stylesheet — anywhere else there is nothing of it to paint.
+ * plugin's own stylesheet — anywhere else there is nothing of it to paint —
+ * which is only known once the page is drawn, so it is queued from the
+ * footer, before WordPress prints the footer's scripts.
  */
 function diluxone_users_measure(): void {
 	$roles = diluxone_users_color_measured_roles();
@@ -52,61 +61,14 @@ function diluxone_users_measure(): void {
 		return;
 	}
 
-	$js = <<<'JS'
-(function (roles, key) {
-  var doc = document, root = doc.documentElement;
-  var host = doc.querySelector('.entry-content, main, #primary, #content, .site-content') || doc.body;
-  function rgb(c) {
-    var m = String(c).match(/rgba?\(([^)]+)\)/);
-    if (!m) return null;
-    var p = m[1].split(/[ ,\/]+/).filter(Boolean).map(parseFloat);
-    return { r: p[0], g: p[1], b: p[2], a: p.length > 3 ? p[3] : 1 };
-  }
-  function clear(c) { var v = rgb(c); return !v || v.a === 0; }
-  function css(v) { return 'rgb(' + Math.round(v.r) + ', ' + Math.round(v.g) + ', ' + Math.round(v.b) + ')'; }
-  function mix(a, b, t) { a = rgb(a); b = rgb(b); return css({ r: a.r + (b.r - a.r) * t, g: a.g + (b.g - a.g) * t, b: a.b + (b.b - a.b) * t }); }
-  function lum(c) { var v = rgb(c); return (0.2126 * v.r + 0.7152 * v.g + 0.0722 * v.b) / 255; }
-  function ground(el) { while (el) { var c = getComputedStyle(el).backgroundColor; if (!clear(c)) return c; el = el.parentElement; } return 'rgb(255, 255, 255)'; }
-  function probe(html) {
-    var box = doc.createElement('div');
-    box.setAttribute('aria-hidden', 'true');
-    box.style.cssText = 'position:absolute;left:-9999px;top:0;visibility:hidden;pointer-events:none';
-    box.innerHTML = html;
-    host.appendChild(box);
-    var el = box.querySelector('[data-p]'), cs = getComputedStyle(el);
-    var out = { color: cs.color, bg: cs.backgroundColor, border: cs.borderTopColor, width: parseFloat(cs.borderTopWidth) || 0 };
-    box.remove();
-    return out;
-  }
-  var text = getComputedStyle(host).color;
-  var surface = ground(host);
-  var link = probe('<a href="#" data-p>x</a>').color;
-  var button = probe('<div class="wp-block-button"><a class="wp-block-button__link wp-element-button" href="#" data-p>x</a></div>');
-  var field = probe('<input type="text" data-p>');
-  var accent = !clear(button.bg) && button.bg !== surface ? button.bg : link;
-  var found = {
-    'accent': accent,
-    'accent-ink': !clear(button.bg) && button.bg === accent ? button.color : (lum(accent) > 0.6 ? '#16181d' : '#ffffff'),
-    'text': text,
-    'surface': surface,
-    'surface-alt': mix(surface, text, 0.04),
-    'muted': mix(text, surface, 0.35),
-    'border': field.width > 0 && !clear(field.border) && field.border !== text ? field.border : mix(surface, text, 0.15)
-  };
-  var kept = {};
-  roles.forEach(function (r) {
-    if (!found[r]) return;
-    root.style.setProperty('--diluxone-users-' + r, found[r]);
-    kept[r] = found[r];
-    if (r === 'accent') { root.style.setProperty('--diluxone-users-accent-bg', found[r]); kept['accent-bg'] = found[r]; }
-  });
-  try { localStorage.setItem(key, JSON.stringify(kept)); } catch (e) {}
-})
-JS;
-
-	wp_print_inline_script_tag(
-		$js . '(' . wp_json_encode( $roles ) . ',' . wp_json_encode( diluxone_users_measure_key() ) . ');',
-		array( 'id' => 'diluxone-users-theme-colors' )
+	wp_enqueue_script( 'diluxone-users-theme-colors', DILUXONE_USERS_URL . 'assets/diluxone-users-theme-measure.js', array(), diluxone_users_asset_version( 'assets/diluxone-users-theme-measure.js' ), true );
+	wp_localize_script(
+		'diluxone-users-theme-colors',
+		'diluxOneUsersThemeColors',
+		array(
+			'roles' => array_values( $roles ),
+			'key'   => diluxone_users_measure_key(),
+		)
 	);
 }
 add_action( 'wp_footer', 'diluxone_users_measure', 5 );

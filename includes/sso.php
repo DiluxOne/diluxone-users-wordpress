@@ -1033,32 +1033,30 @@ function diluxone_users_sso_test_result( array $provider, bool $ok, string $deta
 
 	nocache_headers();
 
+	// A page of its own, with its own two files: the look, and the button
+	// that reloads the dashboard behind it and closes this window.
+	wp_register_style( 'diluxone-users-sso-test', DILUXONE_USERS_URL . 'assets/diluxone-users-sso-test.css', array(), diluxone_users_asset_version( 'assets/diluxone-users-sso-test.css' ) );
+	wp_register_script( 'diluxone-users-sso-test', DILUXONE_USERS_URL . 'assets/diluxone-users-sso-test.js', array(), diluxone_users_asset_version( 'assets/diluxone-users-sso-test.js' ), true );
+
 	?><!DOCTYPE html>
 	<html <?php language_attributes(); ?>>
 	<head>
 		<meta charset="<?php bloginfo( 'charset' ); ?>">
 		<title><?php echo esc_html( $title ); ?></title>
-		<style>
-			body { margin: 0; padding: 40px 32px; font: 15px/1.6 -apple-system, system-ui, sans-serif; color: #1d2327; background: #f0f0f1; }
-			.caja { max-width: 34rem; margin: 0 auto; background: #fff; border: 1px solid #dcdcde; border-radius: 4px; padding: 28px 30px; }
-			.caja h1 { margin: 0 0 10px; font-size: 21px; }
-			.ok h1 { color: #0a5c3e; }
-			.mal h1 { color: #b32d2e; }
-			.detalle { margin: 14px 0 0; padding: 12px 14px; background: #f6f7f7; border-radius: 3px; word-break: break-word; }
-			button { margin-top: 22px; padding: 8px 18px; border: 0; border-radius: 3px; background: #2271b1; color: #fff; font: inherit; cursor: pointer; }
-		</style>
+		<?php wp_print_styles( 'diluxone-users-sso-test' ); ?>
 	</head>
 	<body>
-		<div class="caja <?php echo $ok ? 'ok' : 'mal'; ?>">
+		<div class="diluxone-users-sso-test <?php echo esc_attr( $ok ? 'is-ok' : 'is-failed' ); ?>">
 			<h1><?php echo esc_html( $title ); ?></h1>
 			<p><?php echo esc_html( $message ); ?></p>
 			<?php if ( '' !== $detail ) : ?>
-				<p class="detalle"><?php echo esc_html( $detail ); ?></p>
+				<p class="diluxone-users-sso-test__detail"><?php echo esc_html( $detail ); ?></p>
 			<?php endif; ?>
-			<button type="button" onclick="if (window.opener) { window.opener.location.reload(); } window.close();">
+			<button type="button" data-diluxone-users-sso-test-close>
 				<?php esc_html_e( 'Close', 'diluxone-users' ); ?>
 			</button>
 		</div>
+		<?php wp_print_scripts( 'diluxone-users-sso-test' ); ?>
 	</body>
 	</html>
 	<?php

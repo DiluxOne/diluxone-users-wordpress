@@ -279,29 +279,22 @@ add_action( 'admin_init', 'diluxone_users_panels_ready', 1 );
  * @return string A complete document.
  */
 function diluxone_users_preview_document( string $body ): string {
-	$sheets = array( DILUXONE_USERS_URL . 'assets/diluxone-users.css' => 'assets/diluxone-users.css' );
+	// The document's own queues, not the dashboard's: what they print goes
+	// into this document and nowhere else, and printing it does not mark the
+	// dashboard's copies as done.
+	$styles = new WP_Styles();
+	$deps   = array( 'diluxone-users-preview-front', 'diluxone-users-preview-social' );
+
+	$styles->add( 'diluxone-users-preview-front', DILUXONE_USERS_URL . 'assets/diluxone-users.css', array(), diluxone_users_asset_version( 'assets/diluxone-users.css' ) );
 
 	// The social buttons come with their own sheet on the front end too.
-	$sheets[ DILUXONE_USERS_URL . 'assets/diluxone-users-social.css' ] = 'assets/diluxone-users-social.css';
-
-	$links = '';
-
-	foreach ( $sheets as $url => $file ) {
-		$links .= sprintf(
-			// phpcs:ignore WordPress.WP.EnqueuedResources.NonEnqueuedStylesheet -- a document of its own, with no queue to enqueue into.
-			'<link rel="stylesheet" href="%s">',
-			esc_url( add_query_arg( 'ver', diluxone_users_asset_version( $file ), $url ) )
-		);
-	}
+	$styles->add( 'diluxone-users-preview-social', DILUXONE_USERS_URL . 'assets/diluxone-users-social.css', array( 'diluxone-users-preview-front' ), diluxone_users_asset_version( 'assets/diluxone-users-social.css' ) );
 
 	$vars = diluxone_users_preview_theme_url();
 
 	if ( '' !== $vars ) {
-		$links .= sprintf(
-			// phpcs:ignore WordPress.WP.EnqueuedResources.NonEnqueuedStylesheet -- same document, same reason.
-			'<link rel="stylesheet" href="%s">',
-			esc_url( $vars )
-		);
+		$styles->add( 'diluxone-users-preview-theme', $vars, array( 'diluxone-users-preview-social' ), null );
+		$deps[] = 'diluxone-users-preview-theme';
 	}
 
 	/*
@@ -312,19 +305,72 @@ function diluxone_users_preview_document( string $body ): string {
 	 * The rest is the same CSS the front end is given, built in the same
 	 * place. Here it cannot be added to the sheet — the sheet is a file
 	 * inside this document and a colour chosen a second ago would show as the
-	 * colour saved a week ago — so it rides with the markup instead.
+	 * colour saved a week ago — so it rides with the document instead.
 	 */
-	$style = 'html{background:#fff}'
+	$styles->add( 'diluxone-users-preview', false, $deps, DILUXONE_USERS_VERSION );
+	$styles->add_inline_style(
+		'diluxone-users-preview',
+		'html{background:#fff}'
 		. 'body{margin:0;padding:40px 24px;background:#fff;color:#1e1e1e;'
 		. 'font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;}'
-		. diluxone_users_style_css();
+		. diluxone_users_style_css()
+	);
+
+	ob_start();
+	$styles->do_items( array( 'diluxone-users-preview' ) );
+	$head = (string) ob_get_clean();
+
+	// The scripts the markup asked for while it was drawn, after the markup.
+	$tail    = '';
+	$wanted  = diluxone_users_preview_scripts( null, true );
+	$scripts = array(
+		'diluxone-users-ways' => 'assets/diluxone-users-ways.js',
+	);
+
+	if ( array() !== $wanted ) {
+		$queue = new WP_Scripts();
+
+		foreach ( $wanted as $handle ) {
+			if ( isset( $scripts[ $handle ] ) ) {
+				$queue->add( $handle, DILUXONE_USERS_URL . $scripts[ $handle ], array(), diluxone_users_asset_version( $scripts[ $handle ] ) );
+			}
+		}
+
+		ob_start();
+		$queue->do_items( $wanted );
+		$tail = (string) ob_get_clean();
+	}
 
 	return '<!DOCTYPE html><html ' . get_language_attributes( 'html' ) . '><head><meta charset="'
 		. esc_attr( get_bloginfo( 'charset' ) ) . '">'
-		. $links
-		. '<style>' . $style . '</style></head><body>'
+		. $head
+		. '</head><body>'
 		. $body
+		. $tail
 		. '</body></html>';
+}
+
+/**
+ * The scripts a preview's markup asked for while it was being drawn.
+ *
+ * @param string|null $handle One more to ask for; null to only read.
+ * @param bool        $take   Read and forget, for the document that prints them.
+ * @return array<int, string>
+ */
+function diluxone_users_preview_scripts( ?string $handle = null, bool $take = false ): array {
+	static $wanted = array();
+
+	if ( null !== $handle ) {
+		$wanted[ $handle ] = true;
+	}
+
+	$out = array_map( 'strval', array_keys( $wanted ) );
+
+	if ( $take ) {
+		$wanted = array();
+	}
+
+	return $out;
 }
 
 /**
@@ -820,24 +866,35 @@ function diluxone_users_preview_try_apply(): void {
 
 	// The page says so itself. Anywhere else it would be the dashboard's word
 	// against the picture, which is the argument this whole thing lost before.
+	add_action( 'wp_enqueue_scripts', 'diluxone_users_preview_try_style' );
+	add_action( 'login_enqueue_scripts', 'diluxone_users_preview_try_style' );
 	add_action( 'wp_footer', 'diluxone_users_preview_try_mark' );
 	add_action( 'login_footer', 'diluxone_users_preview_try_mark' );
 }
 add_action( 'init', 'diluxone_users_preview_try_apply' );
 
 /**
- * The strip that says the page is a trial.
+ * The look of the strip that says the page is a trial.
  *
- * Written with its style on it, which is the one place in the plugin that is
- * right: this is printed into somebody else's page — WordPress's own sign-in
- * screen, or a theme's — and it has no stylesheet of ours to belong to. It is
- * also the only thing in that page that is not the preview.
+ * It is printed into somebody else's page — WordPress's own sign-in screen,
+ * or a theme's — where no stylesheet of ours may be loaded, so it brings its
+ * few rules with it, through the queue.
  */
+function diluxone_users_preview_try_style(): void {
+	wp_register_style( 'diluxone-users-trial', false, array(), DILUXONE_USERS_VERSION );
+	wp_enqueue_style( 'diluxone-users-trial' );
+	wp_add_inline_style(
+		'diluxone-users-trial',
+		'[data-diluxone-users-trial]{position:fixed;inset:0 0 auto 0;z-index:99999;margin:0;padding:8px 12px;'
+			. 'background:#1d2327;color:#fff;font:13px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;'
+			. 'text-align:center}'
+	);
+}
+
+/** The strip that says the page is a trial: the only thing in it that is not the preview. */
 function diluxone_users_preview_try_mark(): void {
 	printf(
-		'<p data-diluxone-users-trial style="position:fixed;inset:0 0 auto 0;z-index:99999;margin:0;padding:8px 12px;'
-			. 'background:#1d2327;color:#fff;font:13px/1.4 -apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,sans-serif;'
-			. 'text-align:center">%s</p>',
+		'<p data-diluxone-users-trial>%s</p>',
 		esc_html__( 'This is what you chose, not what is saved. Save to make it so.', 'diluxone-users' )
 	);
 }

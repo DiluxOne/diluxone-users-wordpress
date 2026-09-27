@@ -413,7 +413,15 @@ function diluxone_e2e_forget_transients(): void {
 	global $wpdb;
 
 	// phpcs:ignore WordPress.DB.DirectDatabaseQuery
-	$wpdb->query( "DELETE FROM {$wpdb->options} WHERE option_name LIKE '\_transient\_diluxone\_users\_%' OR option_name LIKE '\_transient\_timeout\_diluxone\_users\_%'" );
+	$wpdb->query( "DELETE FROM {$wpdb->options} WHERE option_name LIKE '\_transient\_diluxone\_users\_%' OR option_name LIKE '\_transient\_timeout\_diluxone\_users\_%' OR option_name LIKE '\_site\_transient\_diluxone\_users\_%' OR option_name LIKE '\_site\_transient\_timeout\_diluxone\_users\_%'" );
+
+	// The counts per machine are the network's, and on a network they live
+	// in the network's own table.
+	if ( is_multisite() ) {
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery
+		$wpdb->query( "DELETE FROM {$wpdb->sitemeta} WHERE meta_key LIKE '\_site\_transient\_diluxone\_users\_%' OR meta_key LIKE '\_site\_transient\_timeout\_diluxone\_users\_%'" );
+	}
+
 	wp_cache_flush();
 }
 

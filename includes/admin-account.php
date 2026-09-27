@@ -682,7 +682,7 @@ function diluxone_users_screen_account_section( string $id, array $sections, int
 						);
 						?>
 								"
-						onclick="return confirm(<?php echo esc_attr( (string) wp_json_encode( __( 'Delete this section?', 'diluxone-users' ) ) ); ?>);">
+						data-diluxone-users-confirm="<?php esc_attr_e( 'Delete this section?', 'diluxone-users' ); ?>">
 						<?php esc_html_e( 'Remove', 'diluxone-users' ); ?>
 					</a>
 				<?php endif; ?>
@@ -931,7 +931,7 @@ function diluxone_users_screen_account_summary(): void {
 						array_filter(
 							array(
 								diluxone_users_option( 'diluxone_users_privacy_export' ) ? __( 'can ask for a copy', 'diluxone-users' ) : '',
-								diluxone_users_option( 'diluxone_users_privacy_delete' ) ? __( 'can ask to be deleted', 'diluxone-users' ) : '',
+								diluxone_users_option( 'diluxone_users_privacy_delete' ) ? __( 'can ask for their data to be erased', 'diluxone-users' ) : '',
 							)
 						)
 					)
@@ -1455,7 +1455,7 @@ function diluxone_users_screen_account_privacy(): void {
 					'name'    => 'diluxone_users_privacy_delete',
 					'value'   => '1',
 					'checked' => (bool) diluxone_users_option( 'diluxone_users_privacy_delete' ),
-					'title'   => __( 'They can ask for their account to be deleted', 'diluxone-users' ),
+					'title'   => __( 'They can ask for their data to be erased', 'diluxone-users' ),
 					'help'    => __( 'Confirmed by email too, and never for an account that administers the site: it would leave the site with nobody in charge.', 'diluxone-users' ),
 				),
 			)

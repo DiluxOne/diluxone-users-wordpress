@@ -1,0 +1,49 @@
+/* The result of a social sign-in test, in the window the test opened. */
+body {
+	margin: 0;
+	padding: 40px 32px;
+	font: 15px/1.6 -apple-system, system-ui, sans-serif;
+	color: #1d2327;
+	background: #f0f0f1;
+}
+
+.diluxone-users-sso-test {
+	max-width: 34rem;
+	margin: 0 auto;
+	background: #fff;
+	border: 1px solid #dcdcde;
+	border-radius: 4px;
+	padding: 28px 30px;
+}
+
+.diluxone-users-sso-test h1 {
+	margin: 0 0 10px;
+	font-size: 21px;
+}
+
+.diluxone-users-sso-test.is-ok h1 {
+	color: #0a5c3e;
+}
+
+.diluxone-users-sso-test.is-failed h1 {
+	color: #b32d2e;
+}
+
+.diluxone-users-sso-test__detail {
+	margin: 14px 0 0;
+	padding: 12px 14px;
+	background: #f6f7f7;
+	border-radius: 3px;
+	word-break: break-word;
+}
+
+.diluxone-users-sso-test button {
+	margin-top: 22px;
+	padding: 8px 18px;
+	border: 0;
+	border-radius: 3px;
+	background: #2271b1;
+	color: #fff;
+	font: inherit;
+	cursor: pointer;
+}

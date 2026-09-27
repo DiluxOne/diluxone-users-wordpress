@@ -1004,3 +1004,28 @@ function diluxoneUsersChoiceGroups( root ) {
 		all();
 	}
 }() );
+
+/**
+ * Asking before something that cannot be undone, and filters that apply as
+ * soon as they change. Said in the markup (`data-diluxone-users-confirm`,
+ * `data-diluxone-users-autosubmit`) and wired here, once, for the whole page.
+ */
+( function () {
+	'use strict';
+
+	document.addEventListener( 'click', function ( event ) {
+		var link = event.target.closest ? event.target.closest( 'a[data-diluxone-users-confirm]' ) : null;
+
+		if ( link && ! window.confirm( link.getAttribute( 'data-diluxone-users-confirm' ) ) ) {
+			event.preventDefault();
+		}
+	} );
+
+	document.addEventListener( 'change', function ( event ) {
+		var field = event.target;
+
+		if ( field.hasAttribute && field.hasAttribute( 'data-diluxone-users-autosubmit' ) && field.form ) {
+			field.form.submit();
+		}
+	} );
+}() );

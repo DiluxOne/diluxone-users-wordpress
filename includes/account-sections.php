@@ -519,6 +519,9 @@ function diluxone_users_data_mail_ready(): bool {
 
 /** Section privacy. */
 function diluxone_users_section_privacy( WP_User $user ): void {
+	// The erase request asks before it is sent.
+	wp_enqueue_script( 'diluxone-users-confirm', DILUXONE_USERS_URL . 'assets/diluxone-users-confirm.js', array(), diluxone_users_asset_version( 'assets/diluxone-users-confirm.js' ), true );
+
 	// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- template, already escaped.
 	echo diluxone_users_render(
 		'account/privacy',

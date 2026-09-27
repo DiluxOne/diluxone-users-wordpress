@@ -69,7 +69,7 @@ $diluxone_users_table = static function ( array $requests ) use ( $diluxone_user
 
 <?php if ( diluxone_users_option( 'diluxone_users_privacy_export' ) ) : ?>
 	<?php diluxone_users_panel_open( __( 'Download your data', 'diluxone-users' ), true ); ?>
-	<p><?php esc_html_e( 'A file with everything: your details, your courses, what you wrote in the forums and in the comments. You get an email to confirm; once you do, we prepare it and it shows up here to download.', 'diluxone-users' ); ?></p>
+	<p><?php esc_html_e( 'A file with everything this site keeps about you: your details, and what the site and its plugins record about you. You get an email to confirm; once you do, we prepare it and it shows up here to download.', 'diluxone-users' ); ?></p>
 
 	<?php $diluxone_users_table( $exports ); ?>
 
@@ -95,18 +95,18 @@ $diluxone_users_table = static function ( array $requests ) use ( $diluxone_user
 	 * first and this is the one that opens.
 	 */
 	?>
-	<?php diluxone_users_panel_open( __( 'Delete your account', 'diluxone-users' ), ! diluxone_users_option( 'diluxone_users_privacy_export' ), 'diluxone-users-panel--danger' ); ?>
+	<?php diluxone_users_panel_open( __( 'Erase your data', 'diluxone-users' ), ! diluxone_users_option( 'diluxone_users_privacy_export' ), 'diluxone-users-panel--danger' ); ?>
 
 	<?php if ( ! $can_erase ) : ?>
 		<p class="diluxone-users-notice diluxone-users-notice--info">
-			<?php esc_html_e( 'This account administers the site, so it cannot delete itself: the site would be left with nobody in charge. Another administrator has to lower its role first, and then it can ask.', 'diluxone-users' ); ?>
+			<?php esc_html_e( 'This account administers the site, so it cannot ask for its data to be erased: the site would be left with nobody in charge. Another administrator has to lower its role first, and then it can ask.', 'diluxone-users' ); ?>
 		</p>
 	<?php else : ?>
 		<p><strong><?php esc_html_e( 'This cannot be undone.', 'diluxone-users' ); ?></strong></p>
 		<ul class="diluxone-users-list-plain">
-			<li><?php esc_html_e( 'Your details, your progress and your certificates are erased.', 'diluxone-users' ); ?></li>
+			<li><?php esc_html_e( 'What this site keeps about you is erased: your details, and what the site and its plugins record about you.', 'diluxone-users' ); ?></li>
 			<li><?php esc_html_e( 'What you wrote in public stays, with no name on it.', 'diluxone-users' ); ?></li>
-			<li><?php esc_html_e( 'You stop being able to sign in, and nothing can be recovered afterwards — not by you and not by us.', 'diluxone-users' ); ?></li>
+			<li><?php esc_html_e( 'Once the site has done it, nothing can be recovered — not by you and not by us.', 'diluxone-users' ); ?></li>
 		</ul>
 		<p><?php esc_html_e( 'If you want a copy of anything, download your data first.', 'diluxone-users' ); ?></p>
 		<p class="diluxone-users-note"><?php esc_html_e( 'Asking is not deleting: we send you an email and nothing happens until you click the link in it. That is what stops somebody who borrowed your screen for a minute.', 'diluxone-users' ); ?></p>
@@ -114,11 +114,11 @@ $diluxone_users_table = static function ( array $requests ) use ( $diluxone_user
 		<?php $diluxone_users_table( $erasures ); ?>
 
 		<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>"
-			onsubmit="return confirm( '<?php echo esc_js( __( 'Ask to delete your account? You still have to confirm it by email, and after that there is no going back.', 'diluxone-users' ) ); ?>' );">
+			data-diluxone-users-confirm="<?php esc_attr_e( 'Ask to erase your data? You still have to confirm it by email, and after that there is no going back.', 'diluxone-users' ); ?>">
 			<input type="hidden" name="action" value="diluxone_users_data_request">
 			<input type="hidden" name="diluxone_users_request" value="erase">
 			<?php wp_nonce_field( 'diluxone_users_data_request' ); ?>
-			<button type="submit" class="diluxone-users-button diluxone-users-button--danger"><?php esc_html_e( 'Ask to delete my account', 'diluxone-users' ); ?></button>
+			<button type="submit" class="diluxone-users-button diluxone-users-button--danger"><?php esc_html_e( 'Ask to erase my data', 'diluxone-users' ); ?></button>
 		</form>
 	<?php endif; ?>
 	<?php diluxone_users_panel_close(); ?>

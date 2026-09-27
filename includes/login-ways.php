@@ -318,23 +318,15 @@ function diluxone_users_way_open( array $tabs ): string {
  * be needed.
  *
  * In the dashboard the same markup is drawn inside a preview, and a preview is
- * a document built by hand with no queue in it at all. Enqueuing there
- * enqueues into the dashboard, which never shows it, and the preview comes out
- * stacked — a picture of the arrangement nobody chose, on the one screen whose
- * job is to show what was chosen. So there it is written into the document,
- * after the markup it works on, which is the same thing the preview already
- * does with the stylesheets.
+ * a document of its own. Enqueuing into the dashboard's queue enqueues into a
+ * page that never shows it, and the preview comes out stacked — a picture of
+ * the arrangement nobody chose, on the one screen whose job is to show what
+ * was chosen. So there it is asked of the preview's own queue, which prints
+ * it after the markup it works on (see diluxone_users_preview_document()).
  */
 function diluxone_users_ways_enqueue(): void {
-	$src = add_query_arg(
-		'ver',
-		diluxone_users_asset_version( 'assets/diluxone-users-ways.js' ),
-		DILUXONE_USERS_URL . 'assets/diluxone-users-ways.js'
-	);
-
 	if ( is_admin() ) {
-		// phpcs:ignore WordPress.WP.EnqueuedResources.NonEnqueuedScript -- a document of its own, with no queue to enqueue into.
-		printf( '<script src="%s"></script>', esc_url( $src ) );
+		diluxone_users_preview_scripts( 'diluxone-users-ways' );
 
 		return;
 	}

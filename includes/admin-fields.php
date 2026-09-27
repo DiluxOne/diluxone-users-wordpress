@@ -424,7 +424,7 @@ function diluxone_users_screen_fields_list(): void {
 										);
 										?>
 												"
-										onclick="return confirm(<?php echo esc_attr( (string) wp_json_encode( __( 'Delete this field? The data already stored is kept.', 'diluxone-users' ) ) ); ?>);">
+										data-diluxone-users-confirm="<?php esc_attr_e( 'Delete this field? The data already stored is kept.', 'diluxone-users' ); ?>">
 										<?php esc_html_e( 'Delete', 'diluxone-users' ); ?>
 									</a>
 								</span>
