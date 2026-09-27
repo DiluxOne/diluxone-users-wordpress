@@ -270,7 +270,7 @@ function diluxone_users_device_id(): string {
  */
 function diluxone_users_notify_new_device( int $user_id, string $via ): void {
 	$id    = diluxone_users_device_id();
-	$known = (array) get_user_meta( $user_id, 'diluxone_users_devices', true );
+	$known = diluxone_users_meta_list( $user_id, 'diluxone_users_devices' );
 	$known = array_filter( array_map( 'strval', $known ) );
 
 	if ( in_array( $id, $known, true ) ) {

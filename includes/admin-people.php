@@ -26,7 +26,7 @@ function diluxone_users_person( int $user_id ): array {
 		'passkeys'    => count( diluxone_users_passkeys( $user_id ) ),
 		'totp'        => diluxone_users_totp_ready( $user_id ),
 		'social'      => diluxone_users_sso_linked( $user_id ),
-		'handle'      => diluxone_users_handle( $user_id ),
+		'handle'      => diluxone_users_public_handle( $user_id ),
 		'second_step' => diluxone_users_2fa_on( $user_id ),
 	);
 }

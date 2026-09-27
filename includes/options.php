@@ -666,3 +666,19 @@ function diluxone_users_option_allows_markup( string $key ): bool {
 
 	return in_array( $key, $keys, true );
 }
+
+/**
+ * A user meta that holds a list, always as an array.
+ *
+ * `(array) get_user_meta( $id, $key, true )` looks like the same thing and is
+ * not: with no row the meta comes back as '' and `(array) ''` is `array( '' )`,
+ * a list with one empty entry. Read as sessions, that was a session started on
+ * 1 January 1970 — "57 years ago" on the profile of somebody who never signed in.
+ *
+ * @return array<mixed>
+ */
+function diluxone_users_meta_list( int $user_id, string $key ): array {
+	$value = get_user_meta( $user_id, $key, true );
+
+	return is_array( $value ) ? $value : array();
+}

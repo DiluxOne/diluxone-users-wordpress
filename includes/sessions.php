@@ -100,7 +100,7 @@ function diluxone_users_sessions_addressable(): bool {
  * @return array<int, array<string, mixed>>
  */
 function diluxone_users_sessions( int $user_id ): array {
-	$raw     = (array) get_user_meta( $user_id, 'session_tokens', true );
+	$raw     = diluxone_users_meta_list( $user_id, 'session_tokens' );
 	$current = get_current_user_id() === $user_id && function_exists( 'wp_get_session_token' )
 		? hash( 'sha256', (string) wp_get_session_token() )
 		: '';
@@ -140,7 +140,7 @@ function diluxone_users_session_close( int $user_id, string $id ): bool {
 		return false;
 	}
 
-	$sessions = (array) get_user_meta( $user_id, 'session_tokens', true );
+	$sessions = diluxone_users_meta_list( $user_id, 'session_tokens' );
 
 	if ( ! isset( $sessions[ $id ] ) ) {
 		return false;

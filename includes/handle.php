@@ -56,6 +56,21 @@ function diluxone_users_handle( int $user_id ): string {
 	return (string) get_user_meta( $user_id, 'diluxone_users_handle', true );
 }
 
+/**
+ * The public name as the site shows it: the one they chose, or else the one
+ * WordPress gave the account (its nicename), which is what the profile
+ * address already uses. Empty only for an account that has neither.
+ */
+function diluxone_users_public_handle( int $user_id ): string {
+	$chosen = diluxone_users_handle( $user_id );
+	if ( '' !== $chosen ) {
+		return $chosen;
+	}
+	$user = get_userdata( $user_id );
+
+	return $user instanceof WP_User ? (string) $user->user_nicename : '';
+}
+
 /** When they last changed it. 0 when never. */
 function diluxone_users_handle_changed( int $user_id ): int {
 	return (int) get_user_meta( $user_id, 'diluxone_users_handle_changed', true );
@@ -249,12 +264,10 @@ function diluxone_users_handle_field( ?int $user_id = null ): string {
 
 	diluxone_users_handle_enqueue();
 
-	$user = get_userdata( $user_id );
-
 	return diluxone_users_render(
 		'account/handle-field',
 		array(
-			'handle' => '' !== diluxone_users_handle( $user_id ) ? diluxone_users_handle( $user_id ) : ( $user instanceof WP_User ? $user->user_nicename : '' ),
+			'handle' => diluxone_users_public_handle( $user_id ),
 			'can'    => diluxone_users_handle_can_change( $user_id ),
 			'next'   => diluxone_users_handle_next_change( $user_id ),
 		)

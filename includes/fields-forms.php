@@ -52,6 +52,13 @@ function diluxone_users_fields_block( int $user_id ): void {
 	diluxone_users_ui_section( __( 'Additional details', 'diluxone-users' ) );
 
 	foreach ( diluxone_users_fields() as $field ) {
+		// First and last name are already on this screen, drawn by WordPress
+		// under "Name" with the same input names. Drawn again here they were
+		// two fields posting under one name: the second copy won, and a name
+		// changed in WordPress's own field came back as it was.
+		if ( diluxone_users_field_is_native( (string) $field['key'] ) ) {
+			continue;
+		}
 		diluxone_users_field_control( $field, $user_id );
 	}
 

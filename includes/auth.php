@@ -493,7 +493,7 @@ function diluxone_users_2fa_pending_start( int $user_id, string $via, bool $reme
  * @return array<string, mixed>
  */
 function diluxone_users_2fa_pending( int $user_id, string $nonce ): array {
-	$pending = (array) get_user_meta( $user_id, 'diluxone_users_2fa_pending', true );
+	$pending = diluxone_users_meta_list( $user_id, 'diluxone_users_2fa_pending' );
 
 	if ( array() === $pending || (int) ( $pending['expires'] ?? 0 ) < time() ) {
 		return array();
@@ -627,7 +627,7 @@ function diluxone_users_2fa_send( int $user_id, string $method ): void {
 
 	// The attempt keeps the time of the last send: that is what the resend
 	// limit is measured from.
-	$pending = (array) get_user_meta( $user_id, 'diluxone_users_2fa_pending', true );
+	$pending = diluxone_users_meta_list( $user_id, 'diluxone_users_2fa_pending' );
 
 	if ( array() !== $pending ) {
 		$pending['sent'] = time();
@@ -1020,7 +1020,7 @@ function diluxone_users_backup_left( int $user_id ): int {
  */
 function diluxone_users_backup_use( int $user_id, string $code ): bool {
 	$code   = strtolower( trim( str_replace( array( ' ', '-' ), '', $code ) ) );
-	$hashes = (array) get_user_meta( $user_id, 'diluxone_users_backup_codes', true );
+	$hashes = diluxone_users_meta_list( $user_id, 'diluxone_users_backup_codes' );
 
 	foreach ( $hashes as $i => $hash ) {
 		if ( wp_check_password( $code, (string) $hash, $user_id ) ) {

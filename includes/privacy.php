@@ -227,7 +227,7 @@ function diluxone_users_privacy_access( int $user_id ): array {
 		);
 	}
 
-	$devices = (array) get_user_meta( $user_id, 'diluxone_users_devices', true );
+	$devices = diluxone_users_meta_list( $user_id, 'diluxone_users_devices' );
 	$devices = array_filter( array_map( 'strval', $devices ) );
 
 	if ( array() !== $devices ) {
