@@ -78,11 +78,10 @@ function diluxone_users_field_input( array $field, string $value, string $id = '
 	$key           = $field['key'];
 	$id            = '' === $id ? $key : $id;
 	$required_attr = $field['required'] ? ' required' : '';
-	// Escaped here, where the only variable part is, and printed as it stands
-	// below. It used to go through `wp_kses_post()` at each printf — a filter
-	// for a body of HTML, wrapped around a fragment of an attribute, which is
-	// the wrong tool for the context and did nothing but quiet the sniff.
-	$placeholder_attr = '' === $field['placeholder'] ? '' : ' placeholder="' . esc_attr( $field['placeholder'] ) . '"';
+	// Always there, escaped where it is printed: an empty placeholder is no
+	// placeholder, and an attribute built into a string elsewhere is one the
+	// escaping cannot be seen on.
+	$placeholder = (string) $field['placeholder'];
 
 	// A field that cannot be changed is shown all the same: the data belongs to
 	// the person and they have a right to see it. On the ones you type into it
@@ -119,11 +118,11 @@ function diluxone_users_field_input( array $field, string $value, string $id = '
 	switch ( $field['type'] ) {
 		case 'textarea':
 			printf(
-				'<textarea id="%1$s" name="%2$s" rows="4"%3$s%4$s>%5$s</textarea>',
+				'<textarea id="%1$s" name="%2$s" rows="4"%3$s placeholder="%4$s">%5$s</textarea>',
 				esc_attr( $id ),
 				esc_attr( $key ),
 				esc_attr( $required_attr . $lock ),
-				$placeholder_attr, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- an attribute fragment escaped where it is built.
+				esc_attr( $placeholder ),
 				esc_textarea( $value )
 			);
 			return;
@@ -223,12 +222,12 @@ function diluxone_users_field_input( array $field, string $value, string $id = '
 			echo '</select>';
 
 			printf(
-				'<input type="tel" id="%1$s" name="%2$s" value="%3$s" inputmode="tel" class="diluxone-users-phone__number" autocomplete="tel-national"%4$s%5$s>',
+				'<input type="tel" id="%1$s" name="%2$s" value="%3$s" inputmode="tel" class="diluxone-users-phone__number" autocomplete="tel-national"%4$s placeholder="%5$s">',
 				esc_attr( $id ),
 				esc_attr( $key ),
 				esc_attr( $national ),
 				esc_attr( $required_attr . $lock ),
-				$placeholder_attr // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- an attribute fragment escaped where it is built.
+				esc_attr( $placeholder )
 			);
 
 			echo '</span>';
@@ -238,13 +237,13 @@ function diluxone_users_field_input( array $field, string $value, string $id = '
 			$list = 'diluxone-users-list-' . $key;
 
 			printf(
-				'<input type="text" id="%1$s" name="%2$s" value="%3$s" list="%4$s" autocomplete="off"%5$s%6$s>',
+				'<input type="text" id="%1$s" name="%2$s" value="%3$s" list="%4$s" autocomplete="off"%5$s placeholder="%6$s">',
 				esc_attr( $id ),
 				esc_attr( $key ),
 				esc_attr( $value ),
 				esc_attr( $list ),
 				esc_attr( $required_attr . $lock ),
-				$placeholder_attr // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- an attribute fragment escaped where it is built.
+				esc_attr( $placeholder )
 			);
 
 			printf( '<datalist id="%s">', esc_attr( $list ) );
@@ -265,13 +264,13 @@ function diluxone_users_field_input( array $field, string $value, string $id = '
 	);
 
 	printf(
-		'<input type="%1$s" id="%2$s" name="%3$s" value="%4$s"%5$s%6$s>',
+		'<input type="%1$s" id="%2$s" name="%3$s" value="%4$s"%5$s placeholder="%6$s">',
 		esc_attr( $types[ $field['type'] ] ?? 'text' ),
 		esc_attr( $id ),
 		esc_attr( $key ),
 		esc_attr( $value ),
 		esc_attr( $required_attr . $lock ),
-		$placeholder_attr // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- an attribute fragment escaped where it is built.
+		esc_attr( $placeholder )
 	);
 }
 

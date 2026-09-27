@@ -73,7 +73,10 @@
 
 		ask( { step: 'register-options' } ).then( function ( r ) {
 			if ( ! r.success ) {
-				throw new Error( r.data.message );
+				// The site's own words, already translated: said as they are.
+				var said = new Error( r.data.message );
+				said.fromSite = true;
+				throw said;
 			}
 
 			var o = r.data;
@@ -128,13 +131,18 @@
 			} );
 		} ).then( function ( r ) {
 			if ( ! r.success ) {
-				throw new Error( r.data.message );
+				// The site's own words, already translated: said as they are.
+				var said = new Error( r.data.message );
+				said.fromSite = true;
+				throw said;
 			}
 
 			window.location.reload();
 		} ).catch( function ( e ) {
 			button.disabled = false;
-			say( box, e.message || data.texts.error, true );
+			// The browser's own errors come in English and in its words; the
+			// site says its own sentence instead.
+			say( box, e.fromSite && e.message ? e.message : data.texts.error, true );
 		} );
 	}
 
@@ -147,7 +155,10 @@
 
 		ask( { step: 'login-options' } ).then( function ( r ) {
 			if ( ! r.success ) {
-				throw new Error( r.data.message );
+				// The site's own words, already translated: said as they are.
+				var said = new Error( r.data.message );
+				said.fromSite = true;
+				throw said;
 			}
 
 			return navigator.credentials.get( {
@@ -168,13 +179,18 @@
 			} );
 		} ).then( function ( r ) {
 			if ( ! r.success ) {
-				throw new Error( r.data.message );
+				// The site's own words, already translated: said as they are.
+				var said = new Error( r.data.message );
+				said.fromSite = true;
+				throw said;
 			}
 
 			window.location.href = r.data.redirect;
 		} ).catch( function ( e ) {
 			button.disabled = false;
-			say( box, e.message || data.texts.error, true );
+			// The browser's own errors come in English and in its words; the
+			// site says its own sentence instead.
+			say( box, e.fromSite && e.message ? e.message : data.texts.error, true );
 		} );
 	}
 
