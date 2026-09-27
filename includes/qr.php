@@ -108,7 +108,7 @@ function diluxone_users_qr_version_info(): array {
  */
 const DILUXONE_USERS_QR_FORMAT = '111011111000100';
 
-/* ── Reed-Solomon sobre GF(256) ────────────────────────────────────── */
+/* ── Reed-Solomon over GF(256) ─────────────────────────────────────── */
 
 /**
  * The field's exponent and logarithm tables, worked out once.
@@ -204,7 +204,7 @@ function diluxone_users_qr_ec( array $data, int $n ): array {
 	return array_slice( $rest, count( $data ) );
 }
 
-/* ── La matriz ─────────────────────────────────────────────────────── */
+/* ── The matrix ────────────────────────────────────────────────────── */
 
 /**
  * The module matrix of a text: true = black.

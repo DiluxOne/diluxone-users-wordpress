@@ -738,7 +738,7 @@ function diluxone_e2e_expire( WP_REST_Request $request ): WP_REST_Response {
 	$what = (string) ( $request->get_param( 'what' ) ?: 'link' );
 
 	if ( 'link' === $what ) {
-		update_user_meta( (int) $user->ID, '_diluxone_users_acceso_vence', time() - 60 );
+		update_user_meta( (int) $user->ID, '_diluxone_users_link_expires', time() - 60 );
 	}
 
 	if ( '2fa' === $what ) {

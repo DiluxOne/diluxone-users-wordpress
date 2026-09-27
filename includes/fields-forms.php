@@ -275,7 +275,7 @@ function diluxone_users_field_input( array $field, string $value, string $id = '
 	);
 }
 
-/* ── Perfil del escritorio ─────────────────────────────────────────── */
+/* ── The dashboard profile ─────────────────────────────────────────── */
 
 /**
  * The plugin fields, in the dashboard profile.
@@ -322,7 +322,7 @@ function diluxone_users_new_user_fields( string $type ): void {
 }
 add_action( 'user_new_form', 'diluxone_users_new_user_fields' );
 
-/* ── Registro nativo de WordPress ──────────────────────────────────── */
+/* ── WordPress's own registration ──────────────────────────────────── */
 
 /**
  * The fields on wp-login.php?action=register.

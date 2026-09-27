@@ -69,7 +69,7 @@ function diluxone_users_notices_panels(): void {
 }
 add_action( 'diluxone_users_register_panels', 'diluxone_users_notices_panels' );
 
-/* ── Resumen ───────────────────────────────────────────────────────── */
+/* ── Summary ───────────────────────────────────────────────────────── */
 
 /**
  * Who a notice belongs to, in words.
@@ -197,7 +197,7 @@ function diluxone_users_screen_notices_summary(): void {
 	);
 }
 
-/* ── Las reglas ────────────────────────────────────────────────────── */
+/* ── The rules ─────────────────────────────────────────────────────── */
 
 /**
  * One rule per notice.
@@ -317,7 +317,7 @@ function diluxone_users_notices_rules_save(): void {
 	diluxone_users_save_options( array( 'diluxone_users_notice_rules' => $rules ) );
 }
 
-/* ── Las plantillas ────────────────────────────────────────────────── */
+/* ── The templates ─────────────────────────────────────────────────── */
 
 /**
  * The language this screen is writing for.

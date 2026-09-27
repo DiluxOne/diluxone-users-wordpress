@@ -246,5 +246,5 @@ function diluxone_users_register_request(): void {
 	wp_safe_redirect( add_query_arg( 'diluxone-users', 'registered', $back ) );
 	exit;
 }
-add_action( 'admin_post_nopriv_diluxone_users_registro', 'diluxone_users_register_request' );
-add_action( 'admin_post_diluxone_users_registro', 'diluxone_users_register_request' );
+add_action( 'admin_post_nopriv_diluxone_users_signup', 'diluxone_users_register_request' );
+add_action( 'admin_post_diluxone_users_signup', 'diluxone_users_register_request' );

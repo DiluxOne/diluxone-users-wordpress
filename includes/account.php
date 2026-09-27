@@ -466,7 +466,7 @@ function diluxone_users_account_heading_html( array $section, string $id, WP_Use
 	return $html;
 }
 
-/* ── Pintado ───────────────────────────────────────────────────────── */
+/* ── Drawing ───────────────────────────────────────────────────────── */
 
 /** Somebody's visible name: the one they wrote, or whatever there is. */
 function diluxone_users_display_name( WP_User $user ): string {

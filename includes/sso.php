@@ -56,7 +56,9 @@ function diluxone_users_sso_save_credentials( string $id, array $values ): void 
 
 	$all[ $id ] = $new;
 
-	update_option( 'diluxone_users_sso', $all );
+	// Not autoloaded: the secrets are read on the few requests that talk to a
+	// provider, and have no business in memory on every other page.
+	update_option( 'diluxone_users_sso', $all, false );
 }
 
 /**
@@ -521,8 +523,21 @@ function diluxone_users_sso_authorize( string $id, array $provider, bool $test =
 		$args['code_challenge_method'] = 'S256';
 	}
 
-		// phpcs:ignore WordPress.Security.SafeRedirect.wp_redirect_wp_redirect -- it goes to the provider, which is precisely another domain: wp_safe_redirect() would stop it.
-	wp_redirect( add_query_arg( $args, $provider['authorize'] ) );
+	// The provider is another domain, so it is added — for this redirect only
+	// — to the hosts a safe redirect may go to, and the redirect is a safe
+	// one: a provider list somebody filtered into sending people elsewhere
+	// is stopped at a host that is not the one it names.
+	$url   = add_query_arg( $args, $provider['authorize'] );
+	$host  = (string) wp_parse_url( $url, PHP_URL_HOST );
+	$allow = static function ( array $hosts ) use ( $host ): array {
+		$hosts[] = $host;
+
+		return $hosts;
+	};
+
+	add_filter( 'allowed_redirect_hosts', $allow );
+	wp_safe_redirect( $url );
+	remove_filter( 'allowed_redirect_hosts', $allow );
 	exit;
 }
 
@@ -600,6 +615,53 @@ function diluxone_users_sso_email_trusted( array $identity, bool $linking ): boo
 }
 
 /**
+ * The account a social identity is linked to, or 0.
+ *
+ * Among the network's accounts, not only this site's members: somebody linked
+ * on the site next door is the same somebody here. The oldest link wins if a
+ * duplicate was ever written, so the answer is always the same one.
+ */
+function diluxone_users_sso_owner( string $id, string $identity ): int {
+	if ( '' === $identity ) {
+		return 0;
+	}
+
+	$found = get_users(
+		array(
+			'meta_key'   => 'diluxone_users_sso_' . $id, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
+			'meta_value' => $identity, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
+			'number'     => 1,
+			'orderby'    => 'ID',
+			'order'      => 'ASC',
+			'fields'     => 'ID',
+			'blog_id'    => 0,
+		)
+	);
+
+	return array() === $found ? 0 : (int) $found[0];
+}
+
+/**
+ * What a provider said about somebody, cleaned like anything else that comes
+ * from outside before it is compared or stored: the name and the id as text,
+ * the address as an address.
+ *
+ * @param array<string, mixed> $identity What the provider's map returned.
+ * @return array{id: string, email: string, name: string, last_name: string, verified: bool|null}
+ */
+function diluxone_users_sso_clean( array $identity ): array {
+	$verified = $identity['verified'] ?? null;
+
+	return array(
+		'id'        => sanitize_text_field( (string) ( $identity['id'] ?? '' ) ),
+		'email'     => sanitize_email( (string) ( $identity['email'] ?? '' ) ),
+		'name'      => sanitize_text_field( (string) ( $identity['name'] ?? '' ) ),
+		'last_name' => sanitize_text_field( (string) ( $identity['last_name'] ?? '' ) ),
+		'verified'  => is_bool( $verified ) ? $verified : null,
+	);
+}
+
+/**
  * Finds or creates the account behind a social identity, and links it.
  *
  * Linking is by e-mail, the same as Nextend's "Link accounts by email"
@@ -610,22 +672,11 @@ function diluxone_users_sso_email_trusted( array $identity, bool $linking ): boo
  * @param array<string, mixed> $identity
  */
 function diluxone_users_sso_user( string $id, array $identity ): int {
-	$meta = 'diluxone_users_sso_' . $id;
+	$meta     = 'diluxone_users_sso_' . $id;
+	$existing = diluxone_users_sso_owner( $id, $identity['id'] );
 
-	$existing = get_users(
-		array(
-			'meta_key' => $meta, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
-		'meta_value'   => $identity['id'], // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
-		'number'       => 1,
-		'fields'       => 'ID',
-		// Accounts are the network's: somebody linked on the site next door
-		// is the same somebody here.
-		'blog_id'      => 0,
-		)
-	);
-
-	if ( $existing ) {
-		return diluxone_users_sso_role_blocked( (int) $existing[0] ) ? 0 : (int) $existing[0];
+	if ( $existing > 0 ) {
+		return diluxone_users_sso_role_blocked( $existing ) ? 0 : $existing;
 	}
 
 	if ( '' === $identity['email'] || ! is_email( $identity['email'] ) ) {
@@ -736,7 +787,7 @@ function diluxone_users_sso_query( bool $fresh = false ): array {
 			// phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- as above; each reader sanitises for its own use.
 			$value = wp_unslash( $_GET[ $name ] );
 
-			$query[ $name ] = is_scalar( $value ) ? (string) $value : '';
+			$query[ $name ] = is_scalar( $value ) ? sanitize_text_field( (string) $value ) : '';
 		}
 	}
 
@@ -824,6 +875,13 @@ function diluxone_users_sso_handle( $wp = null ): void {
 			diluxone_users_sso_fail();
 		}
 
+		// Every trip stores its state for ten minutes, and starting one needs
+		// no account: counted per machine like the other doors that write
+		// something for a stranger, or a script fills the options table.
+		if ( ! $test && ! diluxone_users_ip_burst( 'sso', diluxone_users_login_burst() ) ) {
+			diluxone_users_sso_fail();
+		}
+
 		diluxone_users_sso_authorize( $id, $provider, $test );
 	}
 
@@ -886,7 +944,7 @@ function diluxone_users_sso_handle( $wp = null ): void {
 		diluxone_users_sso_fail();
 	}
 
-	$identity = call_user_func( $provider['map'], diluxone_users_sso_get( $provider['profile'], $token ), $token );
+	$identity = diluxone_users_sso_clean( (array) call_user_func( $provider['map'], diluxone_users_sso_get( $provider['profile'], $token ), $token ) );
 
 	// The test ends here: nobody is signed in, it is only recorded as working.
 	if ( $is_test ) {
@@ -900,6 +958,18 @@ function diluxone_users_sso_handle( $wp = null ): void {
 
 	// If they are already in, this is a link from the profile, not a sign-in.
 	if ( is_user_logged_in() ) {
+		$back  = (string) get_transient( 'diluxone_users_sso_back_' . get_current_user_id() );
+		$back  = '' !== $back ? $back : home_url( '/' );
+		$owner = '' !== $identity['id'] ? diluxone_users_sso_owner( $id, $identity['id'] ) : 0;
+
+		// One identity, one account: the same social account linked to two
+		// accounts would open whichever the lookup finds first, and the other
+		// would never be reached with it.
+		if ( $owner > 0 && get_current_user_id() !== $owner ) {
+			wp_safe_redirect( add_query_arg( 'diluxone-users', 'taken', $back ) );
+			exit;
+		}
+
 		if ( '' !== $identity['id'] ) {
 			update_user_meta( get_current_user_id(), 'diluxone_users_sso_' . $id, $identity['id'] );
 
@@ -913,8 +983,7 @@ function diluxone_users_sso_handle( $wp = null ): void {
 			);
 		}
 
-		$back = (string) get_transient( 'diluxone_users_sso_back_' . get_current_user_id() );
-		wp_safe_redirect( add_query_arg( 'diluxone-users', 'linked', $back ? $back : home_url( '/' ) ) );
+		wp_safe_redirect( add_query_arg( 'diluxone-users', 'linked', $back ) );
 		exit;
 	}
 

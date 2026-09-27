@@ -419,7 +419,7 @@ function diluxone_users_login_notice( string $key, string $extra = '' ): void {
 	);
 }
 
-/* ── La pantalla ───────────────────────────────────────────────────── */
+/* ── The screen ────────────────────────────────────────────────────── */
 
 /**
  * The tab, on the Access screen and not on the social one.

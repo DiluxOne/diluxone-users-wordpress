@@ -17,7 +17,7 @@
 defined( 'ABSPATH' ) || exit;
 
 $diluxone_users_id      = (int) $user->ID;
-$diluxone_users_ofrece  = diluxone_users_2fa_offered( $diluxone_users_id );
+$diluxone_users_offers  = diluxone_users_2fa_offered( $diluxone_users_id );
 $diluxone_users_on      = diluxone_users_2fa_on( $diluxone_users_id );
 $diluxone_users_ready   = diluxone_users_2fa_available( $diluxone_users_id );
 $diluxone_users_frescos = diluxone_users_backup_fresh( $diluxone_users_id );
@@ -164,7 +164,7 @@ if ( diluxone_users_has_passkeys() ) {
 	<?php diluxone_users_panel_close(); ?>
 <?php endif; ?>
 
-<?php if ( $diluxone_users_ofrece ) : ?>
+<?php if ( $diluxone_users_offers ) : ?>
 
 	<?php if ( array() !== $diluxone_users_frescos ) : ?>
 		<?php diluxone_users_panel_open( __( 'Write these down now', 'diluxone-users' ), true, 'diluxone-users-backup' ); ?>
@@ -297,7 +297,7 @@ if ( diluxone_users_has_passkeys() ) {
 				<p><?php esc_html_e( 'Scan this with Google Authenticator, 1Password, Aegis or whichever app you use, and then write down the code it shows to confirm it.', 'diluxone-users' ); ?></p>
 
 				<div class="diluxone-users-totp">
-					<div class="diluxone-users-totp__qr"><?php echo diluxone_users_qr_svg( $diluxone_users_uri, 190 ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- SVG propio. ?></div>
+					<div class="diluxone-users-totp__qr"><?php echo diluxone_users_qr_svg( $diluxone_users_uri, 190 ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- the plugin's own SVG, built from its own paths. ?></div>
 
 					<div class="diluxone-users-totp__manual">
 						<p class="diluxone-users-note"><?php esc_html_e( 'Cannot scan it? Type this key into the app:', 'diluxone-users' ); ?></p>
@@ -330,6 +330,6 @@ if ( diluxone_users_has_passkeys() ) {
 ?>
 <?php if ( diluxone_users_option( 'diluxone_users_sessions_show' ) ) : ?>
 	<?php diluxone_users_panel_open( __( 'Where you are signed in', 'diluxone-users' ) ); ?>
-		<?php echo do_shortcode( '[diluxone_users_sessions]' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- shortcode propio. ?>
+		<?php echo do_shortcode( '[diluxone_users_sessions]' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- the plugin's own shortcode, which escapes its output. ?>
 	<?php diluxone_users_panel_close(); ?>
 <?php endif; ?>

@@ -734,7 +734,7 @@ function diluxone_users_passkeys_manage(): void {
 
 	check_admin_referer( 'diluxone_users_passkey' );
 
-	// phpcs:disable WordPress.Security.NonceVerification.Missing -- verificado arriba.
+	// phpcs:disable WordPress.Security.NonceVerification.Missing -- verified above.
 	$user_id   = get_current_user_id();
 	$id        = sanitize_text_field( wp_unslash( $_POST['diluxone_users_passkey'] ?? '' ) );
 	$operation = sanitize_key( wp_unslash( $_POST['diluxone_users_passkey_do'] ?? '' ) );

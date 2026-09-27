@@ -533,7 +533,7 @@ function diluxone_users_screen_provider( string $id, array $provider ): void {
 	$current = diluxone_users_tab( $tabs );
 
 	if ( isset( $_POST['diluxone_users_provider_nonce'] ) && wp_verify_nonce( sanitize_key( wp_unslash( $_POST['diluxone_users_provider_nonce'] ) ), 'diluxone_users_provider' ) ) {
-		// phpcs:disable WordPress.Security.NonceVerification.Missing -- verificado arriba.
+		// phpcs:disable WordPress.Security.NonceVerification.Missing -- verified above.
 		$typed = sanitize_text_field( wp_unslash( $_POST['diluxone_users_client_secret'] ?? '' ) );
 
 		diluxone_users_sso_save_credentials(

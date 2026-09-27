@@ -408,7 +408,7 @@ function diluxone_users_notice( string $text, string $type = 'success' ): void {
  * notice, and because the day a third pinnable setting arrives nobody has to
  * remember to copy the text correctly.
  */
-function diluxone_users_forzado_aviso( string $key ): void {
+function diluxone_users_forced_notice( string $key ): void {
 	if ( ! diluxone_users_option_forced( $key ) ) {
 		return;
 	}

@@ -176,7 +176,10 @@ function diluxone_users_account_actions(): void {
 
 	if ( 'delete' === $action ) {
 		diluxone_users_section_delete( $id );
-		$back = array( 'tab' => 'sections' );
+		$back = array(
+			'tab'                => 'sections',
+			'diluxone_users_msg' => 'deleted',
+		);
 	} elseif ( 'on' === $action || 'off' === $action ) {
 		diluxone_users_section_config_save( $id, array( 'enabled' => 'on' === $action ? 1 : 0 ) );
 	}
@@ -396,8 +399,8 @@ function diluxone_users_account_post(): void {
 
 	$open_box = sanitize_key( wp_unslash( $_GET['section'] ?? '' ) );
 
-	if ( isset( $_POST['diluxone_users_orden_nonce'] ) && wp_verify_nonce( sanitize_key( wp_unslash( $_POST['diluxone_users_orden_nonce'] ) ), 'diluxone_users_orden' ) ) {
-		diluxone_users_section_reorder( array_map( 'sanitize_key', (array) wp_unslash( $_POST['diluxone_users_orden'] ?? array() ) ) );
+	if ( isset( $_POST['diluxone_users_order_form_nonce'] ) && wp_verify_nonce( sanitize_key( wp_unslash( $_POST['diluxone_users_order_form_nonce'] ) ), 'diluxone_users_order_form' ) ) {
+		diluxone_users_section_reorder( array_map( 'sanitize_key', (array) wp_unslash( $_POST['diluxone_users_order_form'] ?? array() ) ) );
 
 		diluxone_users_account_back( 'order', $open_box );
 	}
@@ -413,12 +416,12 @@ function diluxone_users_account_post(): void {
 		diluxone_users_account_back( 'privacy', 'privacy' );
 	}
 
-	if ( isset( $_POST['diluxone_users_seccion_nonce'] ) && wp_verify_nonce( sanitize_key( wp_unslash( $_POST['diluxone_users_seccion_nonce'] ) ), 'diluxone_users_seccion' ) ) {
+	if ( isset( $_POST['diluxone_users_section_form_nonce'] ) && wp_verify_nonce( sanitize_key( wp_unslash( $_POST['diluxone_users_section_form_nonce'] ) ), 'diluxone_users_section_form' ) ) {
 			// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- diluxone_users_section_save() sanitises it field by field.
-		$saved = diluxone_users_section_save( (array) wp_unslash( $_POST['diluxone_users_seccion'] ?? array() ) );
+		$saved = diluxone_users_section_save( (array) wp_unslash( $_POST['diluxone_users_section_form'] ?? array() ) );
 
 		diluxone_users_account_back(
-			'' === $saved ? 'error' : 'guardada',
+			'' === $saved ? 'error' : 'saved',
 			'' === $saved ? $open_box : $saved
 		);
 	}
@@ -448,11 +451,11 @@ function diluxone_users_account_back( string $msg, string $section = '' ): void 
 /** The notice about what just happened. */
 function diluxone_users_account_notice(): void {
 	$notices = array(
-		'order'    => array( 'success', __( 'New order saved.', 'diluxone-users' ) ),
-		'guardada' => array( 'success', __( 'Section saved.', 'diluxone-users' ) ),
-		'borrada'  => array( 'success', __( 'Section removed.', 'diluxone-users' ) ),
-		'privacy'  => array( 'success', __( 'Saved.', 'diluxone-users' ) ),
-		'error'    => array( 'error', __( 'That section needs a name, and an address that is not taken.', 'diluxone-users' ) ),
+		'order'   => array( 'success', __( 'New order saved.', 'diluxone-users' ) ),
+		'saved'   => array( 'success', __( 'Section saved.', 'diluxone-users' ) ),
+		'deleted' => array( 'success', __( 'Section removed.', 'diluxone-users' ) ),
+		'privacy' => array( 'success', __( 'Saved.', 'diluxone-users' ) ),
+		'error'   => array( 'error', __( 'That section needs a name, and an address that is not taken.', 'diluxone-users' ) ),
 	);
 
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- it only picks the message.
@@ -513,12 +516,12 @@ function diluxone_users_screen_account_sections(): void {
 
 		<div class="diluxone-users-endpoints__body">
 			<form class="diluxone-users-endpoints__order" method="post">
-				<?php wp_nonce_field( 'diluxone_users_orden', 'diluxone_users_orden_nonce' ); ?>
+				<?php wp_nonce_field( 'diluxone_users_order_form', 'diluxone_users_order_form_nonce' ); ?>
 
 				<ul class="diluxone-users-endpoints__list" data-diluxone-users-sortable>
 					<?php foreach ( $sections as $id => $section ) : ?>
 						<li class="diluxone-users-endpoint <?php echo $id === $actual ? 'is-current' : ''; ?> <?php echo $section['enabled'] && diluxone_users_section_available( $section ) ? '' : 'is-off'; ?>">
-							<input type="hidden" name="diluxone_users_orden[]" value="<?php echo esc_attr( $id ); ?>">
+							<input type="hidden" name="diluxone_users_order_form[]" value="<?php echo esc_attr( $id ); ?>">
 							<a class="diluxone-users-endpoint__name" href="
 						<?php
 						echo esc_url(
@@ -636,8 +639,8 @@ function diluxone_users_screen_account_section( string $id, array $sections, int
 	$with_code = ! $fresh && diluxone_users_section_has_code( $section );
 	?>
 	<form method="post" class="diluxone-users-endpoint-form">
-		<?php wp_nonce_field( 'diluxone_users_seccion', 'diluxone_users_seccion_nonce' ); ?>
-		<input type="hidden" name="diluxone_users_seccion[id]" value="<?php echo esc_attr( $fresh ? '' : $id ); ?>">
+		<?php wp_nonce_field( 'diluxone_users_section_form', 'diluxone_users_section_form_nonce' ); ?>
+		<input type="hidden" name="diluxone_users_section_form[id]" value="<?php echo esc_attr( $fresh ? '' : $id ); ?>">
 
 		<div class="diluxone-users-endpoint-form__head">
 			<h3><?php echo esc_html( $fresh ? __( 'New section', 'diluxone-users' ) : $section['label'] ); ?></h3>
@@ -702,7 +705,7 @@ function diluxone_users_screen_account_section( string $id, array $sections, int
 			array(
 				'label'    => __( 'Name', 'diluxone-users' ),
 				'id'       => 'diluxone-users-section-label',
-				'name'     => 'diluxone_users_seccion[label]',
+				'name'     => 'diluxone_users_section_form[label]',
 				'value'    => (string) $section['label'],
 				'required' => true,
 				'help'     => __( 'What people read in the menu, and the title of the section.', 'diluxone-users' ),
@@ -713,7 +716,7 @@ function diluxone_users_screen_account_section( string $id, array $sections, int
 			array(
 				'label'       => __( 'Address', 'diluxone-users' ),
 				'id'          => 'diluxone-users-section-slug',
-				'name'        => 'diluxone_users_seccion[slug]',
+				'name'        => 'diluxone_users_section_form[slug]',
 				'value'       => (string) ( $section['slug'] ?? '' ),
 				'placeholder' => __( 'made from the name', 'diluxone-users' ),
 				'code'        => true,
@@ -741,7 +744,7 @@ function diluxone_users_screen_account_section( string $id, array $sections, int
 			foreach ( $all as $card ) {
 				$cards[] = array(
 					'type'    => 'checkbox',
-					'name'    => 'diluxone_users_seccion[cards][]',
+					'name'    => 'diluxone_users_section_form[cards][]',
 					'value'   => (string) $card['id'],
 					'checked' => ! in_array( (string) $card['id'], $off, true ),
 					'title'   => (string) $card['label'],
@@ -757,7 +760,7 @@ function diluxone_users_screen_account_section( string $id, array $sections, int
 			 * screen, "show none" would be indistinguishable from "this form
 			 * never had it".
 			 */
-			echo '<input type="hidden" name="diluxone_users_seccion[cards_shown]" value="1">';
+			echo '<input type="hidden" name="diluxone_users_section_form[cards_shown]" value="1">';
 
 			diluxone_users_ui_choices( $cards );
 
@@ -772,7 +775,7 @@ function diluxone_users_screen_account_section( string $id, array $sections, int
 			array(
 				'label' => __( 'The line under the title', 'diluxone-users' ),
 				'id'    => 'diluxone-users-section-intro',
-				'name'  => 'diluxone_users_seccion[intro]',
+				'name'  => 'diluxone_users_section_form[intro]',
 				'value' => (string) ( $section['intro'] ?? '' ),
 				'help'  => __( 'Optional. One sentence saying what this section is for, under its title.', 'diluxone-users' ),
 			)
@@ -780,8 +783,8 @@ function diluxone_users_screen_account_section( string $id, array $sections, int
 
 		diluxone_users_ui_field_open( __( 'Who sees it', 'diluxone-users' ) );
 		diluxone_users_roles_picker(
-			'diluxone_users_seccion[visibility]',
-			'diluxone_users_seccion[roles][]',
+			'diluxone_users_section_form[visibility]',
+			'diluxone_users_section_form[roles][]',
 			diluxone_users_section_visibility( $section ),
 			(array) ( $section['roles'] ?? array() ),
 			__( 'Everybody with an account, or only the roles ticked. Nobody who is not signed in reaches the account area at all.', 'diluxone-users' )
@@ -799,14 +802,14 @@ function diluxone_users_screen_account_section( string $id, array $sections, int
 				array(
 					'label'   => __( 'Where your content goes', 'diluxone-users' ),
 					'id'      => 'diluxone-users-section-placement',
-					'name'    => 'diluxone_users_seccion[placement]',
+					'name'    => 'diluxone_users_section_form[placement]',
 					'value'   => (string) $section['placement'],
 					'options' => $where,
 					'help'    => __( 'This section is drawn by code. What you write below is added to it — unless you say it replaces it.', 'diluxone-users' ),
 				)
 			);
 		} else {
-			echo '<input type="hidden" name="diluxone_users_seccion[placement]" value="replace">';
+			echo '<input type="hidden" name="diluxone_users_section_form[placement]" value="replace">';
 		}
 
 		diluxone_users_ui_field_open( __( 'Your content', 'diluxone-users' ), 'diluxone-users-section-content' );
@@ -814,7 +817,7 @@ function diluxone_users_screen_account_section( string $id, array $sections, int
 			(string) $section['content'],
 			'diluxone-users-section-content',
 			array(
-				'textarea_name' => 'diluxone_users_seccion[content]',
+				'textarea_name' => 'diluxone_users_section_form[content]',
 				'textarea_rows' => 10,
 				'media_buttons' => true,
 			)
@@ -974,7 +977,7 @@ function diluxone_users_screen_account_page(): void {
 	$help = esc_html__( 'The account area appears on this page, below whatever the page already says.', 'diluxone-users' );
 
 	if ( '' === (string) get_option( 'permalink_structure' ) ) {
-		$help .= ' ' . esc_html__( 'With plain permalinks the sections go as ?seccion=…; turn on pretty permalinks in Settings → Permalinks and they become /page/section/ on their own.', 'diluxone-users' );
+		$help .= ' ' . esc_html__( 'With plain permalinks the sections go as ?section=…; turn on pretty permalinks in Settings → Permalinks and they become /page/section/ on their own.', 'diluxone-users' );
 	}
 
 	diluxone_users_ui_field_close( $help );

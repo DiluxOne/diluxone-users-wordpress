@@ -239,7 +239,7 @@ function diluxone_users_screen_appearance_template(): void {
 
 	diluxone_users_ui_section( __( 'The menu', 'diluxone-users' ) );
 
-	diluxone_users_forzado_aviso( 'diluxone_users_account_layout' );
+	diluxone_users_forced_notice( 'diluxone_users_account_layout' );
 
 	$layouts = array(
 		'tabs' => __( 'Tabs across the top', 'diluxone-users' ),

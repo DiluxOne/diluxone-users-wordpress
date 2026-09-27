@@ -76,7 +76,7 @@ function diluxone_users_tools_action(): void {
 
 	check_admin_referer( 'diluxone_users_tools' );
 
-	// phpcs:ignore WordPress.Security.NonceVerification.Missing -- verificado arriba.
+	// phpcs:ignore WordPress.Security.NonceVerification.Missing -- verified above.
 	$tool = isset( $_POST['tool'] ) ? sanitize_key( wp_unslash( $_POST['tool'] ) ) : '';
 
 	// A map and not a switch: every tool ends in a redirect that stops
@@ -125,7 +125,7 @@ add_action( 'admin_post_diluxone_users_tools', 'diluxone_users_tools_action' );
  * @return never
  */
 function diluxone_users_tool_send_code(): void {
-	// phpcs:ignore WordPress.Security.NonceVerification.Missing -- verificado en diluxone_users_tools_action().
+	// phpcs:ignore WordPress.Security.NonceVerification.Missing -- verified in diluxone_users_tools_action().
 	$typed = sanitize_email( wp_unslash( $_POST['email'] ?? '' ) );
 	$user  = '' !== $typed ? get_user_by( 'email', $typed ) : false;
 
@@ -158,7 +158,7 @@ function diluxone_users_tool_send_code(): void {
  * @return never
  */
 function diluxone_users_tool_close_sessions(): void {
-	// phpcs:disable WordPress.Security.NonceVerification.Missing -- verificado en diluxone_users_tools_action().
+	// phpcs:disable WordPress.Security.NonceVerification.Missing -- verified in diluxone_users_tools_action().
 	$scope = isset( $_POST['scope'] ) ? sanitize_key( wp_unslash( $_POST['scope'] ) ) : 'one';
 	$typed = sanitize_email( wp_unslash( $_POST['close_email'] ?? '' ) );
 	// phpcs:enable

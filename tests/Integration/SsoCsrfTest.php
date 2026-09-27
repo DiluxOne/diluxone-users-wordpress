@@ -20,6 +20,10 @@ class SsoCsrfTest extends IntegrationTestCase {
 		parent::setUp();
 		MockProvider::install();
 
+		// One identity, one account: links an earlier test left behind would
+		// make this identity somebody else's before the test begins.
+		delete_metadata( 'user', 0, 'diluxone_users_sso_' . MockProvider::ID, 'attacker-google-id', true );
+
 		MockProvider::$profile = array(
 			'sub'            => 'attacker-google-id',
 			'email'          => 'attacker@example.test',

@@ -370,8 +370,8 @@ test.describe('Account area › Sections', () => {
 		const intro = `Everything you are enrolled in, ${label}.`;
 
 		await page.goto(adminUrl('diluxone-users-account', 'sections') + '&section=diluxone-users-new');
-		await page.locator('[name="diluxone_users_seccion[label]"]').fill(label);
-		await page.locator('[name="diluxone_users_seccion[intro]"]').fill(intro);
+		await page.locator('[name="diluxone_users_section_form[label]"]').fill(label);
+		await page.locator('[name="diluxone_users_section_form[intro]"]').fill(intro);
 		await Promise.all([page.waitForLoadState('domcontentloaded'), page.locator('#submit').click()]);
 
 		const email = freshEmail('sections-own');

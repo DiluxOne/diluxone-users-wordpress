@@ -88,7 +88,7 @@ function diluxone_users_cookie_set( string $name, string $value, int $expires ):
 	setcookie( $name, $value, $options );
 }
 
-/* ── Los segundos factores disponibles ─────────────────────────────── */
+/* ── The second factors available ──────────────────────────────────── */
 
 /*
  * * A passkey is not on this list, and that is not an oversight: it is not a

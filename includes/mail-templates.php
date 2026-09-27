@@ -472,7 +472,7 @@ function diluxone_users_mail_person( string $email, int $user_id = 0 ): string {
 	return '' === $email ? '' : diluxone_users_name_from_email( $email );
 }
 
-/* ── Los correos que ya se mandaban ────────────────────────────────── */
+/* ── The mails that were already sent ──────────────────────────────── */
 
 /**
  * The sign-in link, written here instead of in login.php.
@@ -518,7 +518,7 @@ function diluxone_users_mail_second_step( array $mail, int $user_id, string $cod
 }
 add_filter( 'diluxone_users_2fa_email', 'diluxone_users_mail_second_step', 5, 3 );
 
-/* ── La pantalla ───────────────────────────────────────────────────── */
+/* ── The screen ────────────────────────────────────────────────────── */
 
 /**
  * The languages a rewrite can be written for.

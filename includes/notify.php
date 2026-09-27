@@ -102,7 +102,7 @@ function diluxone_users_notification_musts(): array {
 	return $musts;
 }
 
-/* ── Quién decide ──────────────────────────────────────────────────── */
+/* ── Who decides ───────────────────────────────────────────────────── */
 
 /**
  * The four things a site can decide about one notice, written as outcomes.
@@ -244,7 +244,7 @@ function diluxone_users_site_name(): string {
 	return wp_specialchars_decode( (string) get_bloginfo( 'name' ), ENT_QUOTES );
 }
 
-/* ── Entrar desde un aparato nuevo ─────────────────────────────────── */
+/* ── Signing in from a new device ──────────────────────────────────── */
 
 /**
  * How a device is recognised.
@@ -324,7 +324,7 @@ function diluxone_users_via_label( string $via ): string {
 	return $labels[ $via ] ?? $via;
 }
 
-/* ── Cambios en la seguridad ───────────────────────────────────────── */
+/* ── Changes to security ───────────────────────────────────────────── */
 
 /**
  * Notifies that something in the security changed.

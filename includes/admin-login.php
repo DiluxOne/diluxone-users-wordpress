@@ -544,7 +544,7 @@ function diluxone_users_screen_login_ways(): void {
 	 */
 	diluxone_users_ui_section( __( 'What the sign-in form takes', 'diluxone-users' ), __( 'The form draws these two itself. Whatever else is switched on below sits under them, on the same screen.', 'diluxone-users' ) );
 
-	diluxone_users_forzado_aviso( 'diluxone_users_login_method' );
+	diluxone_users_forced_notice( 'diluxone_users_login_method' );
 
 	diluxone_users_ui_choices(
 		array(
@@ -779,7 +779,7 @@ function diluxone_users_screen_login_arrangement(): void {
 		__( 'Stacked is every way in on the screen at once, one under the other. In tabs they share one place and the screen stops growing downwards, which is what a laptop notices.', 'diluxone-users' )
 	);
 
-	diluxone_users_forzado_aviso( 'diluxone_users_login_layout' );
+	diluxone_users_forced_notice( 'diluxone_users_login_layout' );
 
 	diluxone_users_ui_choices(
 		array(

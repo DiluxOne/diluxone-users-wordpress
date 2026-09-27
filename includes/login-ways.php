@@ -578,7 +578,7 @@ function diluxone_users_way_social(): void {
 function diluxone_users_way_email(): void {
 	?>
 	<form class="diluxone-users-form" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
-		<input type="hidden" name="action" value="diluxone_users_acceso">
+		<input type="hidden" name="action" value="diluxone_users_link_request">
 		<?php wp_nonce_field( 'diluxone_users_login', 'diluxone_users_nonce' ); ?>
 
 		<?php if ( diluxone_users_option( 'diluxone_users_handle_login' ) ) : ?>

@@ -246,7 +246,7 @@ function diluxone_users_handle_user( string $handle ): int {
 	);
 }
 
-/* ── El formulario ─────────────────────────────────────────────────── */
+/* ── The form ──────────────────────────────────────────────────────── */
 
 /**
  * The field alone, with no form.
@@ -337,7 +337,7 @@ function diluxone_users_handle_check(): void {
 		wp_send_json_error();
 	}
 
-	// phpcs:ignore WordPress.Security.NonceVerification.Missing -- verificado arriba.
+	// phpcs:ignore WordPress.Security.NonceVerification.Missing -- verified above.
 	$clean = diluxone_users_handle_validate( sanitize_text_field( wp_unslash( $_POST['handle'] ?? '' ) ), $user_id );
 
 	if ( is_wp_error( $clean ) ) {

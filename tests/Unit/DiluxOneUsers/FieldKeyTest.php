@@ -64,7 +64,7 @@ class FieldKeyTest extends TestCase {
 			'the known devices'               => array( 'diluxone_users_devices', false ),
 			'a notification switch'           => array( 'diluxone_users_notify_login', false ),
 			'an edit counter'                 => array( 'diluxone_users_edits_first_name', false ),
-			'the sign-in token'               => array( '_diluxone_users_acceso_hash', false ),
+			'the sign-in token'               => array( '_diluxone_users_link_hash', false ),
 		);
 	}
 

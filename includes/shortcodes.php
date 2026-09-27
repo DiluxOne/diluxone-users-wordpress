@@ -221,8 +221,22 @@ function diluxone_users_shortcode_accounts( $atts = array() ): string {
 	$atts    = shortcode_atts( array( 'only' => '' ), (array) $atts, 'diluxone_users_accounts' );
 	$user_id = get_current_user_id();
 
-	// Where it came from, to go back there after the trip to the provider.
-	set_transient( 'diluxone_users_sso_back_' . $user_id, (string) home_url( add_query_arg( array() ) ), 10 * MINUTE_IN_SECONDS );
+	// Where it came from, to go back there after the trip to the provider:
+	// the path WordPress resolved, which holds the section, under the home
+	// URL — not the raw request URI, which on a site in a subfolder would
+	// carry the folder twice. Written only when it changes.
+	$here = '' !== (string) $GLOBALS['wp']->request ? home_url( user_trailingslashit( (string) $GLOBALS['wp']->request ) ) : ( is_singular() ? (string) get_permalink() : home_url( '/' ) );
+
+	if ( get_transient( 'diluxone_users_sso_back_' . $user_id ) !== $here ) {
+		set_transient( 'diluxone_users_sso_back_' . $user_id, $here, 10 * MINUTE_IN_SECONDS );
+	}
+
+	// Two lists on one page (the linked ones and the rest) are one answer:
+	// what just happened is said by the first of them only.
+	static $told = false;
+
+	$state = $told ? '' : diluxone_users_state();
+	$told  = true;
 
 	$linked    = diluxone_users_sso_linked( $user_id );
 	$providers = diluxone_users_sso_available();
@@ -238,7 +252,7 @@ function diluxone_users_shortcode_accounts( $atts = array() ): string {
 		array(
 			'providers' => $providers,
 			'linked'    => $linked,
-			'state'     => diluxone_users_state(),
+			'state'     => $state,
 			'only'      => (string) $atts['only'],
 		)
 	);

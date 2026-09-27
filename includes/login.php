@@ -373,8 +373,8 @@ function diluxone_users_text( string $key, string $fallback = '' ): string {
 	return '' !== $own ? $own : $fallback;
 }
 
-const DILUXONE_USERS_META_HASH    = '_diluxone_users_acceso_hash';
-const DILUXONE_USERS_META_EXPIRES = '_diluxone_users_acceso_vence';
+const DILUXONE_USERS_META_HASH    = '_diluxone_users_link_hash';
+const DILUXONE_USERS_META_EXPIRES = '_diluxone_users_link_expires';
 
 /**
  * Generates a token, stores its hash and returns the token in the clear.
@@ -853,8 +853,8 @@ function diluxone_users_login_request(): void {
 	wp_safe_redirect( $done );
 	exit;
 }
-add_action( 'admin_post_nopriv_diluxone_users_acceso', 'diluxone_users_login_request' );
-add_action( 'admin_post_diluxone_users_acceso', 'diluxone_users_login_request' );
+add_action( 'admin_post_nopriv_diluxone_users_link_request', 'diluxone_users_login_request' );
+add_action( 'admin_post_diluxone_users_link_request', 'diluxone_users_login_request' );
 
 /**
  * Consumes the link: validates, signs in and burns the token.

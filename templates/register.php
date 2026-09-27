@@ -103,7 +103,7 @@ defined( 'ABSPATH' ) || exit;
 		<?php endif; ?>
 
 		<form class="diluxone-users-form" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
-			<input type="hidden" name="action" value="diluxone_users_registro">
+			<input type="hidden" name="action" value="diluxone_users_signup">
 			<?php wp_nonce_field( 'diluxone_users_register', 'diluxone_users_register_nonce' ); ?>
 
 			<?php

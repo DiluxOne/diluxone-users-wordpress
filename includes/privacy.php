@@ -351,8 +351,8 @@ function diluxone_users_privacy_keys( int $user_id ): array {
 		'diluxone_users_totp_pending',
 		'diluxone_users_totp_step',
 		'diluxone_users_backup_codes',
-		'_diluxone_users_acceso_hash',
-		'_diluxone_users_acceso_vence',
+		'_diluxone_users_link_hash',
+		'_diluxone_users_link_expires',
 	);
 
 	foreach ( diluxone_users_fields( '', false ) as $field ) {
