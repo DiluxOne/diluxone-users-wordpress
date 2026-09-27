@@ -14,6 +14,11 @@ export const E2E_HEADER = { 'X-Diluxone-E2E': 'diluxone-e2e' };
 /** The e-mail domain every account the suite makes belongs to. */
 export const E2E_DOMAIN = '@e2e.test';
 
+/** The path of a site's address without its trailing slash: `/alpha`, or `` at the root. */
+export function sitePrefix(url: string): string {
+	return new URL(url).pathname.replace(/\/+$/, '');
+}
+
 /** An address nobody has used yet, so a test never inherits another's state. */
 export function freshEmail(prefix = 'p'): string {
 	return `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}${E2E_DOMAIN}`;
@@ -35,17 +40,41 @@ export interface SeedPages {
 export type OptionBag = Record<string, unknown>;
 
 export class Site {
-	constructor(private readonly api: APIRequestContext) {}
+	/**
+	 * @param prefix The path the site lives under, for a site of a
+	 *               subdirectory network (`/alpha`). Empty for a site at the
+	 *               root. It is needed because every route here starts with a
+	 *               slash, and a path that starts with a slash throws away the
+	 *               path of the base URL it is resolved against.
+	 */
+	constructor(
+		private readonly api: APIRequestContext,
+		private readonly prefix = ''
+	) {}
 
 	/** For a spec that has no `request` fixture handy (global setup/teardown). */
 	static async open(baseURL: string): Promise<Site> {
-		return new Site(await playwrightRequest.newContext({ baseURL }));
+		return new Site(await playwrightRequest.newContext({ baseURL }), sitePrefix(baseURL));
 	}
 
 	private async call(method: 'get' | 'post' | 'delete', path: string, body?: unknown): Promise<any> {
-		const response = await this.api[method](`${E2E_NS}${path}`, {
-			headers: E2E_HEADER,
-			...(body === undefined ? {} : { data: body }),
+		const send = () =>
+			this.api[method](`${this.prefix}${E2E_NS}${path}`, {
+				headers: E2E_HEADER,
+				...(body === undefined ? {} : { data: body }),
+			});
+
+		// Once more on a socket Apache closed under us. A context kept for a
+		// whole test sits idle while the browser does its part, longer than
+		// Apache's keep-alive, and the next call is written into a connection
+		// the server already hung up. Every route here is idempotent, so
+		// sending it again is the same request, not a second one.
+		const response = await send().catch((error: Error) => {
+			if (/socket hang up|ECONNRESET/.test(error.message)) {
+				return send();
+			}
+
+			throw error;
 		});
 
 		expect(

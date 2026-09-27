@@ -478,6 +478,11 @@ function diluxone_e2e_user_read( WP_REST_Request $request ): WP_REST_Response {
 			),
 			'fields'   => diluxone_e2e_user_fields( (int) $user->ID, (string) $request->get_param( 'fields' ) ),
 			'sessions' => count( (array) get_user_meta( $user->ID, 'session_tokens', true ) ),
+			// On a network the account belongs to the network and the
+			// membership to each site: `roles` above is this site's, and this
+			// is whether there is one at all — plus every site that has them.
+			'member'   => is_multisite() ? is_user_member_of_blog( (int) $user->ID ) : true,
+			'sites'    => is_multisite() ? array_map( 'intval', array_keys( get_blogs_of_user( (int) $user->ID ) ) ) : array( 1 ),
 		)
 	);
 }
@@ -550,9 +555,30 @@ function diluxone_e2e_user_write( WP_REST_Request $request ): WP_REST_Response {
 	);
 }
 
-/** Removes one account, or every account the suite ever made. */
+/**
+ * Removes one account, or every account the suite ever made.
+ *
+ * On a network `wp_delete_user()` only takes somebody off the current site —
+ * the account itself stays, and so would every account the network suite
+ * made. `wpmu_delete_user()` is the one that deletes it, and the domain sweep
+ * looks at the whole network rather than at the members of this one site.
+ */
 function diluxone_e2e_user_delete( WP_REST_Request $request ): WP_REST_Response {
 	require_once ABSPATH . 'wp-admin/includes/user.php';
+
+	if ( is_multisite() ) {
+		require_once ABSPATH . 'wp-admin/includes/ms.php';
+	}
+
+	$delete = static function ( int $id ): void {
+		if ( is_multisite() ) {
+			wpmu_delete_user( $id );
+
+			return;
+		}
+
+		wp_delete_user( $id );
+	};
 
 	$email  = (string) $request->get_param( 'email' );
 	$domain = (string) ( $request->get_param( 'domain' ) ?: '' );
@@ -562,15 +588,20 @@ function diluxone_e2e_user_delete( WP_REST_Request $request ): WP_REST_Response 
 		$user = get_user_by( 'email', $email );
 
 		if ( $user instanceof WP_User ) {
-			wp_delete_user( (int) $user->ID );
+			$delete( (int) $user->ID );
 			++$gone;
 		}
 	}
 
 	if ( '' !== $domain ) {
-		foreach ( get_users( array( 'fields' => array( 'ID', 'user_email' ) ) ) as $one ) {
+		$everyone = array(
+			'fields'  => array( 'ID', 'user_email' ),
+			'blog_id' => is_multisite() ? 0 : get_current_blog_id(),
+		);
+
+		foreach ( get_users( $everyone ) as $one ) {
 			if ( str_ends_with( strtolower( (string) $one->user_email ), strtolower( $domain ) ) ) {
-				wp_delete_user( (int) $one->ID );
+				$delete( (int) $one->ID );
 				++$gone;
 			}
 		}
