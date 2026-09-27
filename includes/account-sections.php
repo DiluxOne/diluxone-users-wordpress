@@ -103,7 +103,7 @@ function diluxone_users_privacy_any(): bool {
 	return (bool) diluxone_users_option( 'diluxone_users_privacy_export' ) || (bool) diluxone_users_option( 'diluxone_users_privacy_delete' );
 }
 
-/* ── Portada ───────────────────────────────────────────────────────── */
+/* ── Front page ────────────────────────────────────────────────────── */
 
 /**
  * Every summary card there is, shown or not.
@@ -238,21 +238,21 @@ add_filter( 'diluxone_users_account_heading', 'diluxone_users_account_heading_ho
 
 /** Section home. */
 function diluxone_users_section_home( WP_User $user ): void {
-	// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- template, already escaped.
+	// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- a template of the plugin's, which escapes its output.
 	echo diluxone_users_render(
 		'account/home',
 		array(
 			'user'  => $user,
 			'cards' => diluxone_users_summaries(),
 		)
-	); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- plantilla, ya escapada.
+	);
 }
 
-/* ── Datos personales ──────────────────────────────────────────────── */
+/* ── Personal data ─────────────────────────────────────────────────── */
 
 /** Draws the personal-details section. */
 function diluxone_users_section_details( WP_User $user ): void {
-	echo diluxone_users_render( 'account/details', array( 'user' => $user ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- plantilla, ya escapada.
+	echo diluxone_users_render( 'account/details', array( 'user' => $user ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- a template of the plugin's, which escapes its output.
 }
 
 /** Summary details. */
@@ -283,11 +283,11 @@ function diluxone_users_summary_details(): array {
 	);
 }
 
-/* ── Cuentas vinculadas ────────────────────────────────────────────── */
+/* ── Linked accounts ───────────────────────────────────────────────── */
 
 /** Draws the linked-accounts section. */
 function diluxone_users_section_accounts( WP_User $user ): void {
-	echo diluxone_users_render( 'account/accounts', array( 'user' => $user ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- plantilla, ya escapada.
+	echo diluxone_users_render( 'account/accounts', array( 'user' => $user ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- a template of the plugin's, which escapes its output.
 }
 
 /** Summary accounts. */
@@ -308,11 +308,11 @@ function diluxone_users_summary_accounts(): array {
 	);
 }
 
-/* ── Seguridad ─────────────────────────────────────────────────────── */
+/* ── Security ──────────────────────────────────────────────────────── */
 
 /** Draws the security section. */
 function diluxone_users_section_security( WP_User $user ): void {
-	echo diluxone_users_render( 'account/security', array( 'user' => $user ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- plantilla, ya escapada.
+	echo diluxone_users_render( 'account/security', array( 'user' => $user ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- a template of the plugin's, which escapes its output.
 }
 
 /** Summary security. */
@@ -329,7 +329,7 @@ function diluxone_users_summary_security(): array {
 	);
 }
 
-/* ── Notificaciones ────────────────────────────────────────────────── */
+/* ── Notifications ─────────────────────────────────────────────────── */
 
 /**
  * The notification preferences.
@@ -387,7 +387,7 @@ function diluxone_users_notification_choices(): array {
 
 /** Section notifications. */
 function diluxone_users_section_notifications( WP_User $user ): void {
-	echo do_shortcode( '[diluxone_users_notifications]' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- shortcode propio.
+	echo do_shortcode( '[diluxone_users_notifications]' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- the plugin's own shortcode, which escapes its output.
 }
 
 /**
@@ -433,7 +433,7 @@ function diluxone_users_notifications_save(): void {
 	// keeps no meta, so the day the rule changes the person starts from the
 	// policy and not from a box they never saw.
 	foreach ( diluxone_users_notification_choices() as $key => $pref ) {
-		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- verificado arriba.
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- verified above.
 		update_user_meta( $user_id, $key, isset( $_POST[ $key ] ) ? '1' : '0' );
 	}
 
@@ -442,7 +442,7 @@ function diluxone_users_notifications_save(): void {
 }
 add_action( 'admin_post_diluxone_users_notifications', 'diluxone_users_notifications_save' );
 
-/* ── Tus datos ─────────────────────────────────────────────────────── */
+/* ── Your data ─────────────────────────────────────────────────────── */
 
 /**
  * Can this account ask to be deleted?
@@ -519,6 +519,9 @@ function diluxone_users_data_mail_ready(): bool {
 
 /** Section privacy. */
 function diluxone_users_section_privacy( WP_User $user ): void {
+	// The erase request asks before it is sent.
+	wp_enqueue_script( 'diluxone-users-confirm', DILUXONE_USERS_URL . 'assets/diluxone-users-confirm.js', array(), diluxone_users_asset_version( 'assets/diluxone-users-confirm.js' ), true );
+
 	// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- template, already escaped.
 	echo diluxone_users_render(
 		'account/privacy',
@@ -548,8 +551,16 @@ function diluxone_users_data_request(): void {
 	check_admin_referer( 'diluxone_users_data_request' );
 
 	$user = wp_get_current_user();
-	// phpcs:ignore WordPress.Security.NonceVerification.Missing -- verificado arriba.
 	$kind = 'erase' === sanitize_key( wp_unslash( $_POST['diluxone_users_request'] ?? '' ) ) ? 'remove_personal_data' : 'export_personal_data';
+
+	// Switching a request off hides its button, and it also closes the door
+	// the button posted to: a hand-made request is refused the same way.
+	$allowed = 'remove_personal_data' === $kind ? 'diluxone_users_privacy_delete' : 'diluxone_users_privacy_export';
+
+	if ( ! diluxone_users_option( $allowed ) ) {
+		wp_safe_redirect( add_query_arg( 'diluxone-users', 'error', diluxone_users_account_url( 'privacy' ) ) );
+		exit;
+	}
 
 	if ( 'remove_personal_data' === $kind && ! diluxone_users_can_request_erase( $user->ID ) ) {
 		wp_safe_redirect( add_query_arg( 'diluxone-users', 'admin', diluxone_users_account_url( 'privacy' ) ) );

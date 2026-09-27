@@ -1,59 +1,28 @@
-<!--
-Thanks for sending a pull request! Please fill in the sections below to help us review faster.
+## 📝 What changes
 
-For end-user questions, do NOT open a PR — use the wp.org support forum:
-https://wordpress.org/support/plugin/diluxone-users/
 
-For security vulnerabilities, do NOT open a public PR — use GitHub Security Advisories:
-https://github.com/soydiloreto/diluxone-users-wordpress/security/advisories/new
--->
 
-## Summary
+## 💡 Why
 
-<!-- One or two sentences: what does this PR change, at a high level? -->
 
-## Why
 
-<!--
-What problem does this solve? Link any related issue (e.g. "Closes #42").
-Explain motivation and context — what was wrong, what's better now, what alternatives you considered.
--->
+## 🧪 How I tested it
 
-## Type of change
+- [ ] `make check` passes locally
+- [ ] Integration on a network (`make env-multisite && make test-integration`), if it touches WordPress behaviour
+- [ ] End-to-end on a single site (`make test-e2e`) and on a network (`make test-e2e-network`), if a person can see or do it
+- [ ] Ways in exercised (e-mail link, password, social provider, passkey, second factor), if sign-in is involved
 
-<!-- Check all that apply. -->
+## 📸 Screenshots
 
-- [ ] 🐛 Bug fix (non-breaking change that fixes a defect)
-- [ ] ✨ New feature (non-breaking change that adds user-visible functionality)
-- [ ] 💥 Breaking change (a fix or feature that would change existing behavior in an incompatible way)
-- [ ] 🧹 Refactor / internal change (no user-visible behavior change)
-- [ ] 📝 Documentation only
-- [ ] 🔧 Tooling / CI / build system
-- [ ] 🌐 Translations
 
-## Test plan
 
-<!--
-How did you verify this works? Be specific.
-- For bug fixes: how did you reproduce the bug, how did you confirm it's fixed?
-- For features: what scenarios did you exercise?
-- For refactors: how did you confirm no behavior changed?
--->
+## ✅ Checklist
 
-- [ ] Manually tested on a local WordPress install
-- [ ] CI checks pass (PHP lint, Plugin Check, readme validation)
-- [ ] Tested with Azure Blob Storage provider
-- [ ] Tested on multisite (if relevant)
-
-## Checklist
-
-- [ ] Branch follows the naming convention from `CONTRIBUTING.md` (`feat/`, `fix/`, `chore/`, `docs/`, `ci/`, `refactor/`, `style/`).
-- [ ] Commit messages follow [Conventional Commits](https://www.conventionalcommits.org/).
-- [ ] User-facing strings are wrapped in WordPress translation functions with the `diluxone-users` text domain.
-- [ ] User input is sanitized; output is escaped.
-- [ ] No credentials, API keys, or secrets are logged.
-- [ ] If this changes user-visible behavior, the `readme.txt` `== Changelog ==` section is updated.
-
-## Screenshots / recordings
-
-<!-- Optional but very welcome for UI changes. -->
+- [ ] Tests added at every layer this touches, and `tests/e2e/COVERAGE.md` updated for a new feature or state (`docs/testing-and-quality.md`).
+- [ ] If a screen changed: the visual baselines retaken on purpose (`make test-visual-update`) and, for a listing screen, `make screenshots`.
+- [ ] User-facing strings are wrapped in WordPress translation functions with the `diluxone-users` text domain, and the eight locales are updated.
+- [ ] User input is unslashed and sanitized; output is escaped; SQL is prepared.
+- [ ] No codes, tokens, secrets or personal data are logged or stored in the clear.
+- [ ] If this changes what a user sees, one bullet was added to the newest `= X.Y.Z =` entry of `readme.txt` (see `docs/release.md`).
+- [ ] Docs that describe what this PR changes are updated in this PR (`readme.txt`, `docs/`, `AGENTS.md`, `docs/architecture.md`, `docs/extending.md`).

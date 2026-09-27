@@ -69,7 +69,7 @@ function diluxone_users_notices_panels(): void {
 }
 add_action( 'diluxone_users_register_panels', 'diluxone_users_notices_panels' );
 
-/* ── Resumen ───────────────────────────────────────────────────────── */
+/* ── Summary ───────────────────────────────────────────────────────── */
 
 /**
  * Who a notice belongs to, in words.
@@ -127,7 +127,7 @@ function diluxone_users_screen_notices_summary(): void {
 			: __( 'Not offered: people sign in to this site with a password only.', 'diluxone-users' ),
 		'url'    => $link_on
 			? ( $delivery ? diluxone_users_admin_url( DILUXONE_USERS_NOTICES, array( 'tab' => 'templates' ) ) : $status )
-			: diluxone_users_admin_url( 'diluxone-users-login', array( 'tab' => 'doors' ) ),
+			: diluxone_users_admin_url( 'diluxone-users-login', array( 'tab' => 'ways' ) ),
 	);
 
 	$code_on = diluxone_users_notice_2fa_email();
@@ -197,7 +197,7 @@ function diluxone_users_screen_notices_summary(): void {
 	);
 }
 
-/* ── Las reglas ────────────────────────────────────────────────────── */
+/* ── The rules ─────────────────────────────────────────────────────── */
 
 /**
  * One rule per notice.
@@ -302,8 +302,8 @@ function diluxone_users_notices_rules_save(): void {
 	$policies = diluxone_users_notice_policies();
 	$rules    = diluxone_users_notice_rules();
 
-	// phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- the panel verifies the nonce; every key and value is sanitised one at a time inside the loop.
-	foreach ( (array) wp_unslash( $_POST['diluxone_users_notice_rules'] ?? array() ) as $key => $policy ) {
+	// phpcs:ignore WordPress.Security.NonceVerification.Missing -- the panel verifies the nonce.
+	foreach ( (array) map_deep( wp_unslash( $_POST['diluxone_users_notice_rules'] ?? array() ), 'sanitize_key' ) as $key => $policy ) {
 		$key    = sanitize_key( (string) $key );
 		$policy = sanitize_key( (string) $policy );
 
@@ -317,7 +317,7 @@ function diluxone_users_notices_rules_save(): void {
 	diluxone_users_save_options( array( 'diluxone_users_notice_rules' => $rules ) );
 }
 
-/* ── Las plantillas ────────────────────────────────────────────────── */
+/* ── The templates ─────────────────────────────────────────────────── */
 
 /**
  * The language this screen is writing for.
@@ -548,8 +548,8 @@ function diluxone_users_screen_mail_templates(): void {
 function diluxone_users_mail_templates_save(): void {
 	$locale = diluxone_users_mail_screen_locale();
 
-	// phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- the panel verifies the nonce; every value is sanitised one at a time inside the loop.
-	$sent = (array) wp_unslash( $_POST['diluxone_users_mail'] ?? array() );
+	// phpcs:ignore WordPress.Security.NonceVerification.Missing -- the panel verifies the nonce.
+	$sent = (array) map_deep( wp_unslash( $_POST['diluxone_users_mail'] ?? array() ), 'sanitize_textarea_field' );
 
 	foreach ( diluxone_users_mail_templates() as $key => $template ) {
 		$key = (string) $key;

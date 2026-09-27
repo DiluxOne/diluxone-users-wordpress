@@ -52,6 +52,13 @@ function diluxone_users_fields_block( int $user_id ): void {
 	diluxone_users_ui_section( __( 'Additional details', 'diluxone-users' ) );
 
 	foreach ( diluxone_users_fields() as $field ) {
+		// First and last name are already on this screen, drawn by WordPress
+		// under "Name" with the same input names. Drawn again here they were
+		// two fields posting under one name: the second copy won, and a name
+		// changed in WordPress's own field came back as it was.
+		if ( diluxone_users_field_is_native( (string) $field['key'] ) ) {
+			continue;
+		}
 		diluxone_users_field_control( $field, $user_id );
 	}
 
@@ -71,11 +78,10 @@ function diluxone_users_field_input( array $field, string $value, string $id = '
 	$key           = $field['key'];
 	$id            = '' === $id ? $key : $id;
 	$required_attr = $field['required'] ? ' required' : '';
-	// Escaped here, where the only variable part is, and printed as it stands
-	// below. It used to go through `wp_kses_post()` at each printf — a filter
-	// for a body of HTML, wrapped around a fragment of an attribute, which is
-	// the wrong tool for the context and did nothing but quiet the sniff.
-	$placeholder_attr = '' === $field['placeholder'] ? '' : ' placeholder="' . esc_attr( $field['placeholder'] ) . '"';
+	// Always there, escaped where it is printed: an empty placeholder is no
+	// placeholder, and an attribute built into a string elsewhere is one the
+	// escaping cannot be seen on.
+	$placeholder = (string) $field['placeholder'];
 
 	// A field that cannot be changed is shown all the same: the data belongs to
 	// the person and they have a right to see it. On the ones you type into it
@@ -112,11 +118,11 @@ function diluxone_users_field_input( array $field, string $value, string $id = '
 	switch ( $field['type'] ) {
 		case 'textarea':
 			printf(
-				'<textarea id="%1$s" name="%2$s" rows="4"%3$s%4$s>%5$s</textarea>',
+				'<textarea id="%1$s" name="%2$s" rows="4"%3$s placeholder="%4$s">%5$s</textarea>',
 				esc_attr( $id ),
 				esc_attr( $key ),
 				esc_attr( $required_attr . $lock ),
-				$placeholder_attr, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- an attribute fragment escaped where it is built.
+				esc_attr( $placeholder ),
 				esc_textarea( $value )
 			);
 			return;
@@ -216,12 +222,12 @@ function diluxone_users_field_input( array $field, string $value, string $id = '
 			echo '</select>';
 
 			printf(
-				'<input type="tel" id="%1$s" name="%2$s" value="%3$s" inputmode="tel" class="diluxone-users-phone__number" autocomplete="tel-national"%4$s%5$s>',
+				'<input type="tel" id="%1$s" name="%2$s" value="%3$s" inputmode="tel" class="diluxone-users-phone__number" autocomplete="tel-national"%4$s placeholder="%5$s">',
 				esc_attr( $id ),
 				esc_attr( $key ),
 				esc_attr( $national ),
 				esc_attr( $required_attr . $lock ),
-				$placeholder_attr // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- an attribute fragment escaped where it is built.
+				esc_attr( $placeholder )
 			);
 
 			echo '</span>';
@@ -231,13 +237,13 @@ function diluxone_users_field_input( array $field, string $value, string $id = '
 			$list = 'diluxone-users-list-' . $key;
 
 			printf(
-				'<input type="text" id="%1$s" name="%2$s" value="%3$s" list="%4$s" autocomplete="off"%5$s%6$s>',
+				'<input type="text" id="%1$s" name="%2$s" value="%3$s" list="%4$s" autocomplete="off"%5$s placeholder="%6$s">',
 				esc_attr( $id ),
 				esc_attr( $key ),
 				esc_attr( $value ),
 				esc_attr( $list ),
 				esc_attr( $required_attr . $lock ),
-				$placeholder_attr // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- an attribute fragment escaped where it is built.
+				esc_attr( $placeholder )
 			);
 
 			printf( '<datalist id="%s">', esc_attr( $list ) );
@@ -258,17 +264,17 @@ function diluxone_users_field_input( array $field, string $value, string $id = '
 	);
 
 	printf(
-		'<input type="%1$s" id="%2$s" name="%3$s" value="%4$s"%5$s%6$s>',
+		'<input type="%1$s" id="%2$s" name="%3$s" value="%4$s"%5$s placeholder="%6$s">',
 		esc_attr( $types[ $field['type'] ] ?? 'text' ),
 		esc_attr( $id ),
 		esc_attr( $key ),
 		esc_attr( $value ),
 		esc_attr( $required_attr . $lock ),
-		$placeholder_attr // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- an attribute fragment escaped where it is built.
+		esc_attr( $placeholder )
 	);
 }
 
-/* ── Perfil del escritorio ─────────────────────────────────────────── */
+/* ── The dashboard profile ─────────────────────────────────────────── */
 
 /**
  * The plugin fields, in the dashboard profile.
@@ -315,7 +321,7 @@ function diluxone_users_new_user_fields( string $type ): void {
 }
 add_action( 'user_new_form', 'diluxone_users_new_user_fields' );
 
-/* ── Registro nativo de WordPress ──────────────────────────────────── */
+/* ── WordPress's own registration ──────────────────────────────────── */
 
 /**
  * The fields on wp-login.php?action=register.
@@ -324,6 +330,13 @@ add_action( 'user_new_form', 'diluxone_users_new_user_fields' );
  * without passwords this form is never used and this gets in nobody's way.
  */
 function diluxone_users_register_form_fields(): void {
+	if ( array() === diluxone_users_fields() ) {
+		return;
+	}
+
+	// WordPress's form has no nonce of its own; the fields added to it do.
+	wp_nonce_field( 'diluxone_users_wp_register', 'diluxone_users_wp_register_nonce' );
+
 	foreach ( diluxone_users_fields() as $field ) {
 		$id = 'diluxone-users-' . $field['key'];
 		?>
@@ -348,13 +361,30 @@ add_action( 'register_form', 'diluxone_users_register_form_fields' );
  * @return WP_Error
  */
 function diluxone_users_register_validate( $errors, $login, $email ) {
-	foreach ( diluxone_users_fields() as $field ) {
+	$fields = diluxone_users_fields();
+
+	if ( array() === $fields ) {
+		return $errors;
+	}
+
+	// WordPress's registration form carries no nonce of its own, so the
+	// fields this plugin adds to it carry one (see
+	// diluxone_users_register_form_fields()). A form without it is not the
+	// form that was drawn.
+	if ( ! isset( $_POST['diluxone_users_wp_register_nonce'] ) || ! wp_verify_nonce( sanitize_key( wp_unslash( $_POST['diluxone_users_wp_register_nonce'] ) ), 'diluxone_users_wp_register' ) ) {
+		$errors->add( 'diluxone_users_nonce', esc_html__( 'Error: the form expired. Load the page again and send it once more.', 'diluxone-users' ) );
+
+		return $errors;
+	}
+
+	$sent = diluxone_users_posted_fields();
+
+	foreach ( $fields as $field ) {
 		if ( ! $field['required'] ) {
 			continue;
 		}
 
-			// phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- WordPress registration verifies it; diluxone_users_sanitize() cleans the value according to the field type.
-		$value = diluxone_users_sanitize( $field, (string) wp_unslash( $_POST[ $field['key'] ] ?? '' ) );
+		$value = diluxone_users_sanitize( $field, (string) ( $sent[ $field['key'] ] ?? '' ) );
 
 		if ( '' === $value ) {
 			$errors->add(
@@ -372,12 +402,42 @@ function diluxone_users_register_validate( $errors, $login, $email ) {
 }
 add_filter( 'registration_errors', 'diluxone_users_register_validate', 10, 3 );
 
-/** Register save. */
+/**
+ * The answers given on WordPress's own registration form.
+ *
+ * On `register_new_user`, which fires for that form only, and not on
+ * `user_register`, which fires for every account created anywhere — the REST
+ * API, a shop's checkout, another plugin — and would read whatever this
+ * request happened to post into the new person's profile. The nonce is the
+ * one the form's fields carry; the validation above already refused the
+ * registration without it.
+ */
 function diluxone_users_register_save( int $user_id ): void {
-	// phpcs:ignore WordPress.Security.NonceVerification.Missing -- WordPress registration verifies it itself.
+	if ( ! isset( $_POST['diluxone_users_wp_register_nonce'] ) || ! wp_verify_nonce( sanitize_key( wp_unslash( $_POST['diluxone_users_wp_register_nonce'] ) ), 'diluxone_users_wp_register' ) ) {
+		return;
+	}
+
 	diluxone_users_save( $user_id, diluxone_users_posted_fields() );
 }
-add_action( 'user_register', 'diluxone_users_register_save' );
+add_action( 'register_new_user', 'diluxone_users_register_save' );
+
+/**
+ * The answers given on Users → Add New, where the same fields are drawn.
+ *
+ * WordPress checks that screen's own nonce (`create-user`) before it creates
+ * the account; what is asked here is only whether this person may create
+ * accounts at all.
+ */
+function diluxone_users_new_user_save( int $user_id ): void {
+	if ( ! current_user_can( 'create_users' ) ) {
+		return;
+	}
+
+	check_admin_referer( 'create-user', '_wpnonce_create-user' );
+
+	diluxone_users_save( $user_id, diluxone_users_posted_fields() );
+}
+add_action( 'edit_user_created_user', 'diluxone_users_new_user_save' );
 
 /**
  * What markup a field's input is allowed to be.

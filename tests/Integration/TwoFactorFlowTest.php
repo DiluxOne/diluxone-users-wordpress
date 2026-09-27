@@ -24,6 +24,29 @@ class TwoFactorFlowTest extends IntegrationTestCase {
 		$this->user = $this->make_user();
 	}
 
+	/**
+	 * The password door: WordPress opens the session before `wp_login`, and
+	 * the valid cookie is already in the response when the challenge starts.
+	 * Unless the session it names is destroyed, whoever keeps that cookie is
+	 * in without a second step.
+	 */
+	public function test_the_session_the_password_opened_does_not_survive_the_challenge(): void {
+		$password = 'Correct-Horse-9';
+		wp_set_password( $password, $this->user );
+		$login = get_userdata( $this->user )->user_login;
+
+		$this->expectRedirect(
+			fn() => wp_signon(
+				array(
+					'user_login'    => $login,
+					'user_password' => $password,
+				)
+			)
+		);
+
+		$this->assertSame( array(), \WP_Session_Tokens::get_instance( $this->user )->get_all() );
+	}
+
 	/** Starts the challenge and returns the key the screen would carry. */
 	private function challenge(): string {
 		wp_set_current_user( 0 );
@@ -164,5 +187,49 @@ class TwoFactorFlowTest extends IntegrationTestCase {
 		$this->assertTrue( wp_is_application_passwords_available_for_user( get_userdata( $this->user ) ) );
 
 		remove_filter( 'wp_is_application_passwords_available', '__return_true' );
+	}
+
+	/**
+	 * Two requests spending the same backup code: the second read the list
+	 * before the first wrote it back. The write is conditional on what was
+	 * read, so the second one fails and does not get in.
+	 */
+	public function test_a_backup_code_spent_by_two_requests_at_once_lets_one_in(): void {
+		$codes = diluxone_users_backup_generate( $this->user );
+
+		// Right after the code is checked, somebody else spends it.
+		$race = function ( $check ) use ( $codes ) {
+			static $done = false;
+
+			if ( $check && ! $done ) {
+				$done = true;
+				update_user_meta( $this->user, 'diluxone_users_backup_codes', array() );
+			}
+
+			return $check;
+		};
+		add_filter( 'check_password', $race );
+
+		$this->assertFalse( diluxone_users_backup_use( $this->user, $codes[0] ) );
+
+		remove_filter( 'check_password', $race );
+	}
+
+	/** A sign-in link works once, even when two requests found it valid. */
+	public function test_a_link_is_burned_by_one_request_only(): void {
+		$token = diluxone_users_token_create( $this->user );
+
+		$this->assertTrue( diluxone_users_token_valid( $this->user, $token ) );
+		$this->assertTrue( diluxone_users_token_burn( $this->user ) );
+		$this->assertFalse( diluxone_users_token_burn( $this->user ), 'The second request finds nothing to burn' );
+	}
+
+	/** The e-mailed code works once. */
+	public function test_the_mailed_code_is_spent_once(): void {
+		diluxone_users_2fa_email_send( $this->user );
+		$code = $this->mailedCode();
+
+		$this->assertTrue( diluxone_users_2fa_email_verify( $this->user, $code ) );
+		$this->assertFalse( diluxone_users_2fa_email_verify( $this->user, $code ) );
 	}
 }

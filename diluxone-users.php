@@ -1,6 +1,6 @@
 <?php
 /**
- * Plugin Name:       DiluxOne Users+ – Accounts & Login
+ * Plugin Name:       DiluxOne Users+
  * Plugin URI:        https://github.com/soydiloreto/diluxone-users-wordpress
  * Description:       Custom user fields, a front-end account area, passwordless sign-in, social login, two-step verification, passkeys and session control.
  * Version:           1.0.0
@@ -9,8 +9,7 @@
  * License:           GPLv2 or later
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain:       diluxone-users
- * Domain Path:       /languages
- * Requires at least: 6.0
+ * Requires at least: 6.2
  * Requires PHP:      8.0
  *
  * @package DiluxOneUsers
@@ -46,20 +45,19 @@ define( 'DILUXONE_USERS_FILE', __FILE__ );
  * loaded in alphabetical order on purpose: if one of them needed another to
  * boot, that would be coupling to resolve with a hook, not with load order.
  *
- * Translations are loaded by WordPress itself. Since 4.6 it resolves a plugin
- * text domain just in time, from WP_LANG_DIR/plugins/ first and from the
- * Domain Path above after that, so calling load_plugin_textdomain() here would
- * only duplicate work WordPress already does.
+ * Translations are loaded by WordPress itself, just in time, from the language
+ * packs translate.wordpress.org publishes into wp-content/languages/plugins/.
+ * The plugin calls no load_plugin_textdomain() and ships no .mo of its own.
  */
 foreach ( (array) glob( DILUXONE_USERS_DIR . 'includes/*.php' ) as $diluxone_users_file ) {
 	require_once (string) $diluxone_users_file;
 }
 
 /**
- * On activation: the starter fields.
+ * On activation: what each site needs — its starter fields, its registration
+ * switch as the site had it, and the activity log's table.
  *
- * The seeding itself lives in includes/multisite.php, because on a network it
- * is also needed when a new site is born — where this hook does not run — and
- * two copies of the same decision are worse than one.
+ * It lives in includes/multisite.php, because on a network it runs once per
+ * site and again when a new site is born, where this hook does not run.
  */
-register_activation_hook( __FILE__, 'diluxone_users_seed_fields' );
+register_activation_hook( __FILE__, 'diluxone_users_activate' );

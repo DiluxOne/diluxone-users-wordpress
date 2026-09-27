@@ -285,10 +285,36 @@ function diluxone_users_color_map(): array {
 	return array_filter( $map );
 }
 
-/** Is the plugin taking its colours from the theme? */
+/**
+ * Is the plugin taking its colours from the theme?
+ *
+ * A theme with no palette to read, or one whose colours are not named in a
+ * way that says which does what, still has colours: the ones it paints. What
+ * the palette cannot answer is measured on the site (see theme-measure.php),
+ * so the answer no longer depends on the palette being there.
+ */
 function diluxone_users_colors_from_theme(): bool {
-	return 'theme' === (string) diluxone_users_option( 'diluxone_users_colors' )
-		&& array() !== diluxone_users_theme_palette();
+	return 'theme' === (string) diluxone_users_option( 'diluxone_users_colors' );
+}
+
+/**
+ * The parts the palette did not answer, which the visitor's browser measures
+ * from what the theme paints. Empty unless the colours are the theme's.
+ *
+ * @return array<int, string> Roles.
+ */
+function diluxone_users_color_measured_roles(): array {
+	if ( ! diluxone_users_colors_from_theme() ) {
+		return array();
+	}
+
+	$palette = diluxone_users_theme_palette();
+	$mapped  = array_filter(
+		diluxone_users_color_map(),
+		static fn( string $slug ): bool => isset( $palette[ $slug ] )
+	);
+
+	return array_values( array_diff( array_keys( diluxone_users_color_roles() ), array_keys( $mapped ) ) );
 }
 
 /**

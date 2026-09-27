@@ -82,6 +82,16 @@ async function settled(page: Page): Promise<void> {
 	});
 }
 
+/*
+ * The pictures are of the plugin in English, the language its strings are
+ * written in. The development site this runs against is somebody's, in their
+ * language: it is said for the length of each test, and the `options`
+ * fixture puts it back, as the listing screenshots already do.
+ */
+test.beforeEach(async ({ options }) => {
+	await options.set({ WPLANG: '' });
+});
+
 test.describe('Every screen looks like it did', () => {
 	/*
 	 * The overview counts the accounts on the site, and the suite next door

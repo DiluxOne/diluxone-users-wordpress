@@ -134,6 +134,106 @@ function diluxone_e2e_http( $pre, array $args, string $url ) {
 }
 add_filter( 'pre_http_request', 'diluxone_e2e_http', 10, 3 );
 
+/* ── A classic menu, on a site whose theme may have none ──────────── */
+
+/**
+ * A menu location of our own, and a shortcode that draws it.
+ *
+ * The plugin puts the person into the site's own menu through
+ * `wp_nav_menu_objects`, which only a classic menu runs — and the theme wp-env
+ * ships is a block theme with no locations at all. Registering one here and
+ * drawing it from a shortcode on a page is the smallest honest stand-in for a
+ * classic theme: the same function a theme's header.php calls, with the same
+ * arguments, so the filter sees exactly what it would see there.
+ */
+const DILUXONE_E2E_MENU_LOCATION = 'diluxone-e2e';
+
+add_action(
+	'after_setup_theme',
+	static function (): void {
+		register_nav_menus( array( DILUXONE_E2E_MENU_LOCATION => 'E2E menu' ) );
+	},
+	20
+);
+
+add_shortcode(
+	'diluxone_e2e_menu',
+	static function (): string {
+		return (string) wp_nav_menu(
+			array(
+				'theme_location'  => DILUXONE_E2E_MENU_LOCATION,
+				'container'       => 'nav',
+				'container_class' => 'diluxone-e2e-menu',
+				'fallback_cb'     => false,
+				'echo'            => false,
+			)
+		);
+	}
+);
+
+/**
+ * The menu, its one item, its location and the page that draws it — made once.
+ *
+ * Like the seeded pages, it is reused by name so a run leaves one menu behind
+ * and not one per run.
+ */
+function diluxone_e2e_menu_seed(): WP_REST_Response {
+	$menu = wp_get_nav_menu_object( 'E2E menu' );
+	$id   = $menu instanceof WP_Term ? (int) $menu->term_id : (int) wp_create_nav_menu( 'E2E menu' );
+
+	if ( array() === (array) wp_get_nav_menu_items( $id ) ) {
+		wp_update_nav_menu_item(
+			$id,
+			0,
+			array(
+				'menu-item-title'  => 'E2E home',
+				'menu-item-url'    => home_url( '/' ),
+				'menu-item-status' => 'publish',
+				'menu-item-type'   => 'custom',
+			)
+		);
+	}
+
+	$locations                                = (array) get_theme_mod( 'nav_menu_locations', array() );
+	$locations[ DILUXONE_E2E_MENU_LOCATION ] = $id;
+	set_theme_mod( 'nav_menu_locations', $locations );
+
+	$page = get_page_by_path( 'e2e-menu' );
+	$page = $page instanceof WP_Post
+		? (int) $page->ID
+		: (int) wp_insert_post(
+			array(
+				'post_title'   => 'Menu',
+				'post_name'    => 'e2e-menu',
+				'post_content' => '[diluxone_e2e_menu]',
+				'post_status'  => 'publish',
+				'post_type'    => 'page',
+			)
+		);
+
+	return new WP_REST_Response(
+		array(
+			'menu'     => $id,
+			'location' => DILUXONE_E2E_MENU_LOCATION,
+			'url'      => (string) get_permalink( $page ),
+		)
+	);
+}
+
+/**
+ * The menu page, gone: a published page is in every theme's list of pages,
+ * and a page called "Menu" there is a test run showing through the site.
+ */
+function diluxone_e2e_menu_forget(): WP_REST_Response {
+	$page = get_page_by_path( 'e2e-menu' );
+
+	if ( $page instanceof WP_Post ) {
+		wp_delete_post( (int) $page->ID, true );
+	}
+
+	return new WP_REST_Response( array( 'deleted' => $page instanceof WP_Post ) );
+}
+
 /* ── The routes ────────────────────────────────────────────────────── */
 
 /** Is this request allowed to drive the site? */
@@ -218,6 +318,23 @@ function diluxone_e2e_routes(): void {
 			'methods'             => 'POST',
 			'permission_callback' => $guard,
 			'callback'            => 'diluxone_e2e_identity_write',
+		)
+	);
+
+	register_rest_route(
+		DILUXONE_E2E_NS,
+		'/menu',
+		array(
+			array(
+				'methods'             => 'POST',
+				'permission_callback' => $guard,
+				'callback'            => 'diluxone_e2e_menu_seed',
+			),
+			array(
+				'methods'             => 'DELETE',
+				'permission_callback' => $guard,
+				'callback'            => 'diluxone_e2e_menu_forget',
+			),
 		)
 	);
 
@@ -413,7 +530,15 @@ function diluxone_e2e_forget_transients(): void {
 	global $wpdb;
 
 	// phpcs:ignore WordPress.DB.DirectDatabaseQuery
-	$wpdb->query( "DELETE FROM {$wpdb->options} WHERE option_name LIKE '\_transient\_diluxone\_users\_%' OR option_name LIKE '\_transient\_timeout\_diluxone\_users\_%'" );
+	$wpdb->query( "DELETE FROM {$wpdb->options} WHERE option_name LIKE '\_transient\_diluxone\_users\_%' OR option_name LIKE '\_transient\_timeout\_diluxone\_users\_%' OR option_name LIKE '\_site\_transient\_diluxone\_users\_%' OR option_name LIKE '\_site\_transient\_timeout\_diluxone\_users\_%'" );
+
+	// The counts per machine are the network's, and on a network they live
+	// in the network's own table.
+	if ( is_multisite() ) {
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery
+		$wpdb->query( "DELETE FROM {$wpdb->sitemeta} WHERE meta_key LIKE '\_site\_transient\_diluxone\_users\_%' OR meta_key LIKE '\_site\_transient\_timeout\_diluxone\_users\_%'" );
+	}
+
 	wp_cache_flush();
 }
 
@@ -453,6 +578,11 @@ function diluxone_e2e_user_read( WP_REST_Request $request ): WP_REST_Response {
 		return new WP_REST_Response( array( 'exists' => false ) );
 	}
 
+	// Not `(array)` on the meta: with every session closed WordPress deletes
+	// the row, get_user_meta() answers '', and `(array) ''` is one element —
+	// an account with no session left would count one.
+	$tokens = get_user_meta( $user->ID, 'session_tokens', true );
+
 	return new WP_REST_Response(
 		array(
 			'exists'   => true,
@@ -469,7 +599,13 @@ function diluxone_e2e_user_read( WP_REST_Request $request ): WP_REST_Response {
 				'diluxone_users_sso_mock' => (string) get_user_meta( $user->ID, 'diluxone_users_sso_mock', true ),
 			),
 			'fields'   => diluxone_e2e_user_fields( (int) $user->ID, (string) $request->get_param( 'fields' ) ),
-			'sessions' => count( (array) get_user_meta( $user->ID, 'session_tokens', true ) ),
+			'sessions' => is_array( $tokens ) ? count( $tokens ) : 0,
+
+			// On a network the account belongs to the network and the
+			// membership to each site: `roles` above is this site's, and this
+			// is whether there is one at all — plus every site that has them.
+			'member'   => is_multisite() ? is_user_member_of_blog( (int) $user->ID ) : true,
+			'sites'    => is_multisite() ? array_map( 'intval', array_keys( get_blogs_of_user( (int) $user->ID ) ) ) : array( 1 ),
 		)
 	);
 }
@@ -542,9 +678,30 @@ function diluxone_e2e_user_write( WP_REST_Request $request ): WP_REST_Response {
 	);
 }
 
-/** Removes one account, or every account the suite ever made. */
+/**
+ * Removes one account, or every account the suite ever made.
+ *
+ * On a network `wp_delete_user()` only takes somebody off the current site —
+ * the account itself stays, and so would every account the network suite
+ * made. `wpmu_delete_user()` is the one that deletes it, and the domain sweep
+ * looks at the whole network rather than at the members of this one site.
+ */
 function diluxone_e2e_user_delete( WP_REST_Request $request ): WP_REST_Response {
 	require_once ABSPATH . 'wp-admin/includes/user.php';
+
+	if ( is_multisite() ) {
+		require_once ABSPATH . 'wp-admin/includes/ms.php';
+	}
+
+	$delete = static function ( int $id ): void {
+		if ( is_multisite() ) {
+			wpmu_delete_user( $id );
+
+			return;
+		}
+
+		wp_delete_user( $id );
+	};
 
 	$email  = (string) $request->get_param( 'email' );
 	$domain = (string) ( $request->get_param( 'domain' ) ?: '' );
@@ -554,15 +711,20 @@ function diluxone_e2e_user_delete( WP_REST_Request $request ): WP_REST_Response 
 		$user = get_user_by( 'email', $email );
 
 		if ( $user instanceof WP_User ) {
-			wp_delete_user( (int) $user->ID );
+			$delete( (int) $user->ID );
 			++$gone;
 		}
 	}
 
 	if ( '' !== $domain ) {
-		foreach ( get_users( array( 'fields' => array( 'ID', 'user_email' ) ) ) as $one ) {
+		$everyone = array(
+			'fields'  => array( 'ID', 'user_email' ),
+			'blog_id' => is_multisite() ? 0 : get_current_blog_id(),
+		);
+
+		foreach ( get_users( $everyone ) as $one ) {
 			if ( str_ends_with( strtolower( (string) $one->user_email ), strtolower( $domain ) ) ) {
-				wp_delete_user( (int) $one->ID );
+				$delete( (int) $one->ID );
 				++$gone;
 			}
 		}
@@ -597,7 +759,7 @@ function diluxone_e2e_expire( WP_REST_Request $request ): WP_REST_Response {
 	$what = (string) ( $request->get_param( 'what' ) ?: 'link' );
 
 	if ( 'link' === $what ) {
-		update_user_meta( (int) $user->ID, '_diluxone_users_acceso_vence', time() - 60 );
+		update_user_meta( (int) $user->ID, '_diluxone_users_link_expires', time() - 60 );
 	}
 
 	if ( '2fa' === $what ) {

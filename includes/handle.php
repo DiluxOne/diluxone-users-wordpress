@@ -56,6 +56,21 @@ function diluxone_users_handle( int $user_id ): string {
 	return (string) get_user_meta( $user_id, 'diluxone_users_handle', true );
 }
 
+/**
+ * The public name as the site shows it: the one they chose, or else the one
+ * WordPress gave the account (its nicename), which is what the profile
+ * address already uses. Empty only for an account that has neither.
+ */
+function diluxone_users_public_handle( int $user_id ): string {
+	$chosen = diluxone_users_handle( $user_id );
+	if ( '' !== $chosen ) {
+		return $chosen;
+	}
+	$user = get_userdata( $user_id );
+
+	return $user instanceof WP_User ? (string) $user->user_nicename : '';
+}
+
 /** When they last changed it. 0 when never. */
 function diluxone_users_handle_changed( int $user_id ): int {
 	return (int) get_user_meta( $user_id, 'diluxone_users_handle_changed', true );
@@ -145,10 +160,11 @@ function diluxone_users_handle_validate( string $handle, int $user_id ) {
  * Does somebody already have it?
  *
  * The lookup is against `user_nicename` and also against `user_login`. The
- * second one looks superfluous and is not: accounts coming from the migration
- * have a user_login that is a person's name, and if signing in by typing the
- * public name is also allowed, two different people answering to the same
- * text makes the sign-in link go to the wrong account.
+ * second one looks superfluous and is not: accounts made elsewhere — by the
+ * site before this plugin, or by another plugin — can have a user_login that
+ * is a person's name, and if signing in by typing the public name is also
+ * allowed, two different people answering to the same text makes the sign-in
+ * link go to the wrong account.
  */
 function diluxone_users_handle_taken( string $handle, int $user_id ): bool {
 	global $wpdb;
@@ -231,7 +247,7 @@ function diluxone_users_handle_user( string $handle ): int {
 	);
 }
 
-/* ── El formulario ─────────────────────────────────────────────────── */
+/* ── The form ──────────────────────────────────────────────────────── */
 
 /**
  * The field alone, with no form.
@@ -249,12 +265,10 @@ function diluxone_users_handle_field( ?int $user_id = null ): string {
 
 	diluxone_users_handle_enqueue();
 
-	$user = get_userdata( $user_id );
-
 	return diluxone_users_render(
 		'account/handle-field',
 		array(
-			'handle' => '' !== diluxone_users_handle( $user_id ) ? diluxone_users_handle( $user_id ) : ( $user instanceof WP_User ? $user->user_nicename : '' ),
+			'handle' => diluxone_users_public_handle( $user_id ),
 			'can'    => diluxone_users_handle_can_change( $user_id ),
 			'next'   => diluxone_users_handle_next_change( $user_id ),
 		)
@@ -278,8 +292,7 @@ function diluxone_users_shortcode_handle(): string {
 			'handle' => '' !== diluxone_users_handle( $user->ID ) ? diluxone_users_handle( $user->ID ) : $user->user_nicename,
 			'can'    => diluxone_users_handle_can_change( $user->ID ),
 			'next'   => diluxone_users_handle_next_change( $user->ID ),
-				// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- it only picks the message.
-			'error'  => isset( $_GET['diluxone_users_handle'] ) ? sanitize_text_field( wp_unslash( $_GET['diluxone_users_handle'] ) ) : '',
+			'error'  => diluxone_users_flash_take( $user->ID, 'handle' ),
 		)
 	);
 }
@@ -295,11 +308,11 @@ function diluxone_users_handle_submit(): void {
 	check_admin_referer( 'diluxone_users_handle' );
 
 	$target = diluxone_users_account_url( 'details' );
-	// phpcs:ignore WordPress.Security.NonceVerification.Missing -- verificado arriba.
 	$result = diluxone_users_handle_save( get_current_user_id(), sanitize_text_field( wp_unslash( $_POST['diluxone_users_handle'] ?? '' ) ) );
 
 	if ( is_wp_error( $result ) ) {
-		wp_safe_redirect( add_query_arg( 'diluxone_users_handle', rawurlencode( $result->get_error_message() ), $target ) );
+		diluxone_users_flash_set( get_current_user_id(), 'handle', $result->get_error_message() );
+		wp_safe_redirect( $target );
 		exit;
 	}
 
@@ -325,7 +338,7 @@ function diluxone_users_handle_check(): void {
 		wp_send_json_error();
 	}
 
-	// phpcs:ignore WordPress.Security.NonceVerification.Missing -- verificado arriba.
+	// phpcs:ignore WordPress.Security.NonceVerification.Missing -- verified above.
 	$clean = diluxone_users_handle_validate( sanitize_text_field( wp_unslash( $_POST['handle'] ?? '' ) ), $user_id );
 
 	if ( is_wp_error( $clean ) ) {

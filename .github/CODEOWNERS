@@ -1,14 +1,13 @@
-# CODEOWNERS for diluxone-users-for-wordpress
+# CODEOWNERS for diluxone-users-wordpress
 #
 # Lines below define who is auto-assigned as reviewer when a PR touches
 # matching paths. The first matching line wins per file. See:
 # https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
 #
-# Branch protection on `main` does NOT require code-owner approval today —
-# this file currently only triggers automatic review-request on every PR.
-# Useful as a public statement of who maintains the repository and as a
-# habit-forming nudge: every PR shows up in the maintainer's review queue
-# automatically.
+# Branch protection on `main` does NOT require code-owner approval: this file
+# only requests the maintainer's review on every PR, and says publicly who
+# maintains the repository. Which changes need a human merge is decided by
+# .github/review-policy.yml, not here.
 
 # Default: maintainer reviews every PR.
 * @soydiloreto

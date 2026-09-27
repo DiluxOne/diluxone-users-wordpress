@@ -17,6 +17,10 @@ class SsoLinkTest extends IntegrationTestCase {
 		parent::setUp();
 		MockProvider::install();
 
+		// Social sign-in may create accounts here: the tests about what it
+		// does with them start from a site that said yes.
+		update_option( 'diluxone_users_sso_register', 1 );
+
 		$this->sub = 'sub-' . wp_generate_password( 8, false );
 	}
 
@@ -103,5 +107,38 @@ class SsoLinkTest extends IntegrationTestCase {
 		$email  = get_userdata( $victim )->user_email;
 
 		$this->assertSame( 0, diluxone_users_sso_user( MockProvider::ID, $this->identity( $email, true ) ) );
+	}
+
+	/**
+	 * Linking from the account a social identity that already opens another
+	 * account is refused: with two accounts behind one identity, the lookup
+	 * would open whichever it found first and the other never.
+	 */
+	public function test_an_identity_that_opens_another_account_is_not_linked_to_this_one(): void {
+		$owner = $this->make_user();
+		$other = $this->make_user();
+
+		update_user_meta( $owner, 'diluxone_users_sso_' . MockProvider::ID, $this->sub );
+
+		$this->assertSame( $owner, diluxone_users_sso_owner( MockProvider::ID, $this->sub ) );
+		$this->assertNotSame( $other, diluxone_users_sso_owner( MockProvider::ID, $this->sub ) );
+	}
+
+	/** What a provider says is cleaned before anything compares or stores it. */
+	public function test_what_the_provider_says_is_cleaned(): void {
+		$clean = diluxone_users_sso_clean(
+			array(
+				'id'        => "<b>42</b>\n",
+				'email'     => 'ada@example.test<script>',
+				'name'      => '<img src=x onerror=alert(1)>Ada',
+				'last_name' => "Love\tlace",
+				'verified'  => 'yes',
+			)
+		);
+
+		$this->assertSame( '42', $clean['id'] );
+		$this->assertSame( 'Ada', $clean['name'] );
+		$this->assertStringNotContainsString( '<', $clean['email'] );
+		$this->assertNull( $clean['verified'], 'Only a real yes or no is a claim' );
 	}
 }

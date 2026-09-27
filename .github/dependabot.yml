@@ -1,23 +1,28 @@
-# Dependabot configuration for diluxone-users.
+# Dependabot configuration for diluxone-users-wordpress.
 #
 # Why this exists, even though the published plugin has zero production
-# dependencies: the GitHub Actions used in CI/CD (deploy to wp.org SVN,
-# PR checks) are themselves a supply-chain surface. A vulnerable action
-# could potentially read SVN credentials. Dependabot watches them.
+# dependencies: the GitHub Actions this repository's own workflows use are a
+# supply-chain surface (the deploy one holds the wordpress.org SVN
+# credentials). Dependabot watches them; after the move to DiluxOne, the
+# shared workflows in DiluxOne/.github have their own Dependabot, and the
+# pins to them are bumped here as reusable-workflow references.
 #
-# Also covers npm devDependencies (currently @wordpress/env), which run
-# locally and in CI. None of these dependencies ever ship to wp.org —
-# they are excluded from the deploy via .distignore.
+# Also covers npm devDependencies (@wordpress/env, Playwright) and Composer
+# dev tooling, which run locally and in CI. None of these dependencies ever
+# ship to wordpress.org: .distignore excludes them.
 #
-# Schedule is weekly with grouping enabled — at most 1–2 PRs per week,
-# not one per package. Combined with branch protection (CI must pass
-# before merge), Dependabot PRs that go green can be merged confidently.
+# Weekly, grouped: at most a couple of PRs a week, not one per package.
+# Combined with the required checks on main, a Dependabot PR that goes green
+# can be merged confidently.
+#
+# Commit prefix + include: scope yields Conventional Commit titles that the
+# shared conventions check accepts: "ci(deps): Bump …", "build(deps-dev): Bump …".
 
 version: 2
 updates:
-  # GitHub Actions used in workflows under .github/workflows/.
-  # actions/checkout, shivammathur/setup-php, wordpress/plugin-check-action,
-  # 10up/action-wordpress-plugin-deploy, softprops/action-gh-release.
+  # GitHub Actions used in .github/workflows/. The shared DiluxOne/.github
+  # workflows land in a group of their own so a pin bump is never mixed with
+  # action bumps.
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
@@ -27,6 +32,9 @@ updates:
       timezone: "America/Argentina/Buenos_Aires"
     open-pull-requests-limit: 3
     groups:
+      diluxone-central:
+        patterns:
+          - "DiluxOne/.github*"
       github-actions:
         patterns:
           - "*"
@@ -34,12 +42,11 @@ updates:
       - "dependencies"
       - "github-actions"
     commit-message:
-      prefix: "chore(deps)"
+      prefix: "ci"
       include: "scope"
 
-  # npm dev dependencies — currently only @wordpress/env, more will be
-  # added when test/lint tooling lands. We never ship npm packages, so
-  # all updates are dev-only.
+  # npm dev dependencies (@wordpress/env, Playwright). We never ship npm
+  # packages, so all updates are dev-only.
   - package-ecosystem: "npm"
     directory: "/"
     schedule:
@@ -57,14 +64,12 @@ updates:
       - "dependencies"
       - "npm"
     commit-message:
-      prefix: "chore(deps)"
+      prefix: "build"
       include: "scope"
 
-  # Composer dev dependencies — phpunit, brain/monkey, mockery (added in
-  # P2.1, expanded in P2.2 / P3.x with phpstan, psalm, wpcs, etc.). All
-  # are dev-only — composer install --no-dev would skip them — but the
-  # plugin runtime never invokes Composer regardless. None of these
-  # dependencies reach wp.org (the entire vendor/ tree is in .distignore).
+  # Composer dev dependencies (PHPUnit, brain/monkey, mockery, PHPStan,
+  # Psalm, WPCS). All dev-only; the plugin runtime never invokes Composer,
+  # and vendor/ never reaches wordpress.org (.distignore).
   - package-ecosystem: "composer"
     directory: "/"
     schedule:
@@ -82,5 +87,5 @@ updates:
       - "dependencies"
       - "composer"
     commit-message:
-      prefix: "chore(deps)"
+      prefix: "build"
       include: "scope"

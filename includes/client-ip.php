@@ -218,9 +218,22 @@ function diluxone_users_ip_is_internal( string $ip ): bool {
  * @param array<string, mixed>|null $server So it can be tested with no server.
  */
 function diluxone_users_client_ip( ?array $server = null ): string {
-	$server = null === $server ? $_SERVER : $server; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- every candidate goes through FILTER_VALIDATE_IP below, which is stricter than any sanitiser.
-	$remote = diluxone_users_ip_from( (string) ( $server['REMOTE_ADDR'] ?? '' ) );
 	$header = diluxone_users_ip_header();
+
+	// The two values this reads, by name, each unslashed and sanitised as it
+	// is read — not the request's whole server array. Every candidate still
+	// goes through FILTER_VALIDATE_IP below, which is stricter than either.
+	if ( null === $server ) {
+		$server = array(
+			'REMOTE_ADDR' => isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : '',
+		);
+
+		if ( '' !== $header ) {
+			$server[ $header ] = isset( $_SERVER[ $header ] ) ? sanitize_text_field( wp_unslash( $_SERVER[ $header ] ) ) : '';
+		}
+	}
+
+	$remote = diluxone_users_ip_from( (string) ( $server['REMOTE_ADDR'] ?? '' ) );
 
 	// The site named no header: nothing a client can write is read at all.
 	// This is the first question and not the second on purpose — the check
@@ -330,14 +343,26 @@ function diluxone_users_ip_burst( string $what, int $many, int $window = HOUR_IN
 		return true;
 	}
 
+	// A network transient: on a network the accounts and the mail are the
+	// network's, so the count is too — otherwise every site of it is another
+	// full allowance for the same machine. The window is fixed from the first
+	// request; renewing it on every hit would let one steady sender keep it
+	// open for ever.
 	$key  = 'diluxone_users_burst_' . sanitize_key( $what ) . '_' . md5( diluxone_users_client_ip() );
-	$seen = (int) get_transient( $key );
+	$now  = time();
+	$seen = get_site_transient( $key );
+	$seen = is_array( $seen ) && (int) ( $seen['until'] ?? 0 ) > $now ? $seen : array(
+		'n'     => 0,
+		'until' => $now + $window,
+	);
 
-	if ( $seen >= $many ) {
+	if ( (int) $seen['n'] >= $many ) {
 		return false;
 	}
 
-	set_transient( $key, $seen + 1, $window );
+	$seen['n'] = (int) $seen['n'] + 1;
+
+	set_site_transient( $key, $seen, max( 1, (int) $seen['until'] - $now ) );
 
 	return true;
 }

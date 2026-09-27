@@ -110,6 +110,41 @@ test.describe('Signing in with a passkey', () => {
 		await cdp.send('WebAuthn.removeVirtualAuthenticator', { authenticatorId });
 	});
 
+	test('a key can be given another name, and the list says it', async ({ page, site, pages }) => {
+		const email = freshEmail('passkey-name');
+		await site.makeUser({ email, password: PASSWORD });
+
+		const cdp = await page.context().newCDPSession(page);
+
+		await cdp.send('WebAuthn.enable', { enableUI: false });
+
+		const { authenticatorId } = await cdp.send('WebAuthn.addVirtualAuthenticator', { options: VIRTUAL_KEY });
+
+		await page.goto(pages.login.url);
+		await signInWithPassword(page, email, PASSWORD);
+		await page.goto(accountSection(pages.account.url, 'security'));
+
+		const panel = await openPanel(page, '[data-diluxone-users-passkey="register"]');
+
+		await panel.locator('[data-diluxone-users-passkey-label]').fill('Old name');
+		await panel.locator('[data-diluxone-users-passkey="register"]').click();
+
+		const label = page.locator('input[name="diluxone_users_passkey_label"]');
+
+		await expect(label).toHaveValue('Old name', { timeout: 20_000 });
+		await openAllPanels(page);
+
+		await label.fill('The office desktop');
+		await Promise.all([
+			page.waitForURL(/diluxone-users=passkeyname/),
+			page.locator('button[name="diluxone_users_passkey_do"][value="rename"]').first().click(),
+		]);
+
+		await expect(page.locator('input[name="diluxone_users_passkey_label"]')).toHaveValue('The office desktop');
+
+		await cdp.send('WebAuthn.removeVirtualAuthenticator', { authenticatorId });
+	});
+
 	test('a key the account no longer has does not open it', async ({ page, site, pages }) => {
 		const email = freshEmail('passkey-gone');
 		await site.makeUser({ email, password: PASSWORD });

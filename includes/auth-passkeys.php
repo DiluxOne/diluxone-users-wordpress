@@ -92,6 +92,27 @@ function diluxone_users_passkeys( int $user_id ): array {
 }
 
 /**
+ * The keys of this person that work here.
+ *
+ * On a network of subdomains each site is its own passkey domain, while the
+ * list is the person's everywhere: a key made on one site cannot be used on
+ * another, so it is neither listed nor counted there. A key saved without its
+ * domain is shown everywhere, as it always was.
+ *
+ * @return array<int, array<string, mixed>>
+ */
+function diluxone_users_passkeys_here( int $user_id ): array {
+	$here = diluxone_users_passkey_rp_id();
+
+	return array_values(
+		array_filter(
+			diluxone_users_passkeys( $user_id ),
+			static fn( array $k ): bool => ! isset( $k['rp'] ) || '' === (string) $k['rp'] || (string) $k['rp'] === $here
+		)
+	);
+}
+
+/**
  * Stores one person's list of passkeys.
  *
  * @param array<int, array<string, mixed>> $keys
@@ -171,6 +192,9 @@ function diluxone_users_passkey_owner( string $id ): int {
 			'meta_key' => diluxone_users_passkey_index_key( $id ), // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
 			'fields'   => 'ID',
 			'number'   => 2,
+			// The network's accounts, not only this site's members: a passkey
+			// belongs to a person, wherever they signed up.
+			'blog_id'  => 0,
 		)
 	);
 
@@ -206,15 +230,9 @@ function diluxone_users_passkey_challenge_new( string $scope ): string {
 
 /** Consumes it: if it existed, deletes it and returns true. Single use. */
 function diluxone_users_passkey_challenge_use( string $scope, string $challenge ): bool {
-	$key = 'diluxone_users_pk_' . $scope . '_' . md5( $challenge );
-
-	if ( ! get_transient( $key ) ) {
-		return false;
-	}
-
-	delete_transient( $key );
-
-	return true;
+	// The delete is the check: of two requests answering the same
+	// challenge, only the one that removed it goes on.
+	return delete_transient( 'diluxone_users_pk_' . $scope . '_' . md5( $challenge ) );
 }
 
 /* ── Verification ──────────────────────────────────────────────────── */
@@ -349,7 +367,7 @@ function diluxone_users_passkeys_register_options(): array {
 				'id'   => $k['id'],
 				'type' => 'public-key',
 			),
-			diluxone_users_passkeys( $user->ID )
+			diluxone_users_passkeys_here( $user->ID )
 		),
 		'authenticatorAttachment' => 'device' === (string) diluxone_users_option( 'diluxone_users_passkey_where' ) ? 'platform' : null,
 		'userVerification'        => diluxone_users_option( 'diluxone_users_passkey_verify' ) ? 'required' : 'preferred',
@@ -509,6 +527,9 @@ function diluxone_users_passkeys_register( array $post ): array {
 		'created' => time(),
 		'used'    => 0,
 		'counter' => 0,
+		// The domain the key was made for. The list is the person's, on every
+		// site of a network, and a key only works on its own domain.
+		'rp'      => diluxone_users_passkey_rp_id(),
 	);
 
 	diluxone_users_passkeys_save( $user_id, $keys );
@@ -655,6 +676,10 @@ function diluxone_users_passkeys_login( array $post ): array {
 		home_url( '/' )
 	);
 
+	// The same membership rule every other door applies once it is proved who
+	// somebody is (see diluxone_users_complete_login()).
+	diluxone_users_join_site( $user_id );
+
 	wp_set_current_user( $user_id );
 	wp_set_auth_cookie( $user_id, true );
 
@@ -709,7 +734,7 @@ function diluxone_users_passkeys_manage(): void {
 
 	check_admin_referer( 'diluxone_users_passkey' );
 
-	// phpcs:disable WordPress.Security.NonceVerification.Missing -- verificado arriba.
+	// phpcs:disable WordPress.Security.NonceVerification.Missing -- verified above.
 	$user_id   = get_current_user_id();
 	$id        = sanitize_text_field( wp_unslash( $_POST['diluxone_users_passkey'] ?? '' ) );
 	$operation = sanitize_key( wp_unslash( $_POST['diluxone_users_passkey_do'] ?? '' ) );

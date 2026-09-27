@@ -45,7 +45,10 @@ function diluxone_users_sso_icon_is_colored( string $id ): bool {
  */
 function diluxone_users_sso_icon( string $id ): string {
 	$paths = diluxone_users_sso_icon_paths();
-	$path  = (string) ( $paths[ $id ] ?? $paths['fallback'] );
+
+	// The drawings can come from a filter, so they are someone else's markup
+	// by the time they get here: only paths, groups and their geometry pass.
+	$path = wp_kses( (string) ( $paths[ $id ] ?? $paths['fallback'] ), diluxone_users_ui_svg_tags() );
 
 	return sprintf(
 		'<svg class="diluxone-users-social__logo" width="20" height="20" viewBox="0 0 24 24" fill="%1$s" aria-hidden="true" focusable="false">%2$s</svg>',

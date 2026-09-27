@@ -28,28 +28,13 @@
  * drops what is older. Set to zero it keeps everything, which is a real answer
  * for a site that has to, and the screen says what that costs.
  *
- * ── About the annotations ──
+ * ── About the queries ──
  *
- * This file is the table: every query in it goes to the plugin's own table, by
- * a name built here out of `$wpdb->prefix` and a literal, and there is no
- * caching layer in front of it because a log is written once and read from an
- * admin screen that is asking what is true this second. PHPCS cannot follow a
- * table name that arrives in a variable, so it is told once, up here, rather
- * than on thirty lines — a `phpcs:enable` further down would stop applying at
- * the first `return` PHPCS reads, not at the first one that runs, and leave
- * everything after it uncovered.
- *
- * wordpress.org's own checker asks the same question through a sniff of its
- * own, and it is told the same thing in the same place. It reads a table name
- * as a parameter whether it arrives in a variable or is written out at the
- * query, so there is no arrangement of this code that answers it — only the
- * fact that the name is `$wpdb->prefix` and a literal, which is what the
- * annotation says.
- *
- * phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery
- * phpcs:disable WordPress.DB.DirectDatabaseQuery.NoCaching
- * phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
- * phpcs:disable PluginCheck.Security.DirectDB.UnescapedDBParameter
+ * Every query in this file goes to the plugin's own table, whose name is
+ * built here out of `$wpdb->prefix` and a literal, and reaches the query as a
+ * `%i` identifier placeholder like any other value. None is cached: a log is
+ * written once and read from an admin screen that is asking what is true this
+ * second, which is what each query's annotation says.
  *
  * @package DiluxOneUsers
  */
@@ -113,6 +98,8 @@ function diluxone_users_log_install(): bool {
 	$table   = diluxone_users_log_table();
 	$collate = $wpdb->get_charset_collate();
 
+	// dbDelta() reads the statement as text and cannot take placeholders; the
+	// name is `$wpdb->prefix` and a literal, from the function above.
 	$sql = "CREATE TABLE {$table} (
 		id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
 		user_id bigint(20) unsigned NOT NULL DEFAULT 0,
@@ -178,29 +165,56 @@ function diluxone_users_log_ready(): void {
 add_action( 'admin_init', 'diluxone_users_log_ready', 0 );
 
 /*
- * The activation hook is registered from here and not from the plugin's main
- * file: the table belongs to this feature, and a feature that has to be
- * mentioned somewhere else in order to install itself is a feature that
- * breaks when it is taken out.
- *
- * There is deliberately nothing on `wp_initialize_site`. A site born on a
- * network is initialised from inside another site's request, so `$wpdb->prefix`
- * there is the wrong site's and the table would be created twice on one of them
- * and never on the other. The new site gets its table the first time somebody
- * opens its dashboard, which is the check above.
+ * The table is created on activation, for every site of a network when the
+ * activation is network-wide, and for a site born afterwards when it is born:
+ * see diluxone_users_site_setup(). The check above stays as the safety net for
+ * a site whose table went missing some other way.
  */
-register_activation_hook(
-	DILUXONE_USERS_FILE,
-	static function (): void {
-		diluxone_users_log_install();
-	}
-);
 
-/** A plugin that is switched off leaves no event of its own behind. */
-function diluxone_users_log_unschedule(): void {
+/**
+ * A plugin that is switched off leaves no event of its own behind — on every
+ * site it was switched off for.
+ *
+ * @param bool $network_wide Whether it was deactivated for the whole network.
+ */
+function diluxone_users_log_unschedule( $network_wide = false ): void {
+	if ( is_multisite() && $network_wide ) {
+		foreach ( get_sites(
+			array(
+				'fields' => 'ids',
+				'number' => 0,
+			)
+		) as $site ) {
+			switch_to_blog( (int) $site );
+			wp_clear_scheduled_hook( DILUXONE_USERS_LOG_PURGE );
+			restore_current_blog();
+		}
+
+		return;
+	}
+
 	wp_clear_scheduled_hook( DILUXONE_USERS_LOG_PURGE );
 }
 register_deactivation_hook( DILUXONE_USERS_FILE, 'diluxone_users_log_unschedule' );
+
+/**
+ * A site deleted from the network takes its table with it.
+ *
+ * WordPress drops the tables it knows about and asks for the rest here.
+ *
+ * @param array<int, string> $tables  The tables WordPress is about to drop.
+ * @param int                $site_id The site being deleted.
+ * @return array<int, string>
+ */
+function diluxone_users_log_drop_with_site( $tables, $site_id ): array {
+	global $wpdb;
+
+	$tables   = (array) $tables;
+	$tables[] = $wpdb->get_blog_prefix( (int) $site_id ) . 'diluxone_users_log';
+
+	return $tables;
+}
+add_filter( 'wpmu_drop_tables', 'diluxone_users_log_drop_with_site', 10, 2 );
 
 /* ── What there is to record ───────────────────────────────────────── */
 
@@ -387,10 +401,18 @@ function diluxone_users_log_record( string $event, int $user_id = 0, array $deta
 		return false;
 	}
 
+	// A site whose table is not there yet (or went missing) records nothing
+	// rather than a database error on somebody's sign-in: the dashboard's
+	// check puts the table back the next time an administrator passes by.
+	if ( DILUXONE_USERS_LOG_SCHEMA !== (int) get_option( DILUXONE_USERS_LOG_SCHEMA_OPTION ) ) {
+		return false;
+	}
+
 	$agent = isset( $_SERVER['HTTP_USER_AGENT'] )
 		? sanitize_text_field( wp_unslash( $_SERVER['HTTP_USER_AGENT'] ) )
 		: '';
 
+	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- the plugin's own table, written once per event.
 	$written = $wpdb->insert(
 		diluxone_users_log_table(),
 		array(
@@ -444,9 +466,9 @@ function diluxone_users_log_days(): int {
  * In batches, and it is not caution for its own sake: a site that had the log
  * on for a year and then sets it to thirty days asks this to delete millions
  * of rows in one statement, which locks the table for as long as it takes and
- * takes the site down with it. Ten thousand at a time, and the rest goes
- * tomorrow — a purge that is a day behind is not a problem, and a site that
- * is down for two minutes is.
+ * takes the site down with it. Ten thousand at a time, fifty batches at most
+ * in one run, and the rest goes tomorrow — a purge that is a day behind is not
+ * a problem, and a site that is down for two minutes is.
  *
  * @return int How many rows went.
  */
@@ -461,10 +483,23 @@ function diluxone_users_log_purge(): int {
 
 	$table = diluxone_users_log_table();
 	$edge  = gmdate( 'Y-m-d H:i:s', time() - $days * DAY_IN_SECONDS );
+	$gone  = 0;
 
-	return (int) $wpdb->query(
-		$wpdb->prepare( "DELETE FROM {$table} WHERE happened < %s LIMIT 10000", $edge )
-	);
+	// Batch after batch until a batch comes back short, and never more than
+	// fifty in one run: a site that writes more than ten thousand rows a day
+	// still catches up, and one that has a backlog of millions spreads it
+	// over a few nights instead of one long lock.
+	for ( $batch = 0; $batch < 50; $batch++ ) {
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- the plugin's own table; a delete is not cached.
+		$deleted = (int) $wpdb->query( $wpdb->prepare( 'DELETE FROM %i WHERE happened < %s LIMIT 10000', $table, $edge ) );
+		$gone   += $deleted;
+
+		if ( $deleted < 10000 ) {
+			break;
+		}
+	}
+
+	return $gone;
 }
 /**
  * The daily event, which wants nothing back.
@@ -499,8 +534,9 @@ function diluxone_users_log_size(): array {
 
 	$table = diluxone_users_log_table();
 
-	$rows   = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$table}" );
-	$oldest = (string) $wpdb->get_var( "SELECT MIN(happened) FROM {$table}" );
+	// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- the plugin's own table, and the number from now.
+	$rows   = (int) $wpdb->get_var( $wpdb->prepare( 'SELECT COUNT(*) FROM %i', $table ) );
+	$oldest = (string) $wpdb->get_var( $wpdb->prepare( 'SELECT MIN(happened) FROM %i', $table ) );
 
 	// A site whose database user cannot read information_schema — some managed
 	// hosts — gets a size of zero rather than a broken screen, and the screen
@@ -511,6 +547,8 @@ function diluxone_users_log_size(): array {
 			$table
 		)
 	);
+
+	// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 
 	return array(
 		'rows'   => $rows,
@@ -585,7 +623,11 @@ function diluxone_users_log_search( array $filters = array(), int $page = 1, int
 	$args  = array();
 
 	if ( '' !== $who ) {
-		$where[] = '( u.user_email LIKE %s OR u.user_login LIKE %s OR u.display_name LIKE %s )';
+		// And the refused sign-ins, filed under no account on purpose, whose
+		// typed name is what somebody searching for an account is after: is
+		// somebody guessing at it?
+		$where[] = '( u.user_email LIKE %s OR u.user_login LIKE %s OR u.display_name LIKE %s OR ( l.user_id = 0 AND l.detail LIKE %s ) )';
+		$args[]  = $like;
 		$args[]  = $like;
 		$args[]  = $like;
 		$args[]  = $like;
@@ -608,19 +650,20 @@ function diluxone_users_log_search( array $filters = array(), int $page = 1, int
 
 	$where = implode( ' AND ', $where );
 
-	// phpcs:disable WordPress.DB.PreparedSQL.NotPrepared -- $where is built above out of literals; every value in it is a placeholder filled from $args.
+	// The table is the first placeholder of both statements.
+	array_unshift( $args, $table );
+
+	// phpcs:disable WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter -- $where is built above out of literals and every value in it is a placeholder filled from $args, all through prepare(); the plugin's own table, read as it is now.
 	$count_sql = "SELECT COUNT(*)
-	   FROM {$table} l
+	   FROM %i l
 	   LEFT JOIN {$wpdb->users} u ON u.ID = l.user_id
 	  WHERE {$where}";
 
-	$total = (int) ( array() === $args
-		? $wpdb->get_var( $count_sql )
-		: $wpdb->get_var( $wpdb->prepare( $count_sql, $args ) ) );
+	$total = (int) $wpdb->get_var( $wpdb->prepare( $count_sql, $args ) );
 
 	$rows_sql = "SELECT l.id, l.user_id, l.event, l.happened, l.ip, l.agent, l.detail,
 	        u.user_login, u.user_email, u.display_name
-	   FROM {$table} l
+	   FROM %i l
 	   LEFT JOIN {$wpdb->users} u ON u.ID = l.user_id
 	  WHERE {$where}
    ORDER BY l.id DESC
@@ -630,7 +673,7 @@ function diluxone_users_log_search( array $filters = array(), int $page = 1, int
 		$wpdb->prepare( $rows_sql, array_merge( $args, array( $per, $offset ) ) ),
 		ARRAY_A
 	);
-	// phpcs:enable WordPress.DB.PreparedSQL.NotPrepared
+	// phpcs:enable
 
 	$rows = array();
 
@@ -683,13 +726,15 @@ function diluxone_users_log_of( int $user_id, int $page = 1, int $per = 500 ): a
 	$per    = max( 1, min( 1000, $per ) );
 	$offset = ( max( 1, $page ) - 1 ) * $per;
 
+	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- the plugin's own table, read as it is now.
 	$found = $wpdb->get_results(
 		$wpdb->prepare(
-			"SELECT id, event, happened, ip, agent, detail
-			   FROM {$table}
+			'SELECT id, event, happened, ip, agent, detail
+			   FROM %i
 			  WHERE user_id = %d
 		   ORDER BY id ASC
-			  LIMIT %d OFFSET %d",
+			  LIMIT %d OFFSET %d',
+			$table,
 			$user_id,
 			$per,
 			$offset
@@ -716,6 +761,56 @@ function diluxone_users_log_of( int $user_id, int $page = 1, int $per = 500 ): a
 }
 
 /**
+ * The refused sign-ins that typed one of these names.
+ *
+ * They are filed under nobody (see diluxone_users_log_login_failed()), and
+ * what ties them to a person is what was typed: their username or their
+ * address. The detail is JSON, so the name is looked for as the JSON it was
+ * written as.
+ *
+ * @param array<int, string> $names A login and an address, usually.
+ * @return array<int, array{id: int, event: string, happened: int, ip: string, agent: string, detail: array<string, mixed>}>
+ */
+function diluxone_users_log_tried( array $names ): array {
+	global $wpdb;
+
+	$table = diluxone_users_log_table();
+	$rows  = array();
+
+	foreach ( array_unique( array_filter( $names ) ) as $name ) {
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- the plugin's own table, read as it is now.
+		$found = $wpdb->get_results(
+			$wpdb->prepare(
+				'SELECT id, event, happened, ip, agent, detail
+				   FROM %i
+				  WHERE user_id = 0 AND event = %s AND detail LIKE %s
+			   ORDER BY id ASC
+				  LIMIT 1000',
+				$table,
+				'sign_in_failed',
+				'%' . $wpdb->esc_like( '"tried":' . wp_json_encode( $name ) ) . '%'
+			),
+			ARRAY_A
+		);
+
+		foreach ( (array) $found as $row ) {
+			$detail = json_decode( (string) $row['detail'], true );
+
+			$rows[ (int) $row['id'] ] = array(
+				'id'       => (int) $row['id'],
+				'event'    => (string) $row['event'],
+				'happened' => (int) strtotime( (string) $row['happened'] . ' UTC' ),
+				'ip'       => (string) $row['ip'],
+				'agent'    => (string) $row['agent'],
+				'detail'   => is_array( $detail ) ? $detail : array(),
+			);
+		}
+	}
+
+	return array_values( $rows );
+}
+
+/**
  * Everything about one person, gone.
  *
  * @return int How many rows went.
@@ -723,5 +818,6 @@ function diluxone_users_log_of( int $user_id, int $page = 1, int $per = 500 ): a
 function diluxone_users_log_forget( int $user_id ): int {
 	global $wpdb;
 
+	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- the plugin's own table; a delete is not cached.
 	return (int) $wpdb->delete( diluxone_users_log_table(), array( 'user_id' => $user_id ), array( '%d' ) );
 }

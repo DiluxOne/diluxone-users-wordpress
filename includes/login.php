@@ -373,8 +373,8 @@ function diluxone_users_text( string $key, string $fallback = '' ): string {
 	return '' !== $own ? $own : $fallback;
 }
 
-const DILUXONE_USERS_META_HASH    = '_diluxone_users_acceso_hash';
-const DILUXONE_USERS_META_EXPIRES = '_diluxone_users_acceso_vence';
+const DILUXONE_USERS_META_HASH    = '_diluxone_users_link_hash';
+const DILUXONE_USERS_META_EXPIRES = '_diluxone_users_link_expires';
 
 /**
  * Generates a token, stores its hash and returns the token in the clear.
@@ -407,10 +407,17 @@ function diluxone_users_token_valid( int $user_id, string $token ): bool {
 	return hash_equals( $hash, wp_hash( $token ) );
 }
 
-/** Burns the token: a link works exactly once. */
-function diluxone_users_token_burn( int $user_id ): void {
-	delete_user_meta( $user_id, DILUXONE_USERS_META_HASH );
+/**
+ * Burns the token: a link works exactly once.
+ *
+ * The delete is the check. Two requests carrying the same link can both find
+ * it valid; only one of them deletes a row, and only that one gets in.
+ */
+function diluxone_users_token_burn( int $user_id ): bool {
+	$burned = delete_user_meta( $user_id, DILUXONE_USERS_META_HASH );
 	delete_user_meta( $user_id, DILUXONE_USERS_META_EXPIRES );
+
+	return $burned;
 }
 
 /** URL of the sign-in link. */
@@ -437,11 +444,10 @@ function diluxone_users_user_for( string $email ): int {
 	$user = get_user_by( 'email', $email );
 
 	if ( $user ) {
-		// On a network, existing is not being a member of this site: somebody
-		// coming from the site next door gets in, but with no role here they
-		// can do nothing.
-		diluxone_users_join_site( (int) $user->ID );
-
+		// On a network, existing is not being a member of this site. They are
+		// not made one here: asking for a link proves nothing, and anybody can
+		// type somebody else's address. diluxone_users_complete_login() adds
+		// them once they have come in.
 		return (int) $user->ID;
 	}
 
@@ -465,6 +471,10 @@ function diluxone_users_user_for( string $email ): int {
  * for everything that wants a word: 'login', 'form', 'both' or 'closed'.
  */
 function diluxone_users_register_mode(): string {
+	if ( ! diluxone_users_network_takes_accounts() ) {
+		return 'closed';
+	}
+
 	$link = (bool) diluxone_users_option( 'diluxone_users_login_register' );
 	$form = (bool) diluxone_users_option( 'diluxone_users_register_form' );
 
@@ -488,6 +498,12 @@ function diluxone_users_register_mode(): string {
  * @return int User ID, or 0 if WordPress refused.
  */
 function diluxone_users_create_account( string $email ): int {
+	// Except one thing, which no site setting overrides: on a network, the
+	// network decides whether accounts may be created at all.
+	if ( ! diluxone_users_network_takes_accounts() ) {
+		return 0;
+	}
+
 	// The display name and the one in the profile URL are NOT allowed to be
 	// derived from user_login, because user_login is the e-mail: WordPress
 	// would build a display_name of "somebody@gmail.com" that later shows up in
@@ -635,40 +651,6 @@ function diluxone_users_name_from_email( string $email ): string {
 	return '' === $local ? __( 'Someone', 'diluxone-users' ) : $local;
 }
 
-/** The e-mail subject, with the site's own as a fallback. */
-function diluxone_users_login_subject(): string {
-	$subject = trim( (string) diluxone_users_option( 'diluxone_users_login_subject' ) );
-
-	if ( '' === $subject ) {
-		/* translators: %s: site name */
-		$subject = sprintf( __( 'Your sign-in link for %s', 'diluxone-users' ), get_bloginfo( 'name' ) );
-	}
-
-	return $subject;
-}
-
-/**
- * The e-mail body. `{link}` and `{minutes}` are replaced.
- */
-function diluxone_users_login_body( string $url ): string {
-	$body = trim( (string) diluxone_users_option( 'diluxone_users_login_body' ) );
-
-	if ( '' === $body ) {
-		$body = __(
-			"Click here to sign in:\n\n{link}\n\nThe link expires in {minutes} minutes and works once.\n\nIf you did not ask for it, ignore this message: nobody can get into your account without it.",
-			'diluxone-users'
-		);
-	}
-
-	return strtr(
-		$body,
-		array(
-			'{link}'    => $url,
-			'{minutes}' => (string) diluxone_users_login_expiry(),
-		)
-	);
-}
-
 /** Sends the e-mail with the link. */
 function diluxone_users_login_send( int $user_id, string $email, string $token ): bool {
 	$url = diluxone_users_login_link( $user_id, $token );
@@ -690,17 +672,24 @@ function diluxone_users_login_send( int $user_id, string $email, string $token )
 	 * @param string                               $email
 	 * @param string                               $url
 	 */
-	$message = apply_filters(
-		'diluxone_users_login_email',
-		array(
-			'subject' => diluxone_users_login_subject(),
-			'body'    => diluxone_users_login_body( $url ),
-		),
-		$email,
-		$url
-	);
+	$message = apply_filters( 'diluxone_users_login_email', diluxone_users_mail_login_link( $email, $url ), $email, $url );
 
 	return wp_mail( $email, $message['subject'], $message['body'] );
+}
+
+/**
+ * Remembers, in this browser only, what the person typed to ask for a link.
+ *
+ * The "check your e-mail" screen shows it back so they can spot a typo. It is
+ * what they typed, and it lives for as long as a link does.
+ */
+function diluxone_users_sent_to( string $typed ): void {
+	diluxone_users_cookie_set( 'diluxone_users_sent', $typed, time() + 60 * diluxone_users_login_expiry() );
+}
+
+/** What this browser typed to ask for the last link, or empty. */
+function diluxone_users_sent_address(): string {
+	return isset( $_COOKIE['diluxone_users_sent'] ) ? sanitize_text_field( wp_unslash( $_COOKIE['diluxone_users_sent'] ) ) : '';
 }
 
 /**
@@ -734,25 +723,44 @@ function diluxone_users_login_request(): void {
 		exit;
 	}
 
+	// A site that signs in with a password only does not mail links, and a
+	// request made by hand to this address gets what the missing form would
+	// have given it: nothing.
+	if ( ! diluxone_users_login_has_link() ) {
+		wp_safe_redirect( add_query_arg( 'diluxone-users', 'error', $redirect ) );
+		exit;
+	}
+
 	// What was typed can be an e-mail or, if the site allows it, somebody's
 	// public name. In the second case it goes on with that account's e-mail:
 	// the link never goes out to an address typed on the spot.
-	$typed = sanitize_text_field( wp_unslash( $_POST['diluxone_users_email'] ?? '' ) );
-	$email = sanitize_email( diluxone_users_handle_login_email( $typed ) );
+	$typed  = sanitize_text_field( wp_unslash( $_POST['diluxone_users_email'] ?? '' ) );
+	$handle = ! is_email( $typed ) && diluxone_users_option( 'diluxone_users_handle_login' );
+	$email  = sanitize_email( diluxone_users_handle_login_email( $typed ) );
+
+	// Everything that follows ends on the same screen, account or no account,
+	// and that screen shows what the person typed — never the address a
+	// public name resolved to, which would hand anyone who knows a name the
+	// e-mail behind it. Nor does the address travel in the URL, where access
+	// logs, caches and analytics would keep it: it goes in a short cookie
+	// only this browser reads.
+	$done = add_query_arg( 'diluxone-users', 'sent', $redirect );
 
 	if ( '' === $email || ! is_email( $email ) ) {
+		// A name nobody has answers as a name somebody has: telling them
+		// apart would say which names exist.
+		if ( $handle && '' !== $typed ) {
+			diluxone_users_sent_to( $typed );
+			wp_safe_redirect( $done );
+			exit;
+		}
+
 		wp_safe_redirect( add_query_arg( 'diluxone-users', 'email', $redirect ) );
 		exit;
 	}
 
-	// Everything that follows ends on the same screen, account or no account.
-	$done     = add_query_arg(
-		array(
-			'diluxone-users' => 'sent',
-			'email'          => rawurlencode( $email ),
-		),
-		$redirect
-	);
+	diluxone_users_sent_to( $typed );
+
 	$throttle = 'diluxone_users_throttle_' . md5( $email );
 
 	/*
@@ -774,12 +782,13 @@ function diluxone_users_login_request(): void {
 		exit;
 	}
 
-	if ( get_transient( $throttle ) ) {
+	// Per network, like the count above: one inbox is one inbox on every site.
+	if ( get_site_transient( $throttle ) ) {
 		wp_safe_redirect( $done );
 		exit;
 	}
 
-	set_transient( $throttle, 1, max( 1, (int) diluxone_users_option( 'diluxone_users_login_throttle' ) ) );
+	set_site_transient( $throttle, 1, max( 1, (int) diluxone_users_option( 'diluxone_users_login_throttle' ) ) );
 
 	// An address nobody has seen before is an account about to be created,
 	// and accounts are counted per machine, on the same count the
@@ -802,8 +811,8 @@ function diluxone_users_login_request(): void {
 	wp_safe_redirect( $done );
 	exit;
 }
-add_action( 'admin_post_nopriv_diluxone_users_acceso', 'diluxone_users_login_request' );
-add_action( 'admin_post_diluxone_users_acceso', 'diluxone_users_login_request' );
+add_action( 'admin_post_nopriv_diluxone_users_link_request', 'diluxone_users_login_request' );
+add_action( 'admin_post_diluxone_users_link_request', 'diluxone_users_login_request' );
 
 /**
  * Consumes the link: validates, signs in and burns the token.
@@ -814,16 +823,14 @@ function diluxone_users_login_consume(): void {
 		return;
 	}
 
-	$user_id = absint( $_GET['diluxone_users_login'] );
+	$user_id = absint( wp_unslash( $_GET['diluxone_users_login'] ) );
 	$token   = sanitize_text_field( wp_unslash( $_GET['diluxone_users_token'] ) );
 	// phpcs:enable
 
-	if ( $user_id <= 0 || '' === $token || ! diluxone_users_token_valid( $user_id, $token ) ) {
+	if ( $user_id <= 0 || '' === $token || ! diluxone_users_token_valid( $user_id, $token ) || ! diluxone_users_token_burn( $user_id ) ) {
 		wp_safe_redirect( add_query_arg( 'diluxone-users', 'expired', diluxone_users_login_url() ) );
 		exit;
 	}
-
-	diluxone_users_token_burn( $user_id );
 
 	/**
 	 * Where the person goes after coming in through the link.

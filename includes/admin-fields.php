@@ -111,7 +111,7 @@ function diluxone_users_field_save( array $input ): string {
 			'placeholder' => (string) ( $input['placeholder'] ?? '' ),
 			'options'     => diluxone_users_field_options_from( (string) ( $input['type'] ?? 'text' ), $input ),
 			'required'    => ! empty( $input['required'] ),
-			'group'       => (string) ( $input['group'] ?? 'optional' ),
+			'group'       => (string) ( $input['group'] ?? 'extra' ),
 			'active'      => ! empty( $input['active'] ),
 		)
 	);
@@ -167,8 +167,9 @@ function diluxone_users_fields_actions(): void {
 	}
 
 	if ( isset( $_POST['diluxone_users_field_nonce'] ) && wp_verify_nonce( sanitize_key( wp_unslash( $_POST['diluxone_users_field_nonce'] ) ), 'diluxone_users_field' ) ) {
-			// phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- verified above; diluxone_users_field_save() sanitises it field by field.
-		$key = diluxone_users_field_save( (array) wp_unslash( $_POST['diluxone_users_field'] ?? array() ) );
+		// Cleaned as it is read (multi-line text keeps its lines: the options of
+		// a list are one per line), and typed again field by field on save.
+		$key = diluxone_users_field_save( (array) map_deep( wp_unslash( $_POST['diluxone_users_field'] ?? array() ), 'sanitize_textarea_field' ) );
 
 		wp_safe_redirect( diluxone_users_admin_url( 'diluxone-users-fields', array( 'diluxone_users_done' => '' === $key ? 'nolabel' : 'saved' ) ) );
 		exit;
@@ -424,7 +425,7 @@ function diluxone_users_screen_fields_list(): void {
 										);
 										?>
 												"
-										onclick="return confirm(<?php echo esc_attr( (string) wp_json_encode( __( 'Delete this field? The data already stored is kept.', 'diluxone-users' ) ) ); ?>);">
+										data-diluxone-users-confirm="<?php esc_attr_e( 'Delete this field? The data already stored is kept.', 'diluxone-users' ); ?>">
 										<?php esc_html_e( 'Delete', 'diluxone-users' ); ?>
 									</a>
 								</span>
@@ -569,7 +570,7 @@ function diluxone_users_field_dialog(): void {
 function diluxone_users_screen_field_edit( string $key ): void {
 	$field = '' === $key ? diluxone_users_normalize_field(
 		array(
-			'group'  => 'optional',
+			'group'  => 'extra',
 			'active' => 1,
 		)
 	) : diluxone_users_field( $key );

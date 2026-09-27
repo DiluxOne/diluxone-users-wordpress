@@ -6,7 +6,7 @@
  *   wp-content/themes/<your-theme>/diluxone-users/login.php
  *
  * @var string                             $state     What happened ('sent', 'expired', 'email', 'error', 'social').
- * @var string                             $email     Address the link was sent to.
+ * @var string                             $email     What the person typed to ask for the link.
  * @var array<string, array<string,mixed>> $providers Available networks, for a theme that draws its own.
  * @var int                                $minutes   How long the link is good for.
  * @var bool                               $title     Whether to draw the "Sign in" heading.

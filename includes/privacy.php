@@ -168,12 +168,17 @@ function diluxone_users_privacy_details( int $user_id ): array {
 		);
 	}
 
-	$avatar = (int) get_user_meta( $user_id, 'diluxone_users_avatar', true );
+	$avatar = diluxone_users_avatar_id( $user_id ) > 0
+		? (string) diluxone_users_avatar_on_its_site(
+			$user_id,
+			static fn(): string => (string) wp_get_attachment_url( diluxone_users_avatar_id( $user_id ) )
+		)
+		: '';
 
-	if ( $avatar > 0 ) {
+	if ( '' !== $avatar ) {
 		$rows[] = array(
 			'name'  => __( 'Profile picture', 'diluxone-users' ),
-			'value' => (string) wp_get_attachment_url( $avatar ),
+			'value' => $avatar,
 		);
 	}
 
@@ -227,7 +232,7 @@ function diluxone_users_privacy_access( int $user_id ): array {
 		);
 	}
 
-	$devices = (array) get_user_meta( $user_id, 'diluxone_users_devices', true );
+	$devices = diluxone_users_meta_list( $user_id, 'diluxone_users_devices' );
 	$devices = array_filter( array_map( 'strval', $devices ) );
 
 	if ( array() !== $devices ) {
@@ -290,10 +295,9 @@ function diluxone_users_privacy_erase( string $email, int $page = 1 ): array {
 	$user_id = (int) $user->ID;
 	$removed = false;
 
-	$avatar = (int) get_user_meta( $user_id, 'diluxone_users_avatar', true );
-
-	if ( $avatar > 0 ) {
-		wp_delete_attachment( $avatar, true );
+	// On the site that holds it: see diluxone_users_avatar_site().
+	if ( diluxone_users_avatar_id( $user_id ) > 0 ) {
+		diluxone_users_avatar_delete( $user_id );
 		$removed = true;
 	}
 
@@ -334,6 +338,7 @@ function diluxone_users_privacy_keys( int $user_id ): array {
 		'diluxone_users_handle',
 		'diluxone_users_handle_changed',
 		'diluxone_users_avatar',
+		'diluxone_users_avatar_site',
 		'diluxone_users_devices',
 		'diluxone_users_2fa_on',
 		'diluxone_users_2fa_epoch',
@@ -341,12 +346,13 @@ function diluxone_users_privacy_keys( int $user_id ): array {
 		'diluxone_users_2fa_pending',
 		'diluxone_users_2fa_fails',
 		'diluxone_users_2fa_lock',
+		'diluxone_users_2fa_lock_at',
 		'diluxone_users_totp',
 		'diluxone_users_totp_pending',
-		'diluxone_users_totp_used',
+		'diluxone_users_totp_step',
 		'diluxone_users_backup_codes',
-		'_diluxone_users_acceso_hash',
-		'_diluxone_users_acceso_vence',
+		'_diluxone_users_link_hash',
+		'_diluxone_users_link_expires',
 	);
 
 	foreach ( diluxone_users_fields( '', false ) as $field ) {
@@ -383,9 +389,11 @@ function diluxone_users_privacy_policy(): void {
 		. '<p><strong>' . __( 'What is stored in your profile', 'diluxone-users' ) . '</strong> — '
 		. __( 'the answers to the fields this site asks for, your public name, your profile picture, which social accounts you have linked, your passkeys, whether two-step verification is on, and a hash of each browser you have signed in from so that a new one can be announced once.', 'diluxone-users' ) . '</p>'
 		. '<p><strong>' . __( 'What is stored in the activity log', 'diluxone-users' ) . '</strong> — '
-		. __( 'for each recorded event: the date, the account, your IP address and your browser’s user-agent string. Which events are recorded, and for how many days, are settings of this site.', 'diluxone-users' ) . '</p>'
+		. __( 'for each recorded event: the date, the account, your IP address and your browser’s user-agent string. When a sign-in is refused, what was typed in the username box is kept with it, because that is how an attempt to guess an account is recognised. Which events are recorded, and for how many days, are settings of this site.', 'diluxone-users' ) . '</p>'
+		. '<p><strong>' . __( 'Cookies', 'diluxone-users' ) . '</strong> — '
+		. __( 'while you sign in, short-lived cookies hold the progress of the attempt: a social sign-in, a password reset, the address you asked a link for. If you ask not to be asked for the second step again on a browser, a cookie remembers that browser for the number of days this site sets. And a cookie remembers which way of signing in you used last, so the sign-in page opens on it.', 'diluxone-users' ) . '</p>'
 		. '<p><strong>' . __( 'Where it goes', 'diluxone-users' ) . '</strong> — '
-		. __( 'nowhere. The plugin sends nothing anywhere on its own. If this site offers social sign-in, the provider you choose receives what it needs to identify you, and only when you use it.', 'diluxone-users' ) . '</p>';
+		. __( 'the plugin sends nothing anywhere on its own. If this site offers social sign-in, the provider you choose receives what it needs to identify you, and only when you use it; the account id it answers with is kept in your profile so it can recognise you next time. If your profile has no picture of its own and this site shows Gravatar pictures, your browser asks Gravatar (gravatar.com) for one using a hash of your e-mail address.', 'diluxone-users' ) . '</p>';
 
 	wp_add_privacy_policy_content( diluxone_users_plugin_name(), wp_kses_post( wpautop( $text ) ) );
 }

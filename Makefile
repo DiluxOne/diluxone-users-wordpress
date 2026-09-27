@@ -135,6 +135,13 @@ test: test-unit ## Run the unit-test suite (default — fast, no WP needed).
 test-unit: ## Run only the unit-test suite (no WordPress runtime).
 	$(VENDOR) ./vendor/bin/phpunit --testsuite unit
 
+# The oldest PHP the plugin supports (Requires PHP: 8.0). `make test-unit`
+# runs on the composer image's PHP, which is the newest; CI runs every version
+# in between.
+.PHONY: test-unit-min
+test-unit-min: ## Unit suite on the oldest PHP the plugin supports (8.0).
+	$(DOCKER_RUN) php:8.0-cli ./vendor/bin/phpunit --testsuite unit
+
 .PHONY: test-integration
 test-integration: ## Run integration tests against the wp-env stack (must be `make env` first).
 	npx @wordpress/env run tests-cli --env-cwd=wp-content/plugins/$(REPO_DIR) ./vendor/bin/phpunit -c phpunit-integration.xml --testsuite integration
@@ -153,6 +160,16 @@ test-e2e: ## Run the Playwright end-to-end suite against the wp-env dev site (mu
 test-e2e-ui: ## The same suite in Playwright's own window, for writing and debugging one.
 	@mkdir -p build
 	npx playwright test --ui
+
+# The same plugin, network-activated, on the wp-env TESTS site (8893) turned
+# into a subdirectory network. Its own config and its own target: the default
+# `npx playwright test` is what the shared CI runs against a single dev site,
+# and it stays exactly that. The setup makes /alpha/ and /beta/ and the
+# teardown deletes them. Override WP_NETWORK_URL to point it elsewhere.
+.PHONY: test-e2e-network
+test-e2e-network: env-multisite ## The network suite: two sites of one network and what must not leak between them.
+	@mkdir -p build
+	npx playwright test -c playwright.network.config.ts
 
 # The layout invariants: the same browser, the same site, no baseline images.
 # It is part of `make test-e2e` — this target is for running only that, which
@@ -270,6 +287,21 @@ check: lint stan psalm test ## Run every quality gate CI runs (lint, stan, psalm
 env: env-up ## Alias of env-up.
 env-up: ## Start the local wp-env Docker stack.
 	npx wp-env start
+
+.PHONY: env-multisite
+env-multisite: ## Convert the wp-env tests site (8893) into a multisite network (idempotent).
+	@# The shared CI runs the integration suite on a network, the way a good
+	@# part of real hosting runs WordPress. This is the same conversion, so a
+	@# failure there can be reproduced here.
+	@npx wp-env run tests-cli wp core is-installed --network >/dev/null 2>&1 \
+	  || npx wp-env run tests-cli wp core multisite-convert --title="Tests network"
+	@# The subdirectory rewrite rules WordPress asks for after the conversion:
+	@# without them a site's /wp-admin/ is an Apache 404, and the network
+	@# end-to-end suite drives the other sites of the network in a browser.
+	@# Anything that flushes permalinks puts the single-site file back, so
+	@# this runs again before every network run.
+	@npx wp-env run tests-cli bash -c 'cp /var/www/html/wp-content/plugins/$(REPO_DIR)/tests/e2e/multisite.htaccess /var/www/html/.htaccess'
+	@npx wp-env run tests-cli wp plugin activate $(REPO_DIR) --network
 
 .PHONY: env-down
 env-down: ## Stop the local wp-env Docker stack.

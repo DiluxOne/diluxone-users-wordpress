@@ -101,6 +101,11 @@ test.describe('The second step by e-mail', () => {
 				page.locator('form.diluxone-users-form button[type="submit"]').first().click(),
 			]);
 
+			// The answer drawn before the reload: reloading a page whose
+			// navigation is still being committed is a protocol error ("not
+			// attached to an active page") and not a finding.
+			await expect(challengeScreen(page)).toBeVisible();
+
 			// Reloading the screen is not a way of starting the count over.
 			await page.reload();
 			await expect(challengeScreen(page)).toBeVisible();

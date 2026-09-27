@@ -38,7 +38,7 @@ function diluxone_users_login_challenge(): array {
 		return array();
 	}
 
-	$user_id = absint( $_GET['diluxone_users_2fa'] );
+	$user_id = absint( wp_unslash( $_GET['diluxone_users_2fa'] ) );
 	$key     = sanitize_text_field( wp_unslash( $_GET['diluxone_users_key'] ) );
 	$method  = sanitize_key( wp_unslash( $_GET['diluxone_users_method'] ?? '' ) );
 	// phpcs:enable
@@ -106,8 +106,7 @@ function diluxone_users_shortcode_login( $atts = array() ): string {
 		return $frame . diluxone_users_render( 'login-2fa', array_merge( $challenge, array( 'state' => diluxone_users_state() ) ) ) . $close;
 	}
 
-	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-	$email = isset( $_GET['email'] ) ? sanitize_email( wp_unslash( $_GET['email'] ) ) : '';
+	$email = diluxone_users_sent_address();
 	$atts  = shortcode_atts( array( 'title' => 'no' ), (array) $atts, 'diluxone_users_login' );
 
 	return $frame . diluxone_users_render(
@@ -222,8 +221,22 @@ function diluxone_users_shortcode_accounts( $atts = array() ): string {
 	$atts    = shortcode_atts( array( 'only' => '' ), (array) $atts, 'diluxone_users_accounts' );
 	$user_id = get_current_user_id();
 
-	// Where it came from, to go back there after the trip to the provider.
-	set_transient( 'diluxone_users_sso_back_' . $user_id, (string) home_url( add_query_arg( array() ) ), 10 * MINUTE_IN_SECONDS );
+	// Where it came from, to go back there after the trip to the provider:
+	// the path WordPress resolved, which holds the section, under the home
+	// URL — not the raw request URI, which on a site in a subfolder would
+	// carry the folder twice. Written only when it changes.
+	$here = '' !== (string) $GLOBALS['wp']->request ? home_url( user_trailingslashit( (string) $GLOBALS['wp']->request ) ) : ( is_singular() ? (string) get_permalink() : home_url( '/' ) );
+
+	if ( get_transient( 'diluxone_users_sso_back_' . $user_id ) !== $here ) {
+		set_transient( 'diluxone_users_sso_back_' . $user_id, $here, 10 * MINUTE_IN_SECONDS );
+	}
+
+	// Two lists on one page (the linked ones and the rest) are one answer:
+	// what just happened is said by the first of them only.
+	static $told = false;
+
+	$state = $told ? '' : diluxone_users_state();
+	$told  = true;
 
 	$linked    = diluxone_users_sso_linked( $user_id );
 	$providers = diluxone_users_sso_available();
@@ -239,7 +252,7 @@ function diluxone_users_shortcode_accounts( $atts = array() ): string {
 		array(
 			'providers' => $providers,
 			'linked'    => $linked,
-			'state'     => diluxone_users_state(),
+			'state'     => $state,
 			'only'      => (string) $atts['only'],
 		)
 	);

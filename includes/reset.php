@@ -41,17 +41,8 @@ function diluxone_users_reset_catch(): void {
 	$login = sanitize_user( wp_unslash( $_GET['diluxone_users_login'] ) );
 	// phpcs:enable
 
-	setcookie(
-		diluxone_users_reset_cookie(),
-		$login . ':' . $key,
-		array(
-			'expires'  => 0,
-			'path'     => '/',
-			'secure'   => is_ssl(),
-			'httponly' => true,
-			'samesite' => 'Lax',
-		)
-	);
+	// Until the browser closes, and only for this site's path.
+	diluxone_users_cookie_set( diluxone_users_reset_cookie(), $login . ':' . $key, 0 );
 
 	// Same address, without the key in it.
 	wp_safe_redirect(
@@ -71,10 +62,9 @@ add_action( 'template_redirect', 'diluxone_users_reset_catch' );
  * @return WP_User|null
  */
 function diluxone_users_reset_user(): ?WP_User {
-	// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- split and sanitised below.
-	$cookie = isset( $_COOKIE[ diluxone_users_reset_cookie() ] ) ? wp_unslash( $_COOKIE[ diluxone_users_reset_cookie() ] ) : '';
+	$cookie = isset( $_COOKIE[ diluxone_users_reset_cookie() ] ) ? sanitize_text_field( wp_unslash( $_COOKIE[ diluxone_users_reset_cookie() ] ) ) : '';
 
-	if ( ! is_string( $cookie ) || false === strpos( $cookie, ':' ) ) {
+	if ( false === strpos( $cookie, ':' ) ) {
 		return null;
 	}
 
@@ -87,7 +77,7 @@ function diluxone_users_reset_user(): ?WP_User {
 
 /** Forgets the key, whatever happened. */
 function diluxone_users_reset_forget(): void {
-	setcookie( diluxone_users_reset_cookie(), ' ', time() - YEAR_IN_SECONDS, '/' );
+	diluxone_users_cookie_set( diluxone_users_reset_cookie(), ' ', time() - YEAR_IN_SECONDS );
 }
 
 /**

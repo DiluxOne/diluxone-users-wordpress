@@ -13,7 +13,7 @@
  *
  * Outside of the container, this file MUST NOT be required — the
  * /var/www/html paths do not exist on the host. The CI workflow
- * (tests-integration.yml) invokes phpunit via `npx wp-env run tests-cli`
+ * (the shared plugin-tests-wp workflow) invokes phpunit via `npx wp-env run tests-cli`
  * specifically for that reason.
  */
 
@@ -30,8 +30,26 @@ if (!defined('DOING_AJAX')) {
 $_SERVER['PHP_SELF'] = '/wp-admin/admin-ajax.php';
 
 // 2. Set HTTP_HOST etc. to prevent "Undefined array key" warnings under CLI.
+//
+//    On a multisite network the host MUST be one WordPress knows: for an
+//    unknown domain ms-settings.php redirects to the signup page and calls
+//    exit(0) before PHPUnit ever starts — no banner, no error, exit code 0,
+//    which is the worst possible way for a suite to fail. wp-config.php
+//    carries the network domain as DOMAIN_CURRENT_SITE; read it from the
+//    file (constants are not available before WordPress loads) and fall
+//    back to a placeholder on single-site installs, where any host works.
 if (empty($_SERVER['HTTP_HOST'])) {
-    $_SERVER['HTTP_HOST'] = getenv('HTTP_HOST') ?: 'tests.local';
+    $host = getenv('HTTP_HOST') ?: '';
+    if ($host === '' && is_readable('/var/www/html/wp-config.php')) {
+        if (preg_match(
+            "/define\\(\\s*'DOMAIN_CURRENT_SITE'\\s*,\\s*'([^']+)'/",
+            (string) file_get_contents('/var/www/html/wp-config.php'),
+            $m
+        )) {
+            $host = $m[1];
+        }
+    }
+    $_SERVER['HTTP_HOST'] = $host !== '' ? $host : 'tests.local';
 }
 if (empty($_SERVER['SERVER_NAME'])) {
     $_SERVER['SERVER_NAME'] = $_SERVER['HTTP_HOST'];

@@ -137,4 +137,22 @@ class AccountSecurityTest extends IntegrationTestCase {
 
 		$this->assertFalse( diluxone_users_2fa_trusted( $this->user ) );
 	}
+
+	/**
+	 * The account offers the second step to exactly the people the sign-in
+	 * asks it of: "everybody" means everybody, even with roles still ticked
+	 * from when it was "only some".
+	 */
+	public function test_the_offer_follows_the_scope_the_sign_in_follows(): void {
+		update_option( 'diluxone_users_2fa_mode', 'optional' );
+		update_option( 'diluxone_users_2fa_methods', array( 'email' ) );
+		update_option( 'diluxone_users_2fa_roles', array( 'administrator' ) );
+		update_option( 'diluxone_users_2fa_scope', 'all' );
+
+		$this->assertTrue( diluxone_users_2fa_offered( $this->make_user( 'subscriber' ) ) );
+
+		update_option( 'diluxone_users_2fa_scope', 'some' );
+
+		$this->assertFalse( diluxone_users_2fa_offered( $this->make_user( 'subscriber' ) ) );
+	}
 }

@@ -158,16 +158,9 @@ function diluxone_users_default_fields(): array {
  * The form block a field belongs to.
  *
  * There are two, each with a name of its own: the main one — what the site
- * needs — and the additional one, the "tell us a bit more if you like". The
- * old names are accepted so nothing already stored breaks.
+ * needs — and the additional one, the "tell us a bit more if you like".
  */
 function diluxone_users_normalize_group( string $group ): string {
-	$old_prefixes = array(
-		'basic'    => 'main',
-		'optional' => 'extra',
-	);
-	$group        = $old_prefixes[ $group ] ?? $group;
-
 	return 'main' === $group ? 'main' : 'extra';
 }
 
@@ -224,6 +217,8 @@ function diluxone_users_field_key_allowed( string $key ): bool {
 	$taken = array(
 		'session_tokens',
 		'capabilities',
+		'primary_blog',
+		'source_domain',
 		'user_level',
 		'admin_color',
 		'locale',
@@ -235,14 +230,16 @@ function diluxone_users_field_key_allowed( string $key ): bool {
 		'diluxone_users_2fa_email',
 		'diluxone_users_2fa_fails',
 		'diluxone_users_2fa_lock',
+		'diluxone_users_2fa_lock_at',
 		'diluxone_users_totp',
 		'diluxone_users_totp_pending',
-		'diluxone_users_totp_used',
+		'diluxone_users_totp_step',
 		'diluxone_users_backup_codes',
 		'diluxone_users_passkeys',
 		'diluxone_users_handle',
 		'diluxone_users_handle_changed',
 		'diluxone_users_avatar',
+		'diluxone_users_avatar_site',
 		'diluxone_users_devices',
 	);
 
@@ -250,7 +247,12 @@ function diluxone_users_field_key_allowed( string $key ): bool {
 		return false;
 	}
 
-	foreach ( array( 'wp_', '_diluxone_users', 'diluxone_users_pk_', 'diluxone_users_sso_', 'diluxone_users_notify_', 'diluxone_users_edits_' ) as $start ) {
+	// WordPress keeps a site's roles under the table prefix — `wp_`, or
+	// whatever this install chose, and `wp_2_` for the second site of a
+	// network — so the prefix is read, not assumed.
+	global $wpdb;
+
+	foreach ( array( 'wp_', $wpdb->base_prefix, '_diluxone_users', 'diluxone_users_pk_', 'diluxone_users_sso_', 'diluxone_users_notify_', 'diluxone_users_edits_' ) as $start ) {
 		if ( 0 === strpos( $key, $start ) ) {
 			return false;
 		}
@@ -569,21 +571,23 @@ function diluxone_users_sanitize( array $field, string $value ): string {
 function diluxone_users_posted_fields( string $group = '' ): array {
 	$sent = array();
 
+	// phpcs:disable WordPress.Security.NonceVerification.Missing -- every caller verifies its form's nonce before asking.
 	foreach ( diluxone_users_fields( $group ) as $field ) {
 		foreach ( array( (string) $field['key'], (string) $field['key'] . '_dial' ) as $name ) {
-			// phpcs:ignore WordPress.Security.NonceVerification.Missing -- every caller verifies before asking; the values are sanitised per field type in diluxone_users_save().
-			if ( ! isset( $_POST[ $name ] ) ) {
+			// One value per field: a posted `field[]=` is an array, not an answer.
+			if ( ! isset( $_POST[ $name ] ) || ! is_scalar( $_POST[ $name ] ) ) {
 				continue;
 			}
 
-			// phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- as above: the field's own sanitiser runs on save, and it is the one that knows the type.
-			$value = wp_unslash( $_POST[ $name ] );
-
-			if ( is_scalar( $value ) ) {
-				$sent[ $name ] = (string) $value;
-			}
+			// Cleaned as it is read — an address as an address, since text
+			// cleaning would strip its %-encoded characters — and cleaned
+			// again by its field's type when it is saved.
+			$sent[ $name ] = 'url' === ( $field['type'] ?? '' ) && $name === $field['key']
+				? esc_url_raw( wp_unslash( (string) $_POST[ $name ] ) )
+				: sanitize_textarea_field( wp_unslash( (string) $_POST[ $name ] ) );
 		}
 	}
+	// phpcs:enable
 
 	return $sent;
 }

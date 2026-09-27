@@ -37,7 +37,7 @@ function diluxone_users_register_url(): string {
  * and the admin says so rather than pretending.
  */
 function diluxone_users_register_form_open(): bool {
-	return (bool) diluxone_users_option( 'diluxone_users_register_form' ) && '' !== diluxone_users_register_url();
+	return (bool) diluxone_users_option( 'diluxone_users_register_form' ) && '' !== diluxone_users_register_url() && diluxone_users_network_takes_accounts();
 }
 
 /**
@@ -123,7 +123,8 @@ function diluxone_users_shortcode_register(): string {
 			'state'     => diluxone_users_state(),
 			'email'     => '',
 			'fields'    => diluxone_users_register_fields(),
-			'open'      => 'closed' !== diluxone_users_register_mode(),
+			'open'      => diluxone_users_register_form_open(),
+			'by_link'   => 'login' === diluxone_users_register_mode(),
 			'providers' => diluxone_users_sso_for_login(),
 		)
 	) . $close;
@@ -183,7 +184,7 @@ function diluxone_users_register_request(): void {
 		exit;
 	}
 
-	if ( 'closed' === diluxone_users_register_mode() ) {
+	if ( ! diluxone_users_register_form_open() ) {
 		wp_safe_redirect( add_query_arg( 'diluxone-users', 'closed', $back ) );
 		exit;
 	}
@@ -195,7 +196,6 @@ function diluxone_users_register_request(): void {
 		exit;
 	}
 
-	// phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- verified above; each field is sanitised by type inside.
 	if ( array() !== diluxone_users_register_missing( diluxone_users_posted_fields() ) ) {
 		wp_safe_redirect( add_query_arg( 'diluxone-users', 'missing', $back ) );
 		exit;
@@ -224,7 +224,6 @@ function diluxone_users_register_request(): void {
 	// asking again on the other side would be asking twice. What it reports as
 	// missing was already refused above, before there was an account to save
 	// it to.
-	// phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- verified above; each field is sanitised by type.
 	diluxone_users_save( $user_id, diluxone_users_posted_fields() );
 
 	/**
@@ -242,16 +241,8 @@ function diluxone_users_register_request(): void {
 
 	diluxone_users_login_send( $user_id, $email, diluxone_users_token_create( $user_id ) );
 
-	wp_safe_redirect(
-		add_query_arg(
-			array(
-				'diluxone-users' => 'registered',
-				'email'          => rawurlencode( $email ),
-			),
-			$back
-		)
-	);
+	wp_safe_redirect( add_query_arg( 'diluxone-users', 'registered', $back ) );
 	exit;
 }
-add_action( 'admin_post_nopriv_diluxone_users_registro', 'diluxone_users_register_request' );
-add_action( 'admin_post_diluxone_users_registro', 'diluxone_users_register_request' );
+add_action( 'admin_post_nopriv_diluxone_users_signup', 'diluxone_users_register_request' );
+add_action( 'admin_post_diluxone_users_signup', 'diluxone_users_register_request' );

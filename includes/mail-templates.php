@@ -309,36 +309,12 @@ function diluxone_users_mail_clean( $stored ): array {
 /**
  * Everything that was rewritten, by language and then by message.
  *
- * The first read is also the move from the two settings that used to hold the
- * sign-in e-mail. They were one text for the whole site, so they become the
- * rewrite for the language the site runs in, and the option is written even
- * when there was nothing to bring over: its presence is what says the move
- * already happened, so putting a message back to the plugin's own text is not
- * undone by the old setting on the next read.
- *
  * @return array<string, array<string, array<string, string>>>
  */
 function diluxone_users_mail_store(): array {
-	$stored = get_option( DILUXONE_USERS_MAIL_TEMPLATES, null );
+	$stored = get_option( DILUXONE_USERS_MAIL_TEMPLATES, array() );
 
-	if ( is_array( $stored ) ) {
-		return diluxone_users_mail_clean( $stored );
-	}
-
-	$store   = array();
-	$subject = trim( (string) get_option( 'diluxone_users_login_subject', '' ) );
-	$body    = trim( (string) get_option( 'diluxone_users_login_body', '' ) );
-
-	if ( '' !== $subject || '' !== $body ) {
-		$store[ diluxone_users_mail_locale_key( get_locale() ) ]['login_link'] = array(
-			'subject' => $subject,
-			'body'    => $body,
-		);
-	}
-
-	update_option( DILUXONE_USERS_MAIL_TEMPLATES, $store );
-
-	return $store;
+	return is_array( $stored ) ? diluxone_users_mail_clean( $stored ) : array();
 }
 
 /**
@@ -472,19 +448,14 @@ function diluxone_users_mail_person( string $email, int $user_id = 0 ): string {
 	return '' === $email ? '' : diluxone_users_name_from_email( $email );
 }
 
-/* ── Los correos que ya se mandaban ────────────────────────────────── */
+/* ── The sign-in link ──────────────────────────────────────────────── */
 
 /**
- * The sign-in link, written here instead of in login.php.
+ * The sign-in link's message, as this site wrote it or as the plugin ships it.
  *
- * On an early priority on purpose: the filter is the seam a site has always
- * had for this message, and a site that hooks it at the usual priority has to
- * keep winning over what this screen wrote.
- *
- * @param array<string, string> $message
- * @return array<string, string>
+ * @return array{subject: string, body: string}
  */
-function diluxone_users_mail_login_link( array $message, string $email, string $url ): array {
+function diluxone_users_mail_login_link( string $email, string $url ): array {
 	return diluxone_users_mail_compose(
 		'login_link',
 		array(
@@ -495,7 +466,6 @@ function diluxone_users_mail_login_link( array $message, string $email, string $
 		)
 	);
 }
-add_filter( 'diluxone_users_login_email', 'diluxone_users_mail_login_link', 5, 3 );
 
 /**
  * The second-step code, the same way.
@@ -518,7 +488,7 @@ function diluxone_users_mail_second_step( array $mail, int $user_id, string $cod
 }
 add_filter( 'diluxone_users_2fa_email', 'diluxone_users_mail_second_step', 5, 3 );
 
-/* ── La pantalla ───────────────────────────────────────────────────── */
+/* ── The screen ────────────────────────────────────────────────────── */
 
 /**
  * The languages a rewrite can be written for.

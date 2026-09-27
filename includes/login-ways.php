@@ -318,23 +318,15 @@ function diluxone_users_way_open( array $tabs ): string {
  * be needed.
  *
  * In the dashboard the same markup is drawn inside a preview, and a preview is
- * a document built by hand with no queue in it at all. Enqueuing there
- * enqueues into the dashboard, which never shows it, and the preview comes out
- * stacked — a picture of the arrangement nobody chose, on the one screen whose
- * job is to show what was chosen. So there it is written into the document,
- * after the markup it works on, which is the same thing the preview already
- * does with the stylesheets.
+ * a document of its own. Enqueuing into the dashboard's queue enqueues into a
+ * page that never shows it, and the preview comes out stacked — a picture of
+ * the arrangement nobody chose, on the one screen whose job is to show what
+ * was chosen. So there it is asked of the preview's own queue, which prints
+ * it after the markup it works on (see diluxone_users_preview_document()).
  */
 function diluxone_users_ways_enqueue(): void {
-	$src = add_query_arg(
-		'ver',
-		diluxone_users_asset_version( 'assets/diluxone-users-ways.js' ),
-		DILUXONE_USERS_URL . 'assets/diluxone-users-ways.js'
-	);
-
 	if ( is_admin() ) {
-		// phpcs:ignore WordPress.WP.EnqueuedResources.NonEnqueuedScript -- a document of its own, with no queue to enqueue into.
-		printf( '<script src="%s"></script>', esc_url( $src ) );
+		diluxone_users_preview_scripts( 'diluxone-users-ways' );
 
 		return;
 	}
@@ -547,7 +539,7 @@ function diluxone_users_ways_register(): void {
 			'icon'      => 'mail',
 			'position'  => 20,
 			'over'      => __( 'or with your email', 'diluxone-users' ),
-			'states'    => array( 'email', 'error' ),
+			'states'    => array( 'email', 'error', 'expired' ),
 			'available' => 'diluxone_users_login_has_link',
 			'render'    => 'diluxone_users_way_email',
 		)
@@ -586,11 +578,22 @@ function diluxone_users_way_social(): void {
 function diluxone_users_way_email(): void {
 	?>
 	<form class="diluxone-users-form" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
-		<input type="hidden" name="action" value="diluxone_users_acceso">
+		<input type="hidden" name="action" value="diluxone_users_link_request">
 		<?php wp_nonce_field( 'diluxone_users_login', 'diluxone_users_nonce' ); ?>
 
-		<label for="diluxone-users-email"><?php esc_html_e( 'Email address', 'diluxone-users' ); ?></label>
-		<input type="email" id="diluxone-users-email" name="diluxone_users_email" required autocomplete="email" placeholder="<?php echo esc_attr_x( 'you@example.com', 'placeholder for the e-mail field', 'diluxone-users' ); ?>">
+		<?php if ( diluxone_users_option( 'diluxone_users_handle_login' ) ) : ?>
+			<?php
+			// A public name is not an address, and a box of type "email" would
+			// have the browser refuse it before the site is ever asked. It is
+			// still an address the box expects most of the time, so the phone
+			// keyboard offers the @.
+			?>
+			<label for="diluxone-users-email"><?php esc_html_e( 'Email address or public name', 'diluxone-users' ); ?></label>
+			<input type="text" inputmode="email" autocapitalize="none" spellcheck="false" id="diluxone-users-email" name="diluxone_users_email" required autocomplete="username" placeholder="<?php echo esc_attr_x( 'you@example.com', 'placeholder for the e-mail field', 'diluxone-users' ); ?>">
+		<?php else : ?>
+			<label for="diluxone-users-email"><?php esc_html_e( 'Email address', 'diluxone-users' ); ?></label>
+			<input type="email" id="diluxone-users-email" name="diluxone_users_email" required autocomplete="email" placeholder="<?php echo esc_attr_x( 'you@example.com', 'placeholder for the e-mail field', 'diluxone-users' ); ?>">
+		<?php endif; ?>
 
 		<button type="submit" class="diluxone-users-button"><?php echo diluxone_users_button_icon( 'mail' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- our own markup. ?><?php esc_html_e( 'Send me the sign-in link', 'diluxone-users' ); ?></button>
 	</form>

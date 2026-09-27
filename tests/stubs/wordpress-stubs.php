@@ -319,6 +319,50 @@ if (!function_exists('set_transient')) {
 	}
 }
 
+if (!function_exists('map_deep')) {
+	function map_deep($value, callable $callback) {
+		if (is_array($value)) {
+			foreach ($value as $index => $item) {
+				$value[$index] = map_deep($item, $callback);
+			}
+			return $value;
+		}
+		return call_user_func($callback, $value);
+	}
+}
+
+if (!function_exists('get_site_transient')) {
+	// One store for both kinds: a single site keeps them in the same table.
+	function get_site_transient(string $key) {
+		return get_transient('site_' . $key);
+	}
+}
+
+if (!function_exists('set_site_transient')) {
+	function set_site_transient(string $key, $value, int $expiration = 0): bool {
+		return set_transient('site_' . $key, $value, $expiration);
+	}
+}
+
+if (!function_exists('delete_site_transient')) {
+	function delete_site_transient(string $key): bool {
+		return delete_transient('site_' . $key);
+	}
+}
+
+if (!function_exists('is_multisite')) {
+	// A single site unless a test says otherwise.
+	function is_multisite(): bool {
+		return !empty($GLOBALS['_test_multisite']);
+	}
+}
+
+if (!function_exists('is_super_admin')) {
+	function is_super_admin($user_id = false): bool {
+		return false;
+	}
+}
+
 if (!function_exists('get_transient')) {
 	function get_transient(string $key) {
 		return $GLOBALS['_test_wp_transients'][$key] ?? false;
@@ -327,8 +371,10 @@ if (!function_exists('get_transient')) {
 
 if (!function_exists('delete_transient')) {
 	function delete_transient(string $key): bool {
+		// Like WordPress: true only when there was something to delete.
+		$existed = array_key_exists($key, $GLOBALS['_test_wp_transients'] ?? array());
 		unset($GLOBALS['_test_wp_transients'][$key]);
-		return true;
+		return $existed;
 	}
 }
 

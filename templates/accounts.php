@@ -18,6 +18,8 @@ defined( 'ABSPATH' ) || exit;
 
 	<?php if ( 'linked' === $state ) : ?>
 		<p class="diluxone-users-notice diluxone-users-notice--ok"><?php esc_html_e( 'Account linked.', 'diluxone-users' ); ?></p>
+	<?php elseif ( 'taken' === $state ) : ?>
+		<p class="diluxone-users-notice diluxone-users-notice--error"><?php esc_html_e( 'That social account already opens another account on this site, so it was not linked to this one.', 'diluxone-users' ); ?></p>
 	<?php endif; ?>
 
 	<?php if ( array() === $providers ) : ?>
@@ -46,8 +48,8 @@ defined( 'ABSPATH' ) || exit;
 			 * their guidelines ask for and the only place it reads.
 			 */
 			?>
-			<li class="diluxone-users-linked__item <?php echo $diluxone_users_is_linked ? 'is-linked' : ''; ?> <?php echo diluxone_users_sso_icon_is_colored( $diluxone_users_id ) ? 'has-color' : ''; ?>" style="--diluxone-users-brand: <?php echo esc_attr( $diluxone_users_provider['color'] ); ?>">
-				<span class="diluxone-users-linked__logo"><?php echo diluxone_users_sso_icon( $diluxone_users_id ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- SVG propio. ?></span>
+			<li class="diluxone-users-linked__item <?php echo $diluxone_users_is_linked ? 'is-linked' : ''; ?> <?php echo diluxone_users_sso_icon_is_colored( $diluxone_users_id ) ? 'has-color' : ''; ?>" style="--diluxone-users-brand: <?php echo esc_attr( (string) sanitize_hex_color( (string) $diluxone_users_provider['color'] ) ); ?>">
+				<span class="diluxone-users-linked__logo"><?php echo diluxone_users_sso_icon( $diluxone_users_id ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- the plugin's own SVG, built from its own paths. ?></span>
 
 				<span class="diluxone-users-linked__who">
 					<strong><?php echo esc_html( $diluxone_users_provider['name'] ); ?></strong>

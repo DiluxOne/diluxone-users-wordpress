@@ -45,8 +45,7 @@ function diluxone_users_design_brand_save(): void {
 		array(
 			'diluxone_users_styles'        => 'site' === $look ? 0 : 1,
 			'diluxone_users_colors'        => 'theme' === $look ? 'theme' : 'own',
-			// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- the saver sanitises the map key by key.
-			'diluxone_users_color_map'     => (array) wp_unslash( $_POST['diluxone_users_color_map'] ?? array() ),
+			'diluxone_users_color_map'     => (array) map_deep( wp_unslash( $_POST['diluxone_users_color_map'] ?? array() ), 'sanitize_key' ),
 			'diluxone_users_style_accent'  => sanitize_hex_color( wp_unslash( $_POST['diluxone_users_style_accent'] ?? '' ) ) ?? '',
 			'diluxone_users_style_radius'  => sanitize_text_field( wp_unslash( $_POST['diluxone_users_style_radius'] ?? '' ) ),
 			'diluxone_users_style_control' => sanitize_text_field( wp_unslash( $_POST['diluxone_users_style_control'] ?? '' ) ),
@@ -54,6 +53,8 @@ function diluxone_users_design_brand_save(): void {
 			'diluxone_users_button_style'  => sanitize_key( wp_unslash( $_POST['diluxone_users_button_style'] ?? 'solid' ) ),
 			'diluxone_users_button_icons'  => isset( $_POST['diluxone_users_button_icons'] ) ? 1 : 0,
 			'diluxone_users_notice_style'  => 'soft' === sanitize_key( wp_unslash( $_POST['diluxone_users_notice_style'] ?? '' ) ) ? 'soft' : 'bar',
+			// The mark shown above the sign-in form, picked on this tab.
+			'diluxone_users_login_logo'    => absint( wp_unslash( $_POST['diluxone_users_login_logo'] ?? 0 ) ),
 		)
 	);
 	// phpcs:enable

@@ -7,7 +7,8 @@
  *
  * @var string                              $state     What happened.
  * @var array<int, array<string, mixed>>    $fields    What is asked for, besides the address.
- * @var bool                                $open      Whether anybody may register at all.
+ * @var bool                                $open      Whether the form takes accounts.
+ * @var bool                                $by_link   Whether accounts are created by signing in with an e-mail link instead.
  * @var array<string, array<string, mixed>> $providers Networks, when they can create accounts.
  *
  * @package DiluxOneUsers
@@ -31,9 +32,26 @@ defined( 'ABSPATH' ) || exit;
 			<span><?php echo esc_html( diluxone_users_text( 'diluxone_users_sent_note', __( 'Did not arrive? Check your spam or promotions folder.', 'diluxone-users' ) ) ); ?></span>
 		</p>
 
+	<?php elseif ( ! $open && ! empty( $by_link ) ) : ?>
+
+		<h2 class="diluxone-users-login__title"><?php esc_html_e( 'Sign in to create your account', 'diluxone-users' ); ?></h2>
+		<p><?php esc_html_e( 'There is no form to fill in: sign in with your e-mail and the account is created the first time.', 'diluxone-users' ); ?></p>
+		<p>
+			<a class="diluxone-users-button diluxone-users-button--soft" href="<?php echo esc_url( diluxone_users_login_url() ); ?>">
+				<?php esc_html_e( 'Sign in', 'diluxone-users' ); ?>
+			</a>
+		</p>
+
 	<?php elseif ( ! $open ) : ?>
 
 		<h2 class="diluxone-users-login__title"><?php esc_html_e( 'Registration is closed', 'diluxone-users' ); ?></h2>
+		<?php if ( 'closed' === $state ) : ?>
+			<?php
+			// A form was sent to a site that has stopped taking accounts since
+			// it was drawn: that is the message the site wrote for it.
+			diluxone_users_login_notice( 'register_closed' );
+			?>
+		<?php endif; ?>
 		<p><?php esc_html_e( 'This site does not take new accounts right now. If you already have one, you can sign in.', 'diluxone-users' ); ?></p>
 		<p>
 			<a class="diluxone-users-button diluxone-users-button--soft" href="<?php echo esc_url( diluxone_users_login_url() ); ?>">
@@ -92,7 +110,7 @@ defined( 'ABSPATH' ) || exit;
 		<?php endif; ?>
 
 		<form class="diluxone-users-form" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
-			<input type="hidden" name="action" value="diluxone_users_registro">
+			<input type="hidden" name="action" value="diluxone_users_signup">
 			<?php wp_nonce_field( 'diluxone_users_register', 'diluxone_users_register_nonce' ); ?>
 
 			<?php

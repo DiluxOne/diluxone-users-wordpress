@@ -632,36 +632,35 @@ function diluxoneUsersChoiceGroups( root ) {
 	var current = 0;
 
 	/**
-	 * What the form says right now.
-	 *
-	 * Unticked boxes are sent as 0 rather than left out: leaving them out is
-	 * how a preview ends up showing something that was just turned off.
+	 * What the form says right now, as the form itself would send it: an
+	 * unticked box is not sent, and a field named `list[]` or `map[key]` is
+	 * sent under that name, every one of them. The server runs the panel's
+	 * own save over it without writing, so it has to look exactly like a
+	 * save.
 	 */
 	function values() {
-		var out = {};
+		var out = [];
 
 		form.querySelectorAll( 'input, select, textarea' ).forEach( function ( field ) {
 			var name = field.name;
 
-			if ( ! name || 0 !== name.indexOf( 'diluxone_users_' ) ) {
+			if ( ! name || 0 !== name.indexOf( 'diluxone_users_' ) || field.disabled ) {
 				return;
 			}
 
-			if ( 'checkbox' === field.type ) {
-				out[ name ] = field.checked ? field.value || '1' : '0';
+			if ( ( 'checkbox' === field.type || 'radio' === field.type ) && ! field.checked ) {
+				return;
+			}
+
+			if ( 'select-multiple' === field.type ) {
+				Array.prototype.forEach.call( field.selectedOptions, function ( option ) {
+					out.push( [ name, option.value ] );
+				} );
 
 				return;
 			}
 
-			if ( 'radio' === field.type ) {
-				if ( field.checked ) {
-					out[ name ] = field.value;
-				}
-
-				return;
-			}
-
-			out[ name ] = field.value;
+			out.push( [ name, 'checkbox' === field.type ? field.value || '1' : field.value ] );
 		} );
 
 		return out;
@@ -676,10 +675,15 @@ function diluxoneUsersChoiceGroups( root ) {
 		body.set( 'screen', screen );
 		body.set( 'panel', panel );
 
-		var all = values();
+		// `name[key]` travels as `values[name][key]` and `name[]` as
+		// `values[name][]`: nested one level down, never flattened.
+		values().forEach( function ( pair ) {
+			var at = pair[ 0 ].indexOf( '[' );
+			var key = -1 === at
+				? 'values[' + pair[ 0 ] + ']'
+				: 'values[' + pair[ 0 ].slice( 0, at ) + ']' + pair[ 0 ].slice( at );
 
-		Object.keys( all ).forEach( function ( key ) {
-			body.set( 'values[' + key + ']', all[ key ] );
+			body.append( key, pair[ 1 ] );
 		} );
 
 		box.classList.add( 'is-working' );
@@ -1003,4 +1007,29 @@ function diluxoneUsersChoiceGroups( root ) {
 	} else {
 		all();
 	}
+}() );
+
+/**
+ * Asking before something that cannot be undone, and filters that apply as
+ * soon as they change. Said in the markup (`data-diluxone-users-confirm`,
+ * `data-diluxone-users-autosubmit`) and wired here, once, for the whole page.
+ */
+( function () {
+	'use strict';
+
+	document.addEventListener( 'click', function ( event ) {
+		var link = event.target.closest ? event.target.closest( 'a[data-diluxone-users-confirm]' ) : null;
+
+		if ( link && ! window.confirm( link.getAttribute( 'data-diluxone-users-confirm' ) ) ) {
+			event.preventDefault();
+		}
+	} );
+
+	document.addEventListener( 'change', function ( event ) {
+		var field = event.target;
+
+		if ( field.hasAttribute && field.hasAttribute( 'data-diluxone-users-autosubmit' ) && field.form ) {
+			field.form.submit();
+		}
+	} );
 }() );

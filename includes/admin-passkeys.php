@@ -174,9 +174,15 @@ function diluxone_users_screen_login_passkeys(): void {
 function diluxone_users_passkeys_count(): int {
 	global $wpdb;
 
+	// Of this site's people (whoever has a role here), as every number on
+	// these screens: on a network the meta is the network's.
 	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- user meta has no API that counts, and the number has to be the one from now.
 	return (int) $wpdb->get_var(
-		$wpdb->prepare( "SELECT COUNT(DISTINCT user_id) FROM {$wpdb->usermeta} WHERE meta_key = %s AND meta_value != ''", 'diluxone_users_passkeys' )
+		$wpdb->prepare(
+			"SELECT COUNT(DISTINCT m.user_id) FROM {$wpdb->usermeta} m INNER JOIN {$wpdb->usermeta} c ON c.user_id = m.user_id AND c.meta_key = %s WHERE m.meta_key = %s AND m.meta_value != ''",
+			$wpdb->get_blog_prefix() . 'capabilities',
+			'diluxone_users_passkeys'
+		)
 	);
 }
 

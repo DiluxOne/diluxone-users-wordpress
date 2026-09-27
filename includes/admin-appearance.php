@@ -239,7 +239,7 @@ function diluxone_users_screen_appearance_template(): void {
 
 	diluxone_users_ui_section( __( 'The menu', 'diluxone-users' ) );
 
-	diluxone_users_forzado_aviso( 'diluxone_users_account_layout' );
+	diluxone_users_forced_notice( 'diluxone_users_account_layout' );
 
 	$layouts = array(
 		'tabs' => __( 'Tabs across the top', 'diluxone-users' ),
@@ -617,19 +617,19 @@ function diluxone_users_screen_design_brand(): void {
 	diluxone_users_ui_section( __( 'Where the plugin’s look comes from', 'diluxone-users' ) );
 
 	$theme = array(
-		'name'     => 'diluxone_users_look',
-		'value'    => 'theme',
-		'id'       => 'diluxone_users_look_theme',
-		'checked'  => 'theme' === $look,
-		'disabled' => array() === $palette,
-		'title'    => sprintf(
+		'name'    => 'diluxone_users_look',
+		'value'   => 'theme',
+		'id'      => 'diluxone_users_look_theme',
+		'checked' => 'theme' === $look,
+
+		'title'   => sprintf(
 			/* translators: %s: the active theme's name. */
 			__( 'From your theme — %s', 'diluxone-users' ),
 			(string) wp_get_theme()->get( 'Name' )
 		),
-		'help'     => array() === $palette
-			? __( 'Your theme publishes no palette, so there is nothing to take. A theme declares one in its theme.json, and most themes written since 2022 do.', 'diluxone-users' )
-			: __( 'The plugin paints itself with the palette your theme publishes, and goes on following it — into the theme’s own dark mode as well, where it hands over a variable rather than a colour. There is nothing else to choose.', 'diluxone-users' ),
+		'help'    => array() === $palette
+			? __( 'Your theme publishes no palette, so the plugin takes the colours your theme paints: the colour of its links and buttons, of its text, its page ground and the edge of its fields, measured on the site itself. There is nothing else to choose.', 'diluxone-users' )
+			: __( 'The plugin paints itself with the palette your theme publishes, and goes on following it — into the theme’s own dark mode as well, where it hands over a variable rather than a colour. Any part the palette does not name is taken from what your theme paints on the site. There is nothing else to choose.', 'diluxone-users' ),
 	);
 
 	// Offered only where there is a palette to map. With none, the answer above

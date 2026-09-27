@@ -76,7 +76,7 @@ function diluxone_users_tools_action(): void {
 
 	check_admin_referer( 'diluxone_users_tools' );
 
-	// phpcs:ignore WordPress.Security.NonceVerification.Missing -- verificado arriba.
+	// phpcs:ignore WordPress.Security.NonceVerification.Missing -- verified above.
 	$tool = isset( $_POST['tool'] ) ? sanitize_key( wp_unslash( $_POST['tool'] ) ) : '';
 
 	// A map and not a switch: every tool ends in a redirect that stops
@@ -125,7 +125,7 @@ add_action( 'admin_post_diluxone_users_tools', 'diluxone_users_tools_action' );
  * @return never
  */
 function diluxone_users_tool_send_code(): void {
-	// phpcs:ignore WordPress.Security.NonceVerification.Missing -- verificado en diluxone_users_tools_action().
+	// phpcs:ignore WordPress.Security.NonceVerification.Missing -- verified in diluxone_users_tools_action().
 	$typed = sanitize_email( wp_unslash( $_POST['email'] ?? '' ) );
 	$user  = '' !== $typed ? get_user_by( 'email', $typed ) : false;
 
@@ -158,7 +158,7 @@ function diluxone_users_tool_send_code(): void {
  * @return never
  */
 function diluxone_users_tool_close_sessions(): void {
-	// phpcs:disable WordPress.Security.NonceVerification.Missing -- verificado en diluxone_users_tools_action().
+	// phpcs:disable WordPress.Security.NonceVerification.Missing -- verified in diluxone_users_tools_action().
 	$scope = isset( $_POST['scope'] ) ? sanitize_key( wp_unslash( $_POST['scope'] ) ) : 'one';
 	$typed = sanitize_email( wp_unslash( $_POST['close_email'] ?? '' ) );
 	// phpcs:enable
@@ -199,16 +199,93 @@ function diluxone_users_tool_settings(): array {
 	$out = array();
 
 	foreach ( array_keys( diluxone_users_option_defaults() ) as $key ) {
-		if ( 'diluxone_users_sso' === $key ) {
+		if ( in_array( $key, diluxone_users_tool_not_carried(), true ) ) {
 			continue;
 		}
 
-		$out[ $key ] = diluxone_users_option( $key );
+		// What the site set, not what it reads by default: a default written
+		// into the file comes back as a stored value, and the next version's
+		// default would no longer reach this site.
+		$stored = get_option( $key, null );
+
+		if ( null !== $stored ) {
+			$out[ $key ] = $stored;
+		}
 	}
 
 	$out['diluxone_users_fields'] = get_option( 'diluxone_users_fields', array() );
 
 	return $out;
+}
+
+/**
+ * The settings a file never carries from one site to another.
+ *
+ * The social credentials are secrets of this site's apps. And the wipe on
+ * uninstall is a decision about this site's people that nobody should find
+ * already taken because they restored a file from somewhere else.
+ *
+ * @return array<int, string>
+ */
+function diluxone_users_tool_not_carried(): array {
+	return array( 'diluxone_users_sso', 'diluxone_users_uninstall_wipe' );
+}
+
+/**
+ * The account sections out of a file, typed one value at a time.
+ *
+ * Each section's configuration is a small record — a position, a label, a
+ * slug, text — and the generic path for lists of keys would flatten every
+ * one of them to a word. Unknown fields are dropped.
+ *
+ * @param mixed $value
+ * @return array<string, array<string, mixed>>
+ */
+function diluxone_users_tool_sections( $value ): array {
+	$clean = array();
+
+	foreach ( is_array( $value ) ? $value : array() as $id => $config ) {
+		if ( ! is_string( $id ) || '' === sanitize_key( $id ) || ! is_array( $config ) ) {
+			continue;
+		}
+
+		$one = array();
+
+		foreach ( $config as $field => $data ) {
+			switch ( $field ) {
+				case 'position':
+				case 'enabled':
+					$one[ $field ] = (int) $data;
+					break;
+				case 'custom':
+					$one[ $field ] = (bool) $data;
+					break;
+				case 'label':
+					$one[ $field ] = sanitize_text_field( (string) $data );
+					break;
+				case 'slug':
+					$one[ $field ] = sanitize_title( (string) $data );
+					break;
+				case 'intro':
+					$one[ $field ] = sanitize_text_field( (string) $data );
+					break;
+				case 'content':
+					$one[ $field ] = wp_kses_post( (string) $data );
+					break;
+				case 'placement':
+				case 'visibility':
+					$one[ $field ] = sanitize_key( (string) $data );
+					break;
+				case 'roles':
+					$one[ $field ] = array_values( array_map( 'sanitize_key', array_map( 'strval', (array) $data ) ) );
+					break;
+			}
+		}
+
+		$clean[ sanitize_key( $id ) ] = $one;
+	}
+
+	return $clean;
 }
 
 /**
@@ -236,6 +313,68 @@ function diluxone_users_tool_export(): void {
 }
 
 /**
+ * Writes the settings of an export file, each through what types it.
+ *
+ * Apart from the upload so the part that decides what gets written can be
+ * exercised on its own.
+ *
+ * @param array<mixed> $settings The `settings` of an export file.
+ * @return int How many settings were written.
+ */
+function diluxone_users_tool_restore( array $settings ): int {
+	$known   = array_keys( diluxone_users_option_defaults() );
+	$written = 0;
+
+	foreach ( $settings as $key => $value ) {
+		if ( 'diluxone_users_fields' === $key && is_array( $value ) ) {
+			/*
+			 * Through the same normaliser the fields screen uses, and not
+			 * straight into the option. The docblock above has always said
+			 * only known keys are accepted; for this one key it was not true,
+			 * and the shape a hand-edited file could put in there is read
+			 * back on the account form — where the key of a "field" is the
+			 * user meta key it writes to.
+			 */
+			$fields = array();
+
+			foreach ( $value as $field ) {
+				$clean = is_array( $field ) ? diluxone_users_normalize_field( $field ) : array( 'key' => '' );
+
+				// A key the fields screen could have made: WordPress's own
+				// fields, or one under the plugin's prefix. Anything else is a
+				// key some other plugin writes, and a field with that key
+				// would read and write that plugin's data — and take it with
+				// it on uninstall.
+				$key_ok = diluxone_users_field_is_native( (string) $clean['key'] ) || 0 === strpos( (string) $clean['key'], 'diluxone_users_' );
+
+				if ( '' !== $clean['key'] && $key_ok && diluxone_users_field_key_allowed( (string) $clean['key'] ) ) {
+					$fields[] = $clean;
+				}
+			}
+
+			update_option( 'diluxone_users_fields', $fields );
+			++$written;
+			continue;
+		}
+
+		if ( ! in_array( $key, $known, true ) || in_array( $key, diluxone_users_tool_not_carried(), true ) ) {
+			continue;
+		}
+
+		if ( 'diluxone_users_account_sections' === $key ) {
+			update_option( $key, diluxone_users_tool_sections( $value ) );
+			++$written;
+			continue;
+		}
+
+		diluxone_users_save_options( array( $key => $value ) );
+		++$written;
+	}
+
+	return $written;
+}
+
+/**
  * Puts an exported JSON file back in.
  *
  * Only the keys the plugin knows are accepted. A file with rubbish inside —
@@ -245,8 +384,10 @@ function diluxone_users_tool_export(): void {
  * @return never
  */
 function diluxone_users_tool_import(): void {
+	// PHP's own temporary path: never slashed, so not unslashed either — that
+	// would strip the backslashes of a Windows path — and only a string.
 	// phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- verified above; the path is checked with is_uploaded_file() below and the content is validated as JSON.
-	$uploaded = isset( $_FILES['file']['tmp_name'] ) ? sanitize_text_field( wp_unslash( $_FILES['file']['tmp_name'] ) ) : '';
+	$uploaded = isset( $_FILES['file']['tmp_name'] ) && is_string( $_FILES['file']['tmp_name'] ) ? $_FILES['file']['tmp_name'] : '';
 	// phpcs:ignore WordPress.Security.NonceVerification.Missing -- verified above.
 	$problem = isset( $_FILES['file']['error'] ) ? (int) $_FILES['file']['error'] : UPLOAD_ERR_NO_FILE;
 
@@ -271,41 +412,7 @@ function diluxone_users_tool_import(): void {
 		diluxone_users_tool_done( __( 'That file is not a DiluxOne Users+ export.', 'diluxone-users' ), 'error' );
 	}
 
-	$known   = array_keys( diluxone_users_option_defaults() );
-	$written = 0;
-
-	foreach ( $json['settings'] as $key => $value ) {
-		if ( 'diluxone_users_fields' === $key && is_array( $value ) ) {
-			/*
-			 * Through the same normaliser the fields screen uses, and not
-			 * straight into the option. The docblock above has always said
-			 * only known keys are accepted; for this one key it was not true,
-			 * and the shape a hand-edited file could put in there is read
-			 * back on the account form — where the key of a "field" is the
-			 * user meta key it writes to.
-			 */
-			$fields = array();
-
-			foreach ( $value as $field ) {
-				$clean = is_array( $field ) ? diluxone_users_normalize_field( $field ) : array( 'key' => '' );
-
-				if ( '' !== $clean['key'] && diluxone_users_field_key_allowed( (string) $clean['key'] ) ) {
-					$fields[] = $clean;
-				}
-			}
-
-			update_option( 'diluxone_users_fields', $fields );
-			++$written;
-			continue;
-		}
-
-		if ( ! in_array( $key, $known, true ) || 'diluxone_users_sso' === $key ) {
-			continue;
-		}
-
-		diluxone_users_save_options( array( $key => $value ) );
-		++$written;
-	}
+	$written = diluxone_users_tool_restore( $json['settings'] );
 
 	diluxone_users_tool_done(
 		sprintf(
@@ -498,6 +605,15 @@ function diluxone_users_screen_tools_boxes(): void {
 			echo '> ';
 			esc_html_e( 'Remove everything this plugin wrote when it is deleted', 'diluxone-users' );
 			echo '</label></p>';
+
+			// On a network the profiles are everybody's: one site's answer
+			// takes its own settings and log, and the people only go when
+			// every site that uses the plugin gave the same answer.
+			if ( is_multisite() ) {
+				echo '<p class="description">';
+				esc_html_e( 'On this network, ticking it removes this site’s settings and activity log. What is in people’s profiles is shared by every site, so it is removed only when every site that uses the plugin has ticked it too.', 'diluxone-users' );
+				echo '</p>';
+			}
 			submit_button( __( 'Save', 'diluxone-users' ), 'secondary', 'submit', false );
 		}
 	);

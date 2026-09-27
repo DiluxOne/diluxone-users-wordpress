@@ -88,7 +88,7 @@ function diluxone_users_cookie_set( string $name, string $value, int $expires ):
 	setcookie( $name, $value, $options );
 }
 
-/* ── Los segundos factores disponibles ─────────────────────────────── */
+/* ── The second factors available ──────────────────────────────────── */
 
 /*
  * * A passkey is not on this list, and that is not an oversight: it is not a
@@ -189,9 +189,78 @@ function diluxone_users_2fa_available( int $user_id ): array {
  *      is a separate setting and comes turned off: a site that wants the
  *      second factor anyway turns it on.
  *
+ * On a network there is a fourth: the session this sign-in opens is valid on
+ * every site of the network, so a site that asks for the second step would be
+ * bypassed by signing in on one that does not. The person is asked when any
+ * site they can reach through that session asks it of them.
+ *
  * @param string $via 'password', 'link' or 'sso'.
  */
 function diluxone_users_2fa_required( int $user_id, string $via ): bool {
+	if ( diluxone_users_2fa_required_here( $user_id, $via ) ) {
+		return true;
+	}
+
+	foreach ( diluxone_users_2fa_other_sites( $user_id ) as $site ) {
+		switch_to_blog( $site );
+		$asked = diluxone_users_plugin_active_here() && diluxone_users_2fa_required_here( $user_id, $via );
+		restore_current_blog();
+
+		if ( $asked ) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+/**
+ * The other sites of the network this person's session reaches with a role.
+ *
+ * Their own sites, and for a super admin every site: a super admin has no role
+ * on most of them and administers all of them.
+ *
+ * @return array<int, int>
+ */
+function diluxone_users_2fa_other_sites( int $user_id ): array {
+	if ( ! is_multisite() ) {
+		return array();
+	}
+
+	$sites = is_super_admin( $user_id )
+		? array_map(
+			'intval',
+			get_sites(
+				array(
+					'fields' => 'ids',
+					'number' => 0,
+				)
+			)
+		)
+		: array_map( 'intval', array_keys( get_blogs_of_user( $user_id ) ) );
+
+	return array_values( array_diff( $sites, array( get_current_blog_id() ) ) );
+}
+
+/** Is the plugin running on the current site (on its own or for the whole network)? */
+function diluxone_users_plugin_active_here(): bool {
+	$file = plugin_basename( DILUXONE_USERS_FILE );
+
+	return isset( ( (array) get_site_option( 'active_sitewide_plugins', array() ) )[ $file ] )
+		|| in_array( $file, (array) get_option( 'active_plugins', array() ), true );
+}
+
+/**
+ * The same question as diluxone_users_2fa_required(), about the current site only.
+ *
+ * Asked again after `switch_to_blog()`, where the same arguments get another
+ * site's answer — hence the tag, or the analyser reuses the first one.
+ *
+ * @param string $via 'password', 'link' or 'sso'.
+ *
+ * @phpstan-impure
+ */
+function diluxone_users_2fa_required_here( int $user_id, string $via ): bool {
 	$mode = (string) diluxone_users_option( 'diluxone_users_2fa_mode' );
 
 	if ( 'off' === $mode ) {
@@ -393,6 +462,12 @@ function diluxone_users_2fa_trust( int $user_id ): void {
  * @param string $redirect Where they go afterwards.
  */
 function diluxone_users_complete_login( int $user_id, string $via, bool $remember = true, string $redirect = '' ): void {
+	// Every door ends here once the person has proved who they are — the link
+	// clicked, the provider answered, the passkey signed — and on a network
+	// that is the moment they become a member of this site, if it takes
+	// members. Not before: asking for a link proves nothing.
+	diluxone_users_join_site( $user_id );
+
 	$redirect = '' !== $redirect ? $redirect : (string) apply_filters( 'diluxone_users_login_redirect', home_url( '/' ), $user_id );
 
 	// A passkey goes straight in: it already proved both things.
@@ -423,8 +498,15 @@ function diluxone_users_complete_login( int $user_id, string $via, bool $remembe
  * depend on a session cookie that does not exist yet.
  */
 function diluxone_users_2fa_challenge( int $user_id, string $via, bool $remember, string $redirect ): void {
-	// Just in case: if some door left the cookie set, it is taken away. A
-	// session opened before the second factor is having no second factor.
+	// If some door already opened a session, it is closed: a session opened
+	// before the second factor is having no second factor. Clearing the
+	// cookie is not enough — the valid one is already in the response
+	// headers, ahead of the expired one, and a client that keeps the first
+	// is signed in. The session it names has to stop existing.
+	foreach ( diluxone_users_2fa_session_tokens( $user_id ) as $token ) {
+		WP_Session_Tokens::get_instance( $user_id )->destroy( $token );
+	}
+
 	wp_clear_auth_cookie();
 
 	$nonce = diluxone_users_2fa_pending_start( $user_id, $via, $remember, $redirect );
@@ -493,7 +575,7 @@ function diluxone_users_2fa_pending_start( int $user_id, string $via, bool $reme
  * @return array<string, mixed>
  */
 function diluxone_users_2fa_pending( int $user_id, string $nonce ): array {
-	$pending = (array) get_user_meta( $user_id, 'diluxone_users_2fa_pending', true );
+	$pending = diluxone_users_meta_list( $user_id, 'diluxone_users_2fa_pending' );
 
 	if ( array() === $pending || (int) ( $pending['expires'] ?? 0 ) < time() ) {
 		return array();
@@ -526,14 +608,24 @@ function diluxone_users_2fa_locked( int $user_id ): bool {
  * Counts a wrong code against the account and closes the door when there
  * have been too many.
  *
+ * @return int How many failures the account has now.
+ */
+function diluxone_users_2fa_fail( int $user_id ): int {
+	return diluxone_users_2fa_close( $user_id, diluxone_users_2fa_count( $user_id, 1 ) );
+}
+
+/**
+ * Moves the account's count by one, in the database.
+ *
  * The increment is left to MySQL rather than read here and written back:
  * twenty codes submitted at once all read the same number, all write the same
  * number, and twenty guesses cost one. `meta_value + 1` is one statement and
  * cannot be interleaved, which is the only version of this that is a limit.
  *
- * @return int How many failures the account has now.
+ * @param int $by 1 to count a try, -1 to give back one that was not used.
+ * @return int The count after the move.
  */
-function diluxone_users_2fa_fail( int $user_id ): int {
+function diluxone_users_2fa_count( int $user_id, int $by ): int {
 	global $wpdb;
 
 	add_user_meta( $user_id, 'diluxone_users_2fa_fails', 0, true );
@@ -541,7 +633,8 @@ function diluxone_users_2fa_fail( int $user_id ): int {
 	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- an increment only the database can do without a race; the cache is dropped right below.
 	$wpdb->query(
 		$wpdb->prepare(
-			"UPDATE {$wpdb->usermeta} SET meta_value = meta_value + 1 WHERE user_id = %d AND meta_key = %s",
+			"UPDATE {$wpdb->usermeta} SET meta_value = GREATEST( 0, CAST( meta_value AS SIGNED ) + %d ) WHERE user_id = %d AND meta_key = %s",
+			$by,
 			$user_id,
 			'diluxone_users_2fa_fails'
 		)
@@ -549,8 +642,19 @@ function diluxone_users_2fa_fail( int $user_id ): int {
 
 	wp_cache_delete( $user_id, 'user_meta' );
 
-	$fails = (int) get_user_meta( $user_id, 'diluxone_users_2fa_fails', true );
+	return (int) get_user_meta( $user_id, 'diluxone_users_2fa_fails', true );
+}
 
+/**
+ * Closes the door if this many failures are too many.
+ *
+ * It also remembers at which count it closed: once the wait is over, exactly
+ * one more try is let through before it closes again for longer, and that
+ * count is how the try is recognised.
+ *
+ * @return int The count it was given.
+ */
+function diluxone_users_2fa_close( int $user_id, int $fails ): int {
 	if ( $fails >= DILUXONE_USERS_2FA_LOCK_AFTER ) {
 		// Doubling, capped twice over: the exponent so the arithmetic stays
 		// an integer, and the result so an account is never locked for good.
@@ -558,15 +662,42 @@ function diluxone_users_2fa_fail( int $user_id ): int {
 		$wait = (int) min( DILUXONE_USERS_2FA_LOCK_MAX, DILUXONE_USERS_2FA_LOCK_WAIT * ( 2 ** $over ) );
 
 		update_user_meta( $user_id, 'diluxone_users_2fa_lock', time() + $wait );
+		update_user_meta( $user_id, 'diluxone_users_2fa_lock_at', $fails );
 	}
 
 	return $fails;
+}
+
+/**
+ * Takes one try from the account before a code is looked at.
+ *
+ * Asking whether the door is closed and then counting the failure leaves a
+ * gap: a burst of requests all find it open, and every one of them gets its
+ * guess before the first failure is counted. So the try is taken first, in
+ * one statement, and only the ones inside the allowance are looked at — the
+ * limit before the first lock, then one per wait. A try that is refused is
+ * given back, so a burst cannot push the count past the next allowance.
+ *
+ * @return int|null The count this try holds, or null when there was none left.
+ */
+function diluxone_users_2fa_reserve( int $user_id ): ?int {
+	$fails   = diluxone_users_2fa_count( $user_id, 1 );
+	$lock_at = (int) get_user_meta( $user_id, 'diluxone_users_2fa_lock_at', true );
+
+	if ( $fails <= DILUXONE_USERS_2FA_LOCK_AFTER || ( $lock_at > 0 && $fails === $lock_at + 1 ) ) {
+		return $fails;
+	}
+
+	diluxone_users_2fa_count( $user_id, -1 );
+
+	return null;
 }
 
 /** A code that was right: the account starts from zero again. */
 function diluxone_users_2fa_forgive( int $user_id ): void {
 	delete_user_meta( $user_id, 'diluxone_users_2fa_fails' );
 	delete_user_meta( $user_id, 'diluxone_users_2fa_lock' );
+	delete_user_meta( $user_id, 'diluxone_users_2fa_lock_at' );
 }
 
 /**
@@ -627,7 +758,7 @@ function diluxone_users_2fa_send( int $user_id, string $method ): void {
 
 	// The attempt keeps the time of the last send: that is what the resend
 	// limit is measured from.
-	$pending = (array) get_user_meta( $user_id, 'diluxone_users_2fa_pending', true );
+	$pending = diluxone_users_meta_list( $user_id, 'diluxone_users_2fa_pending' );
 
 	if ( array() !== $pending ) {
 		$pending['sent'] = time();
@@ -656,6 +787,12 @@ function diluxone_users_2fa_reauth( int $user_id, string $code ): bool {
 		return false;
 	}
 
+	$fails = diluxone_users_2fa_reserve( $user_id );
+
+	if ( null === $fails ) {
+		return false;
+	}
+
 	if ( diluxone_users_backup_use( $user_id, $code ) ) {
 		diluxone_users_2fa_forgive( $user_id );
 
@@ -670,7 +807,7 @@ function diluxone_users_2fa_reauth( int $user_id, string $code ): bool {
 		}
 	}
 
-	diluxone_users_2fa_fail( $user_id );
+	diluxone_users_2fa_close( $user_id, $fails );
 
 	/** This action is documented in includes/auth.php */
 	do_action( 'diluxone_users_2fa_failed', $user_id, 'reauth' );
@@ -693,6 +830,12 @@ function diluxone_users_2fa_verify( int $user_id, string $method, string $code )
 		return false;
 	}
 
+	$fails = diluxone_users_2fa_reserve( $user_id );
+
+	if ( null === $fails ) {
+		return false;
+	}
+
 	if ( diluxone_users_backup_use( $user_id, $code ) ) {
 		diluxone_users_2fa_forgive( $user_id );
 
@@ -708,7 +851,7 @@ function diluxone_users_2fa_verify( int $user_id, string $method, string $code )
 		return true;
 	}
 
-	diluxone_users_2fa_fail( $user_id );
+	diluxone_users_2fa_close( $user_id, $fails );
 
 	/**
 	 * Fires when a second-factor code was refused.
@@ -739,7 +882,7 @@ function diluxone_users_2fa_handle(): void {
 		return;
 	}
 
-	$user_id = absint( $_POST['diluxone_users_2fa_user'] );
+	$user_id = absint( wp_unslash( $_POST['diluxone_users_2fa_user'] ) );
 	$key     = sanitize_text_field( wp_unslash( $_POST['diluxone_users_2fa_key'] ) );
 	$method  = sanitize_key( wp_unslash( $_POST['diluxone_users_2fa_method'] ?? '' ) );
 	$code    = sanitize_text_field( wp_unslash( $_POST['diluxone_users_2fa_code'] ?? '' ) );
@@ -798,7 +941,12 @@ function diluxone_users_2fa_handle(): void {
 		exit;
 	}
 
-	delete_user_meta( $user_id, 'diluxone_users_2fa_pending' );
+	// The attempt is spent by whoever deletes it: two right codes sent at
+	// once open one session, not two.
+	if ( ! delete_user_meta( $user_id, 'diluxone_users_2fa_pending' ) ) {
+		wp_safe_redirect( add_query_arg( 'diluxone-users', 'expired', diluxone_users_login_url() ) );
+		exit;
+	}
 
 	if ( $trust ) {
 		diluxone_users_2fa_trust( $user_id );
@@ -837,6 +985,65 @@ function diluxone_users_2fa_after_password( string $login, WP_User $user ): void
 	diluxone_users_2fa_challenge( (int) $user->ID, 'password', $remember, $redirect );
 }
 add_action( 'wp_login', 'diluxone_users_2fa_after_password', 10, 2 );
+
+/**
+ * A password sign-in that actually opened a session, told the way every other
+ * door tells it.
+ *
+ * At 999 and not at 10, and the number is the whole trick. The second step
+ * hangs off this same hook at 10: when it applies, it clears the session and
+ * redirects to the challenge without returning, so a listener further down the
+ * line never runs. That is exactly right — at that moment nobody has signed
+ * in, they have typed a password correctly — and it means this fires only when
+ * the session really is open. Whoever finishes the second step is announced by
+ * the challenge instead. Everything that listens for somebody coming in — the
+ * log, the new-device notice — then hears the password too.
+ *
+ * @param string  $login The username, which is not used: the account is.
+ * @param WP_User $user
+ */
+function diluxone_users_password_logged_in( string $login, WP_User $user ): void {
+	/** This action is documented in includes/auth.php */
+	do_action( 'diluxone_users_logged_in', (int) $user->ID, 'password' );
+}
+add_action( 'wp_login', 'diluxone_users_password_logged_in', 999, 2 );
+
+/**
+ * The sessions this request opened, by person.
+ *
+ * `wp_signon()` creates the session and sends its cookie before `wp_login`
+ * fires, and nothing hands the session over afterwards. This listens as it
+ * is created, so the challenge can destroy exactly that one and no other
+ * session the person has open elsewhere.
+ *
+ * @param int         $user_id Whose sessions.
+ * @param string|null $token   A session to remember; null to only read.
+ * @return array<int, string>
+ */
+function diluxone_users_2fa_session_tokens( int $user_id, ?string $token = null ): array {
+	static $tokens = array();
+
+	if ( null !== $token && '' !== $token ) {
+		$tokens[ $user_id ][] = $token;
+	}
+
+	return $tokens[ $user_id ] ?? array();
+}
+
+/**
+ * Hears every session this request opens.
+ *
+ * @param string $cookie     The cookie value (unused).
+ * @param int    $expire     When the cookie expires (unused).
+ * @param int    $expiration When the session expires (unused).
+ * @param int    $user_id    Whose session.
+ * @param string $scheme     The cookie scheme (unused).
+ * @param string $token      The session token.
+ */
+function diluxone_users_2fa_hear_session( $cookie, $expire, $expiration, $user_id, $scheme, $token ): void {
+	diluxone_users_2fa_session_tokens( (int) $user_id, (string) $token );
+}
+add_action( 'set_logged_in_cookie', 'diluxone_users_2fa_hear_session', 10, 6 );
 
 /*
  * The doors with no screen.
@@ -1020,14 +1227,18 @@ function diluxone_users_backup_left( int $user_id ): int {
  */
 function diluxone_users_backup_use( int $user_id, string $code ): bool {
 	$code   = strtolower( trim( str_replace( array( ' ', '-' ), '', $code ) ) );
-	$hashes = (array) get_user_meta( $user_id, 'diluxone_users_backup_codes', true );
+	$hashes = diluxone_users_meta_list( $user_id, 'diluxone_users_backup_codes' );
+
+	$before = $hashes;
 
 	foreach ( $hashes as $i => $hash ) {
 		if ( wp_check_password( $code, (string) $hash, $user_id ) ) {
 			unset( $hashes[ $i ] );
-			update_user_meta( $user_id, 'diluxone_users_backup_codes', array_values( $hashes ) );
 
-			return true;
+			// Written only over the list that was read: of two requests
+			// spending the same code, the second finds the list changed and
+			// its write fails, so it does not get in.
+			return (bool) update_user_meta( $user_id, 'diluxone_users_backup_codes', array_values( $hashes ), $before );
 		}
 	}
 

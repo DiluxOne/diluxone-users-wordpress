@@ -57,12 +57,14 @@ class FieldKeyTest extends TestCase {
 			'the passkey list'                => array( 'diluxone_users_passkeys', false ),
 			'a passkey index row'             => array( 'diluxone_users_pk_abc', false ),
 			'a linked social account'         => array( 'diluxone_users_sso_google', false ),
+			'the primary site of a network'   => array( 'primary_blog', false ),
+			'the domain it signed up on'      => array( 'source_domain', false ),
 			'the public name'                 => array( 'diluxone_users_handle', false ),
 			'the avatar'                      => array( 'diluxone_users_avatar', false ),
 			'the known devices'               => array( 'diluxone_users_devices', false ),
 			'a notification switch'           => array( 'diluxone_users_notify_login', false ),
 			'an edit counter'                 => array( 'diluxone_users_edits_first_name', false ),
-			'the sign-in token'               => array( '_diluxone_users_acceso_hash', false ),
+			'the sign-in token'               => array( '_diluxone_users_link_hash', false ),
 		);
 	}
 

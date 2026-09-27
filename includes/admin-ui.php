@@ -108,7 +108,21 @@ function diluxone_users_admin_scheme(): array {
  * site can have picked different ones.
  */
 function diluxone_users_admin_tokens(): string {
+	// The scheme can come from a filter, and what it returns goes into a
+	// stylesheet: a colour, or the default, and nothing that could close the
+	// rule it is written into.
 	$scheme = diluxone_users_admin_scheme();
+	$safe   = static function ( $value, string $fallback ): string {
+		$clean = diluxone_users_color_value( (string) $value );
+
+		return '' === $clean ? $fallback : $clean;
+	};
+
+	$scheme = array(
+		'accent'      => $safe( $scheme['accent'], '#2271b1' ),
+		'accent_soft' => $safe( $scheme['accent_soft'], '#72aee6' ),
+		'ink'         => $safe( $scheme['ink'], '#1d2327' ),
+	);
 
 	return ':root{'
 		. '--du-accent:' . $scheme['accent'] . ';'

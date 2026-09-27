@@ -408,7 +408,7 @@ function diluxone_users_notice( string $text, string $type = 'success' ): void {
  * notice, and because the day a third pinnable setting arrives nobody has to
  * remember to copy the text correctly.
  */
-function diluxone_users_forzado_aviso( string $key ): void {
+function diluxone_users_forced_notice( string $key ): void {
 	if ( ! diluxone_users_option_forced( $key ) ) {
 		return;
 	}
@@ -477,9 +477,10 @@ function diluxone_users_admin_styles( string $hook ): void {
 	// the form somebody signing up meets. They render the real templates, and
 	// a real template without its stylesheet is not what the site serves.
 	//
-	// It is loaded whatever the setting says: the account preview has to be
-	// able to show both answers without a reload, and the "off" one is drawn
-	// by stripping it back in the browser.
+	// It is loaded whatever the setting says: the previews are drawn by the
+	// server with what is on the form (see diluxone_users_preview_request()),
+	// and a template has to be able to show either answer.
+	//
 	// The registration screen is not on this list because it is not a screen:
 	// it became a tab of the sign-in one, which is here. A slug no `$hook` can
 	// ever contain is a line that reads like it does something.

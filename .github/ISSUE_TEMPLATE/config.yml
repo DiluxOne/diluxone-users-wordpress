@@ -2,7 +2,7 @@ blank_issues_enabled: false
 contact_links:
   - name: 💬 End-user support question
     url: https://wordpress.org/support/plugin/diluxone-users/
-    about: For "how do I configure this?", "my upload is not working", and other usage questions, please use the official wp.org support forum — that's where most users look for answers.
+    about: For "how do I configure this?", "my sign-in link does not arrive", and other usage questions, please use the wordpress.org support forum once the plugin is published. Answers stay public there for the next person.
   - name: 🔒 Report a security vulnerability
-    url: https://github.com/soydiloreto/diluxone-users-wordpress/security/advisories/new
+    url: https://github.com/DiluxOne/diluxone-users-wordpress/security/advisories/new
     about: Security issues must be reported privately via GitHub Security Advisories. Do NOT open a public issue.

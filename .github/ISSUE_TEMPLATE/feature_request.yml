@@ -9,15 +9,16 @@ body:
         Thanks for proposing a new feature. To help us evaluate the request, please answer the questions below.
 
         Before submitting:
-        - Search [existing issues](https://github.com/soydiloreto/diluxone-users-wordpress/issues?q=is%3Aissue) to make sure this is not a duplicate.
-        - For end-user questions ("how do I…?"), use the [wp.org support forum](https://wordpress.org/support/plugin/diluxone-users/) instead.
+        - Search [existing issues](https://github.com/DiluxOne/diluxone-users-wordpress/issues?q=is%3Aissue) to make sure this is not a duplicate.
+        - For end-user questions ("how do I…?"), use the [wordpress.org support forum](https://wordpress.org/support/plugin/diluxone-users/) once the plugin is published.
+        - The plugin deliberately knows nothing about courses, memberships, shops or forums: those connect through a filter or a shortcode. If what you need is a hook, say which one.
 
   - type: textarea
     id: problem
     attributes:
       label: What problem are you trying to solve?
       description: Describe the use case or pain point that motivates this request. Focus on the *why*, not the *how*.
-      placeholder: As a [type of user], I want to [goal] so that [benefit].
+      placeholder: As a [type of site owner or member], I want to [goal] so that [benefit].
     validations:
       required: true
 
@@ -25,7 +26,7 @@ body:
     id: proposed-solution
     attributes:
       label: Proposed solution
-      description: How would you like the plugin to behave? Be specific — what UI element, setting, API, or behavior change are you imagining?
+      description: How would you like the plugin to behave? Be specific — which screen, setting, hook or behaviour change are you imagining?
     validations:
       required: true
 
@@ -41,14 +42,20 @@ body:
       label: Which area of the plugin does this affect?
       multiple: true
       options:
-        - Área de cuenta / Campos / Acceso / Login social / 2FA / Passkeys / Sesiones
-        - Stream wrapper / filesystem layer
-        - Sync engine
-        - Offloading mode
-        - Admin UI
-        - Settings / configuration
-        - Connection health / monitoring
+        - User fields
+        - Account area
+        - Sign-in (e-mail link, password, the sign-in page)
+        - Registration and password reset
+        - Social login
+        - Two-step verification
+        - Passkeys
+        - Sessions
+        - Privacy (export and erasure)
+        - Notifications and e-mails
+        - Design and templates
+        - Admin screens
         - Multisite
+        - Hooks for add-ons and themes
         - Translations / i18n
         - Other / not sure
     validations:

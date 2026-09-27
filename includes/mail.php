@@ -20,15 +20,30 @@
 
 defined( 'ABSPATH' ) || exit;
 
-/** Records that a send went through. */
+/**
+ * Records that a send went through.
+ *
+ * Any send, the site's and other plugins' alike: the question is whether this
+ * site delivers mail at all, and every send answers it. But a site that sends
+ * a thousand mails an hour must not write a thousand rows for it — the answer
+ * is written when it changes, and refreshed at most once an hour.
+ */
 function diluxone_users_mail_ok(): void {
+	$last = get_option( 'diluxone_users_mail_last', false );
+
+	if ( is_array( $last ) && ! empty( $last['ok'] ) && time() - (int) ( $last['time'] ?? 0 ) < HOUR_IN_SECONDS ) {
+		return;
+	}
+
+	// Not autoloaded: two screens read it, no page needs it.
 	update_option(
 		'diluxone_users_mail_last',
 		array(
 			'ok'    => 1,
 			'time'  => time(),
 			'error' => '',
-		)
+		),
+		false
 	);
 }
 add_action( 'wp_mail_succeeded', 'diluxone_users_mail_ok' );
@@ -39,13 +54,16 @@ add_action( 'wp_mail_succeeded', 'diluxone_users_mail_ok' );
  * @param WP_Error $error
  */
 function diluxone_users_mail_failed( $error ): void {
+	// The mailer's own words, short: they are what an administrator needs to
+	// fix it, and they are only shown on the dashboard.
 	update_option(
 		'diluxone_users_mail_last',
 		array(
 			'ok'    => 0,
 			'time'  => time(),
-			'error' => $error->get_error_message(),
-		)
+			'error' => mb_substr( sanitize_text_field( $error->get_error_message() ), 0, 200 ),
+		),
+		false
 	);
 }
 add_action( 'wp_mail_failed', 'diluxone_users_mail_failed' );

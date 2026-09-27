@@ -33,15 +33,13 @@ function diluxone_users_option_defaults(): array {
 		'diluxone_users_login_throttle'        => 60,
 		// Create the account when the e-mail does not exist. Turned off, the
 		// link only works for someone already registered.
-		'diluxone_users_login_register'        => 1,
+		'diluxone_users_login_register'        => 0,
 		// The site's own registration form, on its own page. One of the
 		// doors into an account, beside the e-mail link and the social ones:
 		// they are independent, and a site can open any of them together.
 		'diluxone_users_register_form'         => 0,
 		// Role of the accounts created that way.
 		'diluxone_users_login_role'            => 'subscriber',
-		'diluxone_users_login_subject'         => '',
-		'diluxone_users_login_body'            => '',
 
 		// ── Session length ────────────────────────────────────────────
 		'diluxone_users_session_long_days'     => 30,  // With "remember me".
@@ -157,7 +155,7 @@ function diluxone_users_option_defaults(): array {
 		'diluxone_users_sent_title'            => '',
 		'diluxone_users_sent_note'             => '',
 
-		'diluxone_users_sso_register'          => 1,
+		'diluxone_users_sso_register'          => 0,
 		// Whether the buttons show on the sign-in form at all. Separate from
 		// registering with them: a site can let the people who already linked
 		// an account keep using it while it stops handing out new ones, and a
@@ -182,6 +180,13 @@ function diluxone_users_option_defaults(): array {
 		// Empty means the default text, which also translates itself.
 		'diluxone_users_sso_button_text'       => '',
 		'diluxone_users_sso_button_columns'    => 2,
+
+		// ── The person in the site's menu ─────────────────────────────
+		// The menu location (of the active theme) that gets "Sign in" or the
+		// signed-in person as its last item. Empty: none.
+		'diluxone_users_menu_location'         => '',
+		// How the signed-in person shows there: 'avatar-name', 'avatar' or 'name'.
+		'diluxone_users_menu_style'            => 'avatar-name',
 
 		// ── The account area ──────────────────────────────────────────
 		// The page holding the [diluxone_users_account] shortcode. With that
@@ -420,20 +425,11 @@ function diluxone_users_option_defaults(): array {
  * the kind of thing only the person who wrote it knows: a screen full of
  * unticked boxes reads as "nobody", and it meant "everybody".
  *
- * Sites configured before the choice existed have no answer stored, so it is
- * derived from what they ticked: roles ticked means they meant some.
- *
  * @param string $prefix Option prefix, e.g. 'diluxone_users_2fa'.
  * @return string 'all' or 'some'
  */
 function diluxone_users_scope( string $prefix ): string {
-	$stored = get_option( $prefix . '_scope', '' );
-
-	if ( 'all' === $stored || 'some' === $stored ) {
-		return $stored;
-	}
-
-	return array() === (array) diluxone_users_option( $prefix . '_roles' ) ? 'all' : 'some';
+	return 'some' === diluxone_users_option( $prefix . '_scope' ) ? 'some' : 'all';
 }
 
 /**
@@ -458,7 +454,19 @@ function diluxone_users_scope_includes( int $user_id, string $prefix ): bool {
 
 	$user = get_userdata( $user_id );
 
-	return $user instanceof WP_User && array() !== array_intersect( $roles, (array) $user->roles );
+	if ( ! $user instanceof WP_User ) {
+		return false;
+	}
+
+	// A super admin administers every site of the network, member or not, and
+	// is in scope wherever administrators are.
+	$has = (array) $user->roles;
+
+	if ( is_multisite() && is_super_admin( $user_id ) ) {
+		$has[] = 'administrator';
+	}
+
+	return array() !== array_intersect( $roles, $has );
 }
 
 /**
@@ -538,7 +546,7 @@ function diluxone_users_option_forced_by(): array {
 			$who[] = sprintf(
 				'%s() — %s',
 				$fn,
-				ltrim( str_replace( wp_normalize_path( WP_PLUGIN_DIR ), '', wp_normalize_path( $file ) ), '/' )
+				diluxone_users_file_label( $file )
 			);
 		}
 	}
@@ -658,4 +666,59 @@ function diluxone_users_option_allows_markup( string $key ): bool {
 	);
 
 	return in_array( $key, $keys, true );
+}
+
+/**
+ * A user meta that holds a list, always as an array.
+ *
+ * `(array) get_user_meta( $id, $key, true )` looks like the same thing and is
+ * not: with no row the meta comes back as '' and `(array) ''` is `array( '' )`,
+ * a list with one empty entry. Read as sessions, that was a session started on
+ * 1 January 1970 — "57 years ago" on the profile of somebody who never signed in.
+ *
+ * @return array<mixed>
+ */
+function diluxone_users_meta_list( int $user_id, string $key ): array {
+	$value = get_user_meta( $user_id, $key, true );
+
+	return is_array( $value ) ? $value : array();
+}
+
+/**
+ * Leaves a message for this person's next page, once.
+ *
+ * What went wrong in a form that redirects has to reach the page it lands
+ * on, and the address is the wrong carrier: anybody can build a link whose
+ * query string makes the site say anything, in its own voice. This keeps the
+ * text on the server, under the person it is for, for a minute.
+ */
+function diluxone_users_flash_set( int $user_id, string $key, string $message ): void {
+	set_transient( 'diluxone_users_flash_' . sanitize_key( $key ) . '_' . $user_id, $message, MINUTE_IN_SECONDS );
+}
+
+/** Takes the message left for this person, if any. Once read, it is gone. */
+function diluxone_users_flash_take( int $user_id, string $key ): string {
+	$name    = 'diluxone_users_flash_' . sanitize_key( $key ) . '_' . $user_id;
+	$message = get_transient( $name );
+
+	if ( false === $message ) {
+		return '';
+	}
+
+	delete_transient( $name );
+
+	return is_string( $message ) ? $message : '';
+}
+
+/**
+ * A file named the way a person looks for it: the plugin folder and the file
+ * (`my-plugin/functions.php`), never the server's absolute path, which says
+ * nothing useful on a screen and something it should not say.
+ */
+function diluxone_users_file_label( string $file ): string {
+	$relative = plugin_basename( $file );
+
+	return 0 === strpos( wp_normalize_path( $relative ), '/' )
+		? basename( dirname( $relative ) ) . '/' . basename( $relative )
+		: $relative;
 }

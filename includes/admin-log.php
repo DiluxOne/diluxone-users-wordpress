@@ -56,8 +56,8 @@ add_action( 'diluxone_users_register_panels', 'diluxone_users_log_panels' );
 /** Saves the groups and the retention. */
 function diluxone_users_log_settings_save(): void {
 	// phpcs:disable WordPress.Security.NonceVerification.Missing -- the panel verifies it.
-	// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- every element goes through sanitize_key() in the loop below, and only the ones naming a group this plugin has are kept.
-	$sent   = (array) wp_unslash( $_POST['diluxone_users_log_levels'] ?? array() );
+	// Only the ones naming a group this plugin has are kept, below.
+	$sent   = (array) map_deep( wp_unslash( $_POST['diluxone_users_log_levels'] ?? array() ), 'sanitize_key' );
 	$groups = diluxone_users_log_groups();
 	$levels = array();
 
@@ -72,7 +72,7 @@ function diluxone_users_log_settings_save(): void {
 	diluxone_users_save_options(
 		array(
 			'diluxone_users_log_levels' => $levels,
-			'diluxone_users_log_days'   => absint( $_POST['diluxone_users_log_days'] ?? 90 ),
+			'diluxone_users_log_days'   => absint( wp_unslash( $_POST['diluxone_users_log_days'] ?? 90 ) ),
 		)
 	);
 	// phpcs:enable
@@ -234,8 +234,9 @@ function diluxone_users_log_via( string $via ): string {
  * What one row says, beyond its name.
  *
  * The event's own label answers "what happened"; this answers "to what". It is
- * built from the detail the row was written with, which is only ever a handful
- * of short strings — never a value somebody typed into a field of their own.
+ * built from the detail the row was written with: a handful of short strings,
+ * and for a refused sign-in the name that was typed in the username box. That
+ * one is somebody's input, and it is escaped like any other on the way out.
  *
  * @param array<string, mixed> $row One row as diluxone_users_log_search() returns it.
  */
@@ -294,8 +295,8 @@ function diluxone_users_screen_log(): void {
 	$event = isset( $_GET['event'] ) ? sanitize_key( wp_unslash( $_GET['event'] ) ) : '';
 	$from  = isset( $_GET['from'] ) ? sanitize_text_field( wp_unslash( $_GET['from'] ) ) : '';
 	$to    = isset( $_GET['to'] ) ? sanitize_text_field( wp_unslash( $_GET['to'] ) ) : '';
-	$page  = isset( $_GET['paged'] ) ? max( 1, absint( $_GET['paged'] ) ) : 1;
-	$per   = isset( $_GET['per'] ) ? max( 5, min( 200, absint( $_GET['per'] ) ) ) : 20;
+	$page  = isset( $_GET['paged'] ) ? max( 1, absint( wp_unslash( $_GET['paged'] ) ) ) : 1;
+	$per   = isset( $_GET['per'] ) ? max( 5, min( 200, absint( wp_unslash( $_GET['per'] ) ) ) ) : 20;
 	// phpcs:enable
 
 	$filters = array(
@@ -362,7 +363,7 @@ function diluxone_users_screen_log(): void {
 
 		<label class="diluxone-users-search__by">
 			<?php esc_html_e( 'Show', 'diluxone-users' ); ?>
-			<select name="per" onchange="this.form.submit()">
+			<select name="per" data-diluxone-users-autosubmit>
 				<?php foreach ( array( 10, 20, 50, 100 ) as $option ) : ?>
 					<option value="<?php echo esc_attr( (string) $option ); ?>" <?php selected( $per, $option ); ?>><?php echo esc_html( number_format_i18n( $option ) ); ?></option>
 				<?php endforeach; ?>

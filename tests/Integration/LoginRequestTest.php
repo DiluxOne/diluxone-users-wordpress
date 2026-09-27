@@ -95,4 +95,43 @@ class LoginRequestTest extends IntegrationTestCase {
 		$this->assertSame( 'error', $this->redirectState( $this->expectRedirect( 'diluxone_users_login_request' ) ) );
 		$this->assertFalse( email_exists( $this->email( 'x' ) ) );
 	}
+
+	/**
+	 * A public name goes on with the address behind it, and the screen that
+	 * follows must not hand that address to whoever typed the name: it shows
+	 * what was typed, and nothing about the account travels in the URL.
+	 */
+	public function test_a_public_name_never_reveals_the_address_behind_it(): void {
+		update_option( 'diluxone_users_handle_login', 1 );
+
+		$user = get_userdata( $this->make_user() );
+		$name = $user->user_nicename;
+
+		$url = $this->ask( $name );
+
+		$this->assertSame( 'sent', $this->redirectState( $url ) );
+		$this->assertStringNotContainsString( rawurlencode( $user->user_email ), $url );
+		$this->assertStringNotContainsString( 'email=', $url );
+		$this->assertSame( $name, self::$cookies['diluxone_users_sent']['value'] ?? null, 'The screen shows back what was typed' );
+		$this->assertSame( $user->user_email, $this->lastMail()['to'] ?? null, 'The link still goes to the account' );
+	}
+
+	/** A name nobody has gets the answer a name somebody has gets. */
+	public function test_an_unknown_public_name_answers_like_a_known_one(): void {
+		update_option( 'diluxone_users_handle_login', 1 );
+
+		$url = $this->ask( 'nobody-called-this-' . $this->run );
+
+		$this->assertSame( 'sent', $this->redirectState( $url ) );
+		$this->assertCount( 0, self::$mail );
+	}
+
+	/** The address is not in the URL either when it was typed as one. */
+	public function test_the_address_does_not_travel_in_the_url(): void {
+		$email = $this->email( 'private' );
+		$url   = $this->ask( $email );
+
+		$this->assertStringNotContainsString( 'email=', $url );
+		$this->assertSame( $email, self::$cookies['diluxone_users_sent']['value'] ?? null );
+	}
 }

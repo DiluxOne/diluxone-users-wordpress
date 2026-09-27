@@ -247,9 +247,15 @@ function diluxone_users_screen_sessions(): void {
 function diluxone_users_screen_sessions_list(): void {
 	// phpcs:disable WordPress.Security.NonceVerification.Recommended -- it is a read-only search.
 	$search = isset( $_GET['s'] ) ? sanitize_text_field( wp_unslash( $_GET['s'] ) ) : '';
-	$page   = isset( $_GET['paged'] ) ? max( 1, absint( $_GET['paged'] ) ) : 1;
-	$per    = isset( $_GET['per'] ) ? max( 5, min( 200, absint( $_GET['per'] ) ) ) : 20;
+	$page   = isset( $_GET['paged'] ) ? max( 1, absint( wp_unslash( $_GET['paged'] ) ) ) : 1;
+	$per    = isset( $_GET['per'] ) ? max( 5, min( 200, absint( wp_unslash( $_GET['per'] ) ) ) ) : 20;
+	$done   = isset( $_GET['diluxone_users_done'] ) ? sanitize_key( wp_unslash( $_GET['diluxone_users_done'] ) ) : '';
 	// phpcs:enable
+
+	// Back from closing somebody's sessions: it is said, once, at the top.
+	if ( 'closed' === $done ) {
+		diluxone_users_notice( __( 'Their sessions are closed: they are signed out everywhere.', 'diluxone-users' ) );
+	}
 
 	$result = diluxone_users_sessions_search( $search, $page, $per );
 	$total  = $result['total'];
@@ -282,7 +288,7 @@ function diluxone_users_screen_sessions_list(): void {
 
 		<label class="diluxone-users-search__by">
 			<?php esc_html_e( 'Show', 'diluxone-users' ); ?>
-			<select name="per" onchange="this.form.submit()">
+			<select name="per" data-diluxone-users-autosubmit>
 				<?php foreach ( array( 10, 20, 50, 100 ) as $option ) : ?>
 					<option value="<?php echo esc_attr( (string) $option ); ?>" <?php selected( $per, $option ); ?>><?php echo esc_html( number_format_i18n( $option ) ); ?></option>
 				<?php endforeach; ?>

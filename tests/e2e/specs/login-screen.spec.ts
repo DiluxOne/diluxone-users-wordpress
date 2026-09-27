@@ -390,3 +390,24 @@ test.describe('The words the sign-in page shows when something fails', () => {
 		).toHaveCount(0);
 	});
 });
+
+/**
+ * Every box on the sign-in page is as wide as the card.
+ *
+ * A width cap written for the account area's panels once reached the sign-in
+ * form too, and left the address box a hundred pixels narrower than the
+ * password box under it. The pictures did not see it: a thin border moving
+ * is well under the share of pixels a picture tolerates. A measurement does.
+ */
+test.describe('The sign-in page’s boxes', () => {
+	test('share one width, the address box and the password boxes alike', async ({ page, pages }) => {
+		await page.goto(pages.login.url);
+
+		const widths = await page
+			.locator('.diluxone-users-login input[type="email"], .diluxone-users-login input[type="text"], .diluxone-users-login input[type="password"]')
+			.evaluateAll((boxes) => boxes.filter((box) => (box as HTMLElement).offsetParent !== null).map((box) => Math.round(box.getBoundingClientRect().width)));
+
+		expect(widths.length, 'the address box and the password form are both on the page').toBeGreaterThanOrEqual(3);
+		expect(Math.max(...widths) - Math.min(...widths), `widths ${widths.join(', ')}`).toBeLessThanOrEqual(1);
+	});
+});

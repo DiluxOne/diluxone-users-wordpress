@@ -1,0 +1,31 @@
+<?php
+/**
+ * Your brand: what the tab shows is what the tab saves.
+ *
+ * The picker for the mark above the sign-in form sat on this tab and nothing
+ * on this tab's save read it: "Saved." came back, the picker came back empty,
+ * and the sign-in page never showed a logo. Another screen even sent people
+ * here to set it.
+ */
+
+namespace Tests\Integration;
+
+class BrandSaveTest extends IntegrationTestCase {
+
+	public function test_the_mark_picked_on_the_tab_is_kept(): void {
+		$_POST = array( 'diluxone_users_login_logo' => '42' );
+
+		diluxone_users_design_brand_save();
+
+		$this->assertSame( 42, (int) get_option( 'diluxone_users_login_logo' ) );
+	}
+
+	public function test_removing_the_mark_clears_it(): void {
+		update_option( 'diluxone_users_login_logo', 42 );
+		$_POST = array( 'diluxone_users_login_logo' => '' );
+
+		diluxone_users_design_brand_save();
+
+		$this->assertSame( 0, (int) get_option( 'diluxone_users_login_logo' ) );
+	}
+}
