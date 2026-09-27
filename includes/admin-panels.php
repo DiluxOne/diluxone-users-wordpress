@@ -782,12 +782,13 @@ function diluxone_users_preview_would_save( array $panel ): array {
 
 	$caught = array();
 
+	// Nothing is written — the plugin's options are caught, and anything else
+	// a save touches (WordPress's own "Anyone can register", say) is refused
+	// as well: a preview is not a save.
 	$refuse = static function ( $value, string $option, $old ) use ( &$caught ) {
-		if ( 0 !== strpos( $option, 'diluxone_users_' ) ) {
-			return $value;
+		if ( 0 === strpos( $option, 'diluxone_users_' ) ) {
+			$caught[ $option ] = $value;
 		}
-
-		$caught[ $option ] = $value;
 
 		return $old;
 	};
@@ -932,8 +933,26 @@ function diluxone_users_preview_request(): void {
 		wp_send_json_error( '', 404 );
 	}
 
-	// Cleaned as they are read, and again one at a time by the reader.
-	$values   = diluxone_users_preview_values( (array) map_deep( wp_unslash( $_POST['values'] ?? array() ), 'sanitize_textarea_field' ) );
+	// The form as the form posts it, cleaned as it is read.
+	$form = (array) map_deep( wp_unslash( $_POST['values'] ?? array() ), 'sanitize_textarea_field' );
+
+	/*
+	 * Run through the panel's own save, which writes nothing here (see
+	 * diluxone_users_preview_would_save()): what comes back is exactly what
+	 * saving would write, including the settings one question on the screen
+	 * stands for — "where the look comes from" is two options underneath, and
+	 * a list of ways in is an array. Reading the form's fields as if they were
+	 * options got both wrong. A panel with no save shows the fields as sent.
+	 */
+	$request = $_POST;
+	$_POST   = wp_slash( $form );
+	$values  = diluxone_users_preview_would_save( $panels[ $id ] );
+	$_POST   = $request;
+
+	if ( array() === $values ) {
+		$values = diluxone_users_preview_values( $form );
+	}
+
 	$override = diluxone_users_preview_override( $values );
 
 	add_filter( 'diluxone_users_option', $override, 999, 2 );
