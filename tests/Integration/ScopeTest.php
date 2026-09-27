@@ -47,14 +47,11 @@ class ScopeTest extends IntegrationTestCase {
 		$this->assertFalse( diluxone_users_scope_includes( $this->make_user( 'administrator' ), self::PREFIX ) );
 	}
 
-	/** A site configured before the radio existed keeps the meaning it had. */
-	public function test_a_site_with_no_answer_stored_keeps_what_it_meant(): void {
+	/** With nothing stored, the answer is the default: everybody. */
+	public function test_with_no_answer_stored_it_is_everybody(): void {
 		delete_option( self::PREFIX . '_scope' );
-
-		update_option( self::PREFIX . '_roles', array() );
-		$this->assertSame( 'all', diluxone_users_scope( self::PREFIX ), 'No roles ticked used to mean everybody.' );
-
 		update_option( self::PREFIX . '_roles', array( 'editor' ) );
-		$this->assertSame( 'some', diluxone_users_scope( self::PREFIX ), 'Roles ticked used to mean only those.' );
+
+		$this->assertSame( 'all', diluxone_users_scope( self::PREFIX ), 'Roles kept from before do not change the answer' );
 	}
 }

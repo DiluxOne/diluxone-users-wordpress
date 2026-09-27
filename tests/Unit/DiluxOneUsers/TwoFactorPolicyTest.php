@@ -99,7 +99,7 @@ class TwoFactorPolicyTest extends TestCase {
 	}
 
 	public function test_with_chosen_roles_only_those(): void {
-		$this->settings( array( 'diluxone_users_2fa_roles' => array( 'administrator' ) ) );
+		$this->settings( array( 'diluxone_users_2fa_scope' => 'some', 'diluxone_users_2fa_roles' => array( 'administrator' ) ) );
 
 		$this->make_person( 'subscriber' );
 		$this->assertFalse( diluxone_users_2fa_required( self::USER_ID, 'password' ) );

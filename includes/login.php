@@ -651,40 +651,6 @@ function diluxone_users_name_from_email( string $email ): string {
 	return '' === $local ? __( 'Someone', 'diluxone-users' ) : $local;
 }
 
-/** The e-mail subject, with the site's own as a fallback. */
-function diluxone_users_login_subject(): string {
-	$subject = trim( (string) diluxone_users_option( 'diluxone_users_login_subject' ) );
-
-	if ( '' === $subject ) {
-		/* translators: %s: site name */
-		$subject = sprintf( __( 'Your sign-in link for %s', 'diluxone-users' ), get_bloginfo( 'name' ) );
-	}
-
-	return $subject;
-}
-
-/**
- * The e-mail body. `{link}` and `{minutes}` are replaced.
- */
-function diluxone_users_login_body( string $url ): string {
-	$body = trim( (string) diluxone_users_option( 'diluxone_users_login_body' ) );
-
-	if ( '' === $body ) {
-		$body = __(
-			"Click here to sign in:\n\n{link}\n\nThe link expires in {minutes} minutes and works once.\n\nIf you did not ask for it, ignore this message: nobody can get into your account without it.",
-			'diluxone-users'
-		);
-	}
-
-	return strtr(
-		$body,
-		array(
-			'{link}'    => $url,
-			'{minutes}' => (string) diluxone_users_login_expiry(),
-		)
-	);
-}
-
 /** Sends the e-mail with the link. */
 function diluxone_users_login_send( int $user_id, string $email, string $token ): bool {
 	$url = diluxone_users_login_link( $user_id, $token );
@@ -706,15 +672,7 @@ function diluxone_users_login_send( int $user_id, string $email, string $token )
 	 * @param string                               $email
 	 * @param string                               $url
 	 */
-	$message = apply_filters(
-		'diluxone_users_login_email',
-		array(
-			'subject' => diluxone_users_login_subject(),
-			'body'    => diluxone_users_login_body( $url ),
-		),
-		$email,
-		$url
-	);
+	$message = apply_filters( 'diluxone_users_login_email', diluxone_users_mail_login_link( $email, $url ), $email, $url );
 
 	return wp_mail( $email, $message['subject'], $message['body'] );
 }

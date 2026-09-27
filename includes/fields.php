@@ -158,16 +158,9 @@ function diluxone_users_default_fields(): array {
  * The form block a field belongs to.
  *
  * There are two, each with a name of its own: the main one — what the site
- * needs — and the additional one, the "tell us a bit more if you like". The
- * old names are accepted so nothing already stored breaks.
+ * needs — and the additional one, the "tell us a bit more if you like".
  */
 function diluxone_users_normalize_group( string $group ): string {
-	$old_prefixes = array(
-		'basic'    => 'main',
-		'optional' => 'extra',
-	);
-	$group        = $old_prefixes[ $group ] ?? $group;
-
 	return 'main' === $group ? 'main' : 'extra';
 }
 

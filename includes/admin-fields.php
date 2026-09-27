@@ -111,7 +111,7 @@ function diluxone_users_field_save( array $input ): string {
 			'placeholder' => (string) ( $input['placeholder'] ?? '' ),
 			'options'     => diluxone_users_field_options_from( (string) ( $input['type'] ?? 'text' ), $input ),
 			'required'    => ! empty( $input['required'] ),
-			'group'       => (string) ( $input['group'] ?? 'optional' ),
+			'group'       => (string) ( $input['group'] ?? 'extra' ),
 			'active'      => ! empty( $input['active'] ),
 		)
 	);
@@ -570,7 +570,7 @@ function diluxone_users_field_dialog(): void {
 function diluxone_users_screen_field_edit( string $key ): void {
 	$field = '' === $key ? diluxone_users_normalize_field(
 		array(
-			'group'  => 'optional',
+			'group'  => 'extra',
 			'active' => 1,
 		)
 	) : diluxone_users_field( $key );

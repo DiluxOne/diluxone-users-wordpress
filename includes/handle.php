@@ -160,10 +160,11 @@ function diluxone_users_handle_validate( string $handle, int $user_id ) {
  * Does somebody already have it?
  *
  * The lookup is against `user_nicename` and also against `user_login`. The
- * second one looks superfluous and is not: accounts coming from the migration
- * have a user_login that is a person's name, and if signing in by typing the
- * public name is also allowed, two different people answering to the same
- * text makes the sign-in link go to the wrong account.
+ * second one looks superfluous and is not: accounts made elsewhere — by the
+ * site before this plugin, or by another plugin — can have a user_login that
+ * is a person's name, and if signing in by typing the public name is also
+ * allowed, two different people answering to the same text makes the sign-in
+ * link go to the wrong account.
  */
 function diluxone_users_handle_taken( string $handle, int $user_id ): bool {
 	global $wpdb;

@@ -40,8 +40,6 @@ function diluxone_users_option_defaults(): array {
 		'diluxone_users_register_form'         => 0,
 		// Role of the accounts created that way.
 		'diluxone_users_login_role'            => 'subscriber',
-		'diluxone_users_login_subject'         => '',
-		'diluxone_users_login_body'            => '',
 
 		// ── Session length ────────────────────────────────────────────
 		'diluxone_users_session_long_days'     => 30,  // With "remember me".
@@ -427,20 +425,11 @@ function diluxone_users_option_defaults(): array {
  * the kind of thing only the person who wrote it knows: a screen full of
  * unticked boxes reads as "nobody", and it meant "everybody".
  *
- * Sites configured before the choice existed have no answer stored, so it is
- * derived from what they ticked: roles ticked means they meant some.
- *
  * @param string $prefix Option prefix, e.g. 'diluxone_users_2fa'.
  * @return string 'all' or 'some'
  */
 function diluxone_users_scope( string $prefix ): string {
-	$stored = get_option( $prefix . '_scope', '' );
-
-	if ( 'all' === $stored || 'some' === $stored ) {
-		return $stored;
-	}
-
-	return array() === (array) diluxone_users_option( $prefix . '_roles' ) ? 'all' : 'some';
+	return 'some' === diluxone_users_option( $prefix . '_scope' ) ? 'some' : 'all';
 }
 
 /**

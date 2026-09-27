@@ -135,31 +135,3 @@ function diluxone_users_not_now( string $why, string $url = '', string $go = '' 
 	echo '</p>';
 }
 
-/**
- * Where the old screens went.
- *
- * Two entries became tabs of another screen. Their slugs stay valid — for a
- * bookmark, and for an add-on that linked to them — and land on the tab.
- *
- * On `admin_menu`, late, and not on `admin_init`: WordPress decides whether a
- * page may be shown while it builds the menu, which is before admin_init
- * runs, and a slug that is no longer a menu entry is answered with a 403
- * there. The menu hook is the last moment that is still early enough.
- */
-function diluxone_users_moved_screens(): void {
-	// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- a read of the page name to redirect, nothing is written.
-	$page = isset( $_GET['page'] ) ? sanitize_key( wp_unslash( $_GET['page'] ) ) : '';
-
-	$moved = array(
-		'diluxone-users-register' => array( 'diluxone-users-login', 'register' ),
-		'diluxone-users-tools'    => array( 'diluxone-users-status', 'tools' ),
-	);
-
-	if ( ! isset( $moved[ $page ] ) ) {
-		return;
-	}
-
-	wp_safe_redirect( diluxone_users_admin_url( $moved[ $page ][0], array( 'tab' => $moved[ $page ][1] ) ) );
-	exit;
-}
-add_action( 'admin_menu', 'diluxone_users_moved_screens', 999 );

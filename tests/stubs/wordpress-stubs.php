@@ -319,6 +319,18 @@ if (!function_exists('set_transient')) {
 	}
 }
 
+if (!function_exists('map_deep')) {
+	function map_deep($value, callable $callback) {
+		if (is_array($value)) {
+			foreach ($value as $index => $item) {
+				$value[$index] = map_deep($item, $callback);
+			}
+			return $value;
+		}
+		return call_user_func($callback, $value);
+	}
+}
+
 if (!function_exists('get_site_transient')) {
 	// One store for both kinds: a single site keeps them in the same table.
 	function get_site_transient(string $key) {
