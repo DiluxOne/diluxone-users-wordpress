@@ -134,6 +134,92 @@ function diluxone_e2e_http( $pre, array $args, string $url ) {
 }
 add_filter( 'pre_http_request', 'diluxone_e2e_http', 10, 3 );
 
+/* ── A classic menu, on a site whose theme may have none ──────────── */
+
+/**
+ * A menu location of our own, and a shortcode that draws it.
+ *
+ * The plugin puts the person into the site's own menu through
+ * `wp_nav_menu_objects`, which only a classic menu runs — and the theme wp-env
+ * ships is a block theme with no locations at all. Registering one here and
+ * drawing it from a shortcode on a page is the smallest honest stand-in for a
+ * classic theme: the same function a theme's header.php calls, with the same
+ * arguments, so the filter sees exactly what it would see there.
+ */
+const DILUXONE_E2E_MENU_LOCATION = 'diluxone-e2e';
+
+add_action(
+	'after_setup_theme',
+	static function (): void {
+		register_nav_menus( array( DILUXONE_E2E_MENU_LOCATION => 'E2E menu' ) );
+	},
+	20
+);
+
+add_shortcode(
+	'diluxone_e2e_menu',
+	static function (): string {
+		return (string) wp_nav_menu(
+			array(
+				'theme_location'  => DILUXONE_E2E_MENU_LOCATION,
+				'container'       => 'nav',
+				'container_class' => 'diluxone-e2e-menu',
+				'fallback_cb'     => false,
+				'echo'            => false,
+			)
+		);
+	}
+);
+
+/**
+ * The menu, its one item, its location and the page that draws it — made once.
+ *
+ * Like the seeded pages, it is reused by name so a run leaves one menu behind
+ * and not one per run.
+ */
+function diluxone_e2e_menu_seed(): WP_REST_Response {
+	$menu = wp_get_nav_menu_object( 'E2E menu' );
+	$id   = $menu instanceof WP_Term ? (int) $menu->term_id : (int) wp_create_nav_menu( 'E2E menu' );
+
+	if ( array() === (array) wp_get_nav_menu_items( $id ) ) {
+		wp_update_nav_menu_item(
+			$id,
+			0,
+			array(
+				'menu-item-title'  => 'E2E home',
+				'menu-item-url'    => home_url( '/' ),
+				'menu-item-status' => 'publish',
+				'menu-item-type'   => 'custom',
+			)
+		);
+	}
+
+	$locations                                = (array) get_theme_mod( 'nav_menu_locations', array() );
+	$locations[ DILUXONE_E2E_MENU_LOCATION ] = $id;
+	set_theme_mod( 'nav_menu_locations', $locations );
+
+	$page = get_page_by_path( 'e2e-menu' );
+	$page = $page instanceof WP_Post
+		? (int) $page->ID
+		: (int) wp_insert_post(
+			array(
+				'post_title'   => 'Menu',
+				'post_name'    => 'e2e-menu',
+				'post_content' => '[diluxone_e2e_menu]',
+				'post_status'  => 'publish',
+				'post_type'    => 'page',
+			)
+		);
+
+	return new WP_REST_Response(
+		array(
+			'menu'     => $id,
+			'location' => DILUXONE_E2E_MENU_LOCATION,
+			'url'      => (string) get_permalink( $page ),
+		)
+	);
+}
+
 /* ── The routes ────────────────────────────────────────────────────── */
 
 /** Is this request allowed to drive the site? */
@@ -218,6 +304,16 @@ function diluxone_e2e_routes(): void {
 			'methods'             => 'POST',
 			'permission_callback' => $guard,
 			'callback'            => 'diluxone_e2e_identity_write',
+		)
+	);
+
+	register_rest_route(
+		DILUXONE_E2E_NS,
+		'/menu',
+		array(
+			'methods'             => 'POST',
+			'permission_callback' => $guard,
+			'callback'            => 'diluxone_e2e_menu_seed',
 		)
 	);
 

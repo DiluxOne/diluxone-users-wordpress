@@ -91,6 +91,14 @@ export class Site {
 	}
 
 	/**
+	 * A classic menu in a location of the mu-plugin's own, and a page that
+	 * draws it — for the site-menu spec on a theme that has no menus.
+	 */
+	menu(): Promise<{ menu: number; location: string; url: string }> {
+		return this.call('post', '/menu');
+	}
+
+	/**
 	 * Writes settings and hands back what they were.
 	 *
 	 * Keep the answer and pass it back to setOptions() at the end: that is the
