@@ -17,7 +17,10 @@
  *
  * On a network it runs once per site, because that is where the data is: the
  * settings are per site, the log table is per site, and only the user meta is
- * shared — which is why the meta is deleted on the last pass and not on each.
+ * shared. That last part is a decision about the whole network's people, and
+ * a site administrator can tick the box for their own site only: the people's
+ * data goes only when every site that used the plugin ticked it. Otherwise
+ * each site that asked loses its own settings and log, and the profiles stay.
  *
  * @package DiluxOneUsers
  */
@@ -67,16 +70,78 @@ function diluxone_users_uninstall_site(): void {
 		delete_option( $option );
 	}
 
-	// Options, then transients, then the timeout rows the transients leave.
+	// Options, then transients, then the timeout rows the transients leave —
+	// the site's own and, on a single site, the "site" ones, which live in the
+	// same table there.
 	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- deleting by prefix, which no option API expresses.
 	$wpdb->query(
 		$wpdb->prepare(
-			"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s OR option_name LIKE %s OR option_name LIKE %s",
+			"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s OR option_name LIKE %s OR option_name LIKE %s OR option_name LIKE %s OR option_name LIKE %s",
 			$wpdb->esc_like( 'diluxone_users_' ) . '%',
 			$wpdb->esc_like( '_transient_diluxone_users_' ) . '%',
-			$wpdb->esc_like( '_transient_timeout_diluxone_users_' ) . '%'
+			$wpdb->esc_like( '_transient_timeout_diluxone_users_' ) . '%',
+			$wpdb->esc_like( '_site_transient_diluxone_users_' ) . '%',
+			$wpdb->esc_like( '_site_transient_timeout_diluxone_users_' ) . '%'
 		)
 	);
+}
+
+/**
+ * The network's own transients: the counts per machine, kept for the whole
+ * network. Only on a network, where they live in their own table.
+ */
+function diluxone_users_uninstall_network(): void {
+	global $wpdb;
+
+	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- deleting by prefix, which no option API expresses.
+	$wpdb->query(
+		$wpdb->prepare(
+			"DELETE FROM {$wpdb->sitemeta} WHERE meta_key LIKE %s OR meta_key LIKE %s",
+			$wpdb->esc_like( '_site_transient_diluxone_users_' ) . '%',
+			$wpdb->esc_like( '_site_transient_timeout_diluxone_users_' ) . '%'
+		)
+	);
+}
+
+/**
+ * The profile photos people uploaded, from the media library that holds each.
+ *
+ * They are photographs of people, and the meta that pointed at them is about
+ * to go: left behind they would be pictures of somebody that nothing links
+ * to any more. Only an attachment the person authored is deleted, on the site
+ * the photo was uploaded to.
+ */
+function diluxone_users_uninstall_photos(): void {
+	global $wpdb;
+
+	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- a one-off read of every photo, on uninstall.
+	$rows = $wpdb->get_results(
+		$wpdb->prepare(
+			"SELECT a.user_id, a.meta_value AS photo, s.meta_value AS site
+			   FROM {$wpdb->usermeta} a
+			   LEFT JOIN {$wpdb->usermeta} s ON s.user_id = a.user_id AND s.meta_key = %s
+			  WHERE a.meta_key = %s",
+			'diluxone_users_avatar_site',
+			'diluxone_users_avatar'
+		)
+	);
+
+	foreach ( (array) $rows as $row ) {
+		$site   = (int) $row->site;
+		$switch = is_multisite() && $site > 0 && get_current_blog_id() !== $site;
+
+		if ( $switch ) {
+			switch_to_blog( $site );
+		}
+
+		if ( (int) get_post_field( 'post_author', (int) $row->photo ) === (int) $row->user_id ) {
+			wp_delete_attachment( (int) $row->photo, true );
+		}
+
+		if ( $switch ) {
+			restore_current_blog();
+		}
+	}
 }
 
 /**
@@ -93,6 +158,8 @@ function diluxone_users_uninstall_site(): void {
  */
 function diluxone_users_uninstall_people( array $field_keys ): void {
 	global $wpdb;
+
+	diluxone_users_uninstall_photos();
 
 	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- deleting by prefix, which delete_metadata() cannot express.
 	$wpdb->query(
@@ -135,6 +202,7 @@ function diluxone_users_uninstall_field_keys(): array {
 if ( is_multisite() ) {
 	$diluxone_users_keys  = array();
 	$diluxone_users_any   = false;
+	$diluxone_users_all   = true;
 	$diluxone_users_sites = get_sites(
 		array(
 			'fields' => 'ids',
@@ -146,12 +214,16 @@ if ( is_multisite() ) {
 		switch_to_blog( (int) $diluxone_users_site );
 
 		// Asked before the settings go, and only asked: the meta itself is
-		// shared across the network and is deleted once, at the end.
+		// shared across the network and is deleted once, at the end — if at
+		// all. A site that used the plugin (it has its fields) and did not
+		// tick the box keeps its people's data, which is everybody's.
 		if ( get_option( 'diluxone_users_uninstall_wipe' ) ) {
 			$diluxone_users_any  = true;
 			$diluxone_users_keys = array_merge( $diluxone_users_keys, diluxone_users_uninstall_field_keys() );
 
 			diluxone_users_uninstall_site();
+		} elseif ( false !== get_option( 'diluxone_users_fields', false ) ) {
+			$diluxone_users_all = false;
 		}
 
 		restore_current_blog();
@@ -160,8 +232,9 @@ if ( is_multisite() ) {
 	// A flag and not "did we collect any keys": a site that ticked the box and
 	// had no fields of its own collects none, and its people's passkeys and
 	// second factors would have stayed behind for ever.
-	if ( $diluxone_users_any ) {
+	if ( $diluxone_users_any && $diluxone_users_all ) {
 		diluxone_users_uninstall_people( $diluxone_users_keys );
+		diluxone_users_uninstall_network();
 	}
 
 	return;
