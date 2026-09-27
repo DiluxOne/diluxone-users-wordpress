@@ -1,4 +1,4 @@
-=== DiluxOne Users+ – Accounts & Login ===
+=== DiluxOne Users+ ===
 Contributors: pablodiloreto
 Tags: users, login, passwordless, two-factor, passkeys
 Requires at least: 6.2

@@ -1,6 +1,6 @@
 <?php
 /**
- * Plugin Name:       DiluxOne Users+ – Accounts & Login
+ * Plugin Name:       DiluxOne Users+
  * Plugin URI:        https://github.com/soydiloreto/diluxone-users-wordpress
  * Description:       Custom user fields, a front-end account area, passwordless sign-in, social login, two-step verification, passkeys and session control.
  * Version:           1.0.0
