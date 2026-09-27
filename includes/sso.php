@@ -779,15 +779,13 @@ function diluxone_users_sso_query( bool $fresh = false ): array {
 		// ever called with these. Copying the request wholesale said nothing
 		// about which of it mattered, to a reader or to a reviewer.
 		foreach ( array( 'diluxone_users_sso', 'diluxone_users_go', 'diluxone_users_nonce', 'diluxone_users_test', 'state', 'code', 'error', 'error_description' ) as $name ) {
-			// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- this is the copy; every use below verifies the state transient, the browser cookie and the nonce.
+			// phpcs:disable WordPress.Security.NonceVerification.Recommended -- this is the copy; every use below verifies the state transient, the browser cookie and the nonce.
 			if ( ! isset( $_GET[ $name ] ) ) {
 				continue;
 			}
 
-			// phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- as above; each reader sanitises for its own use.
-			$value = wp_unslash( $_GET[ $name ] );
-
-			$query[ $name ] = is_scalar( $value ) ? sanitize_text_field( (string) $value ) : '';
+			$query[ $name ] = is_scalar( $_GET[ $name ] ) ? sanitize_text_field( wp_unslash( (string) $_GET[ $name ] ) ) : '';
+			// phpcs:enable
 		}
 	}
 

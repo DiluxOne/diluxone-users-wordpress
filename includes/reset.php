@@ -62,10 +62,9 @@ add_action( 'template_redirect', 'diluxone_users_reset_catch' );
  * @return WP_User|null
  */
 function diluxone_users_reset_user(): ?WP_User {
-	// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- split and sanitised below.
-	$cookie = isset( $_COOKIE[ diluxone_users_reset_cookie() ] ) ? wp_unslash( $_COOKIE[ diluxone_users_reset_cookie() ] ) : '';
+	$cookie = isset( $_COOKIE[ diluxone_users_reset_cookie() ] ) ? sanitize_text_field( wp_unslash( $_COOKIE[ diluxone_users_reset_cookie() ] ) ) : '';
 
-	if ( ! is_string( $cookie ) || false === strpos( $cookie, ':' ) ) {
+	if ( false === strpos( $cookie, ':' ) ) {
 		return null;
 	}
 
