@@ -151,8 +151,12 @@ function diluxone_users_menu_style(): void {
 	wp_enqueue_style( 'diluxone-users-menu' );
 	wp_add_inline_style(
 		'diluxone-users-menu',
-		'.diluxone-users-menu--person > a{display:inline-flex;align-items:center;gap:.5em}'
-		. '.diluxone-users-menu__avatar{width:32px;height:32px;border-radius:50%;object-fit:cover;box-shadow:0 0 0 2px currentColor;flex:none}'
+		// The space beside the photo is its own margin and not a flex gap:
+		// themes restyle their menu links (a mobile menu often makes them
+		// blocks), and a gap on a link that stopped being flex is no space at
+		// all — the name ran over the photo.
+		'.diluxone-users-menu--person > a{align-items:center}'
+		. '.diluxone-users-menu .diluxone-users-menu__avatar{display:inline-block;vertical-align:middle;width:32px;height:32px;margin-inline-end:.55em;border-radius:50%;object-fit:cover;box-shadow:0 0 0 2px currentColor;flex:none}'
 	);
 }
 add_action( 'wp_enqueue_scripts', 'diluxone_users_menu_style' );
