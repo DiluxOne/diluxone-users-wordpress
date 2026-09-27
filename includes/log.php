@@ -653,7 +653,7 @@ function diluxone_users_log_search( array $filters = array(), int $page = 1, int
 	// The table is the first placeholder of both statements.
 	array_unshift( $args, $table );
 
-	// phpcs:disable WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- $where is built above out of literals and every value in it is a placeholder filled from $args; the plugin's own table, read as it is now.
+	// phpcs:disable WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter -- $where is built above out of literals and every value in it is a placeholder filled from $args, all through prepare(); the plugin's own table, read as it is now.
 	$count_sql = "SELECT COUNT(*)
 	   FROM %i l
 	   LEFT JOIN {$wpdb->users} u ON u.ID = l.user_id

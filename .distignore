@@ -72,6 +72,8 @@ bin
 scripts
 
 # IDE and AI tooling
+AGENTS.md
+CLAUDE.md
 .idea
 .vscode
 .claude
