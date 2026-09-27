@@ -417,8 +417,9 @@ function diluxone_users_account_post(): void {
 	}
 
 	if ( isset( $_POST['diluxone_users_section_form_nonce'] ) && wp_verify_nonce( sanitize_key( wp_unslash( $_POST['diluxone_users_section_form_nonce'] ) ), 'diluxone_users_section_form' ) ) {
-			// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- diluxone_users_section_save() sanitises it field by field.
-		$saved = diluxone_users_section_save( (array) wp_unslash( $_POST['diluxone_users_section_form'] ?? array() ) );
+		// Cleaned as it is read — a section's content may carry links, so as
+		// post content — and typed again field by field on save.
+		$saved = diluxone_users_section_save( (array) map_deep( wp_unslash( $_POST['diluxone_users_section_form'] ?? array() ), 'wp_kses_post' ) );
 
 		diluxone_users_account_back(
 			'' === $saved ? 'error' : 'saved',

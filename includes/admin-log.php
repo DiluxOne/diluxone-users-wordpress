@@ -56,8 +56,8 @@ add_action( 'diluxone_users_register_panels', 'diluxone_users_log_panels' );
 /** Saves the groups and the retention. */
 function diluxone_users_log_settings_save(): void {
 	// phpcs:disable WordPress.Security.NonceVerification.Missing -- the panel verifies it.
-	// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- every element goes through sanitize_key() in the loop below, and only the ones naming a group this plugin has are kept.
-	$sent   = (array) wp_unslash( $_POST['diluxone_users_log_levels'] ?? array() );
+	// Only the ones naming a group this plugin has are kept, below.
+	$sent   = (array) map_deep( wp_unslash( $_POST['diluxone_users_log_levels'] ?? array() ), 'sanitize_key' );
 	$groups = diluxone_users_log_groups();
 	$levels = array();
 

@@ -929,8 +929,8 @@ function diluxone_users_preview_request(): void {
 		wp_send_json_error( '', 404 );
 	}
 
-	// phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- the nonce is checked above and the reader sanitises every key and value one at a time.
-	$values   = diluxone_users_preview_values( (array) wp_unslash( $_POST['values'] ?? array() ) );
+	// Cleaned as they are read, and again one at a time by the reader.
+	$values   = diluxone_users_preview_values( (array) map_deep( wp_unslash( $_POST['values'] ?? array() ), 'sanitize_textarea_field' ) );
 	$override = diluxone_users_preview_override( $values );
 
 	add_filter( 'diluxone_users_option', $override, 999, 2 );

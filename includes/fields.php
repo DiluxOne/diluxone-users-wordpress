@@ -578,21 +578,23 @@ function diluxone_users_sanitize( array $field, string $value ): string {
 function diluxone_users_posted_fields( string $group = '' ): array {
 	$sent = array();
 
+	// phpcs:disable WordPress.Security.NonceVerification.Missing -- every caller verifies its form's nonce before asking.
 	foreach ( diluxone_users_fields( $group ) as $field ) {
 		foreach ( array( (string) $field['key'], (string) $field['key'] . '_dial' ) as $name ) {
-			// phpcs:ignore WordPress.Security.NonceVerification.Missing -- every caller verifies before asking; the values are sanitised per field type in diluxone_users_save().
-			if ( ! isset( $_POST[ $name ] ) ) {
+			// One value per field: a posted `field[]=` is an array, not an answer.
+			if ( ! isset( $_POST[ $name ] ) || ! is_scalar( $_POST[ $name ] ) ) {
 				continue;
 			}
 
-			// phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- as above: the field's own sanitiser runs on save, and it is the one that knows the type.
-			$value = wp_unslash( $_POST[ $name ] );
-
-			if ( is_scalar( $value ) ) {
-				$sent[ $name ] = (string) $value;
-			}
+			// Cleaned as it is read — an address as an address, since text
+			// cleaning would strip its %-encoded characters — and cleaned
+			// again by its field's type when it is saved.
+			$sent[ $name ] = 'url' === ( $field['type'] ?? '' ) && $name === $field['key']
+				? esc_url_raw( wp_unslash( (string) $_POST[ $name ] ) )
+				: sanitize_textarea_field( wp_unslash( (string) $_POST[ $name ] ) );
 		}
 	}
+	// phpcs:enable
 
 	return $sent;
 }

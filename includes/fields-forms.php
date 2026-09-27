@@ -331,6 +331,13 @@ add_action( 'user_new_form', 'diluxone_users_new_user_fields' );
  * without passwords this form is never used and this gets in nobody's way.
  */
 function diluxone_users_register_form_fields(): void {
+	if ( array() === diluxone_users_fields() ) {
+		return;
+	}
+
+	// WordPress's form has no nonce of its own; the fields added to it do.
+	wp_nonce_field( 'diluxone_users_wp_register', 'diluxone_users_wp_register_nonce' );
+
 	foreach ( diluxone_users_fields() as $field ) {
 		$id = 'diluxone-users-' . $field['key'];
 		?>
@@ -355,13 +362,30 @@ add_action( 'register_form', 'diluxone_users_register_form_fields' );
  * @return WP_Error
  */
 function diluxone_users_register_validate( $errors, $login, $email ) {
-	foreach ( diluxone_users_fields() as $field ) {
+	$fields = diluxone_users_fields();
+
+	if ( array() === $fields ) {
+		return $errors;
+	}
+
+	// WordPress's registration form carries no nonce of its own, so the
+	// fields this plugin adds to it carry one (see
+	// diluxone_users_register_form_fields()). A form without it is not the
+	// form that was drawn.
+	if ( ! isset( $_POST['diluxone_users_wp_register_nonce'] ) || ! wp_verify_nonce( sanitize_key( wp_unslash( $_POST['diluxone_users_wp_register_nonce'] ) ), 'diluxone_users_wp_register' ) ) {
+		$errors->add( 'diluxone_users_nonce', esc_html__( 'Error: the form expired. Load the page again and send it once more.', 'diluxone-users' ) );
+
+		return $errors;
+	}
+
+	$sent = diluxone_users_posted_fields();
+
+	foreach ( $fields as $field ) {
 		if ( ! $field['required'] ) {
 			continue;
 		}
 
-			// phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- WordPress registration verifies it; diluxone_users_sanitize() cleans the value according to the field type.
-		$value = diluxone_users_sanitize( $field, (string) wp_unslash( $_POST[ $field['key'] ] ?? '' ) );
+		$value = diluxone_users_sanitize( $field, (string) ( $sent[ $field['key'] ] ?? '' ) );
 
 		if ( '' === $value ) {
 			$errors->add(
@@ -379,12 +403,42 @@ function diluxone_users_register_validate( $errors, $login, $email ) {
 }
 add_filter( 'registration_errors', 'diluxone_users_register_validate', 10, 3 );
 
-/** Register save. */
+/**
+ * The answers given on WordPress's own registration form.
+ *
+ * On `register_new_user`, which fires for that form only, and not on
+ * `user_register`, which fires for every account created anywhere — the REST
+ * API, a shop's checkout, another plugin — and would read whatever this
+ * request happened to post into the new person's profile. The nonce is the
+ * one the form's fields carry; the validation above already refused the
+ * registration without it.
+ */
 function diluxone_users_register_save( int $user_id ): void {
-	// phpcs:ignore WordPress.Security.NonceVerification.Missing -- WordPress registration verifies it itself.
+	if ( ! isset( $_POST['diluxone_users_wp_register_nonce'] ) || ! wp_verify_nonce( sanitize_key( wp_unslash( $_POST['diluxone_users_wp_register_nonce'] ) ), 'diluxone_users_wp_register' ) ) {
+		return;
+	}
+
 	diluxone_users_save( $user_id, diluxone_users_posted_fields() );
 }
-add_action( 'user_register', 'diluxone_users_register_save' );
+add_action( 'register_new_user', 'diluxone_users_register_save' );
+
+/**
+ * The answers given on Users → Add New, where the same fields are drawn.
+ *
+ * WordPress checks that screen's own nonce (`create-user`) before it creates
+ * the account; what is asked here is only whether this person may create
+ * accounts at all.
+ */
+function diluxone_users_new_user_save( int $user_id ): void {
+	if ( ! current_user_can( 'create_users' ) ) {
+		return;
+	}
+
+	check_admin_referer( 'create-user', '_wpnonce_create-user' );
+
+	diluxone_users_save( $user_id, diluxone_users_posted_fields() );
+}
+add_action( 'edit_user_created_user', 'diluxone_users_new_user_save' );
 
 /**
  * What markup a field's input is allowed to be.

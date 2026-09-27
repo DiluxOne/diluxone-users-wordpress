@@ -687,9 +687,9 @@ function diluxone_users_login_messages_save(): void {
 
 	// phpcs:disable WordPress.Security.NonceVerification.Missing -- the panel verifies it.
 	/** @var array<string, mixed> $sent */
-	$sent = (array) wp_unslash( $_POST['diluxone_users_message'] ?? array() ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- every value is sanitised one at a time inside the loop.
+	$sent = (array) map_deep( wp_unslash( $_POST['diluxone_users_message'] ?? array() ), 'sanitize_textarea_field' );
 	/** @var array<string, mixed> $back */
-	$back = (array) wp_unslash( $_POST['diluxone_users_message_shipped'] ?? array() ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- only read as a flag, key by key.
+	$back = (array) map_deep( wp_unslash( $_POST['diluxone_users_message_shipped'] ?? array() ), 'sanitize_key' );
 	// phpcs:enable
 
 	foreach ( array_keys( diluxone_users_login_messages() ) as $key ) {

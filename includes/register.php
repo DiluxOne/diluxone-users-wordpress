@@ -196,7 +196,6 @@ function diluxone_users_register_request(): void {
 		exit;
 	}
 
-	// phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- verified above; each field is sanitised by type inside.
 	if ( array() !== diluxone_users_register_missing( diluxone_users_posted_fields() ) ) {
 		wp_safe_redirect( add_query_arg( 'diluxone-users', 'missing', $back ) );
 		exit;
@@ -225,7 +224,6 @@ function diluxone_users_register_request(): void {
 	// asking again on the other side would be asking twice. What it reports as
 	// missing was already refused above, before there was an account to save
 	// it to.
-	// phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- verified above; each field is sanitised by type.
 	diluxone_users_save( $user_id, diluxone_users_posted_fields() );
 
 	/**

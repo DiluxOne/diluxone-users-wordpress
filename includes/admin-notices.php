@@ -302,8 +302,8 @@ function diluxone_users_notices_rules_save(): void {
 	$policies = diluxone_users_notice_policies();
 	$rules    = diluxone_users_notice_rules();
 
-	// phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- the panel verifies the nonce; every key and value is sanitised one at a time inside the loop.
-	foreach ( (array) wp_unslash( $_POST['diluxone_users_notice_rules'] ?? array() ) as $key => $policy ) {
+	// phpcs:ignore WordPress.Security.NonceVerification.Missing -- the panel verifies the nonce.
+	foreach ( (array) map_deep( wp_unslash( $_POST['diluxone_users_notice_rules'] ?? array() ), 'sanitize_key' ) as $key => $policy ) {
 		$key    = sanitize_key( (string) $key );
 		$policy = sanitize_key( (string) $policy );
 
@@ -548,8 +548,8 @@ function diluxone_users_screen_mail_templates(): void {
 function diluxone_users_mail_templates_save(): void {
 	$locale = diluxone_users_mail_screen_locale();
 
-	// phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- the panel verifies the nonce; every value is sanitised one at a time inside the loop.
-	$sent = (array) wp_unslash( $_POST['diluxone_users_mail'] ?? array() );
+	// phpcs:ignore WordPress.Security.NonceVerification.Missing -- the panel verifies the nonce.
+	$sent = (array) map_deep( wp_unslash( $_POST['diluxone_users_mail'] ?? array() ), 'sanitize_textarea_field' );
 
 	foreach ( diluxone_users_mail_templates() as $key => $template ) {
 		$key = (string) $key;
