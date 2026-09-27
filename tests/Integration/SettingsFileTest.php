@@ -83,4 +83,15 @@ class SettingsFileTest extends IntegrationTestCase {
 		$this->assertNotContains( 'billing_phone', $keys );
 		$this->assertContains( 'diluxone_users_phone', $keys );
 	}
+
+	/** A setting the site never set travels as nothing, and stays a default. */
+	public function test_a_default_is_not_written_back_as_a_setting(): void {
+		delete_option( 'diluxone_users_color_map' );
+
+		$file = diluxone_users_tool_settings();
+		$this->assertArrayNotHasKey( 'diluxone_users_color_map', $file );
+
+		diluxone_users_tool_restore( $file );
+		$this->assertNull( get_option( 'diluxone_users_color_map', null ) );
+	}
 }

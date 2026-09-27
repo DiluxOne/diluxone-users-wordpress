@@ -203,7 +203,14 @@ function diluxone_users_tool_settings(): array {
 			continue;
 		}
 
-		$out[ $key ] = diluxone_users_option( $key );
+		// What the site set, not what it reads by default: a default written
+		// into the file comes back as a stored value, and the next version's
+		// default would no longer reach this site.
+		$stored = get_option( $key, null );
+
+		if ( null !== $stored ) {
+			$out[ $key ] = $stored;
+		}
 	}
 
 	$out['diluxone_users_fields'] = get_option( 'diluxone_users_fields', array() );
