@@ -206,15 +206,9 @@ function diluxone_users_passkey_challenge_new( string $scope ): string {
 
 /** Consumes it: if it existed, deletes it and returns true. Single use. */
 function diluxone_users_passkey_challenge_use( string $scope, string $challenge ): bool {
-	$key = 'diluxone_users_pk_' . $scope . '_' . md5( $challenge );
-
-	if ( ! get_transient( $key ) ) {
-		return false;
-	}
-
-	delete_transient( $key );
-
-	return true;
+	// The delete is the check: of two requests answering the same
+	// challenge, only the one that removed it goes on.
+	return delete_transient( 'diluxone_users_pk_' . $scope . '_' . md5( $challenge ) );
 }
 
 /* ── Verification ──────────────────────────────────────────────────── */

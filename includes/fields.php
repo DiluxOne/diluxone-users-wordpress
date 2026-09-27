@@ -235,6 +235,7 @@ function diluxone_users_field_key_allowed( string $key ): bool {
 		'diluxone_users_2fa_email',
 		'diluxone_users_2fa_fails',
 		'diluxone_users_2fa_lock',
+		'diluxone_users_2fa_lock_at',
 		'diluxone_users_totp',
 		'diluxone_users_totp_pending',
 		'diluxone_users_totp_step',

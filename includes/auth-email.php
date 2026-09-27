@@ -90,8 +90,7 @@ function diluxone_users_2fa_email_verify( int $user_id, string $code ): bool {
 		return false;
 	}
 
-	// Single use.
-	delete_user_meta( $user_id, 'diluxone_users_2fa_email' );
-
-	return true;
+	// Single use, and the delete is the check: of two requests carrying the
+	// same code, only the one that removed it gets through.
+	return delete_user_meta( $user_id, 'diluxone_users_2fa_email' );
 }

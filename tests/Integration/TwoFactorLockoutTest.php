@@ -186,4 +186,42 @@ class TwoFactorLockoutTest extends IntegrationTestCase {
 
 		$this->assertNotEmpty( $rows['rows'] ?? array() );
 	}
+
+	/**
+	 * A burst: many requests that all found the door open before any failure
+	 * was counted. Each takes its try first, so only as many as the limit
+	 * allows get a code looked at, and the ones refused give their try back.
+	 */
+	public function test_a_burst_gets_no_more_tries_than_the_limit(): void {
+		$granted = 0;
+
+		for ( $i = 0; $i < DILUXONE_USERS_2FA_LOCK_AFTER + 15; $i++ ) {
+			if ( null !== diluxone_users_2fa_reserve( $this->user ) ) {
+				++$granted;
+			}
+		}
+
+		$this->assertSame( DILUXONE_USERS_2FA_LOCK_AFTER, $granted );
+		$this->assertSame( DILUXONE_USERS_2FA_LOCK_AFTER, $this->fails() );
+	}
+
+	/** Once a wait is over, one try goes through and the door closes again for longer. */
+	public function test_after_a_wait_exactly_one_try_goes_through(): void {
+		update_user_meta( $this->user, 'diluxone_users_2fa_fails', DILUXONE_USERS_2FA_LOCK_AFTER - 1 );
+		diluxone_users_2fa_fail( $this->user );
+		$first = $this->lockedUntil() - time();
+
+		// The wait is over.
+		update_user_meta( $this->user, 'diluxone_users_2fa_lock', time() - 1 );
+
+		$this->assertFalse( diluxone_users_2fa_verify( $this->user, 'email', '000000' ) );
+		$this->assertTrue( diluxone_users_2fa_locked( $this->user ), 'The one try was wrong: closed again' );
+		$this->assertGreaterThan( $first, $this->lockedUntil() - time(), 'And for longer' );
+
+		// The next wait is over too; a burst arrives.
+		update_user_meta( $this->user, 'diluxone_users_2fa_lock', time() - 1 );
+
+		$this->assertNotNull( diluxone_users_2fa_reserve( $this->user ) );
+		$this->assertNull( diluxone_users_2fa_reserve( $this->user ), 'The rest of the burst is refused' );
+	}
 }

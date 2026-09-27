@@ -341,6 +341,7 @@ function diluxone_users_privacy_keys( int $user_id ): array {
 		'diluxone_users_2fa_pending',
 		'diluxone_users_2fa_fails',
 		'diluxone_users_2fa_lock',
+		'diluxone_users_2fa_lock_at',
 		'diluxone_users_totp',
 		'diluxone_users_totp_pending',
 		'diluxone_users_totp_step',

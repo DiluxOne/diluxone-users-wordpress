@@ -847,8 +847,13 @@ function diluxone_users_sso_handle( $wp = null ): void {
 	}
 	// phpcs:enable
 
+	// Read, then spent: only the request that deletes the state goes on, so
+	// one return from the provider cannot be replayed into two sessions.
 	$stored = get_transient( 'diluxone_users_sso_' . $state );
-	delete_transient( 'diluxone_users_sso_' . $state );
+
+	if ( ! delete_transient( 'diluxone_users_sso_' . $state ) ) {
+		$stored = null;
+	}
 
 	if ( ! is_array( $stored ) || ( $stored['provider'] ?? '' ) !== $id ) {
 		diluxone_users_sso_fail();

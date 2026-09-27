@@ -407,10 +407,17 @@ function diluxone_users_token_valid( int $user_id, string $token ): bool {
 	return hash_equals( $hash, wp_hash( $token ) );
 }
 
-/** Burns the token: a link works exactly once. */
-function diluxone_users_token_burn( int $user_id ): void {
-	delete_user_meta( $user_id, DILUXONE_USERS_META_HASH );
+/**
+ * Burns the token: a link works exactly once.
+ *
+ * The delete is the check. Two requests carrying the same link can both find
+ * it valid; only one of them deletes a row, and only that one gets in.
+ */
+function diluxone_users_token_burn( int $user_id ): bool {
+	$burned = delete_user_meta( $user_id, DILUXONE_USERS_META_HASH );
 	delete_user_meta( $user_id, DILUXONE_USERS_META_EXPIRES );
+
+	return $burned;
 }
 
 /** URL of the sign-in link. */
@@ -844,12 +851,10 @@ function diluxone_users_login_consume(): void {
 	$token   = sanitize_text_field( wp_unslash( $_GET['diluxone_users_token'] ) );
 	// phpcs:enable
 
-	if ( $user_id <= 0 || '' === $token || ! diluxone_users_token_valid( $user_id, $token ) ) {
+	if ( $user_id <= 0 || '' === $token || ! diluxone_users_token_valid( $user_id, $token ) || ! diluxone_users_token_burn( $user_id ) ) {
 		wp_safe_redirect( add_query_arg( 'diluxone-users', 'expired', diluxone_users_login_url() ) );
 		exit;
 	}
-
-	diluxone_users_token_burn( $user_id );
 
 	/**
 	 * Where the person goes after coming in through the link.
