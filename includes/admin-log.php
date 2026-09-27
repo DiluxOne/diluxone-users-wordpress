@@ -72,7 +72,7 @@ function diluxone_users_log_settings_save(): void {
 	diluxone_users_save_options(
 		array(
 			'diluxone_users_log_levels' => $levels,
-			'diluxone_users_log_days'   => absint( $_POST['diluxone_users_log_days'] ?? 90 ),
+			'diluxone_users_log_days'   => absint( wp_unslash( $_POST['diluxone_users_log_days'] ?? 90 ) ),
 		)
 	);
 	// phpcs:enable
@@ -295,8 +295,8 @@ function diluxone_users_screen_log(): void {
 	$event = isset( $_GET['event'] ) ? sanitize_key( wp_unslash( $_GET['event'] ) ) : '';
 	$from  = isset( $_GET['from'] ) ? sanitize_text_field( wp_unslash( $_GET['from'] ) ) : '';
 	$to    = isset( $_GET['to'] ) ? sanitize_text_field( wp_unslash( $_GET['to'] ) ) : '';
-	$page  = isset( $_GET['paged'] ) ? max( 1, absint( $_GET['paged'] ) ) : 1;
-	$per   = isset( $_GET['per'] ) ? max( 5, min( 200, absint( $_GET['per'] ) ) ) : 20;
+	$page  = isset( $_GET['paged'] ) ? max( 1, absint( wp_unslash( $_GET['paged'] ) ) ) : 1;
+	$per   = isset( $_GET['per'] ) ? max( 5, min( 200, absint( wp_unslash( $_GET['per'] ) ) ) ) : 20;
 	// phpcs:enable
 
 	$filters = array(

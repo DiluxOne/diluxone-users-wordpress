@@ -117,6 +117,23 @@ function diluxone_users_avatar_svg( int $user_id, int $size ): string {
 }
 
 /**
+ * The picture for somebody who has none, drawn here: a figure on a grey
+ * circle. It is what stands in for WordPress's own "mystery person" when
+ * Gravatar is off — that one is served from gravatar.com too.
+ */
+function diluxone_users_avatar_blank( int $size ): string {
+	$svg = sprintf(
+		'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="%1$d" height="%1$d" role="img" aria-hidden="true">'
+			. '<rect width="100" height="100" rx="50" fill="#dcdcde"/>'
+			. '<circle cx="50" cy="40" r="17" fill="#ffffff"/>'
+			. '<path d="M18 86c4-17 17-27 32-27s28 10 32 27z" fill="#ffffff"/></svg>',
+		$size
+	);
+
+	return 'data:image/svg+xml;base64,' . base64_encode( $svg );
+}
+
+/**
  * Works out who what reaches get_avatar refers to.
  *
  * WordPress passes it in five different ways depending on the caller. Without
@@ -170,13 +187,21 @@ function diluxone_users_avatar_user_id( $id_or_email ): int {
  * @return array<string, mixed>
  */
 function diluxone_users_avatar_data( array $args, $id_or_email ): array {
-	$user_id = diluxone_users_avatar_user_id( $id_or_email );
+	$user_id  = diluxone_users_avatar_user_id( $id_or_email );
+	$size     = isset( $args['size'] ) ? (int) $args['size'] : 96;
+	$gravatar = (bool) diluxone_users_option( 'diluxone_users_avatar_gravatar' );
 
+	// With Gravatar off, nobody's picture comes from gravatar.com — not a
+	// member's, and not a commenter's who has no account here either. What
+	// WordPress would otherwise ask it for is drawn here instead.
 	if ( $user_id <= 0 ) {
+		if ( ! $gravatar ) {
+			$args['url']          = diluxone_users_avatar_blank( $size );
+			$args['found_avatar'] = true;
+		}
+
 		return $args;
 	}
-
-	$size = isset( $args['size'] ) ? (int) $args['size'] : 96;
 
 	if ( diluxone_users_option( 'diluxone_users_avatar_upload' ) ) {
 		$url = diluxone_users_avatar_url( $user_id, $size );
@@ -189,14 +214,12 @@ function diluxone_users_avatar_data( array $args, $id_or_email ): array {
 		}
 	}
 
-	if ( diluxone_users_option( 'diluxone_users_avatar_gravatar' ) ) {
+	if ( $gravatar ) {
 		return $args;
 	}
 
-	if ( diluxone_users_option( 'diluxone_users_avatar_initials' ) ) {
-		$args['url']          = diluxone_users_avatar_svg( $user_id, $size );
-		$args['found_avatar'] = true;
-	}
+	$args['url']          = diluxone_users_option( 'diluxone_users_avatar_initials' ) ? diluxone_users_avatar_svg( $user_id, $size ) : diluxone_users_avatar_blank( $size );
+	$args['found_avatar'] = true;
 
 	return $args;
 }
@@ -227,17 +250,12 @@ function diluxone_users_avatar_markup( string $avatar, $id_or_email, int $size, 
 		return $avatar;
 	}
 
-	$user_id = diluxone_users_avatar_user_id( $id_or_email );
-
-	if ( $user_id <= 0 ) {
-		return $avatar;
-	}
-
+	// A drawing has no resolution: the same one serves the 2x slot.
 	return str_replace(
 		array( "src=''", "srcset=' 2x'" ),
 		array(
 			"src='" . esc_attr( $url ) . "'",
-			"srcset='" . esc_attr( diluxone_users_avatar_svg( $user_id, $size * 2 ) ) . " 2x'",
+			"srcset='" . esc_attr( $url ) . " 2x'",
 		),
 		$avatar
 	);

@@ -127,7 +127,7 @@ function diluxone_users_screen_notices_summary(): void {
 			: __( 'Not offered: people sign in to this site with a password only.', 'diluxone-users' ),
 		'url'    => $link_on
 			? ( $delivery ? diluxone_users_admin_url( DILUXONE_USERS_NOTICES, array( 'tab' => 'templates' ) ) : $status )
-			: diluxone_users_admin_url( 'diluxone-users-login', array( 'tab' => 'doors' ) ),
+			: diluxone_users_admin_url( 'diluxone-users-login', array( 'tab' => 'ways' ) ),
 	);
 
 	$code_on = diluxone_users_notice_2fa_email();

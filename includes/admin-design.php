@@ -53,6 +53,8 @@ function diluxone_users_design_brand_save(): void {
 			'diluxone_users_button_style'  => sanitize_key( wp_unslash( $_POST['diluxone_users_button_style'] ?? 'solid' ) ),
 			'diluxone_users_button_icons'  => isset( $_POST['diluxone_users_button_icons'] ) ? 1 : 0,
 			'diluxone_users_notice_style'  => 'soft' === sanitize_key( wp_unslash( $_POST['diluxone_users_notice_style'] ?? '' ) ) ? 'soft' : 'bar',
+			// The mark shown above the sign-in form, picked on this tab.
+			'diluxone_users_login_logo'    => absint( wp_unslash( $_POST['diluxone_users_login_logo'] ?? 0 ) ),
 		)
 	);
 	// phpcs:enable

@@ -865,7 +865,7 @@ function diluxone_users_login_consume(): void {
 		return;
 	}
 
-	$user_id = absint( $_GET['diluxone_users_login'] );
+	$user_id = absint( wp_unslash( $_GET['diluxone_users_login'] ) );
 	$token   = sanitize_text_field( wp_unslash( $_GET['diluxone_users_token'] ) );
 	// phpcs:enable
 

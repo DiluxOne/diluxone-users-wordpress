@@ -142,6 +142,11 @@ function diluxone_users_create_page(): void {
 
 		update_option( $option, (int) $id );
 		$back = add_query_arg( 'diluxone_users_created', (int) $id, $back );
+
+		// A new page is new addresses (/my-account/details/, /register/), and
+		// the rewrite rules are rebuilt the way every save of a page setting
+		// does: by saying they are out of date.
+		delete_option( 'diluxone_users_rewrite_version' );
 	}
 
 	wp_safe_redirect( $back );

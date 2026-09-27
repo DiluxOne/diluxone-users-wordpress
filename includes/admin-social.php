@@ -36,25 +36,6 @@ function diluxone_users_screen_social(): void {
 		return;
 	}
 
-	// Turning a button on or off, from the row on the list as well as from
-	// the provider's own screen: both point here.
-	if ( isset( $_GET['diluxone_users_action'], $_GET['red'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		check_admin_referer( 'diluxone_users_social_toggle' );
-
-		$network = sanitize_key( wp_unslash( $_GET['red'] ) );
-
-		if ( isset( $providers[ $network ] ) && diluxone_users_sso_tested( $network ) ) {
-			$all = (array) get_option( 'diluxone_users_sso', array() );
-
-			$all[ $network ]['active'] = 'on' === sanitize_key( wp_unslash( $_GET['diluxone_users_action'] ) ) ? 1 : 0;
-
-			update_option( 'diluxone_users_sso', $all );
-		}
-
-		wp_safe_redirect( diluxone_users_admin_url( 'diluxone-users-social' ) );
-		exit;
-	}
-
 	diluxone_users_screen_panels( 'diluxone-users-social', __( 'Social login', 'diluxone-users' ) );
 }
 
@@ -532,7 +513,7 @@ function diluxone_users_screen_provider( string $id, array $provider ): void {
 
 	$current = diluxone_users_tab( $tabs );
 
-	if ( isset( $_POST['diluxone_users_provider_nonce'] ) && wp_verify_nonce( sanitize_key( wp_unslash( $_POST['diluxone_users_provider_nonce'] ) ), 'diluxone_users_provider' ) ) {
+	if ( current_user_can( 'manage_options' ) && isset( $_POST['diluxone_users_provider_nonce'] ) && wp_verify_nonce( sanitize_key( wp_unslash( $_POST['diluxone_users_provider_nonce'] ) ), 'diluxone_users_provider' ) ) {
 		// phpcs:disable WordPress.Security.NonceVerification.Missing -- verified above.
 		$typed = sanitize_text_field( wp_unslash( $_POST['diluxone_users_client_secret'] ?? '' ) );
 
@@ -914,3 +895,38 @@ function diluxone_users_provider_rail( string $id, array $provider, string $stat
 
 	diluxone_users_ui_links( __( 'Where the rest of this lives', 'diluxone-users' ), $links );
 }
+
+/**
+ * Turning a provider's button on or off, from the row on the list as well as
+ * from the provider's own screen: both point here.
+ *
+ * On `admin_init`, before the dashboard prints a byte: it ends in a redirect,
+ * and a redirect from inside the page is a header sent after the page began —
+ * the change was written and the screen came back empty.
+ */
+function diluxone_users_social_toggle(): void {
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- only which page this is; the nonce is checked below.
+	if ( 'diluxone-users-social' !== sanitize_key( wp_unslash( $_GET['page'] ?? '' ) ) || ! isset( $_GET['diluxone_users_action'], $_GET['red'] ) ) {
+		return;
+	}
+
+	if ( ! current_user_can( 'manage_options' ) ) {
+		return;
+	}
+
+	check_admin_referer( 'diluxone_users_social_toggle' );
+
+	$network = sanitize_key( wp_unslash( $_GET['red'] ) );
+
+	if ( isset( diluxone_users_sso_providers()[ $network ] ) && diluxone_users_sso_tested( $network ) ) {
+		$all = (array) get_option( 'diluxone_users_sso', array() );
+
+		$all[ $network ]['active'] = 'on' === sanitize_key( wp_unslash( $_GET['diluxone_users_action'] ) ) ? 1 : 0;
+
+		update_option( 'diluxone_users_sso', $all, false );
+	}
+
+	wp_safe_redirect( diluxone_users_admin_url( 'diluxone-users-social' ) );
+	exit;
+}
+add_action( 'admin_init', 'diluxone_users_social_toggle' );

@@ -45,6 +45,13 @@ defined( 'ABSPATH' ) || exit;
 	<?php elseif ( ! $open ) : ?>
 
 		<h2 class="diluxone-users-login__title"><?php esc_html_e( 'Registration is closed', 'diluxone-users' ); ?></h2>
+		<?php if ( 'closed' === $state ) : ?>
+			<?php
+			// A form was sent to a site that has stopped taking accounts since
+			// it was drawn: that is the message the site wrote for it.
+			diluxone_users_login_notice( 'register_closed' );
+			?>
+		<?php endif; ?>
 		<p><?php esc_html_e( 'This site does not take new accounts right now. If you already have one, you can sign in.', 'diluxone-users' ); ?></p>
 		<p>
 			<a class="diluxone-users-button diluxone-users-button--soft" href="<?php echo esc_url( diluxone_users_login_url() ); ?>">

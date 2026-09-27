@@ -539,7 +539,7 @@ function diluxone_users_ways_register(): void {
 			'icon'      => 'mail',
 			'position'  => 20,
 			'over'      => __( 'or with your email', 'diluxone-users' ),
-			'states'    => array( 'email', 'error' ),
+			'states'    => array( 'email', 'error', 'expired' ),
 			'available' => 'diluxone_users_login_has_link',
 			'render'    => 'diluxone_users_way_email',
 		)

@@ -38,7 +38,7 @@ function diluxone_users_login_challenge(): array {
 		return array();
 	}
 
-	$user_id = absint( $_GET['diluxone_users_2fa'] );
+	$user_id = absint( wp_unslash( $_GET['diluxone_users_2fa'] ) );
 	$key     = sanitize_text_field( wp_unslash( $_GET['diluxone_users_key'] ) );
 	$method  = sanitize_key( wp_unslash( $_GET['diluxone_users_method'] ?? '' ) );
 	// phpcs:enable

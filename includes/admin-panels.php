@@ -153,8 +153,11 @@ function diluxone_users_screen_panels( string $screen, string $title ): void {
 	$current = diluxone_users_tab( $labels );
 	$panel   = $panels[ $current ];
 
+	// The menu already asks for manage_options before this page is drawn;
+	// the save asks again itself, so it does not depend on how it was reached.
 	if (
 		is_callable( $panel['save'] )
+		&& current_user_can( 'manage_options' )
 		&& isset( $_POST['diluxone_users_panel_nonce'] )
 		&& wp_verify_nonce( sanitize_key( wp_unslash( $_POST['diluxone_users_panel_nonce'] ) ), 'diluxone_users_panel_' . $screen )
 	) {

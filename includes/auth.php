@@ -882,7 +882,7 @@ function diluxone_users_2fa_handle(): void {
 		return;
 	}
 
-	$user_id = absint( $_POST['diluxone_users_2fa_user'] );
+	$user_id = absint( wp_unslash( $_POST['diluxone_users_2fa_user'] ) );
 	$key     = sanitize_text_field( wp_unslash( $_POST['diluxone_users_2fa_key'] ) );
 	$method  = sanitize_key( wp_unslash( $_POST['diluxone_users_2fa_method'] ?? '' ) );
 	$code    = sanitize_text_field( wp_unslash( $_POST['diluxone_users_2fa_code'] ?? '' ) );

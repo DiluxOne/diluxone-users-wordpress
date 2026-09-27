@@ -374,7 +374,7 @@ function diluxone_users_panel_doors(): void {
 				'label'  => __( 'Sign-in method', 'diluxone-users' ),
 				'state'  => 'active',
 				'detail' => $methods[ diluxone_users_login_method() ],
-				'url'    => diluxone_users_admin_url( 'diluxone-users-login', array( 'tab' => 'link' ) ),
+				'url'    => diluxone_users_admin_url( 'diluxone-users-login', array( 'tab' => 'ways' ) ),
 			),
 			diluxone_users_check_mail(),
 			array(

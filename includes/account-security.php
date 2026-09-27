@@ -18,15 +18,10 @@ function diluxone_users_2fa_offered( int $user_id ): bool {
 		return false;
 	}
 
-	$roles = (array) diluxone_users_option( 'diluxone_users_2fa_roles' );
-
-	if ( array() === $roles ) {
-		return true;
-	}
-
-	$user = get_userdata( $user_id );
-
-	return $user instanceof WP_User && array() !== array_intersect( $roles, (array) $user->roles );
+	// The same question the sign-in asks, in the same words: who is in the
+	// scope. Reading the list of roles directly disagreed with it whenever the
+	// scope was "everybody" with roles still ticked from before.
+	return diluxone_users_scope_includes( $user_id, 'diluxone_users_2fa' );
 }
 
 /** Do they have it turned on? With the required mode, always. */
