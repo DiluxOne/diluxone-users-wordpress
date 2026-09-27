@@ -246,6 +246,7 @@ function diluxone_users_field_key_allowed( string $key ): bool {
 		'diluxone_users_handle',
 		'diluxone_users_handle_changed',
 		'diluxone_users_avatar',
+		'diluxone_users_avatar_site',
 		'diluxone_users_devices',
 	);
 

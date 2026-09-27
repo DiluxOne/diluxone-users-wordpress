@@ -332,4 +332,34 @@ class MultisiteTest extends IntegrationTestCase {
 		$this->assertContains( $member, $ids );
 		$this->assertNotContains( $outsider, $ids );
 	}
+
+	/**
+	 * A picture is an attachment of one site and the person is the network's:
+	 * it is read, and deleted, on the site that holds it.
+	 */
+	public function test_a_picture_is_read_and_deleted_on_the_site_that_holds_it(): void {
+		$user = $this->make_user();
+
+		$picture = wp_insert_attachment(
+			array(
+				'post_mime_type' => 'image/png',
+				'post_title'     => 'Avatar',
+				'post_status'    => 'inherit',
+				'post_author'    => $user,
+			),
+			'avatar-' . $user . '.png'
+		);
+		update_user_meta( $user, 'diluxone_users_avatar', $picture );
+		update_user_meta( $user, 'diluxone_users_avatar_site', get_current_blog_id() );
+		$url = diluxone_users_avatar_url( $user );
+
+		$this->assertNotSame( '', $url );
+
+		switch_to_blog( $this->site );
+		$this->assertSame( $url, diluxone_users_avatar_url( $user ), 'The same picture from the site next door' );
+		diluxone_users_avatar_delete( $user );
+		restore_current_blog();
+
+		$this->assertNull( get_post( $picture ), 'Deleted where it lives' );
+	}
 }

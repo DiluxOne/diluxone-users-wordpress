@@ -117,4 +117,31 @@ class ClosedDoorsTest extends IntegrationTestCase {
 			$this->assertNotNull( \WP_Session_Tokens::get_instance( $admin )->get( $token ) );
 		}
 	}
+
+	/**
+	 * What went wrong in the public-name form reaches the page it lands on
+	 * from the server, not from the address: a link whose query string makes
+	 * the site say anything in its own voice is not a link the site offers.
+	 */
+	public function test_an_error_is_not_carried_in_the_address(): void {
+		$user = $this->make_user();
+		wp_set_current_user( $user );
+
+		$this->postAs(
+			$user,
+			array(
+				'_wpnonce'              => wp_create_nonce( 'diluxone_users_handle' ),
+				'diluxone_users_handle' => 'somebody@example.test',
+			)
+		);
+
+		$url = $this->expectRedirect( 'diluxone_users_handle_submit' );
+
+		$this->assertSame( '', $this->queryArg( $url, 'diluxone_users_handle' ) );
+		$this->assertNotSame( '', diluxone_users_flash_take( $user, 'handle' ) );
+		$this->assertSame( '', diluxone_users_flash_take( $user, 'handle' ), 'Read once' );
+
+		$_GET['diluxone_users_handle'] = 'Your account was compromised, call us';
+		$this->assertStringNotContainsString( 'compromised', diluxone_users_shortcode_handle() );
+	}
 }

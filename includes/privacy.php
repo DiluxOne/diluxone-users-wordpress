@@ -168,12 +168,17 @@ function diluxone_users_privacy_details( int $user_id ): array {
 		);
 	}
 
-	$avatar = (int) get_user_meta( $user_id, 'diluxone_users_avatar', true );
+	$avatar = diluxone_users_avatar_id( $user_id ) > 0
+		? (string) diluxone_users_avatar_on_its_site(
+			$user_id,
+			static fn(): string => (string) wp_get_attachment_url( diluxone_users_avatar_id( $user_id ) )
+		)
+		: '';
 
-	if ( $avatar > 0 ) {
+	if ( '' !== $avatar ) {
 		$rows[] = array(
 			'name'  => __( 'Profile picture', 'diluxone-users' ),
-			'value' => (string) wp_get_attachment_url( $avatar ),
+			'value' => $avatar,
 		);
 	}
 
@@ -290,10 +295,9 @@ function diluxone_users_privacy_erase( string $email, int $page = 1 ): array {
 	$user_id = (int) $user->ID;
 	$removed = false;
 
-	$avatar = (int) get_user_meta( $user_id, 'diluxone_users_avatar', true );
-
-	if ( $avatar > 0 ) {
-		wp_delete_attachment( $avatar, true );
+	// On the site that holds it: see diluxone_users_avatar_site().
+	if ( diluxone_users_avatar_id( $user_id ) > 0 ) {
+		diluxone_users_avatar_delete( $user_id );
 		$removed = true;
 	}
 
@@ -334,6 +338,7 @@ function diluxone_users_privacy_keys( int $user_id ): array {
 		'diluxone_users_handle',
 		'diluxone_users_handle_changed',
 		'diluxone_users_avatar',
+		'diluxone_users_avatar_site',
 		'diluxone_users_devices',
 		'diluxone_users_2fa_on',
 		'diluxone_users_2fa_epoch',

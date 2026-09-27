@@ -694,3 +694,29 @@ function diluxone_users_meta_list( int $user_id, string $key ): array {
 
 	return is_array( $value ) ? $value : array();
 }
+
+/**
+ * Leaves a message for this person's next page, once.
+ *
+ * What went wrong in a form that redirects has to reach the page it lands
+ * on, and the address is the wrong carrier: anybody can build a link whose
+ * query string makes the site say anything, in its own voice. This keeps the
+ * text on the server, under the person it is for, for a minute.
+ */
+function diluxone_users_flash_set( int $user_id, string $key, string $message ): void {
+	set_transient( 'diluxone_users_flash_' . sanitize_key( $key ) . '_' . $user_id, $message, MINUTE_IN_SECONDS );
+}
+
+/** Takes the message left for this person, if any. Once read, it is gone. */
+function diluxone_users_flash_take( int $user_id, string $key ): string {
+	$name    = 'diluxone_users_flash_' . sanitize_key( $key ) . '_' . $user_id;
+	$message = get_transient( $name );
+
+	if ( false === $message ) {
+		return '';
+	}
+
+	delete_transient( $name );
+
+	return is_string( $message ) ? $message : '';
+}

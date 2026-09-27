@@ -291,8 +291,7 @@ function diluxone_users_shortcode_handle(): string {
 			'handle' => '' !== diluxone_users_handle( $user->ID ) ? diluxone_users_handle( $user->ID ) : $user->user_nicename,
 			'can'    => diluxone_users_handle_can_change( $user->ID ),
 			'next'   => diluxone_users_handle_next_change( $user->ID ),
-				// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- it only picks the message.
-			'error'  => isset( $_GET['diluxone_users_handle'] ) ? sanitize_text_field( wp_unslash( $_GET['diluxone_users_handle'] ) ) : '',
+			'error'  => diluxone_users_flash_take( $user->ID, 'handle' ),
 		)
 	);
 }
@@ -308,11 +307,11 @@ function diluxone_users_handle_submit(): void {
 	check_admin_referer( 'diluxone_users_handle' );
 
 	$target = diluxone_users_account_url( 'details' );
-	// phpcs:ignore WordPress.Security.NonceVerification.Missing -- verificado arriba.
 	$result = diluxone_users_handle_save( get_current_user_id(), sanitize_text_field( wp_unslash( $_POST['diluxone_users_handle'] ?? '' ) ) );
 
 	if ( is_wp_error( $result ) ) {
-		wp_safe_redirect( add_query_arg( 'diluxone_users_handle', rawurlencode( $result->get_error_message() ), $target ) );
+		diluxone_users_flash_set( get_current_user_id(), 'handle', $result->get_error_message() );
+		wp_safe_redirect( $target );
 		exit;
 	}
 
