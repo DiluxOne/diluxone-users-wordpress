@@ -935,7 +935,7 @@ function diluxone_users_screen_account_summary(): void {
 						array_filter(
 							array(
 								diluxone_users_option( 'diluxone_users_privacy_export' ) ? __( 'can ask for a copy', 'diluxone-users' ) : '',
-								diluxone_users_option( 'diluxone_users_privacy_delete' ) ? __( 'can ask for their data to be erased', 'diluxone-users' ) : '',
+								diluxone_users_option( 'diluxone_users_privacy_delete' ) ? __( 'can ask to be deleted', 'diluxone-users' ) : '',
 							)
 						)
 					)
@@ -1459,8 +1459,8 @@ function diluxone_users_screen_account_privacy(): void {
 					'name'    => 'diluxone_users_privacy_delete',
 					'value'   => '1',
 					'checked' => (bool) diluxone_users_option( 'diluxone_users_privacy_delete' ),
-					'title'   => __( 'They can ask for their data to be erased', 'diluxone-users' ),
-					'help'    => __( 'Confirmed by email too, and never for an account that administers the site: it would leave the site with nobody in charge.', 'diluxone-users' ),
+					'title'   => __( 'They can ask for their account to be deleted', 'diluxone-users' ),
+					'help'    => __( 'They confirm it by e-mail, and you carry it out from Tools → Erase Personal Data: their data is erased and the account deleted, or left with no name, e-mail or password if they published something. Never for an account that administers the site.', 'diluxone-users' ),
 				),
 			)
 		);

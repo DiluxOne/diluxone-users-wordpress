@@ -2,6 +2,7 @@ import { Browser, Locator, Page } from '@playwright/test';
 import { test, expect, expectSignedIn, expectSignedOut, stateOf } from '../support/fixtures';
 import { Site, codeIn, freshEmail, linkIn, waitForMail } from '../support/api';
 import { accountSection, askForLink, notice, signInWithPassword } from '../support/ui';
+import { ADMIN_STATE } from '../../../playwright.config';
 import { avoidWindowEdge, totp } from '../support/totp';
 
 /**
@@ -448,6 +449,44 @@ test.describe('Your data', () => {
 			await expect(page.locator('.diluxone-users-requests').first()).toBeAttached();
 		});
 	}
+
+	/**
+	 * The whole way: asked on the account, confirmed from the e-mail, carried
+	 * out by an administrator from Tools → Erase Personal Data. An account
+	 * with nothing published is gone afterwards; the request filed from the
+	 * account area is what says it should be.
+	 */
+	test('asking to delete the account, once confirmed and carried out, deletes it', async ({
+		browser,
+		page,
+		site,
+		pages,
+	}) => {
+		const { email } = await signedIn(page, site, pages.login.url, 'data-close');
+
+		page.on('dialog', (dialog) => dialog.accept());
+
+		await page.goto(accountSection(pages.account.url, 'privacy'));
+		await reveal(page, 'form:has(input[name="diluxone_users_request"][value="erase"]) button[type="submit"]');
+		expect(await send(page, requestForm(page, 'erase').locator('button[type="submit"]'))).toBe('requested');
+
+		// The person confirms it from the e-mail WordPress sent.
+		await page.goto(linkIn(await waitForMail(site, email)));
+
+		// An administrator carries it out, from WordPress's own screen.
+		const admin = await browser.newContext({ storageState: ADMIN_STATE });
+		const tools = await admin.newPage();
+
+		await tools.goto('/wp-admin/erase-personal-data.php');
+
+		const row = tools.locator('tr').filter({ hasText: email });
+
+		await row.locator('.remove-personal-data-handle').first().click();
+		await expect(row.locator('.remove-personal-data-success').first()).toBeVisible({ timeout: 30_000 });
+		await admin.close();
+
+		await expect.poll(async () => (await site.user(email)).exists, { message: 'the account is gone' }).toBe(false);
+	});
 
 	test('erasure switched off on the site is refused by the server, not only hidden', async ({
 		page,

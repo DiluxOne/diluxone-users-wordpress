@@ -32,7 +32,7 @@ Everything about the people who use your site, in one place.
 * **An activity log** of its own: who signed in, who was refused and what
   changed. It records IP addresses; see Privacy below.
 * **Privacy**: WordPress's own export and erasure requests answer for
-  everything this plugin stores.
+  everything this plugin stores, and people can delete their own account.
 
 == External services ==
 
@@ -61,15 +61,12 @@ Nothing else about your site or its visitors is sent.
 * **GitLab** — gitlab.com. [Terms](https://handbook.gitlab.com/handbook/legal/subscription-agreement/), [Privacy](https://handbook.gitlab.com/handbook/legal/privacy/)
 * **Amazon** — www.amazon.com, api.amazon.com. [Terms](https://www.amazon.com/gp/help/customer/display.html?nodeId=508088), [Privacy](https://www.amazon.com/gp/help/customer/display.html?nodeId=468496)
 
-The settings screens also link to each provider's developer console and docs;
-those are links, not requests.
+The settings screens link to each provider's console and docs (links, not requests).
 
-**Gravatar** (Automattic) is WordPress's own avatar service, not a call this
-plugin makes, but the plugin has a switch for it and it comes on. While it is
-on, visitors' browsers request avatars from gravatar.com, which receives a hash
-of the person's e-mail address and the visitor's IP. With it off, no picture
-comes from gravatar.com: the plugin draws one. The switch is on
-**DiluxOne Users+ → Design → Profile photo**.
+**Gravatar** (Automattic) is WordPress's own avatar service; the plugin's switch
+for it comes on. While on, browsers request avatars from gravatar.com, which
+receives a hash of the e-mail address and the visitor's IP. Off, the plugin
+draws them. Switch: **DiluxOne Users+ → Design → Profile photo**.
 [Terms](https://automattic.com/terms/), [Privacy](https://automattic.com/privacy/)
 
 == Installation ==
@@ -78,9 +75,8 @@ comes from gravatar.com: the plugin draws one. The switch is on
 2. Go to **DiluxOne Users+ → Access** and pick (or create) the sign-in page.
 3. Go to **DiluxOne Users+ → Account area** and pick (or create) the account page.
 
-Whether people may create their own accounts starts as your site had it
-(**Settings → General → Anyone can register**, or the network's setting) and is
-changed on **Access → Registration**.
+Self-registration starts as your site had it (**Anyone can register**, or the
+network's setting); change it on **Access → Registration**.
 
 == Privacy ==
 
@@ -111,6 +107,14 @@ backup-code hashes, passkey public keys); the erasure removes them too. Refused
 sign-ins that typed a person's name are exported, and kept on erasure as
 security evidence until the log's retention removes them; the erasure says so.
 
+= Deleting an account =
+
+Asked for on the account area, confirmed by e-mail and carried out by an
+administrator from **Tools → Erase Personal Data**: the data is erased and the
+account deleted, or, when the person published something, left with no name,
+e-mail, password or role so their posts stay without a name. Requests filed
+from Tools erase data only. Accounts that administer the site cannot ask.
+
 = Deleting the plugin =
 
 By default deleting the plugin leaves everything in place, so a plugin deleted
@@ -139,10 +143,6 @@ their own too: `[diluxone_users_fields]`, `[diluxone_users_avatar]`,
 `[diluxone_users_handle]`, `[diluxone_users_accounts]`,
 `[diluxone_users_sessions]` and `[diluxone_users_notifications]`.
 
-= Does it work with any theme? =
-
-Yes. Templates can be overridden at `wp-content/themes/<theme>/diluxone-users/`.
-
 = Does it work on multisite? =
 
 Yes. Settings are per site; accounts are the network's. Whether new accounts
@@ -150,8 +150,8 @@ may be created at all is the network's **Allow new registrations**. Somebody
 becomes a member of a site when they sign in there through one of its doors,
 if that site takes new people. The second step is asked wherever a person signs
 in when any site they belong to asks it. Each site's reports count its own
-members. For social login, use the same app credentials on every site: some
-providers give a different account id per app.
+members. For social login, use one app on every site: some providers give a
+different account id per app.
 
 = Is it behind a proxy or a CDN? =
 
