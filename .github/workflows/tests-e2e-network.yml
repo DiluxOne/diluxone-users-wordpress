@@ -1,0 +1,56 @@
+name: End-to-end tests (network)
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  e2e-network:
+    name: End-to-end tests on a multisite network (Playwright + wp-env)
+    runs-on: ubuntu-latest
+    # The same cold start as the single-site suite, plus the conversion to a
+    # network and the WP-CLI round trips the setup makes two sites with.
+    timeout-minutes: 25
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install npm dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Start wp-env
+        # Two sites: the dev one (8892), which the single-site suite drives
+        # in its own workflow, and the tests one (8893), which this job turns
+        # into a network. Both mount this commit and the e2e mu-plugin.
+        run: npx wp-env start
+
+      - name: Run the network suite
+        # `make test-e2e-network` is `make env-multisite` — convert the tests
+        # site into a subdirectory network, put the network's .htaccess in
+        # place and network-activate the plugin — followed by
+        # `npx playwright test -c playwright.network.config.ts`.
+        run: make test-e2e-network
+
+      - name: Keep the trace of whatever failed
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-network-report
+          path: build/e2e-results
+          retention-days: 7
+
+      - name: Stop wp-env
+        if: always()
+        run: npx wp-env stop
