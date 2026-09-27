@@ -37,7 +37,7 @@ function diluxone_users_register_url(): string {
  * and the admin says so rather than pretending.
  */
 function diluxone_users_register_form_open(): bool {
-	return (bool) diluxone_users_option( 'diluxone_users_register_form' ) && '' !== diluxone_users_register_url();
+	return (bool) diluxone_users_option( 'diluxone_users_register_form' ) && '' !== diluxone_users_register_url() && diluxone_users_network_takes_accounts();
 }
 
 /**

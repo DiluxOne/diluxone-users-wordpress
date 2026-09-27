@@ -178,29 +178,56 @@ function diluxone_users_log_ready(): void {
 add_action( 'admin_init', 'diluxone_users_log_ready', 0 );
 
 /*
- * The activation hook is registered from here and not from the plugin's main
- * file: the table belongs to this feature, and a feature that has to be
- * mentioned somewhere else in order to install itself is a feature that
- * breaks when it is taken out.
- *
- * There is deliberately nothing on `wp_initialize_site`. A site born on a
- * network is initialised from inside another site's request, so `$wpdb->prefix`
- * there is the wrong site's and the table would be created twice on one of them
- * and never on the other. The new site gets its table the first time somebody
- * opens its dashboard, which is the check above.
+ * The table is created on activation, for every site of a network when the
+ * activation is network-wide, and for a site born afterwards when it is born:
+ * see diluxone_users_site_setup(). The check above stays as the safety net for
+ * a site whose table went missing some other way.
  */
-register_activation_hook(
-	DILUXONE_USERS_FILE,
-	static function (): void {
-		diluxone_users_log_install();
-	}
-);
 
-/** A plugin that is switched off leaves no event of its own behind. */
-function diluxone_users_log_unschedule(): void {
+/**
+ * A plugin that is switched off leaves no event of its own behind — on every
+ * site it was switched off for.
+ *
+ * @param bool $network_wide Whether it was deactivated for the whole network.
+ */
+function diluxone_users_log_unschedule( $network_wide = false ): void {
+	if ( is_multisite() && $network_wide ) {
+		foreach ( get_sites(
+			array(
+				'fields' => 'ids',
+				'number' => 0,
+			)
+		) as $site ) {
+			switch_to_blog( (int) $site );
+			wp_clear_scheduled_hook( DILUXONE_USERS_LOG_PURGE );
+			restore_current_blog();
+		}
+
+		return;
+	}
+
 	wp_clear_scheduled_hook( DILUXONE_USERS_LOG_PURGE );
 }
 register_deactivation_hook( DILUXONE_USERS_FILE, 'diluxone_users_log_unschedule' );
+
+/**
+ * A site deleted from the network takes its table with it.
+ *
+ * WordPress drops the tables it knows about and asks for the rest here.
+ *
+ * @param array<int, string> $tables  The tables WordPress is about to drop.
+ * @param int                $site_id The site being deleted.
+ * @return array<int, string>
+ */
+function diluxone_users_log_drop_with_site( $tables, $site_id ): array {
+	global $wpdb;
+
+	$tables   = (array) $tables;
+	$tables[] = $wpdb->get_blog_prefix( (int) $site_id ) . 'diluxone_users_log';
+
+	return $tables;
+}
+add_filter( 'wpmu_drop_tables', 'diluxone_users_log_drop_with_site', 10, 2 );
 
 /* ── What there is to record ───────────────────────────────────────── */
 

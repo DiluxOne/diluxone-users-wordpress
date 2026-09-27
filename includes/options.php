@@ -33,7 +33,7 @@ function diluxone_users_option_defaults(): array {
 		'diluxone_users_login_throttle'        => 60,
 		// Create the account when the e-mail does not exist. Turned off, the
 		// link only works for someone already registered.
-		'diluxone_users_login_register'        => 1,
+		'diluxone_users_login_register'        => 0,
 		// The site's own registration form, on its own page. One of the
 		// doors into an account, beside the e-mail link and the social ones:
 		// they are independent, and a site can open any of them together.

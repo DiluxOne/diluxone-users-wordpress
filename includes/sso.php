@@ -618,6 +618,9 @@ function diluxone_users_sso_user( string $id, array $identity ): int {
 		'meta_value'   => $identity['id'], // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
 		'number'       => 1,
 		'fields'       => 'ID',
+		// Accounts are the network's: somebody linked on the site next door
+		// is the same somebody here.
+		'blog_id'      => 0,
 		)
 	);
 
@@ -640,16 +643,14 @@ function diluxone_users_sso_user( string $id, array $identity ): int {
 		}
 
 		$user_id = (int) $known->ID;
-
-		// Same as with the e-mail link: on a network they have to be added to
-		// this site, or they get in and can do nothing.
-		diluxone_users_join_site( $user_id );
 	} else {
 		if ( ! diluxone_users_option( 'diluxone_users_sso_register' ) || ! diluxone_users_sso_email_trusted( $identity, false ) ) {
 			return 0;
 		}
 
-		$user_id = diluxone_users_user_for( $identity['email'] );
+		// Its own switch decides, not the e-mail link's: a site can create
+		// accounts from social sign-in and not from a typed address.
+		$user_id = diluxone_users_create_account( $identity['email'] );
 	}
 
 	if ( $user_id <= 0 || diluxone_users_sso_role_blocked( $user_id ) ) {

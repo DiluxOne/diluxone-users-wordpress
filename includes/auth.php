@@ -393,6 +393,12 @@ function diluxone_users_2fa_trust( int $user_id ): void {
  * @param string $redirect Where they go afterwards.
  */
 function diluxone_users_complete_login( int $user_id, string $via, bool $remember = true, string $redirect = '' ): void {
+	// Every door ends here once the person has proved who they are — the link
+	// clicked, the provider answered, the passkey signed — and on a network
+	// that is the moment they become a member of this site, if it takes
+	// members. Not before: asking for a link proves nothing.
+	diluxone_users_join_site( $user_id );
+
 	$redirect = '' !== $redirect ? $redirect : (string) apply_filters( 'diluxone_users_login_redirect', home_url( '/' ), $user_id );
 
 	// A passkey goes straight in: it already proved both things.

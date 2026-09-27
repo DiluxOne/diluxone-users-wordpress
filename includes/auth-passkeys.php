@@ -171,6 +171,9 @@ function diluxone_users_passkey_owner( string $id ): int {
 			'meta_key' => diluxone_users_passkey_index_key( $id ), // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
 			'fields'   => 'ID',
 			'number'   => 2,
+			// The network's accounts, not only this site's members: a passkey
+			// belongs to a person, wherever they signed up.
+			'blog_id'  => 0,
 		)
 	);
 
@@ -648,6 +651,10 @@ function diluxone_users_passkeys_login( array $post ): array {
 		(string) apply_filters( 'diluxone_users_login_redirect', home_url( '/' ), $user_id ),
 		home_url( '/' )
 	);
+
+	// The same membership rule every other door applies once it is proved who
+	// somebody is (see diluxone_users_complete_login()).
+	diluxone_users_join_site( $user_id );
 
 	wp_set_current_user( $user_id );
 	wp_set_auth_cookie( $user_id, true );

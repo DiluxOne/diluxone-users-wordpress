@@ -1,0 +1,240 @@
+<?php
+/**
+ * What changes when the plugin runs on a network of sites.
+ *
+ * Accounts belong to the network and roles to each site, so the rules here
+ * are about that seam: the network decides whether accounts may be created at
+ * all, a site decides who becomes its member, and nobody becomes a member of
+ * anything by having their address typed into a form.
+ *
+ * The shared CI runs this suite on a network. On a single site every test
+ * here is skipped, loudly — a network test that passes on a single site has
+ * proved nothing.
+ */
+
+namespace Tests\Integration;
+
+class MultisiteTest extends IntegrationTestCase {
+
+	private int $site = 0;
+
+	private string $registration = '';
+
+	protected function setUp(): void {
+		parent::setUp();
+
+		if ( ! is_multisite() ) {
+			$this->markTestSkipped( 'Needs a multisite network: run `make env-multisite` first.' );
+		}
+
+		$this->registration = (string) get_site_option( 'registration', 'none' );
+
+		$this->site = (int) wp_insert_site(
+			array(
+				'domain' => (string) get_network()->domain,
+				'path'   => '/ms-' . strtolower( wp_generate_password( 6, false ) ) . '/',
+				'title'  => 'Second site',
+			)
+		);
+
+		$this->assertGreaterThan( 0, $this->site );
+	}
+
+	protected function tearDown(): void {
+		if ( is_multisite() ) {
+			while ( ms_is_switched() ) {
+				restore_current_blog();
+			}
+
+			update_site_option( 'registration', $this->registration );
+
+			if ( $this->site > 0 ) {
+				wp_delete_site( $this->site );
+			}
+		}
+
+		parent::tearDown();
+	}
+
+	/** Asks for a sign-in link on the current site. */
+	private function ask( string $email ): void {
+		$this->postAs(
+			0,
+			array(
+				'diluxone_users_nonce' => wp_create_nonce( 'diluxone_users_login' ),
+				'diluxone_users_email' => $email,
+			)
+		);
+
+		$this->expectRedirect( 'diluxone_users_login_request' );
+	}
+
+	public function test_the_network_decides_whether_accounts_can_be_created(): void {
+		update_site_option( 'registration', 'none' );
+		switch_to_blog( $this->site );
+		update_option( 'diluxone_users_login_register', 1 );
+
+		$email = 'closed-network-' . wp_generate_password( 8, false ) . '@example.test';
+		$this->ask( $email );
+
+		$this->assertFalse( email_exists( $email ), 'A site cannot open what the network closed' );
+		$this->assertSame( 'closed', diluxone_users_register_mode() );
+
+		update_site_option( 'registration', 'user' );
+
+		$this->ask( 'open-network-' . wp_generate_password( 8, false ) . '@example.test' );
+
+		$this->assertCount( 1, self::$mail, 'With the network open, the site’s own switch decides' );
+	}
+
+	/** @return bool Whether the log table of this site exists. */
+	private function log_table_exists( int $site ): bool {
+		global $wpdb;
+
+		$table = $wpdb->get_blog_prefix( $site ) . 'diluxone_users_log';
+
+		return $table === $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $wpdb->esc_like( $table ) ) );
+	}
+
+	/**
+	 * A site born on a network where the plugin is active everywhere is set
+	 * up when it is born, not the first time somebody opens its dashboard: its
+	 * visitors may sign in before that.
+	 */
+	public function test_a_site_born_on_the_network_is_set_up_at_birth(): void {
+		$this->assertTrue( is_plugin_active_for_network( plugin_basename( DILUXONE_USERS_FILE ) ), 'The suite runs with the plugin network-activated' );
+		$this->assertTrue( $this->log_table_exists( $this->site ) );
+
+		switch_to_blog( $this->site );
+
+		$this->assertNotFalse( get_option( 'diluxone_users_fields', false ) );
+		$this->assertSame( 1, (int) get_option( 'diluxone_users_login_register' ), 'The network was open when it was born' );
+	}
+
+	/** Its registration switch starts where the network is, closed or open. */
+	public function test_a_site_born_on_a_closed_network_starts_closed(): void {
+		update_site_option( 'registration', 'none' );
+
+		$closed = (int) wp_insert_site(
+			array(
+				'domain' => (string) get_network()->domain,
+				'path'   => '/ms-closed-' . strtolower( wp_generate_password( 6, false ) ) . '/',
+				'title'  => 'Closed',
+			)
+		);
+
+		switch_to_blog( $closed );
+		$this->assertSame( 0, (int) get_option( 'diluxone_users_login_register' ) );
+		restore_current_blog();
+
+		wp_delete_site( $closed );
+	}
+
+	public function test_a_deleted_site_takes_its_table_with_it(): void {
+		$gone = (int) wp_insert_site(
+			array(
+				'domain' => (string) get_network()->domain,
+				'path'   => '/ms-gone-' . strtolower( wp_generate_password( 6, false ) ) . '/',
+				'title'  => 'Gone',
+			)
+		);
+
+		$this->assertTrue( $this->log_table_exists( $gone ) );
+
+		wp_delete_site( $gone );
+
+		$this->assertFalse( $this->log_table_exists( $gone ) );
+	}
+
+	/** Deactivating for the network leaves no purge event on any site. */
+	public function test_network_deactivation_clears_the_event_on_every_site(): void {
+		switch_to_blog( $this->site );
+		wp_schedule_event( time() + HOUR_IN_SECONDS, 'daily', DILUXONE_USERS_LOG_PURGE );
+		restore_current_blog();
+
+		diluxone_users_log_unschedule( true );
+
+		switch_to_blog( $this->site );
+		$this->assertFalse( wp_next_scheduled( DILUXONE_USERS_LOG_PURGE ) );
+		restore_current_blog();
+
+		$this->assertFalse( wp_next_scheduled( DILUXONE_USERS_LOG_PURGE ) );
+	}
+
+	/**
+	 * Anybody can type anybody's address. Asking for a link on a site must
+	 * not make the owner of that address a member of it; clicking the link,
+	 * which proves the address is theirs, does.
+	 */
+	public function test_membership_comes_with_the_click_not_with_the_request(): void {
+		update_site_option( 'registration', 'user' );
+		$user = get_userdata( $this->make_user() );
+
+		switch_to_blog( $this->site );
+		update_option( 'diluxone_users_login_register', 1 );
+
+		$this->ask( $user->user_email );
+
+		$this->assertFalse( is_user_member_of_blog( $user->ID, $this->site ), 'Asking proves nothing' );
+
+		$token = diluxone_users_token_create( $user->ID );
+		$_GET  = array(
+			'diluxone_users_login' => (string) $user->ID,
+			'diluxone_users_token' => $token,
+		);
+		$this->expectRedirect( 'diluxone_users_login_consume' );
+
+		$this->assertTrue( is_user_member_of_blog( $user->ID, $this->site ), 'The click does' );
+	}
+
+	public function test_a_site_that_takes_nobody_adds_nobody(): void {
+		$user = get_userdata( $this->make_user() );
+
+		switch_to_blog( $this->site );
+		update_option( 'diluxone_users_login_register', 0 );
+		update_option( 'diluxone_users_sso_register', 0 );
+		update_option( 'diluxone_users_register_form', 0 );
+
+		diluxone_users_join_site( $user->ID );
+
+		$this->assertFalse( is_user_member_of_blog( $user->ID, $this->site ) );
+	}
+
+	public function test_a_super_admin_is_not_made_a_subscriber(): void {
+		$admin = $this->make_user();
+		grant_super_admin( $admin );
+
+		switch_to_blog( $this->site );
+		update_option( 'diluxone_users_login_register', 1 );
+
+		diluxone_users_join_site( $admin );
+
+		$this->assertFalse( is_user_member_of_blog( $admin, $this->site ) );
+
+		revoke_super_admin( $admin );
+	}
+
+	/** A passkey belongs to a person, whichever site they are a member of. */
+	public function test_a_passkey_is_found_for_somebody_who_is_not_a_member_here(): void {
+		$user = $this->make_user();
+		$id   = 'ms-key-' . wp_generate_password( 12, false );
+
+		diluxone_users_passkeys_save(
+			$user,
+			array(
+				array(
+					'id'      => $id,
+					'public'  => 'x',
+					'counter' => 0,
+					'name'    => 'Test',
+					'created' => time(),
+					'used'    => 0,
+				),
+			)
+		);
+
+		switch_to_blog( $this->site );
+
+		$this->assertSame( $user, diluxone_users_passkey_owner( $id ) );
+	}
+}

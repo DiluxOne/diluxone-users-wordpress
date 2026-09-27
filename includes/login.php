@@ -444,11 +444,10 @@ function diluxone_users_user_for( string $email ): int {
 	$user = get_user_by( 'email', $email );
 
 	if ( $user ) {
-		// On a network, existing is not being a member of this site: somebody
-		// coming from the site next door gets in, but with no role here they
-		// can do nothing.
-		diluxone_users_join_site( (int) $user->ID );
-
+		// On a network, existing is not being a member of this site. They are
+		// not made one here: asking for a link proves nothing, and anybody can
+		// type somebody else's address. diluxone_users_complete_login() adds
+		// them once they have come in.
 		return (int) $user->ID;
 	}
 
@@ -472,6 +471,10 @@ function diluxone_users_user_for( string $email ): int {
  * for everything that wants a word: 'login', 'form', 'both' or 'closed'.
  */
 function diluxone_users_register_mode(): string {
+	if ( ! diluxone_users_network_takes_accounts() ) {
+		return 'closed';
+	}
+
 	$link = (bool) diluxone_users_option( 'diluxone_users_login_register' );
 	$form = (bool) diluxone_users_option( 'diluxone_users_register_form' );
 
@@ -495,6 +498,12 @@ function diluxone_users_register_mode(): string {
  * @return int User ID, or 0 if WordPress refused.
  */
 function diluxone_users_create_account( string $email ): int {
+	// Except one thing, which no site setting overrides: on a network, the
+	// network decides whether accounts may be created at all.
+	if ( ! diluxone_users_network_takes_accounts() ) {
+		return 0;
+	}
+
 	// The display name and the one in the profile URL are NOT allowed to be
 	// derived from user_login, because user_login is the e-mail: WordPress
 	// would build a display_name of "somebody@gmail.com" that later shows up in

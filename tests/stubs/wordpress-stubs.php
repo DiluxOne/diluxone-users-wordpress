@@ -327,8 +327,10 @@ if (!function_exists('get_transient')) {
 
 if (!function_exists('delete_transient')) {
 	function delete_transient(string $key): bool {
+		// Like WordPress: true only when there was something to delete.
+		$existed = array_key_exists($key, $GLOBALS['_test_wp_transients'] ?? array());
 		unset($GLOBALS['_test_wp_transients'][$key]);
-		return true;
+		return $existed;
 	}
 }
 

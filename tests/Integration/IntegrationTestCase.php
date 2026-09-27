@@ -37,6 +37,9 @@ class IntegrationTestCase extends TestCase {
 	/** @var array<string, array{value: string, options: array<string, mixed>}> Every cookie the plugin tried to set, by name. */
 	protected static array $cookies = array();
 
+	/** @var string|null The network's registration setting before the test, on a network. */
+	private ?string $network_registration = null;
+
 	protected function setUp(): void {
 		parent::setUp();
 
@@ -59,6 +62,15 @@ class IntegrationTestCase extends TestCase {
 
 		wp_set_current_user( 0 );
 
+		// On a network, whether accounts may be created is the network's
+		// decision, and a freshly converted one says no. The tests about
+		// creating accounts are about the site's own switches, so the network
+		// is opened for them; MultisiteTest closes it where that is the point.
+		if ( is_multisite() ) {
+			$this->network_registration = (string) get_site_option( 'registration', 'none' );
+			update_site_option( 'registration', 'user' );
+		}
+
 		add_filter( 'wp_redirect', array( $this, 'throw_redirect' ), 1 );
 		add_filter( 'pre_wp_mail', array( $this, 'catch_mail' ), 10, 2 );
 		add_filter( 'diluxone_users_cookie', array( $this, 'catch_cookie' ), 10, 3 );
@@ -74,6 +86,11 @@ class IntegrationTestCase extends TestCase {
 		remove_filter( 'send_auth_cookies', '__return_false' );
 
 		wp_set_current_user( 0 );
+
+		if ( null !== $this->network_registration ) {
+			update_site_option( 'registration', $this->network_registration );
+			$this->network_registration = null;
+		}
 
 		parent::tearDown();
 	}

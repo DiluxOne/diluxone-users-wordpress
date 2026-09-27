@@ -56,10 +56,10 @@ foreach ( (array) glob( DILUXONE_USERS_DIR . 'includes/*.php' ) as $diluxone_use
 }
 
 /**
- * On activation: the starter fields.
+ * On activation: what each site needs — its starter fields, its registration
+ * switch as the site had it, and the activity log's table.
  *
- * The seeding itself lives in includes/multisite.php, because on a network it
- * is also needed when a new site is born — where this hook does not run — and
- * two copies of the same decision are worse than one.
+ * It lives in includes/multisite.php, because on a network it runs once per
+ * site and again when a new site is born, where this hook does not run.
  */
-register_activation_hook( __FILE__, 'diluxone_users_seed_fields' );
+register_activation_hook( __FILE__, 'diluxone_users_activate' );
