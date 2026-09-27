@@ -154,6 +154,16 @@ test-e2e-ui: ## The same suite in Playwright's own window, for writing and debug
 	@mkdir -p build
 	npx playwright test --ui
 
+# The same plugin, network-activated, on the wp-env TESTS site (8893) turned
+# into a subdirectory network. Its own config and its own target: the default
+# `npx playwright test` is what the shared CI runs against a single dev site,
+# and it stays exactly that. The setup makes /alpha/ and /beta/ and the
+# teardown deletes them. Override WP_NETWORK_URL to point it elsewhere.
+.PHONY: test-e2e-network
+test-e2e-network: env-multisite ## The network suite: two sites of one network and what must not leak between them.
+	@mkdir -p build
+	npx playwright test -c playwright.network.config.ts
+
 # The layout invariants: the same browser, the same site, no baseline images.
 # It is part of `make test-e2e` — this target is for running only that, which
 # is what you want while moving a block around.

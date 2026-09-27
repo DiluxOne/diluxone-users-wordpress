@@ -18,7 +18,8 @@
     "env:cli": "wp-env run cli",
     "env:logs": "wp-env logs",
     "test:e2e": "playwright test",
-    "test:e2e:ui": "playwright test --ui"
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:network": "playwright test -c playwright.network.config.ts"
   },
   "devDependencies": {
     "@playwright/test": "^1.63.0",
