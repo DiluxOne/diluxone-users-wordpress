@@ -314,4 +314,22 @@ class MultisiteTest extends IntegrationTestCase {
 	public function test_add_new_user_is_left_alone_on_a_network(): void {
 		$this->assertFalse( diluxone_users_admin_login_is_email() );
 	}
+
+	/** A site's session report shows its own people, not the network's. */
+	public function test_the_sessions_report_of_a_site_lists_only_its_members(): void {
+		$outsider = $this->make_user();
+		$member   = $this->make_user();
+		add_user_to_blog( $this->site, $member, 'subscriber' );
+
+		foreach ( array( $outsider, $member ) as $user ) {
+			\WP_Session_Tokens::get_instance( $user )->create( time() + HOUR_IN_SECONDS );
+		}
+
+		switch_to_blog( $this->site );
+		$ids = array_map( 'intval', array_column( diluxone_users_sessions_search( '', 1, 200 )['rows'], 'user_id' ) );
+		restore_current_blog();
+
+		$this->assertContains( $member, $ids );
+		$this->assertNotContains( $outsider, $ids );
+	}
 }

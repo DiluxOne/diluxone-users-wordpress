@@ -236,13 +236,24 @@ function diluxone_users_sessions_search( string $search = '', int $page = 1, int
 	// reviewer can follow a string that arrives from somewhere else, so what
 	// they see is a query of unknown origin. Written out, every one of them is
 	// verifiable where it stands. The repetition is the price.
+	//
+	// Only the people of this site: on a network the accounts and their
+	// sessions are the network's, and a site's administrator has no business
+	// reading the addresses of everybody else's members. A member is whoever
+	// has a role here, which WordPress keeps under this site's own prefix.
+	$members = $wpdb->get_blog_prefix() . 'capabilities';
+
 	// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- see above.
 	if ( '' === $search ) {
 		$total = (int) $wpdb->get_var(
-			"SELECT COUNT(*)
-			   FROM {$wpdb->usermeta} m
-			   INNER JOIN {$wpdb->users} u ON u.ID = m.user_id
-			  WHERE m.meta_key = 'session_tokens'"
+			$wpdb->prepare(
+				"SELECT COUNT(*)
+				   FROM {$wpdb->usermeta} m
+				   INNER JOIN {$wpdb->users} u ON u.ID = m.user_id
+				   INNER JOIN {$wpdb->usermeta} c ON c.user_id = u.ID AND c.meta_key = %s
+				  WHERE m.meta_key = 'session_tokens'",
+				$members
+			)
 		);
 
 		$rows = $wpdb->get_results(
@@ -250,9 +261,11 @@ function diluxone_users_sessions_search( string $search = '', int $page = 1, int
 				"SELECT u.ID, u.user_login, u.user_email, u.display_name, m.meta_value
 				   FROM {$wpdb->usermeta} m
 				   INNER JOIN {$wpdb->users} u ON u.ID = m.user_id
+				   INNER JOIN {$wpdb->usermeta} c ON c.user_id = u.ID AND c.meta_key = %s
 				  WHERE m.meta_key = 'session_tokens'
 			   ORDER BY u.user_email ASC
 				  LIMIT %d OFFSET %d",
+				$members,
 				$per,
 				$offset
 			)
@@ -265,8 +278,10 @@ function diluxone_users_sessions_search( string $search = '', int $page = 1, int
 				"SELECT COUNT(*)
 				   FROM {$wpdb->usermeta} m
 				   INNER JOIN {$wpdb->users} u ON u.ID = m.user_id
+				   INNER JOIN {$wpdb->usermeta} c ON c.user_id = u.ID AND c.meta_key = %s
 				  WHERE m.meta_key = 'session_tokens'
 				    AND ( u.user_email LIKE %s OR u.user_login LIKE %s OR u.display_name LIKE %s )",
+				$members,
 				$like,
 				$like,
 				$like
@@ -278,10 +293,12 @@ function diluxone_users_sessions_search( string $search = '', int $page = 1, int
 				"SELECT u.ID, u.user_login, u.user_email, u.display_name, m.meta_value
 				   FROM {$wpdb->usermeta} m
 				   INNER JOIN {$wpdb->users} u ON u.ID = m.user_id
+				   INNER JOIN {$wpdb->usermeta} c ON c.user_id = u.ID AND c.meta_key = %s
 				  WHERE m.meta_key = 'session_tokens'
 				    AND ( u.user_email LIKE %s OR u.user_login LIKE %s OR u.display_name LIKE %s )
 			   ORDER BY u.user_email ASC
 				  LIMIT %d OFFSET %d",
+				$members,
 				$like,
 				$like,
 				$like,

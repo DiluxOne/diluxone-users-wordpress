@@ -429,19 +429,23 @@ function diluxone_users_check_social(): ?array {
 function diluxone_users_stats(): array {
 	global $wpdb;
 
-	$count_meta = static function ( string $meta ) use ( $wpdb ): int {
+	// This site's people: whoever has a role here. On a network the meta is
+	// the network's, and a site's numbers are about its own members.
+	$members = $wpdb->get_blog_prefix() . 'capabilities';
+
+	$count_meta = static function ( string $meta ) use ( $wpdb, $members ): int {
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- this is the status screen: the number has to be the one from now, not the one from the cache.
 		return (int) $wpdb->get_var(
-			$wpdb->prepare( "SELECT COUNT(DISTINCT user_id) FROM {$wpdb->usermeta} WHERE meta_key = %s AND meta_value != ''", $meta )
+			$wpdb->prepare( "SELECT COUNT(DISTINCT m.user_id) FROM {$wpdb->usermeta} m INNER JOIN {$wpdb->usermeta} c ON c.user_id = m.user_id AND c.meta_key = %s WHERE m.meta_key = %s AND m.meta_value != ''", $members, $meta )
 		);
 	};
 
 	// Social login is not one meta key but one per network, so it is counted
 	// by prefix: what is being asked is how many people have any of them.
-	$count_prefix = static function ( string $prefix ) use ( $wpdb ): int {
+	$count_prefix = static function ( string $prefix ) use ( $wpdb, $members ): int {
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- this is the status screen: the number has to be the one from now, not the one from the cache.
 		return (int) $wpdb->get_var(
-			$wpdb->prepare( "SELECT COUNT(DISTINCT user_id) FROM {$wpdb->usermeta} WHERE meta_key LIKE %s AND meta_value != ''", $wpdb->esc_like( $prefix ) . '%' )
+			$wpdb->prepare( "SELECT COUNT(DISTINCT m.user_id) FROM {$wpdb->usermeta} m INNER JOIN {$wpdb->usermeta} c ON c.user_id = m.user_id AND c.meta_key = %s WHERE m.meta_key LIKE %s AND m.meta_value != ''", $members, $wpdb->esc_like( $prefix ) . '%' )
 		);
 	};
 

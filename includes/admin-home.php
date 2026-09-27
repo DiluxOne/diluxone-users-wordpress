@@ -86,12 +86,21 @@ function diluxone_users_home_numbers(): array {
 
 	// Two counts for the summary screen. `count_users()` walks every role to
 	// return one of these numbers, and on a site of 25,000 people that takes a
-	// while; the other has no API at all. They are not cached because the
-	// screen exists to show how the site is right now.
+	// while; the other has no API at all. They are kept for a quarter of an
+	// hour, which is as fresh as a summary needs to be. Both count this
+	// site's people — whoever has a role here — which on a single site is
+	// everybody and on a network is not.
+	$members = $wpdb->get_blog_prefix() . 'capabilities';
+
 	// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 	$numbers = array(
-		'users'    => (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->users}" ),
-		'sessions' => (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->usermeta} WHERE meta_key = 'session_tokens'" ),
+		'users'    => (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$wpdb->usermeta} WHERE meta_key = %s", $members ) ),
+		'sessions' => (int) $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT COUNT(*) FROM {$wpdb->usermeta} m INNER JOIN {$wpdb->usermeta} c ON c.user_id = m.user_id AND c.meta_key = %s WHERE m.meta_key = 'session_tokens'",
+				$members
+			)
+		),
 	);
 	// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 
