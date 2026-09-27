@@ -106,8 +106,7 @@ function diluxone_users_shortcode_login( $atts = array() ): string {
 		return $frame . diluxone_users_render( 'login-2fa', array_merge( $challenge, array( 'state' => diluxone_users_state() ) ) ) . $close;
 	}
 
-	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-	$email = isset( $_GET['email'] ) ? sanitize_email( wp_unslash( $_GET['email'] ) ) : '';
+	$email = diluxone_users_sent_address();
 	$atts  = shortcode_atts( array( 'title' => 'no' ), (array) $atts, 'diluxone_users_login' );
 
 	return $frame . diluxone_users_render(

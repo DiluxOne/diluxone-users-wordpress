@@ -242,15 +242,7 @@ function diluxone_users_register_request(): void {
 
 	diluxone_users_login_send( $user_id, $email, diluxone_users_token_create( $user_id ) );
 
-	wp_safe_redirect(
-		add_query_arg(
-			array(
-				'diluxone-users' => 'registered',
-				'email'          => rawurlencode( $email ),
-			),
-			$back
-		)
-	);
+	wp_safe_redirect( add_query_arg( 'diluxone-users', 'registered', $back ) );
 	exit;
 }
 add_action( 'admin_post_nopriv_diluxone_users_registro', 'diluxone_users_register_request' );

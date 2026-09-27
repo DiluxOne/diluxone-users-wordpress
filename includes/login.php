@@ -704,6 +704,21 @@ function diluxone_users_login_send( int $user_id, string $email, string $token )
 }
 
 /**
+ * Remembers, in this browser only, what the person typed to ask for a link.
+ *
+ * The "check your e-mail" screen shows it back so they can spot a typo. It is
+ * what they typed, and it lives for as long as a link does.
+ */
+function diluxone_users_sent_to( string $typed ): void {
+	diluxone_users_cookie_set( 'diluxone_users_sent', $typed, time() + 60 * diluxone_users_login_expiry() );
+}
+
+/** What this browser typed to ask for the last link, or empty. */
+function diluxone_users_sent_address(): string {
+	return isset( $_COOKIE['diluxone_users_sent'] ) ? sanitize_text_field( wp_unslash( $_COOKIE['diluxone_users_sent'] ) ) : '';
+}
+
+/**
  * How many sign-in links one machine may ask for in an hour.
  *
  * Generous on purpose: a family, an office or a school share an address, and
@@ -737,22 +752,33 @@ function diluxone_users_login_request(): void {
 	// What was typed can be an e-mail or, if the site allows it, somebody's
 	// public name. In the second case it goes on with that account's e-mail:
 	// the link never goes out to an address typed on the spot.
-	$typed = sanitize_text_field( wp_unslash( $_POST['diluxone_users_email'] ?? '' ) );
-	$email = sanitize_email( diluxone_users_handle_login_email( $typed ) );
+	$typed  = sanitize_text_field( wp_unslash( $_POST['diluxone_users_email'] ?? '' ) );
+	$handle = ! is_email( $typed ) && diluxone_users_option( 'diluxone_users_handle_login' );
+	$email  = sanitize_email( diluxone_users_handle_login_email( $typed ) );
+
+	// Everything that follows ends on the same screen, account or no account,
+	// and that screen shows what the person typed — never the address a
+	// public name resolved to, which would hand anyone who knows a name the
+	// e-mail behind it. Nor does the address travel in the URL, where access
+	// logs, caches and analytics would keep it: it goes in a short cookie
+	// only this browser reads.
+	$done = add_query_arg( 'diluxone-users', 'sent', $redirect );
 
 	if ( '' === $email || ! is_email( $email ) ) {
+		// A name nobody has answers as a name somebody has: telling them
+		// apart would say which names exist.
+		if ( $handle && '' !== $typed ) {
+			diluxone_users_sent_to( $typed );
+			wp_safe_redirect( $done );
+			exit;
+		}
+
 		wp_safe_redirect( add_query_arg( 'diluxone-users', 'email', $redirect ) );
 		exit;
 	}
 
-	// Everything that follows ends on the same screen, account or no account.
-	$done     = add_query_arg(
-		array(
-			'diluxone-users' => 'sent',
-			'email'          => rawurlencode( $email ),
-		),
-		$redirect
-	);
+	diluxone_users_sent_to( $typed );
+
 	$throttle = 'diluxone_users_throttle_' . md5( $email );
 
 	/*
