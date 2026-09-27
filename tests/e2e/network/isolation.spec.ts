@@ -98,15 +98,20 @@ test.describe('Reports › Sessions is a report on this site', () => {
 test.describe('Add New User on a site of the network', () => {
 	test.use({ storageState: NETWORK_ADMIN_STATE });
 
-	test('the e-mail is the username, and the account is made and made a member here', async ({ page, alpha }) => {
+	test('WordPress’s own username stays, and the account is made and made a member here', async ({ page, alpha }) => {
 		const email = freshEmail('net-new');
 
 		await page.goto(alpha.admin('user-new.php'));
 
-		// The "Add New User" form, not "Add Existing User": the one with a
-		// username field, which the plugin hides and fills from the e-mail.
+		// The "Add New User" form, not "Add Existing User". On a single site
+		// the plugin hides the username and fills it from the e-mail; on a
+		// network a username may only hold lowercase letters and numbers, so
+		// an address is refused as one and the field is left to WordPress.
 		const form = page.locator('form#createuser');
+		const login = form.locator('input[name="user_login"]');
 
+		await expect(login, 'the username is asked for on a network').toBeVisible();
+		await login.fill(`netnew${Date.now()}`);
 		await form.locator('input[name="email"]').fill(email);
 
 		// A super admin may skip the confirmation mail; without it the
@@ -174,10 +179,16 @@ test.describe('A photo belongs to the person, and the person to the network', ()
 
 		await page.goto(details(beta));
 
+		// The same file. The address may start with /beta/ rather than
+		// /alpha/: WordPress builds a network's upload URLs from the content
+		// URL of the site serving the page, and the network's rewrite rules
+		// send both to the one file. What must match is the file.
+		const file = (url: string | null) => (url ?? '').replace(/^.*\/wp-content\//, '');
+
 		expect(
-			await page.locator('.diluxone-users-avatar__current img').getAttribute('src'),
+			file(await page.locator('.diluxone-users-avatar__current img').getAttribute('src')),
 			'the same picture on the next site of the network'
-		).toBe(src);
+		).toBe(file(src));
 	});
 
 	test('removed on /beta/, it takes no file of /beta/ with it', async ({ page, alpha, beta }) => {
@@ -254,16 +265,16 @@ test.describe('The second step is asked by the site that asks for it', () => {
 		await expect(challengeScreen(page)).toBeVisible();
 		expect(await whoOn(page, alpha.url), 'no session on /alpha/ before the code').toBeNull();
 
-		// On /beta/, where nobody is asked, the password is.
+		// On /beta/, which asks nobody, the password is not enough either: the
+		// session a sign-in opens is a cookie on `/`, the whole network's, and
+		// it would open /alpha/'s dashboard. So the person is asked wherever
+		// they sign in, because a site they reach asks it of them.
 		await page.context().clearCookies();
 		await page.goto(beta.pages.login.url);
 		await signInWithPassword(page, email, PASSWORD);
-		await page.waitForLoadState('domcontentloaded');
-		expect(await whoOn(page, beta.url)).toBe(email);
+		await expect(challengeScreen(page)).toBeVisible();
+		expect(await whoOn(page, beta.url), 'no session anywhere before the code').toBeNull();
 
-		// And that session is a cookie on `/` — the whole network's. What it
-		// must not be is an administrator's session on the site that demands
-		// a second step from its administrators.
 		expect(
 			await opensDashboard(page, alpha.url),
 			'a password typed on /beta/ opened /alpha/’s dashboard with no second step'

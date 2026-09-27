@@ -120,7 +120,8 @@ test.describe('The account page itself', () => {
 	});
 
 	test('“Linked accounts” is there only while a social network is on', async ({ page, site, pages, options }) => {
-		await options.set({ diluxone_e2e_sso: 0 });
+		// No network at all: neither the fake one nor any a site left set up.
+		await options.set({ diluxone_e2e_sso: 0, diluxone_users_sso: {} });
 		await signedIn(page, site, pages.login.url, 'nolinks');
 
 		await page.goto(pages.account.url);
@@ -236,7 +237,11 @@ test.describe('Your photo', () => {
 			mimeType: 'image/png',
 			buffer: Buffer.from('<?php echo "not a picture";'),
 		});
-		await Promise.all([page.waitForURL(/diluxone_users_avatar=/), form.locator('button[type="submit"]').first().click()]);
+		await Promise.all([page.waitForLoadState('domcontentloaded'), form.locator('button[type="submit"]').first().click()]);
+
+		// The reason is on the page, and not in the address: a link cannot
+		// make the account page say anything.
+		expect(page.url()).not.toContain('diluxone_users_avatar=');
 
 		await expect(page.locator('.diluxone-users-avatar .diluxone-users-notice--error, .diluxone-users-notice--error').first()).toBeVisible();
 		expect((await site.user(email, ['diluxone_users_avatar'])).fields.diluxone_users_avatar).toBe('');
@@ -294,7 +299,10 @@ test.describe('The public name', () => {
 		const form = page.locator('form').filter({ has: page.locator('input[name="action"][value="diluxone_users_handle"]') });
 
 		await form.locator('input[name="diluxone_users_handle"]').fill('admin');
-		await Promise.all([page.waitForURL(/diluxone_users_handle=/), form.locator('button[type="submit"]').first().click()]);
+		await Promise.all([page.waitForLoadState('domcontentloaded'), form.locator('button[type="submit"]').first().click()]);
+
+		await expect(page.locator('.diluxone-users-handle .diluxone-users-notice--error'), 'and the page says why').toBeVisible();
+		expect(page.url()).not.toContain('diluxone_users_handle=');
 
 		expect((await site.user(email, ['diluxone_users_handle'])).fields.diluxone_users_handle).toBe('');
 	});
