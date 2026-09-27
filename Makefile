@@ -271,6 +271,21 @@ env: env-up ## Alias of env-up.
 env-up: ## Start the local wp-env Docker stack.
 	npx wp-env start
 
+.PHONY: env-multisite
+env-multisite: ## Convert the wp-env tests site (8893) into a multisite network (idempotent).
+	@# The shared CI runs the integration suite on a network, the way a good
+	@# part of real hosting runs WordPress. This is the same conversion, so a
+	@# failure there can be reproduced here.
+	@npx wp-env run tests-cli wp core is-installed --network >/dev/null 2>&1 \
+	  || npx wp-env run tests-cli wp core multisite-convert --title="Tests network"
+	@# The subdirectory rewrite rules WordPress asks for after the conversion:
+	@# without them a site's /wp-admin/ is an Apache 404, and the network
+	@# end-to-end suite drives the other sites of the network in a browser.
+	@# Anything that flushes permalinks puts the single-site file back, so
+	@# this runs again before every network run.
+	@npx wp-env run tests-cli bash -c 'cp /var/www/html/wp-content/plugins/$(REPO_DIR)/tests/e2e/multisite.htaccess /var/www/html/.htaccess'
+	@npx wp-env run tests-cli wp plugin activate $(REPO_DIR) --network
+
 .PHONY: env-down
 env-down: ## Stop the local wp-env Docker stack.
 	npx wp-env stop
