@@ -7256,3 +7256,7 @@ msgstr "Il tuo tema non pubblica una tavolozza, quindi il plugin prende i colori
 #: includes/admin-appearance.php:632
 msgid "The plugin paints itself with the palette your theme publishes, and goes on following it — into the theme’s own dark mode as well, where it hands over a variable rather than a colour. Any part the palette does not name is taken from what your theme paints on the site. There is nothing else to choose."
 msgstr "Il plugin si dipinge con la tavolozza che il tuo tema pubblica e continua a seguirla — anche nella modalità scura del tema, dove passa una variabile invece di un colore. Ciò che la tavolozza non nomina viene preso da quello che il tema dipinge sul sito. Non c’è altro da scegliere."
+
+#: includes/admin-new-user.php:53
+msgid "The username is the e-mail address, as for every account on this site."
+msgstr "Il nome utente è l’indirizzo e-mail, come per ogni account di questo sito."

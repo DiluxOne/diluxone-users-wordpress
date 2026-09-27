@@ -7256,3 +7256,7 @@ msgstr "Seu tema não publica paleta, então o plugin usa as cores que o tema pi
 #: includes/admin-appearance.php:632
 msgid "The plugin paints itself with the palette your theme publishes, and goes on following it — into the theme’s own dark mode as well, where it hands over a variable rather than a colour. Any part the palette does not name is taken from what your theme paints on the site. There is nothing else to choose."
 msgstr "O plugin se pinta com a paleta que seu tema publica e continua a segui-la — inclusive no modo escuro do tema, onde passa uma variável em vez de uma cor. O que a paleta não nomeia é tirado do que o tema pinta no site. Não há mais nada a escolher."
+
+#: includes/admin-new-user.php:53
+msgid "The username is the e-mail address, as for every account on this site."
+msgstr "O nome de usuário é o e-mail, como em todas as contas deste site."

@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-09-27T00:03:57+00:00\n"
+"POT-Creation-Date: 2026-09-27T00:13:09+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: diluxone-users\n"
@@ -3313,6 +3313,10 @@ msgstr ""
 
 #: includes/admin-login.php:1143
 msgid "Left as the accent colour it follows the accent, instead of becoming a second colour that drifts from the first."
+msgstr ""
+
+#: includes/admin-new-user.php:53
+msgid "The username is the e-mail address, as for every account on this site."
 msgstr ""
 
 #: includes/admin-notices.php:63
