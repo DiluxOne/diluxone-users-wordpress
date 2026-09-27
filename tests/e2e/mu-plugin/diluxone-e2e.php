@@ -557,6 +557,11 @@ function diluxone_e2e_user_read( WP_REST_Request $request ): WP_REST_Response {
 		return new WP_REST_Response( array( 'exists' => false ) );
 	}
 
+	// Not `(array)` on the meta: with every session closed WordPress deletes
+	// the row, get_user_meta() answers '', and `(array) ''` is one element —
+	// an account with no session left would count one.
+	$tokens = get_user_meta( $user->ID, 'session_tokens', true );
+
 	return new WP_REST_Response(
 		array(
 			'exists'   => true,
@@ -573,7 +578,8 @@ function diluxone_e2e_user_read( WP_REST_Request $request ): WP_REST_Response {
 				'diluxone_users_sso_mock' => (string) get_user_meta( $user->ID, 'diluxone_users_sso_mock', true ),
 			),
 			'fields'   => diluxone_e2e_user_fields( (int) $user->ID, (string) $request->get_param( 'fields' ) ),
-			'sessions' => count( (array) get_user_meta( $user->ID, 'session_tokens', true ) ),
+			'sessions' => is_array( $tokens ) ? count( $tokens ) : 0,
+
 			// On a network the account belongs to the network and the
 			// membership to each site: `roles` above is this site's, and this
 			// is whether there is one at all — plus every site that has them.
