@@ -262,12 +262,14 @@ details.diluxone-users-panel[open] > .diluxone-users-panel__head .diluxone-users
 /* ── Formularios ────────────────────────────────────────────────────── */
 
 .diluxone-users-form { display: flex; flex-direction: column; align-items: stretch; gap: 8px; }
-/* The reading width is for the controls. Help texts and notes run the width
-   of the panel like any other paragraph: capped to the controls they broke
-   into short lines next to a full-width introduction. */
-.diluxone-users-form input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]),
-.diluxone-users-form select,
-.diluxone-users-form textarea { max-width: 34rem; }
+/* Inside the account area's panels the reading width is for the controls.
+   Help texts and notes run the width of the panel like any other paragraph:
+   capped to the controls they broke into short lines next to a full-width
+   introduction. The sign-in and registration cards are narrow already, and
+   there every box takes the card's width, the address as the password. */
+.diluxone-users-panel .diluxone-users-form input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]),
+.diluxone-users-panel .diluxone-users-form select,
+.diluxone-users-panel .diluxone-users-form textarea { max-width: 34rem; }
 .diluxone-users-form label { font-weight: 600; }
 /* A button inside a column form stretches to the full width and looks like a
    banner. It takes the room it says, and starts on the left. */
