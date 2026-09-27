@@ -135,6 +135,13 @@ test: test-unit ## Run the unit-test suite (default — fast, no WP needed).
 test-unit: ## Run only the unit-test suite (no WordPress runtime).
 	$(VENDOR) ./vendor/bin/phpunit --testsuite unit
 
+# The oldest PHP the plugin supports (Requires PHP: 8.0). `make test-unit`
+# runs on the composer image's PHP, which is the newest; CI runs every version
+# in between.
+.PHONY: test-unit-min
+test-unit-min: ## Unit suite on the oldest PHP the plugin supports (8.0).
+	$(DOCKER_RUN) php:8.0-cli ./vendor/bin/phpunit --testsuite unit
+
 .PHONY: test-integration
 test-integration: ## Run integration tests against the wp-env stack (must be `make env` first).
 	npx @wordpress/env run tests-cli --env-cwd=wp-content/plugins/$(REPO_DIR) ./vendor/bin/phpunit -c phpunit-integration.xml --testsuite integration

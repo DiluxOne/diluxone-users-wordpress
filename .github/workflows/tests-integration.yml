@@ -60,14 +60,18 @@ jobs:
         # (port 8889) — plus a shared MySQL. Plugin is auto-mounted.
         run: npx wp-env start
 
-      - name: Activate plugin in tests environment
-        # wp-env mounts but does not auto-activate. Activate explicitly so
-        # bootstrap-integration.php finds DILUXONE_USERS_DIR defined.
+      - name: Convert the tests site into a network, and network-activate the plugin
+        # The suite runs on a multisite network, as the shared CI of the
+        # DiluxOne organisation runs it: the network tests (MultisiteTest) are
+        # skipped on a single site, and a good part of real hosting is a
+        # network. Everything else passes on both.
         #
         # The folder is the repository name and not the slug: wp-env mounts
         # the checkout as it is. What wordpress.org receives under the slug is
         # a separate tree, built by `make dist`.
-        run: npx wp-env run tests-cli wp plugin activate diluxone-users-wordpress
+        run: |
+          npx wp-env run tests-cli wp core multisite-convert --title="Tests network"
+          npx wp-env run tests-cli wp plugin activate diluxone-users-wordpress --network
 
       - name: Run integration tests
         run: npx wp-env run tests-cli ./wp-content/plugins/diluxone-users-wordpress/vendor/bin/phpunit -c ./wp-content/plugins/diluxone-users-wordpress/phpunit-integration.xml
