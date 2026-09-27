@@ -64,7 +64,7 @@ function diluxone_users_uninstall_site(): void {
 	wp_clear_scheduled_hook( 'diluxone_users_log_purge' );
 
 	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- dropping our own table is the one thing there is no API for.
-	$wpdb->query( 'DROP TABLE IF EXISTS `' . $wpdb->prefix . 'diluxone_users_log`' );
+	$wpdb->query( $wpdb->prepare( 'DROP TABLE IF EXISTS %i', $wpdb->prefix . 'diluxone_users_log' ) );
 
 	foreach ( diluxone_users_uninstall_options() as $option ) {
 		delete_option( $option );

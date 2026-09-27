@@ -1,7 +1,7 @@
 === DiluxOne Users+ – Accounts & Login ===
 Contributors: pablodiloreto
 Tags: users, login, passwordless, two-factor, passkeys
-Requires at least: 6.0
+Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 8.0
 Stable tag: 1.0.0

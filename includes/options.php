@@ -557,7 +557,7 @@ function diluxone_users_option_forced_by(): array {
 			$who[] = sprintf(
 				'%s() — %s',
 				$fn,
-				ltrim( str_replace( wp_normalize_path( WP_PLUGIN_DIR ), '', wp_normalize_path( $file ) ), '/' )
+				diluxone_users_file_label( $file )
 			);
 		}
 	}
@@ -719,4 +719,17 @@ function diluxone_users_flash_take( int $user_id, string $key ): string {
 	delete_transient( $name );
 
 	return is_string( $message ) ? $message : '';
+}
+
+/**
+ * A file named the way a person looks for it: the plugin folder and the file
+ * (`my-plugin/functions.php`), never the server's absolute path, which says
+ * nothing useful on a screen and something it should not say.
+ */
+function diluxone_users_file_label( string $file ): string {
+	$relative = plugin_basename( $file );
+
+	return 0 === strpos( wp_normalize_path( $relative ), '/' )
+		? basename( dirname( $relative ) ) . '/' . basename( $relative )
+		: $relative;
 }

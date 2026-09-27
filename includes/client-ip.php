@@ -218,9 +218,22 @@ function diluxone_users_ip_is_internal( string $ip ): bool {
  * @param array<string, mixed>|null $server So it can be tested with no server.
  */
 function diluxone_users_client_ip( ?array $server = null ): string {
-	$server = null === $server ? $_SERVER : $server; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- every candidate goes through FILTER_VALIDATE_IP below, which is stricter than any sanitiser.
-	$remote = diluxone_users_ip_from( (string) ( $server['REMOTE_ADDR'] ?? '' ) );
 	$header = diluxone_users_ip_header();
+
+	// The two values this reads, by name, each unslashed and sanitised as it
+	// is read — not the request's whole server array. Every candidate still
+	// goes through FILTER_VALIDATE_IP below, which is stricter than either.
+	if ( null === $server ) {
+		$server = array(
+			'REMOTE_ADDR' => isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : '',
+		);
+
+		if ( '' !== $header ) {
+			$server[ $header ] = isset( $_SERVER[ $header ] ) ? sanitize_text_field( wp_unslash( $_SERVER[ $header ] ) ) : '';
+		}
+	}
+
+	$remote = diluxone_users_ip_from( (string) ( $server['REMOTE_ADDR'] ?? '' ) );
 
 	// The site named no header: nothing a client can write is read at all.
 	// This is the first question and not the second on purpose — the check
