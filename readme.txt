@@ -107,14 +107,14 @@ backup-code hashes, passkey public keys); the erasure removes them too. Refused
 sign-ins that typed a person's name are exported, and kept on erasure as
 security evidence until the log's retention removes them; the erasure says so.
 
-= Deleting an account =
+= Your data =
 
-Asked for on the account area and carried out when the person confirms it by
-e-mail (or, if the site prefers, from **Tools → Erase Personal Data**): the
-data is erased and the account deleted, or, when the person published
-something or belongs to another site of the network, left with no name,
-e-mail, password or role. Requests filed from Tools erase data only.
-Administrators cannot ask.
+Asked for on the account and carried out when the person confirms by
+e-mail (or, if the site wants, from **Tools**). The export is mailed and
+can be downloaded from the account. Erasing deletes the account too, or, if
+the person published something or belongs to another site of the network,
+leaves it with no name, e-mail, password or role. Requests filed from Tools
+do what WordPress does. Administrators cannot ask.
 
 = Deleting the plugin =
 

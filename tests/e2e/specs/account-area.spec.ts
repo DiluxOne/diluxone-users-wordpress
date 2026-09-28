@@ -509,6 +509,59 @@ test.describe('Your data', () => {
 		await expect.poll(async () => (await site.user(email)).exists, { message: 'the account is gone' }).toBe(false);
 	});
 
+	/** Asks, from the account area, for a copy, and confirms it from the e-mail. */
+	async function askForCopy(page: Page, site: Site, pages: any, email: string): Promise<void> {
+		await page.goto(accountSection(pages.account.url, 'privacy'));
+		await reveal(page, 'form:has(input[name="diluxone_users_request"][value="export"]) button[type="submit"]');
+		expect(await send(page, requestForm(page, 'export').locator('button[type="submit"]'))).toBe('requested');
+		await page.goto(linkIn(await waitForMail(site, email)));
+	}
+
+	/**
+	 * The whole way, as the site comes: the file is made when the link in the
+	 * e-mail is clicked, mailed, and waiting in the account to be downloaded.
+	 */
+	test('asking for a copy and confirming it from the e-mail leaves the file ready to download', async ({
+		page,
+		site,
+		pages,
+	}) => {
+		const { email } = await signedIn(page, site, pages.login.url, 'data-copy');
+
+		await askForCopy(page, site, pages, email);
+		await expect(page.getByText('your file is ready')).toBeVisible();
+
+		// Mailed, as the Tools screen's "Send export link" does.
+		const mailed = linkIn(await waitForMail(site, email, { subject: /Personal Data Export/ }), /https?:\/\/\S+\.zip/);
+
+		// And in the account, ready, with the same file behind the button.
+		await page.goto(accountSection(pages.account.url, 'privacy'));
+
+		const download = page.locator('.diluxone-users-requests a[href$=".zip"]').first();
+
+		await expect(download).toBeVisible();
+		expect(await download.getAttribute('href')).toBe(mailed);
+
+		const file = await page.request.get(mailed);
+
+		expect(file.status()).toBe(200);
+		expect((await file.body()).subarray(0, 2).toString()).toBe('PK');
+	});
+
+	/** A site that goes through them itself: confirming only confirms, and nothing is ready yet. */
+	test('a site that makes the files itself: confirming only confirms', async ({ page, site, pages, options }) => {
+		await options.set({ diluxone_users_privacy_export_when: 'admin' });
+
+		const { email } = await signedIn(page, site, pages.login.url, 'data-copy-admin');
+
+		await askForCopy(page, site, pages, email);
+		await expect(page.getByText('your file is ready')).toHaveCount(0);
+
+		await page.goto(accountSection(pages.account.url, 'privacy'));
+		await expect(page.locator('.diluxone-users-requests').getByText('Confirmed — we are preparing it')).toBeVisible();
+		await expect(page.locator('.diluxone-users-requests a[href$=".zip"]')).toHaveCount(0);
+	});
+
 	test('erasure switched off on the site is refused by the server, not only hidden', async ({
 		page,
 		site,

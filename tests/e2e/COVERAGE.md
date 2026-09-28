@@ -19,7 +19,7 @@ product is fixed, not to be loosened.
 | wp-login.php left to WordPress (`wp`) and sent to the site's page (`mine`) | `admin-effects` › Access › The sign-in page |
 | The four ways in as tabs or stacked, order, the tab that opens, no JS | `login-ways` |
 | Split-screen layout, messages rewritten in the dashboard | `login-screen` |
-| Sign in with the public name (handle login) | `account-area` › The public name — **bug** |
+| Sign in with the public name (handle login) | `account-area` › The public name |
 | Reset: `wp`, `site` (whole chain, reused key), `link` | `password-reset` |
 | Second step by e-mail: code, reuse, five tries, resend wait, timeout, link skip | `two-factor` › by e-mail |
 | Authenticator app: set up from the account, sign in, trusted browser, backup codes | `two-factor` › with an authenticator app |
@@ -47,9 +47,11 @@ product is fixed, not to be loosened.
 | Photo: upload, drawn, removed with its attachment, not-a-picture refused | `account-area` › Your photo |
 | Public name: saved, reserved refused | `account-area` › The public name |
 | Notifications: new device announced (link), switch off, rule `always` hides the switch | `account-area` › Notifications |
-| New device announced after a password sign-in | `account-area` › …with the password, too — **bug** |
+| New device announced after a password sign-in | `account-area` › …with the password, too |
 | Your data: export and erase requests with WordPress's confirmation | `account-area` › Your data |
-| Erasure switched off refused by the server | `account-area` › erasure switched off… — **bug** |
+| Copy made on confirmation: file mailed and downloadable from the account | `account-area` › asking for a copy and confirming it… |
+| Copy left for Tools when the site makes them itself | `account-area` › a site that makes the files itself… |
+| Erasure switched off refused by the server | `account-area` › erasure switched off… |
 | Administrator cannot request own erasure, even by hand (`admin`) | `account-area` › an administrator cannot… |
 | Security: two-step by e-mail on/off with a code | `account-area` › Security |
 | Security: authenticator app removed with a backup code; new backup codes | `account-area` › Security |
@@ -68,7 +70,7 @@ product is fixed, not to be loosened.
 | wp-login.php branding (Design › WordPress's screens) | `admin-effects` › Design › WordPress's own screens |
 | Toolbar hidden, profile.php sent to the account area | `admin-effects` › Account area › The WordPress dashboard |
 | Users list Access column; forget authenticator; unlink a network | `admin-tools` › WordPress's own Users screens |
-| Add New User takes the e-mail as username | `admin-tools` › Add New User; `network/isolation` › Add New User — **bug** on a network |
+| Add New User takes the e-mail as username | `admin-tools` › Add New User; `network/isolation` › Add New User |
 
 ## The dashboard
 
@@ -84,9 +86,9 @@ product is fixed, not to be loosened.
 | Notifications › Rules / E-mails | `admin-effects` › Notifications › Rules; `admin-settings` › the site's own words |
 | Reports › Sessions: list and close | `admin-tools` › Reports |
 | Reports › Activity: logging groups, event filter | `activity-log`, `admin-tools` › Reports |
-| Reports › Activity: search by address finds refused attempts | `admin-tools` › …finds the refused attempts — **bug** |
+| Reports › Activity: search by address finds refused attempts | `admin-tools` › …finds the refused attempts |
 | Status › Tools: export, import, close sessions, fresh code, rebuild, test message | `admin-tools` › Status › Tools |
-| Status › Tools: a file round trip keeps nested settings | `admin-tools` › …nested ones included — **bug** |
+| Status › Tools: a file round trip keeps nested settings | `admin-tools` › …nested ones included |
 | Status › Lockout | renders (`admin-settings`); what it describes is the escape hatch, covered in `password-login` |
 | Status › Tools › wipe on uninstall | not covered: it only takes effect when the plugin is deleted, and uninstalling is not done in a browser |
 | User fields: add, show, delete | `admin-tools` › User fields |
@@ -98,20 +100,23 @@ product is fixed, not to be loosened.
 |---|---|
 | Each site draws its sign-in page and posts to itself | `doors` › every site draws its sign-in page |
 | Link on /alpha/ opens a session there with /alpha/'s role | `doors` |
-| Member of /alpha/ asking on /beta/ joins only by opening the link | `doors` — **bug**: joined when the link is asked for |
+| Member of /alpha/ asking on /beta/ joins only by opening the link | `doors` |
 | /beta/ closed: a member of /alpha/ does not join | `doors` |
-| Network `registration=none`: no door creates anybody | `doors` — **bug**: link, form and social all create accounts |
+| Network `registration=none`: no door creates anybody | `doors` |
 | Network `registration=user`: the doors work | `doors` |
 | A password is a network password | `doors` |
 | Settings saved on /alpha/ do not reach /beta/ | `isolation` |
-| Reports › Sessions on /alpha/ lists only its members | `isolation` — **bug**: lists everybody on the network |
-| Add New User on a subsite | `isolation` — **bug**: the e-mail username is refused by multisite |
-| Photo uploaded on /alpha/ is the same on /beta/ | `isolation` — **bug**: /beta/ falls back to Gravatar |
-| Photo removed on /beta/ deletes no /beta/ file | `isolation` — **bug**: deletes /beta/'s attachment with the same id |
-| 2FA required on /alpha/: a password on /beta/ does not open /alpha/'s dashboard | `isolation` — **bug** |
-| Social identity linked on /alpha/ reaches the same account on /beta/ | `social` — **bug**: a second account is made |
+| Reports › Sessions on /alpha/ lists only its members | `isolation` |
+| Add New User on a subsite | `isolation` |
+| Photo uploaded on /alpha/ is the same on /beta/ | `isolation` |
+| Photo removed on /beta/ deletes no /beta/ file | `isolation` |
+| 2FA required on /alpha/: a password on /beta/ does not open /alpha/'s dashboard | `isolation` |
+| Social identity linked on /alpha/ reaches the same account on /beta/ | `social` |
 | A new site used from its public pages first, nothing in debug.log | `lifecycle` |
 | Deactivate/activate network-wide and per site, nothing in debug.log | `lifecycle` |
+| Account deleted: member of one site only, deleted from the network | `account-closing` |
+| Account deleted: member of another site too, anonymised there | `account-closing` |
+| Copy made on confirmation, served from the site's own uploads | `account-export` |
 | Uninstall | not covered: deleting the plugin removes the code the suite runs against, and it is not a browser flow |
 
 ## Not coverable in a browser
