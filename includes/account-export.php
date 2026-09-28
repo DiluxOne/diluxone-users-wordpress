@@ -185,3 +185,41 @@ function diluxone_users_exported_message( $message, $request_id ): string {
 	return '<p class="success">' . esc_html__( 'Done: your file is ready. We have e-mailed you the link, and you can also download it from your account.', 'diluxone-users' ) . '</p>';
 }
 add_filter( 'user_request_action_confirmed_message', 'diluxone_users_exported_message', 10, 2 );
+
+/**
+ * Hands the file over to the account it belongs to.
+ *
+ * The file's own address works for anybody who has it, so the account never
+ * shows it: its Download button comes here, and this checks that the person
+ * signed in is the one the request is for before sending a byte.
+ */
+function diluxone_users_data_download(): void {
+	$request_id = isset( $_GET['request'] ) ? absint( $_GET['request'] ) : 0;
+
+	check_admin_referer( 'diluxone_users_data_download_' . $request_id );
+
+	$request = wp_get_user_request( $request_id );
+	$user    = wp_get_current_user();
+	$post    = get_post( $request_id );
+
+	if ( ! $request instanceof WP_User_Request || ! $post instanceof WP_Post || ! $user->exists() || 0 !== strcasecmp( $user->user_email, $request->email ) ) {
+		wp_die( esc_html__( 'This file is not yours to download.', 'diluxone-users' ), '', array( 'response' => 403 ) );
+	}
+
+	$path = diluxone_users_data_file_path( $post );
+
+	if ( '' === $path ) {
+		wp_die( esc_html__( 'This file is no longer there. Ask for your data again.', 'diluxone-users' ), '', array( 'response' => 404 ) );
+	}
+
+	nocache_headers();
+	header( 'Content-Type: application/zip' );
+	header( 'Content-Disposition: attachment; filename="' . sanitize_file_name( diluxone_users_site_name() . '-' . __( 'my-data', 'diluxone-users' ) . '.zip' ) . '"' );
+	header( 'Content-Length: ' . (string) filesize( $path ) );
+
+	// Streamed as it is read: an export can be larger than the memory a
+	// request is allowed, and WP_Filesystem reads a whole file into a string.
+	readfile( $path ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_readfile -- streaming a file to the browser; WP_Filesystem has no streaming read.
+	exit;
+}
+add_action( 'admin_post_diluxone_users_data_download', 'diluxone_users_data_download' );

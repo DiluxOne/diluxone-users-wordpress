@@ -22,7 +22,6 @@ async function deleteFrom(page: Page, one: SiteHandle, email: string): Promise<v
 	await signInWithPassword(page, email, PASSWORD);
 	await page.waitForLoadState('domcontentloaded');
 
-	page.on('dialog', (dialog) => dialog.accept());
 	await page.goto(accountSection(one.pages.account.url, 'privacy'));
 
 	const button = page.locator('form:has(input[name="diluxone_users_request"][value="erase"]) button[type="submit"]');
@@ -34,10 +33,17 @@ async function deleteFrom(page: Page, one: SiteHandle, email: string): Promise<v
 		await folded.first().locator('> summary').click();
 	}
 
-	await Promise.all([page.waitForURL(/diluxone-users=requested/), button.click()]);
+	// Asked in the page's own question, then confirmed from the e-mail and
+	// once more on the account, signed in on this site.
+	await button.click();
+	await Promise.all([
+		page.waitForURL(/diluxone-users=requested/),
+		page.locator('dialog#diluxone-users-ask-erase [data-diluxone-users-dialog-ok]').click(),
+	]);
 	await page.goto(linkIn(await waitForMail(one.site, email)));
 
-	await expect(page.getByText('your account closed')).toBeVisible();
+	await Promise.all([page.waitForURL(/diluxone-users=closed/), page.getByRole('button', { name: 'Yes, delete my account' }).click()]);
+	await expect(page.locator('[data-diluxone-users-message="login_closed"]')).toBeVisible();
 }
 
 test.describe('Deleting an account on a network', () => {

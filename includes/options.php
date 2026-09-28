@@ -368,8 +368,14 @@ function diluxone_users_option_defaults(): array {
 		'diluxone_users_privacy_delete'        => 1,
 		// 'confirm': made when the person confirms; 'admin': waits in Tools.
 		'diluxone_users_privacy_export_when'   => 'confirm',
+		// 'account': the e-mail's link asks them to sign in; 'direct': it confirms by itself.
+		'diluxone_users_privacy_export_link'   => 'account',
+		// 'account': downloaded signed in, from the account; 'link': the file's own address is mailed.
+		'diluxone_users_privacy_export_file'   => 'account',
 		// 'confirm': carried out when the person confirms; 'admin': waits in Tools.
 		'diluxone_users_privacy_delete_when'   => 'confirm',
+		// 'account': the e-mail's link asks them to sign in and to be sure; 'direct': it confirms by itself.
+		'diluxone_users_privacy_delete_link'   => 'account',
 
 		// ── Behind a proxy ────────────────────────────────────────────
 		// The ONE header the site's proxy writes the client IP in (a

@@ -113,6 +113,26 @@ function diluxone_users_login_messages(): array {
 		},
 	);
 
+	$messages['login_confirm'] = array(
+		'group'   => 'login',
+		'tone'    => 'ok',
+		'label'   => __( 'Signing in to confirm a request', 'diluxone-users' ),
+		'when'    => __( 'Shown to somebody who opened the link that confirms a copy of their data or the deletion of their account, and has to sign in first.', 'diluxone-users' ),
+		'shipped' => static function (): string {
+			return __( 'Sign in to confirm your request. It has to be the account that asked for it.', 'diluxone-users' );
+		},
+	);
+
+	$messages['login_closed'] = array(
+		'group'   => 'login',
+		'tone'    => 'ok',
+		'label'   => __( 'The account was deleted', 'diluxone-users' ),
+		'when'    => __( 'Shown to somebody who has just confirmed, from their account, that it should be deleted.', 'diluxone-users' ),
+		'shipped' => static function (): string {
+			return __( 'Your account was deleted and your data erased.', 'diluxone-users' );
+		},
+	);
+
 	$messages['login_email'] = array(
 		'group'   => 'login',
 		'tone'    => 'error',

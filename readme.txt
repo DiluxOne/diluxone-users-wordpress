@@ -94,27 +94,25 @@ the box it records signing in, signing out and refused sign-ins; other groups
 and how long rows are kept (90 days to start) are set on
 **DiluxOne Users+ → Reports → Log settings**.
 
-Cookies: short-lived ones while somebody signs in, one for a browser that need
-not be asked the second step again, and one for the way in used last.
+Cookies: short-lived ones while somebody signs in (or signs in to confirm a
+request), one for a browser that need not be asked the second step again, and
+one for the way in used last.
 
 The plugin itself sends nothing anywhere: no telemetry, no licence check.
 
 = Export and erasure =
 
-**Tools → Export Personal Data** and **Tools → Erase Personal Data** answer for
-all of the above. The export leaves out credentials (the authenticator secret,
-backup-code hashes, passkey public keys); the erasure removes them too. Refused
-sign-ins that typed a person's name are exported, and kept on erasure as
-security evidence until the log's retention removes them; the erasure says so.
+**Tools → Export / Erase Personal Data** answer for all of the above. The
+export leaves out credentials (authenticator secret, backup-code hashes,
+passkey keys); the erasure removes them. Refused sign-ins that typed a name are
+exported, and kept on erasure as security evidence until the log removes them.
 
-= Your data =
-
-Asked for on the account and carried out when the person confirms by
-e-mail (or, if the site wants, from **Tools**). The export is mailed and
-can be downloaded from the account. Erasing deletes the account too, or, if
-the person published something or belongs to another site of the network,
-leaves it with no name, e-mail, password or role. Requests filed from Tools
-do what WordPress does. Administrators cannot ask.
+People ask on their account. The e-mail's link has them sign in, deleting asks
+once more, and then it is done (or waits in **Tools**, if the site says so).
+The file is downloaded from the account, signed in. Erasing deletes the account
+too, or, if they published something or belong to another site of the network,
+leaves it with no name, e-mail, password or role. Administrators cannot ask.
+Each step can be set to WordPress's own way.
 
 = Deleting the plugin =
 

@@ -480,20 +480,39 @@ function diluxone_users_data_requests( string $email, string $kind = '' ): array
 }
 
 /**
- * The finished file of an export request, when there is one.
+ * Where the account downloads the finished file of an export, when there is one.
  *
- * WordPress stores the URL when it finishes assembling the ZIP; its existence
- * is the only reliable sign that there is something to download.
+ * Not the file's own address, which works for anybody who has it: a link
+ * through the plugin, which hands the file over only to the account it
+ * belongs to (includes/account-export.php).
  */
 function diluxone_users_data_file( WP_Post $request ): string {
-	$name = 'export_personal_data' === $request->post_name ? (string) get_post_meta( $request->ID, '_export_file_name', true ) : '';
-
-	// WordPress clears old exports away; a link to one of those would 404.
-	if ( '' === $name || ! file_exists( wp_privacy_exports_dir() . $name ) ) {
+	if ( '' === diluxone_users_data_file_path( $request ) ) {
 		return '';
 	}
 
-	return wp_privacy_exports_url() . $name;
+	return wp_nonce_url(
+		add_query_arg(
+			array(
+				'action'  => 'diluxone_users_data_download',
+				'request' => $request->ID,
+			),
+			admin_url( 'admin-post.php' )
+		),
+		'diluxone_users_data_download_' . $request->ID
+	);
+}
+
+/**
+ * Where the export's file is on disk, while it is there.
+ *
+ * WordPress clears old exports away; a file that is gone is not offered.
+ */
+function diluxone_users_data_file_path( WP_Post $request ): string {
+	$name = 'export_personal_data' === $request->post_name ? (string) get_post_meta( $request->ID, '_export_file_name', true ) : '';
+	$path = wp_privacy_exports_dir() . $name;
+
+	return '' !== $name && 0 === validate_file( $name ) && file_exists( $path ) ? $path : '';
 }
 
 /**
@@ -527,6 +546,12 @@ function diluxone_users_section_privacy( WP_User $user ): void {
 	// The erase request asks before it is sent.
 	wp_enqueue_script( 'diluxone-users-confirm', DILUXONE_USERS_URL . 'assets/diluxone-users-confirm.js', array(), diluxone_users_asset_version( 'assets/diluxone-users-confirm.js' ), true );
 
+	// Arrived from the e-mail to confirm the account's deletion (includes/account-confirm.php).
+	$arrived = diluxone_users_confirm_arrived();
+	$closing = 'ok' === $arrived['state'] && $arrived['request'] instanceof WP_User_Request && 'remove_personal_data' === $arrived['request']->action_name
+		? (int) $arrived['request']->ID
+		: 0;
+
 	// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- template, already escaped.
 	echo diluxone_users_render(
 		'account/privacy',
@@ -535,6 +560,8 @@ function diluxone_users_section_privacy( WP_User $user ): void {
 			'exports'   => diluxone_users_data_requests( $user->user_email, 'export_personal_data' ),
 			'erasures'  => diluxone_users_data_requests( $user->user_email, 'remove_personal_data' ),
 			'can_erase' => diluxone_users_can_request_erase( $user->ID ),
+			'closing'   => $closing,
+			'key'       => $closing > 0 ? $arrived['key'] : '',
 		)
 	);
 }

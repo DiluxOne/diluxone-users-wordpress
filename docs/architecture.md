@@ -34,7 +34,7 @@ Procedural, no classes, no namespace, everything prefixed `diluxone_users_` / `D
 | Sessions, the client's address | `sessions.php`, `client-ip.php` |
 | Activity log | `log.php`, `log-events.php`, `log-privacy.php` |
 | Networks | `multisite.php` |
-| Privacy (export and erasure), carried out on confirmation | `privacy.php`, `account-export.php`, `account-closing.php` |
+| Privacy (export and erasure): confirmed signed in, carried out on confirmation, its e-mails | `privacy.php`, `account-confirm.php`, `account-export.php`, `account-closing.php`, `account-mail.php` |
 | Notifications and mail | `notify.php`, `mail.php`, `mail-templates.php` |
 | Admin screens | `admin*.php` |
 | Removal of everything the plugin stored | `uninstall.php` |

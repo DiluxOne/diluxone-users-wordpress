@@ -33,13 +33,16 @@ test('confirming a copy on a site of the network leaves the file ready there', a
 
 	await Promise.all([page.waitForURL(/diluxone-users=requested/), button.click()]);
 	await page.goto(linkIn(await waitForMail(alpha.site, email)));
-	await expect(page.getByText('your file is ready')).toBeVisible();
+	await expect(page).toHaveURL(/diluxone-users=ready/);
+	expect(page.url(), 'back on this site’s account').toContain('/alpha/');
 
-	const mailed = linkIn(await waitForMail(alpha.site, email, { subject: /Personal Data Export/ }), /https?:\/\/\S+\.zip/);
+	const download = page.locator('.diluxone-users-requests a', { hasText: 'Download' }).first();
+	const href = (await download.getAttribute('href')) as string;
 
-	expect(mailed, 'served from this site’s own uploads').toContain('/sites/');
+	expect(href, 'handed over by this site').toContain('/alpha/');
 
-	await page.goto(accountSection(alpha.pages.account.url, 'privacy'));
-	await expect(page.locator(`.diluxone-users-requests a[href="${mailed}"]`)).toBeVisible();
-	expect((await page.request.get(mailed)).status()).toBe(200);
+	const file = await page.request.get(href);
+
+	expect(file.status()).toBe(200);
+	expect((await file.body()).subarray(0, 2).toString()).toBe('PK');
 });
