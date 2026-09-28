@@ -450,30 +450,51 @@ test.describe('Your data', () => {
 		});
 	}
 
-	/**
-	 * The whole way: asked on the account, confirmed from the e-mail, carried
-	 * out by an administrator from Tools → Erase Personal Data. An account
-	 * with nothing published is gone afterwards; the request filed from the
-	 * account area is what says it should be.
-	 */
-	test('asking to delete the account, once confirmed and carried out, deletes it', async ({
-		browser,
-		page,
-		site,
-		pages,
-	}) => {
-		const { email } = await signedIn(page, site, pages.login.url, 'data-close');
-
+	/** Asks, from the account area, for the account to be deleted. */
+	async function askToDelete(page: Page, pages: any): Promise<void> {
 		page.on('dialog', (dialog) => dialog.accept());
 
 		await page.goto(accountSection(pages.account.url, 'privacy'));
 		await reveal(page, 'form:has(input[name="diluxone_users_request"][value="erase"]) button[type="submit"]');
 		expect(await send(page, requestForm(page, 'erase').locator('button[type="submit"]'))).toBe('requested');
+	}
 
-		// The person confirms it from the e-mail WordPress sent.
+	/**
+	 * The whole way, as the site comes: asked on the account, and the link in
+	 * the e-mail is the last step. An account with nothing published is gone
+	 * when the confirmation page says so, with no administrator to wait for.
+	 */
+	test('asking to delete the account and confirming it from the e-mail deletes it', async ({ page, site, pages }) => {
+		const { email } = await signedIn(page, site, pages.login.url, 'data-close');
+
+		await askToDelete(page, pages);
 		await page.goto(linkIn(await waitForMail(site, email)));
 
-		// An administrator carries it out, from WordPress's own screen.
+		await expect(page.getByText('your account closed')).toBeVisible();
+		expect((await site.user(email)).exists, 'the account is gone').toBe(false);
+	});
+
+	/**
+	 * A site that carries them out itself: confirming only confirms, and the
+	 * request waits in Tools → Erase Personal Data, where the administrator's
+	 * click erases the data and deletes the account.
+	 */
+	test('a site that carries them out itself: the account goes when the administrator runs it', async ({
+		browser,
+		page,
+		site,
+		pages,
+		options,
+	}) => {
+		await options.set({ diluxone_users_privacy_delete_when: 'admin' });
+
+		const { email } = await signedIn(page, site, pages.login.url, 'data-close-admin');
+
+		await askToDelete(page, pages);
+		await page.goto(linkIn(await waitForMail(site, email)));
+
+		expect((await site.user(email)).exists, 'confirming only confirms').toBe(true);
+
 		const admin = await browser.newContext({ storageState: ADMIN_STATE });
 		const tools = await admin.newPage();
 
