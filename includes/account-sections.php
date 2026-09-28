@@ -486,9 +486,14 @@ function diluxone_users_data_requests( string $email, string $kind = '' ): array
  * is the only reliable sign that there is something to download.
  */
 function diluxone_users_data_file( WP_Post $request ): string {
-	return 'export_personal_data' === $request->post_name
-		? (string) get_post_meta( $request->ID, '_export_file_url', true )
-		: '';
+	$name = 'export_personal_data' === $request->post_name ? (string) get_post_meta( $request->ID, '_export_file_name', true ) : '';
+
+	// WordPress clears old exports away; a link to one of those would 404.
+	if ( '' === $name || ! file_exists( wp_privacy_exports_dir() . $name ) ) {
+		return '';
+	}
+
+	return wp_privacy_exports_url() . $name;
 }
 
 /**
@@ -567,13 +572,14 @@ function diluxone_users_data_request(): void {
 		exit;
 	}
 
-	// An erasure asked for here is the person deleting their account, and it
-	// says so, so the account is closed when the request has been carried out
-	// (see includes/account-closing.php). One filed from Tools does not.
+	// A request asked for here says so, so it is carried out when it is
+	// confirmed and an erasure closes the account too (see
+	// includes/account-closing.php and includes/account-export.php). One filed
+	// from Tools does neither.
 	$request_id = wp_create_user_request(
 		$user->user_email,
 		$kind,
-		'remove_personal_data' === $kind ? array( DILUXONE_USERS_CLOSE_KEY => (int) $user->ID ) : array()
+		array( 'remove_personal_data' === $kind ? DILUXONE_USERS_CLOSE_KEY : DILUXONE_USERS_EXPORT_KEY => (int) $user->ID )
 	);
 
 	if ( is_wp_error( $request_id ) ) {

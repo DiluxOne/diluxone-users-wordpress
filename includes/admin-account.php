@@ -377,6 +377,7 @@ function diluxone_users_account_privacy_save(): void {
 		array(
 			'diluxone_users_privacy_export'      => isset( $_POST['diluxone_users_privacy_export'] ) ? 1 : 0,
 			'diluxone_users_privacy_delete'      => isset( $_POST['diluxone_users_privacy_delete'] ) ? 1 : 0,
+			'diluxone_users_privacy_export_when' => 'admin' === sanitize_key( wp_unslash( $_POST['diluxone_users_privacy_export_when'] ?? '' ) ) ? 'admin' : 'confirm',
 			'diluxone_users_privacy_delete_when' => 'admin' === sanitize_key( wp_unslash( $_POST['diluxone_users_privacy_delete_when'] ?? '' ) ) ? 'admin' : 'confirm',
 		)
 	);
@@ -1448,12 +1449,34 @@ function diluxone_users_screen_account_privacy(): void {
 		diluxone_users_ui_choices(
 			array(
 				array(
-					'type'    => 'checkbox',
-					'name'    => 'diluxone_users_privacy_export',
-					'value'   => '1',
-					'checked' => (bool) diluxone_users_option( 'diluxone_users_privacy_export' ),
-					'title'   => __( 'They can ask for a copy of everything and download it', 'diluxone-users' ),
-					'help'    => __( 'The export WordPress already knows how to make: it asks the person to confirm by email and leaves the file ready.', 'diluxone-users' ),
+					'type'     => 'checkbox',
+					'name'     => 'diluxone_users_privacy_export',
+					'value'    => '1',
+					'checked'  => (bool) diluxone_users_option( 'diluxone_users_privacy_export' ),
+					'title'    => __( 'They can ask for a copy of everything and download it', 'diluxone-users' ),
+					'help'     => __( 'The export WordPress already knows how to make: they confirm it by e-mail and get a file with everything the site keeps about them.', 'diluxone-users' ),
+					'children' => static function (): void {
+						$when = (string) diluxone_users_option( 'diluxone_users_privacy_export_when' );
+
+						diluxone_users_ui_choices(
+							array(
+								array(
+									'name'    => 'diluxone_users_privacy_export_when',
+									'value'   => 'confirm',
+									'checked' => 'admin' !== $when,
+									'title'   => __( 'As soon as they confirm it', 'diluxone-users' ),
+									'help'    => __( 'The file is made when they click the link in the e-mail: they get it by e-mail and can download it from their account.', 'diluxone-users' ),
+								),
+								array(
+									'name'    => 'diluxone_users_privacy_export_when',
+									'value'   => 'admin',
+									'checked' => 'admin' === $when,
+									'title'   => __( 'When you carry it out', 'diluxone-users' ),
+									'help'    => __( 'It waits for you in Tools → Export Personal Data.', 'diluxone-users' ),
+								),
+							)
+						);
+					},
 				),
 				array(
 					'type'     => 'checkbox',

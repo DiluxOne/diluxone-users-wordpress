@@ -366,6 +366,8 @@ function diluxone_users_option_defaults(): array {
 		// rather handle those requests by hand turns them off.
 		'diluxone_users_privacy_export'        => 1,
 		'diluxone_users_privacy_delete'        => 1,
+		// 'confirm': made when the person confirms; 'admin': waits in Tools.
+		'diluxone_users_privacy_export_when'   => 'confirm',
 		// 'confirm': carried out when the person confirms; 'admin': waits in Tools.
 		'diluxone_users_privacy_delete_when'   => 'confirm',
 
