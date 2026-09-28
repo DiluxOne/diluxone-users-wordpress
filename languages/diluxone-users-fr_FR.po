@@ -106,19 +106,19 @@ msgstr[1] "sessions ouvertes"
 msgid "Review"
 msgstr "Vérifier"
 
-#: includes/account-sections.php:506
+#: includes/account-sections.php:525
 msgid "Waiting for you to confirm by email"
 msgstr "En attente de votre confirmation par e-mail"
 
-#: includes/account-sections.php:507
+#: includes/account-sections.php:526
 msgid "Confirmed — we are preparing it"
 msgstr "Confirmé — nous le préparons"
 
-#: includes/account-sections.php:508
+#: includes/account-sections.php:527
 msgid "Ready"
 msgstr "Prêt"
 
-#: includes/account-sections.php:509
+#: includes/account-sections.php:528
 msgid "Failed"
 msgstr "Échec"
 
@@ -148,7 +148,7 @@ msgid "Yours"
 msgstr "La vôtre"
 
 #: includes/admin-account.php:239
-#: includes/admin-account.php:882
+#: includes/admin-account.php:918
 msgid "Sections"
 msgstr "Sections"
 
@@ -159,133 +159,133 @@ msgstr "Sections"
 msgid "Account area"
 msgstr "Espace compte"
 
-#: includes/admin-account.php:457
+#: includes/admin-account.php:493
 msgid "New order saved."
 msgstr "Nouvel ordre enregistré."
 
-#: includes/admin-account.php:458
+#: includes/admin-account.php:494
 msgid "Section saved."
 msgstr "Section enregistrée."
 
-#: includes/admin-account.php:459
+#: includes/admin-account.php:495
 msgid "Section removed."
 msgstr "Section retirée."
 
-#: includes/admin-account.php:461
+#: includes/admin-account.php:497
 msgid "That section needs a name, and an address that is not taken."
 msgstr "Cette section a besoin d’un nom et d’une adresse qui ne soit pas déjà prise."
 
-#: includes/admin-account.php:587
+#: includes/admin-account.php:623
 msgid "There is no account page yet"
 msgstr "Il n’y a pas encore de page de compte"
 
-#: includes/admin-account.php:504
+#: includes/admin-account.php:540
 msgid "The sections of “my account”"
 msgstr "Les sections de « mon compte »"
 
-#: includes/admin-account.php:517
-#: includes/admin-account.php:844
+#: includes/admin-account.php:553
+#: includes/admin-account.php:880
 msgid "Add section"
 msgstr "Ajouter une section"
 
-#: includes/admin-account.php:554
+#: includes/admin-account.php:590
 msgid "Save the order"
 msgstr "Enregistrer l’ordre"
 
-#: includes/admin-account.php:649
+#: includes/admin-account.php:685
 msgid "New section"
 msgstr "Nouvelle section"
 
-#: includes/admin-account.php:670
+#: includes/admin-account.php:706
 msgid "Showing"
 msgstr "Affichée"
 
-#: includes/admin-account.php:670
+#: includes/admin-account.php:706
 #: includes/admin-fields.php:455
 msgid "Hidden"
 msgstr "Masquée"
 
-#: includes/admin-account.php:691
+#: includes/admin-account.php:727
 msgid "Delete this section?"
 msgstr "Supprimer cette section ?"
 
-#: includes/admin-account.php:692
+#: includes/admin-account.php:728
 #: includes/admin.php:385
 msgid "Remove"
 msgstr "Retirer"
 
-#: includes/admin-account.php:701
+#: includes/admin-account.php:737
 msgid "It is on, but it is not showing"
 msgstr "Elle est activée, mais elle ne s’affiche pas"
 
-#: includes/admin-account.php:709
+#: includes/admin-account.php:745
 #: includes/admin-fields.php:377
 #: includes/admin-fields.php:613
 #: includes/privacy.php:95
 msgid "Name"
 msgstr "Nom"
 
-#: includes/admin-account.php:714
+#: includes/admin-account.php:750
 msgid "What people read in the menu, and the title of the section."
 msgstr "Ce que les gens lisent dans le menu, et le titre de la section."
 
-#: includes/admin-account.php:720
+#: includes/admin-account.php:756
 msgid "Address"
 msgstr "Adresse"
 
-#: includes/admin-account.php:724
+#: includes/admin-account.php:760
 msgid "made from the name"
 msgstr "construite à partir du nom"
 
-#: includes/admin-account.php:787
+#: includes/admin-account.php:823
 msgid "Who sees it"
 msgstr "Qui la voit"
 
-#: includes/admin-account.php:806
+#: includes/admin-account.php:842
 msgid "Where your content goes"
 msgstr "Où va votre contenu"
 
-#: includes/admin-account.php:799
+#: includes/admin-account.php:835
 msgid "After what the plugin shows"
 msgstr "Après ce que l’extension affiche"
 
-#: includes/admin-account.php:800
+#: includes/admin-account.php:836
 msgid "Before what the plugin shows"
 msgstr "Avant ce que l’extension affiche"
 
-#: includes/admin-account.php:801
+#: includes/admin-account.php:837
 msgid "Instead of it — your content replaces the section"
 msgstr "À la place — votre contenu remplace la section"
 
-#: includes/admin-account.php:811
+#: includes/admin-account.php:847
 msgid "This section is drawn by code. What you write below is added to it — unless you say it replaces it."
 msgstr "Cette section est dessinée par du code. Ce que vous écrivez ci-dessous s’y ajoute — sauf si vous dites qu’il la remplace."
 
-#: includes/admin-account.php:818
+#: includes/admin-account.php:854
 msgid "Your content"
 msgstr "Votre contenu"
 
-#: includes/admin-account.php:830
+#: includes/admin-account.php:866
 msgid "Text, HTML, or the shortcode of another plugin. Leave it empty and the section stays as the plugin draws it."
 msgstr "Du texte, du HTML, ou le code court d’une autre extension. Laissez vide et la section reste telle que l’extension la dessine."
 
-#: includes/admin-account.php:831
+#: includes/admin-account.php:867
 msgid "Text, HTML, or the shortcode of another plugin — a course plugin, a membership, a support desk. This is the whole section."
 msgstr "Du texte, du HTML, ou le code court d’une autre extension — une extension de cours, un abonnement, un support. C’est toute la section."
 
-#: includes/admin-account.php:836
+#: includes/admin-account.php:872
 msgid "Comes from"
 msgstr "Vient de"
 
-#: includes/admin-account.php:839
+#: includes/admin-account.php:875
 msgid "It comes from code, so it cannot be deleted —the code that draws it is still there and it would come back— but it can be hidden."
 msgstr "Elle vient du code : elle ne peut donc pas être supprimée —le code qui la dessine est toujours là et elle reviendrait— mais elle peut être masquée."
 
-#: includes/admin-account.php:844
+#: includes/admin-account.php:880
 msgid "Save section"
 msgstr "Enregistrer la section"
 
-#: includes/admin-account.php:965
+#: includes/admin-account.php:1001
 msgid "The account page"
 msgstr "La page du compte"
 
@@ -313,7 +313,7 @@ msgstr "L’en-tête"
 msgid "Profile photo"
 msgstr "Photo de profil"
 
-#: includes/admin-account.php:460
+#: includes/admin-account.php:496
 #: includes/admin-panels.php:175
 #: templates/account/notifications.php:58
 #: templates/fields.php:30
@@ -416,7 +416,7 @@ msgstr "Obligatoire"
 #: includes/admin-fields.php:382
 #: includes/admin-sessions.php:336
 #: includes/admin-status.php:33
-#: templates/account/privacy.php:29
+#: templates/account/privacy.php:31
 msgid "Status"
 msgstr "État"
 
@@ -636,7 +636,7 @@ msgstr "Passkeys"
 #: includes/admin-status.php:396
 #: includes/admin-status.php:407
 #: includes/admin.php:75
-#: includes/login-messages.php:613
+#: includes/login-messages.php:633
 msgid "Social login"
 msgstr "Connexion sociale"
 
@@ -670,7 +670,7 @@ msgid "Sign in"
 msgstr "Se connecter"
 
 #: includes/admin-account.php:250
-#: includes/admin-account.php:895
+#: includes/admin-account.php:931
 #: includes/admin-people.php:164
 #: includes/privacy.php:166
 #: templates/account/handle-field.php:17
@@ -693,89 +693,89 @@ msgstr "Objet"
 msgid "Message"
 msgstr "Message"
 
-#: includes/admin-account.php:1270
+#: includes/admin-account.php:1306
 msgid "The email is the identity and nobody chooses it. This is the short name people see, the one that goes in the address of their profile."
 msgstr "L’e-mail est l’identité et personne ne le choisit. Ceci est le nom court que les gens voient, celui qui va dans l’adresse de leur profil."
 
-#: includes/admin-account.php:1279
+#: includes/admin-account.php:1315
 msgid "Let people choose their public name"
 msgstr "Laisser les gens choisir leur nom public"
 
-#: includes/admin-account.php:1280
+#: includes/admin-account.php:1316
 msgid "Turned off, the name comes from what they wrote as their first and last name, and the profile address is made from that."
 msgstr "Désactivé, le nom vient de ce qu’ils ont écrit comme prénom et nom, et l’adresse du profil est construite avec cela."
 
-#: includes/admin-account.php:1296
+#: includes/admin-account.php:1332
 msgid "Length"
 msgstr "Longueur"
 
-#: includes/admin-account.php:1307
+#: includes/admin-account.php:1343
 msgid "to"
 msgstr "à"
 
-#: includes/admin-account.php:1308
+#: includes/admin-account.php:1344
 msgid "characters"
 msgstr "caractères"
 
-#: includes/admin-account.php:1315
+#: includes/admin-account.php:1351
 msgid "Letters"
 msgstr "Lettres"
 
-#: includes/admin-account.php:1321
+#: includes/admin-account.php:1357
 msgid "Plain: a–z, digits, dot, dash and underscore"
 msgstr "Simple : a–z, chiffres, point, tiret et tiret bas"
 
-#: includes/admin-account.php:1327
+#: includes/admin-account.php:1363
 msgid "Also accents and ñ"
 msgstr "Aussi les accents et le ñ"
 
-#: includes/admin-account.php:1330
+#: includes/admin-account.php:1366
 msgid "Whatever is typed is turned into the same thing WordPress would put in a URL, so what passes here is exactly what ends up in the address. Anything that does not fit —punctuation, symbols, emoji— is dropped, and the person sees what it turned into before saving."
 msgstr "Ce qui est tapé devient exactement ce que WordPress mettrait dans une URL, donc ce qui passe ici est exactement ce qui finit dans l’adresse. Tout ce qui ne rentre pas —ponctuation, symboles, emoji— tombe, et la personne voit en quoi cela s’est transformé avant d’enregistrer."
 
-#: includes/admin-account.php:1336
+#: includes/admin-account.php:1372
 msgid "Spaces"
 msgstr "Espaces"
 
-#: includes/admin-account.php:1342
+#: includes/admin-account.php:1378
 msgid "Turn them into dashes: “Ana Gómez” becomes ana-gomez"
 msgstr "Les transformer en tirets : « Ana Gómez » devient ana-gomez"
 
-#: includes/admin-account.php:1348
+#: includes/admin-account.php:1384
 msgid "Refuse them and say so"
 msgstr "Les refuser et le dire"
 
-#: includes/admin-account.php:1351
+#: includes/admin-account.php:1387
 msgid "A web address cannot have spaces, so one of the two has to happen. The first is what almost everybody expects; the second is for a site that would rather nobody ends up with a name they did not type."
 msgstr "Une adresse web ne peut pas contenir d’espaces : l’une des deux choses doit donc arriver. La première est ce que presque tout le monde attend ; la seconde est pour un site qui préfère que personne ne se retrouve avec un nom qu’il n’a pas tapé."
 
-#: includes/admin-account.php:1392
+#: includes/admin-account.php:1428
 msgid "Taken names"
 msgstr "Noms déjà pris"
 
 #. translators: 1: user_nicename, 2: user_login
-#: includes/admin-account.php:1395
+#: includes/admin-account.php:1431
 #, php-format
 msgid "Always checked, and against two things: the public names already in use (%1$s) and the usernames that came with the accounts (%2$s). The second one matters because a site that lets people sign in by public name would otherwise have two people answering to the same text, and the link would go to the wrong account."
 msgstr "Toujours vérifié, et contre deux choses : les noms publics déjà utilisés (%1$s) et les identifiants venus avec les comptes (%2$s). Le second compte parce que, sur un site qui laisse se connecter par nom public, deux personnes répondraient au même texte et le lien partirait vers le mauvais compte."
 
-#: includes/admin-account.php:1356
+#: includes/admin-account.php:1392
 msgid "How often it can change"
 msgstr "À quelle fréquence il peut changer"
 
-#: includes/admin-account.php:1359
+#: includes/admin-account.php:1395
 msgid "days between one change and the next"
 msgstr "jours entre un changement et le suivant"
 
-#: includes/admin-account.php:1361
+#: includes/admin-account.php:1397
 msgid "0 means whenever they like. A name that changes every day does not identify anybody, and the old address stops working each time."
 msgstr "0 signifie quand ils veulent. Un nom qui change tous les jours n’identifie personne, et l’ancienne adresse cesse de fonctionner à chaque fois."
 
-#: includes/admin-account.php:1367
+#: includes/admin-account.php:1403
 msgid "Names nobody can take"
 msgstr "Noms que personne ne peut prendre"
 
-#: includes/admin-account.php:1372
+#: includes/admin-account.php:1408
 msgid "One per line, or separated by commas. The obvious ones —admin, support, api, login— are already blocked; these are yours to add."
 msgstr "Un par ligne, ou séparés par des virgules. Les évidents —admin, support, api, login— sont déjà bloqués ; ceux-ci sont les vôtres."
 
@@ -825,11 +825,11 @@ msgstr "Ne jamais demander"
 msgid "A signed cookie, no more: it does not let anybody in, it only saves repeating the step on a browser that already passed it."
 msgstr "Un cookie signé, rien de plus : il ne laisse entrer personne, il évite seulement de répéter l’étape sur un navigateur qui l’a déjà passée."
 
-#: includes/admin-account.php:932
+#: includes/admin-account.php:968
 msgid "Their data"
 msgstr "Ses données"
 
-#: includes/admin-account.php:1456
+#: includes/admin-account.php:1492
 msgid "They can ask for a copy of everything and download it"
 msgstr "Elle peut demander une copie de tout et la télécharger"
 
@@ -1145,8 +1145,8 @@ msgstr "Créez l’application, chargez l’URL de retour et collez l’identifi
 msgid "A window opens, %s asks you to authorise, and it comes back here. Nobody is signed in and nothing is saved to your account — it only checks that the round trip works. Until it does, the button cannot be enabled."
 msgstr "Une fenêtre s’ouvre, %s vous demande d’autoriser, et cela revient ici. Personne n’est connecté et rien n’est enregistré sur votre compte — cela vérifie seulement que l’aller-retour fonctionne. Tant que ce n’est pas le cas, le bouton ne peut pas être activé."
 
-#: includes/admin-account.php:875
-#: includes/admin-account.php:1010
+#: includes/admin-account.php:911
+#: includes/admin-account.php:1046
 #: includes/admin-login.php:210
 #: includes/admin-status.php:115
 msgid "No page chosen yet."
@@ -1221,7 +1221,7 @@ msgstr "connexion sociale"
 
 #: includes/admin-login.php:61
 #: includes/admin-status.php:330
-#: includes/login-messages.php:618
+#: includes/login-messages.php:638
 msgid "Ways in"
 msgstr "Façons d’entrer"
 
@@ -2474,59 +2474,60 @@ msgstr "Rien à afficher pour l’instant. Les sections ci-dessus sont toutes à
 msgid "What we email you about"
 msgstr "Ce pour quoi nous vous écrivons"
 
-#: templates/account/privacy.php:28
+#: templates/account/privacy.php:30
 msgid "Asked on"
 msgstr "Demandé le"
 
-#: templates/account/privacy.php:44
+#: templates/account/privacy.php:46
 msgid "Download"
 msgstr "Télécharger"
 
-#: templates/account/privacy.php:54
+#: templates/account/privacy.php:96
 msgid "Everything this site knows about you is yours: you can take it with you, and you can ask us to erase it."
 msgstr "Tout ce que ce site sait de vous est à vous : vous pouvez l’emporter, et vous pouvez nous demander de l’effacer."
 
-#: templates/account/privacy.php:57
+#: templates/account/privacy.php:99
 msgid "We sent you an email to confirm it. Nothing happens until you click that link."
 msgstr "Nous vous avons envoyé un e-mail pour le confirmer. Rien ne se passe tant que vous n’avez pas cliqué sur ce lien."
 
-#: templates/account/privacy.php:59
+#: templates/account/privacy.php:101
 msgid "An account with admin permissions cannot ask for its own deletion."
 msgstr "Un compte avec des permissions d’administration ne peut pas demander sa propre suppression."
 
-#: templates/account/privacy.php:61
+#: templates/account/privacy.php:111
 msgid "We could not create the request. There may already be one waiting."
 msgstr "Nous n’avons pas pu créer la demande. Il y en a peut-être déjà une en attente."
 
-#: templates/account/privacy.php:66
+#: templates/account/privacy.php:116
 msgid "Heads up, this only shows to administrators: the site has no outgoing mail set up, so the confirmation email never arrives and every request stays waiting forever."
 msgstr "Attention, ceci ne s’affiche que pour les administrateurs : le site n’a pas de courrier sortant configuré, l’e-mail de confirmation n’arrive donc jamais et chaque demande reste en attente pour toujours."
 
-#: templates/account/privacy.php:71
+#: templates/account/privacy.php:121
 msgid "Download your data"
 msgstr "Télécharger vos données"
 
-#: templates/account/privacy.php:83
+#: templates/account/privacy.php:133
 msgid "Ask for my data"
 msgstr "Demander mes données"
 
-#: templates/account/privacy.php:84
+#: templates/account/privacy.php:134
 msgid "Ask for it again, up to date"
 msgstr "Les demander de nouveau, à jour"
 
-#: templates/account/privacy.php:105
+#: templates/account/privacy.php:155
 msgid "This cannot be undone."
 msgstr "Ceci est irréversible."
 
-#: templates/account/privacy.php:108
+#: templates/account/privacy.php:62
 msgid "What you wrote in public stays, with no name on it."
 msgstr "Ce que vous avez écrit en public reste, sans nom dessus."
 
-#: templates/account/privacy.php:112
+#: templates/account/privacy.php:81
+#: templates/account/privacy.php:157
 msgid "If you want a copy of anything, download your data first."
 msgstr "Si vous voulez une copie de quoi que ce soit, téléchargez d’abord vos données."
 
-#: templates/account/privacy.php:113
+#: templates/account/privacy.php:158
 msgid "Asking is not deleting: we send you an email and nothing happens until you click the link in it. That is what stops somebody who borrowed your screen for a minute."
 msgstr "Demander n’est pas supprimer : nous vous envoyons un e-mail et rien ne se passe tant que vous n’avez pas cliqué sur le lien qu’il contient. C’est ce qui arrête celui qui a emprunté votre écran une minute."
 
@@ -2753,7 +2754,7 @@ msgstr "Délier"
 msgid "Link"
 msgstr "Lier"
 
-#: includes/login-messages.php:212
+#: includes/login-messages.php:232
 #: templates/fields.php:32
 msgid "Some required fields are missing."
 msgstr "Il manque des champs obligatoires."
@@ -2762,11 +2763,11 @@ msgstr "Il manque des champs obligatoires."
 msgid "One more step"
 msgstr "Encore une étape"
 
-#: includes/login-messages.php:152
+#: includes/login-messages.php:172
 msgid "That code is not right, or it expired. Try the next one."
 msgstr "Ce code n’est pas le bon, ou il a expiré. Essayez le suivant."
 
-#: includes/login-messages.php:172
+#: includes/login-messages.php:192
 msgid "Sent. Check your email."
 msgstr "Envoyé. Regardez votre e-mail."
 
@@ -2817,17 +2818,17 @@ msgstr "Il n’est pas arrivé ? Regardez dans les indésirables ou l’onglet p
 msgid "That link expired or was already used. Ask for a new one."
 msgstr "Ce lien a expiré ou a déjà été utilisé. Demandez-en un nouveau."
 
-#: includes/login-messages.php:122
-#: includes/login-messages.php:202
+#: includes/login-messages.php:142
+#: includes/login-messages.php:222
 msgid "That email address does not look valid."
 msgstr "Cette adresse e-mail n’a pas l’air valide."
 
-#: includes/login-messages.php:132
+#: includes/login-messages.php:152
 msgid "We could not finish signing you in with that provider. Try again or use your email."
 msgstr "Nous n’avons pas pu terminer votre connexion avec ce fournisseur. Réessayez ou utilisez votre e-mail."
 
-#: includes/login-messages.php:142
-#: includes/login-messages.php:242
+#: includes/login-messages.php:162
+#: includes/login-messages.php:262
 msgid "Something went wrong. Try again."
 msgstr "Quelque chose s’est mal passé. Réessayez."
 
@@ -3069,23 +3070,23 @@ msgstr "vous@exemple.com"
 msgid "They can change it"
 msgstr "Il peut le changer"
 
-#: includes/admin-account.php:793
+#: includes/admin-account.php:829
 msgid "Everybody with an account, or only the roles ticked. Nobody who is not signed in reaches the account area at all."
 msgstr "Toutes les personnes ayant un compte, ou seulement les rôles cochés. Qui n'est pas connecté n'atteint pas du tout l'espace compte."
 
-#: includes/admin-account.php:914
+#: includes/admin-account.php:950
 msgid "The dashboard profile"
 msgstr "Le profil du tableau de bord"
 
-#: includes/admin-account.php:1074
+#: includes/admin-account.php:1110
 msgid "Leave it as WordPress ships it"
 msgstr "Le laisser tel que WordPress le livre"
 
-#: includes/admin-account.php:1081
+#: includes/admin-account.php:1117
 msgid "Send people to their account on the site instead"
 msgstr "Les envoyer vers leur compte sur le site"
 
-#: includes/admin-account.php:1094
+#: includes/admin-account.php:1130
 msgid "For whom"
 msgstr "Pour qui"
 
@@ -3105,7 +3106,7 @@ msgstr "Avec une bannière"
 msgid "The person on a coloured band the full width of the window, with the menu in a bar of its own underneath. The way a profile looks."
 msgstr "La personne sur une bande de couleur occupant toute la largeur de la fenêtre, avec le menu dans une barre à lui en dessous. Comme un profil."
 
-#: includes/admin-account.php:999
+#: includes/admin-account.php:1035
 #: includes/admin-social.php:658
 msgid "The account area"
 msgstr "L'espace compte"
@@ -3155,6 +3156,7 @@ msgid "Forms are hard to read at full width; a list of courses is not. This hold
 msgstr "Les formulaires sont difficiles à lire sur toute la largeur ; une liste de cours ne l'est pas. Ceci ne limite que le contenu : une bannière va toujours d'un bord à l'autre."
 
 #: includes/admin-fields.php:554
+#: templates/account/privacy.php:181
 msgid "Cancel"
 msgstr "Annuler"
 
@@ -3276,11 +3278,11 @@ msgstr "Seulement certains rôles"
 msgid "Edit profile"
 msgstr "Modifier le profil"
 
-#: includes/admin-account.php:779
+#: includes/admin-account.php:815
 msgid "The line under the title"
 msgstr "La ligne sous le titre"
 
-#: includes/admin-account.php:783
+#: includes/admin-account.php:819
 msgid "Optional. One sentence saying what this section is for, under its title."
 msgstr "Facultatif. Une phrase disant à quoi sert cette section, sous son titre."
 
@@ -3438,15 +3440,15 @@ msgstr "Laissée sur la couleur d'accent, elle suit l'accent au lieu de devenir 
 msgid "Choose a picture"
 msgstr "Choisir une image"
 
-#: includes/admin-account.php:758
+#: includes/admin-account.php:794
 msgid "The cards it shows"
 msgstr "Les cartes qu'elle affiche"
 
-#: includes/admin-account.php:772
+#: includes/admin-account.php:808
 msgid "No section offers a card yet, so the front page is empty. Sections bring their own, and so does anything else installed on the site."
 msgstr "Aucune section ne propose encore de carte, la page d'accueil est donc vide. Les sections apportent la leur, et tout ce qui est installé sur le site aussi."
 
-#: includes/admin-account.php:773
+#: includes/admin-account.php:809
 msgid "The front page is a summary: each section offers one card and the site can add its own. Untick one and it stops being shown — the section itself is untouched, and a card that has nothing to say today is left out on its own anyway."
 msgstr "La page d'accueil est un récapitulatif : chaque section propose une carte et le site peut ajouter les siennes. Décochez-en une et elle cesse d'être affichée — la section elle-même n'est pas touchée, et une carte qui n'a rien à dire aujourd'hui reste de côté d'elle-même."
 
@@ -3506,7 +3508,7 @@ msgstr "Les inscriptions sont fermées"
 msgid "This site does not take new accounts right now. If you already have one, you can sign in."
 msgstr "Ce site n'accepte pas de nouveaux comptes pour le moment. Si vous en avez déjà un, vous pouvez vous connecter."
 
-#: includes/login-messages.php:192
+#: includes/login-messages.php:212
 msgid "There is already an account with that address."
 msgstr "Il existe déjà un compte avec cette adresse."
 
@@ -3514,7 +3516,7 @@ msgstr "Il existe déjà un compte avec cette adresse."
 msgid "Sign in instead"
 msgstr "Se connecter plutôt"
 
-#: includes/login-messages.php:232
+#: includes/login-messages.php:252
 msgid "This site does not take new accounts right now."
 msgstr "Ce site n'accepte pas de nouveaux comptes pour le moment."
 
@@ -3555,7 +3557,7 @@ msgstr "Choisissez un nouveau mot de passe"
 msgid "For %s"
 msgstr "Pour %s"
 
-#: includes/login-messages.php:182
+#: includes/login-messages.php:202
 msgid "The two passwords are not the same. Try again."
 msgstr "Les deux mots de passe ne sont pas les mêmes. Réessayez."
 
@@ -3579,7 +3581,7 @@ msgstr "Vous n'êtes pas obligé·e de faire ceci : sur ce site, un lien par co
 msgid "Your password is changed. You can sign in with it now."
 msgstr "Votre mot de passe est changé. Vous pouvez vous connecter avec."
 
-#: includes/login-messages.php:222
+#: includes/login-messages.php:242
 msgid "One moment: wait a few seconds and try again."
 msgstr "Un instant : attendez quelques secondes et réessayez."
 
@@ -3871,8 +3873,8 @@ msgid "Summary"
 msgstr "Résumé"
 
 #: includes/admin-account.php:228
-#: includes/admin-account.php:592
-#: includes/admin-account.php:870
+#: includes/admin-account.php:628
+#: includes/admin-account.php:906
 msgid "The page"
 msgstr "La page"
 
@@ -3880,114 +3882,114 @@ msgstr "La page"
 msgid "The WordPress dashboard"
 msgstr "Le tableau de bord WordPress"
 
-#: includes/admin-account.php:860
+#: includes/admin-account.php:896
 msgid "Left as WordPress ships it."
 msgstr "Laissé tel que WordPress le livre."
 
-#: includes/admin-account.php:861
+#: includes/admin-account.php:897
 msgid "Sends people to their account on the site."
 msgstr "Envoie les gens vers leur compte sur le site."
 
-#: includes/admin-account.php:862
+#: includes/admin-account.php:898
 msgid "Closed: details are edited on the site only."
 msgstr "Fermé : les informations se modifient sur le site uniquement."
 
-#: includes/admin-account.php:865
+#: includes/admin-account.php:901
 msgid "What the account area is and where it lives, read from the settings the other tabs write. Nothing is edited here."
 msgstr "Ce qu’est l’espace compte et où il vit, lu dans les réglages que les autres onglets écrivent. Rien ne se modifie ici."
 
-#: includes/admin-account.php:878
+#: includes/admin-account.php:914
 msgid "This site has no account area."
 msgstr "Ce site n’a pas d’espace compte."
 
 #. translators: 1: sections shown, 2: sections there are
-#: includes/admin-account.php:887
+#: includes/admin-account.php:923
 #, php-format
 msgid "%1$d of %2$d shown."
 msgstr "%1$d sur %2$d affichés."
 
-#: includes/admin-account.php:898
+#: includes/admin-account.php:934
 msgid "People choose the short name they appear under."
 msgstr "Les gens choisissent le nom court sous lequel ils apparaissent."
 
-#: includes/admin-account.php:899
+#: includes/admin-account.php:935
 msgid "The name comes from their first and last name."
 msgstr "Le nom vient de leur prénom et de leur nom."
 
-#: includes/admin-account.php:921
-#: includes/admin-account.php:1103
+#: includes/admin-account.php:957
+#: includes/admin-account.php:1139
 msgid "The WordPress toolbar"
 msgstr "La barre d’outils WordPress"
 
-#: includes/admin-account.php:927
+#: includes/admin-account.php:963
 msgid "Hidden on the site for some roles."
 msgstr "Masquée sur le site pour certains rôles."
 
-#: includes/admin-account.php:927
+#: includes/admin-account.php:963
 msgid "Hidden on the site for everybody."
 msgstr "Masquée sur le site pour tout le monde."
 
-#: includes/admin-account.php:928
+#: includes/admin-account.php:964
 msgid "Shown, as WordPress does."
 msgstr "Affichée, comme le fait WordPress."
 
-#: includes/admin-account.php:939
+#: includes/admin-account.php:975
 msgid "can ask for a copy"
 msgstr "peut demander une copie"
 
-#: includes/admin-account.php:963
+#: includes/admin-account.php:999
 msgid "Which page is “my account”. Declaring it here is what lets everything else on the site — a course, a forum, a certificate — send people to the right place."
 msgstr "Quelle page est « mon compte ». La déclarer ici est ce qui permet à tout le reste du site — un cours, un forum, un certificat — d’envoyer les gens au bon endroit."
 
-#: includes/admin-account.php:972
+#: includes/admin-account.php:1008
 msgid "— None: this site has no account area —"
 msgstr "— Aucune : ce site n’a pas d’espace compte —"
 
-#: includes/admin-account.php:1017
+#: includes/admin-account.php:1053
 msgid "Links to “my account” from the rest of the site go to the front page."
 msgstr "Les liens vers « mon compte » depuis le reste du site vont à la page d’accueil."
 
-#: includes/admin-account.php:1019
+#: includes/admin-account.php:1055
 msgid "The shortcode still works wherever somebody puts it."
 msgstr "Le code court fonctionne toujours là où quelqu’un le place."
 
-#: includes/admin-account.php:1061
+#: includes/admin-account.php:1097
 msgid "Two things WordPress shows to anybody signed in — its own profile screen and its toolbar — that a site with an account area of its own may not want."
 msgstr "Deux choses que WordPress montre à quiconque est connecté — son propre écran de profil et sa barre d’outils — dont un site ayant son propre espace compte peut ne pas vouloir."
 
-#: includes/admin-account.php:1064
+#: includes/admin-account.php:1100
 msgid "The dashboard profile (wp-admin/profile.php)"
 msgstr "Le profil du tableau de bord (wp-admin/profile.php)"
 
-#: includes/admin-account.php:1088
+#: includes/admin-account.php:1124
 msgid "Close it — their details are edited on the site only"
 msgstr "Le fermer — leurs informations se modifient sur le site uniquement"
 
-#: includes/admin-account.php:1098
+#: includes/admin-account.php:1134
 msgid "Whoever can edit users is never reached: they are the person who has to be able to fix what broke, and the dashboard profile is where it gets fixed."
 msgstr "Quiconque peut modifier les comptes n’est jamais concerné : c’est la personne qui doit pouvoir réparer ce qui a cassé, et le profil du tableau de bord est là où ça se répare."
 
-#: includes/admin-account.php:1113
+#: includes/admin-account.php:1149
 msgid "Show it to everybody, as WordPress does"
 msgstr "Le montrer à tout le monde, comme le fait WordPress"
 
-#: includes/admin-account.php:1120
+#: includes/admin-account.php:1156
 msgid "Hide it on the site for everybody"
 msgstr "La masquer sur le site pour tout le monde"
 
-#: includes/admin-account.php:1127
+#: includes/admin-account.php:1163
 msgid "Hide it on the site only for some roles"
 msgstr "La masquer sur le site seulement pour certains rôles"
 
-#: includes/admin-account.php:1148
+#: includes/admin-account.php:1184
 msgid "— always keeps it"
 msgstr "— la garde toujours"
 
-#: includes/admin-account.php:1183
+#: includes/admin-account.php:1219
 msgid "Whoever can edit users always keeps it, whatever is chosen above"
 msgstr "Quiconque peut modifier les comptes la garde toujours, quel que soit le choix ci-dessus"
 
-#: includes/admin-account.php:1199
+#: includes/admin-account.php:1235
 msgid "Their name, their picture and “Edit profile” lead to the account page instead of the dashboard."
 msgstr "Leur nom, leur photo et « Modifier le profil » mènent à la page du compte au lieu du tableau de bord."
 
@@ -4551,71 +4553,71 @@ msgstr "Se souvenir d’un navigateur"
 msgid "For how long"
 msgstr "Pendant combien de temps"
 
-#: includes/admin-account.php:1065
+#: includes/admin-account.php:1101
 msgid "It does not know about the required fields or the edit limits set up here. Two screens for the same data is how somebody ends up editing their name in one and their phone in the other, under different rules."
 msgstr "Il ne sait rien des champs obligatoires ni des limites de modification réglées ici. Deux écrans pour les mêmes données, c’est ainsi que quelqu’un finit par modifier son nom sur l’un et son téléphone sur l’autre, sous des règles différentes."
 
-#: includes/admin-account.php:1075
+#: includes/admin-account.php:1111
 msgid "Anybody who can reach the dashboard edits their details there as well as on the site."
 msgstr "Qui peut atteindre le tableau de bord y modifie ses informations, en plus du site."
 
-#: includes/admin-account.php:1082
+#: includes/admin-account.php:1118
 msgid "Opening it lands them on the account page. One screen for their details, and it is the one this plugin knows the rules of."
 msgstr "L’ouvrir les amène sur la page du compte. Un seul écran pour leurs informations, et c’est celui dont cette extension connaît les règles."
 
-#: includes/admin-account.php:1089
+#: includes/admin-account.php:1125
 msgid "The screen answers that it is not available. For a site where the dashboard is not part of what people were given."
 msgstr "L’écran répond qu’il n’est pas disponible. Pour un site où le tableau de bord ne fait pas partie de ce qui a été donné aux gens."
 
-#: includes/admin-account.php:1104
+#: includes/admin-account.php:1140
 msgid "The black strip across the top of the site. Hiding it locks nobody out — /wp-admin stays open — which is why this is a choice and not a rule."
 msgstr "La bande noire en haut du site. La masquer n’enferme personne dehors — /wp-admin reste ouvert —, et c’est pour cela que c’est un choix et non une règle."
 
-#: includes/admin-account.php:1114
+#: includes/admin-account.php:1150
 msgid "Whoever is signed in sees the strip on the site, with the way back to the dashboard in it."
 msgstr "Qui est connecté voit la bande sur le site, avec le chemin de retour vers le tableau de bord dedans."
 
-#: includes/admin-account.php:1121
+#: includes/admin-account.php:1157
 msgid "The site looks the same signed in as signed out. The dashboard keeps its own toolbar."
 msgstr "Le site a la même allure connecté que déconnecté. Le tableau de bord garde sa propre barre d’outils."
 
-#: includes/admin-account.php:1128
+#: includes/admin-account.php:1164
 msgid "The usual answer for a site with members: the strip goes for them and stays for whoever runs the place."
 msgstr "La réponse habituelle pour un site avec des membres : la bande part pour eux et reste pour qui tient la maison."
 
-#: includes/admin-account.php:1135
+#: includes/admin-account.php:1171
 msgid "The roles it is hidden from"
 msgstr "Les rôles à qui elle est masquée"
 
-#: includes/admin-account.php:1163
+#: includes/admin-account.php:1199
 msgid "Nothing ticked and the strip stays for everybody, which is the same as the first answer."
 msgstr "Rien de coché et la bande reste pour tout le monde, ce qui revient à la première réponse."
 
-#: includes/admin-account.php:1175
+#: includes/admin-account.php:1211
 msgid "The exception"
 msgstr "L’exception"
 
-#: includes/admin-account.php:1184
+#: includes/admin-account.php:1220
 msgid "It is on because the person who administers the site is the one who most needs the way back."
 msgstr "C’est activé parce que la personne qui administre le site est celle qui a le plus besoin du chemin de retour."
 
-#: includes/admin-account.php:1190
+#: includes/admin-account.php:1226
 msgid "Its user menu"
 msgstr "Son menu utilisateur"
 
-#: includes/admin-account.php:1198
+#: includes/admin-account.php:1234
 msgid "While the toolbar is shown, its user menu points at the account area"
 msgstr "Tant que la barre d’outils est affichée, son menu utilisateur pointe vers l’espace compte"
 
-#: includes/admin-account.php:1441
+#: includes/admin-account.php:1477
 msgid "What people can do with their data"
 msgstr "Ce que les gens peuvent faire de leurs données"
 
-#: includes/admin-account.php:1442
+#: includes/admin-account.php:1478
 msgid "This is what the section holds. With neither of them on there is nothing in it, and it is not shown."
 msgstr "Voilà ce que contient la section. Sans aucun des deux, elle est vide et n’est pas affichée."
 
-#: includes/admin-account.php:1514
+#: includes/admin-account.php:1555
 msgid "Save what they can do"
 msgstr "Enregistrer ce qu’elles peuvent faire"
 
@@ -4989,11 +4991,11 @@ msgstr "Choisissez au moins une façon d’envoyer le code. Avec la deuxième é
 msgid "0 to ask every time."
 msgstr "0 pour le demander à chaque fois."
 
-#: includes/admin-account.php:754
+#: includes/admin-account.php:790
 msgid "Nothing to show right now."
 msgstr "Rien à afficher pour l’instant."
 
-#: includes/admin-account.php:1292
+#: includes/admin-account.php:1328
 msgid "What a name may be"
 msgstr "Ce qu’un nom peut être"
 
@@ -5100,12 +5102,12 @@ msgstr "Ce que l’écran dit"
 #: includes/admin-notices.php:63
 #: includes/admin-notices.php:186
 #: includes/admin-notices.php:281
-#: includes/login-messages.php:623
+#: includes/login-messages.php:643
 msgid "The e-mails"
 msgstr "Les e-mails"
 
 #: includes/admin-notices.php:388
-#: includes/login-messages.php:668
+#: includes/login-messages.php:688
 msgid "The language you are writing"
 msgstr "La langue dans laquelle vous écrivez"
 
@@ -5301,10 +5303,12 @@ msgstr "Mettre le bouton"
 msgid "Reports"
 msgstr "Rapports"
 
+#: includes/account-mail.php:32
 #: includes/mail-templates.php:68
 msgid "the name of this site"
 msgstr "le nom de ce site"
 
+#: includes/account-mail.php:33
 #: includes/mail-templates.php:69
 msgid "the name of the person it goes to, or what comes before the at sign when they have not written one"
 msgstr "le nom de la personne à qui il part, ou ce qui précède l’arobase quand elle n’en a pas écrit"
@@ -5391,88 +5395,88 @@ msgstr "Accès › Façons d’entrer"
 msgid "Whether there is a sign-in link at all — the arrival the rule above is about — is decided there."
 msgstr "S’il y a un lien de connexion ou non — l’arrivée dont parle la règle ci-dessus — se décide là-bas."
 
-#: includes/admin-account.php:1006
+#: includes/admin-account.php:1042
 msgid "This site has not got one."
 msgstr "Ce site n’en a pas."
 
-#: includes/admin-account.php:1016
+#: includes/admin-account.php:1052
 msgid "What that means"
 msgstr "Ce que cela veut dire"
 
-#: includes/admin-account.php:1018
+#: includes/admin-account.php:1054
 msgid "The toolbar’s user menu is not redirected, and “send people to their account” on the dashboard tab has nowhere to send them."
 msgstr "Le menu utilisateur de la barre d’outils n’est pas redirigé, et « les envoyer vers leur compte » dans l’onglet du tableau de bord n’a nulle part où les envoyer."
 
-#: includes/admin-account.php:1026
+#: includes/admin-account.php:1062
 msgid "What goes on it"
 msgstr "Ce qu’il y a dessus"
 
-#: includes/admin-account.php:1030
+#: includes/admin-account.php:1066
 msgid "The sections it is made of"
 msgstr "Les sections dont elle est faite"
 
-#: includes/admin-account.php:1031
+#: includes/admin-account.php:1067
 msgid "What people find inside, and the order they find it in."
 msgstr "Ce que les gens trouvent à l’intérieur, et dans quel ordre."
 
-#: includes/admin-account.php:1035
+#: includes/admin-account.php:1071
 msgid "What it looks like"
 msgstr "À quoi elle ressemble"
 
-#: includes/admin-account.php:1036
+#: includes/admin-account.php:1072
 msgid "Its shape, its cover and its menu, with the page itself beside the settings."
 msgstr "Sa forme, sa couverture et son menu, avec la page elle-même à côté des réglages."
 
-#: includes/admin-account.php:1214
+#: includes/admin-account.php:1250
 msgid "Where they are sent"
 msgstr "Où on les envoie"
 
-#: includes/admin-account.php:1221
+#: includes/admin-account.php:1257
 msgid "Nowhere yet: this site has no account area, so sending people to theirs does nothing until it has one."
 msgstr "Nulle part pour l’instant : ce site n’a pas d’espace compte, donc envoyer les gens vers le leur ne fait rien tant qu’il n’en a pas un."
 
-#: includes/admin-account.php:1226
+#: includes/admin-account.php:1262
 #: includes/admin-notices.php:277
 msgid "The other half of this"
 msgstr "L’autre moitié de ceci"
 
-#: includes/admin-account.php:1230
+#: includes/admin-account.php:1266
 msgid "The page that is “my account”"
 msgstr "La page qui est « mon compte »"
 
-#: includes/admin-account.php:1231
+#: includes/admin-account.php:1267
 msgid "Declared once, and every redirect on this tab reads it."
 msgstr "Déclarée une fois, et toutes les redirections de cet onglet la lisent."
 
-#: includes/admin-account.php:1235
+#: includes/admin-account.php:1271
 msgid "What they find when they get there"
 msgstr "Ce qu’ils trouvent en arrivant"
 
-#: includes/admin-account.php:1236
+#: includes/admin-account.php:1272
 msgid "The account area is the screen replacing the dashboard profile, so it is worth a look."
 msgstr "L’espace compte est l’écran qui remplace le profil du tableau de bord : il vaut donc un coup d’œil."
 
-#: includes/admin-account.php:1387
+#: includes/admin-account.php:1423
 msgid "Nobody is choosing a name while this is turned off. What is set here is kept, and it applies the day it is turned on."
 msgstr "Tant que ceci est désactivé, personne ne choisit de nom. Ce qui est réglé ici est conservé et s’applique le jour où c’est activé."
 
-#: includes/admin-account.php:1402
+#: includes/admin-account.php:1438
 msgid "Where the name is used"
 msgstr "Où le nom sert"
 
-#: includes/admin-account.php:1406
+#: includes/admin-account.php:1442
 msgid "Signing in with it"
 msgstr "Se connecter avec"
 
-#: includes/admin-account.php:1407
+#: includes/admin-account.php:1443
 msgid "Whether the sign-in box takes a public name as well as an e-mail address."
 msgstr "Si le champ de connexion accepte un nom public en plus d’une adresse e-mail."
 
-#: includes/admin-account.php:1411
+#: includes/admin-account.php:1447
 msgid "Their first and last name"
 msgstr "Son prénom et son nom"
 
-#: includes/admin-account.php:1412
+#: includes/admin-account.php:1448
 msgid "Where the public name comes from while nobody is choosing one."
 msgstr "D’où vient le nom public tant que personne n’en choisit un."
 
@@ -5946,7 +5950,7 @@ msgid "(opens in a new tab)"
 msgstr "(s’ouvre dans un nouvel onglet)"
 
 #. translators: %s: link to the tab where the account page is chosen, labelled with that tab's name.
-#: includes/admin-account.php:590
+#: includes/admin-account.php:626
 #, php-format
 msgid "Pick the page that has the [diluxone_users_account] shortcode, on %s. Until then the links beside this go nowhere."
 msgstr "Choisissez la page qui contient le code court [diluxone_users_account], dans %s. En attendant, les liens à côté ne mènent nulle part."
@@ -6420,151 +6424,151 @@ msgstr "Le lien de connexion ne fonctionne plus"
 msgid "Shown when somebody clicks a link that has run out of time or was already used once."
 msgstr "Affiché quand quelqu’un clique sur un lien dont le délai est écoulé ou qui a déjà servi une fois."
 
-#: includes/login-messages.php:119
-#: includes/login-messages.php:199
+#: includes/login-messages.php:139
+#: includes/login-messages.php:219
 msgid "The address is not an address"
 msgstr "L’adresse n’est pas une adresse"
 
-#: includes/login-messages.php:120
+#: includes/login-messages.php:140
 msgid "Shown when what was typed into the e-mail box cannot be an e-mail address."
 msgstr "Affiché quand ce qui a été saisi dans le champ e-mail ne peut pas être une adresse e-mail."
 
-#: includes/login-messages.php:129
+#: includes/login-messages.php:149
 msgid "Signing in with a network did not finish"
 msgstr "La connexion par un réseau n’est pas allée au bout"
 
-#: includes/login-messages.php:130
+#: includes/login-messages.php:150
 msgid "Shown whenever a trip out to a social network comes back without a session: the person said no over there, the network would not vouch for the address, this site does not take that account, or the trip was tampered with. One sentence covers all of them on purpose — telling a stranger which of those it was is telling them what to try next."
 msgstr "Affiché chaque fois qu’un aller-retour vers un réseau social revient sans session : la personne a refusé là-bas, le réseau n’a pas voulu se porter garant de l’adresse, ce site n’accepte pas ce compte, ou le trajet a été altéré. Une seule phrase les couvre tous, et c’est voulu : dire à un inconnu lequel c’était, c’est lui dire quoi essayer ensuite."
 
-#: includes/login-messages.php:139
-#: includes/login-messages.php:239
+#: includes/login-messages.php:159
+#: includes/login-messages.php:259
 msgid "Something else went wrong"
 msgstr "Quelque chose d’autre a mal tourné"
 
-#: includes/login-messages.php:140
+#: includes/login-messages.php:160
 msgid "The last resort of the sign-in page, when nothing more precise can honestly be said."
 msgstr "Le dernier recours de la page de connexion, quand rien de plus précis ne peut honnêtement être dit."
 
-#: includes/login-messages.php:149
+#: includes/login-messages.php:169
 msgid "The code is not right"
 msgstr "Le code n’est pas le bon"
 
-#: includes/login-messages.php:150
+#: includes/login-messages.php:170
 msgid "Shown when the six digits do not match, or matched a code that has since expired."
 msgstr "Affiché quand les six chiffres ne correspondent pas, ou correspondaient à un code désormais expiré."
 
-#: includes/login-messages.php:169
+#: includes/login-messages.php:189
 msgid "A code is on its way"
 msgstr "Un code est en route"
 
-#: includes/login-messages.php:170
+#: includes/login-messages.php:190
 msgid "Shown after somebody asks for the code to be sent to their inbox instead."
 msgstr "Affiché après que quelqu’un a demandé à recevoir le code dans sa boîte de réception à la place."
 
-#: includes/login-messages.php:179
+#: includes/login-messages.php:199
 msgid "The two passwords differ"
 msgstr "Les deux mots de passe diffèrent"
 
-#: includes/login-messages.php:180
+#: includes/login-messages.php:200
 msgid "Shown on the screen where a new password is chosen, when the two boxes do not say the same thing."
 msgstr "Affiché sur l’écran où l’on choisit un nouveau mot de passe, quand les deux champs ne disent pas la même chose."
 
-#: includes/login-messages.php:189
+#: includes/login-messages.php:209
 msgid "That address already has an account"
 msgstr "Cette adresse a déjà un compte"
 
-#: includes/login-messages.php:190
+#: includes/login-messages.php:210
 msgid "Shown when somebody tries to register an address the site already knows. The way out — the link to the sign-in page — is added after whatever this says."
 msgstr "Affiché quand quelqu’un tente d’inscrire une adresse que le site connaît déjà. L’issue — le lien vers la page de connexion — est ajoutée après ce que dit ce texte."
 
-#: includes/login-messages.php:200
+#: includes/login-messages.php:220
 msgid "The same as on the sign-in page, on the registration form. It is a separate sentence because the two screens are allowed to speak differently."
 msgstr "La même chose que sur la page de connexion, mais sur le formulaire d’inscription. C’est une phrase distincte parce que les deux écrans ont le droit de parler différemment."
 
-#: includes/login-messages.php:209
+#: includes/login-messages.php:229
 msgid "Something required was left blank"
 msgstr "Un champ obligatoire est resté vide"
 
-#: includes/login-messages.php:210
+#: includes/login-messages.php:230
 msgid "Shown when one of the fields this site marks as required came back empty."
 msgstr "Affiché quand l’un des champs que ce site marque comme obligatoires est revenu vide."
 
-#: includes/login-messages.php:219
+#: includes/login-messages.php:239
 msgid "Too many accounts, too fast"
 msgstr "Trop de comptes, trop vite"
 
-#: includes/login-messages.php:220
+#: includes/login-messages.php:240
 msgid "Shown when the same machine has just asked for several accounts in a row. It is the throttle talking, and it says so gently: whoever reads it is far more often impatient than malicious."
 msgstr "Affiché quand la même machine vient de demander plusieurs comptes d’affilée. C’est le limiteur qui parle, et il le dit avec douceur : qui le lit est bien plus souvent impatient que malveillant."
 
-#: includes/login-messages.php:229
+#: includes/login-messages.php:249
 msgid "Registration is shut"
 msgstr "Les inscriptions sont fermées"
 
-#: includes/login-messages.php:230
+#: includes/login-messages.php:250
 msgid "Shown when a form was sent to a site that has since stopped taking new accounts."
 msgstr "Affiché quand un formulaire a été envoyé à un site qui, depuis, n’accepte plus de nouveaux comptes."
 
-#: includes/login-messages.php:240
+#: includes/login-messages.php:260
 msgid "The last resort of the registration form, when nothing more precise can honestly be said."
 msgstr "Le dernier recours du formulaire d’inscription, quand rien de plus précis ne peut honnêtement être dit."
 
-#: includes/login-messages.php:517
+#: includes/login-messages.php:537
 msgid "It is read by somebody who is stuck, so it is worth saying what to do next and not only what happened. Empty the box and the plugin’s own words come back."
 msgstr "Cela est lu par une personne bloquée : autant lui dire quoi faire ensuite, et pas seulement ce qui s’est passé. Videz le champ et les mots de l’extension reviennent."
 
-#: includes/login-messages.php:531
+#: includes/login-messages.php:551
 msgid "The sentences a person reads when the way in does not work. Each one starts as the text the plugin ships in this language, so a site that changes nothing still reads correctly — and an update that improves a sentence improves it here too. Rewrite one and that is what is shown, until you put it back."
 msgstr "Les phrases qu’une personne lit quand la façon d’entrer ne marche pas. Chacune part du texte que l’extension livre dans cette langue : un site qui ne change rien se lit donc correctement, et une mise à jour qui améliore une phrase l’améliore ici aussi. Réécrivez-en une et c’est elle qui s’affiche, jusqu’à ce que vous la remettiez."
 
-#: includes/login-messages.php:565
+#: includes/login-messages.php:585
 msgid "Added by something else on this site"
 msgstr "Ajouté par autre chose sur ce site"
 
 #. translators: %s: the name of a language, in <code>
-#: includes/login-messages.php:580
+#: includes/login-messages.php:600
 #, php-format
 msgid "Every message is the plugin’s own, in %s."
 msgstr "Tous les messages sont ceux de l’extension, en %s."
 
 #. translators: 1: how many messages this site wrote, 2: how many there are, 3: the name of a language, in <code>
-#: includes/login-messages.php:585
+#: includes/login-messages.php:605
 #, php-format
 msgid "This site writes %1$d of the %2$d messages itself, in %3$s."
 msgid_plural "This site writes %1$d of the %2$d messages themselves, in %3$s."
 msgstr[0] "Ce site écrit lui-même %1$d des %2$d messages, en %3$s."
 msgstr[1] "Ce site écrit lui-même %1$d des %2$d messages, en %3$s."
 
-#: includes/login-messages.php:601
+#: includes/login-messages.php:621
 msgid "What this tab decides"
 msgstr "Ce que décide cet onglet"
 
-#: includes/login-messages.php:603
+#: includes/login-messages.php:623
 msgid "The words, and nothing else. Whether a message ever appears is decided by the setting it reports on — which networks are on, whether registration is open, how long a link lasts."
 msgstr "Les mots, et rien d’autre. Qu’un message apparaisse un jour dépend du réglage dont il rend compte — quels réseaux sont activés, si les inscriptions sont ouvertes, combien de temps dure un lien."
 
-#: includes/login-messages.php:604
+#: includes/login-messages.php:624
 msgid "A message that has to depend on something no settings screen can hold is a filter in code: <code>diluxone_users_login_message</code> runs after everything written here."
 msgstr "Un message qui doit dépendre de quelque chose qu’aucun écran de réglages ne peut contenir est un filtre en code : <code>diluxone_users_login_message</code> s’exécute après tout ce qui est écrit ici."
 
-#: includes/login-messages.php:609
+#: includes/login-messages.php:629
 msgid "What these messages are about"
 msgstr "Ce dont parlent ces messages"
 
-#: includes/login-messages.php:614
+#: includes/login-messages.php:634
 msgid "The networks themselves: which ones are on, and why one of them turns somebody away."
 msgstr "Les réseaux eux-mêmes : lesquels sont activés, et pourquoi l’un d’eux refuse quelqu’un."
 
-#: includes/login-messages.php:619
+#: includes/login-messages.php:639
 msgid "Which doors are open at all, and how long a sign-in link is good for."
 msgstr "Quelles portes sont ouvertes, et combien de temps un lien de connexion reste valable."
 
-#: includes/login-messages.php:624
+#: includes/login-messages.php:644
 msgid "The other half of what this site says to somebody signing in, rewritten the same way."
 msgstr "L’autre moitié de ce que ce site dit à une personne qui se connecte, réécrite de la même façon."
 
-#: includes/login-messages.php:670
+#: includes/login-messages.php:690
 msgid "Each language keeps its own wording, and one nobody has touched shows the text the plugin ships. Moving to another one here does not save what is on screen."
 msgstr "Chaque langue garde sa propre formulation, et une langue que personne n’a touchée affiche le texte livré par l’extension. Passer à une autre ici n’enregistre pas ce qui est à l’écran."
 
@@ -6592,11 +6596,11 @@ msgstr "La deuxième étape, pour qui est entré par lien"
 msgid "The second step, on a link sign-in"
 msgstr "La deuxième étape, lors d’une connexion par lien"
 
-#: includes/admin-account.php:916
+#: includes/admin-account.php:952
 msgid "Reachable"
 msgstr "Accessible"
 
-#: includes/admin-account.php:916
+#: includes/admin-account.php:952
 msgid "Kept out"
 msgstr "Fermé"
 
@@ -6928,12 +6932,12 @@ msgstr "Ce qui se détache de ce fond sans trait autour : l’autre ligne d’un
 msgid "Every line: the edge of a panel, of a field, the rule between two rows."
 msgstr "Tous les traits : le bord d’un panneau, celui d’un champ, le filet entre deux lignes."
 
-#: includes/admin-account.php:924
+#: includes/admin-account.php:960
 msgctxt "the WordPress toolbar, on the summary of the account area"
 msgid "Hidden"
 msgstr "Masquée"
 
-#: includes/admin-account.php:925
+#: includes/admin-account.php:961
 msgctxt "the WordPress toolbar, on the summary of the account area"
 msgid "Shown"
 msgstr "Affichée"
@@ -7027,15 +7031,15 @@ msgstr "Aucun — lire la connexion"
 msgid "Second step refused"
 msgstr "Deuxième étape refusée"
 
-#: includes/login-messages.php:159
+#: includes/login-messages.php:179
 msgid "Too many wrong codes"
 msgstr "Trop de codes erronés"
 
-#: includes/login-messages.php:160
+#: includes/login-messages.php:180
 msgid "Shown once an account has answered the second step wrongly too many times. The wait grows with every further try and the account opens again on its own."
 msgstr "Affiché lorsqu’un compte a raté la deuxième étape trop de fois. L’attente s’allonge à chaque nouvelle tentative et le compte se rouvre tout seul."
 
-#: includes/login-messages.php:162
+#: includes/login-messages.php:182
 msgid "Too many wrong codes. Wait a few minutes and try again."
 msgstr "Trop de codes erronés. Patientez quelques minutes et réessayez."
 
@@ -7092,11 +7096,11 @@ msgstr "les réponses aux champs demandés par ce site, votre nom public, votre 
 msgid "What is stored in the activity log"
 msgstr "Ce qui est conservé dans le journal d’activité"
 
-#: includes/login-messages.php:443
+#: includes/login-messages.php:463
 msgid "Messages"
 msgstr "Messages"
 
-#: includes/login-messages.php:512
+#: includes/login-messages.php:532
 msgid "The sentence"
 msgstr "La phrase"
 
@@ -7130,7 +7134,7 @@ msgstr "Mon compte"
 msgid "The page %s was created and chosen."
 msgstr "La page %s a été créée et choisie."
 
-#: includes/admin-account.php:980
+#: includes/admin-account.php:1016
 msgid "The account area appears on this page, below whatever the page already says."
 msgstr "L’espace compte apparaît sur cette page, sous ce que la page contient déjà."
 
@@ -7202,7 +7206,7 @@ msgstr "Le plugin se peint avec la palette que publie votre thème et continue d
 msgid "The username is the e-mail address, as for every account on this site."
 msgstr "Le nom d’utilisateur est l’adresse e-mail, comme pour tous les comptes de ce site."
 
-#: includes/admin-account.php:983
+#: includes/admin-account.php:1019
 msgid "With plain permalinks the sections go as ?section=…; turn on pretty permalinks in Settings → Permalinks and they become /page/section/ on their own."
 msgstr "Avec les permaliens simples, les sections passent par ?section=… ; activez de jolis permaliens dans Réglages → Permaliens et elles deviennent /page/section/ d’elles-mêmes."
 
@@ -7244,19 +7248,15 @@ msgstr "pour chaque événement enregistré : la date, le compte, votre adresse 
 msgid "Cookies"
 msgstr "Cookies"
 
-#: includes/privacy.php:394
-msgid "while you sign in, short-lived cookies hold the progress of the attempt: a social sign-in, a password reset, the address you asked a link for. If you ask not to be asked for the second step again on a browser, a cookie remembers that browser for the number of days this site sets. And a cookie remembers which way of signing in you used last, so the sign-in page opens on it."
-msgstr "pendant la connexion, des cookies de courte durée gardent l’avancement de la tentative : une connexion par réseau social, un changement de mot de passe, l’adresse à laquelle vous avez demandé un lien. Si vous demandez à ne plus avoir la deuxième étape sur un navigateur, un cookie se souvient de ce navigateur pendant le nombre de jours que fixe ce site. Et un cookie retient la façon de vous connecter utilisée la dernière fois, pour que l’écran de connexion s’ouvre dessus."
-
 #: includes/privacy.php:398
 msgid "the plugin sends nothing anywhere on its own. If this site offers social sign-in, the provider you choose receives what it needs to identify you, and only when you use it; the account id it answers with is kept in your profile so it can recognise you next time. If your profile has no picture of its own and this site shows Gravatar pictures, your browser asks Gravatar (gravatar.com) for one using a hash of your e-mail address."
 msgstr "l’extension n’envoie rien nulle part d’elle-même. Si ce site propose la connexion par réseaux sociaux, le fournisseur que vous choisissez reçoit ce dont il a besoin pour vous identifier, et seulement quand vous l’utilisez ; l’identifiant de compte qu’il renvoie est conservé dans votre profil pour vous reconnaître la fois suivante. Si votre profil n’a pas de photo et que ce site affiche les photos Gravatar, votre navigateur en demande une à Gravatar (gravatar.com) à partir d’un hash de votre adresse e-mail."
 
-#: templates/account/privacy.php:72
+#: templates/account/privacy.php:122
 msgid "A file with everything this site keeps about you: your details, and what the site and its plugins record about you. You get an email to confirm; once you do, we prepare it and it shows up here to download."
 msgstr "Un fichier avec tout ce que ce site conserve sur vous : vos informations, et ce que le site et ses extensions enregistrent sur vous. Vous recevez un e-mail pour confirmer ; une fois confirmé, nous le préparons et il apparaît ici pour le télécharger."
 
-#: templates/account/privacy.php:107
+#: templates/account/privacy.php:61
 msgid "What this site keeps about you is erased: your details, and what the site and its plugins record about you."
 msgstr "Ce que ce site conserve sur vous est effacé : vos informations, et ce que le site et ses extensions enregistrent sur vous."
 
@@ -7280,11 +7280,11 @@ msgstr "Compte supprimé"
 msgid "This account was closed."
 msgstr "Ce compte a été fermé."
 
-#: includes/admin-account.php:940
+#: includes/admin-account.php:976
 msgid "can ask to be deleted"
 msgstr "peut demander la suppression de son compte"
 
-#: includes/admin-account.php:1486
+#: includes/admin-account.php:1529
 msgid "They can ask for their account to be deleted"
 msgstr "Elle peut demander la suppression de son compte"
 
@@ -7292,27 +7292,23 @@ msgstr "Elle peut demander la suppression de son compte"
 msgid "Deleting your account"
 msgstr "Supprimer votre compte"
 
-#: templates/account/privacy.php:98
+#: templates/account/privacy.php:148
 msgid "Delete your account"
 msgstr "Supprimer votre compte"
 
-#: templates/account/privacy.php:102
+#: templates/account/privacy.php:152
 msgid "This account administers the site, so it cannot delete itself: the site would be left with nobody in charge. Another administrator has to lower its role first, and then it can ask."
 msgstr "Ce compte administre le site : il ne peut donc pas se supprimer lui-même, le site resterait sans personne aux commandes. Un autre administrateur doit d’abord baisser son rôle, et il pourra alors demander."
 
-#: templates/account/privacy.php:109
+#: templates/account/privacy.php:63
 msgid "Your account is closed: deleted if you have nothing published here, or left with no name, e-mail or password if you do."
 msgstr "Votre compte est fermé : supprimé si vous n’avez rien publié ici, ou laissé sans nom, e-mail ni mot de passe dans le cas contraire."
 
-#: templates/account/privacy.php:110
+#: templates/account/privacy.php:64
 msgid "You stop being able to sign in, and nothing can be recovered afterwards — not by you and not by us."
 msgstr "Vous ne pouvez plus vous connecter, et rien ne peut être récupéré ensuite — ni par vous ni par nous."
 
-#: templates/account/privacy.php:118
-msgid "Ask to delete your account? You still have to confirm it by email, and after that there is no going back."
-msgstr "Demander la suppression de votre compte ? Vous devez encore le confirmer par e-mail, et après cela il n’y a pas de retour en arrière."
-
-#: templates/account/privacy.php:122
+#: templates/account/privacy.php:166
 msgid "Ask to delete my account"
 msgstr "Demander la suppression de mon compte"
 
@@ -7320,27 +7316,18 @@ msgstr "Demander la suppression de mon compte"
 msgid "Done: your data has been erased and your account closed."
 msgstr "C’est fait : vos données ont été effacées et votre compte fermé."
 
-#: includes/admin-account.php:1487
+#: includes/admin-account.php:1530
 msgid "They confirm it by e-mail. Their data is erased and the account deleted, or left with no name, e-mail or password if they published something. Never for an account that administers the site."
 msgstr "La personne confirme par e-mail. Ses données sont effacées et le compte supprimé, ou laissé sans nom, e-mail ni mot de passe si elle a publié quelque chose. Jamais pour un compte qui administre le site."
 
-#: includes/admin-account.php:1467
-#: includes/admin-account.php:1497
+#: includes/admin-account.php:1499
+#: includes/admin-account.php:1536
 msgid "As soon as they confirm it"
 msgstr "Dès qu’elle confirme"
 
-#: includes/admin-account.php:1498
-msgid "The account closes when they click the link in the e-mail, with nobody to wait for."
-msgstr "Le compte est fermé quand la personne clique sur le lien de l’e-mail, sans attendre personne."
-
-#: includes/admin-account.php:1474
-#: includes/admin-account.php:1504
+#: includes/admin-account.php:1537
 msgid "When you carry it out"
 msgstr "Quand vous l’exécutez"
-
-#: includes/admin-account.php:1505
-msgid "It waits for you in Tools → Erase Personal Data: for a site that checks something first, such as a pending payment."
-msgstr "La demande vous attend dans Outils → Effacer les données personnelles : pour un site qui vérifie quelque chose avant, comme un paiement en attente."
 
 #: includes/privacy.php:396
 msgid "you can ask for it from your account; once you confirm it by e-mail and the site carries it out, your data is erased and the account deleted, or, if you published something here or belong to another site of the network, left with no name, e-mail or password so what you wrote stays without your name."
@@ -7350,14 +7337,281 @@ msgstr "vous pouvez le demander depuis votre compte ; une fois confirmé par e-m
 msgid "Done: your file is ready. We have e-mailed you the link, and you can also download it from your account."
 msgstr "C’est fait : votre fichier est prêt. Nous vous avons envoyé le lien par e-mail, et vous pouvez aussi le télécharger depuis votre compte."
 
-#: includes/admin-account.php:1457
+#: includes/admin-account.php:1493
 msgid "The export WordPress already knows how to make: they confirm it by e-mail and get a file with everything the site keeps about them."
 msgstr "L’export que WordPress sait déjà faire : la personne le confirme par e-mail et reçoit un fichier avec tout ce que le site conserve à son sujet."
 
-#: includes/admin-account.php:1468
-msgid "The file is made when they click the link in the e-mail: they get it by e-mail and can download it from their account."
-msgstr "Le fichier est créé quand la personne clique sur le lien de l’e-mail : elle le reçoit par e-mail et peut le télécharger depuis son compte."
+#: includes/account-export.php:206
+msgid "This file is not yours to download."
+msgstr "Ce fichier n’est pas le vôtre : vous ne pouvez pas le télécharger."
 
-#: includes/admin-account.php:1475
-msgid "It waits for you in Tools → Export Personal Data."
-msgstr "La demande vous attend dans Outils → Exporter les données personnelles."
+#: includes/account-export.php:212
+msgid "This file is no longer there. Ask for your data again."
+msgstr "Ce fichier n’existe plus. Demandez à nouveau vos données."
+
+#: includes/account-export.php:217
+msgid "my-data"
+msgstr "mes-donnees"
+
+#: includes/account-mail.php:34
+msgid "Only for requests made from the account area; those filed from Tools keep WordPress’s own words."
+msgstr "Uniquement pour les demandes faites depuis l’espace compte ; celles créées depuis Outils gardent les mots de WordPress."
+
+#: includes/account-mail.php:37
+msgid "Confirming a copy of their data"
+msgstr "Confirmer une copie de ses données"
+
+#: includes/account-mail.php:38
+msgid "Sent when somebody asks for a copy of their data from their account."
+msgstr "Envoyé quand quelqu’un demande une copie de ses données depuis son compte."
+
+#: includes/account-mail.php:40
+#: includes/account-mail.php:61
+msgid "the address that confirms it — the e-mail is useless without it"
+msgstr "l’adresse qui la confirme — sans elle, l’e-mail ne sert à rien"
+
+#. translators: %s: site name
+#: includes/account-mail.php:49
+#, php-format
+msgid "Confirm your copy of your data on %s"
+msgstr "Confirmez la copie de vos données sur %s"
+
+#: includes/account-mail.php:52
+msgid ""
+"You asked for a copy of everything this site keeps about you. To confirm it, open this link:\n"
+"\n"
+"{link}\n"
+"\n"
+"If you did not ask for it, ignore this message: nothing happens without it."
+msgstr ""
+"Vous avez demandé une copie de tout ce que ce site conserve à votre sujet. Pour confirmer, ouvrez ce lien :\n"
+"\n"
+"{link}\n"
+"\n"
+"Si vous n’avez rien demandé, ignorez ce message : rien ne se passe sans lui."
+
+#: includes/account-mail.php:58
+msgid "Confirming the deletion of their account"
+msgstr "Confirmer la suppression de son compte"
+
+#: includes/account-mail.php:59
+msgid "Sent when somebody asks from their account for the account to be deleted."
+msgstr "Envoyé quand quelqu’un demande, depuis son compte, que celui-ci soit supprimé."
+
+#. translators: %s: site name
+#: includes/account-mail.php:70
+#, php-format
+msgid "Confirm the deletion of your account on %s"
+msgstr "Confirmez la suppression de votre compte sur %s"
+
+#: includes/account-mail.php:73
+msgid ""
+"You asked for your account to be deleted. To go ahead, open this link:\n"
+"\n"
+"{link}\n"
+"\n"
+"If you did not ask for it, ignore this message: nothing is deleted without it. Somebody used your account, so change your password."
+msgstr ""
+"Vous avez demandé la suppression de votre compte. Pour continuer, ouvrez ce lien :\n"
+"\n"
+"{link}\n"
+"\n"
+"Si vous n’avez rien demandé, ignorez ce message : rien n’est supprimé sans lui. Quelqu’un a utilisé votre compte, changez donc votre mot de passe."
+
+#: includes/account-mail.php:79
+msgid "Their copy is ready"
+msgstr "Sa copie est prête"
+
+#: includes/account-mail.php:80
+msgid "Sent when the file with their data has been made."
+msgstr "Envoyé quand le fichier avec ses données est prêt."
+
+#: includes/account-mail.php:82
+msgid "where to download it: their account, or the file itself if the site mails the link — the e-mail is useless without it"
+msgstr "où le télécharger : son compte, ou le fichier lui-même si le site envoie le lien par e-mail — sans cela, l’e-mail ne sert à rien"
+
+#: includes/account-mail.php:83
+msgid "the date the file is deleted"
+msgstr "la date à laquelle le fichier est supprimé"
+
+#. translators: %s: site name
+#: includes/account-mail.php:92
+#, php-format
+msgid "Your data from %s is ready"
+msgstr "Vos données de %s sont prêtes"
+
+#: includes/account-mail.php:95
+msgid ""
+"The file with everything this site keeps about you is ready. Download it here:\n"
+"\n"
+"{download}\n"
+"\n"
+"It is deleted on {until}, so download it before then."
+msgstr ""
+"Le fichier avec tout ce que ce site conserve à votre sujet est prêt. Téléchargez-le ici :\n"
+"\n"
+"{download}\n"
+"\n"
+"Il sera supprimé le {until} : téléchargez-le avant."
+
+#: includes/account-mail.php:101
+msgid "Their account was deleted"
+msgstr "Son compte a été supprimé"
+
+#: includes/account-mail.php:102
+msgid "Sent when the deletion they asked for has been carried out."
+msgstr "Envoyé quand la suppression demandée a été effectuée."
+
+#. translators: %s: site name
+#: includes/account-mail.php:112
+#, php-format
+msgid "Your account on %s was deleted"
+msgstr "Votre compte sur %s a été supprimé"
+
+#: includes/account-mail.php:115
+msgid ""
+"Your account was deleted, as you asked, and what this site kept about you has been erased.\n"
+"\n"
+"If you ever want to come back, you can make a new account."
+msgstr ""
+"Votre compte a été supprimé, comme vous l’avez demandé, et ce que ce site conservait à votre sujet a été effacé.\n"
+"\n"
+"Si un jour vous voulez revenir, vous pouvez créer un nouveau compte."
+
+#: includes/admin-account.php:1497
+msgid "The file is made"
+msgstr "Le fichier est créé"
+
+#: includes/admin-account.php:1500
+msgid "When you make it"
+msgstr "Quand vous le créez"
+
+#: includes/admin-account.php:1502
+msgid "Made by you, it waits in Tools → Export Personal Data."
+msgstr "Créé par vous, il attend dans Outils → Exporter les données personnelles."
+
+#: includes/admin-account.php:1506
+#: includes/admin-account.php:1543
+msgid "The link in the confirmation e-mail"
+msgstr "Le lien de l’e-mail de confirmation"
+
+#: includes/admin-account.php:1508
+msgid "Asks them to sign in"
+msgstr "Demande de se connecter"
+
+#: includes/admin-account.php:1509
+#: includes/admin-account.php:1546
+msgid "Confirms by itself"
+msgstr "Confirme tout seul"
+
+#: includes/admin-account.php:1511
+msgid "Signing in proves the account as well as the e-mail. By itself is how WordPress does it: whoever opens the e-mail confirms."
+msgstr "Se connecter prouve le compte en plus de l’e-mail. Tout seul, c’est ainsi que fait WordPress : quiconque ouvre l’e-mail confirme."
+
+#: includes/admin-account.php:1515
+msgid "The file is downloaded"
+msgstr "Le fichier est téléchargé"
+
+#: includes/admin-account.php:1517
+msgid "From their account"
+msgstr "Depuis son compte"
+
+#: includes/admin-account.php:1518
+msgid "From a link in the e-mail"
+msgstr "Depuis un lien dans l’e-mail"
+
+#: includes/admin-account.php:1520
+msgid "From the account, only they can download it, signed in. The link in the e-mail is how WordPress does it: whoever has the link gets the file, with no sign-in, until WordPress deletes it three days later."
+msgstr "Depuis le compte, seule la personne peut le télécharger, connectée. Le lien dans l’e-mail, c’est ainsi que fait WordPress : quiconque a le lien obtient le fichier, sans se connecter, jusqu’à ce que WordPress le supprime trois jours plus tard."
+
+#: includes/admin-account.php:1534
+msgid "The account is closed"
+msgstr "Le compte est fermé"
+
+#: includes/admin-account.php:1539
+msgid "Carried out by you, it waits in Tools → Erase Personal Data: for a site that checks something first, such as a pending payment."
+msgstr "Effectuée par vous, elle attend dans Outils → Effacer les données personnelles : pour un site qui vérifie d’abord quelque chose, comme un paiement en attente."
+
+#: includes/admin-account.php:1545
+msgid "Asks them to sign in and to be sure"
+msgstr "Demande de se connecter et d’en être sûr"
+
+#: includes/admin-account.php:1548
+msgid "Signed in, the site shows once more what is lost and deletes nothing until they press the button. By itself is how WordPress does it: opening the e-mail is enough."
+msgstr "Une fois connectée, la personne revoit ce qui sera perdu, et rien n’est supprimé tant qu’elle n’a pas appuyé sur le bouton. Tout seul, c’est ainsi que fait WordPress : ouvrir l’e-mail suffit."
+
+#: includes/login-messages.php:119
+msgid "Signing in to confirm a request"
+msgstr "Se connecter pour confirmer une demande"
+
+#: includes/login-messages.php:120
+msgid "Shown to somebody who opened the link that confirms a copy of their data or the deletion of their account, and has to sign in first."
+msgstr "Affiché à la personne qui a ouvert le lien confirmant une copie de ses données ou la suppression de son compte, et qui doit d’abord se connecter."
+
+#: includes/login-messages.php:122
+msgid "Sign in to confirm your request. It has to be the account that asked for it."
+msgstr "Connectez-vous pour confirmer votre demande. Il faut que ce soit le compte qui l’a faite."
+
+#: includes/login-messages.php:129
+msgid "The account was deleted"
+msgstr "Le compte a été supprimé"
+
+#: includes/login-messages.php:130
+msgid "Shown to somebody who has just confirmed, from their account, that it should be deleted."
+msgstr "Affiché à la personne qui vient de confirmer, depuis son compte, qu’il doit être supprimé."
+
+#: includes/login-messages.php:132
+msgid "Your account was deleted and your data erased."
+msgstr "Votre compte a été supprimé et vos données effacées."
+
+#: includes/privacy.php:394
+msgid "while you sign in, short-lived cookies hold the progress of the attempt: a social sign-in, a password reset, the address you asked a link for, the request you are signing in to confirm. If you ask not to be asked for the second step again on a browser, a cookie remembers that browser for the number of days this site sets. And a cookie remembers which way of signing in you used last, so the sign-in page opens on it."
+msgstr "pendant que vous vous connectez, des cookies de courte durée gardent la progression de la tentative : une connexion sociale, une réinitialisation de mot de passe, l’adresse à laquelle vous avez demandé un lien, la demande que vous confirmez en vous connectant. Si vous demandez à ne plus avoir la deuxième étape sur un navigateur, un cookie se souvient de ce navigateur pendant le nombre de jours fixé par ce site. Et un cookie se souvient de la façon dont vous vous êtes connecté la dernière fois, pour que la page de connexion s’ouvre dessus."
+
+#: templates/account/privacy.php:78
+msgid "Delete your account for good?"
+msgstr "Supprimer votre compte définitivement ?"
+
+#: templates/account/privacy.php:79
+msgid "This is the last step, and it cannot be undone."
+msgstr "C’est la dernière étape, et elle est irréversible."
+
+#: templates/account/privacy.php:88
+msgid "Yes, delete my account"
+msgstr "Oui, supprimer mon compte"
+
+#: templates/account/privacy.php:89
+msgid "No, keep it"
+msgstr "Non, le garder"
+
+#: templates/account/privacy.php:91
+msgid "Keeping it leaves the request unconfirmed: the link in the e-mail works until it expires."
+msgstr "Si vous le gardez, la demande reste non confirmée : le lien de l’e-mail fonctionne jusqu’à son expiration."
+
+#: templates/account/privacy.php:103
+msgid "Confirmed, and your file is ready: download it below. We have e-mailed you as well."
+msgstr "Confirmé, et votre fichier est prêt : téléchargez-le ci-dessous. Nous vous avons aussi envoyé un e-mail."
+
+#: templates/account/privacy.php:105
+msgid "Confirmed. The site takes it from here and lets you know by e-mail."
+msgstr "Confirmé. Le site prend le relais et vous prévient par e-mail."
+
+#: templates/account/privacy.php:107
+msgid "That link belongs to another account. Sign out and sign in with the account that asked for it."
+msgstr "Ce lien appartient à un autre compte. Déconnectez-vous et connectez-vous avec le compte qui l’a demandé."
+
+#: templates/account/privacy.php:109
+msgid "That link no longer works: it was already used or it expired. You can ask again."
+msgstr "Ce lien ne fonctionne plus : il a déjà servi ou il a expiré. Vous pouvez refaire la demande."
+
+#: templates/account/privacy.php:178
+msgid "Ask to delete your account?"
+msgstr "Demander la suppression de votre compte ?"
+
+#: templates/account/privacy.php:179
+msgid "We send you an e-mail to confirm it. Once you do, there is no going back."
+msgstr "Nous vous envoyons un e-mail pour la confirmer. Une fois confirmée, il n’y a pas de retour possible."
+
+#: templates/account/privacy.php:182
+msgid "Yes, send me the e-mail"
+msgstr "Oui, envoyez-moi l’e-mail"

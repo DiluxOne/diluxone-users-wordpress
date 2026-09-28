@@ -425,6 +425,33 @@ test.describe('Your data', () => {
 		return stateOf(response.headers().location ?? 'http://x/');
 	}
 
+	/**
+	 * Asks from the account area. Deleting asks first, in the page's own
+	 * question and not in the browser's box, and the test says yes to it.
+	 */
+	async function ask(page: Page, pages: any, kind: 'export' | 'erase'): Promise<void> {
+		page.on('dialog', () => {
+			throw new Error('The browser’s own box was opened; the question belongs to the page.');
+		});
+
+		await page.goto(accountSection(pages.account.url, 'privacy'));
+		await reveal(page, `form:has(input[name="diluxone_users_request"][value="${kind}"]) button[type="submit"]`);
+
+		const button = requestForm(page, kind).locator('button[type="submit"]');
+
+		if (kind === 'export') {
+			expect(await send(page, button)).toBe('requested');
+			return;
+		}
+
+		await button.click();
+
+		const question = page.locator('dialog#diluxone-users-ask-erase');
+
+		await expect(question).toBeVisible();
+		expect(await send(page, question.locator('[data-diluxone-users-dialog-ok]'))).toBe('requested');
+	}
+
 	for (const kind of ['export', 'erase'] as const) {
 		test(`asking for ${kind === 'export' ? 'a copy' : 'the account to be erased'} files WordPress’s own request and mails its confirmation`, async ({
 			page,
@@ -433,42 +460,141 @@ test.describe('Your data', () => {
 		}) => {
 			const { email } = await signedIn(page, site, pages.login.url, `data-${kind}`);
 
-			// Erasing asks "are you sure" first, in the browser's own box.
-			page.on('dialog', (dialog) => dialog.accept());
+			await ask(page, pages, kind);
 
-			await page.goto(accountSection(pages.account.url, 'privacy'));
-			await reveal(page, `form:has(input[name="diluxone_users_request"][value="${kind}"]) button[type="submit"]`);
+			// WordPress's confirmation, in the plugin's words, which is what
+			// makes it a request and not a wish: nothing happens until the
+			// person clicks it.
+			const mail = await waitForMail(site, email);
 
-			expect(await send(page, requestForm(page, kind).locator('button[type="submit"]'))).toBe('requested');
-
-			// WordPress's confirmation, which is what makes it a request and
-			// not a wish: nothing happens until the person clicks it.
-			expect((await waitForMail(site, email)).body).toContain('action=confirmaction');
+			expect(mail.body).toContain('action=confirmaction');
+			expect(mail.subject).toMatch(kind === 'export' ? /copy of your data/ : /deletion of your account/);
 
 			// And the account lists it, waiting.
 			await expect(page.locator('.diluxone-users-requests').first()).toBeAttached();
 		});
 	}
 
-	/** Asks, from the account area, for the account to be deleted. */
-	async function askToDelete(page: Page, pages: any): Promise<void> {
-		page.on('dialog', (dialog) => dialog.accept());
+	test('“Cancel” in the question sends nothing', async ({ page, site, pages }) => {
+		const { email } = await signedIn(page, site, pages.login.url, 'data-cancel');
 
 		await page.goto(accountSection(pages.account.url, 'privacy'));
 		await reveal(page, 'form:has(input[name="diluxone_users_request"][value="erase"]) button[type="submit"]');
-		expect(await send(page, requestForm(page, 'erase').locator('button[type="submit"]'))).toBe('requested');
+		await requestForm(page, 'erase').locator('button[type="submit"]').click();
+
+		const question = page.locator('dialog#diluxone-users-ask-erase');
+
+		await expect(question).toBeVisible();
+		await question.locator('[data-diluxone-users-dialog-cancel]').click();
+		await expect(question).toBeHidden();
+
+		expect(page.url()).not.toContain('requested');
+		expect(await site.mail(email), 'no confirmation mailed').toHaveLength(0);
+	});
+
+	/** The link in the confirmation e-mail. */
+	async function confirmationLink(site: Site, email: string): Promise<string> {
+		return linkIn(await waitForMail(site, email, { subject: /Confirm/ }));
 	}
 
 	/**
-	 * The whole way, as the site comes: asked on the account, and the link in
-	 * the e-mail is the last step. An account with nothing published is gone
-	 * when the confirmation page says so, with no administrator to wait for.
+	 * The whole way, as the site comes: asked on the account, the link in the
+	 * e-mail brings them back to it, and the account asks once more. Nothing
+	 * is deleted until that button is pressed; then the account is gone and
+	 * the person is at the sign-in page, told so.
 	 */
-	test('asking to delete the account and confirming it from the e-mail deletes it', async ({ page, site, pages }) => {
+	test('deleting the account: the e-mail’s link asks once more, and the button deletes it', async ({
+		page,
+		site,
+		pages,
+	}) => {
 		const { email } = await signedIn(page, site, pages.login.url, 'data-close');
 
-		await askToDelete(page, pages);
-		await page.goto(linkIn(await waitForMail(site, email)));
+		await ask(page, pages, 'erase');
+		await page.goto(await confirmationLink(site, email));
+
+		const last = page.locator('.diluxone-users-closing');
+
+		await expect(last).toBeVisible();
+		expect((await site.user(email)).exists, 'opening the link deletes nothing').toBe(true);
+
+		await Promise.all([page.waitForURL(/diluxone-users=closed/), last.getByRole('button', { name: 'Yes, delete my account' }).click()]);
+
+		await expect(page.locator('[data-diluxone-users-message="login_closed"]')).toBeVisible();
+		expect((await site.user(email)).exists, 'the account is gone').toBe(false);
+	});
+
+	test('“No, keep it” keeps the account, and the link still works afterwards', async ({ page, site, pages }) => {
+		const { email } = await signedIn(page, site, pages.login.url, 'data-keep');
+
+		await ask(page, pages, 'erase');
+
+		const link = await confirmationLink(site, email);
+
+		await page.goto(link);
+		await page.locator('.diluxone-users-closing').getByRole('link', { name: 'No, keep it' }).click();
+		await expect(page.locator('.diluxone-users-closing')).toHaveCount(0);
+		expect((await site.user(email)).exists).toBe(true);
+
+		await page.goto(link);
+		await expect(page.locator('.diluxone-users-closing')).toBeVisible();
+	});
+
+	/**
+	 * Opened with no session — another browser, the phone — the link asks to
+	 * sign in first, and signing in lands on the question it was going to.
+	 */
+	test('opened with no session, the link asks to sign in and comes back to the question', async ({
+		browser,
+		page,
+		site,
+		pages,
+	}) => {
+		const { email } = await signedIn(page, site, pages.login.url, 'data-elsewhere');
+
+		await ask(page, pages, 'erase');
+
+		const link = await confirmationLink(site, email);
+		const elsewhere = await browser.newContext();
+		const other = await elsewhere.newPage();
+
+		await other.goto(link);
+		await expect(other.locator('[data-diluxone-users-message="login_confirm"]')).toBeVisible();
+
+		await signInWithPassword(other, email, PASSWORD);
+		await expect(other.locator('.diluxone-users-closing')).toBeVisible();
+		expect((await site.user(email)).exists).toBe(true);
+
+		await elsewhere.close();
+	});
+
+	test('signed in as somebody else, the link confirms nothing', async ({ browser, page, site, pages }) => {
+		const { email } = await signedIn(page, site, pages.login.url, 'data-owner');
+
+		await ask(page, pages, 'erase');
+
+		const link = await confirmationLink(site, email);
+		const elsewhere = await browser.newContext();
+		const other = await elsewhere.newPage();
+
+		await signedIn(other, site, pages.login.url, 'data-stranger');
+		await other.goto(link);
+
+		await expect(other.locator('.diluxone-users-closing')).toHaveCount(0);
+		await expect(other.getByText('That link belongs to another account')).toBeVisible();
+		expect((await site.user(email)).exists).toBe(true);
+
+		await elsewhere.close();
+	});
+
+	/** WordPress's way, when the site chooses it: the link alone deletes. */
+	test('a site whose link confirms by itself: opening it deletes the account', async ({ page, site, pages, options }) => {
+		await options.set({ diluxone_users_privacy_delete_link: 'direct' });
+
+		const { email } = await signedIn(page, site, pages.login.url, 'data-close-direct');
+
+		await ask(page, pages, 'erase');
+		await page.goto(await confirmationLink(site, email));
 
 		await expect(page.getByText('your account closed')).toBeVisible();
 		expect((await site.user(email)).exists, 'the account is gone').toBe(false);
@@ -490,8 +616,9 @@ test.describe('Your data', () => {
 
 		const { email } = await signedIn(page, site, pages.login.url, 'data-close-admin');
 
-		await askToDelete(page, pages);
-		await page.goto(linkIn(await waitForMail(site, email)));
+		await ask(page, pages, 'erase');
+		await page.goto(await confirmationLink(site, email));
+		expect(await send(page, page.getByRole('button', { name: 'Yes, delete my account' }))).toBe('confirmed');
 
 		expect((await site.user(email)).exists, 'confirming only confirms').toBe(true);
 
@@ -509,43 +636,81 @@ test.describe('Your data', () => {
 		await expect.poll(async () => (await site.user(email)).exists, { message: 'the account is gone' }).toBe(false);
 	});
 
-	/** Asks, from the account area, for a copy, and confirms it from the e-mail. */
-	async function askForCopy(page: Page, site: Site, pages: any, email: string): Promise<void> {
-		await page.goto(accountSection(pages.account.url, 'privacy'));
-		await reveal(page, 'form:has(input[name="diluxone_users_request"][value="export"]) button[type="submit"]');
-		expect(await send(page, requestForm(page, 'export').locator('button[type="submit"]'))).toBe('requested');
-		await page.goto(linkIn(await waitForMail(site, email)));
-	}
-
 	/**
-	 * The whole way, as the site comes: the file is made when the link in the
-	 * e-mail is clicked, mailed, and waiting in the account to be downloaded.
+	 * The whole way, as the site comes: the link brings them to the account,
+	 * the file is made there and then, the e-mail sends them back to the
+	 * account and never carries the file's own address, and the account's
+	 * button hands the file only to its owner.
 	 */
-	test('asking for a copy and confirming it from the e-mail leaves the file ready to download', async ({
+	test('a copy: confirmed from the e-mail, ready in the account, and only for its owner', async ({
+		browser,
 		page,
 		site,
 		pages,
 	}) => {
 		const { email } = await signedIn(page, site, pages.login.url, 'data-copy');
 
-		await askForCopy(page, site, pages, email);
-		await expect(page.getByText('your file is ready')).toBeVisible();
+		await ask(page, pages, 'export');
+		await page.goto(await confirmationLink(site, email));
+		expect(stateOf(page.url())).toBe('ready');
 
-		// Mailed, as the Tools screen's "Send export link" does.
-		const mailed = linkIn(await waitForMail(site, email, { subject: /Personal Data Export/ }), /https?:\/\/\S+\.zip/);
+		const ready = await waitForMail(site, email, { subject: /is ready/ });
 
-		// And in the account, ready, with the same file behind the button.
-		await page.goto(accountSection(pages.account.url, 'privacy'));
+		expect(ready.body, 'the e-mail sends them to the account').toContain(accountSection(pages.account.url, 'privacy'));
+		expect(ready.body, 'and never carries the file').not.toMatch(/\.zip/);
 
-		const download = page.locator('.diluxone-users-requests a[href$=".zip"]').first();
+		const download = page.locator('.diluxone-users-requests a', { hasText: 'Download' }).first();
 
 		await expect(download).toBeVisible();
-		expect(await download.getAttribute('href')).toBe(mailed);
 
+		const href = (await download.getAttribute('href')) as string;
+
+		expect(href).not.toMatch(/\.zip/);
+
+		const file = await page.request.get(href);
+
+		expect(file.status()).toBe(200);
+		expect((await file.body()).subarray(0, 2).toString()).toBe('PK');
+
+		// Somebody else, signed in, with the same address in hand.
+		const elsewhere = await browser.newContext();
+		const other = await elsewhere.newPage();
+
+		await signedIn(other, site, pages.login.url, 'data-copy-stranger');
+
+		const stolen = await other.request.get(href);
+
+		expect(stolen.status()).toBeGreaterThanOrEqual(400);
+		expect((await stolen.body()).subarray(0, 2).toString()).not.toBe('PK');
+		await elsewhere.close();
+	});
+
+	/** WordPress's way for the file, when the site chooses it: its address in the e-mail. */
+	test('a site that mails the file: the e-mail carries a link that downloads it', async ({ page, site, pages, options }) => {
+		await options.set({ diluxone_users_privacy_export_file: 'link' });
+
+		const { email } = await signedIn(page, site, pages.login.url, 'data-copy-link');
+
+		await ask(page, pages, 'export');
+		await page.goto(await confirmationLink(site, email));
+
+		const mailed = linkIn(await waitForMail(site, email, { subject: /is ready/ }), /https?:\/\/\S+\.zip/);
 		const file = await page.request.get(mailed);
 
 		expect(file.status()).toBe(200);
 		expect((await file.body()).subarray(0, 2).toString()).toBe('PK');
+	});
+
+	/** WordPress's way for the link, when the site chooses it: opening it confirms. */
+	test('a site whose link confirms by itself: opening it makes the copy', async ({ page, site, pages, options }) => {
+		await options.set({ diluxone_users_privacy_export_link: 'direct' });
+
+		const { email } = await signedIn(page, site, pages.login.url, 'data-copy-direct');
+
+		await ask(page, pages, 'export');
+		await page.goto(await confirmationLink(site, email));
+
+		await expect(page.getByText('your file is ready')).toBeVisible();
 	});
 
 	/** A site that goes through them itself: confirming only confirms, and nothing is ready yet. */
@@ -554,12 +719,12 @@ test.describe('Your data', () => {
 
 		const { email } = await signedIn(page, site, pages.login.url, 'data-copy-admin');
 
-		await askForCopy(page, site, pages, email);
-		await expect(page.getByText('your file is ready')).toHaveCount(0);
+		await ask(page, pages, 'export');
+		await page.goto(await confirmationLink(site, email));
+		expect(stateOf(page.url())).toBe('confirmed');
 
-		await page.goto(accountSection(pages.account.url, 'privacy'));
 		await expect(page.locator('.diluxone-users-requests').getByText('Confirmed — we are preparing it')).toBeVisible();
-		await expect(page.locator('.diluxone-users-requests a[href$=".zip"]')).toHaveCount(0);
+		await expect(page.locator('.diluxone-users-requests a', { hasText: 'Download' })).toHaveCount(0);
 	});
 
 	test('erasure switched off on the site is refused by the server, not only hidden', async ({

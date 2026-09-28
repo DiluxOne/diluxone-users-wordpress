@@ -377,11 +377,47 @@ function diluxone_users_account_privacy_save(): void {
 		array(
 			'diluxone_users_privacy_export'      => isset( $_POST['diluxone_users_privacy_export'] ) ? 1 : 0,
 			'diluxone_users_privacy_delete'      => isset( $_POST['diluxone_users_privacy_delete'] ) ? 1 : 0,
-			'diluxone_users_privacy_export_when' => 'admin' === sanitize_key( wp_unslash( $_POST['diluxone_users_privacy_export_when'] ?? '' ) ) ? 'admin' : 'confirm',
-			'diluxone_users_privacy_delete_when' => 'admin' === sanitize_key( wp_unslash( $_POST['diluxone_users_privacy_delete_when'] ?? '' ) ) ? 'admin' : 'confirm',
+			'diluxone_users_privacy_export_when' => diluxone_users_privacy_answer( 'diluxone_users_privacy_export_when', 'admin', 'confirm' ),
+			'diluxone_users_privacy_export_link' => diluxone_users_privacy_answer( 'diluxone_users_privacy_export_link', 'direct', 'account' ),
+			'diluxone_users_privacy_export_file' => diluxone_users_privacy_answer( 'diluxone_users_privacy_export_file', 'link', 'account' ),
+			'diluxone_users_privacy_delete_when' => diluxone_users_privacy_answer( 'diluxone_users_privacy_delete_when', 'admin', 'confirm' ),
+			'diluxone_users_privacy_delete_link' => diluxone_users_privacy_answer( 'diluxone_users_privacy_delete_link', 'direct', 'account' ),
 		)
 	);
 	// phpcs:enable
+}
+
+/**
+ * One of those two-way answers, as posted: the other way only when it says so.
+ *
+ * Each question has the answer the plugin ships and one that departs from
+ * it, so anything else posted is the one it ships.
+ */
+function diluxone_users_privacy_answer( string $name, string $other, string $usual ): string {
+	// phpcs:ignore WordPress.Security.NonceVerification.Missing -- diluxone_users_account_post() verifies it.
+	return $other === sanitize_key( wp_unslash( $_POST[ $name ] ?? '' ) ) ? $other : $usual;
+}
+
+/**
+ * One question under a request: the answers in a row, the explanation once.
+ *
+ * @param array<string, string> $answers value => what it is called; the first is the one the plugin ships.
+ */
+function diluxone_users_privacy_ask( string $name, string $question, array $answers, string $help ): void {
+	$now     = (string) diluxone_users_option( $name );
+	$usual   = (string) array_key_first( $answers );
+	$choices = array();
+
+	foreach ( $answers as $value => $title ) {
+		$choices[] = array(
+			'name'    => $name,
+			'value'   => $value,
+			'title'   => $title,
+			'checked' => $value === $now || ( $value === $usual && ! isset( $answers[ $now ] ) ),
+		);
+	}
+
+	diluxone_users_ui_inline_choices( $question, $choices, $help );
 }
 
 /**
@@ -1456,25 +1492,32 @@ function diluxone_users_screen_account_privacy(): void {
 					'title'    => __( 'They can ask for a copy of everything and download it', 'diluxone-users' ),
 					'help'     => __( 'The export WordPress already knows how to make: they confirm it by e-mail and get a file with everything the site keeps about them.', 'diluxone-users' ),
 					'children' => static function (): void {
-						$when = (string) diluxone_users_option( 'diluxone_users_privacy_export_when' );
-
-						diluxone_users_ui_choices(
+						diluxone_users_privacy_ask(
+							'diluxone_users_privacy_export_when',
+							__( 'The file is made', 'diluxone-users' ),
 							array(
-								array(
-									'name'    => 'diluxone_users_privacy_export_when',
-									'value'   => 'confirm',
-									'checked' => 'admin' !== $when,
-									'title'   => __( 'As soon as they confirm it', 'diluxone-users' ),
-									'help'    => __( 'The file is made when they click the link in the e-mail: they get it by e-mail and can download it from their account.', 'diluxone-users' ),
-								),
-								array(
-									'name'    => 'diluxone_users_privacy_export_when',
-									'value'   => 'admin',
-									'checked' => 'admin' === $when,
-									'title'   => __( 'When you carry it out', 'diluxone-users' ),
-									'help'    => __( 'It waits for you in Tools → Export Personal Data.', 'diluxone-users' ),
-								),
-							)
+								'confirm' => __( 'As soon as they confirm it', 'diluxone-users' ),
+								'admin'   => __( 'When you make it', 'diluxone-users' ),
+							),
+							__( 'Made by you, it waits in Tools → Export Personal Data.', 'diluxone-users' )
+						);
+						diluxone_users_privacy_ask(
+							'diluxone_users_privacy_export_link',
+							__( 'The link in the confirmation e-mail', 'diluxone-users' ),
+							array(
+								'account' => __( 'Asks them to sign in', 'diluxone-users' ),
+								'direct'  => __( 'Confirms by itself', 'diluxone-users' ),
+							),
+							__( 'Signing in proves the account as well as the e-mail. By itself is how WordPress does it: whoever opens the e-mail confirms.', 'diluxone-users' )
+						);
+						diluxone_users_privacy_ask(
+							'diluxone_users_privacy_export_file',
+							__( 'The file is downloaded', 'diluxone-users' ),
+							array(
+								'account' => __( 'From their account', 'diluxone-users' ),
+								'link'    => __( 'From a link in the e-mail', 'diluxone-users' ),
+							),
+							__( 'From the account, only they can download it, signed in. The link in the e-mail is how WordPress does it: whoever has the link gets the file, with no sign-in, until WordPress deletes it three days later.', 'diluxone-users' )
 						);
 					},
 				),
@@ -1486,25 +1529,23 @@ function diluxone_users_screen_account_privacy(): void {
 					'title'    => __( 'They can ask for their account to be deleted', 'diluxone-users' ),
 					'help'     => __( 'They confirm it by e-mail. Their data is erased and the account deleted, or left with no name, e-mail or password if they published something. Never for an account that administers the site.', 'diluxone-users' ),
 					'children' => static function (): void {
-						$when = (string) diluxone_users_option( 'diluxone_users_privacy_delete_when' );
-
-						diluxone_users_ui_choices(
+						diluxone_users_privacy_ask(
+							'diluxone_users_privacy_delete_when',
+							__( 'The account is closed', 'diluxone-users' ),
 							array(
-								array(
-									'name'    => 'diluxone_users_privacy_delete_when',
-									'value'   => 'confirm',
-									'checked' => 'admin' !== $when,
-									'title'   => __( 'As soon as they confirm it', 'diluxone-users' ),
-									'help'    => __( 'The account closes when they click the link in the e-mail, with nobody to wait for.', 'diluxone-users' ),
-								),
-								array(
-									'name'    => 'diluxone_users_privacy_delete_when',
-									'value'   => 'admin',
-									'checked' => 'admin' === $when,
-									'title'   => __( 'When you carry it out', 'diluxone-users' ),
-									'help'    => __( 'It waits for you in Tools → Erase Personal Data: for a site that checks something first, such as a pending payment.', 'diluxone-users' ),
-								),
-							)
+								'confirm' => __( 'As soon as they confirm it', 'diluxone-users' ),
+								'admin'   => __( 'When you carry it out', 'diluxone-users' ),
+							),
+							__( 'Carried out by you, it waits in Tools → Erase Personal Data: for a site that checks something first, such as a pending payment.', 'diluxone-users' )
+						);
+						diluxone_users_privacy_ask(
+							'diluxone_users_privacy_delete_link',
+							__( 'The link in the confirmation e-mail', 'diluxone-users' ),
+							array(
+								'account' => __( 'Asks them to sign in and to be sure', 'diluxone-users' ),
+								'direct'  => __( 'Confirms by itself', 'diluxone-users' ),
+							),
+							__( 'Signed in, the site shows once more what is lost and deletes nothing until they press the button. By itself is how WordPress does it: opening the e-mail is enough.', 'diluxone-users' )
 						);
 					},
 				),

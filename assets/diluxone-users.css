@@ -364,6 +364,42 @@ details.diluxone-users-panel[open] > .diluxone-users-panel__head .diluxone-users
 .diluxone-users-button--danger { background: var(--diluxone-users-danger); color: #fff; }
 .diluxone-users-button--danger:hover { color: #fff; }
 
+/* ── A question asked in the page ───────────────────────────────────── */
+
+/* Before something that cannot be taken back. The browser's own box cannot
+   wear the site's type or colours, and it names the site's address as if it
+   were somebody else; this one is the plugin's, drawn from the same tokens as
+   the panels. */
+.diluxone-users-dialog {
+	width: min(520px, calc(100vw - 32px));
+	padding: 28px;
+	border: 1px solid var(--diluxone-users-border);
+	border-radius: var(--diluxone-users-radius);
+	background: var(--diluxone-users-surface);
+	color: var(--diluxone-users-text);
+	font-family: var(--diluxone-users-font);
+	box-shadow: 0 24px 48px rgba(0, 0, 0, .18);
+}
+.diluxone-users-dialog::backdrop { background: rgba(16, 18, 24, .45); }
+.diluxone-users-dialog__title {
+	margin: 0 0 10px;
+	font-size: 1.25em;
+	font-weight: 700;
+	line-height: 1.25;
+}
+.diluxone-users-dialog p { margin: 0 0 20px; color: var(--diluxone-users-muted); }
+.diluxone-users-dialog__actions,
+.diluxone-users-closing__actions {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: flex-end;
+	gap: 10px;
+}
+/* Where they do not fit side by side, each takes the whole row: two buttons
+   of different widths stacked against one edge read as a mistake. */
+.diluxone-users-dialog__actions .diluxone-users-button { flex: 1 1 auto; }
+.diluxone-users-closing__actions { justify-content: flex-start; margin: 20px 0 12px; }
+
 .diluxone-users-chip {
 	display: inline-block;
 	padding: 4px 12px;

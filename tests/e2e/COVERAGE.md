@@ -49,8 +49,17 @@ product is fixed, not to be loosened.
 | Notifications: new device announced (link), switch off, rule `always` hides the switch | `account-area` › Notifications |
 | New device announced after a password sign-in | `account-area` › …with the password, too |
 | Your data: export and erase requests with WordPress's confirmation | `account-area` › Your data |
-| Copy made on confirmation: file mailed and downloadable from the account | `account-area` › asking for a copy and confirming it… |
+| Deleting asks in the page's own dialog; "Cancel" sends nothing | `account-area` › “Cancel” in the question… |
+| Deleting: the e-mail's link asks once more, the button deletes, the sign-in page says so | `account-area` › deleting the account: the e-mail’s link asks once more… |
+| "No, keep it" keeps the account, and the link still works | `account-area` › “No, keep it”… |
+| The link opened with no session: sign in, and back to the question | `account-area` › opened with no session… |
+| The link opened signed in as somebody else confirms nothing | `account-area` › signed in as somebody else… |
+| Link set to confirm by itself (WordPress's way), for deleting and for a copy | `account-area` › a site whose link confirms by itself… |
+| Deletion carried out from Tools when the site says so | `account-area` › a site that carries them out itself… |
+| Copy: made on confirmation, e-mail points to the account, file only for its owner | `account-area` › a copy: confirmed from the e-mail… |
+| Copy: the file's own link mailed, when the site says so | `account-area` › a site that mails the file… |
 | Copy left for Tools when the site makes them itself | `account-area` › a site that makes the files itself… |
+| Your data settings: when, the link, the file — every answer saved | `admin-tools` › how a copy and a deletion are confirmed… |
 | Erasure switched off refused by the server | `account-area` › erasure switched off… |
 | Administrator cannot request own erasure, even by hand (`admin`) | `account-area` › an administrator cannot… |
 | Security: two-step by e-mail on/off with a code | `account-area` › Security |
@@ -116,7 +125,7 @@ product is fixed, not to be loosened.
 | Deactivate/activate network-wide and per site, nothing in debug.log | `lifecycle` |
 | Account deleted: member of one site only, deleted from the network | `account-closing` |
 | Account deleted: member of another site too, anonymised there | `account-closing` |
-| Copy made on confirmation, served from the site's own uploads | `account-export` |
+| Copy confirmed on a site of the network, handed over by that site | `account-export` |
 | Uninstall | not covered: deleting the plugin removes the code the suite runs against, and it is not a browser flow |
 
 ## Not coverable in a browser

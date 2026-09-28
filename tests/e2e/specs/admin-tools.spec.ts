@@ -434,25 +434,41 @@ test.describe('Account area › Sections', () => {
 
 	});
 
-	test('when a copy and a deletion are carried out: on confirmation, or from Tools', async ({ page, site, options }) => {
-		const keys = ['diluxone_users_privacy_export', 'diluxone_users_privacy_delete', 'diluxone_users_privacy_export_when', 'diluxone_users_privacy_delete_when'];
+	test('how a copy and a deletion are confirmed and carried out: every answer is saved', async ({ page, site, options }) => {
+		const departures = {
+			diluxone_users_privacy_export_when: 'admin',
+			diluxone_users_privacy_export_link: 'direct',
+			diluxone_users_privacy_export_file: 'link',
+			diluxone_users_privacy_delete_when: 'admin',
+			diluxone_users_privacy_delete_link: 'direct',
+		};
+		const keys = ['diluxone_users_privacy_export', 'diluxone_users_privacy_delete', ...Object.keys(departures)];
 
 		await options.keep(keys);
 		await options.set({ diluxone_users_privacy_export: 1, diluxone_users_privacy_delete: 1 });
 
+		const save = async () =>
+			Promise.all([page.waitForLoadState('domcontentloaded'), page.locator('[name="diluxone_users_privacy_submit"]').click()]);
+
 		await page.goto(adminUrl('diluxone-users-account', 'sections') + '&section=privacy');
-		await page.locator('input[name="diluxone_users_privacy_export_when"][value="admin"]').check({ force: true });
-		await page.locator('input[name="diluxone_users_privacy_delete_when"][value="admin"]').check({ force: true });
-		await Promise.all([page.waitForLoadState('domcontentloaded'), page.locator('[name="diluxone_users_privacy_submit"]').click()]);
+
+		for (const [name, value] of Object.entries(departures)) {
+			await page.locator(`input[name="${name}"][value="${value}"]`).check();
+		}
+
+		await save();
+		expect(await site.getOptions(keys)).toMatchObject(departures);
+
+		// And back to what the plugin ships, one question at a time.
+		await page.locator('input[name="diluxone_users_privacy_export_file"][value="account"]').check();
+		await page.locator('input[name="diluxone_users_privacy_delete_link"][value="account"]').check();
+		await save();
 
 		expect(await site.getOptions(keys)).toMatchObject({
-			diluxone_users_privacy_export_when: 'admin',
-			diluxone_users_privacy_delete_when: 'admin',
+			diluxone_users_privacy_export_file: 'account',
+			diluxone_users_privacy_delete_link: 'account',
+			diluxone_users_privacy_export_link: 'direct',
 		});
-
-		await page.locator('input[name="diluxone_users_privacy_export_when"][value="confirm"]').check({ force: true });
-		await Promise.all([page.waitForLoadState('domcontentloaded'), page.locator('[name="diluxone_users_privacy_submit"]').click()]);
-
-		expect((await site.getOptions(keys)).diluxone_users_privacy_export_when).toBe('confirm');
 	});
+
 });
