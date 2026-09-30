@@ -17,9 +17,10 @@
  *
  * On a network where the plugin was on for every site, the decision is the
  * network's, one box in Network Admin, because the data is about the
- * network's people. Ticked, everything goes: the network's settings, every
- * site's settings and log table — the copies each site kept from before the
- * settings moved to the network included — and what the plugin kept in
+ * network's people. Ticked, everything goes: the network's settings and its
+ * activity log, every site's settings — the copies each site kept from before
+ * the settings moved to the network included — any log table a site still
+ * kept from before the log was the network's, and what the plugin kept in
  * people's profiles.
  *
  * On a network where it was switched on site by site, each site kept its own
@@ -67,8 +68,13 @@ function diluxone_users_uninstall_site(): void {
 	global $wpdb;
 
 	wp_clear_scheduled_hook( 'diluxone_users_log_purge' );
+	wp_clear_scheduled_hook( 'diluxone_users_log_move' );
 	wp_clear_scheduled_hook( 'diluxone_users_network_migrate' );
 
+	// The site's own table. On the network's first site its prefix is the
+	// network's, so this is also the network's activity log, one table for
+	// every site; on any other site it is a table kept from before the log
+	// was the network's, or from when the plugin was on site by site.
 	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- dropping our own table is the one thing there is no API for.
 	$wpdb->query( $wpdb->prepare( 'DROP TABLE IF EXISTS %i', $wpdb->prefix . 'diluxone_users_log' ) );
 

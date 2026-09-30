@@ -17,8 +17,8 @@
  *   and everything about how those screens look and what they say. The other
  *   sites send people there.
  * - 'site': what belongs to the site it runs on. The plugin's own
- *   bookkeeping — the version its address rules were built for, the shape of
- *   its log table, the last mail it sent — and what has to fit into that
+ *   bookkeeping — the version its address rules were built for, the last mail
+ *   it sent — and what has to fit into that
  *   site's own theme and dashboard: the menu the account link goes in, the
  *   admin bar, the dashboard profile. Each site keeps its own.
  *
@@ -85,6 +85,13 @@ function diluxone_users_option_scopes(): array {
 		'diluxone_users_network_migrating'      => 'network',
 		'diluxone_users_network_conflicts'      => 'network',
 		'diluxone_users_network_conflicts_seen' => 'network',
+		// The log is one table for the whole network, so its shape and the
+		// move of the sites' old tables into it are the network's to keep
+		// track of. See includes/log.php and includes/migrate-log.php.
+		'diluxone_users_log_schema'             => 'network',
+		'diluxone_users_log_moved'              => 'network',
+		'diluxone_users_log_moving'             => 'network',
+		'diluxone_users_log_kept'               => 'network',
 
 		// ── Hub: the screens people sign in, register and live on ───
 		'diluxone_users_account_action'         => 'hub',
@@ -204,7 +211,6 @@ function diluxone_users_option_scopes(): array {
 		'diluxone_users_wp_profile_scope'       => 'site',
 
 		// ── Site: the plugin's bookkeeping about the site it runs on ─
-		'diluxone_users_log_schema'             => 'site',
 		'diluxone_users_mail_last'              => 'site',
 		'diluxone_users_rewrite_version'        => 'site',
 	);

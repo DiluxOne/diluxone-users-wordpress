@@ -85,10 +85,12 @@ function diluxone_users_panel_scopes(): array {
 			'menu'      => 'site',
 			'dashboard' => 'site',
 		),
-		// What the log records and for how long is the network's; the rows
-		// are still each site's own.
+		// What the log records and for how long is the network's, and so is
+		// the report of every site's rows; each site's own rows are still on
+		// its own Activity tab.
 		'diluxone-users-reports' => array(
-			'logging' => 'network',
+			'network-activity' => 'network',
+			'logging'          => 'network',
 		),
 	);
 }
@@ -223,8 +225,9 @@ function diluxone_users_hub_name(): string {
  * The menu in Network Admin: the screens that hold the network's settings.
  *
  * The screen titles are the same words as on a site, with one exception: on a
- * site the log's settings are a tab of Reports, beside the rows; the network
- * has the settings and no rows, so the screen is named after what it holds.
+ * site the log is a tab of Reports, beside the sessions; the network has the
+ * log — every site's rows and the settings — and nothing else of Reports, so
+ * the screen is named after what it holds.
  */
 function diluxone_users_network_menu(): void {
 	if ( ! diluxone_users_scoped_storage_active() ) {

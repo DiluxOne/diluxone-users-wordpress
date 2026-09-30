@@ -38,6 +38,21 @@ function diluxone_users_log_panels(): void {
 		)
 	);
 
+	// A network's log is one table, and the network reads all of it: beside
+	// its settings, in Network Admin, with the site each row happened on.
+	if ( diluxone_users_log_network() ) {
+		diluxone_users_register_panel(
+			DILUXONE_USERS_REPORTS,
+			'network-activity',
+			array(
+				'label'    => __( 'Activity', 'diluxone-users' ),
+				'position' => 20,
+				'render'   => 'diluxone_users_screen_log_network',
+				'form'     => false,
+			)
+		);
+	}
+
 	diluxone_users_register_panel(
 		DILUXONE_USERS_REPORTS,
 		'logging',
@@ -86,7 +101,7 @@ function diluxone_users_screen_log_settings(): void {
 
 	diluxone_users_intro(
 		'network' === diluxone_users_admin_context()
-			? __( 'What every site of the network writes down about what people do, and how long it keeps it. Each site keeps its own rows, on its own Reports › Activity: a group that is not ticked here is not recorded on any of them.', 'diluxone-users' )
+			? __( 'What every site of the network writes down about what people do, and how long it keeps it. The rows are one table for the whole network: each site sees its own on its Reports › Activity, and the Activity tab beside this one has them all. A group that is not ticked here is not recorded on any site.', 'diluxone-users' )
 			: __( 'What this site writes down about what people do, and how long it keeps it. Everything here decides what the Activity tab beside it can show: a group that is not ticked is not recorded, and what was never recorded cannot be looked up afterwards.', 'diluxone-users' )
 	);
 
@@ -127,11 +142,11 @@ function diluxone_users_screen_log_settings(): void {
 		)
 	);
 
-	// The rows are each site's, so emptying them is too: in Network Admin
-	// there are no rows here to empty, and on a site of a network the button
-	// goes with the rows, on the Activity tab.
+	// On a single site the way to empty the log is with the rules about it.
+	// On a network it goes with the rows, on the Activity tabs: a site's
+	// empties that site's, the network's empties everybody's.
 	if ( 'single' === diluxone_users_admin_context() ) {
-		diluxone_users_log_empty_box();
+		diluxone_users_log_empty_box( 'single' );
 	}
 
 	diluxone_users_ui_aside_close(
@@ -147,7 +162,7 @@ function diluxone_users_screen_log_settings(): void {
 				__( 'What this fills', 'diluxone-users' ),
 				array(
 					array(
-						'url'   => diluxone_users_admin_url( DILUXONE_USERS_REPORTS, array( 'tab' => 'activity' ) ),
+						'url'   => diluxone_users_admin_url( DILUXONE_USERS_REPORTS, array( 'tab' => 'network' === diluxone_users_admin_context() ? 'network-activity' : 'activity' ) ),
 						'label' => __( 'Reports › Activity', 'diluxone-users' ),
 						'help'  => __( 'The rows themselves, by person, by kind and by date. It only ever shows what was already being recorded when it happened.', 'diluxone-users' ),
 					),
@@ -158,14 +173,19 @@ function diluxone_users_screen_log_settings(): void {
 }
 
 /**
- * Emptying this site's log, every row.
+ * Emptying the log: this site's rows, or on a network's own screen every row.
  *
  * Emptying it is not a setting, so it is a link and not a field of the form
  * around it: a form inside a form is thrown away by the browser, and pressing
  * Save should never be what deletes a year of rows.
+ *
+ * @param string $where 'single' (a site on its own, on Log settings), 'site'
+ *                      (a site of a network, with its rows) or 'network'
+ *                      (Network Admin, with everybody's).
  */
-function diluxone_users_log_empty_box(): void {
-	$size = diluxone_users_log_size();
+function diluxone_users_log_empty_box( string $where ): void {
+	$network = 'network' === $where;
+	$size    = diluxone_users_log_size( $network ? 0 : diluxone_users_log_site() );
 
 	// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- only which notice to show after the redirect.
 	if ( isset( $_GET['diluxone-users-emptied'] ) ) {
@@ -178,23 +198,32 @@ function diluxone_users_log_empty_box(): void {
 		);
 	}
 
-	diluxone_users_ui_section(
-		__( 'Empty it now', 'diluxone-users' ),
-		'single' === diluxone_users_admin_context()
-			? __( 'Every row goes, whatever its age, and the Activity tab starts again from nothing. What is recorded from then on follows the settings above.', 'diluxone-users' )
-			: __( 'Every row of this site goes, whatever its age, and this tab starts again from nothing. What is recorded from then on follows the network’s log settings.', 'diluxone-users' )
+	$says = array(
+		'single'  => __( 'Every row goes, whatever its age, and the Activity tab starts again from nothing. What is recorded from then on follows the settings above.', 'diluxone-users' ),
+		'site'    => __( 'Every row of this site goes, whatever its age, and this tab starts again from nothing. What is recorded from then on follows the network’s log settings.', 'diluxone-users' ),
+		'network' => __( 'Every row of every site goes, whatever its age, and every site’s Activity tab starts again from nothing. What is recorded from then on follows the log settings.', 'diluxone-users' ),
 	);
 
+	diluxone_users_ui_section( __( 'Empty it now', 'diluxone-users' ), $says[ $where ] ?? $says['site'] );
+
 	if ( $size['rows'] > 0 ) {
+		$action = $network ? 'diluxone_users_log_empty_network' : 'diluxone_users_log_empty';
+
 		printf(
 			'<p><a class="button button-link-delete" href="%1$s" data-diluxone-users-confirm="%2$s">%3$s</a></p>',
-			esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=diluxone_users_log_empty' ), 'diluxone_users_log_empty' ) ),
+			esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=' . $action ), $action ) ),
 			esc_attr(
-				sprintf(
-					/* translators: %s: number of rows */
-					__( 'The %s rows of the activity log are deleted for good. It cannot be undone. Go ahead?', 'diluxone-users' ),
-					number_format_i18n( $size['rows'] )
-				)
+				$network
+					? sprintf(
+						/* translators: %s: number of rows */
+						__( 'The %s rows of every site’s activity log are deleted for good. It cannot be undone. Go ahead?', 'diluxone-users' ),
+						number_format_i18n( $size['rows'] )
+					)
+					: sprintf(
+						/* translators: %s: number of rows */
+						__( 'The %s rows of the activity log are deleted for good. It cannot be undone. Go ahead?', 'diluxone-users' ),
+						number_format_i18n( $size['rows'] )
+					)
 			),
 			esc_html__( 'Delete every row', 'diluxone-users' )
 		);
@@ -214,17 +243,18 @@ function diluxone_users_log_empty_box(): void {
  * afternoon.
  */
 function diluxone_users_log_aside_state(): void {
-	$on     = diluxone_users_log_levels();
-	$groups = diluxone_users_log_groups();
+	$on      = diluxone_users_log_levels();
+	$groups  = diluxone_users_log_groups();
+	$context = diluxone_users_admin_context();
 
-	// In Network Admin there is no table to weigh: every site keeps its own.
-	if ( 'network' === diluxone_users_admin_context() ) {
+	// In Network Admin the sentence is about every site and the whole table.
+	if ( 'network' === $context ) {
 		diluxone_users_log_network_state( $on, $groups );
 
 		return;
 	}
-	$size = diluxone_users_log_size();
-	$days = diluxone_users_log_days();
+
+	$size = diluxone_users_log_size( diluxone_users_log_site() );
 
 	$names = array();
 
@@ -246,36 +276,31 @@ function diluxone_users_log_aside_state(): void {
 			implode( ', ', $names )
 		);
 
-	$line .= ' ' . sprintf(
-		/* translators: 1: number of rows, 2: size on disk, e.g. "4 MB". */
-		esc_html__( 'The table holds %1$s rows and takes %2$s.', 'diluxone-users' ),
-		esc_html( number_format_i18n( $size['rows'] ) ),
-		esc_html( $size['bytes'] > 0 ? (string) size_format( $size['bytes'] ) : __( 'a size this database will not report', 'diluxone-users' ) )
-	);
+	$bytes = esc_html( $size['bytes'] > 0 ? (string) size_format( $size['bytes'] ) : __( 'a size this database will not report', 'diluxone-users' ) );
 
-	if ( '' !== $size['oldest'] ) {
-		$line .= ' ' . sprintf(
-			/* translators: %s: a date. */
-			esc_html__( 'The oldest row is from %s.', 'diluxone-users' ),
-			esc_html( (string) wp_date( 'j M Y', (int) strtotime( $size['oldest'] . ' UTC' ) ) )
-		);
-	}
+	// A site of a network has its rows in the network's table, and a database
+	// weighs tables: the size is the whole table's, and the sentence says so.
+	$line .= ' ' . ( 'single' === $context
+		? sprintf(
+			/* translators: 1: number of rows, 2: size on disk, e.g. "4 MB". */
+			esc_html__( 'The table holds %1$s rows and takes %2$s.', 'diluxone-users' ),
+			esc_html( number_format_i18n( $size['rows'] ) ),
+			$bytes
+		)
+		: sprintf(
+			/* translators: 1: number of rows, 2: size on disk, e.g. "4 MB". */
+			esc_html__( 'This site has %1$s rows in the network’s table, which takes %2$s for every site.', 'diluxone-users' ),
+			esc_html( number_format_i18n( $size['rows'] ) ),
+			$bytes
+		) );
 
-	diluxone_users_ui_aside_state(
-		$line,
-		array() === $on ? 'off' : 'active',
-		0 === $days
-			? __( 'kept for ever', 'diluxone-users' )
-			: sprintf(
-				/* translators: %s: a number of days. */
-				__( 'kept %s days', 'diluxone-users' ),
-				number_format_i18n( $days )
-			)
-	);
+	$line .= diluxone_users_log_oldest_line( $size['oldest'] );
+
+	diluxone_users_ui_aside_state( $line, array() === $on ? 'off' : 'active', diluxone_users_log_kept_for() );
 }
 
 /**
- * The same sentence for the network, which decides and keeps no rows.
+ * The same sentence for the network: what every site records, and the table.
  *
  * @param array<int, string>                  $on     The groups recorded.
  * @param array<string, array<string, mixed>> $groups Every group.
@@ -291,23 +316,52 @@ function diluxone_users_log_network_state( array $on, array $groups ): void {
 		? esc_html__( 'Nothing is being recorded on any site of the network.', 'diluxone-users' )
 		: sprintf(
 			/* translators: %s: the groups being recorded, each in <code>. */
-			esc_html__( 'Every site of the network records %s and nothing else, each in its own table.', 'diluxone-users' ),
+			esc_html__( 'Every site of the network records %s and nothing else, in one table for the whole network.', 'diluxone-users' ),
 			implode( ', ', $names )
 		);
 
+	$size = diluxone_users_log_size();
+
+	$line .= ' ' . sprintf(
+		/* translators: 1: number of rows, 2: size on disk, e.g. "4 MB". */
+		esc_html__( 'The table holds %1$s rows and takes %2$s.', 'diluxone-users' ),
+		esc_html( number_format_i18n( $size['rows'] ) ),
+		esc_html( $size['bytes'] > 0 ? (string) size_format( $size['bytes'] ) : __( 'a size this database will not report', 'diluxone-users' ) )
+	);
+
+	$line .= diluxone_users_log_oldest_line( $size['oldest'] );
+
+	diluxone_users_ui_aside_state( $line, array() === $on ? 'off' : 'active', diluxone_users_log_kept_for() );
+}
+
+/**
+ * " The oldest row is from …", or nothing when there is no row.
+ *
+ * @param string $oldest A GMT datetime, or ''.
+ */
+function diluxone_users_log_oldest_line( string $oldest ): string {
+	if ( '' === $oldest ) {
+		return '';
+	}
+
+	return ' ' . sprintf(
+		/* translators: %s: a date. */
+		esc_html__( 'The oldest row is from %s.', 'diluxone-users' ),
+		esc_html( (string) wp_date( 'j M Y', (int) strtotime( $oldest . ' UTC' ) ) )
+	);
+}
+
+/** How long a row is kept, for the pill at the head of the rail. */
+function diluxone_users_log_kept_for(): string {
 	$days = diluxone_users_log_days();
 
-	diluxone_users_ui_aside_state(
-		$line,
-		array() === $on ? 'off' : 'active',
-		0 === $days
-			? __( 'kept for ever', 'diluxone-users' )
-			: sprintf(
-				/* translators: %s: a number of days. */
-				__( 'kept %s days', 'diluxone-users' ),
-				number_format_i18n( $days )
-			)
-	);
+	return 0 === $days
+		? __( 'kept for ever', 'diluxone-users' )
+		: sprintf(
+			/* translators: %s: a number of days. */
+			__( 'kept %s days', 'diluxone-users' ),
+			number_format_i18n( $days )
+		);
 }
 
 /**
@@ -390,38 +444,131 @@ function diluxone_users_log_says( array $row ): string {
  * which is the one thing on the screen that is not a row.
  */
 function diluxone_users_screen_log(): void {
+	diluxone_users_log_report( false );
+}
+
+/**
+ * The network's rows, every site's, in Network Admin.
+ *
+ * The same report, with the fifth question a network's log is opened with —
+ * on which site — as a filter and as a column.
+ */
+function diluxone_users_screen_log_network(): void {
+	diluxone_users_log_report( true );
+}
+
+/**
+ * The sites a network's report can be narrowed to, or null when there are
+ * too many to list.
+ *
+ * A dropdown for a network of a few dozen sites; past a hundred, the list is a
+ * page of HTML nobody scrolls, and the filter is the site's number — which is
+ * also what the Site column of every row links to.
+ *
+ * @return array<int, string>|null Site id => name.
+ */
+function diluxone_users_log_site_choices(): ?array {
+	$sites = get_sites(
+		array(
+			'fields'     => 'ids',
+			'number'     => 101,
+			'network_id' => get_current_network_id(),
+			'orderby'    => 'id',
+			'order'      => 'ASC',
+		)
+	);
+
+	if ( count( $sites ) > 100 ) {
+		return null;
+	}
+
+	$choices = array();
+
+	foreach ( $sites as $site ) {
+		$choices[ (int) $site ] = diluxone_users_log_site_name( (int) $site );
+	}
+
+	return $choices;
+}
+
+/**
+ * One report, for a site or for the network.
+ *
+ * @param bool $network Every site's rows, with a Site filter and column.
+ */
+function diluxone_users_log_report( bool $network ): void {
 	// phpcs:disable WordPress.Security.NonceVerification.Recommended -- it is a read-only search.
 	$who   = isset( $_GET['s'] ) ? sanitize_text_field( wp_unslash( $_GET['s'] ) ) : '';
 	$event = isset( $_GET['event'] ) ? sanitize_key( wp_unslash( $_GET['event'] ) ) : '';
 	$from  = isset( $_GET['from'] ) ? sanitize_text_field( wp_unslash( $_GET['from'] ) ) : '';
 	$to    = isset( $_GET['to'] ) ? sanitize_text_field( wp_unslash( $_GET['to'] ) ) : '';
+	$site  = $network && isset( $_GET['site'] ) ? absint( wp_unslash( $_GET['site'] ) ) : 0;
 	$page  = isset( $_GET['paged'] ) ? max( 1, absint( wp_unslash( $_GET['paged'] ) ) ) : 1;
 	$per   = isset( $_GET['per'] ) ? max( 5, min( 200, absint( wp_unslash( $_GET['per'] ) ) ) ) : 20;
 	// phpcs:enable
 
+	$tab     = $network ? 'network-activity' : 'activity';
 	$filters = array(
+		// A site's report is its own rows and nothing else, whatever is asked.
+		'site'  => $network ? $site : diluxone_users_log_site(),
 		'who'   => $who,
 		'event' => $event,
 		'from'  => $from,
 		'to'    => $to,
 	);
 
-	$result = diluxone_users_log_search( $filters, $page, $per );
-	$total  = $result['total'];
-	$pages  = (int) max( 1, ceil( $total / $per ) );
-	$labels = diluxone_users_log_labels();
-	$groups = diluxone_users_log_groups();
+	$result  = diluxone_users_log_search( $filters, $page, $per );
+	$total   = $result['total'];
+	$pages   = (int) max( 1, ceil( $total / $per ) );
+	$labels  = diluxone_users_log_labels();
+	$groups  = diluxone_users_log_groups();
+	$columns = $network ? 7 : 6;
+	$keep    = array(
+		'tab'   => $tab,
+		's'     => $who,
+		'event' => $event,
+		'from'  => $from,
+		'to'    => $to,
+		'per'   => $per,
+	);
+
+	if ( $site > 0 ) {
+		$keep['site'] = $site;
+	}
 
 	diluxone_users_ui_aside_open();
 
-	diluxone_users_intro( __( 'What happened on this site, newest first. It shows only what was being recorded at the time: a group ticked this morning has nothing in it from yesterday.', 'diluxone-users' ) );
+	diluxone_users_intro(
+		$network
+			? __( 'What happened on every site of the network, newest first, with the site each row happened on. It shows only what was being recorded at the time: a group ticked this morning has nothing in it from yesterday.', 'diluxone-users' )
+			: __( 'What happened on this site, newest first. It shows only what was being recorded at the time: a group ticked this morning has nothing in it from yesterday.', 'diluxone-users' )
+	);
+
+	diluxone_users_log_moving_notice( $network );
 	?>
 	<form method="get" class="diluxone-users-search">
 		<input type="hidden" name="page" value="<?php echo esc_attr( DILUXONE_USERS_REPORTS ); ?>">
-		<input type="hidden" name="tab" value="activity">
+		<input type="hidden" name="tab" value="<?php echo esc_attr( $tab ); ?>">
 
 		<label class="screen-reader-text" for="diluxone-users-log-s"><?php esc_html_e( 'Search', 'diluxone-users' ); ?></label>
 		<input type="search" id="diluxone-users-log-s" name="s" value="<?php echo esc_attr( $who ); ?>" placeholder="<?php esc_attr_e( 'Email, username or name…', 'diluxone-users' ); ?>">
+
+		<?php
+		if ( $network ) :
+			$diluxone_users_sites = diluxone_users_log_site_choices();
+			?>
+			<label class="screen-reader-text" for="diluxone-users-log-site"><?php esc_html_e( 'Site', 'diluxone-users' ); ?></label>
+			<?php if ( null === $diluxone_users_sites ) : ?>
+				<input type="number" id="diluxone-users-log-site" name="site" min="0" class="small-text" value="<?php echo esc_attr( $site > 0 ? (string) $site : '' ); ?>" placeholder="<?php esc_attr_e( 'Site ID', 'diluxone-users' ); ?>">
+			<?php else : ?>
+				<select id="diluxone-users-log-site" name="site">
+					<option value="0"><?php esc_html_e( 'Every site', 'diluxone-users' ); ?></option>
+					<?php foreach ( $diluxone_users_sites as $diluxone_users_id => $diluxone_users_name ) : ?>
+						<option value="<?php echo esc_attr( (string) $diluxone_users_id ); ?>" <?php selected( $site, $diluxone_users_id ); ?>><?php echo esc_html( $diluxone_users_name ); ?></option>
+					<?php endforeach; ?>
+				</select>
+			<?php endif; ?>
+		<?php endif; ?>
 
 		<label class="screen-reader-text" for="diluxone-users-log-event"><?php esc_html_e( 'What happened', 'diluxone-users' ); ?></label>
 		<select id="diluxone-users-log-event" name="event">
@@ -453,7 +600,7 @@ function diluxone_users_screen_log(): void {
 			diluxone_users_admin_url(
 				DILUXONE_USERS_REPORTS,
 				array(
-					'tab' => 'activity',
+					'tab' => $tab,
 					'per' => $per,
 				)
 			)
@@ -501,6 +648,9 @@ function diluxone_users_screen_log(): void {
 		<thead>
 			<tr>
 				<th><?php esc_html_e( 'When', 'diluxone-users' ); ?></th>
+				<?php if ( $network ) : ?>
+					<th><?php esc_html_e( 'Site', 'diluxone-users' ); ?></th>
+				<?php endif; ?>
 				<th class="diluxone-users-list__name"><?php esc_html_e( 'Person', 'diluxone-users' ); ?></th>
 				<th><?php esc_html_e( 'What happened', 'diluxone-users' ); ?></th>
 				<th><?php esc_html_e( 'Detail', 'diluxone-users' ); ?></th>
@@ -510,15 +660,18 @@ function diluxone_users_screen_log(): void {
 		</thead>
 		<tbody>
 			<?php if ( array() === $result['rows'] ) : ?>
-				<tr><td colspan="6"><?php esc_html_e( 'Nothing matches that.', 'diluxone-users' ); ?></td></tr>
+				<tr><td colspan="<?php echo esc_attr( (string) $columns ); ?>"><?php esc_html_e( 'Nothing matches that.', 'diluxone-users' ); ?></td></tr>
 			<?php endif; ?>
 
 			<?php
 			foreach ( $result['rows'] as $row ) :
 				$agent = diluxone_users_user_agent( (string) $row['agent'] );
 				?>
-				<tr data-diluxone-users-event="<?php echo esc_attr( (string) $row['event'] ); ?>">
+				<tr data-diluxone-users-event="<?php echo esc_attr( (string) $row['event'] ); ?>" data-diluxone-users-site="<?php echo esc_attr( (string) $row['site_id'] ); ?>">
 					<td><?php echo esc_html( (string) wp_date( 'j M Y, H:i', (int) $row['happened'] ) ); ?></td>
+					<?php if ( $network ) : ?>
+						<td><a href="<?php echo esc_url( diluxone_users_admin_url( DILUXONE_USERS_REPORTS, array_merge( $keep, array( 'site' => (int) $row['site_id'] ) ) ) ); ?>"><?php echo esc_html( diluxone_users_log_site_name( (int) $row['site_id'] ) ); ?></a></td>
+					<?php endif; ?>
 					<td class="diluxone-users-list__name">
 						<?php if ( $row['user_id'] > 0 && '' !== $row['email'] ) : ?>
 							<strong><a href="<?php echo esc_url( (string) get_edit_user_link( (int) $row['user_id'] ) ); ?>"><?php echo esc_html( '' !== $row['name'] ? (string) $row['name'] : (string) $row['login'] ); ?></a></strong>
@@ -543,22 +696,10 @@ function diluxone_users_screen_log(): void {
 	<?php if ( $pages > 1 ) : ?>
 		<div class="tablenav"><div class="tablenav-pages">
 			<?php
-			$diluxone_users_base = diluxone_users_admin_url(
-				DILUXONE_USERS_REPORTS,
-				array(
-					'tab'   => 'activity',
-					's'     => $who,
-					'event' => $event,
-					'from'  => $from,
-					'to'    => $to,
-					'per'   => $per,
-				)
-			);
-
 			echo wp_kses_post(
 				(string) paginate_links(
 					array(
-						'base'      => $diluxone_users_base . '&paged=%#%',
+						'base'      => diluxone_users_admin_url( DILUXONE_USERS_REPORTS, $keep ) . '&paged=%#%',
 						'format'    => '',
 						'current'   => $page,
 						'total'     => $pages,
@@ -573,14 +714,16 @@ function diluxone_users_screen_log(): void {
 	<?php
 	diluxone_users_ui_wide_close();
 
-	// On a network the settings are the network's and the rows are this
-	// site's: the way to empty them comes with the rows.
-	if ( 'single' !== diluxone_users_admin_context() ) {
-		diluxone_users_log_empty_box();
+	// On a network the way to empty the rows comes with them: a site's own,
+	// or in Network Admin everybody's.
+	if ( $network ) {
+		diluxone_users_log_empty_box( 'network' );
+	} elseif ( 'single' !== diluxone_users_admin_context() ) {
+		diluxone_users_log_empty_box( 'site' );
 	}
 
 	diluxone_users_ui_aside_close(
-		static function (): void {
+		static function () use ( $network ): void {
 			diluxone_users_log_aside_state();
 
 			diluxone_users_ui_note(
@@ -598,7 +741,7 @@ function diluxone_users_screen_log(): void {
 					array(
 						array(
 							'url'   => diluxone_users_admin_url( DILUXONE_USERS_REPORTS, array( 'tab' => 'logging' ) ),
-							'label' => $single ? __( 'Reports › Log settings', 'diluxone-users' ) : __( 'Network Admin › Activity log', 'diluxone-users' ),
+							'label' => $single ? __( 'Reports › Log settings', 'diluxone-users' ) : ( $network ? __( 'Log settings', 'diluxone-users' ) : __( 'Network Admin › Activity log', 'diluxone-users' ) ),
 							'help'  => __( 'Which of the three groups is written down, and how many days a row is kept before it goes on its own.', 'diluxone-users' ),
 						),
 					)
@@ -609,29 +752,43 @@ function diluxone_users_screen_log(): void {
 }
 
 /**
+ * Says, while the sites' old logs are still being moved in, that they are.
+ *
+ * A report that is missing last month for an hour after an update reads as a
+ * log that lost last month. It did not, and the screen says so.
+ *
+ * @param bool $network Whether this is the network's report.
+ */
+function diluxone_users_log_moving_notice( bool $network ): void {
+	if ( ! diluxone_users_log_network() || diluxone_users_log_moved() ) {
+		return;
+	}
+
+	diluxone_users_ui_notice(
+		$network
+			? esc_html__( 'The sites’ older rows are still being moved into the network’s table, a batch every minute. Until that finishes, some sites show only their newer rows.', 'diluxone-users' )
+			: esc_html__( 'This site’s older rows are still being moved into the network’s table, a batch every minute. Until that finishes, some of them may not be here yet.', 'diluxone-users' ),
+		'info'
+	);
+}
+
+/**
  * Empties this site's activity log, every row.
  *
  * Its own endpoint, capability and nonce, and nothing else on the way: the
  * setting that decides how long rows are kept is not involved, and on a
- * network it is this site's table and no other's.
+ * network it is this site's rows and no other's.
  *
  * @return never
  */
 function diluxone_users_log_empty(): void {
-	global $wpdb;
-
 	if ( ! current_user_can( 'manage_options' ) ) {
 		wp_die( esc_html__( 'You are not allowed to do this.', 'diluxone-users' ) );
 	}
 
 	check_admin_referer( 'diluxone_users_log_empty' );
 
-	$gone = 0;
-
-	if ( diluxone_users_log_table_exists() ) {
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- the plugin's own table; a delete is not cached.
-		$gone = (int) $wpdb->query( $wpdb->prepare( 'DELETE FROM %i', diluxone_users_log_table() ) );
-	}
+	$gone = diluxone_users_log_empty_rows( diluxone_users_log_site() );
 
 	wp_safe_redirect(
 		diluxone_users_admin_url(
@@ -645,3 +802,34 @@ function diluxone_users_log_empty(): void {
 	exit;
 }
 add_action( 'admin_post_diluxone_users_log_empty', 'diluxone_users_log_empty' );
+
+/**
+ * Empties the network's activity log: every row of every site.
+ *
+ * Only whoever administers the network, and only where the log is the
+ * network's: a site administrator's way to empty the log is their own site's,
+ * above, and it never reaches another site's rows.
+ *
+ * @return never
+ */
+function diluxone_users_log_empty_network(): void {
+	if ( ! diluxone_users_log_network() || ! current_user_can( DILUXONE_USERS_NETWORK_CAP ) ) {
+		wp_die( esc_html__( 'You are not allowed to do this.', 'diluxone-users' ) );
+	}
+
+	check_admin_referer( 'diluxone_users_log_empty_network' );
+
+	$gone = diluxone_users_log_empty_rows();
+
+	wp_safe_redirect(
+		diluxone_users_admin_url(
+			DILUXONE_USERS_REPORTS,
+			array(
+				'tab'                    => 'network-activity',
+				'diluxone-users-emptied' => $gone,
+			)
+		)
+	);
+	exit;
+}
+add_action( 'admin_post_diluxone_users_log_empty_network', 'diluxone_users_log_empty_network' );

@@ -87,11 +87,22 @@ function diluxone_users_join_site( int $user_id ): void {
  * One list, run in three moments: activation on a single site, activation for
  * the whole network (once per site), and the birth of a site on a network
  * where the plugin is already active everywhere.
+ *
+ * The activity log's table is the site's own only where the plugin is not on
+ * for the whole network. Where it is, the table is the network's and is made
+ * once, by the first request after the activation (see log.php): there is
+ * nothing per site to create, and while the network's activation runs
+ * WordPress has not yet written down that the plugin is on for the network.
+ *
+ * @param bool $own_table Whether this site keeps a log table of its own.
  */
-function diluxone_users_site_setup(): void {
+function diluxone_users_site_setup( bool $own_table = true ): void {
 	diluxone_users_seed_fields();
 	diluxone_users_seed_registration();
-	diluxone_users_log_install();
+
+	if ( $own_table && ! diluxone_users_log_network() ) {
+		diluxone_users_log_install();
+	}
 }
 
 /**
@@ -99,7 +110,10 @@ function diluxone_users_site_setup(): void {
  *
  * Network-wide, every site gets its setup now and not "the first time
  * somebody opens its dashboard": a site whose visitors sign in before its
- * administrator ever looks would be writing to a table that does not exist.
+ * administrator ever looks would be reading settings nobody wrote. The log's
+ * table is the network's, made once by the first request that follows; until
+ * then the log records nothing, rather than failing on a table that is not
+ * there.
  *
  * @param bool $network_wide Whether it was activated for the whole network.
  */
@@ -117,7 +131,7 @@ function diluxone_users_activate( $network_wide = false ): void {
 		)
 	) as $site ) {
 		switch_to_blog( (int) $site );
-		diluxone_users_site_setup();
+		diluxone_users_site_setup( false );
 		restore_current_blog();
 	}
 }
@@ -126,8 +140,8 @@ function diluxone_users_activate( $network_wide = false ): void {
  * A site born on a network where the plugin is active everywhere.
  *
  * After WordPress's own setup of the site (priority 10), and inside it:
- * `switch_to_blog()` points `$wpdb->prefix` and the options at the new site,
- * which is where its table and its settings belong.
+ * `switch_to_blog()` points the options at the new site, which is where its
+ * own settings belong. Its log is the network's table, already there.
  *
  * @param WP_Site $site The new site.
  */
