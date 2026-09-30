@@ -137,15 +137,57 @@ function diluxone_users_sso_says( string $state ): string {
  * through `diluxone_users_screen_social()`, so the address is built once.
  */
 function diluxone_users_sso_toggle_url( string $id, string $state ): string {
+	return diluxone_users_sso_action_url( $id, 'enabled' === $state ? 'off' : 'on' );
+}
+
+/**
+ * The address that forgets a provider's app: its ID, its secret, its test.
+ *
+ * Turning a network off and forgetting its app were one button that said
+ * "take it off", which read as the second and did the first. They are two
+ * now, and the second one says what it throws away before it does.
+ */
+function diluxone_users_sso_forget_url( string $id ): string {
+	return diluxone_users_sso_action_url( $id, 'forget' );
+}
+
+/** One of the three things done to a provider from a link: on, off, forget. */
+function diluxone_users_sso_action_url( string $id, string $action ): string {
 	return wp_nonce_url(
 		diluxone_users_admin_url(
 			'diluxone-users-social',
 			array(
 				'red'                   => $id,
-				'diluxone_users_action' => 'enabled' === $state ? 'off' : 'on',
+				'diluxone_users_action' => $action,
 			)
 		),
 		'diluxone_users_social_toggle'
+	);
+}
+
+/**
+ * What turning a network off does, asked before it is done.
+ *
+ * @param string $name The network's name.
+ */
+function diluxone_users_sso_off_warning( string $name ): string {
+	return sprintf(
+		/* translators: %s: provider name */
+		__( 'The “Continue with %s” button disappears from the sign-in page, and whoever signed in that way will have to use another way in. The app’s details stay saved, and turning it on again brings the button back.', 'diluxone-users' ),
+		$name
+	);
+}
+
+/**
+ * What forgetting a network's app does, asked before it is done.
+ *
+ * @param string $name The network's name.
+ */
+function diluxone_users_sso_forget_warning( string $name ): string {
+	return sprintf(
+		/* translators: %s: provider name */
+		__( 'The client ID, the secret and the test of %s are deleted and its button disappears. Using it again means pasting them and testing it again. Accounts already linked to it are not touched.', 'diluxone-users' ),
+		$name
 	);
 }
 
@@ -173,7 +215,7 @@ function diluxone_users_sso_card( string $id, array $provider ): void {
 	/*
 	 * The two ways out are not two of the same thing, and for a while they
 	 * looked it: two links in a row with an arrow each, so a card offering
-	 * "Settings" and "Take it off" offered them in one voice and the one that
+	 * "Settings" and "Turn it off" offered them in one voice and the one that
 	 * removes something read as invitingly as the one that sets it up.
 	 *
 	 * So each says what kind of action it is and the dashboard's own buttons
@@ -196,11 +238,12 @@ function diluxone_users_sso_card( string $id, array $provider ): void {
 
 	if ( 'enabled' === $state || 'disabled' === $state ) {
 		$links[] = array(
-			'url'   => diluxone_users_sso_toggle_url( $id, $state ),
-			'label' => 'enabled' === $state
-				? __( 'Take it off', 'diluxone-users' )
-				: __( 'Put it up', 'diluxone-users' ),
-			'tone'  => 'enabled' === $state ? 'danger' : 'secondary',
+			'url'     => diluxone_users_sso_toggle_url( $id, $state ),
+			'label'   => 'enabled' === $state
+				? _x( 'Turn it off', 'a sign-in provider', 'diluxone-users' )
+				: _x( 'Turn it on', 'a sign-in provider', 'diluxone-users' ),
+			'tone'    => 'enabled' === $state ? 'danger' : 'secondary',
+			'confirm' => 'enabled' === $state ? diluxone_users_sso_off_warning( $name ) : '',
 		);
 	}
 
@@ -773,25 +816,38 @@ function diluxone_users_sso_test_button( string $id, string $state ): void {
  * are right before the first person who cannot get in finds out. That is why
  * a provider cannot be turned on without having been tested.
  *
- * These two are the only things on this screen that act, so they stay in the
+ * These are the only things on this screen that act, so they stay in the
  * column that is being read and do not go in the rail: the rail tells, it does
  * not ask. A provider with no app yet has neither to offer — there is nothing
- * to test and nothing to put up — and the rail says what to do instead.
+ * to test, turn on or delete — and the rail says what to do instead.
  */
 function diluxone_users_screen_provider_actions( string $id, string $state ): void {
 	if ( 'not-configured' === $state ) {
 		return;
 	}
+
+	$name = (string) ( diluxone_users_sso_providers()[ $id ]['name'] ?? $id );
 	?>
 	<p class="diluxone-users-admin__actions">
 		<?php diluxone_users_sso_test_button( $id, $state ); ?>
 
-		<?php if ( 'not-tested' !== $state ) : ?>
-			<a class="button <?php echo 'enabled' === $state ? '' : 'button-primary'; ?>"
-				href="<?php echo esc_url( diluxone_users_sso_toggle_url( $id, $state ) ); ?>">
-				<?php echo 'enabled' === $state ? esc_html__( 'Take the button off', 'diluxone-users' ) : esc_html__( 'Put the button up', 'diluxone-users' ); ?>
+		<?php if ( 'enabled' === $state ) : ?>
+			<a class="button"
+				href="<?php echo esc_url( diluxone_users_sso_toggle_url( $id, $state ) ); ?>"
+				data-diluxone-users-confirm="<?php echo esc_attr( diluxone_users_sso_off_warning( $name ) ); ?>">
+				<?php echo esc_html_x( 'Turn it off', 'a sign-in provider', 'diluxone-users' ); ?>
+			</a>
+		<?php elseif ( 'disabled' === $state ) : ?>
+			<a class="button button-primary" href="<?php echo esc_url( diluxone_users_sso_toggle_url( $id, $state ) ); ?>">
+				<?php echo esc_html_x( 'Turn it on', 'a sign-in provider', 'diluxone-users' ); ?>
 			</a>
 		<?php endif; ?>
+
+		<a class="button-link button-link-delete diluxone-users-admin__forget"
+			href="<?php echo esc_url( diluxone_users_sso_forget_url( $id ) ); ?>"
+			data-diluxone-users-confirm="<?php echo esc_attr( diluxone_users_sso_forget_warning( $name ) ); ?>">
+			<?php esc_html_e( 'Delete its settings', 'diluxone-users' ); ?>
+		</a>
 	</p>
 	<?php
 }
@@ -917,15 +973,24 @@ function diluxone_users_social_toggle(): void {
 
 	$network = sanitize_key( wp_unslash( $_GET['red'] ) );
 
-	if ( isset( diluxone_users_sso_providers()[ $network ] ) && diluxone_users_sso_tested( $network ) ) {
-		$all = (array) get_option( 'diluxone_users_sso', array() );
+	$action = sanitize_key( wp_unslash( $_GET['diluxone_users_action'] ) );
+	$all    = (array) get_option( 'diluxone_users_sso', array() );
 
-		$all[ $network ]['active'] = 'on' === sanitize_key( wp_unslash( $_GET['diluxone_users_action'] ) ) ? 1 : 0;
+	if ( 'forget' === $action && isset( diluxone_users_sso_providers()[ $network ] ) ) {
+		unset( $all[ $network ] );
+		update_option( 'diluxone_users_sso', $all, false );
+	} elseif ( isset( diluxone_users_sso_providers()[ $network ] ) && diluxone_users_sso_tested( $network ) ) {
+		$all[ $network ]['active'] = 'on' === $action ? 1 : 0;
 
 		update_option( 'diluxone_users_sso', $all, false );
 	}
 
-	wp_safe_redirect( diluxone_users_admin_url( 'diluxone-users-social' ) );
+	// Back where the press came from — the grid or the provider's own screen —
+	// except after forgetting, when the provider's settings are gone and the
+	// grid is where it now starts from.
+	$back = 'forget' === $action ? '' : (string) wp_get_referer();
+
+	wp_safe_redirect( '' !== $back ? $back : diluxone_users_admin_url( 'diluxone-users-social' ) );
 	exit;
 }
 add_action( 'admin_init', 'diluxone_users_social_toggle' );

@@ -90,13 +90,16 @@ product is fixed, not to be loosened.
 | Pictures of every tab | `admin-snapshots` (`make test-visual`, not in CI) |
 | Access › Ways in / Registration / Messages / Arrangement saves | `admin-settings`, `login-ways`, `login-screen` |
 | Every tab that saves has its button in the box beside it, first in the column, in view | `admin-layout` › Every tab saves from beside itself |
+| The save box: changed back is clean, discard, leaving asks | `admin-settings` › The box that saves |
+| The tabs on a phone stay in one row | `admin-settings` › The tabs on a phone |
 | Security › Summary, Two-step, Sessions, Proxy | `security-summary`, `admin-settings`, `admin-effects` |
-| Social › Providers toggle | `admin-effects` › Social › Providers |
+| Social › Providers: turn off (asks first), delete its settings (asks first) | `admin-effects` › Social › Providers |
 | Design › Brand and previews | `design-brand`, `preview` |
 | Design › Photo, Registration, Account, WordPress's screens | `admin-effects` |
 | Notifications › Rules / E-mails | `admin-effects` › Notifications › Rules; `admin-settings` › the site's own words |
 | Reports › Sessions: list and close | `admin-tools` › Reports |
 | Reports › Activity: logging groups, event filter | `activity-log`, `admin-tools` › Reports |
+| Reports › Logging: empty the log (asks first) | `activity-log` › emptying it asks first |
 | Reports › Activity: search by address finds refused attempts | `admin-tools` › …finds the refused attempts |
 | Status › Tools: export, import, close sessions, fresh code, rebuild, test message | `admin-tools` › Status › Tools |
 | Status › Tools: a file round trip keeps nested settings | `admin-tools` › …nested ones included |

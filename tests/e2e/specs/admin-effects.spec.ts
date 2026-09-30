@@ -263,10 +263,38 @@ test.describe('Social › Providers', () => {
 		const off = page.locator('a[href*="diluxone_users_action=off"][href*="red=mock"]');
 
 		await expect(off).toHaveCount(1);
+
+		// It asks first, and saying no leaves the button where it was.
+		page.once('dialog', (dialog) => dialog.dismiss());
+		await off.click();
+		await guest.goto(pages.login.url);
+		await expect(ssoButton(guest, 'mock')).toBeVisible();
+
+		page.once('dialog', (dialog) => dialog.accept());
 		await Promise.all([page.waitForLoadState('domcontentloaded'), off.click()]);
 
 		await guest.goto(pages.login.url);
 		await expect(ssoButton(guest, 'mock')).toHaveCount(0);
+	});
+
+	test('deleting a network’s settings forgets its app, after asking', async ({ page, site, options }) => {
+		await options.set({
+			diluxone_e2e_sso: 1,
+			diluxone_users_sso: { mock: { active: 1, id: 'e2e-client-id', secret: 'e2e-client-secret', tested: 1 } },
+		});
+
+		await page.goto(adminUrl('diluxone-users-social') + '&provider=mock');
+
+		const forget = page.locator('a[href*="diluxone_users_action=forget"]');
+
+		await expect(forget).toHaveClass(/button-link-delete/);
+
+		page.once('dialog', (dialog) => dialog.accept());
+		await Promise.all([page.waitForLoadState('domcontentloaded'), forget.click()]);
+
+		const stored = (await site.getOptions(['diluxone_users_sso'])).diluxone_users_sso as Record<string, unknown>;
+
+		expect(stored.mock).toBeUndefined();
 	});
 });
 

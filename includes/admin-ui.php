@@ -307,10 +307,11 @@ function diluxone_users_ui_save_pending(): bool {
 /**
  * The box the queued buttons are drawn in, or nothing when there are none.
  *
- * One box, whatever is in it: a button the width of the column and a line
- * over it that says whether anything on the screen has changed since it was
- * opened. The line is the script's — without it nobody is watching the form,
- * and a sentence that cannot be kept true is not printed.
+ * One box, whatever is in it: a button the width of the column, a line over
+ * it that says whether anything on the screen differs from what was saved,
+ * and under it the way to take those changes back. The line and the way back
+ * are the script's — without it nobody is watching the form, and a sentence
+ * that cannot be kept true is not printed.
  */
 function diluxone_users_ui_save_box(): string {
 	$buttons = diluxone_users_ui_save_queue();
@@ -320,9 +321,10 @@ function diluxone_users_ui_save_box(): string {
 	}
 
 	$html = sprintf(
-		'<div class="du-save" data-diluxone-users-save><p class="du-save__state" hidden><span class="du-save__clean">%1$s</span><span class="du-save__dirty">%2$s</span></p>',
+		'<div class="du-save" data-diluxone-users-save data-diluxone-users-leave="%3$s"><p class="du-save__state" hidden><span class="du-save__clean">%1$s</span><span class="du-save__dirty">%2$s</span></p>',
 		esc_html__( 'Nothing changed yet', 'diluxone-users' ),
-		esc_html__( 'There are unsaved changes', 'diluxone-users' )
+		esc_html__( 'There are unsaved changes', 'diluxone-users' ),
+		esc_attr__( 'There are changes on this screen that have not been saved. If you leave now, they are lost.', 'diluxone-users' )
 	);
 
 	foreach ( $buttons as $button ) {
@@ -333,6 +335,13 @@ function diluxone_users_ui_save_box(): string {
 			esc_html( $button['label'] )
 		);
 	}
+
+	// Only while there is something to take back, which is the script's to
+	// know: it is drawn for the script and shown by the stylesheet.
+	$html .= sprintf(
+		'<button type="button" class="button-link du-save__undo">%s</button>',
+		esc_html__( 'Discard the changes', 'diluxone-users' )
+	);
 
 	return $html . '</div>';
 }
@@ -457,7 +466,8 @@ function diluxone_users_ui_cards_close(): void {
  * @param array<string, mixed> $card icon (a dashicon class) or mark (SVG), title,
  *                                   and optionally value, state, why, detail
  *                                   and links (each: url, label and optionally
- *                                   tone — primary, secondary or danger).
+ *                                   tone — primary, secondary or danger — and
+ *                                   confirm, the question asked before it).
  */
 function diluxone_users_ui_card( array $card ): void {
 	$icon = (string) ( $card['icon'] ?? '' );
@@ -507,14 +517,18 @@ function diluxone_users_ui_card( array $card ): void {
 		foreach ( $links as $link ) {
 			$tone = (string) ( $link['tone'] ?? '' );
 
+			$confirm = (string) ( $link['confirm'] ?? '' );
+
 			printf(
-				'<a class="diluxone-users-card__link%1$s" href="%2$s">%3$s%4$s</a>',
+				'<a class="diluxone-users-card__link%1$s" href="%2$s"%5$s>%3$s%4$s</a>',
 				isset( $weights[ $tone ] ) ? ' ' . esc_attr( $weights[ $tone ] ) : '',
 				esc_url( (string) $link['url'] ),
 				esc_html( (string) $link['label'] ),
 				// The arrow is what a plain link has instead of an edge. A
 				// button has the edge, and an arrow on it is one sign too many.
-				isset( $weights[ $tone ] ) ? '' : ' &rarr;'
+				isset( $weights[ $tone ] ) ? '' : ' &rarr;',
+				// A way out that costs something asks first, in its own words.
+				'' !== $confirm ? ' data-diluxone-users-confirm="' . esc_attr( $confirm ) . '"' : ''
 			);
 		}
 

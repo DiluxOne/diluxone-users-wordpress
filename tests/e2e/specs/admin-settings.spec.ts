@@ -539,3 +539,77 @@ test.describe('Access › Registration: the role a stranger becomes', () => {
 		expect(await site.getOptions([ROLE])).toEqual({ [ROLE]: 'subscriber' });
 	});
 });
+
+/*
+ * The box that saves knows what was saved. Changing an answer and changing it
+ * back is nothing to save; what was changed can be taken back from the box;
+ * and leaving with something unsaved asks first.
+ */
+test.describe('The box that saves', () => {
+	test('an answer changed and changed back is nothing to save', async ({ page }) => {
+		await page.goto(adminUrl('diluxone-users-login', 'page'));
+
+		const box = page.locator('[data-diluxone-users-save]');
+		const chosen = page.locator('[name="diluxone_users_wp_screens"]:checked');
+		const first = await chosen.getAttribute('value');
+		const other = page.locator(`[name="diluxone_users_wp_screens"]:not([value="${first}"]):not(:disabled)`).first();
+
+		await other.check({ force: true });
+		await expect(box).toHaveClass(/is-dirty/);
+
+		await page.locator(`[name="diluxone_users_wp_screens"][value="${first}"]`).check({ force: true });
+		await expect(box).not.toHaveClass(/is-dirty/);
+	});
+
+	test('discarding puts every field back as it was saved', async ({ page }) => {
+		await page.goto(adminUrl('diluxone-users-security', 'sessions'));
+
+		const box = page.locator('[data-diluxone-users-save]');
+		const number = page.locator('.diluxone-users-admin input[type="number"]').first();
+		const before = await number.inputValue();
+
+		await number.fill(String(Number(before || '0') + 7));
+		await expect(box).toHaveClass(/is-dirty/);
+
+		await box.locator('.du-save__undo').click();
+		await expect(number).toHaveValue(before);
+		await expect(box).not.toHaveClass(/is-dirty/);
+	});
+
+	test('leaving with something unsaved asks, and staying keeps it', async ({ page }) => {
+		await page.goto(adminUrl('diluxone-users-security', 'sessions'));
+
+		const number = page.locator('.diluxone-users-admin input[type="number"]').first();
+
+		await number.fill('999');
+
+		let asked = '';
+
+		page.once('dialog', (dialog) => {
+			asked = dialog.message();
+			void dialog.dismiss();
+		});
+		await page.locator('.nav-tab-wrapper a.nav-tab').first().click();
+
+		expect(asked).not.toBe('');
+		await expect(number).toHaveValue('999');
+		expect(new URL(page.url()).searchParams.get('tab')).toBe('sessions');
+	});
+});
+
+/*
+ * On a phone the tabs are one row that scrolls sideways, not two ragged ones.
+ */
+test.describe('The tabs on a phone', () => {
+	test.use({ viewport: { width: 400, height: 800 } });
+
+	test('stay in one row', async ({ page }) => {
+		await page.goto(adminUrl('diluxone-users-login', 'summary'));
+
+		const tops = await page.locator('.nav-tab-wrapper a.nav-tab').evaluateAll((tabs: Element[]) =>
+			tabs.map((tab) => Math.round(tab.getBoundingClientRect().top))
+		);
+
+		expect(new Set(tops).size).toBe(1);
+	});
+});

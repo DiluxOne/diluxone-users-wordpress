@@ -1138,6 +1138,10 @@
 .diluxone-users-admin .du-save.is-dirty .du-save__dirty { display: inline; }
 .diluxone-users-admin .du-save.is-dirty .du-save__state { color: var(--du-text); }
 .diluxone-users-admin .du-save.is-dirty .du-save__state::before { background: var(--du-warn); }
+/* Taking the changes back is there only while there are changes, and it is
+   quieter than the button: it is the way out, not the thing to do. */
+.diluxone-users-admin .du-save__undo { display: none; align-self: center; }
+.diluxone-users-admin .du-save.is-dirty .du-save__undo { display: inline; }
 .diluxone-users-admin .du-save__button.button {
 	width: 100%;
 	justify-content: center;
@@ -1584,6 +1588,26 @@ span.diluxone-users-state {
 	padding-top: 4px;
 	color: var(--du-text, #1d2327);
 	font-weight: 600;
+}
+
+/* On a phone WordPress lets the tabs wrap, and six of them become two ragged
+   rows with the second pushed to the right, which reads as two strips rather
+   than one. They stay one row instead, and the row scrolls sideways; the
+   script brings the open one into view. */
+@media screen and (max-width: 782px) {
+	.diluxone-users-admin .nav-tab-wrapper {
+		display: flex;
+		flex-wrap: nowrap;
+		overflow-x: auto;
+		scrollbar-width: none;
+	}
+	.diluxone-users-admin .nav-tab-wrapper::-webkit-scrollbar { display: none; }
+	.diluxone-users-admin .nav-tab {
+		flex: none;
+		float: none;
+		margin-top: 0;
+		white-space: nowrap;
+	}
 }
 
 /* ── Narrow windows ──────────────────────────────────────────────────────

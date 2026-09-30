@@ -123,6 +123,46 @@ function diluxone_users_screen_log_settings(): void {
 		)
 	);
 
+	/*
+	 * Emptying it is not a setting, so it is a link and not a field of the
+	 * form around it: a form inside a form is thrown away by the browser, and
+	 * pressing Save should never be what deletes a year of rows.
+	 */
+	$size = diluxone_users_log_size();
+
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- only which notice to show after the redirect.
+	if ( isset( $_GET['diluxone-users-emptied'] ) ) {
+		diluxone_users_notice(
+			sprintf(
+				/* translators: %s: number of rows deleted */
+				__( 'The activity log was emptied: %s rows deleted.', 'diluxone-users' ),
+				number_format_i18n( absint( wp_unslash( $_GET['diluxone-users-emptied'] ) ) ) // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			)
+		);
+	}
+
+	diluxone_users_ui_section(
+		__( 'Empty it now', 'diluxone-users' ),
+		__( 'Every row goes, whatever its age, and the Activity tab starts again from nothing. What is recorded from then on follows the settings above.', 'diluxone-users' )
+	);
+
+	if ( $size['rows'] > 0 ) {
+		printf(
+			'<p><a class="button button-link-delete" href="%1$s" data-diluxone-users-confirm="%2$s">%3$s</a></p>',
+			esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=diluxone_users_log_empty' ), 'diluxone_users_log_empty' ) ),
+			esc_attr(
+				sprintf(
+					/* translators: %s: number of rows */
+					__( 'The %s rows of the activity log are deleted for good. It cannot be undone. Go ahead?', 'diluxone-users' ),
+					number_format_i18n( $size['rows'] )
+				)
+			),
+			esc_html__( 'Delete every row', 'diluxone-users' )
+		);
+	} else {
+		printf( '<p class="description">%s</p>', esc_html__( 'There is nothing in it.', 'diluxone-users' ) );
+	}
+
 	diluxone_users_ui_aside_close(
 		static function (): void {
 			diluxone_users_log_aside_state();
@@ -495,3 +535,41 @@ function diluxone_users_screen_log(): void {
 		}
 	);
 }
+
+/**
+ * Empties this site's activity log, every row.
+ *
+ * Its own endpoint, capability and nonce, and nothing else on the way: the
+ * setting that decides how long rows are kept is not involved, and on a
+ * network it is this site's table and no other's.
+ *
+ * @return never
+ */
+function diluxone_users_log_empty(): void {
+	global $wpdb;
+
+	if ( ! current_user_can( 'manage_options' ) ) {
+		wp_die( esc_html__( 'You are not allowed to do this.', 'diluxone-users' ) );
+	}
+
+	check_admin_referer( 'diluxone_users_log_empty' );
+
+	$gone = 0;
+
+	if ( diluxone_users_log_table_exists() ) {
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- the plugin's own table; a delete is not cached.
+		$gone = (int) $wpdb->query( $wpdb->prepare( 'DELETE FROM %i', diluxone_users_log_table() ) );
+	}
+
+	wp_safe_redirect(
+		diluxone_users_admin_url(
+			DILUXONE_USERS_REPORTS,
+			array(
+				'tab'                    => 'logging',
+				'diluxone-users-emptied' => $gone,
+			)
+		)
+	);
+	exit;
+}
+add_action( 'admin_post_diluxone_users_log_empty', 'diluxone_users_log_empty' );

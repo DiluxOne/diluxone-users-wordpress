@@ -137,6 +137,32 @@ test.describe('The activity log', () => {
 		await expect(rail.locator('.diluxone-users-state--active')).toHaveCount(1);
 	});
 
+	test('emptying it asks first, and then the report is empty', async ({ page, guest, site, pages, options }) => {
+		await options.keep(['diluxone_users_log_levels']);
+		await options.set({ diluxone_users_login_method: 'both' });
+		await record(page, ['access']);
+
+		const email = freshEmail('log-empty');
+		await site.makeUser({ email, password: PASSWORD });
+		await signIn(guest, pages.login.url, email);
+
+		await page.goto(SETTINGS);
+
+		const empty = page.locator('a[href*="action=diluxone_users_log_empty"]');
+
+		page.once('dialog', (dialog) => dialog.dismiss());
+		await empty.click();
+		await page.goto(activity(email));
+		await expect(rows(page)).not.toHaveCount(0);
+
+		await page.goto(SETTINGS);
+		page.once('dialog', (dialog) => dialog.accept());
+		await Promise.all([page.waitForURL(/diluxone-users-emptied=/), empty.click()]);
+
+		await page.goto(activity(''));
+		await expect(rows(page)).toHaveCount(0);
+	});
+
 	test('the report is a report and the settings are settings', async ({ page }) => {
 		// The rule the whole Reports screen exists for: nothing on the tab with
 		// the table gets written when a button is pressed, because there is no
