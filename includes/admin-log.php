@@ -163,7 +163,7 @@ function diluxone_users_screen_log_settings(): void {
 				array(
 					array(
 						'url'   => diluxone_users_admin_url( DILUXONE_USERS_REPORTS, array( 'tab' => 'network' === diluxone_users_admin_context() ? 'network-activity' : 'activity' ) ),
-						'label' => __( 'Reports › Activity', 'diluxone-users' ),
+						'label' => 'network' === diluxone_users_admin_context() ? __( 'Activity', 'diluxone-users' ) : __( 'Reports › Activity', 'diluxone-users' ),
 						'help'  => __( 'The rows themselves, by person, by kind and by date. It only ever shows what was already being recorded when it happened.', 'diluxone-users' ),
 					),
 				)
