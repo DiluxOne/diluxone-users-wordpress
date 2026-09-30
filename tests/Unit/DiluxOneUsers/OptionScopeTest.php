@@ -128,7 +128,7 @@ class OptionScopeTest extends TestCase {
 
 	public function test_the_bookkeeping_and_anything_unknown_stay_on_the_site(): void {
 		$this->assertSame( 'site', diluxone_users_option_scope( 'diluxone_users_rewrite_version' ) );
-		$this->assertSame( 'site', diluxone_users_option_scope( 'diluxone_users_log_schema' ) );
+		$this->assertSame( 'site', diluxone_users_option_scope( 'diluxone_users_mail_last' ) );
 		$this->assertSame( 'site', diluxone_users_option_scope( 'diluxone_users_not_a_setting' ) );
 	}
 

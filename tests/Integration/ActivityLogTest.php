@@ -44,7 +44,7 @@ class ActivityLogTest extends IntegrationTestCase {
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery
 		$wpdb->query( "DROP TABLE IF EXISTS `{$table}`" );
-		delete_option( DILUXONE_USERS_LOG_SCHEMA_OPTION );
+		diluxone_users_delete_option( DILUXONE_USERS_LOG_SCHEMA_OPTION );
 
 		// Make the CREATE impossible, the way a missing grant would. dbDelta
 		// reports nothing either way, which is the whole point.
@@ -62,7 +62,7 @@ class ActivityLogTest extends IntegrationTestCase {
 		$this->assertFalse( $installed, 'the failure reaches the caller' );
 		$this->assertFalse( diluxone_users_log_table_exists(), 'nothing was created' );
 		$this->assertFalse(
-			get_option( DILUXONE_USERS_LOG_SCHEMA_OPTION ),
+			diluxone_users_raw_get( DILUXONE_USERS_LOG_SCHEMA_OPTION ),
 			'the schema option stays unwritten, so the next admin request tries again '
 			. 'instead of writing every log line into a table that is not there'
 		);
@@ -70,7 +70,7 @@ class ActivityLogTest extends IntegrationTestCase {
 		$this->assertTrue( diluxone_users_log_install(), 'and the retry works' );
 		$this->assertSame(
 			DILUXONE_USERS_LOG_SCHEMA,
-			(int) get_option( DILUXONE_USERS_LOG_SCHEMA_OPTION )
+			(int) diluxone_users_raw_get( DILUXONE_USERS_LOG_SCHEMA_OPTION )
 		);
 	}
 
@@ -184,6 +184,69 @@ class ActivityLogTest extends IntegrationTestCase {
 		$this->assertContains( 'person', $keys );
 		$this->assertContains( 'when_it', $keys );
 		$this->assertContains( 'kind', $keys );
+	}
+
+	/** Every row says which site it happened on — on a single site, the site. */
+	public function test_every_row_carries_the_site_it_happened_on(): void {
+		diluxone_users_log_record( 'signed_in', $this->make_user() );
+
+		$this->assertSame( get_current_blog_id(), $this->rows()[0]['site_id'] );
+		$this->assertSame( 1, diluxone_users_log_search( array( 'site' => get_current_blog_id() ) )['total'] );
+		$this->assertSame( 0, diluxone_users_log_search( array( 'site' => get_current_blog_id() + 1000 ) )['total'], 'And no other site' );
+	}
+
+	/**
+	 * A table in the first shape — no site column — is brought up to this one
+	 * by the first thing that touches it, and the rows it had are the site's:
+	 * they are on its report, and its purge and its button reach them.
+	 */
+	public function test_a_table_from_before_rows_had_a_site_keeps_its_rows_as_the_sites(): void {
+		global $wpdb;
+
+		$table = diluxone_users_log_table();
+
+		// phpcs:disable WordPress.DB
+		$wpdb->query( "DROP TABLE IF EXISTS {$table}" );
+		$wpdb->query(
+			"CREATE TABLE {$table} (
+				id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+				user_id bigint(20) unsigned NOT NULL DEFAULT 0,
+				event varchar(32) NOT NULL DEFAULT '',
+				happened datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
+				ip varchar(45) NOT NULL DEFAULT '',
+				agent varchar(255) NOT NULL DEFAULT '',
+				detail text NOT NULL,
+				PRIMARY KEY  (id)
+			)"
+		);
+		$wpdb->query( $wpdb->prepare( "INSERT INTO {$table} (user_id, event, happened, detail) VALUES (1, 'signed_in', %s, '{}'), (1, 'signed_out', %s, '{}')", gmdate( 'Y-m-d H:i:s' ), gmdate( 'Y-m-d H:i:s' ) ) );
+		// phpcs:enable
+		diluxone_users_update_option( DILUXONE_USERS_LOG_SCHEMA_OPTION, 1 );
+
+		// The first thing to read it after the update — here the report, on a
+		// live site as often somebody's copy of their data — brings it up to
+		// date, rather than asking for a column it does not have yet.
+		$this->assertSame( 2, diluxone_users_log_search( array( 'site' => get_current_blog_id() ) )['total'], 'Its rows are the site’s' );
+		$this->assertSame( DILUXONE_USERS_LOG_SCHEMA, (int) diluxone_users_raw_get( DILUXONE_USERS_LOG_SCHEMA_OPTION ) );
+		$this->assertTrue( diluxone_users_log_has_sites() );
+		$this->assertSame( 2, diluxone_users_log_size( get_current_blog_id() )['rows'] );
+		$this->assertTrue( diluxone_users_log_record( 'signed_in', 1 ), 'And it is written to again' );
+	}
+
+	/** The site's report draws the site's rows, each saying which site. */
+	public function test_the_sites_report_draws_its_own_rows(): void {
+		wp_set_current_user( $this->make_user( 'administrator' ) );
+		do_action( 'diluxone_users_register_panels' );
+
+		diluxone_users_log_record( 'signed_in', 1 );
+		diluxone_users_log_record( 'signed_out', 1 );
+
+		ob_start();
+		diluxone_users_screen_log();
+		$html = (string) ob_get_clean();
+
+		$this->assertSame( 2, substr_count( $html, 'data-diluxone-users-site="' . get_current_blog_id() . '"' ) );
+		$this->assertStringNotContainsString( 'name="site"', $html, 'A site’s report has no site filter' );
 	}
 
 	public function test_running_the_installer_twice_changes_nothing(): void {
@@ -691,6 +754,26 @@ class ActivityLogTest extends IntegrationTestCase {
 			$this->assertStringNotContainsString( "= ''", $sql );
 			// The one that was NOT set stays out.
 			$this->assertStringNotContainsString( 'l.happened <=', $sql );
+		}
+	}
+
+	public function test_a_site_asked_for_is_in_the_query_and_an_unasked_one_is_not(): void {
+		$site = get_current_blog_id();
+
+		$asked = $this->logWheresWhile(
+			static function () use ( $site ): void {
+				diluxone_users_log_search( array( 'site' => $site ), 1, 20 );
+			}
+		);
+
+		$this->assertNotEmpty( $asked );
+
+		foreach ( $asked as $sql ) {
+			$this->assertStringContainsString( "l.site_id = {$site}", $sql );
+		}
+
+		foreach ( $this->logWheresWhile( static fn() => diluxone_users_log_search( array( 'site' => 0 ), 1, 20 ) ) as $sql ) {
+			$this->assertStringNotContainsString( 'site_id', $sql, 'Every site is no filter at all' );
 		}
 	}
 

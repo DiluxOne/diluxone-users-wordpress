@@ -159,11 +159,12 @@ class NetworkSettingsTest extends IntegrationTestCase {
 	public function test_each_place_draws_only_its_own_tabs(): void {
 		$this->assertArrayNotHasKey( 'logging', diluxone_users_panels( DILUXONE_USERS_REPORTS ), 'A site has the rows, not the rules' );
 		$this->assertArrayHasKey( 'activity', diluxone_users_panels( DILUXONE_USERS_REPORTS ) );
+		$this->assertArrayNotHasKey( 'network-activity', diluxone_users_panels( DILUXONE_USERS_REPORTS ), 'A site has its own rows, not everybody’s' );
 		$this->assertSame( array(), diluxone_users_panels( DILUXONE_USERS_SECURITY ) );
 
 		$this->in_network_admin();
 
-		$this->assertSame( array( 'logging' ), array_keys( diluxone_users_panels( DILUXONE_USERS_REPORTS ) ) );
+		$this->assertSame( array( 'network-activity', 'logging' ), array_keys( diluxone_users_panels( DILUXONE_USERS_REPORTS ) ), 'Every site’s rows, and the rules' );
 		$this->assertContains( '2fa', array_keys( diluxone_users_panels( DILUXONE_USERS_SECURITY ) ) );
 		$this->assertSame( array( 'network', 'uninstall' ), array_keys( diluxone_users_panels( DILUXONE_USERS_MENU ) ) );
 	}

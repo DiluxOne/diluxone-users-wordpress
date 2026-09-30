@@ -1,0 +1,172 @@
+<?php
+/**
+ * Where the activity log lives, on a single site and on a network.
+ *
+ * On a network whose settings are the network's the log is one table, under
+ * the network's prefix, every row stamped with its site; on a single site, or
+ * a network that switched the plugin on site by site, it is the site's own.
+ * Which table, which site a row is stamped with, who runs the purge, which
+ * tab shows every site's rows and whose bookkeeping the table's shape is: all
+ * of it is answered without a database, both ways round, here. The rows
+ * themselves are the integration suite's.
+ */
+
+namespace Tests\Unit\DiluxOneUsers;
+
+use Brain\Monkey;
+use PHPUnit\Framework\TestCase;
+
+class NetworkLogTest extends TestCase {
+
+	/** @var mixed The database object as the rest of the unit suite has it. */
+	private $wpdb;
+
+	protected function setUp(): void {
+		parent::setUp();
+		Monkey\setUp();
+
+		Monkey\Functions\when( 'register_activation_hook' )->justReturn( true );
+		Monkey\Functions\when( 'register_deactivation_hook' )->justReturn( true );
+
+		require_once DILUXONE_USERS_DIR . 'includes/options.php';
+		require_once DILUXONE_USERS_DIR . 'includes/options-scope.php';
+		require_once DILUXONE_USERS_DIR . 'includes/log.php';
+		require_once DILUXONE_USERS_DIR . 'includes/admin.php';
+		require_once DILUXONE_USERS_DIR . 'includes/admin-network.php';
+		require_once DILUXONE_USERS_DIR . 'includes/migrate.php';
+
+		$GLOBALS['_test_wp_options'] = array();
+		$GLOBALS['_test_multisite']  = false;
+
+		$this->wpdb = $GLOBALS['wpdb'];
+
+		// A site of a network that is not the first one: its own prefix is not
+		// the network's, which is the case where the two tables differ.
+		$GLOBALS['wpdb'] = new class() {
+			public string $prefix = 'wp_3_';
+
+			public string $base_prefix = 'wp_';
+
+			public function get_blog_prefix( int $site ): string {
+				return 1 === $site ? $this->base_prefix : $this->base_prefix . $site . '_';
+			}
+		};
+
+		Monkey\Functions\when( 'get_current_blog_id' )->justReturn( 3 );
+	}
+
+	protected function tearDown(): void {
+		$GLOBALS['wpdb'] = $this->wpdb;
+		unset( $GLOBALS['_test_multisite'] );
+		Monkey\tearDown();
+		parent::tearDown();
+	}
+
+	/** The plugin on for every site of the network, or not. */
+	private function network( bool $on ): void {
+		$GLOBALS['_test_multisite'] = true;
+
+		Monkey\Functions\when( 'plugin_basename' )->justReturn( 'diluxone-users/diluxone-users.php' );
+		Monkey\Functions\when( 'get_site_option' )->alias(
+			static function ( string $key, $fallback = false ) use ( $on ) {
+				return 'active_sitewide_plugins' === $key
+					? ( $on ? array( 'diluxone-users/diluxone-users.php' => 1 ) : array() )
+					: $fallback;
+			}
+		);
+	}
+
+	/** A single site: no network, and the prefix is the site's. */
+	private function single(): void {
+		$GLOBALS['_test_multisite'] = false;
+		$GLOBALS['wpdb']->prefix    = 'wp_';
+
+		Monkey\Functions\when( 'get_current_blog_id' )->justReturn( 1 );
+	}
+
+	/* ── Which table ───────────────────────────────────────────────── */
+
+	public function test_on_a_single_site_the_table_is_the_sites_own(): void {
+		$this->single();
+
+		$this->assertFalse( diluxone_users_log_network() );
+		$this->assertSame( 'wp_diluxone_users_log', diluxone_users_log_table() );
+	}
+
+	public function test_on_a_network_whose_settings_are_the_networks_every_site_writes_to_one_table(): void {
+		$this->network( true );
+
+		$this->assertTrue( diluxone_users_log_network() );
+		$this->assertSame( 'wp_diluxone_users_log', diluxone_users_log_table(), 'The network’s prefix, not the site’s' );
+	}
+
+	public function test_on_a_network_switched_on_site_by_site_each_site_keeps_its_own(): void {
+		$this->network( false );
+
+		$this->assertFalse( diluxone_users_log_network() );
+		$this->assertSame( 'wp_3_diluxone_users_log', diluxone_users_log_table() );
+	}
+
+	/* ── Which site a row is stamped with ──────────────────────────── */
+
+	public function test_a_row_is_stamped_with_the_site_it_happened_on_both_ways(): void {
+		$this->network( true );
+		$this->assertSame( 3, diluxone_users_log_site() );
+
+		$this->single();
+		$this->assertSame( 1, diluxone_users_log_site() );
+	}
+
+	/* ── Who runs the purge ────────────────────────────────────────── */
+
+	public function test_the_purge_runs_once_for_the_network_on_its_main_site(): void {
+		$this->network( true );
+
+		Monkey\Functions\when( 'is_main_site' )->justReturn( false );
+		$this->assertFalse( diluxone_users_log_purges_here(), 'Another site of the network does not purge the network’s table' );
+
+		Monkey\Functions\when( 'is_main_site' )->justReturn( true );
+		$this->assertTrue( diluxone_users_log_purges_here() );
+	}
+
+	public function test_a_site_with_a_table_of_its_own_purges_it_itself(): void {
+		Monkey\Functions\when( 'is_main_site' )->justReturn( false );
+
+		$this->network( false );
+		$this->assertTrue( diluxone_users_log_purges_here(), 'Site by site, each purges its own' );
+
+		$this->single();
+		$this->assertTrue( diluxone_users_log_purges_here() );
+	}
+
+	/* ── A site deleted from the network ───────────────────────────── */
+
+	public function test_a_deleted_site_drops_its_own_table_and_never_the_networks(): void {
+		$this->network( true );
+
+		$this->assertSame( array( 'wp_3_posts', 'wp_3_diluxone_users_log' ), diluxone_users_log_drop_with_site( array( 'wp_3_posts' ), 3 ) );
+		$this->assertSame( array( 'wp_posts' ), diluxone_users_log_drop_with_site( array( 'wp_posts' ), 1 ), 'The first site’s table is the network’s' );
+	}
+
+	/* ── Whose bookkeeping ─────────────────────────────────────────── */
+
+	public function test_the_shape_of_the_table_and_its_move_are_the_networks_to_keep(): void {
+		foreach ( array( 'diluxone_users_log_schema', 'diluxone_users_log_moved', 'diluxone_users_log_moving', 'diluxone_users_log_kept' ) as $key ) {
+			$this->assertSame( 'network', diluxone_users_option_scope( $key ), $key );
+			$this->assertNotContains( $key, diluxone_users_network_moved_keys(), "{$key} is not a site’s setting taken by the network" );
+		}
+	}
+
+	/* ── Which screen shows which rows ─────────────────────────────── */
+
+	public function test_every_sites_rows_are_a_tab_of_the_networks_and_a_sites_own_are_its(): void {
+		$this->assertSame( 'network', diluxone_users_panel_scope( 'diluxone-users-reports', 'network-activity' ) );
+		$this->assertSame( 'site', diluxone_users_panel_scope( 'diluxone-users-reports', 'activity' ) );
+
+		$this->assertTrue( diluxone_users_admin_owns( 'network', 'network' ) );
+		$this->assertFalse( diluxone_users_admin_owns( diluxone_users_panel_scope( 'diluxone-users-reports', 'network-activity' ), 'hub' ), 'Not on the main site' );
+		$this->assertFalse( diluxone_users_admin_owns( diluxone_users_panel_scope( 'diluxone-users-reports', 'network-activity' ), 'site' ), 'Not on another site' );
+		$this->assertFalse( diluxone_users_admin_owns( diluxone_users_panel_scope( 'diluxone-users-reports', 'activity' ), 'network' ), 'A site’s own rows are not a network tab' );
+		$this->assertTrue( diluxone_users_admin_owns( diluxone_users_panel_scope( 'diluxone-users-reports', 'activity' ), 'single' ), 'On a single site the report is the site’s' );
+	}
+}

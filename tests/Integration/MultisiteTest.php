@@ -87,13 +87,24 @@ class MultisiteTest extends IntegrationTestCase {
 		$this->assertCount( 1, self::$mail, 'With the network open, the site’s own switch decides' );
 	}
 
-	/** @return bool Whether the log table of this site exists. */
+	/** @return bool Whether a site has a log table of its own. */
 	private function log_table_exists( int $site ): bool {
 		global $wpdb;
 
-		$table = $wpdb->get_blog_prefix( $site ) . 'diluxone_users_log';
+		return $this->table_exists( $wpdb->get_blog_prefix( $site ) . 'diluxone_users_log' );
+	}
+
+	private function table_exists( string $table ): bool {
+		global $wpdb;
 
 		return $table === $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $wpdb->esc_like( $table ) ) );
+	}
+
+	/** How many rows of one site the network's log has. */
+	private function rows_of( int $site ): int {
+		global $wpdb;
+
+		return (int) $wpdb->get_var( $wpdb->prepare( 'SELECT COUNT(*) FROM %i WHERE site_id = %d', $wpdb->base_prefix . 'diluxone_users_log', $site ) );
 	}
 
 	/**
@@ -102,8 +113,13 @@ class MultisiteTest extends IntegrationTestCase {
 	 * visitors may sign in before that.
 	 */
 	public function test_a_site_born_on_the_network_is_set_up_at_birth(): void {
+		global $wpdb;
+
 		$this->assertTrue( is_plugin_active_for_network( plugin_basename( DILUXONE_USERS_FILE ) ), 'The suite runs with the plugin network-activated' );
-		$this->assertTrue( $this->log_table_exists( $this->site ) );
+
+		// Its log is the network's table, already there: nothing of its own.
+		$this->assertFalse( $this->log_table_exists( $this->site ), 'No table of its own' );
+		$this->assertTrue( $this->table_exists( $wpdb->base_prefix . 'diluxone_users_log' ), 'The network’s table' );
 
 		switch_to_blog( $this->site );
 
@@ -140,7 +156,14 @@ class MultisiteTest extends IntegrationTestCase {
 		wp_delete_site( $closed );
 	}
 
-	public function test_a_deleted_site_takes_its_table_with_it(): void {
+	/**
+	 * A deleted site takes its rows out of the network's table, and a table of
+	 * its own it kept from before, if it still has one; the rest of the
+	 * network's rows stay.
+	 */
+	public function test_a_deleted_site_takes_its_rows_and_its_old_table_with_it(): void {
+		global $wpdb;
+
 		$gone = (int) wp_insert_site(
 			array(
 				'domain' => (string) get_network()->domain,
@@ -149,11 +172,26 @@ class MultisiteTest extends IntegrationTestCase {
 			)
 		);
 
-		$this->assertTrue( $this->log_table_exists( $gone ) );
+		diluxone_users_update_option( 'diluxone_users_log_levels', array( 'access' ) );
+
+		foreach ( array( $gone, $this->site ) as $one ) {
+			switch_to_blog( $one );
+			diluxone_users_log_record( 'signed_in', 1 );
+			restore_current_blog();
+		}
+
+		// A table of its own from before the network's, not moved in yet.
+		$old = $wpdb->get_blog_prefix( $gone ) . 'diluxone_users_log';
+		$wpdb->query( "CREATE TABLE IF NOT EXISTS {$old} ( id bigint(20) unsigned NOT NULL AUTO_INCREMENT, PRIMARY KEY  (id) )" );
+
+		$this->assertSame( 1, $this->rows_of( $gone ) );
 
 		wp_delete_site( $gone );
 
-		$this->assertFalse( $this->log_table_exists( $gone ) );
+		$this->assertSame( 0, $this->rows_of( $gone ), 'Its rows' );
+		$this->assertFalse( $this->log_table_exists( $gone ), 'Its old table' );
+		$this->assertSame( 1, $this->rows_of( $this->site ), 'The other site’s rows stay' );
+		$this->assertTrue( $this->table_exists( $wpdb->base_prefix . 'diluxone_users_log' ), 'And the network’s table' );
 	}
 
 	/** Deactivating for the network leaves no purge event on any site. */
@@ -319,21 +357,56 @@ class MultisiteTest extends IntegrationTestCase {
 		$this->assertFalse( diluxone_users_register_allowed() );
 	}
 
-	/** An account deleted from the network leaves no rows in any site's log. */
+	/** An account deleted from the network leaves no rows on any site: one query. */
 	public function test_deleting_an_account_from_the_network_empties_every_log(): void {
 		require_once ABSPATH . 'wp-admin/includes/ms.php';
-		global $wpdb;
+
+		diluxone_users_update_option( 'diluxone_users_log_levels', array( 'access' ) );
 
 		$user = $this->make_user();
 
-		switch_to_blog( $this->site );
-		diluxone_users_log_record( 'signed_in', $user );
-		$table = diluxone_users_log_table();
-		restore_current_blog();
+		foreach ( array( get_main_site_id(), $this->site ) as $one ) {
+			switch_to_blog( $one );
+			diluxone_users_log_record( 'signed_in', $user );
+			restore_current_blog();
+		}
 
 		wpmu_delete_user( $user );
 
-		$this->assertSame( 0, (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$table} WHERE user_id = %d", $user ) ) );
+		$this->assertSame( 0, $this->user_rows( $user ) );
+	}
+
+	/**
+	 * Taken off one site, the account lives on: its rows on that site go, and
+	 * the rest of the network's stay.
+	 */
+	public function test_taking_somebody_off_one_site_takes_only_that_sites_rows(): void {
+		require_once ABSPATH . 'wp-admin/includes/user.php';
+
+		diluxone_users_update_option( 'diluxone_users_log_levels', array( 'access' ) );
+
+		$user = $this->make_user();
+		add_user_to_blog( $this->site, $user, 'subscriber' );
+
+		foreach ( array( get_main_site_id(), $this->site ) as $one ) {
+			switch_to_blog( $one );
+			diluxone_users_log_record( 'signed_in', $user );
+			restore_current_blog();
+		}
+
+		switch_to_blog( $this->site );
+		wp_delete_user( $user );
+		restore_current_blog();
+
+		$this->assertNotFalse( get_userdata( $user ), 'The account is the network’s' );
+		$this->assertSame( 1, $this->user_rows( $user ), 'Its row on the main site stays' );
+	}
+
+	/** Every row of one person in the network's log. */
+	private function user_rows( int $user ): int {
+		global $wpdb;
+
+		return (int) $wpdb->get_var( $wpdb->prepare( 'SELECT COUNT(*) FROM %i WHERE user_id = %d', diluxone_users_log_table(), $user ) );
 	}
 
 	/** Add New User keeps WordPress's usernames on a network, where an address is not one. */
