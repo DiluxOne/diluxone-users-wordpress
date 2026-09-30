@@ -39,8 +39,11 @@ add_action( 'diluxone_users_register_panels', function () {
 } );
 ```
 
-The screen supplies the form, the nonce, the submit button and the "Saved."
-notice. `render` prints the fields and nothing else.
+The screen supplies the form, the nonce, the button that saves it and the
+"Saved." notice. `render` prints the fields and nothing else. The button is
+not at the foot of the form: it heads the column beside the fields — the rail,
+the preview, or a rail of its own when the tab has neither — so it stays in
+view while the settings scroll, in the same place on every tab.
 
 Every screen takes panels, with no exceptions left: `diluxone-users`
 (Overview), `diluxone-users-login` (Access — sign-in page, ways in,
@@ -53,7 +56,10 @@ screens any more; their slugs redirect to the tab they became.
 A tab that draws its own markup — a list with its own actions, a form with a
 nonce of its own — registers with `'form' => false` and the screen stays out
 of its way. That is how the field list, the provider grid and the open
-sessions live beside ordinary settings tabs.
+sessions live beside ordinary settings tabs. A form of its own that saves
+settings gives itself an `id` and asks for its button with
+`diluxone_users_ui_save( $form_id, $label )` before the column beside it is
+drawn; the button reaches the form through its `form` attribute.
 
 A tab exists because something registered it. Nothing registered means no tab
 — not an empty one.
@@ -94,7 +100,10 @@ account does (`diluxone_users_sso_register`), the site's own form does
 WordPress's own form does — that last one is `users_can_register`, the same
 switch as Settings → General, read and written directly rather than copied.
 `diluxone_users_register_mode()` still answers with one word for whatever
-wants one: `login`, `form`, `both` or `closed`.
+wants one: `login`, `form`, `both` or `closed`. The link's door counts as open
+only while the link is a way in (`diluxone_users_link_registers()`): on a
+site that signs in with a password only, no link is mailed and none creates
+an account.
 
 While the e-mail link is the only way in, `users_can_register` reads as off
 whatever is stored (`diluxone_users_block_registration()`), and both screens

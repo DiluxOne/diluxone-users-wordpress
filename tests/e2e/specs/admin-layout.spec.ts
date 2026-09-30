@@ -40,6 +40,58 @@ test.describe('Every screen holds together', () => {
 });
 
 /**
+ * The button that saves a tab is beside it, on every tab that saves.
+ *
+ * It used to end the form, below forty settings. Now it heads the column
+ * beside them, in view while they scroll, and it reaches its form by id. What
+ * is asserted is the rule rather than a list of tabs: every form on a tab
+ * that posts settings has its button in that box, none has one of its own
+ * left at the foot, and the box is where the page can see it at the top.
+ * The tabs whose forms are something else — a search, a tool's one action,
+ * a filter — are told apart by what they send, not written down here.
+ */
+test.describe('Every tab saves from beside itself', () => {
+	for (const tab of adminTabs()) {
+		test(tab.name, async ({ page }) => {
+			await page.goto(tab.url);
+
+			const forms = await page.locator('.diluxone-users-admin form[method="post"]').evaluateAll((all: Element[]) =>
+				all
+					.map((form) => form as HTMLFormElement)
+					// A form of settings, not a tool's one button or a row of the
+					// list of sessions: those post to admin-post.php or carry
+					// a tool's name, and their button is part of the row.
+					.filter((form) => !(form.getAttribute('action') ?? '').includes('admin-post.php') && !form.querySelector('input[name="tool"]'))
+					.filter((form) => !form.closest('dialog'))
+					// The order of the account's sections is saved by the drop
+					// that ends a drag; the button in the list is the way to do
+					// it from the keyboard, and it belongs to the list.
+					.filter((form) => !form.classList.contains('diluxone-users-endpoints__order'))
+					.map((form) => ({
+						id: form.id,
+						// The rail is drawn inside the form on most tabs, so the box
+						// can be too: only a button outside the box is its own.
+						own: Array.from(form.querySelectorAll('[type="submit"]')).filter(
+							(button) => !button.closest('[data-diluxone-users-save]')
+						).length,
+						beside: document.querySelectorAll(`[data-diluxone-users-save] [form="${form.id}"]`).length,
+					}))
+			);
+
+			for (const form of forms) {
+				expect(form.id, 'a form of settings has an id for its button to name').not.toBe('');
+				expect(form.own, `${form.id} keeps no button of its own`).toBe(0);
+				expect(form.beside, `${form.id} has its button in the box beside it`).toBe(1);
+			}
+
+			if (forms.length > 0) {
+				await expect(page.locator('[data-diluxone-users-save]')).toBeInViewport();
+			}
+		});
+	}
+});
+
+/**
  * The registry is the whole visual suite's idea of what exists, and a tab
  * nobody wrote down is a tab nothing looks at. So it is checked against the
  * screens themselves: the strip the dashboard draws is read, and a tab in it

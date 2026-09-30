@@ -102,6 +102,7 @@ class LoginRequestTest extends IntegrationTestCase {
 	 * what was typed, and nothing about the account travels in the URL.
 	 */
 	public function test_a_public_name_never_reveals_the_address_behind_it(): void {
+		update_option( 'diluxone_users_handle_enabled', 1 );
 		update_option( 'diluxone_users_handle_login', 1 );
 
 		$user = get_userdata( $this->make_user() );
@@ -118,6 +119,7 @@ class LoginRequestTest extends IntegrationTestCase {
 
 	/** A name nobody has gets the answer a name somebody has gets. */
 	public function test_an_unknown_public_name_answers_like_a_known_one(): void {
+		update_option( 'diluxone_users_handle_enabled', 1 );
 		update_option( 'diluxone_users_handle_login', 1 );
 
 		$url = $this->ask( 'nobody-called-this-' . $this->run );

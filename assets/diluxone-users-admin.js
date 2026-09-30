@@ -926,90 +926,6 @@ function diluxoneUsersChoiceGroups( root ) {
 }() );
 
 /**
- * A rail longer than the window still has to show its end.
- *
- * Staying in view while the settings scroll past is `position: sticky` in the
- * stylesheet, and for almost every rail that is the whole story: it comes to
- * rest under the toolbar and the form goes by underneath it.
- *
- * The exception is the rail that is taller than the window — the sign-in tab
- * with three providers half configured, a state, a note and five ways out.
- * Resting its top under the toolbar pins its first line and pushes its last
- * one below the bottom edge, for good: no amount of scrolling brings the links
- * back, because the thing holding them is nailed to the top of the screen. The
- * pattern that answers it is to rest later — the rail travels up with the page
- * until its own last line is on the bottom edge, and stops there — and the
- * distance to rest at is the window's height less the rail's, which is a
- * measurement and not something a stylesheet can work out.
- *
- * So the stylesheet keeps the rule and this hands it the one number: where the
- * rail rests, as `--du-follow-top`. Nothing else here decides anything. With
- * the script off, or before it runs, the fallback in the stylesheet applies and
- * the rail behaves like the preview column does.
- */
-( function () {
-	'use strict';
-
-	var rails = document.querySelectorAll( '[data-diluxone-users-follow]' );
-
-	if ( ! rails.length ) {
-		return;
-	}
-
-	function place( rail ) {
-		// Always measured at rest. What is worked out below is the offset, so
-		// reading the rail while a previous answer is still on it measures the
-		// answer instead of the rail.
-		rail.style.removeProperty( '--du-follow-top' );
-
-		var how = window.getComputedStyle( rail );
-
-		// Under 960px the stylesheet puts the rail below the settings and
-		// stops it following. That breakpoint is WordPress's and it is written
-		// down once, over there: what is asked here is whether the rail is
-		// still a column beside something, which is the same question without
-		// a second copy of the number.
-		if ( 'static' === how.position ) {
-			return;
-		}
-
-		var rest = parseFloat( how.top );
-
-		if ( isNaN( rest ) ) {
-			return;
-		}
-
-		// The same air under it as over it: a last line touching the bottom
-		// edge of the window reads as a line that has been cut off.
-		var room = window.innerHeight - ( rest * 2 );
-		var tall = rail.getBoundingClientRect().height;
-
-		if ( tall > room ) {
-			rail.style.setProperty( '--du-follow-top', Math.round( rest - ( tall - room ) ) + 'px' );
-		}
-	}
-
-	function all() {
-		rails.forEach( place );
-	}
-
-	// Both halves of the sum change while the page is open: the window is
-	// resized, and the rail itself grows when something in it is answered —
-	// a provider turned on adds a caveat, a state line becomes two.
-	window.addEventListener( 'resize', all );
-
-	if ( 'function' === typeof window.ResizeObserver ) {
-		var watch = new window.ResizeObserver( all );
-
-		rails.forEach( function ( rail ) {
-			watch.observe( rail );
-		} );
-	} else {
-		all();
-	}
-}() );
-
-/**
  * Asking before something that cannot be undone, and filters that apply as
  * soon as they change. Said in the markup (`data-diluxone-users-confirm`,
  * `data-diluxone-users-autosubmit`) and wired here, once, for the whole page.
@@ -1030,6 +946,42 @@ function diluxoneUsersChoiceGroups( root ) {
 
 		if ( field.hasAttribute && field.hasAttribute( 'data-diluxone-users-autosubmit' ) && field.form ) {
 			field.form.submit();
+		}
+	} );
+}() );
+
+/**
+ * The box that saves says whether there is anything to save.
+ *
+ * The button sits in the column beside the form, tied to it by its `form`
+ * attribute, so it is the form it names that is watched — not whatever is
+ * around the button. The line over it is printed hidden: without this nobody
+ * is watching, and "nothing changed yet" is not something the page can
+ * vouch for on its own.
+ */
+( function () {
+	'use strict';
+
+	document.querySelectorAll( '[data-diluxone-users-save]' ).forEach( function ( box ) {
+		var state = box.querySelector( '.du-save__state' );
+
+		box.querySelectorAll( '.du-save__button' ).forEach( function ( button ) {
+			var form = button.form;
+
+			if ( ! form ) {
+				return;
+			}
+
+			function changed() {
+				box.classList.add( 'is-dirty' );
+			}
+
+			form.addEventListener( 'input', changed );
+			form.addEventListener( 'change', changed );
+		} );
+
+		if ( state ) {
+			state.hidden = false;
 		}
 	} );
 }() );

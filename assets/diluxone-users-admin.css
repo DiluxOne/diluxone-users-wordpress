@@ -39,6 +39,7 @@
 	--du-muted: #646970;
 
 	--du-title: 15px;
+	--du-heading: 18px;
 	--du-help: 13px;
 
 	/* The amber WordPress itself warns in. The aside has no colour of its
@@ -203,11 +204,15 @@
    separate, and drew a second line under the tab's own with a band of empty
    white between the two. That band is what read as an empty bordered block at
    the top of a screen — a box containing nothing, which is what it was. */
+/* A size of its own, a step over the title of an option: at the same 15px the
+   heading of a group and the name of the first card under it read as two of
+   the same thing, and the group was not found by looking down the screen. */
 .diluxone-users-admin .du-section {
-	margin: var(--du-6) 0 var(--du-3);
+	margin: var(--du-6) 0 var(--du-2);
 	padding-top: var(--du-5);
 	border-top: 1px solid var(--du-line);
-	font-size: var(--du-title);
+	font-size: var(--du-heading);
+	line-height: 1.35;
 	font-weight: 600;
 	color: var(--du-text);
 }
@@ -1079,22 +1084,67 @@
    and a form of forty settings is two windows of scrolling in which the answer
    to "what is this tab even for" is somewhere above the top of the screen.
 
-   There are two cases and one rule. A rail shorter than the window comes to
-   rest under the toolbar and stays there, which is `top` and the whole of what
-   CSS can do here. A rail taller than the window cannot: resting its top under
-   the toolbar means its last line is below the bottom edge for as long as the
-   page is scrolled, and the end of the rail is where the links are. That one
-   rests later — far enough down that its own last line lands on the bottom
-   edge — and the number is its height, which is not a number CSS knows.
-   `--du-follow-top` is where the script puts it after measuring, and the
-   fallback is the ordinary case, so a rail with no script running still
-   behaves like every other column here. */
+   A rail is never taller than the window. Past it, it scrolls inside itself,
+   and the box that saves stays at the head of it while the rest goes by
+   underneath: the top of the rail is where the button that saves the tab is,
+   and that is the one thing in it that must never be out of reach. */
 .diluxone-users-studio__aside {
 	position: sticky;
-	top: var(--du-follow-top, var(--du-stick));
+	top: var(--du-stick);
+	max-height: calc(100vh - var(--du-stick) - var(--du-3));
+	overflow-y: auto;
+	overscroll-behavior: contain;
 	min-width: 0;
 }
 .diluxone-users-studio__aside > * { margin-bottom: var(--du-block); }
+
+/* The box that saves. First in the column and a box like the others, but the
+   one with the accent on it: the rest of the column is read, this is pressed.
+   The button runs the width of the box so it is found without aiming, and the
+   line over it is the script's — whether anything has changed since the
+   screen was opened. */
+.diluxone-users-admin .du-save {
+	position: sticky;
+	top: 0;
+	z-index: 1;
+	display: flex;
+	flex-direction: column;
+	gap: var(--du-3);
+	padding: var(--du-4);
+	border: 1px solid var(--du-line);
+	border-top: 3px solid var(--du-accent, #2271b1);
+	border-radius: var(--du-radius);
+	background: var(--du-ground);
+}
+.diluxone-users-admin .du-save__state {
+	display: flex;
+	align-items: center;
+	gap: var(--du-2);
+	margin: 0;
+	font-size: var(--du-help);
+	color: var(--du-muted);
+}
+.diluxone-users-admin .du-save__state[hidden] { display: none; }
+.diluxone-users-admin .du-save__state::before {
+	content: "";
+	flex: none;
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	background: var(--du-line);
+}
+.diluxone-users-admin .du-save__dirty,
+.diluxone-users-admin .du-save.is-dirty .du-save__clean { display: none; }
+.diluxone-users-admin .du-save.is-dirty .du-save__dirty { display: inline; }
+.diluxone-users-admin .du-save.is-dirty .du-save__state { color: var(--du-text); }
+.diluxone-users-admin .du-save.is-dirty .du-save__state::before { background: var(--du-warn); }
+.diluxone-users-admin .du-save__button.button {
+	width: 100%;
+	justify-content: center;
+	text-align: center;
+}
+/* On the preview it sits over the picture, with the same air as the rail. */
+.diluxone-users-studio__preview > .du-save { margin-bottom: var(--du-block); }
 .diluxone-users-studio__aside > :last-child { margin-bottom: 0; }
 .diluxone-users-admin .diluxone-users-studio__aside .du-note {
 	max-width: none;
@@ -1155,16 +1205,17 @@
 	/* Underneath, the rail is no longer beside anything: there is nothing left
 	   for it to stay level with, and a box floating over the end of a form is
 	   in the way. So it stops following and says where it starts, the way the
-	   sections of the main column do.
-
-	   This is also what the script reads to know it has nothing to measure:
-	   it asks the rail whether it is still positioned rather than carrying a
-	   second copy of the 960. */
+	   sections of the main column do — and the box that saves, first in it,
+	   lands right where the form ends, which is where a button was always
+	   looked for on a screen this narrow. */
 	.diluxone-users-studio__aside {
 		position: static;
+		max-height: none;
+		overflow: visible;
 		padding-top: var(--du-5);
 		border-top: 1px solid var(--du-line);
 	}
+	.diluxone-users-admin .du-save { position: static; }
 }
 
 /* A setting the site pins from code: the control is visible, and it says it

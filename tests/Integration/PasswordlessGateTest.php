@@ -107,11 +107,29 @@ class PasswordlessGateTest extends IntegrationTestCase {
 
 	public function test_with_wordpress_screens_nothing_is_touched(): void {
 		update_option( 'diluxone_users_wp_screens', 'wp' );
-		update_option( 'diluxone_users_login_method', 'link' );
-		$this->request( 'POST' );
+		update_option( 'diluxone_users_login_method', 'both' );
+		$this->request( 'GET' );
 
 		diluxone_users_block_wp_login();
 
 		$this->assertTrue( true );
+	}
+
+	/**
+	 * "Keep it as a second sign-in screen" on a site that closed the password.
+	 *
+	 * The native form takes a username and a password and nothing else, so
+	 * leaving it open was leaving a password working on a site whose every
+	 * screen says a password opens nothing. The answer stored is kept for the
+	 * day the password comes back; today the second door is shut.
+	 */
+	public function test_with_only_the_link_the_second_door_is_shut_too(): void {
+		update_option( 'diluxone_users_wp_screens', 'wp' );
+		update_option( 'diluxone_users_login_method', 'link' );
+		$this->request( 'POST', array(), array( 'log' => 'someone', 'pwd' => 'secret' ) );
+
+		$this->expectException( \WPAjaxDieContinueException::class );
+
+		diluxone_users_block_wp_login();
 	}
 }

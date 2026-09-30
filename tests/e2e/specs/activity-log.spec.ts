@@ -1,7 +1,7 @@
 import type { Page } from '@playwright/test';
 import { test, expect } from '../support/fixtures';
 import { freshEmail } from '../support/api';
-import { adminUrl, savePanel, signInWithPassword } from '../support/ui';
+import { adminUrl, savePanel, saveButton, signInWithPassword } from '../support/ui';
 import { ADMIN_STATE } from '../../../playwright.config';
 
 /**
@@ -142,11 +142,11 @@ test.describe('The activity log', () => {
 		// the table gets written when a button is pressed, because there is no
 		// button on it.
 		await page.goto(activity(''));
-		await expect(page.locator('#submit')).toHaveCount(0);
+		await expect(saveButton(page)).toHaveCount(0);
 		await expect(rows(page)).toHaveCount(await rows(page).count());
 
 		await page.goto(SETTINGS);
-		await expect(page.locator('#submit')).toHaveCount(1);
+		await expect(saveButton(page)).toHaveCount(1);
 		await expect(page.locator('table[data-diluxone-users-log]')).toHaveCount(0);
 	});
 });

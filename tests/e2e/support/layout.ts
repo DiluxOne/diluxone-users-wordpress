@@ -434,14 +434,30 @@ export async function layoutFindings(
 		   the half that catches a `<p>` somebody echoed. And the state, when
 		   a screen reports one, goes first: it is the part that is about
 		   this site rather than about the plugin, and underneath a paragraph
-		   of manual it is the part nobody reaches. */
+		   of manual it is the part nobody reaches.
+
+		   Over all of it, on a tab that saves, the box that saves: it is not
+		   part of what the rail says, so it is taken out before the state is
+		   counted — and it has to be first, or it is not where every tab
+		   keeps it. */
 		const RAIL_BLOCKS = ['du-state', 'du-note', 'du-links', 'du-notice'];
 		const aside = host.querySelector('.diluxone-users-studio__aside');
 
 		if (aside) {
-			const blocks = Array.from(aside.children).filter((child) =>
+			const drawnBlocks = Array.from(aside.children).filter((child) =>
 				drawn(child, getComputedStyle(child))
 			);
+			const save = drawnBlocks.findIndex((block) => block.classList.contains('du-save'));
+
+			if (save > 0) {
+				found.push({
+					kind: 'shape',
+					where: trail(drawnBlocks[save]),
+					detail: `the box that saves is block ${save + 1} of ${drawnBlocks.length} in the rail, and it goes first`,
+				});
+			}
+
+			const blocks = drawnBlocks.filter((block) => !block.classList.contains('du-save'));
 
 			for (const block of blocks) {
 				if (!RAIL_BLOCKS.some((one) => block.classList.contains(one))) {

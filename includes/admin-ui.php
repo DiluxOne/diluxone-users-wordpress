@@ -206,6 +206,10 @@ function diluxone_users_ui_ground_close(): void {
  * rail reports on this site. It does not repeat the manual, and a sentence
  * that would read the same on a site that has never been configured belongs
  * in part two, where it is honest about being general.
+ *
+ * Above all three, on a tab that saves, goes the button that saves it — see
+ * `diluxone_users_ui_save()`. It is not part of what the rail says; it is the
+ * one thing the rail is for doing, and it goes where it is found first.
  */
 function diluxone_users_ui_aside_open(): void {
 	echo '<div class="diluxone-users-studio"><div class="diluxone-users-studio__fields">';
@@ -221,20 +225,116 @@ function diluxone_users_ui_aside_close( callable $aside ): void {
 
 	ob_start();
 	call_user_func( $aside );
-	$rail = trim( (string) ob_get_clean() );
+	$rail = diluxone_users_ui_save_box() . trim( (string) ob_get_clean() );
 
 	if ( '' !== $rail ) {
 		// The rail stays in view while the settings scroll past it, which is
-		// `position: sticky` in the stylesheet and nothing here. The attribute
-		// is for the one case CSS cannot answer on its own: a rail taller than
-		// the window, where coming to rest under the toolbar would hide its
-		// last line for good. The script measures that one and moves where it
-		// rests; with no script it behaves like every other sticky column.
+		// `position: sticky` in the stylesheet and nothing here.
 		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- the pieces that printed it escaped it.
-		echo '<div class="diluxone-users-studio__aside" data-diluxone-users-follow>' . $rail . '</div>';
+		echo '<div class="diluxone-users-studio__aside">' . $rail . '</div>';
 	}
 
 	echo '</div>';
+}
+
+/**
+ * Asks for the button that saves a form to be drawn in the column beside it.
+ *
+ * The button used to end the form, and a form of forty settings is two
+ * windows of scrolling: the one control every visit ends on was the one that
+ * could not be seen while anything was being changed. Beside the settings, in
+ * the column that follows the page down, it is always in reach, and it is in
+ * the same place on every screen — which is the other half of the point.
+ *
+ * It is queued rather than printed because the screen does not print the
+ * column: `diluxone_users_ui_aside_close()` does, or the preview beside a
+ * design tab, or `diluxone_users_screen_panels()` when a panel had nothing
+ * else to put there. Whichever of them draws the second column takes what is
+ * queued and puts it first. The button is tied to its form by the `form`
+ * attribute and not by being inside it, so it can live outside the form — and
+ * a tab with two forms queues two buttons, each with the words of what it
+ * saves.
+ *
+ * @param string $form  The id of the form it sends.
+ * @param string $label What it says; "Save changes" when nothing more precise
+ *                      is true.
+ * @param string $name  A name for the button, when the save tells presses
+ *                      apart by it. Never `submit`: a control of that name
+ *                      shadows the form's own method.
+ */
+function diluxone_users_ui_save( string $form, string $label = '', string $name = '' ): void {
+	diluxone_users_ui_save_queue(
+		array(
+			'form'  => $form,
+			'label' => '' !== $label ? $label : __( 'Save changes', 'diluxone-users' ),
+			'name'  => $name,
+		)
+	);
+}
+
+/**
+ * What is waiting to be drawn, and the way to take it.
+ *
+ * @param array{form: string, label: string, name: string}|null $button One more, or null to take them all.
+ * @return list<array{form: string, label: string, name: string}> What was queued, when taken.
+ */
+function diluxone_users_ui_save_queue( ?array $button = null ): array {
+	static $queue = array();
+
+	if ( null !== $button ) {
+		$queue[] = $button;
+
+		return array();
+	}
+
+	$taken = $queue;
+	$queue = array();
+
+	return $taken;
+}
+
+/** Whether a button is still waiting for a column to be drawn in. */
+function diluxone_users_ui_save_pending(): bool {
+	$queue = diluxone_users_ui_save_queue();
+
+	foreach ( $queue as $button ) {
+		diluxone_users_ui_save_queue( $button );
+	}
+
+	return array() !== $queue;
+}
+
+/**
+ * The box the queued buttons are drawn in, or nothing when there are none.
+ *
+ * One box, whatever is in it: a button the width of the column and a line
+ * over it that says whether anything on the screen has changed since it was
+ * opened. The line is the script's — without it nobody is watching the form,
+ * and a sentence that cannot be kept true is not printed.
+ */
+function diluxone_users_ui_save_box(): string {
+	$buttons = diluxone_users_ui_save_queue();
+
+	if ( array() === $buttons ) {
+		return '';
+	}
+
+	$html = sprintf(
+		'<div class="du-save" data-diluxone-users-save><p class="du-save__state" hidden><span class="du-save__clean">%1$s</span><span class="du-save__dirty">%2$s</span></p>',
+		esc_html__( 'Nothing changed yet', 'diluxone-users' ),
+		esc_html__( 'There are unsaved changes', 'diluxone-users' )
+	);
+
+	foreach ( $buttons as $button ) {
+		$html .= sprintf(
+			'<button type="submit" class="button button-primary button-large du-save__button" form="%1$s"%2$s>%3$s</button>',
+			esc_attr( $button['form'] ),
+			'' !== $button['name'] ? ' name="' . esc_attr( $button['name'] ) . '" value="1"' : '',
+			esc_html( $button['label'] )
+		);
+	}
+
+	return $html . '</div>';
 }
 
 /**

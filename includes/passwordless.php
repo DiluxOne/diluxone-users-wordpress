@@ -161,15 +161,22 @@ function diluxone_users_wp_screens(): string {
 	return in_array( $mode, array( 'auto', 'mine', 'wp' ), true ) ? $mode : 'auto';
 }
 
-/** Are WordPress's own sign-in screens being taken over right now? */
+/**
+ * Are WordPress's own sign-in screens being taken over right now?
+ *
+ * With the e-mail link as the only way in, always, whatever is stored. 'wp'
+ * means "leave the second door open", and on a site that closed the password
+ * that door is the one place a password would still open: the native form
+ * posts a username and a password and WordPress signs them in, while every
+ * screen of this plugin says a password opens nothing here. The stored answer
+ * is kept — it is what applies the day a password is a way in again.
+ */
 function diluxone_users_wp_screens_taken(): bool {
-	$mode = diluxone_users_wp_screens();
-
-	if ( 'wp' === $mode ) {
-		return false;
+	if ( diluxone_users_login_only_link() ) {
+		return true;
 	}
 
-	return 'mine' === $mode || diluxone_users_login_only_link();
+	return 'mine' === diluxone_users_wp_screens();
 }
 
 /** Sends wp-login.php to the sign-in page. */

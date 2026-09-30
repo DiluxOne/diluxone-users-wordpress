@@ -1,6 +1,6 @@
 import type { Locator, Page } from '@playwright/test';
 import { test, expect } from '../support/fixtures';
-import { adminUrl, loginWay, savePanel } from '../support/ui';
+import { adminUrl, loginWay, savePanel, saveButton } from '../support/ui';
 import { ADMIN_STATE } from '../../../playwright.config';
 
 /**
@@ -66,7 +66,7 @@ test.describe('Security › Summary', () => {
 
 		// It edits nothing, so it carries no Save button: a screen that offers
 		// one and writes nothing is the lie this tab exists to avoid.
-		await expect(page.locator('#submit')).toHaveCount(0);
+		await expect(saveButton(page)).toHaveCount(0);
 	});
 
 	test('the second step: the row is read from the setting, not from the default', async ({

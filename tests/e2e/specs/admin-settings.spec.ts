@@ -13,6 +13,7 @@ import {
 	passwordForm,
 	registerScreen,
 	savePanel,
+	saveButton,
 	signInWithPassword,
 	ssoButton,
 	submitPanelWithoutScript,
@@ -390,7 +391,7 @@ test.describe('A screen that refuses what it cannot save', () => {
 
 		// What a person meets: the press does not leave the page, and the
 		// group is the thing marked.
-		await page.locator('#submit').click();
+		await saveButton(page).click();
 		await expect(group).toHaveClass(/is-short/);
 
 		// And with the script stepped over, the save says the same thing.
@@ -422,7 +423,7 @@ test.describe('A screen that refuses what it cannot save', () => {
 
 		await untickAll(group);
 
-		await page.locator('#submit').click();
+		await saveButton(page).click();
 		await expect(group).toHaveClass(/is-short/);
 
 		await submitPanelWithoutScript(page);
@@ -463,12 +464,12 @@ test.describe('A screen that refuses what it cannot save', () => {
 		// The table is on Reports, where nothing is saved.
 		await page.goto(adminUrl('diluxone-users-reports', 'sessions'));
 		await expect(page.locator('table.diluxone-users-list')).toBeVisible();
-		await expect(page.locator('#submit')).toHaveCount(0);
+		await expect(saveButton(page)).toHaveCount(0);
 
 		// And Security keeps the rule it always had — the boxes that say how
 		// long a session lasts — with no list of names under them.
 		await page.goto(adminUrl('diluxone-users-security', 'sessions'));
-		await expect(page.locator('#submit')).toBeVisible();
+		await expect(saveButton(page)).toBeVisible();
 		await expect(page.locator('table.diluxone-users-list')).toHaveCount(0);
 	});
 });

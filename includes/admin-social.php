@@ -573,9 +573,10 @@ function diluxone_users_screen_provider( string $id, array $provider ): void {
 function diluxone_users_screen_provider_settings( string $id, string $state ): void {
 	$credentials = diluxone_users_sso_credentials( $id );
 	?>
-	<form method="post">
+	<form method="post" id="diluxone-users-provider-form">
 		<?php
 		wp_nonce_field( 'diluxone_users_provider', 'diluxone_users_provider_nonce' );
+		diluxone_users_ui_save( 'diluxone-users-provider-form' );
 
 		diluxone_users_ui_section(
 			__( 'What the app gave you', 'diluxone-users' ),
@@ -632,8 +633,6 @@ function diluxone_users_screen_provider_settings( string $id, string $state ): v
 				),
 			)
 		);
-
-		submit_button();
 		?>
 	</form>
 	<?php

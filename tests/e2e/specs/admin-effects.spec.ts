@@ -271,14 +271,14 @@ test.describe('Social › Providers', () => {
 });
 
 test.describe('Access › The sign-in page', () => {
-	test('“WordPress’s own screens” leaves wp-login.php drawing its form, even with only the link', async ({
+	test('“WordPress’s own screens” leaves wp-login.php drawing its form while a password is a way in', async ({
 		page,
 		guest,
 		pages,
 		options,
 	}) => {
 		await options.keep(['diluxone_users_wp_screens']);
-		await options.set({ diluxone_users_login_method: 'link' });
+		await options.set({ diluxone_users_login_method: 'both' });
 
 		await page.goto(adminUrl('diluxone-users-login', 'page'));
 		await page.locator('[name="diluxone_users_wp_screens"][value="wp"]').check({ force: true });
@@ -287,7 +287,29 @@ test.describe('Access › The sign-in page', () => {
 		await guest.goto('/wp-login.php');
 		expect(new URL(guest.url()).pathname).toBe('/wp-login.php');
 		await expect(guest.locator('#loginform')).toBeVisible();
+	});
 
+	/*
+	 * Its form takes a password and nothing else, so on a site with no
+	 * password the second door is the one place a password would still open.
+	 * The screen does not offer it, shows the answer in force, and the site
+	 * does what the screen says.
+	 */
+	test('with no password, wp-login.php is no second door: the screen and the site agree', async ({
+		page,
+		guest,
+		pages,
+		options,
+	}) => {
+		await options.keep(['diluxone_users_wp_screens']);
+		await options.set({ diluxone_users_login_method: 'link', diluxone_users_wp_screens: 'wp' });
+
+		await page.goto(adminUrl('diluxone-users-login', 'page'));
+		await expect(page.locator('[name="diluxone_users_wp_screens"][value="wp"]')).toBeDisabled();
+		await expect(page.locator('[name="diluxone_users_wp_screens"][value="auto"]')).toBeChecked();
+
+		await guest.goto('/wp-login.php');
+		expect(new URL(guest.url()).pathname).toBe(new URL(pages.login.url).pathname);
 	});
 
 	test('“the site’s own page” sends wp-login.php there, even with the password on', async ({

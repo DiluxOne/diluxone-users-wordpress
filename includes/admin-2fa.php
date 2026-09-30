@@ -210,6 +210,16 @@ function diluxone_users_screen_login_2fa(): void {
 		)
 	);
 
+	/*
+	 * Off is the one answer that makes every question below it moot, and the
+	 * rest of the screen is kept on show so it can be prepared before it is
+	 * turned on. Said once, right under the answer that caused it, while that
+	 * answer is the saved one.
+	 */
+	if ( 'off' === $mode ) {
+		diluxone_users_not_now( __( 'The second step is off, so nothing below is asked of anybody. What is chosen applies the day it is turned on.', 'diluxone-users' ) );
+	}
+
 	diluxone_users_ui_field_open( __( 'To whom', 'diluxone-users' ) );
 	diluxone_users_scope_control( 'diluxone_users_2fa' );
 	diluxone_users_ui_field_close( __( 'Asking only the roles that can change things is the usual middle ground: the second step where the friction is worth it.', 'diluxone-users' ) );
@@ -248,6 +258,14 @@ function diluxone_users_screen_login_2fa(): void {
 		__( 'Asking it of somebody who came in by link', 'diluxone-users' ),
 		__( 'Whether there is a sign-in link at all is decided on Access. This is only what happens after one is followed.', 'diluxone-users' )
 	);
+
+	if ( ! diluxone_users_login_has_link() ) {
+		diluxone_users_not_now(
+			__( 'The e-mail link is not one of the ways in on this site, so nobody follows one. What is chosen here applies the day it is.', 'diluxone-users' ),
+			diluxone_users_admin_url( 'diluxone-users-login', array( 'tab' => 'ways' ) ),
+			__( 'Ways in →', 'diluxone-users' )
+		);
+	}
 
 	diluxone_users_ui_choices(
 		array(

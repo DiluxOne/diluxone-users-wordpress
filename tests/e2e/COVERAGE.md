@@ -17,6 +17,7 @@ product is fixed, not to be loosened.
 | Password form: `both`, `password`, `link` | `password-login` › the three ways in |
 | wp-login.php taken over (`auto`), POST allowed (H-05), escape hatch, logout | `password-login` |
 | wp-login.php left to WordPress (`wp`) and sent to the site's page (`mine`) | `admin-effects` › Access › The sign-in page |
+| No password: `wp` not offered, the third answer in force, wp-login.php sent to the page | `admin-effects` › with no password, wp-login.php is no second door |
 | The four ways in as tabs or stacked, order, the tab that opens, no JS | `login-ways` |
 | Split-screen layout, messages rewritten in the dashboard | `login-screen` |
 | Sign in with the public name (handle login) | `account-area` › The public name |
@@ -88,6 +89,7 @@ product is fixed, not to be loosened.
 | Every tab of every screen renders, no notice, no layout breakage | `admin-settings` › Every settings screen renders; `admin-layout` |
 | Pictures of every tab | `admin-snapshots` (`make test-visual`, not in CI) |
 | Access › Ways in / Registration / Messages / Arrangement saves | `admin-settings`, `login-ways`, `login-screen` |
+| Every tab that saves has its button in the box beside it, first in the column, in view | `admin-layout` › Every tab saves from beside itself |
 | Security › Summary, Two-step, Sessions, Proxy | `security-summary`, `admin-settings`, `admin-effects` |
 | Social › Providers toggle | `admin-effects` › Social › Providers |
 | Design › Brand and previews | `design-brand`, `preview` |
