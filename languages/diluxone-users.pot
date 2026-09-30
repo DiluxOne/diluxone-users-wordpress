@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-09-30T19:06:54+00:00\n"
+"POT-Creation-Date: 2026-09-30T20:40:39+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: diluxone-users\n"
@@ -1870,6 +1870,8 @@ msgstr ""
 
 #: includes/admin-design.php:317
 #: includes/pages.php:36
+#: templates/hub-door.php:22
+#: templates/hub-door.php:25
 #: templates/register.php:65
 msgid "Create your account"
 msgstr ""
@@ -2047,7 +2049,7 @@ msgstr ""
 
 #: includes/admin-fields.php:558
 #: includes/admin-panels.php:712
-#: includes/sso.php:1123
+#: includes/sso.php:1142
 #: templates/sessions.php:63
 msgid "Close"
 msgstr ""
@@ -2587,7 +2589,7 @@ msgstr ""
 
 #: includes/admin-log.php:60
 #: includes/admin-log.php:750
-#: includes/admin-network.php:643
+#: includes/admin-network.php:605
 msgid "Log settings"
 msgstr ""
 
@@ -2752,7 +2754,7 @@ msgstr ""
 
 #: includes/admin-log.php:381
 #: includes/admin-people.php:253
-#: includes/auth-passkeys.php:601
+#: includes/auth-passkeys.php:627
 #: includes/login-ways.php:513
 msgid "Passkey"
 msgstr ""
@@ -2791,7 +2793,7 @@ msgstr ""
 
 #: includes/admin-log.php:566
 #: includes/admin-log.php:658
-#: includes/admin-network.php:468
+#: includes/admin-network.php:430
 #: includes/log-privacy.php:97
 msgid "Site"
 msgstr ""
@@ -3451,6 +3453,8 @@ msgstr ""
 #: includes/passwordless.php:240
 #: includes/site-menu.php:105
 #: templates/account-guest.php:15
+#: templates/hub-door.php:16
+#: templates/hub-door.php:19
 #: templates/login.php:82
 #: templates/register.php:41
 #: templates/register.php:58
@@ -3684,36 +3688,36 @@ msgstr ""
 msgid "Deleting the plugin"
 msgstr ""
 
-#: includes/admin-network.php:352
+#: includes/admin-network.php:314
 msgid "On this network the plugin applies one set of rules to every site. Who gets in and how safely, the social sign-in apps, the fields a person has and what the activity log keeps are decided here, for all of them. Each site keeps its own menus, admin bar, reports and maintenance."
 msgstr ""
 
-#: includes/admin-network.php:369
+#: includes/admin-network.php:331
 msgid "Where the accounts live"
 msgstr ""
 
-#: includes/admin-network.php:371
+#: includes/admin-network.php:333
 msgid "The main site of the network. Its sign-in, registration and account pages, and how they look, are set on its own dashboard."
 msgstr ""
 
-#: includes/admin-network.php:375
+#: includes/admin-network.php:337
 msgid "Open its dashboard"
 msgstr ""
 
-#: includes/admin-network.php:384
+#: includes/admin-network.php:346
 msgid "How the sites are addressed"
 msgstr ""
 
-#: includes/admin-network.php:385
+#: includes/admin-network.php:347
 msgid "Subdomains"
 msgstr ""
 
-#: includes/admin-network.php:385
+#: includes/admin-network.php:347
 msgid "Subdirectories"
 msgstr ""
 
 #. translators: %s: number of sites
-#: includes/admin-network.php:388
+#: includes/admin-network.php:350
 #, php-format
 msgid "%s site on this network."
 msgid_plural "%s sites on this network."
@@ -3721,118 +3725,118 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %s: the addresses of the sites, each in <code>
-#: includes/admin-network.php:409
+#: includes/admin-network.php:371
 #, php-format
 msgid "These sites have a domain of their own: %s."
 msgstr ""
 
-#: includes/admin-network.php:412
+#: includes/admin-network.php:374
 msgid "People have to sign in again on these sites: a session opened on the rest of the network does not reach a domain of its own. That is not supported in this version."
 msgstr ""
 
-#: includes/admin-network.php:423
+#: includes/admin-network.php:385
 msgid "What a site can no longer change"
 msgstr ""
 
-#: includes/admin-network.php:425
+#: includes/admin-network.php:387
 msgid "The second step, passkeys, how long a session lasts, the proxy, the social sign-in apps and their rules, the fields a person has and what the log keeps. A site administrator does not see these screens, and nothing sent to their own site writes them."
 msgstr ""
 
-#: includes/admin-network.php:426
+#: includes/admin-network.php:388
 msgid "What fits into each site’s theme is still that site’s: where the account link goes in its menus, its admin bar and its dashboard profile."
 msgstr ""
 
-#: includes/admin-network.php:441
+#: includes/admin-network.php:403
 msgid "Set for the whole network"
 msgstr ""
 
-#: includes/admin-network.php:461
+#: includes/admin-network.php:423
 msgid "What the sites had set differently"
 msgstr ""
 
-#: includes/admin-network.php:462
+#: includes/admin-network.php:424
 msgid "When the settings became the network’s, the main site’s were kept. These sites had something else, and now follow the network. The user fields are the exception: every site’s fields were kept."
 msgstr ""
 
-#: includes/admin-network.php:469
+#: includes/admin-network.php:431
 msgid "Setting"
 msgstr ""
 
-#: includes/admin-network.php:470
+#: includes/admin-network.php:432
 msgid "What it had"
 msgstr ""
 
-#: includes/admin-network.php:494
+#: includes/admin-network.php:456
 msgid "Different credentials, not shown. The main site’s are the network’s now."
 msgstr ""
 
-#: includes/admin-network.php:496
+#: includes/admin-network.php:458
 msgid "Everything was to go when the plugin is deleted. The network’s answer starts unticked: it is decided on the Deleting the plugin tab."
 msgstr ""
 
 #. translators: %s: the key of a user field
-#: includes/admin-network.php:500
+#: includes/admin-network.php:462
 #, php-format
 msgid "A different definition of the field %s. The main site’s was kept."
 msgstr ""
 
 #. translators: 1: plugin name, 2: the names of the sites, comma separated
-#: includes/admin-network.php:533
+#: includes/admin-network.php:495
 #, php-format
 msgid "%1$s now applies one set of settings to the whole network, taken from the main site. These sites had set some of them differently: %2$s."
 msgstr ""
 
-#: includes/admin-network.php:539
+#: includes/admin-network.php:501
 msgid "See what was different"
 msgstr ""
 
-#: includes/admin-network.php:541
+#: includes/admin-network.php:503
 msgid "Dismiss"
 msgstr ""
 
-#: includes/admin-network.php:580
+#: includes/admin-network.php:542
 msgid "By default, deleting the plugin removes nothing. The settings stay, every site’s activity log stays, and so does everything in people’s profiles — their details, their public names, their passkeys and their second factors. A plugin deleted by accident, or deleted to be installed again, should not be what loses somebody their account."
 msgstr ""
 
-#: includes/admin-network.php:589
+#: includes/admin-network.php:551
 #: includes/admin-tools.php:630
 msgid "Remove everything this plugin wrote when it is deleted"
 msgstr ""
 
-#: includes/admin-network.php:590
+#: includes/admin-network.php:552
 msgid "The network’s settings, every site’s settings and activity log, and what the plugin keeps in people’s profiles. It cannot be undone, and it runs on delete, not on deactivate."
 msgstr ""
 
-#: includes/admin-network.php:599
+#: includes/admin-network.php:561
 msgid "Deleting the plugin removes everything it wrote, on every site."
 msgstr ""
 
-#: includes/admin-network.php:600
+#: includes/admin-network.php:562
 msgid "Deleting the plugin leaves the data where it is."
 msgstr ""
 
-#: includes/admin-network.php:648
+#: includes/admin-network.php:610
 msgid "Set somewhere else"
 msgstr ""
 
-#: includes/admin-network.php:650
+#: includes/admin-network.php:612
 msgid "On this network the rules about people are the network’s, and the screens people sign in and keep their account on are the main site’s. This site keeps its own menus, admin bar, reports and maintenance."
 msgstr ""
 
-#: includes/admin-network.php:651
+#: includes/admin-network.php:613
 msgid "On this network the rules about people are the network’s: they apply to every site, and they are set in Network Admin."
 msgstr ""
 
-#: includes/admin-network.php:663
+#: includes/admin-network.php:625
 msgid "Open it"
 msgstr ""
 
-#: includes/admin-network.php:672
+#: includes/admin-network.php:634
 msgid "Managed by the network: one setting for every site, set in Network Admin."
 msgstr ""
 
 #. translators: %s: the name of the network's main site
-#: includes/admin-network.php:675
+#: includes/admin-network.php:637
 #, php-format
 msgid "Set on %s, the site where people sign in and keep their account."
 msgstr ""
@@ -5460,7 +5464,7 @@ msgstr ""
 msgid "That address shows the WordPress form with a username and a password, whatever the site is set to. It is no secret: the password is still what keeps the door shut, so it opens only for an account that has one."
 msgstr ""
 
-#: includes/admin-status.php:602
+#: includes/admin-status.php:605
 #: includes/admin-tools.php:52
 msgid "Tools"
 msgstr ""
@@ -5790,61 +5794,67 @@ msgid ""
 "It is good for %2$d minutes. If you did not ask for it, ignore this message: without the code nobody gets in."
 msgstr ""
 
-#: includes/auth-passkeys.php:425
+#. translators: %s: the name of the site where the network's accounts live
+#: includes/auth-passkeys.php:443
+#, php-format
+msgid "Passkeys are used on %s, where your account is."
+msgstr ""
+
+#: includes/auth-passkeys.php:451
 msgid "This site does not use passkeys."
 msgstr ""
 
-#: includes/auth-passkeys.php:432
+#: includes/auth-passkeys.php:458
 msgid "Session expired. Reload the page."
 msgstr ""
 
-#: includes/auth-passkeys.php:446
+#: includes/auth-passkeys.php:472
 msgid "Too many attempts. Wait a moment and try again."
 msgstr ""
 
-#: includes/auth-passkeys.php:467
+#: includes/auth-passkeys.php:493
 msgid "Unknown step."
 msgstr ""
 
-#: includes/auth-passkeys.php:488
+#: includes/auth-passkeys.php:514
 msgid "That did not check out. Try again."
 msgstr ""
 
-#: includes/auth-passkeys.php:495
+#: includes/auth-passkeys.php:521
 msgid "That key is of a kind this site cannot verify."
 msgstr ""
 
-#: includes/auth-passkeys.php:505
+#: includes/auth-passkeys.php:531
 msgid "That one was already here."
 msgstr ""
 
-#: includes/auth-passkeys.php:518
+#: includes/auth-passkeys.php:544
 msgid "That passkey is already registered to another account."
 msgstr ""
 
 #. translators: %s: the name given to the passkey
-#: includes/auth-passkeys.php:541
+#: includes/auth-passkeys.php:567
 #, php-format
 msgid "A passkey was added: %s."
 msgstr ""
 
-#: includes/auth-passkeys.php:548
+#: includes/auth-passkeys.php:574
 msgid "Passkey saved."
 msgstr ""
 
-#: includes/auth-passkeys.php:618
+#: includes/auth-passkeys.php:644
 msgid "That passkey did not check out."
 msgstr ""
 
-#: includes/auth-passkeys.php:716
+#: includes/auth-passkeys.php:742
 msgid "That did not work. Try again."
 msgstr ""
 
-#: includes/auth-passkeys.php:717
+#: includes/auth-passkeys.php:743
 msgid "This browser is too old for passkeys."
 msgstr ""
 
-#: includes/auth-passkeys.php:744
+#: includes/auth-passkeys.php:770
 msgid "A passkey was removed."
 msgstr ""
 
@@ -6645,6 +6655,12 @@ msgstr ""
 msgid "Activate DiluxOne Users+ for the whole network"
 msgstr ""
 
+#. translators: 1: this site's domain, 2: the name of the site where the network's accounts live
+#: includes/network-hub.php:848
+#, php-format
+msgid "This site is on a domain of its own (%1$s). People must sign in again on this site: signing in on %2$s does not carry over to it. A domain of its own is not supported by DiluxOne Users+ in this version."
+msgstr ""
+
 #: includes/notify.php:35
 msgid "When somebody signs in to my account from a new device"
 msgstr ""
@@ -7251,48 +7267,48 @@ msgstr ""
 msgid "The return URL lives under “Web Settings”, not on the profile’s main page — that is the step everyone misses."
 msgstr ""
 
-#: includes/sso.php:939
+#: includes/sso.php:958
 msgid "The provider did not hand over an access token. Check the client ID and the secret."
 msgstr ""
 
-#: includes/sso.php:950
+#: includes/sso.php:969
 msgid "The token worked but the profile came back empty. The app is probably missing the permissions this provider needs."
 msgstr ""
 
 #. translators: %s: name of the social network
-#: includes/sso.php:978
+#: includes/sso.php:997
 #, php-format
 msgid "The %s account was linked, and it now gets into this account."
 msgstr ""
 
 #. translators: %s: name of the social network
-#: includes/sso.php:1040
+#: includes/sso.php:1059
 #, php-format
 msgid "The %s account was unlinked."
 msgstr ""
 
-#: includes/sso.php:1081
+#: includes/sso.php:1100
 msgid "It works"
 msgstr ""
 
-#: includes/sso.php:1082
+#: includes/sso.php:1101
 msgid "It did not work"
 msgstr ""
 
 #. translators: %s: provider name
-#: includes/sso.php:1087
+#: includes/sso.php:1106
 #, php-format
 msgid "The round trip with %s finished correctly. You can enable the button now."
 msgstr ""
 
 #. translators: %s: provider name
-#: includes/sso.php:1092
+#: includes/sso.php:1111
 #, php-format
 msgid "The round trip with %s failed."
 msgstr ""
 
 #. translators: %s: e-mail address
-#: includes/sso.php:1098
+#: includes/sso.php:1117
 #, php-format
 msgid "The provider handed over this email: %s"
 msgstr ""
@@ -7350,6 +7366,7 @@ msgid "Every line: the edge of a panel, of a field, the rule between two rows."
 msgstr ""
 
 #: templates/account-guest.php:13
+#: templates/hub-door.php:28
 msgid "This is your account"
 msgstr ""
 
@@ -7814,6 +7831,28 @@ msgstr ""
 
 #: templates/accounts.php:74
 msgid "Link"
+msgstr ""
+
+#. translators: %s: the name of the site where the network's accounts live
+#: templates/hub-door.php:18
+#, php-format
+msgid "You sign in on %s, where your account is. You come back here afterwards."
+msgstr ""
+
+#. translators: %s: the name of the site where the network's accounts live
+#: templates/hub-door.php:24
+#, php-format
+msgid "Accounts are created on %s, for every site of the network. You come back here afterwards."
+msgstr ""
+
+#. translators: %s: the name of the site where the network's accounts live
+#: templates/hub-door.php:30
+#, php-format
+msgid "Your account is kept on %s, for every site of the network."
+msgstr ""
+
+#: templates/hub-door.php:31
+msgid "Open your account"
 msgstr ""
 
 #: templates/login-2fa.php:23
