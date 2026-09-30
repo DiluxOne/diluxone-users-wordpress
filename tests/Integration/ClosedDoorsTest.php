@@ -118,6 +118,41 @@ class ClosedDoorsTest extends IntegrationTestCase {
 		}
 	}
 
+	/** Whoever administers the site does close them, on a single site and on a network alike. */
+	public function test_an_administrator_closes_another_persons_sessions(): void {
+		$admin  = $this->make_user( 'administrator' );
+		$member = $this->make_user();
+
+		if ( is_multisite() ) {
+			// Acting on another account is the network's to allow; its super
+			// admins are who the network lets do it.
+			grant_super_admin( $admin );
+		}
+
+		wp_set_current_user( $member );
+		$token = \WP_Session_Tokens::get_instance( $member )->create( time() + HOUR_IN_SECONDS );
+
+		wp_set_current_user( $admin );
+		$this->postAs(
+			$admin,
+			array(
+				'_wpnonce'            => wp_create_nonce( 'diluxone_users_sessions_admin' ),
+				'diluxone_users_user' => (string) $member,
+			)
+		);
+
+		try {
+			$url = $this->expectRedirect( 'diluxone_users_sessions_admin_close' );
+		} finally {
+			if ( is_multisite() ) {
+				revoke_super_admin( $admin );
+			}
+		}
+
+		$this->assertSame( 'closed', $this->queryArg( $url, 'diluxone_users_done' ) );
+		$this->assertNull( \WP_Session_Tokens::get_instance( $member )->get( $token ) );
+	}
+
 	/**
 	 * What went wrong in the public-name form reaches the page it lands on
 	 * from the server, not from the address: a link whose query string makes
