@@ -35,7 +35,7 @@ async function menuOf(page: import('@playwright/test').Page): Promise<string[]> 
 }
 
 test.describe('Network Admin has the network’s screens', () => {
-	test('in its menu: the overview, security, social login, user fields and the activity log, and nothing of a site’s', async ({ page }) => {
+	test('in its menu: the overview, membership, security, social login, user fields and the activity log, and nothing of a site’s', async ({ page }) => {
 		await page.goto(network('admin.php?page=diluxone-users'));
 
 		expect((await menuOf(page)).sort()).toEqual(Object.keys(NETWORK_SCREENS).sort());
@@ -221,7 +221,7 @@ test.describe('A site’s menu keeps only what is its own', () => {
 		// — a super admin, here — gets the way in.
 		const elsewhere = page.locator('.diluxone-users-card').filter({ hasText: 'Managed by the network' });
 
-		await expect(elsewhere).toHaveCount(4);
+		await expect(elsewhere, 'security, social login, user fields, log settings and membership').toHaveCount(5);
 		await expect(elsewhere.first().locator('a')).toHaveAttribute('href', /\/wp-admin\/network\/admin\.php\?page=diluxone-users-/);
 
 		// And each of the main site's screens, with the way to it.

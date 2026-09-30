@@ -209,59 +209,6 @@ class MultisiteTest extends IntegrationTestCase {
 		$this->assertFalse( wp_next_scheduled( DILUXONE_USERS_LOG_PURGE ) );
 	}
 
-	/**
-	 * Anybody can type anybody's address. Asking for a link on a site must
-	 * not make the owner of that address a member of it; clicking the link,
-	 * which proves the address is theirs, does.
-	 */
-	public function test_membership_comes_with_the_click_not_with_the_request(): void {
-		update_site_option( 'registration', 'user' );
-		$user = get_userdata( $this->make_user() );
-
-		switch_to_blog( $this->site );
-		diluxone_users_update_option( 'diluxone_users_login_register', 1 );
-
-		$this->ask( $user->user_email );
-
-		$this->assertFalse( is_user_member_of_blog( $user->ID, $this->site ), 'Asking proves nothing' );
-
-		$token = diluxone_users_token_create( $user->ID );
-		$_GET  = array(
-			'diluxone_users_login' => (string) $user->ID,
-			'diluxone_users_token' => $token,
-		);
-		$this->expectRedirect( 'diluxone_users_login_consume' );
-
-		$this->assertTrue( is_user_member_of_blog( $user->ID, $this->site ), 'The click does' );
-	}
-
-	public function test_a_site_that_takes_nobody_adds_nobody(): void {
-		$user = get_userdata( $this->make_user() );
-
-		switch_to_blog( $this->site );
-		diluxone_users_update_option( 'diluxone_users_login_register', 0 );
-		diluxone_users_update_option( 'diluxone_users_sso_register', 0 );
-		diluxone_users_update_option( 'diluxone_users_register_form', 0 );
-
-		diluxone_users_join_site( $user->ID );
-
-		$this->assertFalse( is_user_member_of_blog( $user->ID, $this->site ) );
-	}
-
-	public function test_a_super_admin_is_not_made_a_subscriber(): void {
-		$admin = $this->make_user();
-		grant_super_admin( $admin );
-
-		switch_to_blog( $this->site );
-		diluxone_users_update_option( 'diluxone_users_login_register', 1 );
-
-		diluxone_users_join_site( $admin );
-
-		$this->assertFalse( is_user_member_of_blog( $admin, $this->site ) );
-
-		revoke_super_admin( $admin );
-	}
-
 	/** A passkey belongs to a person, whichever site they are a member of. */
 	public function test_a_passkey_is_found_for_somebody_who_is_not_a_member_here(): void {
 		$user = $this->make_user();
@@ -416,6 +363,9 @@ class MultisiteTest extends IntegrationTestCase {
 
 	/** A site's session report shows its own people, not the network's. */
 	public function test_the_sessions_report_of_a_site_lists_only_its_members(): void {
+		// Under "every site" nobody is an outsider: somebody who is not a
+		// member exists under the other two policies.
+		diluxone_users_update_option( 'diluxone_users_membership', 'invite' );
 		$outsider = $this->make_user();
 		$member   = $this->make_user();
 		add_user_to_blog( $this->site, $member, 'subscriber' );

@@ -25,8 +25,9 @@ import {
  * wp-login.php, the account link in /beta/'s menu is the account on the hub.
  * Whichever way the person gets in there — a password, the e-mail link, a
  * social account, a passkey, with the second step or without it — they land
- * back on the page of /beta/ they started from, signed in, and a member of
- * /beta/ if /beta/ takes members.
+ * back on the page of /beta/ they started from, signed in, and — under the
+ * network's "every site" membership, the default — a member of /beta/ (the
+ * other policies are membership.spec.ts's).
  *
  * Which doors there are, and the role a newcomer gets, are the hub's settings,
  * and the network's own registration setting sits above everything.
@@ -106,7 +107,11 @@ test.describe('A site of the network has no sign-in of its own: its doors are th
 	}) => {
 		const email = freshEmail('hub-pass');
 
+		// Made while the network was "by invitation": a member of /alpha/
+		// alone. Under "every site" signing in is the safety net.
+		await hub.set({ diluxone_users_membership: 'invite' });
 		await alpha.site.makeUser({ email, password: PASSWORD });
+		await hub.set({ diluxone_users_membership: 'all' });
 		expect((await beta.site.user(email)).member).toBe(false);
 
 		await signInFrom(page, beta, hub, email, PASSWORD);
@@ -132,7 +137,7 @@ test.describe('A site of the network has no sign-in of its own: its doors are th
 
 		expect(link.startsWith(hub.url), 'the link is the hub’s').toBe(true);
 		expect(link, 'and carries no address of where to go').not.toContain('redirect_to');
-		expect((await beta.site.user(email)).member, 'asking is not being a member').toBe(false);
+		expect((await beta.site.user(email)).member, 'under “every site” the account the link request made is a member of every site').toBe(true);
 
 		await page.goto(link);
 		await backOn(page, beta, 'the browser it was asked in comes back to /beta/');
@@ -353,7 +358,10 @@ test.describe('Who may join, and who may exist', () => {
 
 		const email = freshEmail('net-join');
 
+		// A member of /alpha/ alone, made under "by invitation"; then every site.
+		await hub.set({ diluxone_users_membership: 'invite' });
 		await alpha.site.makeUser({ email, password: PASSWORD });
+		await hub.set({ diluxone_users_membership: 'all' });
 
 		await toTheHub(page, beta, hub);
 		await askForLink(page, page.url(), email);
@@ -369,21 +377,7 @@ test.describe('Who may join, and who may exist', () => {
 		const after = await beta.site.user(email);
 
 		expect(after.member, 'opening it is what makes them a member').toBe(true);
-		expect(after.roles, 'with the role the hub gives newcomers').toEqual(['subscriber']);
-	});
-
-	test('with the doors closed to new people, a network member from /alpha/ does not join /beta/', async ({ page, hub, alpha, beta }) => {
-		await hub.set({ diluxone_users_login_register: 0, diluxone_users_register_form: 0, diluxone_users_sso_register: 0 });
-
-		const email = freshEmail('net-closed');
-
-		await alpha.site.makeUser({ email, password: PASSWORD });
-		await signInFrom(page, beta, hub, email, PASSWORD);
-		await backOn(page, beta, 'back on /beta/ all the same');
-
-		expect(await whoOn(page, alpha.url), 'signed in: the session is the network’s, and /alpha/ knows them').toBe(email);
-		expect(await whoOn(page, beta.url), '/beta/ does not: they are not one of its members').toBe('');
-		expect((await beta.site.user(email)).member, 'a closed site takes nobody new, from anywhere').toBe(false);
+		expect(after.roles, 'with /beta/’s own New User Default Role').toEqual(['subscriber']);
 	});
 
 	test.describe('the network decides whether anybody new can exist at all', () => {

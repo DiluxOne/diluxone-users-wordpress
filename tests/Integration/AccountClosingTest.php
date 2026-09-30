@@ -35,6 +35,9 @@ class AccountClosingTest extends IntegrationTestCase {
 	}
 
 	public function test_an_account_with_nothing_published_is_deleted(): void {
+		// On a network, an account that is a member of this site only: under
+		// "every site" a new account is a member of all of them.
+		diluxone_users_update_option( 'diluxone_users_membership', 'invite' );
 		$user = $this->make_user();
 
 		$this->erase_from_account( $user );
@@ -63,6 +66,7 @@ class AccountClosingTest extends IntegrationTestCase {
 	 * administrator to wait for.
 	 */
 	public function test_confirming_it_carries_it_out(): void {
+		diluxone_users_update_option( 'diluxone_users_membership', 'invite' );
 		$user = $this->make_user();
 		update_user_meta( $user, 'diluxone_users_handle', 'someone-' . $user );
 

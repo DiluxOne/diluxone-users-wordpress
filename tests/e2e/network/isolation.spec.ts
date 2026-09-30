@@ -70,6 +70,10 @@ test.describe('Reports › Sessions is a report on this site', () => {
 		const here = `${tag}-alpha@e2e.test`;
 		const there = `${tag}-beta@e2e.test`;
 
+		// Somebody who is a member of /beta/ only exists under "by invitation"
+		// (or "whoever asks"); under "every site" everybody is on /alpha/ too.
+		await hub.set({ diluxone_users_membership: 'invite' });
+
 		await alpha.site.makeUser({ email: here, password: PASSWORD });
 		await beta.site.makeUser({ email: there, password: PASSWORD });
 

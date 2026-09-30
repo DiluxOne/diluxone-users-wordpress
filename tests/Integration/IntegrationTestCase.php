@@ -29,6 +29,7 @@ class IntegrationTestCase extends TestCase {
 		'diluxone_users_account_sections',
 		'diluxone_users_sso',
 		'diluxone_users_mail_last',
+		'diluxone_users_membership_queue',
 	);
 
 	/** @var array<int, array<string, mixed>> Every e-mail the plugin tried to send, oldest first. */

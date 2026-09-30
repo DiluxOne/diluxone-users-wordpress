@@ -40,6 +40,7 @@ export const SCREENS: Record<string, string[]> = {
  */
 export const NETWORK_SCREENS: Record<string, string[]> = {
 	'diluxone-users': ['network', 'uninstall'],
+	'diluxone-users-membership': ['policy'],
 	'diluxone-users-security': ['summary', '2fa', 'passkeys', 'sessions', 'proxy'],
 	'diluxone-users-social': ['providers', 'general'],
 	'diluxone-users-fields': ['list', 'usage'],

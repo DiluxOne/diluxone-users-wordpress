@@ -1,4 +1,5 @@
 import type { Page } from '@playwright/test';
+import { execFileSync } from 'node:child_process';
 import { test, expect } from '../support/fixtures';
 import { SCREENS } from '../support/screens';
 import { adminUrl } from '../support/ui';
@@ -76,4 +77,34 @@ test('there is no Network Admin to find', async ({ page }) => {
 	await page.goto('/wp-admin/network/admin.php?page=diluxone-users');
 
 	await expect(page.locator('.wrap.diluxone-users-admin')).toHaveCount(0);
+});
+
+/** WP-CLI on the dev site, the one this suite drives. */
+function devWp(args: string[]): string {
+	return execFileSync('npx', ['wp-env', 'run', 'cli', 'wp', ...args], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] })
+		.split('\n')
+		.filter((line) => !/^[ℹ✔✖⚠]|^- |^Starting |^Ran `/.test(line))
+		.join('\n')
+		.trim();
+}
+
+test('there is no membership: no screen, no “Join this site”, no invitation, whatever is asked', async ({ page }) => {
+	const screen = await page.goto(adminUrl('diluxone-users-membership'));
+
+	expect(screen?.status(), 'no Membership screen').not.toBe(200);
+	expect(await menuOf(page)).not.toContain('diluxone-users-membership');
+
+	const id = devWp(['post', 'create', '--post_type=page', '--post_status=publish', '--post_title=Join', '--post_content=[diluxone_users_join]', '--porcelain']);
+
+	try {
+		const url = devWp(['post', 'url', id]);
+
+		for (const state of ['', 'join', 'joined', 'join-refused']) {
+			await page.goto(state ? `${url}${url.includes('?') ? '&' : '?'}diluxone-users=${state}` : url);
+			await expect(page.locator('[data-diluxone-users-join]'), `nothing drawn (${state || 'plain'})`).toHaveCount(0);
+			await expect(page.locator('body'), 'and the shortcode is not left as text').not.toContainText('[diluxone_users_join]');
+		}
+	} finally {
+		devWp(['post', 'delete', id, '--force']);
+	}
 });
