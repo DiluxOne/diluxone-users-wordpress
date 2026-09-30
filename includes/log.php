@@ -125,7 +125,7 @@ function diluxone_users_log_install(): bool {
 		return false;
 	}
 
-	update_option( DILUXONE_USERS_LOG_SCHEMA_OPTION, DILUXONE_USERS_LOG_SCHEMA, false );
+	diluxone_users_update_option( DILUXONE_USERS_LOG_SCHEMA_OPTION, DILUXONE_USERS_LOG_SCHEMA, false );
 
 	return true;
 }
@@ -154,7 +154,7 @@ function diluxone_users_log_table_exists(): bool {
  * the cost of asking is a cached query on dashboard requests only.
  */
 function diluxone_users_log_ready(): void {
-	if ( DILUXONE_USERS_LOG_SCHEMA !== (int) get_option( DILUXONE_USERS_LOG_SCHEMA_OPTION ) ) {
+	if ( DILUXONE_USERS_LOG_SCHEMA !== (int) diluxone_users_raw_get( DILUXONE_USERS_LOG_SCHEMA_OPTION ) ) {
 		diluxone_users_log_install();
 	}
 
@@ -404,7 +404,7 @@ function diluxone_users_log_record( string $event, int $user_id = 0, array $deta
 	// A site whose table is not there yet (or went missing) records nothing
 	// rather than a database error on somebody's sign-in: the dashboard's
 	// check puts the table back the next time an administrator passes by.
-	if ( DILUXONE_USERS_LOG_SCHEMA !== (int) get_option( DILUXONE_USERS_LOG_SCHEMA_OPTION ) ) {
+	if ( DILUXONE_USERS_LOG_SCHEMA !== (int) diluxone_users_raw_get( DILUXONE_USERS_LOG_SCHEMA_OPTION ) ) {
 		return false;
 	}
 

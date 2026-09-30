@@ -1,4 +1,4 @@
-import { test, expect, whoOn } from './support';
+import { test, expect, whoOn, pageWith } from './support';
 import { freshEmail } from '../support/api';
 import { openAllPanels, signInWithPassword, ssoButton } from '../support/ui';
 
@@ -17,21 +17,25 @@ const MOCK = { mock: { active: 1, id: 'e2e-client-id', secret: 'e2e-client-secre
 
 test('linked on /alpha/, the same network on /beta/ opens the same account and makes no second one', async ({
 	browser,
+	hub,
 	alpha,
 	beta,
 	root,
 }) => {
-	for (const one of [alpha, beta]) {
-		await one.set({
-			diluxone_e2e_sso: 1,
-			diluxone_users_sso: MOCK,
-			diluxone_users_sso_login: 1,
-			diluxone_users_sso_register: 1,
-			diluxone_users_sso_link_by_email: 1,
-			diluxone_users_sso_verified_only: 0,
-			diluxone_users_login_register: 1,
-			diluxone_users_2fa_mode: 'off',
-		});
+	// The providers and their rules are the network's; the fake network
+	// answers on each site that asks it.
+	await hub.set({
+		diluxone_users_sso: MOCK,
+		diluxone_users_sso_login: 1,
+		diluxone_users_sso_register: 1,
+		diluxone_users_sso_link_by_email: 1,
+		diluxone_users_sso_verified_only: 0,
+		diluxone_users_login_register: 1,
+		diluxone_users_2fa_mode: 'off',
+	});
+
+	for (const one of [hub, alpha, beta]) {
+		await one.set({ diluxone_e2e_sso: 1 });
 	}
 
 	const email = freshEmail('net-sso');
@@ -39,18 +43,19 @@ test('linked on /alpha/, the same network on /beta/ opens the same account and m
 	const sub = `mock|${elsewhere}`;
 	const person = await alpha.site.makeUser({ email, password: PASSWORD });
 
-	// The fake network is per site; both are told the same thing.
-	for (const one of [alpha, beta]) {
+	// The fake network is per site; every one is told the same thing.
+	for (const one of [hub, alpha, beta]) {
 		await one.site.setIdentity({ sub, email: elsewhere, email_verified: true });
 	}
 
-	// Linked from /alpha/'s account area.
+	// Linked on /alpha/, from a page of /alpha/ that draws the linked
+	// accounts: the account area itself is the main site's.
 	const first = await (await browser.newContext()).newPage();
 
 	await first.goto(alpha.pages.login.url);
 	await signInWithPassword(first, email, PASSWORD);
 	await first.waitForLoadState('domcontentloaded');
-	await first.goto(`${alpha.pages.account.url.replace(/\/?$/, '/')}accounts/`);
+	await first.goto(pageWith(alpha, 'diluxone_users_accounts'));
 	await openAllPanels(first);
 	await first.locator('.diluxone-users-linked__item').filter({ hasText: 'Mock' }).locator('a.diluxone-users-button').click();
 	await first.waitForLoadState('domcontentloaded');

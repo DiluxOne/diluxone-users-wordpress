@@ -4,8 +4,8 @@
  *
  * Accounts belong to the network and roles to each site, so the rules here
  * are about that seam: the network decides whether accounts may be created at
- * all, a site decides who becomes its member, and nobody becomes a member of
- * anything by having their address typed into a form.
+ * all and how safely people get in, the main site keeps the doors, and nobody
+ * becomes a member of anything by having their address typed into a form.
  *
  * The shared CI runs this suite on a network. On a single site every test
  * here is skipped, loudly — a network test that passes on a single site has
@@ -72,7 +72,7 @@ class MultisiteTest extends IntegrationTestCase {
 	public function test_the_network_decides_whether_accounts_can_be_created(): void {
 		update_site_option( 'registration', 'none' );
 		switch_to_blog( $this->site );
-		update_option( 'diluxone_users_login_register', 1 );
+		diluxone_users_update_option( 'diluxone_users_login_register', 1 );
 
 		$email = 'closed-network-' . wp_generate_password( 8, false ) . '@example.test';
 		$this->ask( $email );
@@ -107,13 +107,23 @@ class MultisiteTest extends IntegrationTestCase {
 
 		switch_to_blog( $this->site );
 
-		$this->assertNotFalse( get_option( 'diluxone_users_fields', false ) );
-		$this->assertSame( 1, (int) get_option( 'diluxone_users_login_register' ), 'The network was open when it was born' );
+		$this->assertNotFalse( diluxone_users_raw_get( 'diluxone_users_fields', false ), 'It reads the network’s fields' );
+		$this->assertSame( 1, (int) diluxone_users_raw_get( 'diluxone_users_login_register' ), 'The network was open when the doors were set' );
+
+		// And it keeps no copy of its own of what is the network's or the
+		// hub's: a copy nobody reads is a copy that goes stale.
+		$this->assertFalse( get_option( 'diluxone_users_fields', false ) );
+		$this->assertFalse( get_option( 'diluxone_users_login_register', false ) );
 	}
 
-	/** Its registration switch starts where the network is, closed or open. */
-	public function test_a_site_born_on_a_closed_network_starts_closed(): void {
+	/** The doors start where the network is, closed or open. */
+	public function test_on_a_closed_network_the_doors_start_closed(): void {
 		update_site_option( 'registration', 'none' );
+
+		// Set once, the first time a site needs them: the site made in setUp
+		// set them while the network was still open.
+		diluxone_users_delete_option( 'diluxone_users_login_register' );
+		diluxone_users_delete_option( 'diluxone_users_sso_register' );
 
 		$closed = (int) wp_insert_site(
 			array(
@@ -124,7 +134,7 @@ class MultisiteTest extends IntegrationTestCase {
 		);
 
 		switch_to_blog( $closed );
-		$this->assertSame( 0, (int) get_option( 'diluxone_users_login_register' ) );
+		$this->assertSame( 0, (int) diluxone_users_raw_get( 'diluxone_users_login_register' ) );
 		restore_current_blog();
 
 		wp_delete_site( $closed );
@@ -171,7 +181,7 @@ class MultisiteTest extends IntegrationTestCase {
 		$user = get_userdata( $this->make_user() );
 
 		switch_to_blog( $this->site );
-		update_option( 'diluxone_users_login_register', 1 );
+		diluxone_users_update_option( 'diluxone_users_login_register', 1 );
 
 		$this->ask( $user->user_email );
 
@@ -191,9 +201,9 @@ class MultisiteTest extends IntegrationTestCase {
 		$user = get_userdata( $this->make_user() );
 
 		switch_to_blog( $this->site );
-		update_option( 'diluxone_users_login_register', 0 );
-		update_option( 'diluxone_users_sso_register', 0 );
-		update_option( 'diluxone_users_register_form', 0 );
+		diluxone_users_update_option( 'diluxone_users_login_register', 0 );
+		diluxone_users_update_option( 'diluxone_users_sso_register', 0 );
+		diluxone_users_update_option( 'diluxone_users_register_form', 0 );
 
 		diluxone_users_join_site( $user->ID );
 
@@ -205,7 +215,7 @@ class MultisiteTest extends IntegrationTestCase {
 		grant_super_admin( $admin );
 
 		switch_to_blog( $this->site );
-		update_option( 'diluxone_users_login_register', 1 );
+		diluxone_users_update_option( 'diluxone_users_login_register', 1 );
 
 		diluxone_users_join_site( $admin );
 
@@ -239,24 +249,44 @@ class MultisiteTest extends IntegrationTestCase {
 	}
 
 	/**
-	 * The session a sign-in opens is valid on every site of the network, so a
-	 * site that asks for the second step is asked about wherever the person
-	 * signs in: here it asks nothing, the other site asks, and the answer is
-	 * yes.
+	 * The session a sign-in opens is valid on every site of the network, so
+	 * the second step is one rule for all of them: set once, asked wherever
+	 * the person signs in.
 	 */
-	public function test_a_site_that_asks_for_the_second_step_is_not_bypassed_from_another(): void {
+	public function test_the_second_step_is_asked_on_every_site_alike(): void {
 		$user = $this->make_user( 'administrator' );
 		add_user_to_blog( $this->site, $user, 'administrator' );
 
-		update_option( 'diluxone_users_2fa_mode', 'off' );
-
 		switch_to_blog( $this->site );
-		update_option( 'diluxone_users_2fa_mode', 'required' );
-		update_option( 'diluxone_users_2fa_methods', array( 'email' ) );
+		diluxone_users_update_option( 'diluxone_users_2fa_mode', 'required' );
+		diluxone_users_update_option( 'diluxone_users_2fa_methods', array( 'email' ) );
+		$there = diluxone_users_2fa_required( $user, 'password' );
 		restore_current_blog();
 
-		$this->assertFalse( diluxone_users_2fa_required_here( $user, 'password' ) );
-		$this->assertTrue( diluxone_users_2fa_required( $user, 'password' ) );
+		$this->assertTrue( $there );
+		$this->assertTrue( diluxone_users_2fa_required( $user, 'password' ), 'Set on one site, it is the network’s' );
+	}
+
+	/**
+	 * "Only some roles" reaches whoever holds one of them on any of their
+	 * sites. Asked only of the site being signed in on, an administrator of
+	 * one site would get through by signing in where they are a subscriber —
+	 * and the session would open their own site as well.
+	 */
+	public function test_a_chosen_role_on_any_site_puts_somebody_in_scope(): void {
+		$user = $this->make_user( 'subscriber' );
+		add_user_to_blog( $this->site, $user, 'administrator' );
+
+		diluxone_users_update_option( 'diluxone_users_2fa_mode', 'required' );
+		diluxone_users_update_option( 'diluxone_users_2fa_methods', array( 'email' ) );
+		diluxone_users_update_option( 'diluxone_users_2fa_scope', 'some' );
+		diluxone_users_update_option( 'diluxone_users_2fa_roles', array( 'administrator' ) );
+
+		$this->assertTrue( diluxone_users_2fa_required( $user, 'password' ), 'A subscriber here, an administrator next door' );
+
+		$other = $this->make_user( 'subscriber' );
+
+		$this->assertFalse( diluxone_users_2fa_required( $other, 'password' ), 'A subscriber everywhere is not reached' );
 	}
 
 	/** A super admin is an administrator everywhere, member or not. */
@@ -264,14 +294,10 @@ class MultisiteTest extends IntegrationTestCase {
 		$admin = $this->make_user();
 		grant_super_admin( $admin );
 
-		update_option( 'diluxone_users_2fa_mode', 'off' );
-
-		switch_to_blog( $this->site );
-		update_option( 'diluxone_users_2fa_mode', 'required' );
-		update_option( 'diluxone_users_2fa_methods', array( 'email' ) );
-		update_option( 'diluxone_users_2fa_scope', 'some' );
-		update_option( 'diluxone_users_2fa_roles', array( 'administrator' ) );
-		restore_current_blog();
+		diluxone_users_update_option( 'diluxone_users_2fa_mode', 'required' );
+		diluxone_users_update_option( 'diluxone_users_2fa_methods', array( 'email' ) );
+		diluxone_users_update_option( 'diluxone_users_2fa_scope', 'some' );
+		diluxone_users_update_option( 'diluxone_users_2fa_roles', array( 'administrator' ) );
 
 		$this->assertTrue( diluxone_users_2fa_required( $admin, 'password' ) );
 

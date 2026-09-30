@@ -338,13 +338,11 @@ function diluxone_users_account_page_id(): int {
  * usual parameter. There is nothing to configure: it looks at what is there.
  */
 function diluxone_users_account_url( string $section = '' ): string {
-	$page = diluxone_users_account_page_id();
+	$base = diluxone_users_page_url( 'diluxone_users_account_page' );
 
-	if ( $page <= 0 ) {
+	if ( '' === $base ) {
 		return home_url( '/' );
 	}
-
-	$base = (string) get_permalink( $page );
 
 	if ( '' === $section || $section === diluxone_users_default_section() ) {
 		return $base;
@@ -369,7 +367,9 @@ function diluxone_users_account_url( string $section = '' ): string {
  * front, which is exactly what this registry avoids.
  */
 function diluxone_users_account_rule(): void {
-	$page = diluxone_users_account_page_id();
+	// Only where the page is: on another site of a network the same id is some
+	// other page, and a rule pointing at it would route that one instead.
+	$page = diluxone_users_page_here( 'diluxone_users_account_page' );
 
 	if ( $page <= 0 ) {
 		return;
@@ -409,12 +409,12 @@ add_filter( 'query_vars', 'diluxone_users_account_query_var' );
  * changes version, the two moments at which the endpoint may have gone stale.
  */
 function diluxone_users_account_flush_rules(): void {
-	if ( get_option( 'diluxone_users_rewrite_version' ) === DILUXONE_USERS_VERSION ) {
+	if ( diluxone_users_raw_get( 'diluxone_users_rewrite_version' ) === DILUXONE_USERS_VERSION ) {
 		return;
 	}
 
 	flush_rewrite_rules( false );
-	update_option( 'diluxone_users_rewrite_version', DILUXONE_USERS_VERSION );
+	diluxone_users_update_option( 'diluxone_users_rewrite_version', DILUXONE_USERS_VERSION );
 }
 add_action( 'wp_loaded', 'diluxone_users_account_flush_rules' );
 
@@ -650,9 +650,7 @@ function diluxone_users_account_cover_kind(): string {
 
 /** The picture behind the cover, at full size: it is a band across the window. */
 function diluxone_users_account_cover_image(): string {
-	$id = (int) diluxone_users_option( 'diluxone_users_account_cover_image' );
-
-	return $id > 0 ? (string) wp_get_attachment_image_url( $id, 'full' ) : '';
+	return diluxone_users_hub_image_url( (int) diluxone_users_option( 'diluxone_users_account_cover_image' ), 'full' );
 }
 
 /** The whole account area. Shortcode: [diluxone_users_account] */

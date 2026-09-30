@@ -9,6 +9,12 @@
  *
  *   wp diluxone-users login pablo@example.com
  *
+ * And one for networks: moving the settings from each site to the network,
+ * to the end and in one go, rather than waiting for the first request and cron
+ * to do it (see migrate.php).
+ *
+ *   wp diluxone-users network migrate
+ *
  * @package DiluxOneUsers
  */
 
@@ -63,3 +69,47 @@ function diluxone_users_cli_login( array $args, array $options = array() ): void
 }
 
 WP_CLI::add_command( 'diluxone-users login', 'diluxone_users_cli_login' );
+
+/**
+ * Moves a network's settings from each site to the network, now.
+ *
+ * The same move the first request after an update makes on its own, done to
+ * the end in one go: for a network of thousands of sites that would rather not
+ * wait for cron, or for somebody who wants to read what it found. Running it
+ * again does nothing.
+ *
+ * ## EXAMPLES
+ *
+ *     wp diluxone-users network migrate
+ */
+function diluxone_users_cli_network_migrate(): void {
+	if ( ! is_multisite() ) {
+		WP_CLI::error( 'This is not a network: there is nothing to move.' );
+	}
+
+	if ( ! diluxone_users_scoped_storage_active() ) {
+		WP_CLI::error( 'The plugin is not active for the whole network, so each site keeps its own settings.' );
+	}
+
+	if ( diluxone_users_network_migrated() ) {
+		WP_CLI::success( 'The network’s settings were already moved.' );
+
+		return;
+	}
+
+	while ( ! diluxone_users_network_migrate() ) {
+		WP_CLI::log( 'One batch of sites done.' );
+	}
+
+	wp_clear_scheduled_hook( DILUXONE_USERS_NETWORK_MIGRATE_EVENT );
+
+	$conflicts = (array) diluxone_users_raw_get( DILUXONE_USERS_NETWORK_CONFLICTS, array() );
+
+	foreach ( $conflicts as $conflict ) {
+		WP_CLI::log( sprintf( 'Site %d had %s set differently.', (int) $conflict['site'], (string) ( $conflict['field'] ?? $conflict['key'] ) ) );
+	}
+
+	WP_CLI::success( sprintf( 'The network’s settings were moved. %d differences written down.', count( $conflicts ) ) );
+}
+
+WP_CLI::add_command( 'diluxone-users network migrate', 'diluxone_users_cli_network_migrate' );

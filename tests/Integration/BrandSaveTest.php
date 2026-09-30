@@ -17,15 +17,15 @@ class BrandSaveTest extends IntegrationTestCase {
 
 		diluxone_users_design_brand_save();
 
-		$this->assertSame( 42, (int) get_option( 'diluxone_users_login_logo' ) );
+		$this->assertSame( 42, (int) diluxone_users_raw_get( 'diluxone_users_login_logo' ) );
 	}
 
 	public function test_removing_the_mark_clears_it(): void {
-		update_option( 'diluxone_users_login_logo', 42 );
+		diluxone_users_update_option( 'diluxone_users_login_logo', 42 );
 		$_POST = array( 'diluxone_users_login_logo' => '' );
 
 		diluxone_users_design_brand_save();
 
-		$this->assertSame( 0, (int) get_option( 'diluxone_users_login_logo' ) );
+		$this->assertSame( 0, (int) diluxone_users_raw_get( 'diluxone_users_login_logo' ) );
 	}
 }

@@ -130,7 +130,7 @@ function diluxone_users_field_save( array $input ): string {
 		$fields[] = $field;
 	}
 
-	update_option( 'diluxone_users_fields', $fields );
+	diluxone_users_update_option( 'diluxone_users_fields', $fields );
 
 	return $key;
 }
@@ -150,7 +150,7 @@ function diluxone_users_field_delete( string $key ): void {
 		)
 	);
 
-	update_option( 'diluxone_users_fields', $fields );
+	diluxone_users_update_option( 'diluxone_users_fields', $fields );
 }
 
 /**
@@ -162,7 +162,7 @@ function diluxone_users_field_delete( string $key ): void {
  */
 function diluxone_users_fields_actions(): void {
 	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-	if ( 'diluxone-users-fields' !== sanitize_key( wp_unslash( $_GET['page'] ?? '' ) ) || ! current_user_can( 'manage_options' ) ) {
+	if ( 'diluxone-users-fields' !== sanitize_key( wp_unslash( $_GET['page'] ?? '' ) ) || ! diluxone_users_admin_owns( 'network' ) || ! current_user_can( diluxone_users_admin_cap() ) ) {
 		return;
 	}
 
@@ -216,7 +216,7 @@ function diluxone_users_field_move( string $key, int $dir ): void {
 
 	[ $fields[ $i ], $fields[ $j ] ] = array( $fields[ $j ], $fields[ $i ] );
 
-	update_option( 'diluxone_users_fields', $fields );
+	diluxone_users_update_option( 'diluxone_users_fields', $fields );
 }
 
 /* ── The screen ────────────────────────────────────────────────────── */

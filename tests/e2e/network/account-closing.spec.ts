@@ -7,16 +7,17 @@ import { wp } from '../support/cli';
 /**
  * "Delete my account" on a network.
  *
- * The account is the network's, so what happens to it depends on where else
- * it belongs: a person who is a member of this site only, with nothing
- * published, is deleted from the whole network; a person who is also a
- * member of another site keeps the account there, emptied and anonymised,
- * because that site was never asked.
+ * The account is the network's, and the account area where it is closed is
+ * the main site's. What happens to it depends on where else it belongs: a
+ * person who is a member of the main site only, with nothing published, is
+ * deleted from the whole network; a person who is also a member of another
+ * site keeps the account there, emptied and anonymised, because that site was
+ * never asked.
  */
 
 const PASSWORD = 'e2e-Network-1!';
 
-/** Signs in on a site, asks from its account area, and confirms from the e-mail. */
+/** Signs in on the main site, asks from the account area, and confirms from the e-mail. */
 async function deleteFrom(page: Page, one: SiteHandle, email: string): Promise<void> {
 	await page.goto(one.pages.login.url);
 	await signInWithPassword(page, email, PASSWORD);
@@ -47,33 +48,31 @@ async function deleteFrom(page: Page, one: SiteHandle, email: string): Promise<v
 }
 
 test.describe('Deleting an account on a network', () => {
-	test.beforeEach(async ({ alpha, beta }) => {
-		for (const one of [alpha, beta]) {
-			await one.set({ diluxone_users_privacy_delete: 1, diluxone_users_2fa_mode: 'off' });
-		}
+	test.beforeEach(async ({ hub }) => {
+		await hub.set({ diluxone_users_privacy_delete: 1, diluxone_users_2fa_mode: 'off' });
 	});
 
-	test('a member of one site only, with nothing published, is deleted from the network', async ({ page, alpha, beta }) => {
+	test('a member of the main site only, with nothing published, is deleted from the network', async ({ page, hub, beta }) => {
 		const email = freshEmail('net-close-one');
 
-		await alpha.site.makeUser({ email, password: PASSWORD });
-		await deleteFrom(page, alpha, email);
+		await hub.site.makeUser({ email, password: PASSWORD });
+		await deleteFrom(page, hub, email);
 
-		expect((await alpha.site.user(email)).exists, 'gone from the site').toBe(false);
+		expect((await hub.site.user(email)).exists, 'gone from the site').toBe(false);
 		expect((await beta.site.user(email)).exists, 'and from the network').toBe(false);
 	});
 
 	test('a member of another site too keeps the account there, emptied and without a name', async ({
 		page,
-		alpha,
+		hub,
 		beta,
 	}) => {
 		const email = freshEmail('net-close-two');
 
-		const person = await alpha.site.makeUser({ email, password: PASSWORD });
+		const person = await hub.site.makeUser({ email, password: PASSWORD });
 		await beta.site.makeUser({ email, password: PASSWORD });
 
-		await deleteFrom(page, alpha, email);
+		await deleteFrom(page, hub, email);
 
 		// The address is not the account's any more: nobody answers to it.
 		expect((await beta.site.user(email)).exists, 'the address no longer names anybody').toBe(false);

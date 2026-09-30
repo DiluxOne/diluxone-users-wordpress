@@ -43,8 +43,14 @@ class IntegrationTestCase extends TestCase {
 	protected function setUp(): void {
 		parent::setUp();
 
+		// Both places a setting can be: this site's table, and on a network
+		// the network's own options, where the network's settings live.
 		foreach ( array_merge( self::$options, array_keys( diluxone_users_option_defaults() ) ) as $option ) {
 			delete_option( $option );
+
+			if ( is_multisite() ) {
+				delete_site_option( $option );
+			}
 		}
 
 		self::forget_transients();
@@ -87,12 +93,28 @@ class IntegrationTestCase extends TestCase {
 
 		wp_set_current_user( 0 );
 
+		unset( $GLOBALS['current_screen'] );
+
 		if ( null !== $this->network_registration ) {
 			update_site_option( 'registration', $this->network_registration );
 			$this->network_registration = null;
 		}
 
 		parent::tearDown();
+	}
+
+	/**
+	 * The rest of the test runs as if in Network Admin.
+	 *
+	 * On a network the network's settings are written from there and from
+	 * nowhere else, so a test that saves them through a screen has to be there.
+	 * On a single site it changes nothing: there is no Network Admin.
+	 */
+	protected function in_network_admin(): void {
+		require_once ABSPATH . 'wp-admin/includes/class-wp-screen.php';
+		require_once ABSPATH . 'wp-admin/includes/screen.php';
+
+		$GLOBALS['current_screen'] = \WP_Screen::get( 'dashboard-network' );
 	}
 
 	/** The plugin's transients — throttles, states, challenges — gone. */

@@ -470,13 +470,47 @@ function diluxone_users_scope_includes( int $user_id, string $prefix ): bool {
 
 	// A super admin administers every site of the network, member or not, and
 	// is in scope wherever administrators are.
-	$has = (array) $user->roles;
+	$has = diluxone_users_option_scope( $prefix . '_roles' ) === 'network' && diluxone_users_scoped_storage_active()
+		? diluxone_users_network_roles( $user_id )
+		: (array) $user->roles;
 
 	if ( is_multisite() && is_super_admin( $user_id ) ) {
 		$has[] = 'administrator';
 	}
 
 	return array() !== array_intersect( $roles, $has );
+}
+
+/**
+ * Every role somebody holds on any site of the network.
+ *
+ * What a network rule about roles is asked with. The second step is one
+ * setting for every site and the session it guards opens every site, so
+ * "administrators" means somebody who is an administrator anywhere: asked only
+ * of the site they happen to sign in on, an administrator of one site would be
+ * let through by signing in on another where they are a subscriber.
+ *
+ * Read straight from the capabilities each site keeps in the person's meta,
+ * one key per site, rather than by switching to every site in turn.
+ *
+ * @return array<int, string>
+ */
+function diluxone_users_network_roles( int $user_id ): array {
+	global $wpdb;
+
+	$roles = array();
+
+	foreach ( array_keys( get_blogs_of_user( $user_id ) ) as $site ) {
+		$caps = get_user_meta( $user_id, $wpdb->get_blog_prefix( (int) $site ) . 'capabilities', true );
+
+		foreach ( is_array( $caps ) ? $caps : array() as $role => $on ) {
+			if ( $on && wp_roles()->is_role( (string) $role ) ) {
+				$roles[] = (string) $role;
+			}
+		}
+	}
+
+	return array_values( array_unique( $roles ) );
 }
 
 /**
@@ -488,7 +522,7 @@ function diluxone_users_scope_includes( int $user_id, string $prefix ): bool {
  */
 function diluxone_users_option( string $key, $fallback = null ) {
 	$defaults = diluxone_users_option_defaults();
-	$value    = get_option( $key, null );
+	$value    = diluxone_users_raw_get( $key, null );
 
 	if ( null === $value ) {
 		$value = $defaults[ $key ] ?? $fallback;
@@ -513,7 +547,7 @@ function diluxone_users_option( string $key, $fallback = null ) {
  */
 function diluxone_users_option_forced( string $key ): bool {
 	$defaults = diluxone_users_option_defaults();
-	$stored   = get_option( $key, null );
+	$stored   = diluxone_users_raw_get( $key, null );
 	$stored   = null === $stored ? ( $defaults[ $key ] ?? null ) : $stored;
 
 	return diluxone_users_option( $key ) !== $stored;
@@ -577,8 +611,7 @@ function diluxone_users_login_expiry(): int {
  * leave a site with no door.
  */
 function diluxone_users_login_url(): string {
-	$id  = (int) diluxone_users_option( 'diluxone_users_login_page' );
-	$url = $id > 0 ? (string) get_permalink( $id ) : '';
+	$url = diluxone_users_page_url( 'diluxone_users_login_page' );
 
 	if ( '' === $url ) {
 		$url = wp_login_url();
@@ -595,20 +628,25 @@ function diluxone_users_login_url(): string {
 /**
  * Saves the settings arriving from an admin screen.
  *
+ * Only the ones that are set from where the admin is being looked at: on a
+ * network, a site's screens write that site's settings and the network's
+ * screens write the network's, whatever a form sends — see
+ * diluxone_users_option_editable_here().
+ *
  * @param array<string, mixed> $input
  */
 function diluxone_users_save_options( array $input ): void {
 	$defaults = diluxone_users_option_defaults();
 
 	foreach ( $input as $key => $value ) {
-		if ( ! array_key_exists( $key, $defaults ) ) {
+		if ( ! array_key_exists( $key, $defaults ) || ! diluxone_users_option_editable_here( $key ) ) {
 			continue;
 		}
 
 		$default = $defaults[ $key ];
 
 		if ( is_int( $default ) ) {
-			update_option( $key, (int) $value );
+			diluxone_users_update_option( $key, (int) $value );
 			continue;
 		}
 
@@ -630,11 +668,11 @@ function diluxone_users_save_options( array $input ): void {
 				$clean[] = sanitize_key( (string) $one );
 			}
 
-			update_option( $key, array() === $clean || isset( $clean[0] ) ? array_values( array_unique( $clean ) ) : $clean );
+			diluxone_users_update_option( $key, array() === $clean || isset( $clean[0] ) ? array_values( array_unique( $clean ) ) : $clean );
 			continue;
 		}
 
-		update_option(
+		diluxone_users_update_option(
 			$key,
 			diluxone_users_option_allows_markup( $key )
 				? wp_kses_post( (string) $value )

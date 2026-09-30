@@ -27,7 +27,7 @@ function diluxone_users_section_config_save( string $id, array $config ): void {
 
 	$all[ $id ] = array_merge( (array) ( $all[ $id ] ?? array() ), $config );
 
-	update_option( 'diluxone_users_account_sections', $all );
+	diluxone_users_update_option( 'diluxone_users_account_sections', $all );
 }
 
 /** Removes one of the site's own sections. The ones from code are left alone. */
@@ -40,7 +40,7 @@ function diluxone_users_section_delete( string $id ): void {
 
 	unset( $all[ $id ] );
 
-	update_option( 'diluxone_users_account_sections', $all );
+	diluxone_users_update_option( 'diluxone_users_account_sections', $all );
 }
 
 /**
@@ -137,7 +137,7 @@ function diluxone_users_section_save( array $input ): string {
 			}
 		}
 
-		update_option( 'diluxone_users_home_cards_off', $off );
+		diluxone_users_update_option( 'diluxone_users_home_cards_off', $off );
 	}
 
 	return $id;
@@ -157,7 +157,9 @@ function diluxone_users_account_actions(): void {
 		return;
 	}
 
-	if ( ! current_user_can( 'manage_options' ) ) {
+	// The sections are the hub's: on another site of a network there is no
+	// such screen to act from.
+	if ( ! diluxone_users_admin_owns( 'hub' ) || ! current_user_can( 'manage_options' ) ) {
 		return;
 	}
 
@@ -289,7 +291,7 @@ function diluxone_users_account_page_save(): void {
 	// phpcs:enable
 
 	// The page changed: the /account/<section>/ rules have to be rebuilt.
-	delete_option( 'diluxone_users_rewrite_version' );
+	diluxone_users_delete_option( 'diluxone_users_rewrite_version' );
 }
 
 /** Which menu gets the person, and how the person looks in it. */
@@ -431,7 +433,7 @@ function diluxone_users_privacy_ask( string $name, string $question, array $answ
  */
 function diluxone_users_account_post(): void {
 	// phpcs:disable WordPress.Security.NonceVerification -- each branch verifies its own.
-	if ( 'diluxone-users-account' !== sanitize_key( wp_unslash( $_GET['page'] ?? '' ) ) || ! current_user_can( 'manage_options' ) ) {
+	if ( 'diluxone-users-account' !== sanitize_key( wp_unslash( $_GET['page'] ?? '' ) ) || ! diluxone_users_admin_owns( 'hub' ) || ! current_user_can( 'manage_options' ) ) {
 		return;
 	}
 

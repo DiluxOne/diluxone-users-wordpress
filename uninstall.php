@@ -15,12 +15,17 @@
  * the table, the settings, and every meta key the plugin ever wrote,
  * including the answers to the fields the site invented.
  *
- * On a network it runs once per site, because that is where the data is: the
- * settings are per site, the log table is per site, and only the user meta is
- * shared. That last part is a decision about the whole network's people, and
- * a site administrator can tick the box for their own site only: the people's
- * data goes only when every site that used the plugin ticked it. Otherwise
- * each site that asked loses its own settings and log, and the profiles stay.
+ * On a network where the plugin was on for every site, the decision is the
+ * network's, one box in Network Admin, because the data is about the
+ * network's people. Ticked, everything goes: the network's settings, every
+ * site's settings and log table — the copies each site kept from before the
+ * settings moved to the network included — and what the plugin kept in
+ * people's profiles.
+ *
+ * On a network where it was switched on site by site, each site kept its own
+ * settings and its own box, and the profiles are still everybody's: each site
+ * that ticked it loses its own settings and log, and the people's data goes
+ * only when every site that used the plugin ticked it.
  *
  * @package DiluxOneUsers
  */
@@ -62,6 +67,7 @@ function diluxone_users_uninstall_site(): void {
 	global $wpdb;
 
 	wp_clear_scheduled_hook( 'diluxone_users_log_purge' );
+	wp_clear_scheduled_hook( 'diluxone_users_network_migrate' );
 
 	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- dropping our own table is the one thing there is no API for.
 	$wpdb->query( $wpdb->prepare( 'DROP TABLE IF EXISTS %i', $wpdb->prefix . 'diluxone_users_log' ) );
@@ -87,11 +93,27 @@ function diluxone_users_uninstall_site(): void {
 }
 
 /**
- * The network's own transients: the counts per machine, kept for the whole
- * network. Only on a network, where they live in their own table.
+ * The network's own options and transients — its settings, what the move to
+ * the network found, the counts per machine. Only on a network, where they
+ * live in their own table.
  */
 function diluxone_users_uninstall_network(): void {
 	global $wpdb;
+
+	// The settings one by one, through the API, so that a persistent object
+	// cache forgets them too: a value left in the cache comes back the day the
+	// plugin is installed again.
+	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- a one-off read of the plugin's own network options, on uninstall.
+	$keys = (array) $wpdb->get_col(
+		$wpdb->prepare(
+			"SELECT meta_key FROM {$wpdb->sitemeta} WHERE meta_key LIKE %s",
+			$wpdb->esc_like( 'diluxone_users_' ) . '%'
+		)
+	);
+
+	foreach ( $keys as $key ) {
+		delete_site_option( (string) $key );
+	}
 
 	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- deleting by prefix, which no option API expresses.
 	$wpdb->query(
@@ -182,10 +204,11 @@ function diluxone_users_uninstall_people( array $field_keys ): void {
 /**
  * The field keys one site invented, read before its settings are deleted.
  *
+ * @param mixed $fields The stored fields: this site's, unless given.
  * @return array<int, string>
  */
-function diluxone_users_uninstall_field_keys(): array {
-	$fields = get_option( 'diluxone_users_fields' );
+function diluxone_users_uninstall_field_keys( $fields = null ): array {
+	$fields = null === $fields ? get_option( 'diluxone_users_fields' ) : $fields;
 	$keys   = array();
 
 	foreach ( is_array( $fields ) ? $fields : array() as $field ) {
@@ -198,6 +221,41 @@ function diluxone_users_uninstall_field_keys(): array {
 }
 
 /* ── The run ───────────────────────────────────────────────────────── */
+
+/*
+ * A network whose settings are the network's: the version marker is written
+ * once the settings have moved there, and from then on the wipe is one
+ * network setting.
+ */
+if ( is_multisite() && false !== get_site_option( 'diluxone_users_network_version', false ) ) {
+	if ( ! get_site_option( 'diluxone_users_uninstall_wipe' ) ) {
+		return;
+	}
+
+	$diluxone_users_keys = diluxone_users_uninstall_field_keys( get_site_option( 'diluxone_users_fields' ) );
+
+	foreach ( get_sites(
+		array(
+			'fields' => 'ids',
+			'number' => 0,
+		)
+	) as $diluxone_users_site ) {
+		switch_to_blog( (int) $diluxone_users_site );
+
+		// The copy each site kept from before the move may name a field the
+		// network's list lost since: its answers are the plugin's too.
+		$diluxone_users_keys = array_merge( $diluxone_users_keys, diluxone_users_uninstall_field_keys() );
+
+		diluxone_users_uninstall_site();
+
+		restore_current_blog();
+	}
+
+	diluxone_users_uninstall_people( $diluxone_users_keys );
+	diluxone_users_uninstall_network();
+
+	return;
+}
 
 if ( is_multisite() ) {
 	$diluxone_users_keys  = array();

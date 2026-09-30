@@ -80,7 +80,7 @@ class AccountExportTest extends IntegrationTestCase {
 
 	/** A site that goes through them itself: confirming only confirms. */
 	public function test_a_site_that_makes_them_itself_waits(): void {
-		update_option( 'diluxone_users_privacy_export_when', 'admin' );
+		diluxone_users_update_option( 'diluxone_users_privacy_export_when', 'admin' );
 		$user = $this->make_user();
 
 		$request = $this->confirm_copy( $user );

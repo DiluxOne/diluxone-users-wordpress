@@ -16,8 +16,8 @@ class AccountSecurityTest extends IntegrationTestCase {
 	protected function setUp(): void {
 		parent::setUp();
 
-		update_option( 'diluxone_users_2fa_mode', 'optional' );
-		update_option( 'diluxone_users_2fa_methods', array( 'totp', 'email' ) );
+		diluxone_users_update_option( 'diluxone_users_2fa_mode', 'optional' );
+		diluxone_users_update_option( 'diluxone_users_2fa_methods', array( 'totp', 'email' ) );
 
 		$this->user = $this->make_user();
 
@@ -84,7 +84,7 @@ class AccountSecurityTest extends IntegrationTestCase {
 	}
 
 	public function test_where_the_site_requires_it_the_answer_is_required_not_reauth(): void {
-		update_option( 'diluxone_users_2fa_mode', 'required' );
+		diluxone_users_update_option( 'diluxone_users_2fa_mode', 'required' );
 
 		$this->assertSame( 'required', $this->redirectState( $this->submit( 'off' ) ) );
 	}
@@ -93,7 +93,7 @@ class AccountSecurityTest extends IntegrationTestCase {
 
 	/** Marks this browser trusted and puts the cookie where the check reads it. */
 	private function trust(): void {
-		update_option( 'diluxone_users_2fa_remember_days', 30 );
+		diluxone_users_update_option( 'diluxone_users_2fa_remember_days', 30 );
 
 		diluxone_users_2fa_trust( $this->user );
 
@@ -144,14 +144,14 @@ class AccountSecurityTest extends IntegrationTestCase {
 	 * from when it was "only some".
 	 */
 	public function test_the_offer_follows_the_scope_the_sign_in_follows(): void {
-		update_option( 'diluxone_users_2fa_mode', 'optional' );
-		update_option( 'diluxone_users_2fa_methods', array( 'email' ) );
-		update_option( 'diluxone_users_2fa_roles', array( 'administrator' ) );
-		update_option( 'diluxone_users_2fa_scope', 'all' );
+		diluxone_users_update_option( 'diluxone_users_2fa_mode', 'optional' );
+		diluxone_users_update_option( 'diluxone_users_2fa_methods', array( 'email' ) );
+		diluxone_users_update_option( 'diluxone_users_2fa_roles', array( 'administrator' ) );
+		diluxone_users_update_option( 'diluxone_users_2fa_scope', 'all' );
 
 		$this->assertTrue( diluxone_users_2fa_offered( $this->make_user( 'subscriber' ) ) );
 
-		update_option( 'diluxone_users_2fa_scope', 'some' );
+		diluxone_users_update_option( 'diluxone_users_2fa_scope', 'some' );
 
 		$this->assertFalse( diluxone_users_2fa_offered( $this->make_user( 'subscriber' ) ) );
 	}

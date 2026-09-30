@@ -20,7 +20,7 @@ defined( 'ABSPATH' ) || exit;
  * @return array<string, mixed>
  */
 function diluxone_users_sso_credentials( string $id ): array {
-	$all = (array) get_option( 'diluxone_users_sso', array() );
+	$all = (array) diluxone_users_raw_get( 'diluxone_users_sso', array() );
 
 	return array(
 		'active' => ! empty( $all[ $id ]['active'] ),
@@ -35,7 +35,7 @@ function diluxone_users_sso_credentials( string $id ): array {
  * @param array<string, mixed> $values
  */
 function diluxone_users_sso_save_credentials( string $id, array $values ): void {
-	$all      = (array) get_option( 'diluxone_users_sso', array() );
+	$all      = (array) diluxone_users_raw_get( 'diluxone_users_sso', array() );
 	$previous = diluxone_users_sso_credentials( $id );
 
 	$new = array(
@@ -58,7 +58,7 @@ function diluxone_users_sso_save_credentials( string $id, array $values ): void 
 
 	// Not autoloaded: the secrets are read on the few requests that talk to a
 	// provider, and have no business in memory on every other page.
-	update_option( 'diluxone_users_sso', $all, false );
+	diluxone_users_update_option( 'diluxone_users_sso', $all, false );
 }
 
 /**
@@ -86,19 +86,19 @@ function diluxone_users_sso_state( string $id ): string {
 
 /** Was it tested, and did it work? */
 function diluxone_users_sso_tested( string $id ): bool {
-	$all = (array) get_option( 'diluxone_users_sso', array() );
+	$all = (array) diluxone_users_raw_get( 'diluxone_users_sso', array() );
 
 	return ! empty( $all[ $id ]['tested'] );
 }
 
 /** Marks a provider as tested, or takes the mark away. */
 function diluxone_users_sso_set_tested( string $id, bool $tested ): void {
-	$all = (array) get_option( 'diluxone_users_sso', array() );
+	$all = (array) diluxone_users_raw_get( 'diluxone_users_sso', array() );
 
 	$all[ $id ]           = (array) ( $all[ $id ] ?? array() );
 	$all[ $id ]['tested'] = $tested ? 1 : 0;
 
-	update_option( 'diluxone_users_sso', $all );
+	diluxone_users_update_option( 'diluxone_users_sso', $all );
 }
 
 /** Does it have credentials filled in? */

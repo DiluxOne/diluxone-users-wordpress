@@ -705,6 +705,19 @@ function diluxone_users_screen_login_ways(): void {
 		);
 	}
 
+	/*
+	 * On a network these two are the network's: they decide how people get
+	 * into every site, so they are switched in Network Admin and drawn here
+	 * as they stand, not as boxes this site could untick.
+	 */
+	if ( ! diluxone_users_option_editable_here( 'diluxone_users_sso_login' ) ) {
+		foreach ( $diluxone_users_ways as $i => $way ) {
+			$diluxone_users_ways[ $i ]['disabled'] = true;
+		}
+
+		diluxone_users_ui_notice( esc_html__( 'On this network these are switched on or off for every site at once, in Network Admin: social accounts under Social login › Rules, passkeys under Security › Passkeys.', 'diluxone-users' ) );
+	}
+
 	diluxone_users_ui_choices( $diluxone_users_ways );
 
 	/*

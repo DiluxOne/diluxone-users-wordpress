@@ -454,6 +454,21 @@ one from code gets it pinned for good — and the admin says so, with the
 function and file doing the pinning, rather than showing a control that does
 nothing.
 
+`diluxone_users_option_scope` filters where a setting belongs on a network:
+`network`, `hub` or `site`, as `includes/options-scope.php` has it for the
+plugin's own. An add-on that stores settings through
+`diluxone_users_update_option()` gives its keys a scope here; a key nobody
+gave one is `site`. On a network where the plugin is on for every site each
+scope is stored where it says — the network's options, the main site's, the
+site's own — and on a single site everything is the site's.
+
+`diluxone_users_panel_scope` does the same for a tab registered with
+`diluxone_users_register_panel()`: it receives the scope, the screen and the
+tab, and a tab that saves network settings answers `network` and is drawn in
+Network Admin instead of on the sites. A save that writes through
+`diluxone_users_save_options()` only writes the settings owned where it is
+drawn, whatever the form sends.
+
 ## Things that happen
 
 - `diluxone_users_logged_in` — somebody got in. Receives the user and how.

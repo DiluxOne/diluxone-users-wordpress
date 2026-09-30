@@ -80,12 +80,18 @@ add_action( 'diluxone_users_register_panels', 'diluxone_users_social_panels' );
 /** Saves the rules that hold for every network. */
 function diluxone_users_social_rules_save(): void {
 	// phpcs:disable WordPress.Security.NonceVerification.Missing -- the panel verifies it.
-	diluxone_users_save_options(
-		array(
-			'diluxone_users_sso_link_by_email' => isset( $_POST['diluxone_users_sso_link_by_email'] ) ? 1 : 0,
-			'diluxone_users_sso_verified_only' => isset( $_POST['diluxone_users_sso_verified_only'] ) ? 1 : 0,
-		) + diluxone_users_scope_posted( 'diluxone_users_sso' )
-	);
+	$saved = array(
+		'diluxone_users_sso_link_by_email' => isset( $_POST['diluxone_users_sso_link_by_email'] ) ? 1 : 0,
+		'diluxone_users_sso_verified_only' => isset( $_POST['diluxone_users_sso_verified_only'] ) ? 1 : 0,
+	) + diluxone_users_scope_posted( 'diluxone_users_sso' );
+
+	// On a site, social sign-in is switched on with the other ways in, on
+	// Access; in Network Admin there is no Access, and this is where it is.
+	if ( 'network' === diluxone_users_admin_context() ) {
+		$saved['diluxone_users_sso_login'] = isset( $_POST['diluxone_users_sso_login'] ) ? 1 : 0;
+	}
+
+	diluxone_users_save_options( $saved );
 	// phpcs:enable
 }
 
@@ -433,6 +439,23 @@ function diluxone_users_screen_social_general(): void {
 
 	diluxone_users_intro( __( 'These apply to every provider. They decide what happens when someone comes back from a social network.', 'diluxone-users' ) );
 
+	if ( 'network' === diluxone_users_admin_context() ) {
+		diluxone_users_ui_section( __( 'Offered on every site', 'diluxone-users' ) );
+
+		diluxone_users_ui_choices(
+			array(
+				array(
+					'type'    => 'checkbox',
+					'name'    => 'diluxone_users_sso_login',
+					'value'   => '1',
+					'checked' => (bool) diluxone_users_option( 'diluxone_users_sso_login' ),
+					'title'   => __( 'People can sign in with a social account', 'diluxone-users' ),
+					'help'    => __( 'The buttons under the sign-in form of every site, for the providers that are working. Off, they go, and whoever already linked a social account keeps it and can unlink it from their account.', 'diluxone-users' ),
+				),
+			)
+		);
+	}
+
 	diluxone_users_ui_section(
 		__( 'Recognising somebody who is already here', 'diluxone-users' ),
 		__( 'Turned off, someone whose email is already registered simply cannot get in with a social network. Only turn it off if you do not trust the provider to verify its own users’ email addresses.', 'diluxone-users' )
@@ -556,7 +579,7 @@ function diluxone_users_screen_provider( string $id, array $provider ): void {
 
 	$current = diluxone_users_tab( $tabs );
 
-	if ( current_user_can( 'manage_options' ) && isset( $_POST['diluxone_users_provider_nonce'] ) && wp_verify_nonce( sanitize_key( wp_unslash( $_POST['diluxone_users_provider_nonce'] ) ), 'diluxone_users_provider' ) ) {
+	if ( diluxone_users_admin_owns( 'network' ) && current_user_can( diluxone_users_admin_cap() ) && isset( $_POST['diluxone_users_provider_nonce'] ) && wp_verify_nonce( sanitize_key( wp_unslash( $_POST['diluxone_users_provider_nonce'] ) ), 'diluxone_users_provider' ) ) {
 		// phpcs:disable WordPress.Security.NonceVerification.Missing -- verified above.
 		$typed = sanitize_text_field( wp_unslash( $_POST['diluxone_users_client_secret'] ?? '' ) );
 
@@ -965,7 +988,8 @@ function diluxone_users_social_toggle(): void {
 		return;
 	}
 
-	if ( ! current_user_can( 'manage_options' ) ) {
+	// On a network the providers are the network's, and so is this switch.
+	if ( ! diluxone_users_admin_owns( 'network' ) || ! current_user_can( diluxone_users_admin_cap() ) ) {
 		return;
 	}
 
@@ -974,15 +998,15 @@ function diluxone_users_social_toggle(): void {
 	$network = sanitize_key( wp_unslash( $_GET['red'] ) );
 
 	$action = sanitize_key( wp_unslash( $_GET['diluxone_users_action'] ) );
-	$all    = (array) get_option( 'diluxone_users_sso', array() );
+	$all    = (array) diluxone_users_raw_get( 'diluxone_users_sso', array() );
 
 	if ( 'forget' === $action && isset( diluxone_users_sso_providers()[ $network ] ) ) {
 		unset( $all[ $network ] );
-		update_option( 'diluxone_users_sso', $all, false );
+		diluxone_users_update_option( 'diluxone_users_sso', $all, false );
 	} elseif ( isset( diluxone_users_sso_providers()[ $network ] ) && diluxone_users_sso_tested( $network ) ) {
 		$all[ $network ]['active'] = 'on' === $action ? 1 : 0;
 
-		update_option( 'diluxone_users_sso', $all, false );
+		diluxone_users_update_option( 'diluxone_users_sso', $all, false );
 	}
 
 	// Back where the press came from — the grid or the provider's own screen —

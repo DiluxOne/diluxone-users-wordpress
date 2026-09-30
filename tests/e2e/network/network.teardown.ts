@@ -1,6 +1,6 @@
 import { test as teardown } from '@playwright/test';
 import { existsSync, readFileSync, rmSync } from 'node:fs';
-import { Site } from '../support/api';
+import { OptionBag, Site } from '../support/api';
 import { wp } from '../support/cli';
 import { NETWORK_URL } from '../../../playwright.network.config';
 import { NETWORK_BASELINE_FILE, NETWORK_PAGES_FILE, SUBSITES } from './support';
@@ -34,7 +34,13 @@ teardown('delete the sites, the accounts, and put the network back', async () =>
 		const previous = JSON.parse(readFileSync(NETWORK_BASELINE_FILE, 'utf8')) as {
 			registration: string;
 			wpDebug: string;
+			options?: OptionBag;
 		};
+
+		// The network's settings and the hub's, as they were before the run.
+		if (previous.options && Object.keys(previous.options).length > 0) {
+			await (await Site.open(`${NETWORK_URL}/`)).setOptions(previous.options, { forgetTransients: true });
+		}
 
 		wp(['site', 'option', 'update', 'registration', previous.registration]);
 		wp(['config', 'set', 'WP_DEBUG', previous.wpDebug === 'true' ? 'true' : 'false', '--raw', '--type=constant']);

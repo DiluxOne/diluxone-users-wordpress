@@ -5,9 +5,17 @@ import { wp } from '../support/cli';
 import { NETWORK_URL } from '../../../playwright.network.config';
 
 /**
- * What every network spec gets handed: the two sites, each with its own side
- * door, its own pages and its own settings that are put back when the test
- * ends — plus the network's own settings, which belong to no site.
+ * What every network spec gets handed: the main site — the hub, where the
+ * network's people sign in and keep their account — and two more sites, each
+ * with its own side door and its own pages, plus WordPress's own network
+ * settings.
+ *
+ * A setting written through any of them lands where its scope says: a network
+ * setting in the network's options, a hub setting on the main site, a site
+ * setting on that site. So what a test changed is put back in one list, newest
+ * first, whichever site it was written through: two sites writing the same
+ * network setting would otherwise each put back what they found, and the last
+ * one to do it would win.
  */
 
 export const SUBSITES = ['alpha', 'beta'] as const;
@@ -23,14 +31,17 @@ export function subsiteUrl(slug: string): string {
 
 /** One site of the network, as a spec wants it. */
 export interface SiteHandle {
+	/** `alpha`, or '' for the main site. */
 	slug: string;
 	/** `http://…/alpha/` */
 	url: string;
 	/** The REST side door of THIS site: its options, its mailbox, its members. */
 	site: Site;
 	pages: SeedPages['pages'];
-	/** Settings of THIS site, put back when the test ends. */
+	/** Settings, written through this site and put back when the test ends. */
 	set(values: OptionBag): Promise<void>;
+	/** Settings a screen is about to save: what they are now is put back when the test ends. */
+	keep(keys: string[]): Promise<void>;
 	/** An address on this site: `admin('users.php')`, `path('e2e-login/')`. */
 	path(rest: string): string;
 	admin(rest: string): string;
@@ -41,8 +52,11 @@ export interface NetworkOptions {
 	set(key: string, value: string): Promise<void>;
 }
 
-async function handle(slug: Subsite, remember: (site: Site, bag: OptionBag) => void): Promise<SiteHandle> {
-	const url = subsiteUrl(slug);
+/** What a test changed, in the order it changed it. */
+type Changes = Array<{ site: Site; bag: OptionBag }>;
+
+async function handle(slug: Subsite | '', changes: Changes): Promise<SiteHandle> {
+	const url = '' === slug ? `${NETWORK_URL}/` : subsiteUrl(slug);
 	const site = await Site.open(url);
 	const all = JSON.parse(readFileSync(NETWORK_PAGES_FILE, 'utf8')) as Record<string, SeedPages['pages']>;
 
@@ -50,9 +64,12 @@ async function handle(slug: Subsite, remember: (site: Site, bag: OptionBag) => v
 		slug,
 		url,
 		site,
-		pages: all[slug],
+		pages: all['' === slug ? 'root' : slug],
 		async set(values) {
-			remember(site, await site.setOptions(values));
+			changes.push({ site, bag: await site.setOptions(values) });
+		},
+		async keep(keys) {
+			changes.push({ site, bag: await site.getOptions(keys) });
 		},
 		path: (rest) => `${url}${rest.replace(/^\//, '')}`,
 		admin: (rest) => `${url}wp-admin/${rest.replace(/^\//, '')}`,
@@ -60,6 +77,8 @@ async function handle(slug: Subsite, remember: (site: Site, bag: OptionBag) => v
 }
 
 export const test = base.extend<{
+	changes: Changes;
+	hub: SiteHandle;
 	alpha: SiteHandle;
 	beta: SiteHandle;
 	network: NetworkOptions;
@@ -67,24 +86,30 @@ export const test = base.extend<{
 	guest: Page;
 	freshCounters: void;
 }>({
-	/**
-	 * Per site, like everything the plugin keeps: two maps, not one, so that a
-	 * value restored on /alpha/ can never land on /beta/.
-	 */
-	alpha: async ({}, use) => {
-		const original = new Map<Site, OptionBag>();
-		const h = await handle('alpha', (site, bag) => keepFirst(original, site, bag));
+	/** Everything the test wrote, put back newest first. */
+	changes: async ({}, use) => {
+		const changes: Changes = [];
 
-		await use(h);
-		await restore(original);
+		await use(changes);
+
+		for (const { site, bag } of changes.reverse()) {
+			if (Object.keys(bag).length > 0) {
+				await site.setOptions(bag, { forgetTransients: true });
+			}
+		}
 	},
 
-	beta: async ({}, use) => {
-		const original = new Map<Site, OptionBag>();
-		const h = await handle('beta', (site, bag) => keepFirst(original, site, bag));
+	/** The main site: the hub, whose pages are where the network signs in. */
+	hub: async ({ changes }, use) => {
+		await use(await handle('', changes));
+	},
 
-		await use(h);
-		await restore(original);
+	alpha: async ({ changes }, use) => {
+		await use(await handle('alpha', changes));
+	},
+
+	beta: async ({ changes }, use) => {
+		await use(await handle('beta', changes));
 	},
 
 	/** The main site's side door: the one that sees every account of the network. */
@@ -134,26 +159,6 @@ export const test = base.extend<{
 
 export { expect };
 
-function keepFirst(original: Map<Site, OptionBag>, site: Site, bag: OptionBag): void {
-	const kept = original.get(site) ?? {};
-
-	for (const [key, was] of Object.entries(bag)) {
-		if (!(key in kept)) {
-			kept[key] = was;
-		}
-	}
-
-	original.set(site, kept);
-}
-
-async function restore(original: Map<Site, OptionBag>): Promise<void> {
-	for (const [site, bag] of original) {
-		if (Object.keys(bag).length > 0) {
-			await site.setOptions(bag, { forgetTransients: true });
-		}
-	}
-}
-
 /**
  * Who this browser is signed in as, asked of one site of the network.
  *
@@ -197,6 +202,32 @@ export async function opensDashboard(page: Page, siteUrl: string): Promise<boole
 		landed.pathname.startsWith(new URL(siteUrl).pathname + 'wp-admin') &&
 		!landed.pathname.endsWith('/wp-login.php')
 	);
+}
+
+/**
+ * A page of one site that draws one of the plugin's shortcodes, made once.
+ *
+ * On a network the account area is the main site's: its sections are routed
+ * there and nowhere else. The pieces of it still work on a page of any site —
+ * the photo, the linked social accounts — and a spec that is about which site
+ * something happens on puts the piece on a page of that site.
+ *
+ * @returns The page's address.
+ */
+export function pageWith(one: SiteHandle, shortcode: string): string {
+	const slug = `e2e-${shortcode.replace(/[^a-z]+/g, '-').replace(/^-|-$/g, '')}`;
+	const found = wp(['post', 'list', '--post_type=page', `--name=${slug}`, '--field=url'], one.url);
+
+	if ('' !== found) {
+		return found.split('\n')[0];
+	}
+
+	const id = wp(
+		['post', 'create', '--post_type=page', '--post_status=publish', `--post_name=${slug}`, `--post_title=${slug}`, `--post_content=[${shortcode}]`, '--porcelain'],
+		one.url
+	);
+
+	return wp(['post', 'list', '--post_type=page', `--post__in=${id}`, '--field=url'], one.url);
 }
 
 /** A REST context with no session at all, for a question a stranger would ask. */

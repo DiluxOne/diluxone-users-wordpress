@@ -351,10 +351,13 @@ function diluxone_users_sessions_admin_close(): void {
 
 	$user_id = absint( wp_unslash( $_POST['diluxone_users_user'] ?? 0 ) );
 
-	// Asked about this person, not about users in general: a role that may
-	// edit users is not thereby allowed to act on an administrator, and
-	// `edit_user` is the capability WordPress maps that rule onto.
-	if ( $user_id <= 0 || ! current_user_can( 'edit_user', $user_id ) ) {
+	// Two questions. Whether this is somebody who administers the site — the
+	// report the button lives on asks for `manage_options`, and so does the
+	// button: on a single site `edit_user` alone is granted by `edit_users`,
+	// so a role that may edit users could otherwise sign an administrator out.
+	// And whether they may act on this person: on a network, `edit_user` is
+	// where WordPress keeps a site's administrator off a super admin.
+	if ( $user_id <= 0 || ! current_user_can( 'manage_options' ) || ! current_user_can( 'edit_user', $user_id ) ) {
 		wp_die( esc_html__( 'You are not allowed to do this.', 'diluxone-users' ) );
 	}
 

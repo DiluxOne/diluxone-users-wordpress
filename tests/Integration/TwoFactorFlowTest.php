@@ -17,9 +17,9 @@ class TwoFactorFlowTest extends IntegrationTestCase {
 	protected function setUp(): void {
 		parent::setUp();
 
-		update_option( 'diluxone_users_2fa_mode', 'required' );
-		update_option( 'diluxone_users_2fa_methods', array( 'email' ) );
-		update_option( 'diluxone_users_2fa_remember_days', 0 );
+		diluxone_users_update_option( 'diluxone_users_2fa_mode', 'required' );
+		diluxone_users_update_option( 'diluxone_users_2fa_methods', array( 'email' ) );
+		diluxone_users_update_option( 'diluxone_users_2fa_remember_days', 0 );
 
 		$this->user = $this->make_user();
 	}
@@ -164,7 +164,7 @@ class TwoFactorFlowTest extends IntegrationTestCase {
 	}
 
 	public function test_xml_rpc_lets_through_whoever_is_not_asked(): void {
-		update_option( 'diluxone_users_2fa_mode', 'off' );
+		diluxone_users_update_option( 'diluxone_users_2fa_mode', 'off' );
 
 		$user = get_userdata( $this->user );
 
@@ -182,7 +182,7 @@ class TwoFactorFlowTest extends IntegrationTestCase {
 
 		$this->assertFalse( wp_is_application_passwords_available_for_user( get_userdata( $this->user ) ) );
 
-		update_option( 'diluxone_users_2fa_mode', 'off' );
+		diluxone_users_update_option( 'diluxone_users_2fa_mode', 'off' );
 
 		$this->assertTrue( wp_is_application_passwords_available_for_user( get_userdata( $this->user ) ) );
 

@@ -344,7 +344,7 @@ function diluxone_users_login_messages_clean( $stored ): array {
  * @return array<string, array<string, string>>
  */
 function diluxone_users_login_messages_store(): array {
-	return diluxone_users_login_messages_clean( get_option( DILUXONE_USERS_LOGIN_MESSAGES, array() ) );
+	return diluxone_users_login_messages_clean( diluxone_users_raw_get( DILUXONE_USERS_LOGIN_MESSAGES, array() ) );
 }
 
 /**
@@ -370,7 +370,7 @@ function diluxone_users_login_message_rewrite( string $key, string $locale, stri
 		unset( $store[ $locale ] );
 	}
 
-	update_option( DILUXONE_USERS_LOGIN_MESSAGES, $store );
+	diluxone_users_update_option( DILUXONE_USERS_LOGIN_MESSAGES, $store );
 }
 
 /**

@@ -29,14 +29,14 @@ defined( 'ABSPATH' ) || exit;
  * is written when it changes, and refreshed at most once an hour.
  */
 function diluxone_users_mail_ok(): void {
-	$last = get_option( 'diluxone_users_mail_last', false );
+	$last = diluxone_users_raw_get( 'diluxone_users_mail_last', false );
 
 	if ( is_array( $last ) && ! empty( $last['ok'] ) && time() - (int) ( $last['time'] ?? 0 ) < HOUR_IN_SECONDS ) {
 		return;
 	}
 
 	// Not autoloaded: two screens read it, no page needs it.
-	update_option(
+	diluxone_users_update_option(
 		'diluxone_users_mail_last',
 		array(
 			'ok'    => 1,
@@ -56,7 +56,7 @@ add_action( 'wp_mail_succeeded', 'diluxone_users_mail_ok' );
 function diluxone_users_mail_failed( $error ): void {
 	// The mailer's own words, short: they are what an administrator needs to
 	// fix it, and they are only shown on the dashboard.
-	update_option(
+	diluxone_users_update_option(
 		'diluxone_users_mail_last',
 		array(
 			'ok'    => 0,
@@ -75,7 +75,7 @@ add_action( 'wp_mail_failed', 'diluxone_users_mail_failed' );
  *         state: 'ok', 'fail' or 'unknown'.
  */
 function diluxone_users_mail_status(): array {
-	$last = get_option( 'diluxone_users_mail_last', false );
+	$last = diluxone_users_raw_get( 'diluxone_users_mail_last', false );
 
 	if ( ! is_array( $last ) ) {
 		return array(

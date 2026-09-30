@@ -189,16 +189,25 @@ function diluxone_users_2fa_available( int $user_id ): array {
  *      is a separate setting and comes turned off: a site that wants the
  *      second factor anyway turns it on.
  *
- * On a network there is a fourth: the session this sign-in opens is valid on
- * every site of the network, so a site that asks for the second step would be
- * bypassed by signing in on one that does not. The person is asked when any
- * site they can reach through that session asks it of them.
+ * On a network there is a fourth, and it is why every one of these is a
+ * network setting: the session this sign-in opens is valid on every site of
+ * the network, so the rule has to be the same wherever the person signs in.
+ * The chosen roles are read across the network for the same reason — see
+ * diluxone_users_network_roles().
+ *
+ * On a network where the plugin was switched on site by site there is no
+ * network setting, and each site keeps its own: then the person is asked when
+ * any site they can reach through that session asks it of them.
  *
  * @param string $via 'password', 'link' or 'sso'.
  */
 function diluxone_users_2fa_required( int $user_id, string $via ): bool {
 	if ( diluxone_users_2fa_required_here( $user_id, $via ) ) {
 		return true;
+	}
+
+	if ( diluxone_users_scoped_storage_active() ) {
+		return false;
 	}
 
 	foreach ( diluxone_users_2fa_other_sites( $user_id ) as $site ) {
@@ -251,7 +260,9 @@ function diluxone_users_plugin_active_here(): bool {
 }
 
 /**
- * The same question as diluxone_users_2fa_required(), about the current site only.
+ * The same question as diluxone_users_2fa_required(), with the settings the
+ * current site reads: on a network where the plugin is on for every site,
+ * those are the network's and this is the whole answer.
  *
  * Asked again after `switch_to_blog()`, where the same arguments get another
  * site's answer — hence the tag, or the analyser reuses the first one.

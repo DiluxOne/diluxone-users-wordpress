@@ -15,11 +15,11 @@ class AvatarSourcesTest extends IntegrationTestCase {
 	protected function setUp(): void {
 		parent::setUp();
 
-		update_option( 'diluxone_users_avatar_gravatar', 0 );
+		diluxone_users_update_option( 'diluxone_users_avatar_gravatar', 0 );
 	}
 
 	public function test_a_member_with_nothing_is_not_sent_to_gravatar(): void {
-		update_option( 'diluxone_users_avatar_initials', 0 );
+		diluxone_users_update_option( 'diluxone_users_avatar_initials', 0 );
 
 		$url = (string) get_avatar_url( $this->make_user() );
 
@@ -33,7 +33,7 @@ class AvatarSourcesTest extends IntegrationTestCase {
 	}
 
 	public function test_with_gravatar_on_wordpress_asks_it_as_always(): void {
-		update_option( 'diluxone_users_avatar_gravatar', 1 );
+		diluxone_users_update_option( 'diluxone_users_avatar_gravatar', 1 );
 
 		$this->assertStringContainsString( 'gravatar.com', (string) get_avatar_url( 'nobody-here@example.test' ) );
 	}

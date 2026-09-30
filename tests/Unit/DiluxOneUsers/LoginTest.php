@@ -18,6 +18,7 @@ class LoginTest extends TestCase {
 		parent::setUp();
 		Monkey\setUp();
 		require_once DILUXONE_USERS_DIR . 'includes/options.php';
+		require_once DILUXONE_USERS_DIR . 'includes/options-scope.php';
 		require_once DILUXONE_USERS_DIR . 'includes/login.php';
 		$GLOBALS['diluxone_users_test_user_meta'] = array();
 	}

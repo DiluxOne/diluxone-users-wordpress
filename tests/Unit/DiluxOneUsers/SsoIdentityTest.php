@@ -21,6 +21,7 @@ class SsoIdentityTest extends TestCase {
 		Monkey\setUp();
 
 		require_once DILUXONE_USERS_DIR . 'includes/options.php';
+		require_once DILUXONE_USERS_DIR . 'includes/options-scope.php';
 		// The engine and its provider table together: once the engine is in the
 		// process, any test that asks which networks are on needs the table too.
 		require_once DILUXONE_USERS_DIR . 'includes/sso-providers.php';

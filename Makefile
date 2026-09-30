@@ -143,8 +143,53 @@ test-unit-min: ## Unit suite on the oldest PHP the plugin supports (8.0).
 	$(DOCKER_RUN) php:8.0-cli ./vendor/bin/phpunit --testsuite unit
 
 .PHONY: test-integration
-test-integration: ## Run integration tests against the wp-env stack (must be `make env` first).
+test-integration: ## Integration suite on a network: the wp-env tests site (must be `make env` + `make env-multisite` first).
 	npx @wordpress/env run tests-cli --env-cwd=wp-content/plugins/$(REPO_DIR) ./vendor/bin/phpunit -c phpunit-integration.xml --testsuite integration
+
+# The same suite on a single site. The main environment's tests site is a
+# network once `make env-multisite` has run, and the dev site's database is not
+# a test database (the bootstrap refuses it), so a single site of its own is
+# needed: a throwaway wp-env under build/integration-single, the way Plugin
+# Check has one, on 8886/8887 (8888/8889, 8892–8901 belong to other stacks).
+# It mounts this checkout under its own directory name, like the main
+# environment, and its tests site is never converted.
+INTEG_SINGLE_DIR := $(CURDIR)/build/integration-single
+
+.PHONY: integration-single-env
+integration-single-env:
+	@mkdir -p "$(INTEG_SINGLE_DIR)"
+	@printf '%s\n' \
+	  '{' \
+	  '  "core": null,' \
+	  '  "phpVersion": "8.5",' \
+	  '  "plugins": [ "../.." ],' \
+	  '  "mappings": { "wp-content/mu-plugins/diluxone-e2e.php": "../../tests/e2e/mu-plugin/diluxone-e2e.php" },' \
+	  '  "config": { "WP_DEBUG": true, "WP_DEBUG_LOG": true, "WP_DEBUG_DISPLAY": false },' \
+	  '  "port": 8886,' \
+	  '  "testsPort": 8887' \
+	  '}' > "$(INTEG_SINGLE_DIR)/.wp-env.json"
+	@cd "$(INTEG_SINGLE_DIR)" && npx @wordpress/env start >/dev/null
+	@cd "$(INTEG_SINGLE_DIR)" && if npx @wordpress/env run tests-cli wp core is-installed --network >/dev/null 2>&1; then \
+	  echo "✗ the single-site environment's tests site is a network. make test-integration-single-clean, then again."; exit 1; fi
+	@cd "$(INTEG_SINGLE_DIR)" && npx @wordpress/env run tests-cli wp plugin activate $(REPO_DIR) >/dev/null
+
+.PHONY: test-integration-single
+test-integration-single: integration-single-env ## Integration suite on a single site, in a throwaway wp-env (8886/8887).
+	@cd "$(INTEG_SINGLE_DIR)" && npx @wordpress/env run tests-cli --env-cwd=wp-content/plugins/$(REPO_DIR) ./vendor/bin/phpunit -c phpunit-integration.xml --testsuite integration
+
+.PHONY: test-integration-single-down
+test-integration-single-down: ## Stop the single-site integration environment.
+	@cd "$(INTEG_SINGLE_DIR)" 2>/dev/null && npx @wordpress/env stop 2>/dev/null || true
+
+.PHONY: test-integration-single-clean
+test-integration-single-clean: ## Destroy the single-site integration environment and its volumes.
+	@cd "$(INTEG_SINGLE_DIR)" 2>/dev/null && npx @wordpress/env destroy --force 2>/dev/null || true
+
+.PHONY: test-integration-all
+test-integration-all: ## The integration suite on both: the network (main env) and a single site.
+	$(MAKE) env-multisite
+	$(MAKE) test-integration
+	$(MAKE) test-integration-single
 
 # The end-to-end suite drives a real browser against the wp-env dev site, so
 # it needs `make env` running and the Playwright browsers installed once
@@ -207,8 +252,22 @@ test-visual-update: ## Take the pictures again and accept them as the new baseli
 	DU_SNAPSHOTS=1 npx playwright test --project=visual --update-snapshots
 	@echo "✔ Pictures rewritten. \`git diff --stat tests/e2e/snapshots\` is the change you are accepting."
 
+# The network's pictures: Network Admin's screens and the places a site of a
+# network looks different. The tests site has to be a network, so they are
+# a pair of targets of their own rather than part of the two above.
+.PHONY: test-visual-network
+test-visual-network: env-multisite ## Compare the network's screens with their pictures.
+	@mkdir -p build
+	DU_SNAPSHOTS=1 npx playwright test -c playwright.network.config.ts --project=network-visual
+
+.PHONY: test-visual-network-update
+test-visual-network-update: env-multisite ## Take the network's pictures again and accept them.
+	@mkdir -p build
+	DU_SNAPSHOTS=1 npx playwright test -c playwright.network.config.ts --project=network-visual --update-snapshots
+	@echo "✔ Pictures rewritten. \`git diff --stat tests/e2e/snapshots\` is the change you are accepting."
+
 .PHONY: test-all
-test-all: test-unit test-integration test-e2e ## All three: the fast one, the one that needs wp-env, and the one that needs a browser.
+test-all: test-unit test-integration test-integration-single test-e2e ## Unit, integration on a network and on a single site, and single-site end-to-end.
 
 # -- Distribution build ------------------------------------------------
 # The repo directory is diluxone-users-wordpress (GitHub), but the plugin
@@ -362,6 +421,6 @@ release: check ## Pre-release validation: full quality gate + version-alignment 
 
 # -- Cleanup -----------------------------------------------------------
 .PHONY: clean
-clean: plugin-check-down ## Remove caches, build artefacts, and temporary files.
+clean: plugin-check-down test-integration-single-down ## Remove caches, build artefacts, and temporary files.
 	rm -rf build .phpunit.result.cache .phpunit.cache .phpcs-cache .phpstan .psalm
 	@echo "✔ Cleaned."

@@ -84,7 +84,11 @@ function diluxone_users_screen_log_settings(): void {
 
 	diluxone_users_ui_aside_open();
 
-	diluxone_users_intro( __( 'What this site writes down about what people do, and how long it keeps it. Everything here decides what the Activity tab beside it can show: a group that is not ticked is not recorded, and what was never recorded cannot be looked up afterwards.', 'diluxone-users' ) );
+	diluxone_users_intro(
+		'network' === diluxone_users_admin_context()
+			? __( 'What every site of the network writes down about what people do, and how long it keeps it. Each site keeps its own rows, on its own Reports › Activity: a group that is not ticked here is not recorded on any of them.', 'diluxone-users' )
+			: __( 'What this site writes down about what people do, and how long it keeps it. Everything here decides what the Activity tab beside it can show: a group that is not ticked is not recorded, and what was never recorded cannot be looked up afterwards.', 'diluxone-users' )
+	);
 
 	diluxone_users_ui_section(
 		__( 'What is written down', 'diluxone-users' ),
@@ -123,44 +127,11 @@ function diluxone_users_screen_log_settings(): void {
 		)
 	);
 
-	/*
-	 * Emptying it is not a setting, so it is a link and not a field of the
-	 * form around it: a form inside a form is thrown away by the browser, and
-	 * pressing Save should never be what deletes a year of rows.
-	 */
-	$size = diluxone_users_log_size();
-
-	// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- only which notice to show after the redirect.
-	if ( isset( $_GET['diluxone-users-emptied'] ) ) {
-		diluxone_users_notice(
-			sprintf(
-				/* translators: %s: number of rows deleted */
-				__( 'The activity log was emptied: %s rows deleted.', 'diluxone-users' ),
-				number_format_i18n( absint( wp_unslash( $_GET['diluxone-users-emptied'] ) ) ) // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-			)
-		);
-	}
-
-	diluxone_users_ui_section(
-		__( 'Empty it now', 'diluxone-users' ),
-		__( 'Every row goes, whatever its age, and the Activity tab starts again from nothing. What is recorded from then on follows the settings above.', 'diluxone-users' )
-	);
-
-	if ( $size['rows'] > 0 ) {
-		printf(
-			'<p><a class="button button-link-delete" href="%1$s" data-diluxone-users-confirm="%2$s">%3$s</a></p>',
-			esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=diluxone_users_log_empty' ), 'diluxone_users_log_empty' ) ),
-			esc_attr(
-				sprintf(
-					/* translators: %s: number of rows */
-					__( 'The %s rows of the activity log are deleted for good. It cannot be undone. Go ahead?', 'diluxone-users' ),
-					number_format_i18n( $size['rows'] )
-				)
-			),
-			esc_html__( 'Delete every row', 'diluxone-users' )
-		);
-	} else {
-		printf( '<p class="description">%s</p>', esc_html__( 'There is nothing in it.', 'diluxone-users' ) );
+	// The rows are each site's, so emptying them is too: in Network Admin
+	// there are no rows here to empty, and on a site of a network the button
+	// goes with the rows, on the Activity tab.
+	if ( 'single' === diluxone_users_admin_context() ) {
+		diluxone_users_log_empty_box();
 	}
 
 	diluxone_users_ui_aside_close(
@@ -186,6 +157,52 @@ function diluxone_users_screen_log_settings(): void {
 	);
 }
 
+/**
+ * Emptying this site's log, every row.
+ *
+ * Emptying it is not a setting, so it is a link and not a field of the form
+ * around it: a form inside a form is thrown away by the browser, and pressing
+ * Save should never be what deletes a year of rows.
+ */
+function diluxone_users_log_empty_box(): void {
+	$size = diluxone_users_log_size();
+
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- only which notice to show after the redirect.
+	if ( isset( $_GET['diluxone-users-emptied'] ) ) {
+		diluxone_users_notice(
+			sprintf(
+				/* translators: %s: number of rows deleted */
+				__( 'The activity log was emptied: %s rows deleted.', 'diluxone-users' ),
+				number_format_i18n( absint( wp_unslash( $_GET['diluxone-users-emptied'] ) ) ) // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			)
+		);
+	}
+
+	diluxone_users_ui_section(
+		__( 'Empty it now', 'diluxone-users' ),
+		'single' === diluxone_users_admin_context()
+			? __( 'Every row goes, whatever its age, and the Activity tab starts again from nothing. What is recorded from then on follows the settings above.', 'diluxone-users' )
+			: __( 'Every row of this site goes, whatever its age, and this tab starts again from nothing. What is recorded from then on follows the network’s log settings.', 'diluxone-users' )
+	);
+
+	if ( $size['rows'] > 0 ) {
+		printf(
+			'<p><a class="button button-link-delete" href="%1$s" data-diluxone-users-confirm="%2$s">%3$s</a></p>',
+			esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=diluxone_users_log_empty' ), 'diluxone_users_log_empty' ) ),
+			esc_attr(
+				sprintf(
+					/* translators: %s: number of rows */
+					__( 'The %s rows of the activity log are deleted for good. It cannot be undone. Go ahead?', 'diluxone-users' ),
+					number_format_i18n( $size['rows'] )
+				)
+			),
+			esc_html__( 'Delete every row', 'diluxone-users' )
+		);
+	} else {
+		printf( '<p class="description">%s</p>', esc_html__( 'There is nothing in it.', 'diluxone-users' ) );
+	}
+}
+
 /* ── The rows ──────────────────────────────────────────────────────── */
 
 /**
@@ -199,8 +216,15 @@ function diluxone_users_screen_log_settings(): void {
 function diluxone_users_log_aside_state(): void {
 	$on     = diluxone_users_log_levels();
 	$groups = diluxone_users_log_groups();
-	$size   = diluxone_users_log_size();
-	$days   = diluxone_users_log_days();
+
+	// In Network Admin there is no table to weigh: every site keeps its own.
+	if ( 'network' === diluxone_users_admin_context() ) {
+		diluxone_users_log_network_state( $on, $groups );
+
+		return;
+	}
+	$size = diluxone_users_log_size();
+	$days = diluxone_users_log_days();
 
 	$names = array();
 
@@ -236,6 +260,42 @@ function diluxone_users_log_aside_state(): void {
 			esc_html( (string) wp_date( 'j M Y', (int) strtotime( $size['oldest'] . ' UTC' ) ) )
 		);
 	}
+
+	diluxone_users_ui_aside_state(
+		$line,
+		array() === $on ? 'off' : 'active',
+		0 === $days
+			? __( 'kept for ever', 'diluxone-users' )
+			: sprintf(
+				/* translators: %s: a number of days. */
+				__( 'kept %s days', 'diluxone-users' ),
+				number_format_i18n( $days )
+			)
+	);
+}
+
+/**
+ * The same sentence for the network, which decides and keeps no rows.
+ *
+ * @param array<int, string>                  $on     The groups recorded.
+ * @param array<string, array<string, mixed>> $groups Every group.
+ */
+function diluxone_users_log_network_state( array $on, array $groups ): void {
+	$names = array();
+
+	foreach ( $on as $group ) {
+		$names[] = '<code>' . esc_html( (string) $groups[ $group ]['label'] ) . '</code>';
+	}
+
+	$line = array() === $names
+		? esc_html__( 'Nothing is being recorded on any site of the network.', 'diluxone-users' )
+		: sprintf(
+			/* translators: %s: the groups being recorded, each in <code>. */
+			esc_html__( 'Every site of the network records %s and nothing else, each in its own table.', 'diluxone-users' ),
+			implode( ', ', $names )
+		);
+
+	$days = diluxone_users_log_days();
 
 	diluxone_users_ui_aside_state(
 		$line,
@@ -513,6 +573,12 @@ function diluxone_users_screen_log(): void {
 	<?php
 	diluxone_users_ui_wide_close();
 
+	// On a network the settings are the network's and the rows are this
+	// site's: the way to empty them comes with the rows.
+	if ( 'single' !== diluxone_users_admin_context() ) {
+		diluxone_users_log_empty_box();
+	}
+
 	diluxone_users_ui_aside_close(
 		static function (): void {
 			diluxone_users_log_aside_state();
@@ -522,16 +588,22 @@ function diluxone_users_screen_log(): void {
 				__( 'A row exists because its group was ticked at the moment it happened. Turning a group on today fills this from today; turning one off leaves what was already written until the days above run out.', 'diluxone-users' )
 			);
 
-			diluxone_users_ui_links(
-				__( 'The settings behind this report', 'diluxone-users' ),
-				array(
+			// On a network the settings are the network's, and only worth a
+			// link for somebody who can open Network Admin.
+			$single = 'single' === diluxone_users_admin_context();
+
+			if ( $single || diluxone_users_admin_can_open( 'network' ) ) {
+				diluxone_users_ui_links(
+					__( 'The settings behind this report', 'diluxone-users' ),
 					array(
-						'url'   => diluxone_users_admin_url( DILUXONE_USERS_REPORTS, array( 'tab' => 'logging' ) ),
-						'label' => __( 'Reports › Log settings', 'diluxone-users' ),
-						'help'  => __( 'Which of the three groups is written down, and how many days a row is kept before it goes on its own.', 'diluxone-users' ),
-					),
-				)
-			);
+						array(
+							'url'   => diluxone_users_admin_url( DILUXONE_USERS_REPORTS, array( 'tab' => 'logging' ) ),
+							'label' => $single ? __( 'Reports › Log settings', 'diluxone-users' ) : __( 'Network Admin › Activity log', 'diluxone-users' ),
+							'help'  => __( 'Which of the three groups is written down, and how many days a row is kept before it goes on its own.', 'diluxone-users' ),
+						),
+					)
+				);
+			}
 		}
 	);
 }
@@ -565,7 +637,7 @@ function diluxone_users_log_empty(): void {
 		diluxone_users_admin_url(
 			DILUXONE_USERS_REPORTS,
 			array(
-				'tab'                    => 'logging',
+				'tab'                    => 'single' === diluxone_users_admin_context() ? 'logging' : 'activity',
 				'diluxone-users-emptied' => $gone,
 			)
 		)

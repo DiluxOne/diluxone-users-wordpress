@@ -14,7 +14,7 @@ class PasswordlessGateTest extends IntegrationTestCase {
 	protected function setUp(): void {
 		parent::setUp();
 
-		update_option( 'diluxone_users_wp_screens', 'mine' );
+		diluxone_users_update_option( 'diluxone_users_wp_screens', 'mine' );
 		add_filter( 'diluxone_users_login_url', array( $this, 'own_page' ) );
 	}
 
@@ -35,7 +35,7 @@ class PasswordlessGateTest extends IntegrationTestCase {
 	}
 
 	public function test_the_password_form_can_still_post_to_wp_login(): void {
-		update_option( 'diluxone_users_login_method', 'both' );
+		diluxone_users_update_option( 'diluxone_users_login_method', 'both' );
 		$this->request( 'POST', array(), array( 'log' => 'someone', 'pwd' => 'secret' ) );
 
 		diluxone_users_block_wp_login();
@@ -44,7 +44,7 @@ class PasswordlessGateTest extends IntegrationTestCase {
 	}
 
 	public function test_with_only_the_link_the_post_meets_the_wall(): void {
-		update_option( 'diluxone_users_login_method', 'link' );
+		diluxone_users_update_option( 'diluxone_users_login_method', 'link' );
 		$this->request( 'POST', array(), array( 'log' => 'someone', 'pwd' => 'secret' ) );
 
 		$this->expectException( \WPAjaxDieContinueException::class );
@@ -62,8 +62,8 @@ class PasswordlessGateTest extends IntegrationTestCase {
 	 * only the one that says nobody resets anything shuts the ask.
 	 */
 	public function test_asking_for_a_reset_goes_through_when_somebody_resets_something(): void {
-		update_option( 'diluxone_users_login_method', 'both' );
-		update_option( 'diluxone_users_lost_password', 'site' );
+		diluxone_users_update_option( 'diluxone_users_login_method', 'both' );
+		diluxone_users_update_option( 'diluxone_users_lost_password', 'site' );
 		$this->request( 'POST', array( 'action' => 'lostpassword' ), array( 'user_login' => 'someone' ) );
 
 		diluxone_users_block_wp_login();
@@ -72,8 +72,8 @@ class PasswordlessGateTest extends IntegrationTestCase {
 	}
 
 	public function test_asking_for_a_reset_meets_the_wall_when_there_is_no_password_to_reset(): void {
-		update_option( 'diluxone_users_login_method', 'both' );
-		update_option( 'diluxone_users_lost_password', 'link' );
+		diluxone_users_update_option( 'diluxone_users_login_method', 'both' );
+		diluxone_users_update_option( 'diluxone_users_lost_password', 'link' );
 		$this->request( 'POST', array( 'action' => 'lostpassword' ), array( 'user_login' => 'someone' ) );
 
 		$this->expectException( \WPAjaxDieContinueException::class );
@@ -82,14 +82,14 @@ class PasswordlessGateTest extends IntegrationTestCase {
 	}
 
 	public function test_opening_wp_login_goes_to_the_site_page(): void {
-		update_option( 'diluxone_users_login_method', 'both' );
+		diluxone_users_update_option( 'diluxone_users_login_method', 'both' );
 		$this->request( 'GET' );
 
 		$this->assertSame( home_url( '/sign-in/' ), $this->expectRedirect( 'diluxone_users_block_wp_login' ) );
 	}
 
 	public function test_the_escape_hatch_still_opens_the_native_form(): void {
-		update_option( 'diluxone_users_login_method', 'link' );
+		diluxone_users_update_option( 'diluxone_users_login_method', 'link' );
 		$this->request( 'GET', array( 'diluxone-users-admin' => '1' ) );
 
 		diluxone_users_block_wp_login();
@@ -106,8 +106,8 @@ class PasswordlessGateTest extends IntegrationTestCase {
 	}
 
 	public function test_with_wordpress_screens_nothing_is_touched(): void {
-		update_option( 'diluxone_users_wp_screens', 'wp' );
-		update_option( 'diluxone_users_login_method', 'both' );
+		diluxone_users_update_option( 'diluxone_users_wp_screens', 'wp' );
+		diluxone_users_update_option( 'diluxone_users_login_method', 'both' );
 		$this->request( 'GET' );
 
 		diluxone_users_block_wp_login();
@@ -124,8 +124,8 @@ class PasswordlessGateTest extends IntegrationTestCase {
 	 * day the password comes back; today the second door is shut.
 	 */
 	public function test_with_only_the_link_the_second_door_is_shut_too(): void {
-		update_option( 'diluxone_users_wp_screens', 'wp' );
-		update_option( 'diluxone_users_login_method', 'link' );
+		diluxone_users_update_option( 'diluxone_users_wp_screens', 'wp' );
+		diluxone_users_update_option( 'diluxone_users_login_method', 'link' );
 		$this->request( 'POST', array(), array( 'log' => 'someone', 'pwd' => 'secret' ) );
 
 		$this->expectException( \WPAjaxDieContinueException::class );

@@ -24,9 +24,9 @@ class TwoFactorLockoutTest extends IntegrationTestCase {
 	protected function setUp(): void {
 		parent::setUp();
 
-		update_option( 'diluxone_users_2fa_mode', 'required' );
-		update_option( 'diluxone_users_2fa_methods', array( 'email' ) );
-		update_option( 'diluxone_users_2fa_remember_days', 0 );
+		diluxone_users_update_option( 'diluxone_users_2fa_mode', 'required' );
+		diluxone_users_update_option( 'diluxone_users_2fa_methods', array( 'email' ) );
+		diluxone_users_update_option( 'diluxone_users_2fa_remember_days', 0 );
 
 		$this->user = $this->make_user();
 	}
@@ -178,7 +178,7 @@ class TwoFactorLockoutTest extends IntegrationTestCase {
 	public function test_the_refusal_is_written_down(): void {
 		// A wrong second step never reaches wp_login_failed — the password was
 		// right — so without its own row the log is quiet during the attack.
-		update_option( 'diluxone_users_log_levels', array( 'access' ) );
+		diluxone_users_update_option( 'diluxone_users_log_levels', array( 'access' ) );
 
 		$this->burn();
 

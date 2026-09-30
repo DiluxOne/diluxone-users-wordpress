@@ -61,6 +61,10 @@ add_filter( 'admin_title', 'diluxone_users_admin_title', 10, 2 );
 /**
  * The menu screens, in order.
  *
+ * In Network Admin the log's settings are a screen of their own, and it is
+ * named after what it holds: a site's Reports have rows beside the settings,
+ * the network has the settings and no rows.
+ *
  * @return array<string, mixed>
  */
 function diluxone_users_screens(): array {
@@ -77,24 +81,18 @@ function diluxone_users_screens(): array {
 		'diluxone-users-fields'   => __( 'User fields', 'diluxone-users' ),
 		'diluxone-users-design'   => __( 'Design', 'diluxone-users' ),
 		'diluxone-users-notices'  => __( 'E-mail notices', 'diluxone-users' ),
-		'diluxone-users-reports'  => __( 'Reports', 'diluxone-users' ),
+		'diluxone-users-reports'  => 'network' === diluxone_users_admin_context() ? __( 'Activity log', 'diluxone-users' ) : __( 'Reports', 'diluxone-users' ),
 		'diluxone-users-status'   => __( 'Maintenance', 'diluxone-users' ),
 	);
 }
 
-/** Menu. */
-function diluxone_users_menu(): void {
-	add_menu_page(
-		diluxone_users_plugin_name(),
-		diluxone_users_plugin_name(),
-		'manage_options',
-		DILUXONE_USERS_MENU,
-		'diluxone_users_screen_home',
-		'dashicons-groups',
-		71
-	);
-
-	$callbacks = array(
+/**
+ * What draws each screen.
+ *
+ * @return array<string, callable-string>
+ */
+function diluxone_users_screen_callbacks(): array {
+	return array(
 		'diluxone-users'          => 'diluxone_users_screen_home',
 		'diluxone-users-login'    => 'diluxone_users_screen_login',
 		'diluxone-users-security' => 'diluxone_users_screen_security',
@@ -106,9 +104,32 @@ function diluxone_users_menu(): void {
 		'diluxone-users-reports'  => 'diluxone_users_screen_reports',
 		'diluxone-users-status'   => 'diluxone_users_screen_status',
 	);
+}
+
+/**
+ * Menu.
+ *
+ * On a network, a site's menu carries only the screens that belong to it:
+ * the network's settings are in Network Admin (see admin-network.php), and
+ * on a site that is not the hub, the hub's screens are on the hub.
+ */
+function diluxone_users_menu(): void {
+	add_menu_page(
+		diluxone_users_plugin_name(),
+		diluxone_users_plugin_name(),
+		'manage_options',
+		DILUXONE_USERS_MENU,
+		'diluxone_users_screen_home',
+		'dashicons-groups',
+		71
+	);
+
+	$callbacks = diluxone_users_screen_callbacks();
 
 	foreach ( diluxone_users_screens() as $slug => $title ) {
-		add_submenu_page( DILUXONE_USERS_MENU, $title, $title, 'manage_options', $slug, $callbacks[ $slug ] );
+		if ( diluxone_users_screen_here( $slug ) ) {
+			add_submenu_page( DILUXONE_USERS_MENU, $title, $title, 'manage_options', $slug, $callbacks[ $slug ] );
+		}
 	}
 }
 add_action( 'admin_menu', 'diluxone_users_menu' );
@@ -116,10 +137,16 @@ add_action( 'admin_menu', 'diluxone_users_menu' );
 /**
  * The URL of a plugin screen, with whatever arguments are needed.
  *
+ * From wherever it is asked, it is the screen where it lives: on a network a
+ * network screen is in Network Admin and the hub's are on the hub.
+ *
  * @param array<string, mixed> $args
  */
 function diluxone_users_admin_url( string $screen, array $args = array() ): string {
-	return add_query_arg( array_merge( array( 'page' => $screen ), $args ), admin_url( 'admin.php' ) );
+	return add_query_arg(
+		array_merge( array( 'page' => $screen ), $args ),
+		diluxone_users_admin_base( $screen, (string) ( $args['tab'] ?? '' ) )
+	);
 }
 
 /**

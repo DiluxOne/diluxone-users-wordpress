@@ -19,7 +19,7 @@ class SsoLinkTest extends IntegrationTestCase {
 
 		// Social sign-in may create accounts here: the tests about what it
 		// does with them start from a site that said yes.
-		update_option( 'diluxone_users_sso_register', 1 );
+		diluxone_users_update_option( 'diluxone_users_sso_register', 1 );
 
 		$this->sub = 'sub-' . wp_generate_password( 8, false );
 	}
@@ -86,7 +86,7 @@ class SsoLinkTest extends IntegrationTestCase {
 		$this->assertGreaterThan( 0, $id );
 		$this->assertSame( $this->sub, get_user_meta( $id, 'diluxone_users_sso_mock', true ) );
 
-		update_option( 'diluxone_users_sso_verified_only', 1 );
+		diluxone_users_update_option( 'diluxone_users_sso_verified_only', 1 );
 
 		$this->assertSame( 0, diluxone_users_sso_user( MockProvider::ID, $this->identity( 'new-two-' . $this->sub . '@example.test', null, $this->sub . '-two' ) ) );
 		$this->assertFalse( get_user_by( 'email', 'new-two-' . $this->sub . '@example.test' ) );
@@ -101,7 +101,7 @@ class SsoLinkTest extends IntegrationTestCase {
 	}
 
 	public function test_link_by_email_can_still_be_turned_off_altogether(): void {
-		update_option( 'diluxone_users_sso_link_by_email', 0 );
+		diluxone_users_update_option( 'diluxone_users_sso_link_by_email', 0 );
 
 		$victim = $this->make_user();
 		$email  = get_userdata( $victim )->user_email;

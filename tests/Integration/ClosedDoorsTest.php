@@ -15,7 +15,7 @@ namespace Tests\Integration;
 class ClosedDoorsTest extends IntegrationTestCase {
 
 	public function test_a_password_only_site_mails_no_link(): void {
-		update_option( 'diluxone_users_login_method', 'password' );
+		diluxone_users_update_option( 'diluxone_users_login_method', 'password' );
 
 		$user = get_userdata( $this->make_user() );
 
@@ -33,8 +33,8 @@ class ClosedDoorsTest extends IntegrationTestCase {
 	}
 
 	public function test_a_registration_form_that_is_off_creates_nobody(): void {
-		update_option( 'diluxone_users_login_register', 1 );
-		update_option( 'diluxone_users_register_form', 0 );
+		diluxone_users_update_option( 'diluxone_users_login_register', 1 );
+		diluxone_users_update_option( 'diluxone_users_register_form', 0 );
 
 		$email = 'form-off-' . wp_generate_password( 8, false ) . '@example.test';
 
@@ -54,7 +54,7 @@ class ClosedDoorsTest extends IntegrationTestCase {
 
 	/** @dataProvider privacy_switches */
 	public function test_a_privacy_request_that_is_off_is_not_filed( string $kind, string $option ): void {
-		update_option( $option, 0 );
+		diluxone_users_update_option( $option, 0 );
 
 		$user = get_userdata( $this->make_user() );
 
@@ -116,6 +116,41 @@ class ClosedDoorsTest extends IntegrationTestCase {
 		} catch ( \WPAjaxDieContinueException $e ) {
 			$this->assertNotNull( \WP_Session_Tokens::get_instance( $admin )->get( $token ) );
 		}
+	}
+
+	/** Whoever administers the site does close them, on a single site and on a network alike. */
+	public function test_an_administrator_closes_another_persons_sessions(): void {
+		$admin  = $this->make_user( 'administrator' );
+		$member = $this->make_user();
+
+		if ( is_multisite() ) {
+			// Acting on another account is the network's to allow; its super
+			// admins are who the network lets do it.
+			grant_super_admin( $admin );
+		}
+
+		wp_set_current_user( $member );
+		$token = \WP_Session_Tokens::get_instance( $member )->create( time() + HOUR_IN_SECONDS );
+
+		wp_set_current_user( $admin );
+		$this->postAs(
+			$admin,
+			array(
+				'_wpnonce'            => wp_create_nonce( 'diluxone_users_sessions_admin' ),
+				'diluxone_users_user' => (string) $member,
+			)
+		);
+
+		try {
+			$url = $this->expectRedirect( 'diluxone_users_sessions_admin_close' );
+		} finally {
+			if ( is_multisite() ) {
+				revoke_super_admin( $admin );
+			}
+		}
+
+		$this->assertSame( 'closed', $this->queryArg( $url, 'diluxone_users_done' ) );
+		$this->assertNull( \WP_Session_Tokens::get_instance( $member )->get( $token ) );
 	}
 
 	/**

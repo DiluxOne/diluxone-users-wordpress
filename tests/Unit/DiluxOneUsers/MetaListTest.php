@@ -19,6 +19,7 @@ class MetaListTest extends TestCase {
 		parent::setUp();
 		Monkey\setUp();
 		require_once DILUXONE_USERS_DIR . 'includes/options.php';
+		require_once DILUXONE_USERS_DIR . 'includes/options-scope.php';
 		// The shared stub answers get_user_meta() from this array.
 		$GLOBALS['diluxone_users_test_user_meta'] = array();
 	}

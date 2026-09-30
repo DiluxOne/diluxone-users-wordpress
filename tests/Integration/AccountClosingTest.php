@@ -75,7 +75,7 @@ class AccountClosingTest extends IntegrationTestCase {
 
 	/** A site that carries them out itself: confirming only confirms. */
 	public function test_a_site_that_carries_them_out_itself_waits(): void {
-		update_option( 'diluxone_users_privacy_delete_when', 'admin' );
+		diluxone_users_update_option( 'diluxone_users_privacy_delete_when', 'admin' );
 		$user = $this->make_user();
 
 		$request = $this->confirm_from_account( $user );

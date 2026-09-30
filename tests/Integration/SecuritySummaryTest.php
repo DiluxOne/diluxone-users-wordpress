@@ -47,6 +47,9 @@ class SecuritySummaryTest extends IntegrationTestCase {
 	}
 
 	public function test_the_summary_is_the_first_tab_and_saves_nothing(): void {
+		// On a network, Security is a screen of Network Admin.
+		$this->in_network_admin();
+
 		$panels = diluxone_users_panels( DILUXONE_USERS_SECURITY );
 
 		$this->assertSame( 'summary', array_key_first( $panels ), 'Security has to open on its summary, the way Access does.' );
@@ -84,14 +87,14 @@ class SecuritySummaryTest extends IntegrationTestCase {
 	}
 
 	public function test_the_second_step_row_reads_the_saved_mode(): void {
-		update_option( 'diluxone_users_2fa_mode', 'off' );
+		diluxone_users_update_option( 'diluxone_users_2fa_mode', 'off' );
 		$this->assertSame( 'off', $this->rows_for( '2fa' )[0]['state'] );
 
-		update_option( 'diluxone_users_2fa_mode', 'required' );
-		update_option( 'diluxone_users_2fa_scope', 'all' );
+		diluxone_users_update_option( 'diluxone_users_2fa_mode', 'required' );
+		diluxone_users_update_option( 'diluxone_users_2fa_scope', 'all' );
 		$this->assertSame( 'active', $this->rows_for( '2fa' )[0]['state'] );
 
-		update_option( 'diluxone_users_2fa_mode', 'optional' );
+		diluxone_users_update_option( 'diluxone_users_2fa_mode', 'optional' );
 		$this->assertSame( 'active', $this->rows_for( '2fa' )[0]['state'] );
 	}
 
@@ -102,9 +105,9 @@ class SecuritySummaryTest extends IntegrationTestCase {
 	 * it asks for a code and asks nobody for anything.
 	 */
 	public function test_required_of_nobody_is_pending_and_says_so(): void {
-		update_option( 'diluxone_users_2fa_mode', 'required' );
-		update_option( 'diluxone_users_2fa_scope', 'some' );
-		update_option( 'diluxone_users_2fa_roles', array() );
+		diluxone_users_update_option( 'diluxone_users_2fa_mode', 'required' );
+		diluxone_users_update_option( 'diluxone_users_2fa_scope', 'some' );
+		diluxone_users_update_option( 'diluxone_users_2fa_roles', array() );
 
 		$row = $this->rows_for( '2fa' )[0];
 
@@ -113,9 +116,9 @@ class SecuritySummaryTest extends IntegrationTestCase {
 	}
 
 	public function test_the_second_step_row_names_the_roles_it_reaches(): void {
-		update_option( 'diluxone_users_2fa_mode', 'required' );
-		update_option( 'diluxone_users_2fa_scope', 'some' );
-		update_option( 'diluxone_users_2fa_roles', array( 'editor' ) );
+		diluxone_users_update_option( 'diluxone_users_2fa_mode', 'required' );
+		diluxone_users_update_option( 'diluxone_users_2fa_scope', 'some' );
+		diluxone_users_update_option( 'diluxone_users_2fa_roles', array( 'editor' ) );
 
 		$this->assertStringContainsString(
 			translate_user_role( wp_roles()->get_names()['editor'] ),
@@ -125,8 +128,8 @@ class SecuritySummaryTest extends IntegrationTestCase {
 
 	/** What carries the code is read from what is ticked, not from the default. */
 	public function test_the_method_row_follows_the_methods_that_are_on(): void {
-		update_option( 'diluxone_users_2fa_mode', 'optional' );
-		update_option( 'diluxone_users_2fa_methods', array( 'totp' ) );
+		diluxone_users_update_option( 'diluxone_users_2fa_mode', 'optional' );
+		diluxone_users_update_option( 'diluxone_users_2fa_methods', array( 'totp' ) );
 
 		$one = $this->rows_for( '2fa' )[1];
 
@@ -135,18 +138,18 @@ class SecuritySummaryTest extends IntegrationTestCase {
 		// The words are translated eight ways, so what is asserted is that
 		// the line moves when the ticks move: one method reads differently
 		// from two, whatever language the site is in.
-		update_option( 'diluxone_users_2fa_methods', array( 'totp', 'email' ) );
+		diluxone_users_update_option( 'diluxone_users_2fa_methods', array( 'totp', 'email' ) );
 
 		$this->assertNotSame( $one['detail'], $this->rows_for( '2fa' )[1]['detail'] );
 
-		update_option( 'diluxone_users_2fa_methods', array() );
+		diluxone_users_update_option( 'diluxone_users_2fa_methods', array() );
 
 		$this->assertSame( 'off', $this->rows_for( '2fa' )[1]['state'], 'Nothing ticked means nothing carries the code.' );
 	}
 
 	public function test_the_session_row_quotes_the_numbers_that_are_saved(): void {
-		update_option( 'diluxone_users_session_long_days', 21 );
-		update_option( 'diluxone_users_session_short_days', 3 );
+		diluxone_users_update_option( 'diluxone_users_session_long_days', 21 );
+		diluxone_users_update_option( 'diluxone_users_session_short_days', 3 );
 
 		$detail = $this->rows_for( 'sessions' )[0]['detail'];
 
@@ -156,10 +159,10 @@ class SecuritySummaryTest extends IntegrationTestCase {
 	}
 
 	public function test_the_sessions_row_follows_whether_people_see_their_own(): void {
-		update_option( 'diluxone_users_sessions_show', 1 );
+		diluxone_users_update_option( 'diluxone_users_sessions_show', 1 );
 		$this->assertSame( 'active', $this->rows_for( 'sessions' )[1]['state'] );
 
-		update_option( 'diluxone_users_sessions_show', 0 );
+		diluxone_users_update_option( 'diluxone_users_sessions_show', 0 );
 		$this->assertSame( 'off', $this->rows_for( 'sessions' )[1]['state'] );
 	}
 
@@ -177,8 +180,8 @@ class SecuritySummaryTest extends IntegrationTestCase {
 	}
 
 	public function test_the_passkey_rows_say_they_are_not_in_force_when_they_are_not(): void {
-		update_option( 'diluxone_users_passkey_enabled', 0 );
-		update_option( 'diluxone_users_passkey_verify', 1 );
+		diluxone_users_update_option( 'diluxone_users_passkey_enabled', 0 );
+		diluxone_users_update_option( 'diluxone_users_passkey_verify', 1 );
 
 		$rows = $this->rows_for( 'passkeys' );
 
@@ -186,7 +189,7 @@ class SecuritySummaryTest extends IntegrationTestCase {
 		$this->assertNotSame( '', $rows[0]['why'] );
 		$this->assertSame( 'off', $rows[1]['state'] );
 
-		update_option( 'diluxone_users_passkey_enabled', 1 );
+		diluxone_users_update_option( 'diluxone_users_passkey_enabled', 1 );
 
 		$rows = $this->rows_for( 'passkeys' );
 
@@ -196,8 +199,8 @@ class SecuritySummaryTest extends IntegrationTestCase {
 
 	/** Turning the fingerprint off is one row moving, not two. */
 	public function test_the_fingerprint_row_is_its_own_setting(): void {
-		update_option( 'diluxone_users_passkey_enabled', 1 );
-		update_option( 'diluxone_users_passkey_verify', 0 );
+		diluxone_users_update_option( 'diluxone_users_passkey_enabled', 1 );
+		diluxone_users_update_option( 'diluxone_users_passkey_verify', 0 );
 
 		$rows = $this->rows_for( 'passkeys' );
 
@@ -233,7 +236,7 @@ class SecuritySummaryTest extends IntegrationTestCase {
 	 * is shut.
 	 */
 	public function test_the_count_is_not_active_while_passkeys_are_off(): void {
-		update_option( 'diluxone_users_passkey_enabled', 0 );
+		diluxone_users_update_option( 'diluxone_users_passkey_enabled', 0 );
 
 		$user = $this->make_user( 'subscriber' );
 
@@ -253,7 +256,7 @@ class SecuritySummaryTest extends IntegrationTestCase {
 	}
 
 	public function test_the_proxy_row_names_the_header_that_is_read(): void {
-		update_option( 'diluxone_users_ip_header', 'HTTP_CF_CONNECTING_IP' );
+		diluxone_users_update_option( 'diluxone_users_ip_header', 'HTTP_CF_CONNECTING_IP' );
 
 		$row = $this->rows_for( 'proxy' )[0];
 
@@ -262,8 +265,8 @@ class SecuritySummaryTest extends IntegrationTestCase {
 	}
 
 	public function test_the_proxy_row_says_nothing_is_set_when_nothing_is(): void {
-		delete_option( 'diluxone_users_ip_header' );
-		delete_option( 'diluxone_users_trusted_proxies' );
+		diluxone_users_delete_option( 'diluxone_users_ip_header' );
+		diluxone_users_delete_option( 'diluxone_users_trusted_proxies' );
 
 		$row = $this->rows_for( 'proxy' )[0];
 

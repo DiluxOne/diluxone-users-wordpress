@@ -40,7 +40,7 @@ class WpRegisterFieldsTest extends IntegrationTestCase {
 	protected function setUp(): void {
 		parent::setUp();
 
-		update_option( 'diluxone_users_fields', self::FIELDS );
+		diluxone_users_update_option( 'diluxone_users_fields', self::FIELDS );
 	}
 
 	public function test_an_account_made_anywhere_else_takes_nothing_from_the_request(): void {

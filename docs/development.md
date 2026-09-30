@@ -35,7 +35,7 @@ When `make env` finishes, open <http://localhost:8892> and log in with `admin` /
 | `make help` | Every target with a one-line description (the default). |
 | `make install` / `make update` | `composer install` / `composer update`: the dev tooling in `vendor/`. |
 | `make env` / `make env-up` | Start `wp-env`: the dev site (8892) and the tests site (8893). |
-| `make env-multisite` | Turn the tests site (8893) into a subdirectory network and network-activate the plugin. Idempotent; run it after every `make env`, since the integration suite and the network end-to-end suite need it. |
+| `make env-multisite` | Turn the tests site (8893) into a subdirectory network and network-activate the plugin. Idempotent; run it after every `make env`, since the network integration run and the network end-to-end suite need it. |
 | `make env-down` | Stop `wp-env` (keeps the database). |
 | `make env-clean` | Destroy `wp-env` and its volumes, when the dev install is in a bad state. |
 | `make lint` / `make lint-fix` | PHPCS with the WordPress Coding Standards / PHPCBF for what it can repair. |
@@ -44,13 +44,16 @@ When `make env` finishes, open <http://localhost:8892> and log in with `admin` /
 | `make test` / `make test-unit` | The unit suite, on the composer image's PHP (the newest). |
 | `make test-unit-min` | The unit suite on PHP 8.0, the oldest the plugin supports. |
 | `make check` | The fast gates: lint + stan + psalm + unit tests. |
-| `make test-integration` | The integration suite, in the tests site's container. Run `make env-multisite` first: it runs on a network, as the shared CI does. |
+| `make test-integration` | The integration suite on a network, in the tests site's container. Run `make env-multisite` first. |
+| `make test-integration-single` | The same suite on a single site, in a throwaway `wp-env` under `build/integration-single/` (ports 8886/8887) that it starts itself. `make test-integration-single-down` stops it, `make test-integration-single-clean` destroys it. |
+| `make test-integration-all` | Both: `make env-multisite`, the network run, then the single-site run. What CI runs, and what to run before pushing. |
 | `make test-e2e` / `make test-e2e-ui` | Playwright on the dev site (8892), single site, including the layout measurements; `-ui` opens Playwright's own window. |
 | `make test-e2e-network` | `make env-multisite`, then Playwright on the tests site as a network, with `/alpha/` and `/beta/`. |
 | `make test-layout` | Only the layout measurements. |
 | `make test-visual` / `make test-visual-update` | Compare every screen with its committed picture / retake and accept them. Local only ([`testing-and-quality.md`](testing-and-quality.md#visual-regression-the-pictures)). |
+| `make test-visual-network` / `make test-visual-network-update` | The same for Network Admin's screens and the network's differences on a site, on the tests site as a network. |
 | `make screenshots` | Retake the listing screenshots in `.wordpress-org/`. |
-| `make test-all` | Unit, integration and single-site end-to-end in one go. |
+| `make test-all` | Unit, integration (network and single site) and single-site end-to-end in one go. |
 | `make i18n` | `wp i18n make-pot`: refresh `languages/diluxone-users.pot`. |
 | `make i18n-update` | Merge the refreshed `.pot` into every `.po`, keeping the translations. |
 | `make i18n-mo` | Compile every `languages/*.po` into its `.mo`. |
@@ -68,7 +71,7 @@ The `wp-env` setup is in [`.wp-env.json`](../.wp-env.json):
 
 - **WordPress core**: latest stable.
 - **PHP**: 8.2.
-- **Ports**: the dev site on 8892 and the tests site on 8893, so this stack can run beside another plugin's on the default 8888/8889. Plugin Check uses 8894/8895.
+- **Ports**: the dev site on 8892 and the tests site on 8893, so this stack can run beside another plugin's on the default 8888/8889. Plugin Check uses 8894/8895, and the single-site integration environment 8886/8887.
 - **Plugin**: this repository, plus the end-to-end mu-plugin mapped into `wp-content/mu-plugins/`.
 - **Debug mode**: `WP_DEBUG`, `WP_DEBUG_LOG` and `SCRIPT_DEBUG` on, `WP_DEBUG_DISPLAY` off, so errors go to `wp-content/debug.log` instead of the page.
 
@@ -98,8 +101,8 @@ Where the **repository name** is correct and must be left alone, because
 
 | Where | What |
 |---|---|
-| `Makefile` (`test-integration`, `env-multisite`) | `REPO_DIR`, the checkout's name, in the phpunit path and in `wp plugin activate`. |
-| `.github/workflows/tests-integration.yml` | `wp plugin activate diluxone-users-wordpress --network` and the phpunit path. The shared `plugin-tests-wp` workflow does the same after the move. |
+| `Makefile` (`test-integration`, `test-integration-single`, `env-multisite`) | `REPO_DIR`, the checkout's name, in the phpunit path and in `wp plugin activate`. The single-site environment mounts the checkout (`../..` from `build/integration-single/`), so the folder is the repository name there too. |
+| `.github/workflows/tests-integration.yml` | `wp plugin activate diluxone-users-wordpress --network` (network job) and the phpunit path (both jobs). The shared `plugin-tests-wp` workflow does the same after the move. |
 
 A clone into a folder with another name works for everything except those
 paths; keep the repository name.
