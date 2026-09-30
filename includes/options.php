@@ -417,6 +417,13 @@ function diluxone_users_option_defaults(): array {
 		// everything for ever, which is the answer with no end to it.
 		'diluxone_users_log_days'              => 90,
 
+		// ── Membership, on a network ──────────────────────────────────
+		// Which sites of a network an account is a member of: 'all' (every
+		// live site), 'click' (the hub, and any other site the person joins
+		// with "Join this site") or 'invite' (the hub; administrators add them
+		// anywhere else). Meaningless on a single site. See membership.php.
+		'diluxone_users_membership'            => 'all',
+
 		// ── Deleting the plugin ───────────────────────────────────────
 		// Whether removing the plugin also removes everything it wrote.
 		// Off, because most of what it wrote is not the plugin's: it is

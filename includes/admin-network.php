@@ -47,16 +47,17 @@ function diluxone_users_admin_cap(): string {
  */
 function diluxone_users_screen_scopes(): array {
 	return array(
-		DILUXONE_USERS_MENU       => 'site',
-		'diluxone-users-login'    => 'hub',
-		'diluxone-users-security' => 'network',
-		'diluxone-users-social'   => 'network',
-		'diluxone-users-account'  => 'hub',
-		'diluxone-users-fields'   => 'network',
-		'diluxone-users-design'   => 'hub',
-		'diluxone-users-notices'  => 'hub',
-		'diluxone-users-reports'  => 'site',
-		'diluxone-users-status'   => 'site',
+		DILUXONE_USERS_MENU         => 'site',
+		'diluxone-users-login'      => 'hub',
+		'diluxone-users-membership' => 'network',
+		'diluxone-users-security'   => 'network',
+		'diluxone-users-social'     => 'network',
+		'diluxone-users-account'    => 'hub',
+		'diluxone-users-fields'     => 'network',
+		'diluxone-users-design'     => 'hub',
+		'diluxone-users-notices'    => 'hub',
+		'diluxone-users-reports'    => 'site',
+		'diluxone-users-status'     => 'site',
 	);
 }
 

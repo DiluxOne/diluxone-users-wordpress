@@ -50,33 +50,27 @@ function diluxone_users_network_takes_accounts(): bool {
 }
 
 /**
- * Adds somebody to this site if they are not a member yet.
+ * Signing in, as the network's membership policy has it.
  *
- * The same role as for a new account is used: if the site decided whoever
- * registers is a subscriber, whoever arrives from another site of the network
- * is one too.
+ * Under "every site" it is the safety net: the person becomes a member of the
+ * site they are on and of the hub, whatever the new-account and new-site
+ * additions missed. Under "click" and "invite" it only makes sure of the hub,
+ * where the account lives; any other site is joined with a press of "Join
+ * this site", or by an administrator. The rest of the rules — no super admin,
+ * nobody an administrator took off a site, only live sites, each site's own
+ * role — are diluxone_users_membership_add()'s, which on a single site adds
+ * nobody: there, everybody with an account is a member already.
  */
 function diluxone_users_join_site( int $user_id ): void {
-	if ( ! is_multisite() || $user_id <= 0 ) {
-		return;
+	$sites = array( diluxone_users_hub_site_id() );
+
+	if ( 'all' === diluxone_users_membership() ) {
+		array_unshift( $sites, get_current_blog_id() );
 	}
 
-	// A super admin already reaches every site, and a role here would only
-	// be a Subscriber badge on the most powerful account of the network.
-	if ( is_user_member_of_blog( $user_id, get_current_blog_id() ) || is_super_admin( $user_id ) ) {
-		return;
+	foreach ( array_unique( $sites ) as $site ) {
+		diluxone_users_membership_add( $user_id, (int) $site, 'sign-in' );
 	}
-
-	// Existing on the network is not enough to become a member here: the site
-	// has to take new people through some door of its own — the ones that
-	// would have created the account had it not existed yet.
-	$social = diluxone_users_option( 'diluxone_users_sso_register' ) && array() !== diluxone_users_sso_for_login();
-
-	if ( ! diluxone_users_link_registers() && ! diluxone_users_option( 'diluxone_users_register_form' ) && ! $social ) {
-		return;
-	}
-
-	add_user_to_blog( get_current_blog_id(), $user_id, diluxone_users_register_role() );
 }
 
 /* ── The life of a site ────────────────────────────────────────────── */

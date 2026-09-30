@@ -884,7 +884,7 @@ function diluxone_users_log_empty_rows( $sites ): int {
  * The site is one of the filters and not a given: a site's screen asks for its
  * own rows, and the network's screen for everybody's or for one site's.
  *
- * @param array<string, mixed> $filters site (a site id, 0 for any), sites (only these site ids: a network's), who (free text), event, from and to (Y-m-d, site time).
+ * @param array<string, mixed> $filters site (a site id, 0 for any), arrivals (with a site: also the sign-ins on the hub that came from it), sites (only these site ids: a network's), who (free text), event, from and to (Y-m-d, site time).
  * @param int                  $page    From 1.
  * @param int                  $per     How many per page.
  * @return array{rows: array<int, array<string, mixed>>, total: int}
@@ -946,7 +946,14 @@ function diluxone_users_log_search( array $filters = array(), int $page = 1, int
 	$where = array( '1=1' );
 	$args  = array();
 
-	if ( $site > 0 ) {
+	if ( $site > 0 && ! empty( $filters['arrivals'] ) ) {
+		// A site's own rows, and the sign-ins on the hub that were for it:
+		// the row is the hub's, written where the session opened, and says
+		// in its detail which site the person came from.
+		$where[] = "( l.site_id = %d OR ( l.event = 'signed_in' AND l.detail LIKE %s ) )";
+		$args[]  = $site;
+		$args[]  = '%' . $wpdb->esc_like( '"from_site":"' . $site . '"' ) . '%';
+	} elseif ( $site > 0 ) {
 		$where[] = 'l.site_id = %d';
 		$args[]  = $site;
 	}

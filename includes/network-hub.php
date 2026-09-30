@@ -11,8 +11,8 @@
  * WordPress builds with wp_login_url()) takes them to the hub, carrying where
  * they were. Once they are in, whichever way they got in — the e-mail link, a
  * password, a social account, a passkey, with or without a second step — they
- * are sent back there, and made a member of that site by the same rule that
- * would have made them one had they signed in on it.
+ * are sent back there, and made a member of that site if the network's
+ * membership policy says every account belongs to every site (membership.php).
  *
  * Where they were travels as `redirect_to`, checked by
  * diluxone_users_safe_return(): an address on a site of this network and
@@ -657,7 +657,7 @@ function diluxone_users_return_after_sign_in( $redirect, $user_id = 0 ): string 
 
 	diluxone_users_return_join( (int) $user_id, $held );
 
-	return $held;
+	return diluxone_users_join_mark( $held, (int) $user_id );
 }
 add_filter( 'diluxone_users_login_redirect', 'diluxone_users_return_after_sign_in', 5, 2 );
 
@@ -689,10 +689,13 @@ function diluxone_users_return_password( $login, $user ): void {
 add_action( 'wp_login', 'diluxone_users_return_password', 1, 2 );
 
 /**
- * Makes somebody a member of the site they came back to, if it takes members.
+ * The way back from the hub: the site they came from, and its membership.
  *
- * The same rule as signing in on it (diluxone_users_join_site()), run on that
- * site: they proved who they are on the hub, on their way back there.
+ * Signing in on the hub for another site is signing in for that site: under
+ * the "every site" policy they are made a member of it, as signing in there
+ * would have (diluxone_users_join_site(), run on that site); under "click" and
+ * "invite" only of the hub. Either way the activity log is told where they
+ * came from (diluxone_users_sign_in_from()).
  *
  * @param int    $user_id Who.
  * @param string $url     Where they are going back to.
@@ -704,9 +707,50 @@ function diluxone_users_return_join( int $user_id, string $url ): void {
 		return;
 	}
 
+	diluxone_users_sign_in_from( $site );
+
 	switch_to_blog( $site );
 	diluxone_users_join_site( $user_id );
 	restore_current_blog();
+}
+
+/**
+ * The site of the network a sign-in on the hub came from, for the activity log.
+ *
+ * Held for the rest of the request: the row is written when the session opens,
+ * a moment after the way back was read.
+ *
+ * @param int|null $site The site, to say it; null to ask.
+ * @return int The site, or 0 when the sign-in came from the hub itself.
+ */
+function diluxone_users_sign_in_from( ?int $site = null ): int {
+	static $from = 0;
+
+	if ( null !== $site ) {
+		$from = max( 0, $site );
+	}
+
+	return $from;
+}
+
+/**
+ * The same, from the address the sign-in goes back to.
+ *
+ * For the second step, finished in a request of its own, whose way back was
+ * kept with the challenge.
+ *
+ * @param string $url Where they are going back to.
+ */
+function diluxone_users_sign_in_from_url( string $url ): void {
+	if ( ! is_multisite() ) {
+		return;
+	}
+
+	$site = diluxone_users_site_for_url( diluxone_users_safe_return( $url ) );
+
+	if ( $site > 0 && get_current_blog_id() !== $site ) {
+		diluxone_users_sign_in_from( $site );
+	}
 }
 
 /* ── What a site that is not the hub draws ─────────────────────────── */

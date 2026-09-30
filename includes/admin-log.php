@@ -385,6 +385,15 @@ function diluxone_users_log_via( string $via ): string {
 }
 
 /**
+ * The site a sign-in on the hub came from, or 0.
+ *
+ * @param array<string, mixed> $row One row as diluxone_users_log_search() returns it.
+ */
+function diluxone_users_log_from( array $row ): int {
+	return 'signed_in' === (string) $row['event'] ? absint( ( (array) $row['detail'] )['from_site'] ?? 0 ) : 0;
+}
+
+/**
  * What one row says, beyond its name.
  *
  * The event's own label answers "what happened"; this answers "to what". It is
@@ -392,14 +401,31 @@ function diluxone_users_log_via( string $via ): string {
  * and for a refused sign-in the name that was typed in the username box. That
  * one is somebody's input, and it is escaped like any other on the way out.
  *
- * @param array<string, mixed> $row One row as diluxone_users_log_search() returns it.
+ * @param array<string, mixed> $row     One row as diluxone_users_log_search() returns it.
+ * @param bool                 $network Whether it is drawn on the network's report.
  */
-function diluxone_users_log_says( array $row ): string {
+function diluxone_users_log_says( array $row, bool $network = false ): string {
 	$detail = (array) $row['detail'];
 
 	switch ( (string) $row['event'] ) {
 		case 'signed_in':
-			return isset( $detail['via'] ) ? diluxone_users_log_via( (string) $detail['via'] ) : '';
+			$says = isset( $detail['via'] ) ? diluxone_users_log_via( (string) $detail['via'] ) : '';
+
+			// On a site's own report, a sign-in that happened on the hub for
+			// this site says where it happened; the network's report has a
+			// column for it.
+			if ( ! $network && (int) $row['site_id'] !== diluxone_users_log_site() ) {
+				$says = trim(
+					$says . ' · ' . sprintf(
+						/* translators: %s: the name of the site where the person signed in */
+						__( 'on %s', 'diluxone-users' ),
+						diluxone_users_log_site_name( (int) $row['site_id'] )
+					),
+					' ·'
+				);
+			}
+
+			return $says;
 
 		case 'sign_in_failed':
 			return (string) ( $detail['tried'] ?? '' );
@@ -509,12 +535,14 @@ function diluxone_users_log_report( bool $network ): void {
 
 	$tab     = $network ? 'network-activity' : 'activity';
 	$filters = array(
-		// A site's report is its own rows and nothing else, whatever is asked.
-		'site'  => $network ? $site : diluxone_users_log_site(),
-		'who'   => $who,
-		'event' => $event,
-		'from'  => $from,
-		'to'    => $to,
+		// A site's report is its own rows, whatever is asked — and on a
+		// network the sign-ins on the hub that were for it.
+		'site'     => $network ? $site : diluxone_users_log_site(),
+		'arrivals' => ! $network && diluxone_users_log_network(),
+		'who'      => $who,
+		'event'    => $event,
+		'from'     => $from,
+		'to'       => $to,
 	);
 
 	// The network's report is its own sites' rows: on an installation of
@@ -528,7 +556,7 @@ function diluxone_users_log_report( bool $network ): void {
 	$pages   = (int) max( 1, ceil( $total / $per ) );
 	$labels  = diluxone_users_log_labels();
 	$groups  = diluxone_users_log_groups();
-	$columns = $network ? 7 : 6;
+	$columns = $network ? 8 : 6;
 	$keep    = array(
 		'tab'   => $tab,
 		's'     => $who,
@@ -656,6 +684,7 @@ function diluxone_users_log_report( bool $network ): void {
 				<th><?php esc_html_e( 'When', 'diluxone-users' ); ?></th>
 				<?php if ( $network ) : ?>
 					<th><?php esc_html_e( 'Site', 'diluxone-users' ); ?></th>
+					<th><?php esc_html_e( 'From', 'diluxone-users' ); ?></th>
 				<?php endif; ?>
 				<th class="diluxone-users-list__name"><?php esc_html_e( 'Person', 'diluxone-users' ); ?></th>
 				<th><?php esc_html_e( 'What happened', 'diluxone-users' ); ?></th>
@@ -677,6 +706,7 @@ function diluxone_users_log_report( bool $network ): void {
 					<td><?php echo esc_html( (string) wp_date( 'j M Y, H:i', (int) $row['happened'] ) ); ?></td>
 					<?php if ( $network ) : ?>
 						<td><a href="<?php echo esc_url( diluxone_users_admin_url( DILUXONE_USERS_REPORTS, array_merge( $keep, array( 'site' => (int) $row['site_id'] ) ) ) ); ?>"><?php echo esc_html( diluxone_users_log_site_name( (int) $row['site_id'] ) ); ?></a></td>
+						<td data-diluxone-users-from="<?php echo esc_attr( (string) diluxone_users_log_from( $row ) ); ?>"><?php echo esc_html( diluxone_users_log_from( $row ) > 0 ? diluxone_users_log_site_name( diluxone_users_log_from( $row ) ) : '—' ); ?></td>
 					<?php endif; ?>
 					<td class="diluxone-users-list__name">
 						<?php if ( $row['user_id'] > 0 && '' !== $row['email'] ) : ?>
@@ -691,7 +721,7 @@ function diluxone_users_log_report( bool $network ): void {
 						<?php endif; ?>
 					</td>
 					<td><?php echo esc_html( diluxone_users_log_label( (string) $row['event'] ) ); ?></td>
-					<td><?php echo esc_html( diluxone_users_log_says( $row ) ); ?></td>
+					<td><?php echo esc_html( diluxone_users_log_says( $row, $network ) ); ?></td>
 					<td><code><?php echo esc_html( (string) $row['ip'] ); ?></code></td>
 					<td><?php echo esc_html( trim( $agent['browser'] . ( '' !== $agent['os'] ? ' · ' . $agent['os'] : '' ) ) ); ?></td>
 				</tr>

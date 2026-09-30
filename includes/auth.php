@@ -892,6 +892,9 @@ function diluxone_users_2fa_handle(): void {
 	wp_set_current_user( $user_id );
 	wp_set_auth_cookie( $user_id, ! empty( $pending['remember'] ) );
 
+	// On a network, the site this sign-in on the hub was for.
+	diluxone_users_sign_in_from_url( (string) $pending['redirect'] );
+
 	do_action( 'diluxone_users_logged_in', $user_id, (string) $pending['via'] );
 
 	wp_safe_redirect( (string) $pending['redirect'] );
@@ -914,7 +917,7 @@ function diluxone_users_2fa_after_password( string $login, WP_User $user ): void
 
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- WordPress verified it while authenticating.
 	$redirect = isset( $_POST['redirect_to'] ) ? esc_url_raw( wp_unslash( $_POST['redirect_to'] ) ) : '';
-	$redirect = '' !== $redirect ? $redirect : (string) apply_filters( 'diluxone_users_login_redirect', home_url( '/' ), (int) $user->ID );
+	$redirect = '' !== $redirect ? diluxone_users_join_mark( $redirect, (int) $user->ID ) : (string) apply_filters( 'diluxone_users_login_redirect', home_url( '/' ), (int) $user->ID );
 
 	// phpcs:ignore WordPress.Security.NonceVerification.Missing
 	$remember = ! empty( $_POST['rememberme'] );

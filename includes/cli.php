@@ -16,6 +16,12 @@
  *
  *   wp diluxone-users network migrate
  *
+ * And one for a network whose policy is that every account is a member of
+ * every site: adding the accounts and sites that were already there, to the
+ * end (see membership.php).
+ *
+ *   wp diluxone-users network membership sync
+ *
  * @package DiluxOneUsers
  */
 
@@ -150,3 +156,47 @@ function diluxone_users_cli_log_move(): void {
 
 	WP_CLI::log( sprintf( 'The sites’ activity logs are in the network’s table. %d old tables kept.', count( $kept ) ) );
 }
+
+/**
+ * Makes every account of the network a member of every live site, now.
+ *
+ * What "Sync everyone now" on Network Admin › Membership starts, done to the
+ * end in one go instead of by cron. Only under the "every site" policy; a
+ * removal an administrator made stays, super admins are left out, and each
+ * site gives its own role.
+ *
+ * ## EXAMPLES
+ *
+ *     wp diluxone-users network membership sync
+ */
+function diluxone_users_cli_membership_sync(): void {
+	if ( ! is_multisite() ) {
+		WP_CLI::error( 'This is not a network: every account is a member of the only site there is.' );
+	}
+
+	if ( 'all' !== diluxone_users_membership() ) {
+		WP_CLI::error( sprintf( 'The network’s membership policy is “%s”: only “all” adds everybody to every site.', diluxone_users_membership() ) );
+	}
+
+	$pairs = diluxone_users_membership_enqueue_all();
+
+	WP_CLI::log( sprintf( 'Looking at %d additions (accounts times live sites).', $pairs ) );
+
+	do {
+		$drained = diluxone_users_membership_drain( 1 );
+
+		if ( null === $drained ) {
+			WP_CLI::error( 'Another run is adding people right now. Try again in a few minutes.' );
+		}
+
+		foreach ( diluxone_users_membership_queue() as $job ) {
+			WP_CLI::log( sprintf( '%s: %d of %d.', $job['kind'], $job['done'], $job['total'] ) );
+		}
+	} while ( true !== $drained );
+
+	diluxone_users_on_hub( static fn() => wp_clear_scheduled_hook( DILUXONE_USERS_MEMBERSHIP_EVENT ) );
+
+	WP_CLI::success( 'Every account is a member of every live site, except where an administrator removed it.' );
+}
+
+WP_CLI::add_command( 'diluxone-users network membership sync', 'diluxone_users_cli_membership_sync' );

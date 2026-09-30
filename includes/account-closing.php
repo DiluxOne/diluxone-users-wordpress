@@ -196,7 +196,9 @@ function diluxone_users_close_account( $request_id ): void {
 	if ( is_multisite() ) {
 		require_once ABSPATH . 'wp-admin/includes/ms.php';
 
-		wpmu_delete_user( $user_id );
+		// The sites it leaves are not an administrator's decision about it,
+		// and nothing is written down as one (see membership.php).
+		diluxone_users_membership_quietly( static fn() => wpmu_delete_user( $user_id ) );
 
 		return;
 	}
