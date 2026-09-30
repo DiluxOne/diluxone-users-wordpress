@@ -17,7 +17,7 @@ Today the checks run from this repository's own workflows in [`.github/workflows
 | i18n | `wp i18n make-pot` + `msgfmt` | Missing translator comments, dynamic text domains, conflicting translator hints, concatenated strings; and whether the eight shipped locales are complete. | `make i18n`, `make i18n-check` |
 | Plugin Check (wp.org) | wordpress/plugin-check | The checks the wp.org plugin team runs at submission and review. | `make plugin-check` |
 | Readme and versions | shell | Required readme headers; `Stable tag`, `Version:` and `DILUXONE_USERS_VERSION` in line. | `make release` |
-| Integration tests | PHPUnit + wp-env, **on a multisite network** | Behaviour against a real WordPress and database, including what must not leak between the sites of a network. | `make env-multisite && make test-integration` |
+| Integration tests | PHPUnit + wp-env, **on a multisite network and on a single site** | Behaviour against a real WordPress and database, including what must not leak between the sites of a network, and what a single site does on its own. | `make test-integration-all` (or `make env-multisite && make test-integration`, and `make test-integration-single`) |
 | End-to-end tests | Playwright + wp-env, single site (dev site, 8892) | Whole flows in a real browser: sign-in, registration, 2FA, passkeys, social login, every settings screen and its effect on the public page. | `make test-e2e` |
 | End-to-end tests on a network | Playwright + wp-env (tests site as a subdirectory network, 8893) | Two sites of one network: membership, the network's registration setting, settings and reports per site, the photo, two-step and social identities across sites, a new site, deactivation, WP-CLI. | `make test-e2e-network` |
 | Layout invariants | Playwright (measurements) | Blocks overlapping, anything past the right edge, blocks touching, bordered boxes with nothing in them, something with `hidden` still on screen, the rail falling underneath. Part of `make test-e2e`. | `make test-layout` |
@@ -31,7 +31,7 @@ Today the checks run from this repository's own workflows in [`.github/workflows
 A change carries its tests **at every layer it touches**, in the same pull request:
 
 - a **unit** test for logic that stands alone;
-- an **integration** test for behaviour against WordPress and the database, run on a network (`make env-multisite && make test-integration`), because that is where it runs in CI and where a per-site setting can leak into another site;
+- an **integration** test for behaviour against WordPress and the database, run on a network **and** on a single site (`make test-integration-all`): CI runs both, a per-site setting can leak into another site only on a network, and a single site's own paths are only walked on a single site. A test that only makes sense on one topology skips itself loudly on the other, and has a counterpart there asserting what that topology does;
 - an **end-to-end** test for what a person does in a browser, on a single site (`make test-e2e`) **and**, when it involves more than one site, users joining a site, or anything stored per site, on a network (`make test-e2e-network`);
 - when a screen changes: the screen in [`tests/e2e/support/screens.ts`](../tests/e2e/support/screens.ts) if it is new, the visual baselines retaken on purpose (`make test-visual-update`, and read the diff), and the listing screenshots retaken (`make screenshots`) when that screen is one of them;
 - a line in [`tests/e2e/COVERAGE.md`](../tests/e2e/COVERAGE.md) for a new feature or state, naming the test that walks it.
@@ -59,15 +59,26 @@ When you add one:
 
 ## Integration tests
 
-Located in [`tests/Integration/`](../tests/Integration/). They run inside the `wp-env` tests container, against a real WordPress and MySQL, on a network.
+Located in [`tests/Integration/`](../tests/Integration/). They run inside a `wp-env` tests container, against a real WordPress and MySQL, **twice**: on a multisite network and on a single site. Every case is tested on both.
 
 ```bash
-make env                # boot wp-env
-make env-multisite      # the tests site as a network, the plugin network-activated
-make test-integration   # run the suite
+make env                        # boot wp-env
+make env-multisite              # the tests site as a network, the plugin network-activated
+make test-integration           # the suite on the network
+make test-integration-single    # the suite on a single site (throwaway wp-env, 8886/8887)
+make test-integration-all       # both, one after the other
+make test-integration-single-down   # stop the single-site environment when done
 ```
 
-Use them for what depends on WordPress core: hooks, options, user meta, the activity log's table, AJAX handlers, REST routes, the sign-in and registration requests. `MultisiteTest` is skipped on a single site; everything else passes on both, but CI runs the network, so run it there before pushing.
+**Why a second environment.** Once `make env-multisite` has run, the main environment's tests site is a network, and the dev site's database is not a test database (the bootstrap refuses any database whose name lacks `test`, and that safety stays). So `make test-integration-single` brings up a throwaway `wp-env` of its own under `build/integration-single/`, the way Plugin Check has one: it mounts this checkout under its directory name, like the main environment, with the same mu-plugin and debug settings, on ports 8886/8887, and never converts its tests site. It refuses to run if that tests site somehow became a network. `make test-integration-single-clean` destroys it.
+
+**Which tests run where.** A test that only makes sense on one topology skips itself, loudly, on the other: `MultisiteTest`, `NetworkSettingsTest`, `UninstallNetworkTest` and the network cases of `OptionScopeTest`, `SettingsFileTest`, `SsoToggleTest` and `AccountClosingTest` on a single site; `SingleSiteTest`, `UninstallSiteTest` and the single-site cases of `SettingsFileTest` and `SsoToggleTest` on a network. Each has a counterpart on the other topology that asserts what that one does, and [`tests/e2e/COVERAGE.md`](../tests/e2e/COVERAGE.md) names both. Everything else runs and passes on both.
+
+**Uninstall.** `uninstall.php` declares its functions when it is loaded, so it can be loaded once per process: `UninstallSiteTest` and `UninstallNetworkTest` run each test in a process of its own (`@runTestsInSeparateProcesses`, `@preserveGlobalState disabled`) and put back what they took. Between them they cover the box ticked and unticked on a single site, on a network where the plugin is network-activated, and on a network where it was switched on site by site.
+
+Use them for what depends on WordPress core: hooks, options, user meta, the activity log's table, AJAX handlers, REST routes, the sign-in and registration requests.
+
+**CI.** [`.github/workflows/tests-integration.yml`](../.github/workflows/tests-integration.yml) runs the suite as a matrix, `topology: [single, network]`; only the network job converts the tests site. After the move to the DiluxOne organisation the suite runs from the shared `plugin-tests-wp.yml` workflow, which today runs it on a network only: the single-site run has to be carried there (a topology input or matrix of its own) before this repository's workflow is retired, or half of every case stops being tested.
 
 ## PHPCS / WordPress Coding Standards
 
@@ -201,7 +212,7 @@ The pictures the wordpress.org listing shows, written into [`.wordpress-org/`](.
 ```bash
 make check       # the fast gates: lint + stan + psalm + unit tests
 make release     # make check + version-alignment dry-run
-make test-all    # unit, integration and single-site end-to-end
+make test-all    # unit, integration (network and single site), single-site end-to-end
 ```
 
 `make check` is the pre-push habit; it does not replace CI. Integration, the two end-to-end suites, i18n and Plugin Check have their own targets, listed above.

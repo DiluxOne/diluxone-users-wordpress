@@ -88,6 +88,30 @@ class SettingsFileTest extends IntegrationTestCase {
 	}
 
 	/**
+	 * On a single site everything is the site's, the second step included: the
+	 * file hands it over and restores it.
+	 */
+	public function test_a_file_restored_on_a_single_site_restores_everything(): void {
+		if ( is_multisite() ) {
+			$this->markTestSkipped( 'Needs a single site: on a network the file leaves the network’s settings alone.' );
+		}
+
+		diluxone_users_update_option( 'diluxone_users_2fa_mode', 'required' );
+
+		$this->assertArrayHasKey( 'diluxone_users_2fa_mode', diluxone_users_tool_settings() );
+
+		diluxone_users_tool_restore(
+			array(
+				'diluxone_users_2fa_mode'    => 'off',
+				'diluxone_users_login_title' => 'From the file',
+			)
+		);
+
+		$this->assertSame( 'off', diluxone_users_raw_get( 'diluxone_users_2fa_mode' ) );
+		$this->assertSame( 'From the file', diluxone_users_raw_get( 'diluxone_users_login_title' ) );
+	}
+
+	/**
 	 * On a site of a network, a file restores what that site sets and nothing
 	 * of the network's: a site administrator with a file cannot switch the
 	 * second step off for everybody.

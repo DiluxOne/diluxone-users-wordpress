@@ -8,8 +8,15 @@ on:
 
 jobs:
   integration:
-    name: Integration tests (wp-env)
+    # Every case on both topologies: the same suite on a single site and on a
+    # network. The network tests skip themselves on a single site and the
+    # single-site ones on a network, each with a counterpart on the other.
+    name: Integration tests (wp-env, ${{ matrix.topology == 'network' && 'multisite network' || 'single site' }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        topology: [single, network]
     # Container start + plugin activation + tests + container stop.
     # Worst case observed: ~7 minutes. 15 leaves margin for cold-start
     # Docker image pulls.
@@ -61,10 +68,10 @@ jobs:
         run: npx wp-env start
 
       - name: Convert the tests site into a network, and network-activate the plugin
-        # The suite runs on a multisite network, as the shared CI of the
-        # DiluxOne organisation runs it: the network tests (MultisiteTest) are
-        # skipped on a single site, and a good part of real hosting is a
-        # network. Everything else passes on both.
+        if: matrix.topology == 'network'
+        # A good part of real hosting is a network, and it is where a per-site
+        # setting can leak into another site. The single-site job leaves the
+        # tests site as wp-env made it, with the plugin activated.
         #
         # The folder is the repository name and not the slug: wp-env mounts
         # the checkout as it is. What wordpress.org receives under the slug is

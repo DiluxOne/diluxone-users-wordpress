@@ -93,6 +93,24 @@ class SsoToggleTest extends IntegrationTestCase {
 		$this->assertSame( 'enabled', diluxone_users_sso_state( 'google' ) );
 	}
 
+	/** On a single site the site's own screen is where a provider is switched. */
+	public function test_on_a_single_site_the_sites_screen_switches_a_provider(): void {
+		if ( is_multisite() ) {
+			$this->markTestSkipped( 'Needs a single site: on a network the button is the network’s.' );
+		}
+
+		$_GET = array(
+			'page'                  => 'diluxone-users-social',
+			'red'                   => 'google',
+			'diluxone_users_action' => 'off',
+		);
+		$_REQUEST['_wpnonce'] = wp_create_nonce( 'diluxone_users_social_toggle' );
+
+		$this->expectRedirect( 'diluxone_users_social_toggle' );
+
+		$this->assertSame( 'disabled', diluxone_users_sso_state( 'google' ) );
+	}
+
 	public function test_forgetting_it_deletes_the_app_and_its_test(): void {
 		$this->press( 'forget' );
 

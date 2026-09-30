@@ -50,14 +50,15 @@ make check               # PHPCS, PHPStan level 8, Psalm taint, unit tests
 make test-unit-min       # the unit suite on PHP 8.0, the minimum
 make env-multisite       # after make env: the tests site as a network
 make test-integration    # the integration suite, on that network
+make test-integration-single  # the same suite on a single site (throwaway wp-env, 8886)
 make test-e2e            # Playwright, single site (dev site, port 8892)
 make test-e2e-network    # Playwright, subdirectory network (tests site, 8893)
 make plugin-check        # wordpress.org's Plugin Check on the built dist
 ```
 
 A change carries its tests at every layer it touches, in the same pull
-request: unit, integration on a network, end-to-end on a single site and on a
-network, and the listing screenshots (`make screenshots`) when a screen
+request: unit, integration on a single site and on a network, end-to-end on a
+single site and on a network, and the listing screenshots (`make screenshots`) when a screen
 changes, with the visual baselines retaken on purpose (`make
 test-visual-update`)
 ([`docs/testing-and-quality.md`](docs/testing-and-quality.md)). A new tab or
