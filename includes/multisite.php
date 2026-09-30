@@ -85,30 +85,41 @@ function diluxone_users_join_site( int $user_id ): void {
  * Everything one site needs from the plugin, done on that site.
  *
  * One list, run in three moments: activation on a single site, activation for
- * the whole network (once per site), and the birth of a site on a network
- * where the plugin is already active everywhere.
+ * the whole network (once per site), and the birth of a site on the network.
+ *
+ * The activity log's table is made here only on a single site. On a network
+ * it is the network's, one for every site, made once by the network's
+ * activation below: a site has nothing of its own to create.
  */
 function diluxone_users_site_setup(): void {
 	diluxone_users_seed_fields();
 	diluxone_users_seed_registration();
-	diluxone_users_log_install();
+
+	if ( ! is_multisite() ) {
+		diluxone_users_log_install();
+	}
 }
 
 /**
  * Activation.
  *
- * Network-wide, every site gets its setup now and not "the first time
+ * On a network it is always for the whole network (the plugin says
+ * `Network: true`, and WordPress activates it network-wide even when asked
+ * from a site). Every site gets its setup now and not "the first time
  * somebody opens its dashboard": a site whose visitors sign in before its
- * administrator ever looks would be writing to a table that does not exist.
+ * administrator ever looks would be reading settings nobody wrote. The log's
+ * table, the network's, is made once, first.
  *
  * @param bool $network_wide Whether it was activated for the whole network.
  */
 function diluxone_users_activate( $network_wide = false ): void {
-	if ( ! is_multisite() || ! $network_wide ) {
+	if ( ! is_multisite() ) {
 		diluxone_users_site_setup();
 
 		return;
 	}
+
+	diluxone_users_log_install();
 
 	foreach ( get_sites(
 		array(
@@ -126,15 +137,13 @@ function diluxone_users_activate( $network_wide = false ): void {
  * A site born on a network where the plugin is active everywhere.
  *
  * After WordPress's own setup of the site (priority 10), and inside it:
- * `switch_to_blog()` points `$wpdb->prefix` and the options at the new site,
- * which is where its table and its settings belong.
+ * `switch_to_blog()` points the options at the new site, which is where its
+ * own settings belong. Its log is the network's table, already there.
  *
  * @param WP_Site $site The new site.
  */
 function diluxone_users_site_born( $site ): void {
-	$network = (array) get_site_option( 'active_sitewide_plugins', array() );
-
-	if ( ! $site instanceof WP_Site || ! isset( $network[ plugin_basename( DILUXONE_USERS_FILE ) ] ) ) {
+	if ( ! $site instanceof WP_Site || ! diluxone_users_network_activated() ) {
 		return;
 	}
 

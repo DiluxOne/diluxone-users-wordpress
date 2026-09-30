@@ -60,36 +60,53 @@ test.describe('Switching the plugin off and on', () => {
 
 	const row = (page: import('@playwright/test').Page) => page.locator('tr[data-plugin$="/diluxone-users.php"]');
 
-	test('network-wide, then on one site only, then back — with nothing in debug.log', async ({ page, guest, alpha, beta }) => {
+	test('only for the whole network: a site has no Activate, a site it was left on for alone does nothing and asks for the network — with nothing in debug.log', async ({
+		page,
+		guest,
+		alpha,
+		beta,
+	}) => {
 		const before = debugLogLines();
+		const basename = `${PLUGIN_DIR}/diluxone-users.php`;
+		const alphaPlugins = wp(['option', 'get', 'active_plugins', '--format=json'], alpha.url);
 
 		try {
 			// Off for the network, from the network's own Plugins screen.
 			await page.goto(`${NETWORK_URL}/wp-admin/network/plugins.php`);
 			await Promise.all([page.waitForLoadState('domcontentloaded'), row(page).locator('.deactivate a').click()]);
-			await expect(row(page).locator('.activate a')).toBeVisible();
+			await expect(row(page).locator('.activate a'), 'the network’s screen offers Network Activate').toBeVisible();
 
 			// Off, the shortcodes are text and no form is drawn anywhere.
 			await guest.goto(alpha.pages.login.url);
 			await expect(emailField(guest)).toHaveCount(0);
 
-			// On for /alpha/ alone, from /alpha/'s Plugins screen.
+			// A site's own Plugins screen has no Activate for it: there is no
+			// switching it on for one site alone.
 			await page.goto(alpha.admin('plugins.php'));
-			await Promise.all([page.waitForLoadState('domcontentloaded'), row(page).locator('.activate a').click()]);
-			await expect(row(page).locator('.deactivate a')).toBeVisible();
+			await expect(row(page).locator('.activate a'), 'no Activate on /alpha/').toHaveCount(0);
+
+			// Left on for /alpha/ alone — an activation from before the rule,
+			// written straight into /alpha/'s list: it does nothing there…
+			wp(['option', 'update', 'active_plugins', JSON.stringify([...JSON.parse(alphaPlugins), basename]), '--format=json'], alpha.url);
 
 			await guest.goto(alpha.pages.login.url);
-			await expect(emailField(guest), 'on for /alpha/').toBeVisible();
-			await guest.goto(beta.pages.login.url);
-			await expect(emailField(guest), 'and still off for /beta/').toHaveCount(0);
+			await expect(emailField(guest), 'no sign-in on /alpha/').toHaveCount(0);
 
-			// A dashboard screen of the plugin, on the one site that has it.
-			await page.goto(alpha.admin('admin.php?page=diluxone-users-login'));
-			await expect(page.locator('.wrap')).toBeVisible();
+			const screen = await page.goto(alpha.admin('admin.php?page=diluxone-users-login'));
+			expect(screen?.status(), 'no screens on /alpha/').not.toBe(200);
 
-			// Off again on /alpha/, then on for the whole network.
-			await page.goto(alpha.admin('plugins.php'));
-			await Promise.all([page.waitForLoadState('domcontentloaded'), row(page).locator('.deactivate a').click()]);
+			// …but tell whoever runs the network to activate it for all of it.
+			await page.goto(alpha.admin('index.php'));
+			const notice = page.locator('[data-diluxone-users-asleep]');
+
+			await expect(notice).toHaveCount(1);
+			await expect(notice.locator('a')).toHaveAttribute('href', `${NETWORK_URL}/wp-admin/network/plugins.php`);
+
+			await page.goto(beta.admin('index.php'));
+			await expect(page.locator('[data-diluxone-users-asleep]'), 'not on a site it is not on for').toHaveCount(0);
+
+			// Put back, and on for the whole network from the network's screen.
+			wp(['option', 'update', 'active_plugins', alphaPlugins, '--format=json'], alpha.url);
 
 			await page.goto(`${NETWORK_URL}/wp-admin/network/plugins.php`);
 			await Promise.all([page.waitForLoadState('domcontentloaded'), row(page).locator('.activate a').click()]);
@@ -100,10 +117,17 @@ test.describe('Switching the plugin off and on', () => {
 				await expect(emailField(guest), `back on ${one.slug}`).toBeVisible();
 			}
 
-			expect(debugLogSince(before), 'switching the plugin off and on wrote to debug.log').toEqual([]);
+			// WP-CLI, which this test uses to write /alpha/'s list, writes its
+			// own deprecations to the same log; those are the tool's, not the
+			// plugin's.
+			const plugin = debugLogSince(before).filter((line) => !line.includes('phar:///usr/local/bin/wp'));
+
+			expect(plugin, 'switching the plugin off and on wrote to debug.log').toEqual([]);
 		} finally {
 			// Whatever happened above, the rest of the suite needs the plugin
-			// on for the network.
+			// on for the network, and /alpha/'s own list as it was.
+			wp(['option', 'update', 'active_plugins', alphaPlugins, '--format=json'], alpha.url);
+
 			if (!wp(['plugin', 'list', '--status=active-network', '--field=name']).split('\n').includes(PLUGIN_DIR)) {
 				wp(['plugin', 'activate', PLUGIN_DIR, '--network']);
 			}

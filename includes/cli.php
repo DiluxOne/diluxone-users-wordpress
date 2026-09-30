@@ -10,8 +10,9 @@
  *   wp diluxone-users login pablo@example.com
  *
  * And one for networks: moving the settings from each site to the network,
- * to the end and in one go, rather than waiting for the first request and cron
- * to do it (see migrate.php).
+ * and each site's activity log into the network's table, to the end and in one
+ * go, rather than waiting for the first request and cron to do it (see
+ * migrate.php and migrate-log.php).
  *
  *   wp diluxone-users network migrate
  *
@@ -71,12 +72,13 @@ function diluxone_users_cli_login( array $args, array $options = array() ): void
 WP_CLI::add_command( 'diluxone-users login', 'diluxone_users_cli_login' );
 
 /**
- * Moves a network's settings from each site to the network, now.
+ * Moves a network's settings from each site to the network, now, and each
+ * site's activity log into the network's table.
  *
- * The same move the first request after an update makes on its own, done to
- * the end in one go: for a network of thousands of sites that would rather not
- * wait for cron, or for somebody who wants to read what it found. Running it
- * again does nothing.
+ * The same moves the first request after an update makes on its own, done to
+ * the end in one go: for a network of thousands of sites, or of millions of
+ * rows, that would rather not wait for cron, or for somebody who wants to read
+ * what they found. Running it again does nothing.
  *
  * ## EXAMPLES
  *
@@ -87,29 +89,64 @@ function diluxone_users_cli_network_migrate(): void {
 		WP_CLI::error( 'This is not a network: there is nothing to move.' );
 	}
 
-	if ( ! diluxone_users_scoped_storage_active() ) {
-		WP_CLI::error( 'The plugin is not active for the whole network, so each site keeps its own settings.' );
+	if ( diluxone_users_network_migrated() ) {
+		WP_CLI::log( 'The network’s settings were already moved.' );
+	} else {
+		while ( ! diluxone_users_network_migrate() ) {
+			WP_CLI::log( 'One batch of sites done.' );
+		}
+
+		wp_clear_scheduled_hook( DILUXONE_USERS_NETWORK_MIGRATE_EVENT );
+
+		$conflicts = (array) diluxone_users_raw_get( DILUXONE_USERS_NETWORK_CONFLICTS, array() );
+
+		foreach ( $conflicts as $conflict ) {
+			WP_CLI::log( sprintf( 'Site %d had %s set differently.', (int) $conflict['site'], (string) ( $conflict['field'] ?? $conflict['key'] ) ) );
+		}
+
+		WP_CLI::log( sprintf( 'The network’s settings were moved. %d differences written down.', count( $conflicts ) ) );
 	}
 
-	if ( diluxone_users_network_migrated() ) {
-		WP_CLI::success( 'The network’s settings were already moved.' );
+	diluxone_users_cli_log_move();
+
+	WP_CLI::success( 'The network’s settings and activity log are where they belong.' );
+}
+
+WP_CLI::add_command( 'diluxone-users network migrate', 'diluxone_users_cli_network_migrate' );
+
+/** The sites' activity logs, moved into the network's table to the end. */
+function diluxone_users_cli_log_move(): void {
+	if ( diluxone_users_log_moved() ) {
+		WP_CLI::log( 'The sites’ activity logs were already in the network’s table.' );
 
 		return;
 	}
 
-	while ( ! diluxone_users_network_migrate() ) {
-		WP_CLI::log( 'One batch of sites done.' );
+	$said = static function ( int $site, int $copied, bool $dropped ): void {
+		WP_CLI::log(
+			$dropped
+				? sprintf( 'Site %d: %d rows moved, its old table dropped.', $site, $copied )
+				: sprintf( 'Site %d: %d rows moved, and its old table kept: it has a different number of rows.', $site, $copied )
+		);
+	};
+
+	$tries = 0;
+
+	while ( ! diluxone_users_log_move( DILUXONE_USERS_LOG_MOVE_ROWS, $said ) ) {
+		// A batch the database refused comes back unchanged. Three in a row
+		// is not going to change by trying a fourth.
+		$state = diluxone_users_raw_get( DILUXONE_USERS_LOG_MOVING, null );
+		$tries = $state === ( $last ?? null ) ? $tries + 1 : 0;
+		$last  = $state;
+
+		if ( $tries >= 3 ) {
+			WP_CLI::error( 'The database refused to copy the activity log. Nothing was lost; run it again once it is fixed.' );
+		}
 	}
 
-	wp_clear_scheduled_hook( DILUXONE_USERS_NETWORK_MIGRATE_EVENT );
+	wp_clear_scheduled_hook( DILUXONE_USERS_LOG_MOVE_EVENT );
 
-	$conflicts = (array) diluxone_users_raw_get( DILUXONE_USERS_NETWORK_CONFLICTS, array() );
+	$kept = (array) diluxone_users_raw_get( DILUXONE_USERS_LOG_KEPT, array() );
 
-	foreach ( $conflicts as $conflict ) {
-		WP_CLI::log( sprintf( 'Site %d had %s set differently.', (int) $conflict['site'], (string) ( $conflict['field'] ?? $conflict['key'] ) ) );
-	}
-
-	WP_CLI::success( sprintf( 'The network’s settings were moved. %d differences written down.', count( $conflicts ) ) );
+	WP_CLI::log( sprintf( 'The sites’ activity logs are in the network’s table. %d old tables kept.', count( $kept ) ) );
 }
-
-WP_CLI::add_command( 'diluxone-users network migrate', 'diluxone_users_cli_network_migrate' );

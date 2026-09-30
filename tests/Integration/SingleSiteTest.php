@@ -87,6 +87,31 @@ class SingleSiteTest extends IntegrationTestCase {
 		$this->assertNotFalse( get_option( 'diluxone_users_login_register', false ), 'The doors, in the site’s table' );
 	}
 
+	/**
+	 * The activity log is the site's own table, under the site's prefix, with
+	 * every row stamped as the site's: there is no network to share it with,
+	 * no network report, no network button and nothing to move.
+	 */
+	public function test_the_log_is_the_sites_own_and_there_is_nothing_to_move(): void {
+		global $wpdb;
+
+		$this->assertFalse( diluxone_users_log_network() );
+		$this->assertSame( $wpdb->prefix . 'diluxone_users_log', diluxone_users_log_table() );
+		$this->assertTrue( diluxone_users_log_purges_here() );
+
+		$this->assertTrue( diluxone_users_log_move(), 'Nothing to move' );
+		$this->assertFalse( get_option( 'diluxone_users_log_moved', false ), 'And nothing written about it' );
+
+		$this->assertArrayHasKey( 'activity', diluxone_users_panels( DILUXONE_USERS_REPORTS ) );
+		$this->assertArrayNotHasKey( 'network-activity', diluxone_users_panels( DILUXONE_USERS_REPORTS ), 'No network report' );
+
+		wp_set_current_user( $this->make_user( 'administrator' ) );
+		$_REQUEST['_wpnonce'] = wp_create_nonce( 'diluxone_users_log_empty_network' );
+
+		$this->expectException( \WPAjaxDieContinueException::class );
+		diluxone_users_log_empty_network();
+	}
+
 	/** The doors start where WordPress's "Anyone can register" is. */
 	public function test_the_doors_start_where_anyone_can_register_is(): void {
 		foreach ( array( 0, 1 ) as $anyone ) {

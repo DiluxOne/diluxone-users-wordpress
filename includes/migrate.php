@@ -69,6 +69,13 @@ function diluxone_users_network_moved_keys(): array {
 		DILUXONE_USERS_NETWORK_CONFLICTS,
 		DILUXONE_USERS_NETWORK_CONFLICTS_SEEN,
 		'diluxone_users_uninstall_wipe',
+		// The log's own bookkeeping is about the network's table, which no
+		// site had: a site's number for the shape of its own table says
+		// nothing about it. See migrate-log.php.
+		'diluxone_users_log_schema',
+		'diluxone_users_log_moved',
+		'diluxone_users_log_moving',
+		'diluxone_users_log_kept',
 	);
 
 	return array_values(
@@ -156,7 +163,7 @@ function diluxone_users_network_migrate_batch(): void {
 add_action( DILUXONE_USERS_NETWORK_MIGRATE_EVENT, 'diluxone_users_network_migrate_batch' );
 
 /**
- * Starts the move on the first request that needs it.
+ * Starts the moves on the first request that needs them.
  *
  * On `init` and first thing: anything that reads a network setting before the
  * move — the second step on a sign-in, the fields on a profile — would read
@@ -165,12 +172,27 @@ add_action( DILUXONE_USERS_NETWORK_MIGRATE_EVENT, 'diluxone_users_network_migrat
  * site's value could get there. A network of many sites does its first batch
  * here, which is when the main site's values are taken, and the rest from
  * cron.
+ *
+ * Then the sites' activity logs, into the network's table (migrate-log.php),
+ * which on a network that has just been switched on for everybody is also
+ * what makes that table.
  */
 function diluxone_users_network_migrate_when_needed(): void {
 	// Not under WP-CLI: there `wp diluxone-users network migrate` is what does
 	// it, to the end and saying what it found, and a move made on the way in
 	// would leave the command nothing to report.
-	if ( ( defined( 'WP_CLI' ) && WP_CLI ) || ! diluxone_users_scoped_storage_active() || diluxone_users_network_migrated() ) {
+	if ( ( defined( 'WP_CLI' ) && WP_CLI ) || ! diluxone_users_scoped_storage_active() ) {
+		return;
+	}
+
+	diluxone_users_network_settings_when_needed();
+	diluxone_users_log_move_when_needed();
+}
+add_action( 'init', 'diluxone_users_network_migrate_when_needed', 0 );
+
+/** The settings' move, unless it is done or cron is already carrying it on. */
+function diluxone_users_network_settings_when_needed(): void {
+	if ( diluxone_users_network_migrated() ) {
 		return;
 	}
 
@@ -180,7 +202,6 @@ function diluxone_users_network_migrate_when_needed(): void {
 
 	diluxone_users_network_migrate();
 }
-add_action( 'init', 'diluxone_users_network_migrate_when_needed', 0 );
 
 /**
  * The main site's settings, made the network's where the network has none.

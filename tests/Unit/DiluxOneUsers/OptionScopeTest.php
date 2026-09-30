@@ -128,7 +128,7 @@ class OptionScopeTest extends TestCase {
 
 	public function test_the_bookkeeping_and_anything_unknown_stay_on_the_site(): void {
 		$this->assertSame( 'site', diluxone_users_option_scope( 'diluxone_users_rewrite_version' ) );
-		$this->assertSame( 'site', diluxone_users_option_scope( 'diluxone_users_log_schema' ) );
+		$this->assertSame( 'site', diluxone_users_option_scope( 'diluxone_users_mail_last' ) );
 		$this->assertSame( 'site', diluxone_users_option_scope( 'diluxone_users_not_a_setting' ) );
 	}
 
@@ -143,15 +143,19 @@ class OptionScopeTest extends TestCase {
 		$this->assertFalse( diluxone_users_raw_get( 'diluxone_users_2fa_mode' ) );
 	}
 
-	public function test_on_a_network_where_it_was_switched_on_site_by_site_nothing_moves(): void {
+	/**
+	 * On a network the plugin only runs activated for the whole network, so
+	 * there is no second way of storing settings: a network is routed by
+	 * scope, and "single" is a single site's alone.
+	 */
+	public function test_on_any_network_settings_are_routed_by_scope(): void {
 		$GLOBALS['_test_multisite'] = true;
 		$this->network_activated( false );
 
-		$this->assertFalse( diluxone_users_scoped_storage_active() );
-		$this->assertSame( 'single', diluxone_users_admin_context() );
+		$this->assertTrue( diluxone_users_scoped_storage_active(), 'Whatever the list of network plugins says' );
 
-		diluxone_users_update_option( 'diluxone_users_sso', array( 'google' => array() ) );
-		$this->assertSame( array( 'google' => array() ), $GLOBALS['_test_wp_options']['diluxone_users_sso'] );
+		$GLOBALS['_test_multisite'] = false;
+		$this->assertFalse( diluxone_users_scoped_storage_active() );
 	}
 
 	public function test_on_a_network_where_it_is_on_everywhere_a_network_setting_goes_to_the_network(): void {

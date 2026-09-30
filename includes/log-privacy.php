@@ -90,6 +90,15 @@ function diluxone_users_log_export( string $email, int $page = 1 ): array {
 			),
 		);
 
+		// On a network whose log is one table, a person's rows come from every
+		// site they used, and which one is part of what happened.
+		if ( diluxone_users_log_network() ) {
+			$data[] = array(
+				'name'  => __( 'Site', 'diluxone-users' ),
+				'value' => diluxone_users_log_site_name( (int) $row['site_id'] ),
+			);
+		}
+
 		foreach ( $row['detail'] as $key => $value ) {
 			$data[] = array(
 				'name'  => (string) $key,
@@ -190,34 +199,25 @@ function diluxone_users_log_erase( string $email, int $page = 1 ): array {
  * request and never explained, and a table full of them grows for ever. The
  * privacy tools above are for the person who asks; this is for the account
  * that simply goes.
+ *
+ * On a network `deleted_user` is also what fires when somebody is only taken
+ * off one site: the account lives on, and what goes is their rows on that
+ * site. The account's own deletion from the network is the hook below.
  */
 function diluxone_users_log_user_deleted( int $user_id ): void {
-	diluxone_users_log_forget( $user_id );
+	diluxone_users_log_forget( $user_id, is_multisite() ? diluxone_users_log_site() : 0 );
 }
 add_action( 'deleted_user', 'diluxone_users_log_user_deleted' );
 
 /**
  * The same, for an account deleted from a whole network.
  *
- * `deleted_user` fires on the site the deletion was made from; the person's
- * rows are in the log of every site they signed in to.
+ * The person's rows are wherever they signed in, all in the network's table:
+ * one query for every site.
  *
  * @param int $user_id The account being deleted.
  */
 function diluxone_users_log_user_deleted_everywhere( $user_id ): void {
-	foreach ( get_sites(
-		array(
-			'fields' => 'ids',
-			'number' => 0,
-		)
-	) as $site ) {
-		switch_to_blog( (int) $site );
-
-		if ( DILUXONE_USERS_LOG_SCHEMA === (int) diluxone_users_raw_get( DILUXONE_USERS_LOG_SCHEMA_OPTION ) ) {
-			diluxone_users_log_forget( (int) $user_id );
-		}
-
-		restore_current_blog();
-	}
+	diluxone_users_log_forget( (int) $user_id );
 }
 add_action( 'wpmu_delete_user', 'diluxone_users_log_user_deleted_everywhere' );

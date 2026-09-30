@@ -90,3 +90,55 @@ test('the main site’s values become the network’s, the differences are shown
 		}
 	}
 });
+
+/**
+ * A network whose sites each kept a log table of their own, moved into the
+ * network's: the rows arrive with their site, the old table goes, and a
+ * second run has nothing to do.
+ */
+test('each site’s old activity log moves into the network’s table, with its site, and the old table goes', async ({ page, beta }) => {
+	const tag = `moved-${Date.now().toString(36)}`;
+	const prefix = wp(['eval', 'global $wpdb; echo $wpdb->prefix;'], beta.url).trim();
+	const betaId = wp(['eval', 'echo get_current_blog_id();'], beta.url).trim();
+	const old = `${prefix}diluxone_users_log`;
+
+	// The table /beta/ kept before the log was the network's: the first shape,
+	// with no site column, and three refused sign-ins in it.
+	wp(['db', 'query', `DROP TABLE IF EXISTS ${old}`]);
+	wp([
+		'db',
+		'query',
+		`CREATE TABLE ${old} (id bigint(20) unsigned NOT NULL AUTO_INCREMENT, user_id bigint(20) unsigned NOT NULL DEFAULT 0, event varchar(32) NOT NULL DEFAULT '', happened datetime NOT NULL DEFAULT '0000-00-00 00:00:00', ip varchar(45) NOT NULL DEFAULT '', agent varchar(255) NOT NULL DEFAULT '', detail text NOT NULL, PRIMARY KEY (id))`,
+	]);
+	wp([
+		'db',
+		'query',
+		`INSERT INTO ${old} (user_id, event, happened, ip, agent, detail) VALUES ` +
+			[1, 2, 3].map((n) => `(0, 'sign_in_failed', UTC_TIMESTAMP(), '203.0.113.${n}', 'old', '{"tried":"${tag}-${n}"}')`).join(','),
+	]);
+
+	// A network that has not moved its sites' logs yet.
+	for (const key of ['diluxone_users_log_moved', 'diluxone_users_log_moving']) {
+		try {
+			wp(['site', 'option', 'delete', key]);
+		} catch {
+			// Not there, which is the state being made.
+		}
+	}
+
+	const said = wp(['diluxone-users', 'network', 'migrate']);
+
+	expect(said).toContain(`Site ${betaId}: 3 rows moved, its old table dropped.`);
+	expect(wp(['db', 'query', `SHOW TABLES LIKE '${old}'`, '--skip-column-names']).trim(), 'the old table is gone').toBe('');
+
+	// On the network's report, as /beta/'s rows.
+	await page.goto(`${NETWORK_URL}/wp-admin/network/admin.php?page=diluxone-users-reports&tab=network-activity&s=${tag}`);
+	await expect(page.locator(`table[data-diluxone-users-log] tbody tr[data-diluxone-users-site="${betaId}"]`)).toHaveCount(3);
+
+	// And on /beta/'s own.
+	await page.goto(`${beta.url}wp-admin/admin.php?page=diluxone-users-reports&tab=activity&s=${tag}`);
+	await expect(page.locator('table[data-diluxone-users-log] tbody tr[data-diluxone-users-event]')).toHaveCount(3);
+
+	// Done is done.
+	expect(wp(['diluxone-users', 'network', 'migrate'])).toContain('already in the network’s table');
+});

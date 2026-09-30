@@ -152,14 +152,23 @@ once, in **Network Admin → DiluxOne Users+**, and a site administrator cannot
 change them for their own site. "Only some roles" means a role on any of the
 person's sites. The sign-in, registration and account pages, and how they look
 and what they say, are set on the main site, and every site uses them. Each
-site keeps its own menus, admin bar, reports, activity log and maintenance.
+site keeps its own menus, admin bar, reports and maintenance. The activity
+log is one table for the whole network: each site's Reports › Activity shows
+and empties that site's rows, and **Network Admin → DiluxOne Users+ → Activity
+log** shows every site's, with the site each row happened on, and empties
+them all. On a network that used the plugin before, each site's old log is
+moved into it in the background (or at once with `wp diluxone-users network
+migrate`), and each old table is dropped once all its rows are in.
 Whether new accounts may be created at all is the network's **Allow new
 registrations**; somebody becomes a member of a site when they sign in there
 through one of its doors. On a network that used the plugin before, the main
 site's settings become the network's, and Network Admin lists what the other
 sites had set differently. A site on a domain of its own (not the network's or
 one of its subdomains) makes people sign in again; that is not supported yet.
-Activated site by site, each site keeps its own settings.
+On a network the plugin is activated for the whole network or not at all:
+WordPress offers only **Network Activate**, and a site it was left on for
+alone does nothing and asks the network's administrator to activate it for
+the whole network.
 
 = Is it behind a proxy or a CDN? =
 

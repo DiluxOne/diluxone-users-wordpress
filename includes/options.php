@@ -470,7 +470,7 @@ function diluxone_users_scope_includes( int $user_id, string $prefix ): bool {
 
 	// A super admin administers every site of the network, member or not, and
 	// is in scope wherever administrators are.
-	$has = diluxone_users_option_scope( $prefix . '_roles' ) === 'network' && diluxone_users_scoped_storage_active()
+	$has = diluxone_users_option_scope( $prefix . '_roles' ) === 'network' && is_multisite()
 		? diluxone_users_network_roles( $user_id )
 		: (array) $user->roles;
 

@@ -17,8 +17,8 @@
  *   and everything about how those screens look and what they say. The other
  *   sites send people there.
  * - 'site': what belongs to the site it runs on. The plugin's own
- *   bookkeeping — the version its address rules were built for, the shape of
- *   its log table, the last mail it sent — and what has to fit into that
+ *   bookkeeping — the version its address rules were built for, the last mail
+ *   it sent — and what has to fit into that
  *   site's own theme and dashboard: the menu the account link goes in, the
  *   admin bar, the dashboard profile. Each site keeps its own.
  *
@@ -27,11 +27,11 @@
  * credentials live is the wrong kind of guess. A setting added without a line
  * here fails the unit test that holds every default against this map.
  *
- * On a network where the plugin is on for every site, each scope is stored
- * where it says: a network setting in the network's own options, a hub
- * setting in the hub's options table, a site setting in the site's. On a
- * single site, or on a network where the plugin was switched on site by site,
- * everything stays in the current site's table, as it always did. The switch
+ * On a network — where the plugin only works activated for the whole network
+ * — each scope is stored where it says: a network setting in the network's
+ * own options, a hub setting in the hub's options table, a site setting in the
+ * site's. On a single site everything stays in the site's table, as it always
+ * did. The switch
  * is diluxone_users_scoped_storage_active(), and every read and write goes
  * through the helpers below, so nothing else has to know.
  *
@@ -85,6 +85,13 @@ function diluxone_users_option_scopes(): array {
 		'diluxone_users_network_migrating'      => 'network',
 		'diluxone_users_network_conflicts'      => 'network',
 		'diluxone_users_network_conflicts_seen' => 'network',
+		// The log is one table for the whole network, so its shape and the
+		// move of the sites' old tables into it are the network's to keep
+		// track of. See includes/log.php and includes/migrate-log.php.
+		'diluxone_users_log_schema'             => 'network',
+		'diluxone_users_log_moved'              => 'network',
+		'diluxone_users_log_moving'             => 'network',
+		'diluxone_users_log_kept'               => 'network',
 
 		// ── Hub: the screens people sign in, register and live on ───
 		'diluxone_users_account_action'         => 'hub',
@@ -204,7 +211,6 @@ function diluxone_users_option_scopes(): array {
 		'diluxone_users_wp_profile_scope'       => 'site',
 
 		// ── Site: the plugin's bookkeeping about the site it runs on ─
-		'diluxone_users_log_schema'             => 'site',
 		'diluxone_users_mail_last'              => 'site',
 		'diluxone_users_rewrite_version'        => 'site',
 	);
@@ -240,46 +246,15 @@ function diluxone_users_option_scope( string $key ): string {
 }
 
 /**
- * Is the plugin on for every site of this network?
+ * Are settings stored where their scope says, or all on the site?
  *
- * Only then is there a network to set anything for: switched on site by site,
- * the plugin has no screen in Network Admin and no two sites can be assumed to
- * share it, so each one keeps its settings to itself, as on a single site.
- */
-function diluxone_users_network_activated(): bool {
-	if ( ! is_multisite() ) {
-		return false;
-	}
-
-	$network = (array) get_site_option( 'active_sitewide_plugins', array() );
-
-	return isset( $network[ plugin_basename( DILUXONE_USERS_FILE ) ] );
-}
-
-/**
- * Are settings stored where their scope says, or all on the current site?
- *
- * Where their scope says, on a network where the plugin is on for every site.
- * Everywhere else — a single site, where the network, the hub and the site are
- * the same place, or a network that switched the plugin on site by site — every
- * setting lives on the current site.
- *
- * The filter is internal, for the tests of the routing itself, and not part
- * of the public API.
+ * Where their scope says on any network: the plugin only works on one when it
+ * is on for the whole network (see network-gate.php). On a single site the
+ * network, the hub and the site are the same place, and every setting lives in
+ * the site's own table.
  */
 function diluxone_users_scoped_storage_active(): bool {
-	if ( ! is_multisite() ) {
-		return false;
-	}
-
-	/**
-	 * Internal. Routes the settings by scope on a network.
-	 *
-	 * @ignore
-	 *
-	 * @param bool $active
-	 */
-	return (bool) apply_filters( 'diluxone_users_scoped_storage', diluxone_users_network_activated() );
+	return is_multisite();
 }
 
 /**

@@ -43,7 +43,7 @@ export const NETWORK_SCREENS: Record<string, string[]> = {
 	'diluxone-users-security': ['summary', '2fa', 'passkeys', 'sessions', 'proxy'],
 	'diluxone-users-social': ['providers', 'general'],
 	'diluxone-users-fields': ['list', 'usage'],
-	'diluxone-users-reports': ['logging'],
+	'diluxone-users-reports': ['network-activity', 'logging'],
 };
 
 /**
@@ -87,6 +87,7 @@ export interface AdminTab {
 const PINNED: Record<string, Record<string, string>> = {
 	'diluxone-users-reports › sessions': { s: 'ana@example.com' },
 	'diluxone-users-reports › activity': { s: 'ana@example.com' },
+	'diluxone-users-reports › network-activity': { s: 'ana@example.com' },
 };
 
 /** Every tab of every screen, flattened, in the order the menu has them. */
@@ -114,7 +115,7 @@ export function networkAdminTabs(): AdminTab[] {
 				screen,
 				tab,
 				name: `network › ${screen} › ${tab}`,
-				url: adminUrl(screen, tab).replace('/wp-admin/', '/wp-admin/network/'),
+				url: adminUrl(screen, tab, PINNED[`${screen} › ${tab}`] ?? {}).replace('/wp-admin/', '/wp-admin/network/'),
 			});
 		}
 	}
