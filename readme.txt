@@ -143,7 +143,10 @@ their own too: `[diluxone_users_fields]`, `[diluxone_users_avatar]`,
 `[diluxone_users_handle]`, `[diluxone_users_accounts]`,
 `[diluxone_users_sessions]` and `[diluxone_users_notifications]`. On a
 network they are the main site's: placed on another site, each one draws a
-button to the main site's page, which brings people back afterwards.
+button to the main site's page, which brings people back afterwards. On a
+network, `[diluxone_users_join]` offers "Join this site" to somebody signed in
+who is not a member (or says the site is by invitation); it draws nothing on a
+single site.
 
 = Does it work on multisite? =
 
@@ -171,8 +174,18 @@ a cookie of the main site and used once; a sign-in link opened on another
 device lands on the main site, signed in. Social sign-in and passkeys work on
 the main site only: register one redirect address per network in the
 providers' consoles. Whether new accounts may be created at all is the
-network's **Allow new registrations**; somebody becomes a member of a site
-when they sign in for it, if the site takes new people. On a network that used
+network's **Allow new registrations**. Which sites an account is a member of
+is one decision for the network, on **Network Admin → DiluxOne Users+ →
+Membership**: every live site (the default: a new account joins every site, a
+new site gets every account, big networks in the background, and "Sync
+everyone now" or `wp diluxone-users network membership sync` for what was
+there before), whoever asks (a "Join this site" button in the menu, in the
+`[diluxone_users_join]` shortcode and on the page people come back to), or by
+invitation (only administrators add people). The role is each site's own New
+User Default Role, and on the main site the role new accounts get. Somebody an
+administrator removed from a site is not added back until an administrator
+does. Each site's Reports › Activity also lists the sign-ins on the main site
+that came from it. On a network that used
 the plugin before, the main site's settings become the network's, and Network
 Admin lists what the other sites had set differently. Subdirectory and
 subdomain networks are supported. On a subdomain network WordPress sets the

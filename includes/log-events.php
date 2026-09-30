@@ -27,10 +27,20 @@ defined( 'ABSPATH' ) || exit;
  * Every door: the e-mail link, a social account, a passkey, the password —
  * directly or once the second step is done. The password arrives here through
  * diluxone_users_password_logged_in(), which says why it only fires once the
- * session really is open.
+ * session really is open. On a network, a sign-in on the hub for another site
+ * carries that site as `from_site`.
  */
 function diluxone_users_log_login( int $user_id, string $via ): void {
-	diluxone_users_log_record( 'signed_in', $user_id, array( 'via' => $via ) );
+	$detail = array( 'via' => $via );
+	$from   = diluxone_users_sign_in_from();
+
+	// A sign-in on the hub for another site of the network: that site's
+	// report shows it too (diluxone_users_log_search()'s `arrivals`).
+	if ( $from > 0 && get_current_blog_id() !== $from ) {
+		$detail['from_site'] = $from;
+	}
+
+	diluxone_users_log_record( 'signed_in', $user_id, $detail );
 }
 add_action( 'diluxone_users_logged_in', 'diluxone_users_log_login', 10, 2 );
 

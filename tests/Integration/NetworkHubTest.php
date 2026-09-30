@@ -389,7 +389,12 @@ class NetworkHubTest extends IntegrationTestCase {
 		$back = home_url( '/a-page/' );
 		restore_current_blog();
 
+		// Made while the network was "by invitation", so a member of the hub
+		// only; then every site: the way back is the safety net that adds
+		// them to the site they came from.
+		diluxone_users_update_option( 'diluxone_users_membership', 'invite' );
 		$user = $this->make_user();
+		diluxone_users_update_option( 'diluxone_users_membership', 'all' );
 
 		$this->arrive_with( $back );
 
@@ -417,22 +422,30 @@ class NetworkHubTest extends IntegrationTestCase {
 		$this->assertSame( home_url( '/' ), apply_filters( 'diluxone_users_login_redirect', home_url( '/' ), $user ), 'single use' );
 	}
 
-	public function test_a_site_that_takes_nobody_is_not_joined_on_the_way_back(): void {
+	/**
+	 * Under "click" and "invite" the way back adds nobody to the site: it
+	 * says, on the page it lands on, that there is a site to join — or that
+	 * it is by invitation.
+	 */
+	public function test_under_click_or_invite_the_way_back_joins_only_the_hub_and_says_so(): void {
 		$this->network_only();
-
-		diluxone_users_update_option( 'diluxone_users_login_register', 0 );
-		diluxone_users_update_option( 'diluxone_users_register_form', 0 );
-		diluxone_users_update_option( 'diluxone_users_sso_register', 0 );
 
 		switch_to_blog( $this->beta );
 		$back = home_url( '/' );
 		restore_current_blog();
 
-		$user = $this->make_user();
-		$this->arrive_with( $back );
+		foreach ( array( 'click', 'invite' ) as $policy ) {
+			diluxone_users_update_option( 'diluxone_users_membership', $policy );
 
-		$this->assertSame( $back, apply_filters( 'diluxone_users_login_redirect', home_url( '/' ), $user ), 'back all the same' );
-		$this->assertFalse( is_user_member_of_blog( $user, $this->beta ), 'but not a member of a site that takes nobody' );
+			$user = $this->make_user();
+			$this->arrive_with( $back );
+
+			$landed = apply_filters( 'diluxone_users_login_redirect', home_url( '/' ), $user );
+
+			$this->assertSame( add_query_arg( 'diluxone-users', 'join', $back ), $landed, "{$policy}: back, saying there is a site to join" );
+			$this->assertFalse( is_user_member_of_blog( $user, $this->beta ), "{$policy}: not a member of the site" );
+			$this->assertTrue( is_user_member_of_blog( $user, get_main_site_id() ), "{$policy}: a member of the hub" );
+		}
 	}
 
 	public function test_on_a_single_site_no_return_is_held_or_used(): void {

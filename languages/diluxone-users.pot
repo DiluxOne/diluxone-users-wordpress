@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-09-30T20:40:39+00:00\n"
+"POT-Creation-Date: 2026-09-30T22:21:33+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: diluxone-users\n"
@@ -44,11 +44,11 @@ msgstr ""
 msgid "Deleted account"
 msgstr ""
 
-#: includes/account-closing.php:307
+#: includes/account-closing.php:309
 msgid "Done: your data has been erased and your account closed."
 msgstr ""
 
-#: includes/account-closing.php:322
+#: includes/account-closing.php:324
 msgid "This account was closed."
 msgstr ""
 
@@ -206,7 +206,7 @@ msgstr ""
 #: includes/account-sections.php:51
 #: includes/admin-login.php:350
 #: includes/admin-people.php:316
-#: includes/admin.php:78
+#: includes/admin.php:80
 msgid "Security"
 msgstr ""
 
@@ -702,7 +702,7 @@ msgid "Delete this section?"
 msgstr ""
 
 #: includes/admin-account.php:733
-#: includes/admin.php:412
+#: includes/admin.php:422
 msgid "Remove"
 msgstr ""
 
@@ -1822,7 +1822,7 @@ msgstr ""
 #: includes/admin-design.php:242
 #: includes/admin-fields.php:945
 #: includes/admin-notices.php:286
-#: includes/admin.php:80
+#: includes/admin.php:82
 msgid "Account area"
 msgstr ""
 
@@ -1837,7 +1837,7 @@ msgstr ""
 #: includes/admin-social.php:39
 #: includes/admin-status.php:396
 #: includes/admin-status.php:407
-#: includes/admin.php:79
+#: includes/admin.php:81
 #: includes/login-messages.php:633
 msgid "Social login"
 msgstr ""
@@ -1909,7 +1909,7 @@ msgstr ""
 #: includes/admin-fields.php:255
 #: includes/admin-fields.php:579
 #: includes/admin-register.php:396
-#: includes/admin.php:81
+#: includes/admin.php:83
 msgid "User fields"
 msgstr ""
 
@@ -2432,7 +2432,7 @@ msgstr ""
 #: includes/admin-home.php:400
 #: includes/admin-people.php:41
 #: includes/admin-people.php:311
-#: includes/admin.php:77
+#: includes/admin.php:78
 msgid "Access"
 msgstr ""
 
@@ -2588,8 +2588,8 @@ msgid "Activity"
 msgstr ""
 
 #: includes/admin-log.php:60
-#: includes/admin-log.php:750
-#: includes/admin-network.php:605
+#: includes/admin-log.php:780
+#: includes/admin-network.php:606
 msgid "Log settings"
 msgstr ""
 
@@ -2759,157 +2759,166 @@ msgstr ""
 msgid "Passkey"
 msgstr ""
 
+#. translators: %s: the name of the site where the person signed in
+#: includes/admin-log.php:421
+#, php-format
+msgid "on %s"
+msgstr ""
+
 #. translators: %s: how many passkeys the account has left.
-#: includes/admin-log.php:418
+#: includes/admin-log.php:444
 #, php-format
 msgid "%s on the account now"
 msgstr ""
 
 #. translators: %s: how many sessions were closed at once.
-#: includes/admin-log.php:425
+#: includes/admin-log.php:451
 #, php-format
 msgid "%s closed"
 msgstr ""
 
-#: includes/admin-log.php:549
+#: includes/admin-log.php:577
 msgid "What happened on every site of the network, newest first, with the site each row happened on. It shows only what was being recorded at the time: a group ticked this morning has nothing in it from yesterday."
 msgstr ""
 
-#: includes/admin-log.php:550
+#: includes/admin-log.php:578
 msgid "What happened on this site, newest first. It shows only what was being recorded at the time: a group ticked this morning has nothing in it from yesterday."
 msgstr ""
 
-#: includes/admin-log.php:559
-#: includes/admin-log.php:601
+#: includes/admin-log.php:587
+#: includes/admin-log.php:629
 #: includes/admin-sessions.php:271
 #: includes/admin-sessions.php:273
 msgid "Search"
 msgstr ""
 
-#: includes/admin-log.php:560
+#: includes/admin-log.php:588
 #: includes/admin-sessions.php:272
 msgid "Email, username or name…"
 msgstr ""
 
-#: includes/admin-log.php:566
-#: includes/admin-log.php:658
-#: includes/admin-network.php:430
+#: includes/admin-log.php:594
+#: includes/admin-log.php:686
+#: includes/admin-network.php:431
 #: includes/log-privacy.php:97
 msgid "Site"
 msgstr ""
 
-#: includes/admin-log.php:568
+#: includes/admin-log.php:596
 msgid "Site ID"
 msgstr ""
 
-#: includes/admin-log.php:571
+#: includes/admin-log.php:599
+#: includes/admin-membership.php:69
 msgid "Every site"
 msgstr ""
 
-#: includes/admin-log.php:579
-#: includes/admin-log.php:661
+#: includes/admin-log.php:607
+#: includes/admin-log.php:690
 #: includes/log-privacy.php:80
 msgid "What happened"
 msgstr ""
 
-#: includes/admin-log.php:581
+#: includes/admin-log.php:609
 msgid "Anything that happened"
 msgstr ""
 
-#: includes/admin-log.php:595
+#: includes/admin-log.php:623
+#: includes/admin-log.php:687
 msgid "From"
 msgstr ""
 
-#: includes/admin-log.php:598
+#: includes/admin-log.php:626
 msgid "To"
 msgstr ""
 
-#: includes/admin-log.php:615
+#: includes/admin-log.php:643
 #: includes/admin-sessions.php:287
 msgid "Clear"
 msgstr ""
 
-#: includes/admin-log.php:618
+#: includes/admin-log.php:646
 #: includes/admin-sessions.php:290
 msgid "Show"
 msgstr ""
 
-#: includes/admin-log.php:624
+#: includes/admin-log.php:652
 #: includes/admin-sessions.php:296
 msgid "per page"
 msgstr ""
 
 #. translators: 1: number of rows, 2: current page, 3: total pages
-#: includes/admin-log.php:631
+#: includes/admin-log.php:659
 #, php-format
 msgid "%1$s rows · page %2$d of %3$d"
 msgstr ""
 
-#: includes/admin-log.php:656
+#: includes/admin-log.php:684
 #: includes/log-privacy.php:76
 msgid "When"
 msgstr ""
 
-#: includes/admin-log.php:660
+#: includes/admin-log.php:689
 #: includes/admin-sessions.php:333
 msgid "Person"
 msgstr ""
 
-#: includes/admin-log.php:662
+#: includes/admin-log.php:691
 msgid "Detail"
 msgstr ""
 
-#: includes/admin-log.php:663
+#: includes/admin-log.php:692
 #: includes/admin-sessions.php:337
 #: includes/log-privacy.php:84
 msgid "IP"
 msgstr ""
 
-#: includes/admin-log.php:664
+#: includes/admin-log.php:693
 #: includes/admin-sessions.php:338
 #: includes/log-privacy.php:88
 msgid "Device"
 msgstr ""
 
-#: includes/admin-log.php:669
+#: includes/admin-log.php:698
 msgid "Nothing matches that."
 msgstr ""
 
-#: includes/admin-log.php:736
+#: includes/admin-log.php:766
 msgid "What is not here"
 msgstr ""
 
-#: includes/admin-log.php:737
+#: includes/admin-log.php:767
 msgid "A row exists because its group was ticked at the moment it happened. Turning a group on today fills this from today; turning one off leaves what was already written until the days above run out."
 msgstr ""
 
-#: includes/admin-log.php:746
+#: includes/admin-log.php:776
 #: includes/admin-sessions.php:413
 msgid "The settings behind this report"
 msgstr ""
 
-#: includes/admin-log.php:750
+#: includes/admin-log.php:780
 msgid "Reports › Log settings"
 msgstr ""
 
-#: includes/admin-log.php:750
+#: includes/admin-log.php:780
 msgid "Network Admin › Activity log"
 msgstr ""
 
-#: includes/admin-log.php:751
+#: includes/admin-log.php:781
 msgid "Which of the three groups is written down, and how many days a row is kept before it goes on its own."
 msgstr ""
 
-#: includes/admin-log.php:775
+#: includes/admin-log.php:805
 msgid "The sites’ older rows are still being moved into the network’s table, a batch every minute. Until that finishes, some sites show only their newer rows."
 msgstr ""
 
-#: includes/admin-log.php:776
+#: includes/admin-log.php:806
 msgid "This site’s older rows are still being moved into the network’s table, a batch every minute. Until that finishes, some of them may not be here yet."
 msgstr ""
 
-#: includes/admin-log.php:792
-#: includes/admin-log.php:823
+#: includes/admin-log.php:822
+#: includes/admin-log.php:853
+#: includes/admin-membership.php:291
 #: includes/admin-tools.php:74
 #: includes/admin-tools.php:448
 #: includes/pages.php:123
@@ -3680,44 +3689,200 @@ msgstr ""
 msgid "Left as the accent colour it follows the accent, instead of becoming a second colour that drifts from the first."
 msgstr ""
 
-#: includes/admin-network.php:276
+#: includes/admin-membership.php:27
+#: includes/admin-membership.php:38
+#: includes/admin.php:79
+msgid "Membership"
+msgstr ""
+
+#: includes/admin-membership.php:51
+msgid "That is not one of the three answers. Nothing was saved."
+msgstr ""
+
+#. translators: %s: the name of the site where the network's accounts live
+#: includes/admin-membership.php:72
+#, php-format
+msgid "Every account is a member of every live site of the network. A new account joins every site, a new site gets every account, and signing in adds whatever is missing. The role is each site’s own New User Default Role; on %s, the role new accounts get."
+msgstr ""
+
+#: includes/admin-membership.php:75
+msgid "Every account is a member of every live site of the network."
+msgstr ""
+
+#: includes/admin-membership.php:78
+msgid "Whoever asks"
+msgstr ""
+
+#. translators: %s: the name of the site where the network's accounts live
+#: includes/admin-membership.php:81
+#, php-format
+msgid "An account is a member of %s, where it lives. On any other site, somebody signed in who is not a member is offered “Join this site”, and joins with that site’s New User Default Role."
+msgstr ""
+
+#. translators: %s: the name of the site where the network's accounts live
+#: includes/admin-membership.php:86
+#, php-format
+msgid "Accounts are members of %s, and join any other site with a click."
+msgstr ""
+
+#: includes/admin-membership.php:91
+msgid "By invitation"
+msgstr ""
+
+#. translators: %s: the name of the site where the network's accounts live
+#: includes/admin-membership.php:94
+#, php-format
+msgid "An account is a member of %s, where it lives. Only a site’s administrators add people to it; somebody signed in who is not a member is told the site is by invitation."
+msgstr ""
+
+#. translators: %s: the name of the site where the network's accounts live
+#: includes/admin-membership.php:99
+#, php-format
+msgid "Accounts are members of %s; administrators add them to any other site."
+msgstr ""
+
+#. translators: %s: the e-mail address of a new account
+#: includes/admin-membership.php:118
+#, php-format
+msgid "A new account, %s, on every site"
+msgstr ""
+
+#. translators: %s: the name of a new site
+#: includes/admin-membership.php:124
+#, php-format
+msgid "Every account on a new site, %s"
+msgstr ""
+
+#: includes/admin-membership.php:128
+msgid "Everybody on every site"
+msgstr ""
+
+#: includes/admin-membership.php:142
+msgid "Everybody is a member of every live site now."
+msgstr ""
+
+#: includes/admin-membership.php:144
+msgid "Adding everybody to every site has started. It goes on in the background, a batch at a time; its progress is below."
+msgstr ""
+
+#: includes/admin-membership.php:149
+msgid "An account belongs to the whole network; being a member of a site — having a role on it — is each site’s. This decides which sites an account is a member of, for every site of the network."
+msgstr ""
+
+#: includes/admin-membership.php:151
+msgid "Who is a member of which site"
+msgstr ""
+
+#. translators: %s: number of sites
+#: includes/admin-membership.php:180
+#, php-format
+msgid "%s live site."
+msgid_plural "%s live sites."
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: %s: number of jobs
+#: includes/admin-membership.php:190
+#, php-format
+msgid "%s job is adding people in the background."
+msgid_plural "%s jobs are adding people in the background."
+msgstr[0] ""
+msgstr[1] ""
+
+#: includes/admin-membership.php:199
+msgid "A removal is a decision"
+msgstr ""
+
+#: includes/admin-membership.php:201
+msgid "Somebody an administrator removes from a site is not added back to it by any of this — not by the policy, not by signing in, not by “Join this site” — until an administrator adds them again."
+msgstr ""
+
+#: includes/admin-membership.php:202
+msgid "Super admins reach every site already and are never added. Archived, spam and deleted sites get nobody."
+msgstr ""
+
+#: includes/admin-membership.php:207
+msgid "Where the members are"
+msgstr ""
+
+#: includes/admin-membership.php:211
+msgid "Network Admin › Users"
+msgstr ""
+
+#: includes/admin-membership.php:212
+msgid "Every account, and the sites each one is a member of."
+msgstr ""
+
+#: includes/admin-membership.php:216
+msgid "Network Admin › Sites"
+msgstr ""
+
+#: includes/admin-membership.php:217
+msgid "Each site’s own users, and its New User Default Role under Settings."
+msgstr ""
+
+#: includes/admin-membership.php:241
+msgid "The accounts and sites already there"
+msgstr ""
+
+#: includes/admin-membership.php:242
+msgid "New accounts and new sites follow the policy on their own. What existed before it is added with this. Removals made by an administrator stay."
+msgstr ""
+
+#. translators: 1: percentage done, 2: additions looked at, 3: additions in all
+#: includes/admin-membership.php:256
+#, php-format
+msgid "%1$s%% (%2$s of %3$s)"
+msgstr ""
+
+#. translators: 1: number of accounts, 2: number of sites
+#: includes/admin-membership.php:274
+#, php-format
+msgid "Every one of the %1$s accounts becomes a member of every one of the %2$s live sites it is not a member of yet, except where an administrator removed it. Go ahead?"
+msgstr ""
+
+#: includes/admin-membership.php:279
+msgid "Sync everyone now"
+msgstr ""
+
+#: includes/admin-network.php:277
 msgid "The network"
 msgstr ""
 
-#: includes/admin-network.php:287
+#: includes/admin-network.php:288
 msgid "Deleting the plugin"
 msgstr ""
 
-#: includes/admin-network.php:314
+#: includes/admin-network.php:315
 msgid "On this network the plugin applies one set of rules to every site. Who gets in and how safely, the social sign-in apps, the fields a person has and what the activity log keeps are decided here, for all of them. Each site keeps its own menus, admin bar, reports and maintenance."
 msgstr ""
 
-#: includes/admin-network.php:331
+#: includes/admin-network.php:332
 msgid "Where the accounts live"
 msgstr ""
 
-#: includes/admin-network.php:333
+#: includes/admin-network.php:334
 msgid "The main site of the network. Its sign-in, registration and account pages, and how they look, are set on its own dashboard."
 msgstr ""
 
-#: includes/admin-network.php:337
+#: includes/admin-network.php:338
 msgid "Open its dashboard"
 msgstr ""
 
-#: includes/admin-network.php:346
+#: includes/admin-network.php:347
 msgid "How the sites are addressed"
 msgstr ""
 
-#: includes/admin-network.php:347
+#: includes/admin-network.php:348
 msgid "Subdomains"
 msgstr ""
 
-#: includes/admin-network.php:347
+#: includes/admin-network.php:348
 msgid "Subdirectories"
 msgstr ""
 
 #. translators: %s: number of sites
-#: includes/admin-network.php:350
+#: includes/admin-network.php:351
 #, php-format
 msgid "%s site on this network."
 msgid_plural "%s sites on this network."
@@ -3725,118 +3890,118 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %s: the addresses of the sites, each in <code>
-#: includes/admin-network.php:371
+#: includes/admin-network.php:372
 #, php-format
 msgid "These sites have a domain of their own: %s."
 msgstr ""
 
-#: includes/admin-network.php:374
+#: includes/admin-network.php:375
 msgid "People have to sign in again on these sites: a session opened on the rest of the network does not reach a domain of its own. That is not supported in this version."
 msgstr ""
 
-#: includes/admin-network.php:385
+#: includes/admin-network.php:386
 msgid "What a site can no longer change"
 msgstr ""
 
-#: includes/admin-network.php:387
+#: includes/admin-network.php:388
 msgid "The second step, passkeys, how long a session lasts, the proxy, the social sign-in apps and their rules, the fields a person has and what the log keeps. A site administrator does not see these screens, and nothing sent to their own site writes them."
 msgstr ""
 
-#: includes/admin-network.php:388
+#: includes/admin-network.php:389
 msgid "What fits into each site’s theme is still that site’s: where the account link goes in its menus, its admin bar and its dashboard profile."
 msgstr ""
 
-#: includes/admin-network.php:403
+#: includes/admin-network.php:404
 msgid "Set for the whole network"
 msgstr ""
 
-#: includes/admin-network.php:423
+#: includes/admin-network.php:424
 msgid "What the sites had set differently"
 msgstr ""
 
-#: includes/admin-network.php:424
+#: includes/admin-network.php:425
 msgid "When the settings became the network’s, the main site’s were kept. These sites had something else, and now follow the network. The user fields are the exception: every site’s fields were kept."
 msgstr ""
 
-#: includes/admin-network.php:431
+#: includes/admin-network.php:432
 msgid "Setting"
 msgstr ""
 
-#: includes/admin-network.php:432
+#: includes/admin-network.php:433
 msgid "What it had"
 msgstr ""
 
-#: includes/admin-network.php:456
+#: includes/admin-network.php:457
 msgid "Different credentials, not shown. The main site’s are the network’s now."
 msgstr ""
 
-#: includes/admin-network.php:458
+#: includes/admin-network.php:459
 msgid "Everything was to go when the plugin is deleted. The network’s answer starts unticked: it is decided on the Deleting the plugin tab."
 msgstr ""
 
 #. translators: %s: the key of a user field
-#: includes/admin-network.php:462
+#: includes/admin-network.php:463
 #, php-format
 msgid "A different definition of the field %s. The main site’s was kept."
 msgstr ""
 
 #. translators: 1: plugin name, 2: the names of the sites, comma separated
-#: includes/admin-network.php:495
+#: includes/admin-network.php:496
 #, php-format
 msgid "%1$s now applies one set of settings to the whole network, taken from the main site. These sites had set some of them differently: %2$s."
 msgstr ""
 
-#: includes/admin-network.php:501
+#: includes/admin-network.php:502
 msgid "See what was different"
 msgstr ""
 
-#: includes/admin-network.php:503
+#: includes/admin-network.php:504
 msgid "Dismiss"
 msgstr ""
 
-#: includes/admin-network.php:542
+#: includes/admin-network.php:543
 msgid "By default, deleting the plugin removes nothing. The settings stay, every site’s activity log stays, and so does everything in people’s profiles — their details, their public names, their passkeys and their second factors. A plugin deleted by accident, or deleted to be installed again, should not be what loses somebody their account."
 msgstr ""
 
-#: includes/admin-network.php:551
+#: includes/admin-network.php:552
 #: includes/admin-tools.php:630
 msgid "Remove everything this plugin wrote when it is deleted"
 msgstr ""
 
-#: includes/admin-network.php:552
+#: includes/admin-network.php:553
 msgid "The network’s settings, every site’s settings and activity log, and what the plugin keeps in people’s profiles. It cannot be undone, and it runs on delete, not on deactivate."
 msgstr ""
 
-#: includes/admin-network.php:561
+#: includes/admin-network.php:562
 msgid "Deleting the plugin removes everything it wrote, on every site."
 msgstr ""
 
-#: includes/admin-network.php:562
+#: includes/admin-network.php:563
 msgid "Deleting the plugin leaves the data where it is."
 msgstr ""
 
-#: includes/admin-network.php:610
+#: includes/admin-network.php:611
 msgid "Set somewhere else"
 msgstr ""
 
-#: includes/admin-network.php:612
+#: includes/admin-network.php:613
 msgid "On this network the rules about people are the network’s, and the screens people sign in and keep their account on are the main site’s. This site keeps its own menus, admin bar, reports and maintenance."
 msgstr ""
 
-#: includes/admin-network.php:613
+#: includes/admin-network.php:614
 msgid "On this network the rules about people are the network’s: they apply to every site, and they are set in Network Admin."
 msgstr ""
 
-#: includes/admin-network.php:625
+#: includes/admin-network.php:626
 msgid "Open it"
 msgstr ""
 
-#: includes/admin-network.php:634
+#: includes/admin-network.php:635
 msgid "Managed by the network: one setting for every site, set in Network Admin."
 msgstr ""
 
 #. translators: %s: the name of the network's main site
-#: includes/admin-network.php:637
+#: includes/admin-network.php:638
 #, php-format
 msgid "Set on %s, the site where people sign in and keep their account."
 msgstr ""
@@ -5724,54 +5889,54 @@ msgstr ""
 msgid "Overview"
 msgstr ""
 
-#: includes/admin.php:82
+#: includes/admin.php:84
 msgid "Design"
 msgstr ""
 
-#: includes/admin.php:83
+#: includes/admin.php:85
 msgid "E-mail notices"
 msgstr ""
 
-#: includes/admin.php:84
+#: includes/admin.php:86
 #: includes/log-privacy.php:33
 #: includes/log-privacy.php:111
 #: includes/log-privacy.php:131
 msgid "Activity log"
 msgstr ""
 
-#: includes/admin.php:84
+#: includes/admin.php:86
 msgid "Reports"
 msgstr ""
 
-#: includes/admin.php:85
+#: includes/admin.php:87
 msgid "Maintenance"
 msgstr ""
 
-#: includes/admin.php:282
+#: includes/admin.php:292
 msgid "Everybody"
 msgstr ""
 
-#: includes/admin.php:288
+#: includes/admin.php:298
 msgid "Only some roles"
 msgstr ""
 
-#: includes/admin.php:309
+#: includes/admin.php:319
 msgid "— always kept, whatever is chosen"
 msgstr ""
 
-#: includes/admin.php:387
+#: includes/admin.php:397
 msgid "Back to the default"
 msgstr ""
 
-#: includes/admin.php:411
+#: includes/admin.php:421
 msgid "Choose a picture"
 msgstr ""
 
-#: includes/admin.php:446
+#: includes/admin.php:456
 msgid "This site fixes this from code: whatever is chosen here, it stays as it is."
 msgstr ""
 
-#: includes/admin.php:449
+#: includes/admin.php:459
 msgid "It is filtered here — open the file to change it or take it out:"
 msgstr ""
 
@@ -5875,7 +6040,7 @@ msgstr ""
 msgid "your password"
 msgstr ""
 
-#: includes/auth.php:1027
+#: includes/auth.php:1030
 msgid "This account asks for a second step when signing in, and this way in cannot ask for it."
 msgstr ""
 
@@ -6656,7 +6821,7 @@ msgid "Activate DiluxOne Users+ for the whole network"
 msgstr ""
 
 #. translators: 1: this site's domain, 2: the name of the site where the network's accounts live
-#: includes/network-hub.php:848
+#: includes/network-hub.php:892
 #, php-format
 msgid "This site is on a domain of its own (%1$s). People must sign in again on this site: signing in on %2$s does not carry over to it. A domain of its own is not supported by DiluxOne Users+ in this version."
 msgstr ""
@@ -6879,11 +7044,22 @@ msgstr ""
 msgid "Name only"
 msgstr ""
 
-#: includes/site-menu.php:134
+#: includes/site-menu.php:130
+#: templates/join.php:21
+#: templates/join.php:45
+msgid "Join this site"
+msgstr ""
+
+#: includes/site-menu.php:137
+#: templates/join.php:26
+msgid "This site is by invitation"
+msgstr ""
+
+#: includes/site-menu.php:147
 msgid "Go to the WordPress dashboard"
 msgstr ""
 
-#: includes/site-menu.php:136
+#: includes/site-menu.php:149
 msgid "Sign out"
 msgstr ""
 
@@ -7853,6 +8029,28 @@ msgstr ""
 
 #: templates/hub-door.php:31
 msgid "Open your account"
+msgstr ""
+
+#. translators: 1: the name of this site, 2: the name of the site where the network's accounts live
+#: templates/join.php:23
+#, php-format
+msgid "You are signed in with your account from %2$s, and you are not a member of %1$s yet. Join it to take part here."
+msgstr ""
+
+#. translators: 1: the name of this site, 2: the name of the site where the network's accounts live
+#: templates/join.php:28
+#, php-format
+msgid "You are signed in with your account from %2$s, and you are not a member of %1$s. Only its administrators add people to it."
+msgstr ""
+
+#: templates/join.php:31
+msgid "Welcome"
+msgstr ""
+
+#. translators: 1: the name of this site, 2: the name of the site where the network's accounts live
+#: templates/join.php:33
+#, php-format
+msgid "You are a member of %1$s now, with your account from %2$s."
 msgstr ""
 
 #: templates/login-2fa.php:23

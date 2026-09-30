@@ -121,8 +121,21 @@ function diluxone_users_menu_items( $items, $args ) {
 		default  => $photo . '<span class="diluxone-users-menu__name">' . esc_html( $name ) . '</span>',
 	};
 
+	// On a network, somebody signed in who is not a member of this site:
+	// the way to join it, or the word that it is by invitation (see
+	// membership-join.php). Nothing on a single site.
+	$join = diluxone_users_join_state();
+
+	if ( 'click' === $join ) {
+		$add( diluxone_users_menu_item( 990002, esc_html__( 'Join this site', 'diluxone-users' ), diluxone_users_join_url(), 0, 'diluxone-users-menu--join' ) );
+	}
+
 	$account = diluxone_users_account_url();
 	$add( diluxone_users_menu_item( 990001, $title, '' !== $account ? $account : admin_url( 'profile.php' ), 0, 'diluxone-users-menu--person' ) );
+
+	if ( 'invite' === $join ) {
+		$add( diluxone_users_menu_item( 990003, esc_html__( 'This site is by invitation', 'diluxone-users' ), '', 990001, 'diluxone-users-menu--invite' ) );
+	}
 
 	$id = 990010;
 	if ( '' !== $account ) {

@@ -67,6 +67,7 @@ function diluxone_users_uninstall_site(): void {
 	wp_clear_scheduled_hook( 'diluxone_users_log_purge' );
 	wp_clear_scheduled_hook( 'diluxone_users_log_move' );
 	wp_clear_scheduled_hook( 'diluxone_users_network_migrate' );
+	wp_clear_scheduled_hook( 'diluxone_users_membership_drain' );
 
 	// The site's own table. On the network's first site its prefix is the
 	// network's, so this is also the network's activity log, one table for

@@ -68,22 +68,31 @@ add_filter( 'admin_title', 'diluxone_users_admin_title', 10, 2 );
  * @return array<string, mixed>
  */
 function diluxone_users_screens(): array {
-	return array(
-		'diluxone-users'          => __( 'Overview', 'diluxone-users' ),
+	$screens = array(
+		'diluxone-users'            => __( 'Overview', 'diluxone-users' ),
 		// The order is the way a person walks through it: how they get in,
-		// how they are protected once in, what they have inside, how it
-		// looks, what reaches them by e-mail, who is actually in right now,
-		// keeping it all alive.
-		'diluxone-users-login'    => __( 'Access', 'diluxone-users' ),
-		'diluxone-users-security' => __( 'Security', 'diluxone-users' ),
-		'diluxone-users-social'   => __( 'Social login', 'diluxone-users' ),
-		'diluxone-users-account'  => __( 'Account area', 'diluxone-users' ),
-		'diluxone-users-fields'   => __( 'User fields', 'diluxone-users' ),
-		'diluxone-users-design'   => __( 'Design', 'diluxone-users' ),
-		'diluxone-users-notices'  => __( 'E-mail notices', 'diluxone-users' ),
-		'diluxone-users-reports'  => 'network' === diluxone_users_admin_context() ? __( 'Activity log', 'diluxone-users' ) : __( 'Reports', 'diluxone-users' ),
-		'diluxone-users-status'   => __( 'Maintenance', 'diluxone-users' ),
+		// which sites they are a member of (a network only), how they are
+		// protected once in, what they have inside, how it looks, what
+		// reaches them by e-mail, who is actually in right now, keeping it
+		// all alive.
+		'diluxone-users-login'      => __( 'Access', 'diluxone-users' ),
+		'diluxone-users-membership' => __( 'Membership', 'diluxone-users' ),
+		'diluxone-users-security'   => __( 'Security', 'diluxone-users' ),
+		'diluxone-users-social'     => __( 'Social login', 'diluxone-users' ),
+		'diluxone-users-account'    => __( 'Account area', 'diluxone-users' ),
+		'diluxone-users-fields'     => __( 'User fields', 'diluxone-users' ),
+		'diluxone-users-design'     => __( 'Design', 'diluxone-users' ),
+		'diluxone-users-notices'    => __( 'E-mail notices', 'diluxone-users' ),
+		'diluxone-users-reports'    => 'network' === diluxone_users_admin_context() ? __( 'Activity log', 'diluxone-users' ) : __( 'Reports', 'diluxone-users' ),
+		'diluxone-users-status'     => __( 'Maintenance', 'diluxone-users' ),
 	);
+
+	// Which sites an account is a member of is a question only a network has.
+	if ( ! diluxone_users_scoped_storage_active() ) {
+		unset( $screens['diluxone-users-membership'] );
+	}
+
+	return $screens;
 }
 
 /**
@@ -93,16 +102,17 @@ function diluxone_users_screens(): array {
  */
 function diluxone_users_screen_callbacks(): array {
 	return array(
-		'diluxone-users'          => 'diluxone_users_screen_home',
-		'diluxone-users-login'    => 'diluxone_users_screen_login',
-		'diluxone-users-security' => 'diluxone_users_screen_security',
-		'diluxone-users-social'   => 'diluxone_users_screen_social',
-		'diluxone-users-account'  => 'diluxone_users_screen_account',
-		'diluxone-users-fields'   => 'diluxone_users_screen_fields',
-		'diluxone-users-design'   => 'diluxone_users_screen_design',
-		'diluxone-users-notices'  => 'diluxone_users_screen_notices',
-		'diluxone-users-reports'  => 'diluxone_users_screen_reports',
-		'diluxone-users-status'   => 'diluxone_users_screen_status',
+		'diluxone-users'            => 'diluxone_users_screen_home',
+		'diluxone-users-login'      => 'diluxone_users_screen_login',
+		'diluxone-users-membership' => 'diluxone_users_screen_membership',
+		'diluxone-users-security'   => 'diluxone_users_screen_security',
+		'diluxone-users-social'     => 'diluxone_users_screen_social',
+		'diluxone-users-account'    => 'diluxone_users_screen_account',
+		'diluxone-users-fields'     => 'diluxone_users_screen_fields',
+		'diluxone-users-design'     => 'diluxone_users_screen_design',
+		'diluxone-users-notices'    => 'diluxone_users_screen_notices',
+		'diluxone-users-reports'    => 'diluxone_users_screen_reports',
+		'diluxone-users-status'     => 'diluxone_users_screen_status',
 	);
 }
 

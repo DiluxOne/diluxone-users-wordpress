@@ -137,6 +137,31 @@ to the site they started from. What an add-on or a theme builds on:
   people there (not a site on a domain of its own, see
   `diluxone_users_mapped_sites()`). Both are false on a single site.
 
+### Membership on a network
+
+Which sites an account is a member of is the network's policy
+(`diluxone_users_membership()`: `all`, `click` or `invite`, set on Network
+Admin › Membership; see [`architecture.md`](architecture.md)). What an add-on
+or a theme builds on:
+
+- `diluxone_users_member_added` (action) fires every time the plugin makes
+  somebody a member of a site: `( int $user_id, int $site_id, string $role,
+  string $how )`, where `$how` is `account` (a new account under "every
+  site"), `site` (a new site), `sync`, `sign-in` or `click` ("Join this
+  site"). Once per person and site in a request. Additions made by WordPress
+  or by an administrator do not fire it.
+- `[diluxone_users_join]` draws `templates/join.php` for somebody signed in
+  who is not a member of the site: `$state` is `click` (a button that joins
+  it), `invite` (the site is by invitation) or `joined`, `$site` and `$hub`
+  the two sites' names, `$notice` whether it is the box at the top of the page
+  the hub sent them back to. It draws nothing for nobody, for a member, and on
+  a single site. The same box goes at the top of that page through
+  `wp_body_open`.
+- `diluxone_users_membership_inline` (filter, default 50) is how many
+  additions a new account or a new site makes on the spot; more are queued
+  and made by WP-Cron. `diluxone_users_membership_batch` (filter, default 200)
+  is how many additions one batch of the queue makes.
+
 ## Social login providers
 
 `includes/sso.php` is a generic OAuth2 engine with no branch per provider:
@@ -500,6 +525,9 @@ drawn, whatever the form sends.
 ## Things that happen
 
 - `diluxone_users_logged_in` — somebody got in. Receives the user and how.
+- `diluxone_users_member_added` — on a network, the plugin made somebody a
+  member of a site. Receives the user, the site, the role and what made it
+  (see [Membership on a network](#membership-on-a-network)).
 - `diluxone_users_fields_saved` — a person's fields were saved.
 - `diluxone_users_register_sections`, `diluxone_users_register_panels` — the
   moments to register.

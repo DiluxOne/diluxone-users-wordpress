@@ -61,6 +61,10 @@ function diluxone_users_option_scopes(): array {
 		'diluxone_users_fields'                 => 'network',
 		'diluxone_users_ip_header'              => 'network',
 		'diluxone_users_log_days'               => 'network',
+		'diluxone_users_membership'             => 'network',
+		// The additions to sites still to be made, worked through by cron.
+		// See includes/membership.php.
+		'diluxone_users_membership_queue'       => 'network',
 		'diluxone_users_log_levels'             => 'network',
 		'diluxone_users_passkey_enabled'        => 'network',
 		'diluxone_users_passkey_verify'         => 'network',

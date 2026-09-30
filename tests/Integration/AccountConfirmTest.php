@@ -183,6 +183,8 @@ class AccountConfirmTest extends IntegrationTestCase {
 	}
 
 	public function test_the_button_closes_the_account_and_lands_on_the_sign_in_page(): void {
+		// On a network, a member of this site only (see AccountClosingTest).
+		diluxone_users_update_option( 'diluxone_users_membership', 'invite' );
 		$user              = $this->make_user();
 		[ $request, $key ] = $this->file( $user );
 
