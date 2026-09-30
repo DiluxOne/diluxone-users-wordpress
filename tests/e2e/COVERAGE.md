@@ -119,19 +119,60 @@ product is fixed, not to be loosened.
 | Network `registration=none`: no door creates anybody | `doors` |
 | Network `registration=user`: the doors work | `doors` |
 | A password is a network password | `doors` |
-| Settings saved on /alpha/ do not reach /beta/ | `isolation` |
+| The main site's sign-in settings reach /alpha/ and /beta/ alike | `isolation` › The main site’s sign-in settings are every site’s |
 | Reports › Sessions on /alpha/ lists only its members | `isolation` |
 | Add New User on a subsite | `isolation` |
-| Photo uploaded on /alpha/ is the same on /beta/ | `isolation` |
+| Photo uploaded on /alpha/ is the same on /beta/ (the photo piece on a page of each site) | `isolation` |
 | Photo removed on /beta/ deletes no /beta/ file | `isolation` |
-| 2FA required on /alpha/: a password on /beta/ does not open /alpha/'s dashboard | `isolation` |
+| 2FA required of administrators: an administrator of /alpha/ signing in on /beta/ as a subscriber is asked | `isolation` › The second step is the network’s |
 | Social identity linked on /alpha/ reaches the same account on /beta/ | `social` |
 | A new site used from its public pages first, nothing in debug.log | `lifecycle` |
 | Deactivate/activate network-wide and per site, nothing in debug.log | `lifecycle` |
-| Account deleted: member of one site only, deleted from the network | `account-closing` |
+| Account deleted from the main site's account area: member of the main site only, deleted from the network | `account-closing` |
 | Account deleted: member of another site too, anonymised there | `account-closing` |
-| Copy confirmed on a site of the network, handed over by that site | `account-export` |
-| Uninstall | not covered: deleting the plugin removes the code the suite runs against, and it is not a browser flow |
+| Copy asked for by a member of /alpha/ on the account area, handed over by the main site | `account-export` |
+| Uninstall | not covered in a browser: deleting the plugin removes the code the suite runs against. Integration: `UninstallNetworkTest` (network), `UninstallSiteTest` (single site) |
+
+## Network settings, and the network's screens
+
+Every case of the move of the rules about people to the network, at every
+layer. Unit tests run without WordPress (`make test-unit`, `make
+test-unit-min`); integration tests on the tests site as a network (`make
+test-integration`), skipping loudly on a single site; e2e single site is the
+proof nothing changed there.
+
+| Case | Unit | Integration | E2E single site | E2E network |
+|---|---|---|---|---|
+| Each setting's scope; menus, admin bar and dashboard profile are each site's | `OptionScopeTest` › what fits into a site's own theme… | `OptionScopeTest` › each scope is stored where it says | — | `network-admin` › another site keeps its menus… |
+| Routed only when network-activated; site by site, every setting is the site's | `OptionScopeTest` › switched on site by site…, …goes to the network | `OptionScopeTest` › switched off a setting is the site's own | — | `lifecycle` › network-wide, then on one site only |
+| A hub setting read from another site follows every write (memo) | — | `OptionScopeTest` › the hub's copy…follows every write | — | `isolation` › main site's sign-in settings… |
+| Hub pages are the hub's: not drawn or routed on another site, links go to the hub | — | `NetworkSettingsTest` › the pages are the hub's | — | `lifecycle` › a site made after…; `account-export`; `account-closing` |
+| Who writes what, from where (single / network / hub / site) | `OptionScopeTest` › each place writes only its own scope; `NetworkPlacesTest` | `NetworkSettingsTest` › a site's screen cannot change or loosen…; another site writes only its own | `single-site` › the doors…are this site's to switch | `network-admin` › the network's doors on the main site's Access are drawn, not saved |
+| A setting saved in Network Admin is read on every site | — | `NetworkSettingsTest` › …read on every site | — | `network-admin` › What is saved in Network Admin…; Every tab that moved saves… (sessions, proxy, passkeys, social sign-in, deleting the plugin) |
+| Passkeys and social sign-in switched on their own tabs in Network Admin | — | `NetworkSettingsTest` › the network's doors are switched on their own tabs | `single-site` › …do not repeat the switches Access has | `network-admin` › Every tab that moved saves… |
+| User fields are the network's: added and deleted in Network Admin | — | `SettingsFileTest` › a field keyed like… (from Network Admin) | `admin-tools` › User fields | `network-admin` › a user field added in Network Admin… |
+| Log settings are the network's; the rows and "Empty it now" stay with each site | — | `NetworkSettingsTest` › each place draws only its own tabs | `single-site` › Reports › Log settings keeps the way to empty… | `network-admin` › the log's settings…; another site keeps… |
+| Network Admin menu and every tab (answers, tab strip, layout) | `NetworkPlacesTest` | `NetworkSettingsTest` › each place draws only its own tabs | — | `network-admin` › Network Admin has the network's screens (one test per tab) |
+| Network screens leave the sites' menus; refused by address on a site | `NetworkPlacesTest` | `NetworkSettingsTest` › the network's screens leave the sites' menus | `single-site` › the menu carries every screen | `network-admin` › A site's menu keeps only what is its own; refused |
+| A link to a screen goes where the screen is | — | `NetworkSettingsTest` › a link to a screen goes where the screen is | — | `network-admin` › the cards' links |
+| A site's Overview names each moved area ("Managed by the network", "Set on …"), with the way there only for whoever can go | — | `NetworkSettingsTest` › a site administrator is told where things went… | `single-site` › the Overview has no network tabs… | `network-admin` › another site…says where the rest went |
+| Network Overview: hub, addressing, mapped-domain warning, conflicts table | — | — | — | `network-admin` › network › diluxone-users › network; `migration` |
+| Social provider switched only from Network Admin | — | `SsoToggleTest` › on a network a site cannot switch a provider | `admin-effects` › a provider switched off | `network-admin` (providers tab) |
+| Settings file: a site restores and exports only its own | — | `SettingsFileTest` › a file restored on a site of a network… | `admin-tools` › Settings as a file | — |
+| Deleting the plugin: one network box; a site's Tools say so | — | `NetworkSettingsTest`; `UninstallNetworkTest` | `single-site` › Maintenance › Tools still asks | `network-admin` › …deleting the plugin; another site keeps… |
+| "Show me what I chose" writes nothing of the network's | — | `NetworkSettingsTest` › a trial run writes nothing of the network's | `preview` | — |
+| 2FA: one network rule; a chosen role on any site; super admin | — | `MultisiteTest` › the second step is asked on every site alike; a chosen role on any site; a super admin… | `two-factor` | `isolation` › The second step is the network's; `network-admin` › the second step required there… |
+| Move: fresh network (nothing to take, marker written) | — | `NetworkSettingsTest` › on a fresh network… | — | `lifecycle` › a site made after… |
+| Move: the main site's values, the rest written down | `NetworkPlacesTest` › same setting; written down short | `NetworkSettingsTest` › the move takes the main site's values… | — | `migration` |
+| Move: credentials only noted as different | — | `NetworkSettingsTest` › credentials are only noted… | — | — |
+| Move: user fields are every site's, main site winning | — | `NetworkSettingsTest` › the fields are every site's… | — | — |
+| Move: the wipe is not carried over | `NetworkPlacesTest` › every network setting moves but… | `NetworkSettingsTest` › the wipe is not carried over | — | — |
+| Move: idempotent; batches, cron, marker last | — | `NetworkSettingsTest` › idempotent; the version is written last | — | `migration` › running it again does nothing |
+| Move: a notice once, dismissed for good; the table stays | — | `NetworkSettingsTest` › the differences are announced once | — | `migration` |
+| WP-CLI `wp diluxone-users network migrate` | — | — | — | `migration` |
+| Uninstall on a network (network options, old per-site copies, log tables, user meta) | — | `UninstallNetworkTest` | — | — |
+| Uninstall on a single site | — | `UninstallSiteTest` (skipped on a network) | — | — |
+| The pictures of the network's screens | — | — | — | `network-snapshots` (`make test-visual-network`) |
 
 ## Not coverable in a browser
 

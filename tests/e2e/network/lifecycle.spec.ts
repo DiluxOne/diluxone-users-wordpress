@@ -1,6 +1,5 @@
 import { test, expect, whoOn } from './support';
 import { Site, freshEmail, linkIn, waitForMail } from '../support/api';
-import { BASELINE } from '../support/baseline';
 import { PLUGIN_DIR, debugLogLines, debugLogSince, wp } from '../support/cli';
 import { askForLink, emailField } from '../support/ui';
 import { NETWORK_ADMIN_STATE, NETWORK_URL } from '../../../playwright.network.config';
@@ -17,7 +16,7 @@ import { NETWORK_ADMIN_STATE, NETWORK_URL } from '../../../playwright.network.co
  */
 
 test.describe('A site made after the plugin was switched on for the network', () => {
-	test('works from its public pages before anybody opens its dashboard, and logs nothing', async ({ page }) => {
+	test('works from its public pages before anybody opens its dashboard, and logs nothing', async ({ page, hub }) => {
 		const slug = `e2e-new-${Date.now().toString(36)}`;
 		const before = debugLogLines();
 
@@ -27,21 +26,13 @@ test.describe('A site made after the plugin was switched on for the network', ()
 			const url = `${NETWORK_URL}/${slug}/`;
 			const site = await Site.open(url);
 
-			// The pages a site owner would publish with the shortcodes on them,
-			// and the three settings that point at them. Written through the
-			// side door, not the dashboard: the dashboard is exactly what this
-			// site has not seen yet.
+			// A page with the sign-in shortcode on it, as a site owner would
+			// publish one. Nothing else: the rules are the network's and the
+			// account area is the main site's, and a new site has them the
+			// moment it exists.
 			const seeded = await site.seed();
 
-			await site.setOptions(
-				BASELINE({
-					login: seeded.pages.login.id,
-					register: seeded.pages.register.id,
-					account: seeded.pages.account.id,
-				}),
-				{ flush: true }
-			);
-
+			await site.setOptions({}, { flush: true });
 			const email = freshEmail('newborn');
 
 			await askForLink(page, seeded.pages.login.url, email);
@@ -49,11 +40,12 @@ test.describe('A site made after the plugin was switched on for the network', ()
 
 			expect(await whoOn(page, url)).toBe(email);
 
-			// The account area, with the log table and the fields this site
-			// has never had a chance to make.
-			await page.goto(seeded.pages.account.url);
+			// The account area — the main site's — with the network's fields,
+			// for somebody who signed in on a site that never opened its
+			// dashboard.
+			await page.goto(hub.pages.account.url);
 			await expect(page.locator('.diluxone-users-account__nav')).toBeVisible();
-			await page.goto(`${seeded.pages.account.url.replace(/\/?$/, '/')}details/`);
+			await page.goto(`${hub.pages.account.url.replace(/\/?$/, '/')}details/`);
 			await expect(page.locator('form').filter({ has: page.locator('input[name="action"][value="diluxone_users_fields_save"]') })).toBeVisible();
 
 			expect(debugLogSince(before), 'the newborn site wrote to debug.log').toEqual([]);

@@ -9,10 +9,12 @@ import { NETWORK_BASELINE_FILE, NETWORK_PAGES_FILE, SUBSITES, subsiteUrl } from 
 /**
  * Makes the network the specs are written against, and remembers what it was.
  *
- * Unlike the single-site setup, most of what this touches it also made: the
- * two sites are created here and deleted by the teardown, so their settings
- * need no restoring. What is written down is what belongs to the network and
- * outlives them — the network's own registration setting and WP_DEBUG.
+ * The two sites are created here and deleted by the teardown, so what is on
+ * them needs no restoring. The settings the specs start from do: on a network
+ * they are the network's and the main site's — the hub, where people sign in
+ * and keep their account — and both outlive the run. So they are written
+ * through the main site, with the main site's own pages, and what was there
+ * before is written down with WordPress's registration setting and WP_DEBUG.
  */
 
 setup('the tests site is a network, with the plugin on for all of it', async () => {
@@ -36,12 +38,10 @@ setup('two sites, seeded, and the network settings written down', async () => {
 	// and with it off PHP's notices and warnings never reach debug.log — so a
 	// spec asking "did that add anything to the log" would be asking a log
 	// that only hears about fatals.
-	const previous = {
+	const previous: Record<string, unknown> = {
 		registration: wp(['site', 'option', 'get', 'registration']) || 'none',
 		wpDebug: wp(['config', 'get', 'WP_DEBUG', '--type=constant', '--format=json']),
 	};
-
-	writeFileSync(NETWORK_BASELINE_FILE, JSON.stringify(previous, null, 2));
 
 	wp(['config', 'set', 'WP_DEBUG', 'true', '--raw', '--type=constant']);
 	wp(['site', 'option', 'update', 'registration', 'user']);
@@ -49,22 +49,38 @@ setup('two sites, seeded, and the network settings written down', async () => {
 	const existing = wp(['site', 'list', '--field=path']).split('\n');
 	const pages: Record<string, unknown> = {};
 
+	// The hub: its pages are the network's sign-in, registration and account
+	// pages, and the baseline — the network's settings and the hub's — is
+	// written through it.
+	const root = await Site.open(`${NETWORK_URL}/`);
+	const hub = await root.seed();
+
+	previous.options = await root.setOptions(
+		BASELINE({
+			login: hub.pages.login.id,
+			register: hub.pages.register.id,
+			account: hub.pages.account.id,
+		}),
+		{ flush: true, forgetTransients: true }
+	);
+	await root.clearMail();
+
+	pages.root = hub.pages;
+
+	writeFileSync(NETWORK_BASELINE_FILE, JSON.stringify(previous, null, 2));
+
 	for (const slug of SUBSITES) {
 		if (!existing.includes(`/${slug}/`)) {
 			wp(['site', 'create', `--slug=${slug}`, `--title=${slug[0].toUpperCase()}${slug.slice(1)}`, '--porcelain']);
 		}
 
+		// Pages of its own all the same, each carrying its shortcode: a site
+		// of the network can draw the sign-in form on a page of its own, and
+		// the form posts to that site.
 		const site = await Site.open(subsiteUrl(slug));
 		const seeded = await site.seed();
 
-		await site.setOptions(
-			BASELINE({
-				login: seeded.pages.login.id,
-				register: seeded.pages.register.id,
-				account: seeded.pages.account.id,
-			}),
-			{ flush: true, forgetTransients: true }
-		);
+		await site.setOptions({}, { flush: true, forgetTransients: true });
 		await site.clearMail();
 
 		expect(seeded.pages.login.url, `${slug}'s sign-in page lives under /${slug}/`).toContain(`/${slug}/e2e-login`);

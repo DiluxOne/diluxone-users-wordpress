@@ -11,7 +11,11 @@ import { askForLink, emailField, linkForm, registerForm, signInWithPassword, sso
  * to it make somebody a member here. The second one has a strict answer —
  * asking for a link is not having used it, so nobody becomes a member of a
  * site by typing their address into its form — and the network's own
- * registration setting sits above every site's.
+ * registration setting sits above everything.
+ *
+ * Which doors there are, and the role a newcomer gets, are the main site's
+ * settings — the hub's — and every site of the network follows them: they are
+ * set through `hub` here, and a site's own form still posts to that site.
  */
 
 const PASSWORD = 'e2e-Network-1!';
@@ -35,13 +39,13 @@ test.describe('Each site of the network has its own door', () => {
 		}
 	});
 
-	test('a link asked for on /alpha/ opens a session on /alpha/, with the role /alpha/ gives', async ({
+	test('a link asked for on /alpha/ opens a session on /alpha/, with the role the network’s doors give', async ({
 		page,
+		hub,
 		alpha,
 		beta,
 	}) => {
-		await alpha.set({ diluxone_users_login_register: 1, diluxone_users_login_role: 'contributor' });
-		await beta.set({ diluxone_users_login_role: 'subscriber' });
+		await hub.set({ diluxone_users_login_register: 1, diluxone_users_login_role: 'contributor' });
 
 		const email = freshEmail('net-link');
 
@@ -59,16 +63,17 @@ test.describe('Each site of the network has its own door', () => {
 		const here = await alpha.site.user(email);
 
 		expect(here.member).toBe(true);
-		expect(here.roles, "/alpha/'s role, not /beta/'s").toEqual(['contributor']);
+		expect(here.roles, 'the role set on the main site').toEqual(['contributor']);
 		expect((await beta.site.user(email)).member, 'and a member of /alpha/ only').toBe(false);
 	});
 
 	test('a network member who asks on /beta/ is not a member there until they open the link', async ({
 		page,
+		hub,
 		alpha,
 		beta,
 	}) => {
-		await beta.set({ diluxone_users_login_register: 1, diluxone_users_login_role: 'subscriber' });
+		await hub.set({ diluxone_users_login_register: 1, diluxone_users_login_role: 'subscriber' });
 
 		const email = freshEmail('net-join');
 
@@ -98,12 +103,13 @@ test.describe('Each site of the network has its own door', () => {
 		expect(after.roles).toEqual(['subscriber']);
 	});
 
-	test('with /beta/ closed to new people, a network member from /alpha/ does not become one', async ({
+	test('with the doors closed to new people, a network member from /alpha/ does not join /beta/', async ({
 		page,
+		hub,
 		alpha,
 		beta,
 	}) => {
-		await beta.set({ diluxone_users_login_register: 0, diluxone_users_register_form: 0 });
+		await hub.set({ diluxone_users_login_register: 0, diluxone_users_register_form: 0 });
 
 		const email = freshEmail('net-closed');
 
@@ -121,14 +127,16 @@ test.describe('Each site of the network has its own door', () => {
 });
 
 test.describe('The network decides whether anybody new can exist at all', () => {
-	test.beforeEach(async ({ alpha }) => {
-		// Every door on /alpha/ open, so that the only thing saying no is the
-		// network.
-		await alpha.set({
+	test.beforeEach(async ({ hub, alpha }) => {
+		// The fake social network answers on the site that asks it.
+		await alpha.set({ diluxone_e2e_sso: 1 });
+
+		// Every door open, so that the only thing saying no is the network's
+		// own registration setting.
+		await hub.set({
 			diluxone_users_login_register: 1,
 			diluxone_users_register_form: 1,
 			diluxone_users_fields: PLAIN_FIELDS,
-			diluxone_e2e_sso: 1,
 			diluxone_users_sso: MOCK,
 			diluxone_users_sso_login: 1,
 			diluxone_users_sso_register: 1,

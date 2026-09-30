@@ -110,7 +110,10 @@ tests/e2e/
   you meant to make.
 
 Every one of those three walks the same list of screens,
-`support/screens.ts`. Add a tab there and all three cover it — and if you
+`support/screens.ts`. The network suite walks `NETWORK_SCREENS` from the same
+file, in Network Admin (`network/network-admin.spec.ts` measures every tab,
+`network/network-snapshots.spec.ts` photographs them with
+`make test-visual-network`). Add a tab there and all three cover it — and if you
 forget, the measurements read the tab strip each screen draws and fail on a
 tab that is not in the list.
 
@@ -203,7 +206,7 @@ deletes all of them. Nothing else on the site has that domain.
 | `site-menu.spec.ts` | The person in the site's own menu, on the mu-plugin's classic menu: the stranger's sign-in item, the person's sections and sign-out, the three styles, and the tab that saves them. |
 | `admin-effects.spec.ts` | The rest of the dashboard's saves, each checked on the public side: wp-login.php branding, photos, initials, the registration heading, the account menu down the side, the toolbar, profile.php, the sessions list, notice rules, a provider switched off, and what happens to wp-login.php. |
 | `admin-tools.spec.ts` | Status › Tools (export, import, close sessions, fresh code, rebuild, test message), Reports › Sessions and Activity, WordPress's Users screens and Add New User, a field added and deleted, a section of the site's own. |
-| `network/*.spec.ts` | Two sites of one network: each site's door, membership only by using a link, the network's registration setting, settings per site, the sessions report per site, Add New User, the photo across sites, two-step per site, a social identity across sites, a site born after activation, deactivating and activating, WP-CLI. |
+| `network/*.spec.ts` | Two sites of one network and its main site: each site's door, membership only by using a link, the network's registration setting, the main site's sign-in settings on every site, the sessions report per site, Add New User, the photo across sites, the second step as the network's, a social identity across sites, a site born after activation, deactivating and activating, WP-CLI; Network Admin's screens (menu, every tab measured, every moved tab saving for every site, a field added there), what a site's menu keeps, a network screen refused on a site, a site's form unable to write the network's settings; and the move of a network's settings (`migration.spec.ts`). `network-snapshots.spec.ts` is the pictures, opt-in. |
 | `login-ways.spec.ts` | The four ways in as one screen: with all of them on, the sign-in card fits a 1366×768 laptop in tabs and does not stacked — both halves, so the measurement cannot pass on the broken arrangement. The passkey staying above the strip. The tab that opens: the site's choice for a stranger, the cookie after that, and the way in that just failed over both. The site's order, in tabs and stacked. Every way in visible with JavaScript off. And the dashboard end: the order saved from the drag list and read back off the public page. |
 
 A test that fails today on a product bug says so in its assertion message and

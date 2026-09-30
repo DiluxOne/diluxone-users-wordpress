@@ -207,6 +207,20 @@ test-visual-update: ## Take the pictures again and accept them as the new baseli
 	DU_SNAPSHOTS=1 npx playwright test --project=visual --update-snapshots
 	@echo "✔ Pictures rewritten. \`git diff --stat tests/e2e/snapshots\` is the change you are accepting."
 
+# The network's pictures: Network Admin's screens and the places a site of a
+# network looks different. The tests site has to be a network, so they are
+# a pair of targets of their own rather than part of the two above.
+.PHONY: test-visual-network
+test-visual-network: env-multisite ## Compare the network's screens with their pictures.
+	@mkdir -p build
+	DU_SNAPSHOTS=1 npx playwright test -c playwright.network.config.ts --project=network-visual
+
+.PHONY: test-visual-network-update
+test-visual-network-update: env-multisite ## Take the network's pictures again and accept them.
+	@mkdir -p build
+	DU_SNAPSHOTS=1 npx playwright test -c playwright.network.config.ts --project=network-visual --update-snapshots
+	@echo "✔ Pictures rewritten. \`git diff --stat tests/e2e/snapshots\` is the change you are accepting."
+
 .PHONY: test-all
 test-all: test-unit test-integration test-e2e ## All three: the fast one, the one that needs wp-env, and the one that needs a browser.
 

@@ -1,23 +1,22 @@
 import { Page } from '@playwright/test';
-import { test, expect, whoOn, opensDashboard, SiteHandle } from './support';
+import { test, expect, whoOn, opensDashboard, pageWith, SiteHandle } from './support';
 import { freshEmail } from '../support/api';
 import { wp } from '../support/cli';
-import { adminUrl, challengeScreen, loginWay, passwordForm, openWay, savePanel, signInWithPassword } from '../support/ui';
+import { adminUrl, challengeScreen, emailField, loginWay, passwordForm, savePanel, signInWithPassword } from '../support/ui';
 import { NETWORK_ADMIN_STATE } from '../../../playwright.network.config';
 
 /**
- * What must not leak from one site of the network to the next.
+ * What a site of the network keeps to itself, and what it shares.
  *
- * The plugin keeps its settings per site on purpose (includes/multisite.php
- * says why), and a person's account, their photo and their second step
- * belong to the network. Every test here stands on one of those two facts and
- * checks the other site did not notice.
+ * The rules about people are the network's and the screens they sign in on
+ * are the main site's, so a setting changed there is changed everywhere at
+ * once (includes/multisite.php says why). A person's account, their photo and
+ * their second step belong to the network. What each site keeps is its own:
+ * its members, its reports, its media library. Every test here stands on one
+ * of those facts and checks the other side of it.
  */
 
 const PASSWORD = 'e2e-Network-1!';
-
-/** The account area's details section on one site. */
-const details = (one: SiteHandle) => `${one.pages.account.url.replace(/\/?$/, '/')}details/`;
 
 /** A PNG of one teal pixel: small enough to inline, real enough for the media library. */
 const PIXEL = Buffer.from(
@@ -25,30 +24,33 @@ const PIXEL = Buffer.from(
 	'base64'
 );
 
-test.describe('Settings belong to the site they were saved on', () => {
+test.describe('The main site’s sign-in settings are every site’s', () => {
 	test.use({ storageState: NETWORK_ADMIN_STATE });
 
-	test('“only the link” saved on /alpha/ leaves /beta/ with its password form', async ({ page, guest, alpha, beta }) => {
-		await alpha.set({ diluxone_users_login_method: 'both' });
-		await beta.set({ diluxone_users_login_method: 'both' });
+	test('“only the link” saved on the main site takes the password form off /alpha/ and /beta/ alike', async ({
+		page,
+		guest,
+		hub,
+		alpha,
+		beta,
+	}) => {
+		await hub.set({ diluxone_users_login_method: 'both' });
 
-		await page.goto(`${alpha.url.replace(/\/$/, '')}${adminUrl('diluxone-users-login', 'ways')}`);
+		await page.goto(`${hub.url.replace(/\/$/, '')}${adminUrl('diluxone-users-login', 'ways')}`);
 		await loginWay(page, 'link').check();
 		await loginWay(page, 'password').uncheck();
 		await savePanel(page);
 
-		expect((await alpha.site.getOptions(['diluxone_users_login_method'])).diluxone_users_login_method).toBe('link');
-		expect(
-			(await beta.site.getOptions(['diluxone_users_login_method'])).diluxone_users_login_method,
-			'the save on /alpha/ reached /beta/'
-		).toBe('both');
+		for (const one of [alpha, beta]) {
+			expect(
+				(await one.site.getOptions(['diluxone_users_login_method'])).diluxone_users_login_method,
+				`/${one.slug}/ reads the main site’s answer`
+			).toBe('link');
 
-		await guest.goto(alpha.pages.login.url);
-		await expect(passwordForm(guest)).toHaveCount(0);
-
-		await guest.goto(beta.pages.login.url);
-		await openWay(guest, 'password');
-		await expect(passwordForm(guest)).toBeVisible();
+			await guest.goto(one.pages.login.url);
+			await expect(emailField(guest), `/${one.slug}/ still draws the form`).toBeVisible();
+			await expect(passwordForm(guest), `no password on /${one.slug}/`).toHaveCount(0);
+		}
 	});
 });
 
@@ -136,13 +138,14 @@ test.describe('Add New User on a site of the network', () => {
 });
 
 test.describe('A photo belongs to the person, and the person to the network', () => {
-	test.beforeEach(async ({ alpha, beta }) => {
-		for (const one of [alpha, beta]) {
-			await one.set({ diluxone_users_avatar_upload: 1, diluxone_users_2fa_mode: 'off' });
-		}
+	test.beforeEach(async ({ hub }) => {
+		await hub.set({ diluxone_users_avatar_upload: 1, diluxone_users_2fa_mode: 'off' });
 	});
 
-	/** Signs a member of both sites in on /alpha/ and uploads a photo there. */
+	/**
+	 * Signs a member of both sites in on /alpha/ and uploads a photo there, on
+	 * a page of /alpha/ that draws the photo piece of the account.
+	 */
 	async function uploadOnAlpha(page: Page, alpha: SiteHandle, beta: SiteHandle) {
 		const email = freshEmail('net-photo');
 		const person = await alpha.site.makeUser({ email, password: PASSWORD });
@@ -152,7 +155,7 @@ test.describe('A photo belongs to the person, and the person to the network', ()
 		await page.goto(alpha.pages.login.url);
 		await signInWithPassword(page, email, PASSWORD);
 		await page.waitForLoadState('domcontentloaded');
-		await page.goto(details(alpha));
+		await page.goto(pageWith(alpha, 'diluxone_users_avatar'));
 
 		const form = page.locator('form.diluxone-users-avatar__form');
 
@@ -177,7 +180,7 @@ test.describe('A photo belongs to the person, and the person to the network', ()
 	test('uploaded on /alpha/, it is the same photo on /beta/', async ({ page, alpha, beta }) => {
 		const { src } = await uploadOnAlpha(page, alpha, beta);
 
-		await page.goto(details(beta));
+		await page.goto(pageWith(beta, 'diluxone_users_avatar'));
 
 		// The same file. The address may start with /beta/ rather than
 		// /alpha/: WordPress builds a network's upload URLs from the content
@@ -217,7 +220,7 @@ test.describe('A photo belongs to the person, and the person to the network', ()
 		expect(own, '/beta/ has a file with the same id').toBe(attachment);
 
 		try {
-			await page.goto(details(beta));
+			await page.goto(pageWith(beta, 'diluxone_users_avatar'));
 
 			const remove = page.locator('form.diluxone-users-avatar__form button[name="diluxone_users_avatar_remove"]');
 
@@ -240,19 +243,20 @@ test.describe('A photo belongs to the person, and the person to the network', ()
 	});
 });
 
-test.describe('The second step is asked by the site that asks for it', () => {
-	test('an administrator of /alpha/ who signs in on /beta/ does not reach /alpha/’s dashboard without it', async ({
+test.describe('The second step is the network’s', () => {
+	test('required of administrators, it is asked of an administrator of /alpha/ who signs in on /beta/ as a subscriber', async ({
 		page,
+		hub,
 		alpha,
 		beta,
 	}) => {
-		await alpha.set({
+		await hub.set({
 			diluxone_users_2fa_mode: 'required',
 			diluxone_users_2fa_methods: ['email'],
 			diluxone_users_2fa_scope: 'some',
 			diluxone_users_2fa_roles: ['administrator'],
+			diluxone_users_login_method: 'both',
 		});
-		await beta.set({ diluxone_users_2fa_mode: 'off', diluxone_users_login_method: 'both' });
 
 		const email = freshEmail('net-2fa');
 
@@ -265,10 +269,10 @@ test.describe('The second step is asked by the site that asks for it', () => {
 		await expect(challengeScreen(page)).toBeVisible();
 		expect(await whoOn(page, alpha.url), 'no session on /alpha/ before the code').toBeNull();
 
-		// On /beta/, which asks nobody, the password is not enough either: the
-		// session a sign-in opens is a cookie on `/`, the whole network's, and
-		// it would open /alpha/'s dashboard. So the person is asked wherever
-		// they sign in, because a site they reach asks it of them.
+		// On /beta/, where they are only a subscriber, the password is not
+		// enough either: the session a sign-in opens is a cookie on `/`, the
+		// whole network's, and it would open /alpha/'s dashboard. So "only
+		// administrators" means an administrator of any site of theirs.
 		await page.context().clearCookies();
 		await page.goto(beta.pages.login.url);
 		await signInWithPassword(page, email, PASSWORD);
@@ -281,4 +285,3 @@ test.describe('The second step is asked by the site that asks for it', () => {
 		).toBe(false);
 	});
 });
-
