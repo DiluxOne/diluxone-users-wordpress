@@ -58,7 +58,7 @@ function diluxone_users_page_draws_itself( $content ): string {
 	$id = (int) get_the_ID();
 
 	foreach ( diluxone_users_page_roles() as $option => $role ) {
-		if ( $id !== (int) diluxone_users_option( $option ) ) {
+		if ( $id !== diluxone_users_page_here( $option ) ) {
 			continue;
 		}
 		if ( ! has_shortcode( $content, $role['shortcode'] ) ) {
@@ -117,7 +117,9 @@ function diluxone_users_create_page(): void {
 	$option = sanitize_key( wp_unslash( $_GET['page'] ?? '' ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- verified below, with the option in the action.
 	$roles  = diluxone_users_page_roles();
 
-	if ( ! isset( $roles[ $option ] ) || ! current_user_can( 'manage_options' ) ) {
+	// The pages are the hub's: made anywhere else, the page would be on one
+	// site and the setting pointing at it on another.
+	if ( ! isset( $roles[ $option ] ) || ! diluxone_users_admin_owns( 'hub' ) || ! current_user_can( 'manage_options' ) ) {
 		wp_die( esc_html__( 'You are not allowed to do this.', 'diluxone-users' ), 403 );
 	}
 	check_admin_referer( 'diluxone_users_create_page_' . $option );

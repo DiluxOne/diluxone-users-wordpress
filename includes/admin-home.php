@@ -466,6 +466,31 @@ function diluxone_users_panel_asked(): void {
 	);
 }
 
+/**
+ * The way from a card to its screen, when whoever is looking can follow it.
+ *
+ * On a network the screen may be in Network Admin or on the main site, and a
+ * link a site administrator cannot follow is a door drawn on a wall.
+ *
+ * @param string $screen Screen slug.
+ * @param string $label  What the link says.
+ * @return array<int, array<string, string>>
+ */
+function diluxone_users_home_card_link( string $screen, string $label ): array {
+	$scope = diluxone_users_panel_scope( $screen );
+
+	if ( ! diluxone_users_admin_owns( $scope ) && ! diluxone_users_admin_can_open( $scope ) ) {
+		return array();
+	}
+
+	return array(
+		array(
+			'url'   => diluxone_users_admin_url( $screen ),
+			'label' => $label,
+		),
+	);
+}
+
 /** Screen home. */
 function diluxone_users_screen_home(): void {
 	$numbers   = diluxone_users_home_numbers();
@@ -519,12 +544,7 @@ function diluxone_users_screen_home(): void {
 			'title'  => __( 'Open sessions', 'diluxone-users' ),
 			'value'  => number_format_i18n( $numbers['sessions'] ),
 			'detail' => __( 'Signed in right now, on at least one device.', 'diluxone-users' ),
-			'links'  => array(
-				array(
-					'url'   => diluxone_users_admin_url( DILUXONE_USERS_SECURITY ),
-					'label' => __( 'See who', 'diluxone-users' ),
-				),
-			),
+			'links'  => diluxone_users_home_card_link( DILUXONE_USERS_SECURITY, __( 'See who', 'diluxone-users' ) ),
 		)
 	);
 
@@ -534,12 +554,7 @@ function diluxone_users_screen_home(): void {
 			'title'  => __( 'Fields in use', 'diluxone-users' ),
 			'value'  => number_format_i18n( count( $active ) ) . ' / ' . number_format_i18n( count( $fields ) ),
 			'detail' => __( 'Of the ones defined, how many people are actually asked for.', 'diluxone-users' ),
-			'links'  => array(
-				array(
-					'url'   => diluxone_users_admin_url( 'diluxone-users-fields' ),
-					'label' => __( 'Manage them', 'diluxone-users' ),
-				),
-			),
+			'links'  => diluxone_users_home_card_link( 'diluxone-users-fields', __( 'Manage them', 'diluxone-users' ) ),
 		)
 	);
 
@@ -549,12 +564,7 @@ function diluxone_users_screen_home(): void {
 			'title'  => __( 'Social providers', 'diluxone-users' ),
 			'value'  => number_format_i18n( count( $ready ) ) . ' / ' . number_format_i18n( count( $providers ) ),
 			'detail' => __( 'Verified and working, of the ones the plugin brings.', 'diluxone-users' ),
-			'links'  => array(
-				array(
-					'url'   => diluxone_users_admin_url( 'diluxone-users-social' ),
-					'label' => __( 'Set them up', 'diluxone-users' ),
-				),
-			),
+			'links'  => diluxone_users_home_card_link( 'diluxone-users-social', __( 'Set them up', 'diluxone-users' ) ),
 		)
 	);
 
@@ -572,6 +582,8 @@ function diluxone_users_screen_home(): void {
 		diluxone_users_steps( $steps );
 		?>
 	<?php endif; ?>
+
+	<?php diluxone_users_managed_elsewhere(); ?>
 
 	<?php if ( array() !== $panels ) : ?>
 		<?php diluxone_users_tabs( DILUXONE_USERS_MENU, $labels, $current ); ?>

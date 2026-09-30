@@ -18,7 +18,7 @@ class LoginRequestTest extends IntegrationTestCase {
 	protected function setUp(): void {
 		parent::setUp();
 
-		update_option( 'diluxone_users_login_register', 1 );
+		diluxone_users_update_option( 'diluxone_users_login_register', 1 );
 
 		$this->run = wp_generate_password( 8, false );
 	}
@@ -80,7 +80,7 @@ class LoginRequestTest extends IntegrationTestCase {
 	}
 
 	public function test_with_the_link_not_creating_accounts_nothing_is_created_and_nothing_is_counted(): void {
-		update_option( 'diluxone_users_login_register', 0 );
+		diluxone_users_update_option( 'diluxone_users_login_register', 0 );
 
 		$this->ask( $this->email( 'nobody' ) );
 
@@ -102,8 +102,8 @@ class LoginRequestTest extends IntegrationTestCase {
 	 * what was typed, and nothing about the account travels in the URL.
 	 */
 	public function test_a_public_name_never_reveals_the_address_behind_it(): void {
-		update_option( 'diluxone_users_handle_enabled', 1 );
-		update_option( 'diluxone_users_handle_login', 1 );
+		diluxone_users_update_option( 'diluxone_users_handle_enabled', 1 );
+		diluxone_users_update_option( 'diluxone_users_handle_login', 1 );
 
 		$user = get_userdata( $this->make_user() );
 		$name = $user->user_nicename;
@@ -119,8 +119,8 @@ class LoginRequestTest extends IntegrationTestCase {
 
 	/** A name nobody has gets the answer a name somebody has gets. */
 	public function test_an_unknown_public_name_answers_like_a_known_one(): void {
-		update_option( 'diluxone_users_handle_enabled', 1 );
-		update_option( 'diluxone_users_handle_login', 1 );
+		diluxone_users_update_option( 'diluxone_users_handle_enabled', 1 );
+		diluxone_users_update_option( 'diluxone_users_handle_login', 1 );
 
 		$url = $this->ask( 'nobody-called-this-' . $this->run );
 

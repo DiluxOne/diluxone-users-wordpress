@@ -157,7 +157,9 @@ function diluxone_users_account_actions(): void {
 		return;
 	}
 
-	if ( ! current_user_can( 'manage_options' ) ) {
+	// The sections are the hub's: on another site of a network there is no
+	// such screen to act from.
+	if ( ! diluxone_users_admin_owns( 'hub' ) || ! current_user_can( 'manage_options' ) ) {
 		return;
 	}
 
@@ -431,7 +433,7 @@ function diluxone_users_privacy_ask( string $name, string $question, array $answ
  */
 function diluxone_users_account_post(): void {
 	// phpcs:disable WordPress.Security.NonceVerification -- each branch verifies its own.
-	if ( 'diluxone-users-account' !== sanitize_key( wp_unslash( $_GET['page'] ?? '' ) ) || ! current_user_can( 'manage_options' ) ) {
+	if ( 'diluxone-users-account' !== sanitize_key( wp_unslash( $_GET['page'] ?? '' ) ) || ! diluxone_users_admin_owns( 'hub' ) || ! current_user_can( 'manage_options' ) ) {
 		return;
 	}
 

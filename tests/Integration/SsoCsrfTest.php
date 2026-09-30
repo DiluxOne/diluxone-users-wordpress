@@ -22,7 +22,7 @@ class SsoCsrfTest extends IntegrationTestCase {
 
 		// Social sign-in may create accounts here: on a fresh database the
 		// address is nobody's yet, and creating it is part of the round trip.
-		update_option( 'diluxone_users_sso_register', 1 );
+		diluxone_users_update_option( 'diluxone_users_sso_register', 1 );
 
 		// One identity, one account: links an earlier test left behind would
 		// make this identity somebody else's before the test begins.

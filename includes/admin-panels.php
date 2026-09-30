@@ -117,7 +117,9 @@ function diluxone_users_register_panel( string $screen, string $id, array $panel
  * @return array<string, array<string, mixed>>
  */
 function diluxone_users_panels( string $screen ): array {
-	$panels = diluxone_users_panel_registry( $screen );
+	// On a network, only the tabs that belong where the admin is looked at
+	// from: the network's in Network Admin, a site's on that site.
+	$panels = diluxone_users_panels_here( diluxone_users_panel_registry( $screen ), $screen );
 
 	uasort( $panels, static fn( array $a, array $b ): int => $a['position'] <=> $b['position'] );
 
@@ -153,11 +155,11 @@ function diluxone_users_screen_panels( string $screen, string $title ): void {
 	$current = diluxone_users_tab( $labels );
 	$panel   = $panels[ $current ];
 
-	// The menu already asks for manage_options before this page is drawn;
+	// The menu already asks for the capability before this page is drawn;
 	// the save asks again itself, so it does not depend on how it was reached.
 	if (
 		is_callable( $panel['save'] )
-		&& current_user_can( 'manage_options' )
+		&& current_user_can( diluxone_users_admin_cap() )
 		&& isset( $_POST['diluxone_users_panel_nonce'] )
 		&& wp_verify_nonce( sanitize_key( wp_unslash( $_POST['diluxone_users_panel_nonce'] ) ), 'diluxone_users_panel_' . $screen )
 	) {
@@ -819,9 +821,28 @@ function diluxone_users_preview_would_save( array $panel ): array {
 		return $old;
 	};
 
+	// On a network the network's settings go to its own options, which have
+	// no filter for every write, only one per name: so each is caught by name.
+	$network        = array_keys( array_filter( diluxone_users_option_scopes(), static fn( string $scope ): bool => 'network' === $scope ) );
+	$refuse_network = static function ( $value, $old, string $option ) use ( &$caught ) {
+		$caught[ $option ] = $value;
+
+		return $old;
+	};
+
 	add_filter( 'pre_update_option', $refuse, 999, 3 );
+
+	foreach ( $network as $key ) {
+		add_filter( 'pre_update_site_option_' . $key, $refuse_network, 999, 3 );
+	}
+
 	call_user_func( $panel['save'] );
+
 	remove_filter( 'pre_update_option', $refuse, 999 );
+
+	foreach ( $network as $key ) {
+		remove_filter( 'pre_update_site_option_' . $key, $refuse_network, 999 );
+	}
 
 	return $caught;
 }

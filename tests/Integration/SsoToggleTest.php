@@ -11,12 +11,29 @@ namespace Tests\Integration;
 
 class SsoToggleTest extends IntegrationTestCase {
 
+	private int $admin = 0;
+
+	protected function tearDown(): void {
+		if ( is_multisite() && $this->admin > 0 ) {
+			revoke_super_admin( $this->admin );
+		}
+
+		parent::tearDown();
+	}
+
 	protected function setUp(): void {
 		parent::setUp();
 
-		wp_set_current_user( $this->make_user( 'administrator' ) );
+		$this->admin = $this->make_user( 'administrator' );
 
-		update_option(
+		// On a network, whoever switches a provider administers the network.
+		if ( is_multisite() ) {
+			grant_super_admin( $this->admin );
+		}
+
+		wp_set_current_user( $this->admin );
+
+		diluxone_users_update_option(
 			'diluxone_users_sso',
 			array(
 				'google' => array(
@@ -31,6 +48,9 @@ class SsoToggleTest extends IntegrationTestCase {
 	}
 
 	private function press( string $action ): void {
+		// On a network the providers are the network's, switched from there.
+		$this->in_network_admin();
+
 		$_GET = array(
 			'page'                  => 'diluxone-users-social',
 			'red'                   => 'google',
@@ -52,10 +72,31 @@ class SsoToggleTest extends IntegrationTestCase {
 		$this->assertSame( 'disabled', diluxone_users_sso_state( 'google' ) );
 	}
 
+	/**
+	 * A site's administrator reaching the same address on their own dashboard
+	 * switches nothing: on a network the button is the network's.
+	 */
+	public function test_on_a_network_a_site_cannot_switch_a_provider(): void {
+		if ( ! is_multisite() ) {
+			$this->markTestSkipped( 'Needs a multisite network: run `make env-multisite` first.' );
+		}
+
+		$_GET = array(
+			'page'                  => 'diluxone-users-social',
+			'red'                   => 'google',
+			'diluxone_users_action' => 'off',
+		);
+		$_REQUEST['_wpnonce'] = wp_create_nonce( 'diluxone_users_social_toggle' );
+
+		diluxone_users_social_toggle();
+
+		$this->assertSame( 'enabled', diluxone_users_sso_state( 'google' ) );
+	}
+
 	public function test_forgetting_it_deletes_the_app_and_its_test(): void {
 		$this->press( 'forget' );
 
-		$this->assertArrayNotHasKey( 'google', (array) get_option( 'diluxone_users_sso' ) );
+		$this->assertArrayNotHasKey( 'google', (array) diluxone_users_raw_get( 'diluxone_users_sso' ) );
 		$this->assertSame( 'not-configured', diluxone_users_sso_state( 'google' ) );
 	}
 }

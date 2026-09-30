@@ -85,7 +85,7 @@ class ActivityLogTest extends IntegrationTestCase {
 
 	/** Leaves the site recording exactly these groups. */
 	private function recording( array $groups ): void {
-		update_option( 'diluxone_users_log_levels', $groups );
+		diluxone_users_update_option( 'diluxone_users_log_levels', $groups );
 	}
 
 	/**
@@ -380,7 +380,7 @@ class ActivityLogTest extends IntegrationTestCase {
 		$old = $this->rows()[1]['id'];
 		$this->age_row( $old, 200 );
 
-		update_option( 'diluxone_users_log_days', 90 );
+		diluxone_users_update_option( 'diluxone_users_log_days', 90 );
 
 		$this->assertSame( 1, diluxone_users_log_purge() );
 		$this->assertSame( array( 'signed_out' ), $this->events() );
@@ -392,7 +392,7 @@ class ActivityLogTest extends IntegrationTestCase {
 		diluxone_users_log_record( 'signed_in', $user );
 		$this->age_row( $this->rows()[0]['id'], 4000 );
 
-		update_option( 'diluxone_users_log_days', 0 );
+		diluxone_users_update_option( 'diluxone_users_log_days', 0 );
 
 		$this->assertSame( 0, diluxone_users_log_purge() );
 		$this->assertCount( 1, $this->rows() );

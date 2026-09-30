@@ -31,7 +31,7 @@ class RegisterRequiredTest extends IntegrationTestCase {
 	protected function setUp(): void {
 		parent::setUp();
 
-		update_option( 'diluxone_users_fields', self::FIELDS );
+		diluxone_users_update_option( 'diluxone_users_fields', self::FIELDS );
 	}
 
 	public function test_the_form_asks_for_the_required_field(): void {
@@ -70,7 +70,7 @@ class RegisterRequiredTest extends IntegrationTestCase {
 	public function test_a_field_that_is_not_required_is_never_missing(): void {
 		$fields             = self::FIELDS;
 		$fields[0]['required'] = 0;
-		update_option( 'diluxone_users_fields', $fields );
+		diluxone_users_update_option( 'diluxone_users_fields', $fields );
 
 		$this->assertSame( array(), diluxone_users_register_missing( array() ) );
 	}

@@ -41,19 +41,25 @@ add_action( 'diluxone_users_register_panels', 'diluxone_users_passkeys_panel' );
  * auth-passkeys.php, which saves a person's passkey. Two different things,
  * and PHP noticed before anybody else did.
  *
- * `diluxone_users_passkey_enabled` is not written here and must not be: it is
- * written by the screen that shows it. Saving an option from a form that does
- * not carry it is how a setting gets turned off by somebody who only came to
- * change something else.
+ * `diluxone_users_passkey_enabled` is not written here on a site and must not
+ * be: it is written by the screen that shows it, Access › Ways in. Saving an
+ * option from a form that does not carry it is how a setting gets turned off
+ * by somebody who only came to change something else. In Network Admin there
+ * is no Access screen — whether passkeys are offered is the network's, like
+ * the rest of them — so there it is this form that carries it.
  */
 function diluxone_users_passkeys_settings_save(): void {
 	// phpcs:disable WordPress.Security.NonceVerification.Missing -- the panel verifies it.
-	diluxone_users_save_options(
-		array(
-			'diluxone_users_passkey_where'  => sanitize_key( wp_unslash( $_POST['diluxone_users_passkey_where'] ?? 'any' ) ),
-			'diluxone_users_passkey_verify' => isset( $_POST['diluxone_users_passkey_verify'] ) ? 1 : 0,
-		)
+	$saved = array(
+		'diluxone_users_passkey_where'  => sanitize_key( wp_unslash( $_POST['diluxone_users_passkey_where'] ?? 'any' ) ),
+		'diluxone_users_passkey_verify' => isset( $_POST['diluxone_users_passkey_verify'] ) ? 1 : 0,
 	);
+
+	if ( 'network' === diluxone_users_admin_context() ) {
+		$saved['diluxone_users_passkey_enabled'] = isset( $_POST['diluxone_users_passkey_enabled'] ) ? 1 : 0;
+	}
+
+	diluxone_users_save_options( $saved );
 	// phpcs:enable
 }
 
@@ -67,12 +73,33 @@ function diluxone_users_screen_login_passkeys(): void {
 
 	diluxone_users_intro( __( 'A passkey is a private key that lives on the person’s device or keychain and never leaves it. There is nothing on this side worth stealing, nothing to reuse on another site, and it cannot be phished: the browser refuses to sign for a domain that is not the one it was made for.', 'diluxone-users' ) );
 
+	// In Network Admin there is no Access screen to switch them on from: on a
+	// network, whether passkeys are offered is decided here, for every site.
+	$network = 'network' === diluxone_users_admin_context();
+
+	if ( $network ) {
+		diluxone_users_ui_section( __( 'Offered on every site', 'diluxone-users' ) );
+
+		diluxone_users_ui_choices(
+			array(
+				array(
+					'type'    => 'checkbox',
+					'name'    => 'diluxone_users_passkey_enabled',
+					'value'   => '1',
+					'checked' => $on,
+					'title'   => __( 'People can add a passkey and sign in with it', 'diluxone-users' ),
+					'help'    => __( 'A key that stays on the person’s device or keychain: nothing to type, nothing to phish, and it counts as both steps at once.', 'diluxone-users' ),
+				),
+			)
+		);
+	}
+
 	diluxone_users_ui_section( __( 'Which passkeys are accepted', 'diluxone-users' ) );
 
 	// Dimmed rather than hidden or disabled: what is chosen today is what
 	// applies the day somebody turns passkeys on, and a control that is not
 	// submitted is a control that saves nothing.
-	if ( ! $on ) {
+	if ( ! $on && ! $network ) {
 		diluxone_users_not_now(
 			__( 'Passkeys are not one of the ways in yet, so nothing below is in use. What is chosen here applies the day they are.', 'diluxone-users' ),
 			$ways,
@@ -123,9 +150,9 @@ function diluxone_users_screen_login_passkeys(): void {
 	 * middle column with the rest of the window empty to the right of it.
 	 */
 	diluxone_users_ui_aside_close(
-		static function () use ( $on, $ways ): void {
+		static function () use ( $on, $ways, $network ): void {
 			diluxone_users_ui_note(
-				__( 'Offered on this site', 'diluxone-users' ),
+				$network ? __( 'Offered on every site', 'diluxone-users' ) : __( 'Offered on this site', 'diluxone-users' ),
 				$on
 					? sprintf(
 						/* translators: %s: the domain the passkeys end up tied to */
@@ -143,6 +170,11 @@ function diluxone_users_screen_login_passkeys(): void {
 					esc_html__( 'This site is not on HTTPS. Browsers refuse passkeys until it is, whatever is chosen here.', 'diluxone-users' ),
 					'warning'
 				);
+			}
+
+			// In Network Admin it is decided on this very tab.
+			if ( $network ) {
+				return;
 			}
 
 			diluxone_users_ui_links(
@@ -226,6 +258,12 @@ function diluxone_users_passkeys_summary_rows( array $rows ): array {
 		'url'    => $ways,
 		'change' => __( 'Access › Ways in →', 'diluxone-users' ),
 	);
+
+	// In Network Admin they are switched on on their own tab.
+	if ( 'network' === diluxone_users_admin_context() ) {
+		$rows[ array_key_last( $rows ) ]['url'] = $tab;
+		unset( $rows[ array_key_last( $rows ) ]['change'] );
+	}
 
 	$rows[] = array(
 		'label'  => __( 'Which passkeys are accepted', 'diluxone-users' ),

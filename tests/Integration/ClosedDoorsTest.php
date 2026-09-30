@@ -15,7 +15,7 @@ namespace Tests\Integration;
 class ClosedDoorsTest extends IntegrationTestCase {
 
 	public function test_a_password_only_site_mails_no_link(): void {
-		update_option( 'diluxone_users_login_method', 'password' );
+		diluxone_users_update_option( 'diluxone_users_login_method', 'password' );
 
 		$user = get_userdata( $this->make_user() );
 
@@ -33,8 +33,8 @@ class ClosedDoorsTest extends IntegrationTestCase {
 	}
 
 	public function test_a_registration_form_that_is_off_creates_nobody(): void {
-		update_option( 'diluxone_users_login_register', 1 );
-		update_option( 'diluxone_users_register_form', 0 );
+		diluxone_users_update_option( 'diluxone_users_login_register', 1 );
+		diluxone_users_update_option( 'diluxone_users_register_form', 0 );
 
 		$email = 'form-off-' . wp_generate_password( 8, false ) . '@example.test';
 
@@ -54,7 +54,7 @@ class ClosedDoorsTest extends IntegrationTestCase {
 
 	/** @dataProvider privacy_switches */
 	public function test_a_privacy_request_that_is_off_is_not_filed( string $kind, string $option ): void {
-		update_option( $option, 0 );
+		diluxone_users_update_option( $option, 0 );
 
 		$user = get_userdata( $this->make_user() );
 

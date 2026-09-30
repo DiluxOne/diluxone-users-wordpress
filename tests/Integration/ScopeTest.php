@@ -18,13 +18,13 @@ class ScopeTest extends IntegrationTestCase {
 	protected function setUp(): void {
 		parent::setUp();
 
-		delete_option( self::PREFIX . '_scope' );
-		delete_option( self::PREFIX . '_roles' );
+		diluxone_users_delete_option( self::PREFIX . '_scope' );
+		diluxone_users_delete_option( self::PREFIX . '_roles' );
 	}
 
 	public function test_to_everybody_reaches_everybody(): void {
-		update_option( self::PREFIX . '_scope', 'all' );
-		update_option( self::PREFIX . '_roles', array( 'administrator' ) );
+		diluxone_users_update_option( self::PREFIX . '_scope', 'all' );
+		diluxone_users_update_option( self::PREFIX . '_roles', array( 'administrator' ) );
 
 		$this->assertTrue(
 			diluxone_users_scope_includes( $this->make_user( 'subscriber' ), self::PREFIX ),
@@ -33,24 +33,24 @@ class ScopeTest extends IntegrationTestCase {
 	}
 
 	public function test_to_some_reaches_only_those(): void {
-		update_option( self::PREFIX . '_scope', 'some' );
-		update_option( self::PREFIX . '_roles', array( 'editor' ) );
+		diluxone_users_update_option( self::PREFIX . '_scope', 'some' );
+		diluxone_users_update_option( self::PREFIX . '_roles', array( 'editor' ) );
 
 		$this->assertTrue( diluxone_users_scope_includes( $this->make_user( 'editor' ), self::PREFIX ) );
 		$this->assertFalse( diluxone_users_scope_includes( $this->make_user( 'subscriber' ), self::PREFIX ) );
 	}
 
 	public function test_to_some_with_nothing_chosen_reaches_nobody(): void {
-		update_option( self::PREFIX . '_scope', 'some' );
-		update_option( self::PREFIX . '_roles', array() );
+		diluxone_users_update_option( self::PREFIX . '_scope', 'some' );
+		diluxone_users_update_option( self::PREFIX . '_roles', array() );
 
 		$this->assertFalse( diluxone_users_scope_includes( $this->make_user( 'administrator' ), self::PREFIX ) );
 	}
 
 	/** With nothing stored, the answer is the default: everybody. */
 	public function test_with_no_answer_stored_it_is_everybody(): void {
-		delete_option( self::PREFIX . '_scope' );
-		update_option( self::PREFIX . '_roles', array( 'editor' ) );
+		diluxone_users_delete_option( self::PREFIX . '_scope' );
+		diluxone_users_update_option( self::PREFIX . '_roles', array( 'editor' ) );
 
 		$this->assertSame( 'all', diluxone_users_scope( self::PREFIX ), 'Roles kept from before do not change the answer' );
 	}

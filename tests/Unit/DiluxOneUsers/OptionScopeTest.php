@@ -143,12 +143,93 @@ class OptionScopeTest extends TestCase {
 		$this->assertFalse( diluxone_users_raw_get( 'diluxone_users_2fa_mode' ) );
 	}
 
-	public function test_nor_on_a_network_until_it_is_turned_on(): void {
+	public function test_on_a_network_where_it_was_switched_on_site_by_site_nothing_moves(): void {
 		$GLOBALS['_test_multisite'] = true;
+		$this->network_activated( false );
 
 		$this->assertFalse( diluxone_users_scoped_storage_active() );
+		$this->assertSame( 'single', diluxone_users_admin_context() );
 
 		diluxone_users_update_option( 'diluxone_users_sso', array( 'google' => array() ) );
 		$this->assertSame( array( 'google' => array() ), $GLOBALS['_test_wp_options']['diluxone_users_sso'] );
+	}
+
+	public function test_on_a_network_where_it_is_on_everywhere_a_network_setting_goes_to_the_network(): void {
+		$GLOBALS['_test_multisite'] = true;
+		$this->network_activated( true );
+
+		$network = array();
+		Monkey\Functions\when( 'update_site_option' )->alias(
+			static function ( string $key, $value ) use ( &$network ): bool {
+				$network[ $key ] = $value;
+
+				return true;
+			}
+		);
+
+		$this->assertTrue( diluxone_users_scoped_storage_active() );
+
+		diluxone_users_update_option( 'diluxone_users_2fa_mode', 'required' );
+		diluxone_users_update_option( 'diluxone_users_menu_location', 'primary' );
+
+		$this->assertSame( array( 'diluxone_users_2fa_mode' => 'required' ), $network );
+		$this->assertArrayNotHasKey( 'diluxone_users_2fa_mode', $GLOBALS['_test_wp_options'] );
+		$this->assertSame( 'primary', $GLOBALS['_test_wp_options']['diluxone_users_menu_location'], 'Where the account link goes is each site’s' );
+	}
+
+	public function test_what_fits_into_a_sites_own_theme_is_the_sites(): void {
+		foreach ( array(
+			'diluxone_users_menu_location',
+			'diluxone_users_menu_style',
+			'diluxone_users_admin_bar',
+			'diluxone_users_admin_bar_roles',
+			'diluxone_users_admin_bar_scope',
+			'diluxone_users_admin_bar_keep_admins',
+			'diluxone_users_bar_account',
+			'diluxone_users_wp_profile',
+			'diluxone_users_wp_profile_roles',
+			'diluxone_users_wp_profile_scope',
+		) as $key ) {
+			$this->assertSame( 'site', diluxone_users_option_scope( $key ), $key );
+		}
+	}
+
+	/**
+	 * Who writes what, from where: the one gate every settings screen's save
+	 * goes through. A site of a network writes its own and nothing of the
+	 * network's; Network Admin writes the network's and nothing of a site's.
+	 */
+	public function test_each_place_writes_only_its_own_scope(): void {
+		$this->assertTrue( diluxone_users_admin_owns( 'network', 'single' ) );
+		$this->assertTrue( diluxone_users_admin_owns( 'site', 'single' ) );
+
+		$this->assertTrue( diluxone_users_admin_owns( 'network', 'network' ) );
+		$this->assertFalse( diluxone_users_admin_owns( 'hub', 'network' ) );
+		$this->assertFalse( diluxone_users_admin_owns( 'site', 'network' ) );
+
+		$this->assertFalse( diluxone_users_admin_owns( 'network', 'hub' ) );
+		$this->assertTrue( diluxone_users_admin_owns( 'hub', 'hub' ) );
+		$this->assertTrue( diluxone_users_admin_owns( 'site', 'hub' ) );
+
+		$this->assertFalse( diluxone_users_admin_owns( 'network', 'site' ) );
+		$this->assertFalse( diluxone_users_admin_owns( 'hub', 'site' ) );
+		$this->assertTrue( diluxone_users_admin_owns( 'site', 'site' ) );
+	}
+
+	public function test_on_a_single_site_every_setting_is_editable(): void {
+		$this->assertTrue( diluxone_users_option_editable_here( 'diluxone_users_2fa_mode' ) );
+		$this->assertTrue( diluxone_users_option_editable_here( 'diluxone_users_login_title' ) );
+	}
+
+	/** Whether the plugin is on for the whole network, as WordPress records it. */
+	private function network_activated( bool $on ): void {
+		Monkey\Functions\when( 'plugin_basename' )->justReturn( 'diluxone-users/diluxone-users.php' );
+		Monkey\Functions\when( 'get_site_option' )->alias(
+			static function ( string $key, $fallback = false ) use ( $on ) {
+				return 'active_sitewide_plugins' === $key
+					? ( $on ? array( 'diluxone-users/diluxone-users.php' => 1 ) : array() )
+					: $fallback;
+			}
+		);
 	}
 }

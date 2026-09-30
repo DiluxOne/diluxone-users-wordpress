@@ -35,7 +35,9 @@ function diluxone_users_screen_security(): void {
  * that edits nothing is the one you land on.
  */
 function diluxone_users_security_summary_panel(): void {
-	if ( array() === diluxone_users_panels( DILUXONE_USERS_SECURITY ) ) {
+	// The registry itself and not the tabs drawn here: which of them belong
+	// where the admin is looked at from is decided when they are drawn.
+	if ( array() === diluxone_users_panel_registry( DILUXONE_USERS_SECURITY ) ) {
 		return;
 	}
 

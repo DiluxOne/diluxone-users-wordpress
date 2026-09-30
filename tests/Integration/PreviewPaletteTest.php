@@ -45,8 +45,8 @@ class PreviewPaletteTest extends IntegrationTestCase {
 			}
 		);
 
-		update_option( 'diluxone_users_colors', 'theme' );
-		update_option(
+		diluxone_users_update_option( 'diluxone_users_colors', 'theme' );
+		diluxone_users_update_option(
 			'diluxone_users_color_map',
 			array(
 				'accent'     => 'brand',
@@ -87,8 +87,8 @@ class PreviewPaletteTest extends IntegrationTestCase {
 			}
 		);
 
-		update_option( 'diluxone_users_colors', 'theme' );
-		update_option( 'diluxone_users_color_map', array( 'accent' => 'brand' ) );
+		diluxone_users_update_option( 'diluxone_users_colors', 'theme' );
+		diluxone_users_update_option( 'diluxone_users_color_map', array( 'accent' => 'brand' ) );
 
 		$this->assertSame( array(), diluxone_users_preview_theme_vars() );
 		$this->assertSame( '', diluxone_users_preview_theme_url() );
@@ -151,7 +151,7 @@ class PreviewPaletteTest extends IntegrationTestCase {
 	 * knows the box was there.
 	 */
 	public function test_a_trial_run_sees_an_unticked_box_and_writes_nothing(): void {
-		update_option( 'diluxone_users_wp_login_brand', 1 );
+		diluxone_users_update_option( 'diluxone_users_wp_login_brand', 1 );
 
 		$_POST = array( 'diluxone_users_wp_login_bg' => '#123456' );
 
@@ -163,13 +163,13 @@ class PreviewPaletteTest extends IntegrationTestCase {
 		$this->assertSame( '#123456', $would['diluxone_users_wp_login_bg'] );
 
 		// And the site is exactly as it was.
-		$this->assertSame( 1, (int) get_option( 'diluxone_users_wp_login_brand' ) );
-		$this->assertSame( '', (string) get_option( 'diluxone_users_wp_login_bg', '' ) );
+		$this->assertSame( 1, (int) diluxone_users_raw_get( 'diluxone_users_wp_login_brand' ) );
+		$this->assertSame( '', (string) diluxone_users_raw_get( 'diluxone_users_wp_login_bg', '' ) );
 	}
 
 	/** Those values are what the previewed page then reads. */
 	public function test_the_previewed_page_reads_what_was_chosen(): void {
-		update_option( 'diluxone_users_wp_login_brand', 1 );
+		diluxone_users_update_option( 'diluxone_users_wp_login_brand', 1 );
 
 		$this->assertTrue( diluxone_users_wp_login_branded() );
 

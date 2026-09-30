@@ -162,7 +162,7 @@ function diluxone_users_field_delete( string $key ): void {
  */
 function diluxone_users_fields_actions(): void {
 	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-	if ( 'diluxone-users-fields' !== sanitize_key( wp_unslash( $_GET['page'] ?? '' ) ) || ! current_user_can( 'manage_options' ) ) {
+	if ( 'diluxone-users-fields' !== sanitize_key( wp_unslash( $_GET['page'] ?? '' ) ) || ! diluxone_users_admin_owns( 'network' ) || ! current_user_can( diluxone_users_admin_cap() ) ) {
 		return;
 	}
 

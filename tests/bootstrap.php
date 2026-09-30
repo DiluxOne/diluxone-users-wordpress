@@ -31,6 +31,10 @@ if (!defined('DILUXONE_USERS_DIR')) {
 	define('DILUXONE_USERS_DIR', __DIR__ . '/../');
 }
 
+if (!defined('DILUXONE_USERS_FILE')) {
+	define('DILUXONE_USERS_FILE', DILUXONE_USERS_DIR . 'diluxone-users.php');
+}
+
 if (!defined('DILUXONE_USERS_URL')) {
 	define('DILUXONE_USERS_URL', 'https://example.test/wp-content/plugins/diluxone-users/');
 }

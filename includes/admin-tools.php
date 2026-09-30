@@ -199,7 +199,9 @@ function diluxone_users_tool_settings(): array {
 	$out = array();
 
 	foreach ( array_keys( diluxone_users_option_defaults() ) as $key ) {
-		if ( in_array( $key, diluxone_users_tool_not_carried(), true ) ) {
+		// On a network, only what is set here: the network's settings are not
+		// this site's to hand over, and it could not put them back either.
+		if ( in_array( $key, diluxone_users_tool_not_carried(), true ) || ! diluxone_users_option_editable_here( $key ) ) {
 			continue;
 		}
 
@@ -213,7 +215,9 @@ function diluxone_users_tool_settings(): array {
 		}
 	}
 
-	$out['diluxone_users_fields'] = diluxone_users_raw_get( 'diluxone_users_fields', array() );
+	if ( diluxone_users_option_editable_here( 'diluxone_users_fields' ) ) {
+		$out['diluxone_users_fields'] = diluxone_users_raw_get( 'diluxone_users_fields', array() );
+	}
 
 	return $out;
 }
@@ -326,6 +330,12 @@ function diluxone_users_tool_restore( array $settings ): int {
 	$written = 0;
 
 	foreach ( $settings as $key => $value ) {
+		// A file restored on a site of a network writes that site's settings
+		// and nothing of the network's, whatever the file carries.
+		if ( ! is_string( $key ) || ! diluxone_users_option_editable_here( $key ) ) {
+			continue;
+		}
+
 		if ( 'diluxone_users_fields' === $key && is_array( $value ) ) {
 			/*
 			 * Through the same normaliser the fields screen uses, and not
@@ -595,6 +605,20 @@ function diluxone_users_screen_tools_boxes(): void {
 		true
 	);
 
+	// On a network it is one decision for the whole network, taken in
+	// Network Admin: the data it is about is everybody's.
+	if ( ! diluxone_users_option_editable_here( 'diluxone_users_uninstall_wipe' ) ) {
+		diluxone_users_ui_section( __( 'What happens when the plugin is deleted', 'diluxone-users' ) );
+
+		diluxone_users_ui_notice(
+			diluxone_users_option( 'diluxone_users_uninstall_wipe' )
+				? esc_html__( 'Decided for the whole network: deleting the plugin removes everything it wrote, on every site.', 'diluxone-users' )
+				: esc_html__( 'Decided for the whole network: deleting the plugin leaves the data where it is.', 'diluxone-users' )
+		);
+
+		return;
+	}
+
 	diluxone_users_tool_box(
 		__( 'What happens when the plugin is deleted', 'diluxone-users' ),
 		__( 'By default, nothing. The settings stay, the activity log stays, and so does everything in people’s profiles — their details, their public names, their passkeys and their second factors. That is on purpose: a plugin deleted by accident, or deleted to be installed again, should not be what loses somebody their account. Tick this only when the plugin is going for good and the data is meant to go with it. It cannot be undone, and it runs on delete, not on deactivate.', 'diluxone-users' ),
@@ -606,14 +630,16 @@ function diluxone_users_screen_tools_boxes(): void {
 			esc_html_e( 'Remove everything this plugin wrote when it is deleted', 'diluxone-users' );
 			echo '</label></p>';
 
-			// On a network the profiles are everybody's: one site's answer
-			// takes its own settings and log, and the people only go when
-			// every site that uses the plugin gave the same answer.
+			// On a network where the plugin was switched on site by site, the
+			// profiles are everybody's: one site's answer takes its own
+			// settings and log, and the people only go when every site that
+			// uses the plugin gave the same answer.
 			if ( is_multisite() ) {
 				echo '<p class="description">';
 				esc_html_e( 'On this network, ticking it removes this site’s settings and activity log. What is in people’s profiles is shared by every site, so it is removed only when every site that uses the plugin has ticked it too.', 'diluxone-users' );
 				echo '</p>';
 			}
+
 			submit_button( __( 'Save', 'diluxone-users' ), 'secondary', 'submit', false );
 		}
 	);

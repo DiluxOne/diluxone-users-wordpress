@@ -24,9 +24,7 @@ defined( 'ABSPATH' ) || exit;
 
 /** The page holding the registration form, or '' when there is none. */
 function diluxone_users_register_url(): string {
-	$page = (int) diluxone_users_option( 'diluxone_users_register_page' );
-
-	return $page > 0 ? (string) get_permalink( $page ) : '';
+	return diluxone_users_page_url( 'diluxone_users_register_page' );
 }
 
 /**

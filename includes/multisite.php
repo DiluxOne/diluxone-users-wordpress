@@ -8,9 +8,13 @@
  * can do nothing, or leaves out people who already exist on the site next
  * door.
  *
- * The settings, on the other hand, stay per site on purpose: each site of a
- * network usually has its own account page, its own fields and its own
- * design. A network setting would force every site to ask for the same thing.
+ * The settings follow the people. Who gets in and how safely, and the fields
+ * a person has, are one set for the whole network, set in Network Admin: the
+ * person is the same person on every site and the session they open reaches
+ * all of them. The screens people sign in and keep their account on, and how
+ * they look, are the main site's. What fits into each site's own theme — its
+ * menus, its admin bar — stays with each site. Where each setting lives is
+ * options-scope.php; the screens that set them, admin-network.php.
  *
  * @package DiluxOneUsers
  */

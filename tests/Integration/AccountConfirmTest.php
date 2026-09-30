@@ -82,11 +82,11 @@ class AccountConfirmTest extends IntegrationTestCase {
 	public function test_what_is_not_the_accounts_to_confirm_is_left_to_wordpress(): void {
 		$user = $this->make_user();
 
-		update_option( 'diluxone_users_privacy_delete_link', 'direct' );
+		diluxone_users_update_option( 'diluxone_users_privacy_delete_link', 'direct' );
 		[ $direct, $direct_key ] = $this->file( $user );
 		$this->open_link( $direct, $direct_key );
 		diluxone_users_confirm_intercept();
-		delete_option( 'diluxone_users_privacy_delete_link' );
+		diluxone_users_delete_option( 'diluxone_users_privacy_delete_link' );
 
 		[ $tools, $tools_key ] = $this->file( $this->make_user(), 'export_personal_data', false );
 		$this->open_link( $tools, $tools_key );
@@ -227,7 +227,7 @@ class AccountConfirmTest extends IntegrationTestCase {
 		$this->assertStringContainsString( diluxone_users_account_url( 'privacy' ), (string) $mail['message'] );
 		$this->assertStringNotContainsString( '.zip', (string) $mail['message'] );
 
-		update_option( 'diluxone_users_privacy_export_file', 'link' );
+		diluxone_users_update_option( 'diluxone_users_privacy_export_file', 'link' );
 		[ $linked ] = $this->file( $this->make_user(), 'export_personal_data' );
 		do_action( 'user_request_action_confirmed', $linked );
 

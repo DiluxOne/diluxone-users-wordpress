@@ -33,7 +33,7 @@ final class MockProvider {
 
 		// Configured, tested and turned on: the three states a provider has to
 		// go through before the plugin lets anybody use it.
-		update_option(
+		diluxone_users_update_option(
 			'diluxone_users_sso',
 			array(
 				self::ID => array(

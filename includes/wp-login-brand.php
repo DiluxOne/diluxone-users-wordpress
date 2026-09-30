@@ -56,8 +56,7 @@ function diluxone_users_wp_login_styles(): void {
 	}
 
 	$background = diluxone_users_wp_login_bg();
-	$logo       = (int) diluxone_users_option( 'diluxone_users_wp_login_logo' );
-	$url        = $logo > 0 ? (string) wp_get_attachment_image_url( $logo, 'medium' ) : '';
+	$url        = diluxone_users_hub_image_url( (int) diluxone_users_option( 'diluxone_users_wp_login_logo' ), 'medium' );
 	$stored     = (string) diluxone_users_option( 'diluxone_users_style_radius' );
 
 	// A number and then "px", never the text as it was typed. It is saved
@@ -141,8 +140,8 @@ function diluxone_users_lost_password_url( string $url ): string {
 	// The page itself, and not diluxone_users_login_url(), which falls back to
 	// wp-login.php when none is chosen — sending "I forgot my password" to
 	// wp-login.php without its action is sending it nowhere.
-	$page = (int) diluxone_users_option( 'diluxone_users_login_page' );
+	$page = diluxone_users_page_url( 'diluxone_users_login_page' );
 
-	return $page > 0 ? (string) get_permalink( $page ) : $url;
+	return '' !== $page ? $page : $url;
 }
 add_filter( 'lostpassword_url', 'diluxone_users_lost_password_url' );

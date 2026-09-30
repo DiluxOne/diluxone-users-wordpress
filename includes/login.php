@@ -70,13 +70,7 @@ function diluxone_users_login_template(): string {
  * half a screen is the kind of detail that makes a good design look cheap.
  */
 function diluxone_users_login_image( string $key ): string {
-	$id = (int) diluxone_users_option( $key );
-
-	if ( $id <= 0 ) {
-		return '';
-	}
-
-	return (string) wp_get_attachment_image_url( $id, 'full' );
+	return diluxone_users_hub_image_url( (int) diluxone_users_option( $key ), 'full' );
 }
 
 /** Does the site want an icon inside the two doors? */

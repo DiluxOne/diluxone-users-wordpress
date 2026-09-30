@@ -14,7 +14,7 @@ namespace Tests\Integration;
 class SettingsFileTest extends IntegrationTestCase {
 
 	protected function tearDown(): void {
-		delete_option( 'diluxone_users_uninstall_wipe' );
+		diluxone_users_delete_option( 'diluxone_users_uninstall_wipe' );
 
 		parent::tearDown();
 	}
@@ -38,29 +38,32 @@ class SettingsFileTest extends IntegrationTestCase {
 				'content'  => '<p>Yours</p>',
 			),
 		);
-		update_option( 'diluxone_users_account_sections', $sections );
+		diluxone_users_update_option( 'diluxone_users_account_sections', $sections );
 
 		$file = diluxone_users_tool_settings();
-		delete_option( 'diluxone_users_account_sections' );
+		diluxone_users_delete_option( 'diluxone_users_account_sections' );
 
 		diluxone_users_tool_restore( $file );
 
-		$this->assertSame( $sections, get_option( 'diluxone_users_account_sections' ) );
+		$this->assertSame( $sections, diluxone_users_raw_get( 'diluxone_users_account_sections' ) );
 	}
 
 	public function test_the_wipe_on_uninstall_does_not_travel(): void {
-		update_option( 'diluxone_users_uninstall_wipe', 1 );
+		diluxone_users_update_option( 'diluxone_users_uninstall_wipe', 1 );
 		$file = diluxone_users_tool_settings();
 
 		$this->assertArrayNotHasKey( 'diluxone_users_uninstall_wipe', $file );
 
-		delete_option( 'diluxone_users_uninstall_wipe' );
+		diluxone_users_delete_option( 'diluxone_users_uninstall_wipe' );
 		diluxone_users_tool_restore( array( 'diluxone_users_uninstall_wipe' => 1 ) );
 
-		$this->assertFalse( get_option( 'diluxone_users_uninstall_wipe' ) );
+		$this->assertFalse( diluxone_users_raw_get( 'diluxone_users_uninstall_wipe' ) );
 	}
 
 	public function test_a_field_keyed_like_another_plugins_data_is_not_imported(): void {
+		// On a network the fields are the network's, written from Network Admin.
+		$this->in_network_admin();
+
 		diluxone_users_tool_restore(
 			array(
 				'diluxone_users_fields' => array(
@@ -78,20 +81,44 @@ class SettingsFileTest extends IntegrationTestCase {
 			)
 		);
 
-		$keys = array_column( (array) get_option( 'diluxone_users_fields' ), 'key' );
+		$keys = array_column( (array) diluxone_users_raw_get( 'diluxone_users_fields' ), 'key' );
 
 		$this->assertNotContains( 'billing_phone', $keys );
 		$this->assertContains( 'diluxone_users_phone', $keys );
 	}
 
+	/**
+	 * On a site of a network, a file restores what that site sets and nothing
+	 * of the network's: a site administrator with a file cannot switch the
+	 * second step off for everybody.
+	 */
+	public function test_a_file_restored_on_a_site_of_a_network_leaves_the_networks_settings_alone(): void {
+		if ( ! is_multisite() ) {
+			$this->markTestSkipped( 'Needs a multisite network: run `make env-multisite` first.' );
+		}
+
+		diluxone_users_update_option( 'diluxone_users_2fa_mode', 'required' );
+
+		diluxone_users_tool_restore(
+			array(
+				'diluxone_users_2fa_mode'    => 'off',
+				'diluxone_users_login_title' => 'From the file',
+			)
+		);
+
+		$this->assertSame( 'required', diluxone_users_raw_get( 'diluxone_users_2fa_mode' ) );
+		$this->assertSame( 'From the file', diluxone_users_raw_get( 'diluxone_users_login_title' ) );
+		$this->assertArrayNotHasKey( 'diluxone_users_2fa_mode', diluxone_users_tool_settings(), 'Nor does it hand them over' );
+	}
+
 	/** A setting the site never set travels as nothing, and stays a default. */
 	public function test_a_default_is_not_written_back_as_a_setting(): void {
-		delete_option( 'diluxone_users_color_map' );
+		diluxone_users_delete_option( 'diluxone_users_color_map' );
 
 		$file = diluxone_users_tool_settings();
 		$this->assertArrayNotHasKey( 'diluxone_users_color_map', $file );
 
 		diluxone_users_tool_restore( $file );
-		$this->assertNull( get_option( 'diluxone_users_color_map', null ) );
+		$this->assertNull( diluxone_users_raw_get( 'diluxone_users_color_map', null ) );
 	}
 }
