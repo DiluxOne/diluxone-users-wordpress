@@ -51,6 +51,18 @@ function diluxone_users_b64url_decode( string $text ): string {
 /* ── Who we are as far as the browser is concerned ─────────────────── */
 
 /**
+ * The address passkeys belong to: this site's, or on a network the hub's.
+ *
+ * On a network people keep their passkeys, like the rest of their account,
+ * on the hub, and sign in with them there: one domain for every site, so a
+ * key made once opens every site of the network, whichever site sent them to
+ * sign in.
+ */
+function diluxone_users_passkey_home(): string {
+	return diluxone_users_scoped_storage_active() ? (string) get_home_url( diluxone_users_hub_site_id() ) : (string) home_url();
+}
+
+/**
  * The domain the passkey is registered against.
  *
  * A passkey is tied to this value: if it changes, the existing ones stop
@@ -58,7 +70,7 @@ function diluxone_users_b64url_decode( string $text ): string {
  * could change without knowing what it does.
  */
 function diluxone_users_passkey_rp_id(): string {
-	$host = wp_parse_url( home_url(), PHP_URL_HOST );
+	$host = wp_parse_url( diluxone_users_passkey_home(), PHP_URL_HOST );
 
 	/**
 	 * Filters the passkey domain.
@@ -73,7 +85,7 @@ function diluxone_users_passkey_rp_id(): string {
 
 /** The exact origin the browser has to declare. */
 function diluxone_users_passkey_origin(): string {
-	$parts = wp_parse_url( home_url() );
+	$parts = wp_parse_url( diluxone_users_passkey_home() );
 
 	return sprintf( '%s://%s%s', $parts['scheme'] ?? 'https', $parts['host'] ?? '', isset( $parts['port'] ) ? ':' . $parts['port'] : '' );
 }
@@ -420,6 +432,20 @@ function diluxone_users_passkeys_posted(): array {
 function diluxone_users_passkeys_ajax(): void {
 	// phpcs:disable WordPress.Security.NonceVerification.Missing -- the nonce is verified per step.
 	$step = sanitize_key( wp_unslash( $_POST['step'] ?? '' ) );
+
+	// On a network, passkeys are made and used on the hub, whose domain they
+	// belong to. Nothing is drawn elsewhere that would ask; a call made by
+	// hand is told where to go.
+	if ( diluxone_users_off_hub() ) {
+		wp_send_json_error(
+			array(
+				/* translators: %s: the name of the site where the network's accounts live */
+				'message'  => sprintf( __( 'Passkeys are used on %s, where your account is.', 'diluxone-users' ), diluxone_users_hub_name() ),
+				'redirect' => diluxone_users_login_url(),
+			),
+			403
+		);
+	}
 
 	if ( ! diluxone_users_passkeys_enabled() ) {
 		wp_send_json_error( array( 'message' => __( 'This site does not use passkeys.', 'diluxone-users' ) ), 400 );

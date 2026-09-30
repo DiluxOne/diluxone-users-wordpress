@@ -301,44 +301,6 @@ function diluxone_users_screen_network_home(): void {
 /* ── What the network is ───────────────────────────────────────────── */
 
 /**
- * The sites of the network whose address is neither the network's nor one of
- * its subdomains.
- *
- * A site on a domain of its own does not share the network's cookies, so a
- * session opened anywhere else is not a session there: people sign in again.
- * That is how WordPress works with a mapped domain and not something this
- * plugin can fix from inside, so the network is told which sites it is.
- *
- * @return array<int, array{id: int, name: string, domain: string}>
- */
-function diluxone_users_network_mapped_sites(): array {
-	$here    = get_network();
-	$network = $here instanceof WP_Network ? strtolower( (string) $here->domain ) : '';
-	$mapped  = array();
-
-	foreach ( get_sites(
-		array(
-			'number'     => 0,
-			'network_id' => get_current_network_id(),
-		)
-	) as $site ) {
-		$domain = strtolower( (string) $site->domain );
-
-		if ( $domain === $network || str_ends_with( $domain, '.' . $network ) ) {
-			continue;
-		}
-
-		$mapped[] = array(
-			'id'     => (int) $site->blog_id,
-			'name'   => (string) get_blog_option( (int) $site->blog_id, 'blogname' ),
-			'domain' => $domain,
-		);
-	}
-
-	return $mapped;
-}
-
-/**
  * How the network is set up, what it decides, and what moving here found.
  *
  * Nothing is edited on this tab. It says which site people's accounts live
@@ -394,7 +356,7 @@ function diluxone_users_screen_network_overview(): void {
 	diluxone_users_ui_cards_close();
 	diluxone_users_ui_wide_close();
 
-	$mapped = diluxone_users_network_mapped_sites();
+	$mapped = diluxone_users_mapped_sites();
 
 	if ( array() !== $mapped ) {
 		$names = array_map(

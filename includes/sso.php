@@ -166,11 +166,18 @@ function diluxone_users_sso_base(): string {
  * parameter, the only thing WordPress can resolve in that mode.
  */
 function diluxone_users_sso_redirect_uri( string $id ): string {
-	if ( '' === (string) get_option( 'permalink_structure' ) ) {
-		return add_query_arg( 'diluxone_users_sso', $id, home_url( '/' ) );
-	}
+	// On a network, always the hub's: people sign in there, the providers'
+	// consoles hold one address per network, and the round trip starts and
+	// ends on the site that keeps its state.
+	return (string) diluxone_users_on_hub(
+		static function () use ( $id ): string {
+			if ( '' === (string) get_option( 'permalink_structure' ) ) {
+				return add_query_arg( 'diluxone_users_sso', $id, home_url( '/' ) );
+			}
 
-	return home_url( '/' . diluxone_users_sso_base() . '/' . $id . '/' );
+			return home_url( '/' . diluxone_users_sso_base() . '/' . $id . '/' );
+		}
+	);
 }
 
 /** The URL that fires the round trip. */
@@ -210,8 +217,12 @@ function diluxone_users_sso_test_url( string $id ): string {
 	);
 }
 
-/** The rule that makes /sso/<network>/ possible. */
+/** The rule that makes /sso/<network>/ possible: on the hub, the only site the round trip reaches. */
 function diluxone_users_sso_rule(): void {
+	if ( diluxone_users_off_hub() ) {
+		return;
+	}
+
 	add_rewrite_rule(
 		'^' . preg_quote( diluxone_users_sso_base(), '/' ) . '/([a-z0-9_-]+)/?$',
 		'index.php?diluxone_users_sso=$matches[1]',
@@ -833,6 +844,14 @@ function diluxone_users_sso_handle( $wp = null ): void {
 
 	if ( '' === $id ) {
 		return;
+	}
+
+	// On a network the round trip is the hub's, and its state is kept there:
+	// an old address on another site goes to the hub's sign-in, or to the
+	// account for somebody already in, and starts nothing here.
+	if ( diluxone_users_off_hub() ) {
+		wp_safe_redirect( is_user_logged_in() ? diluxone_users_account_url() : diluxone_users_login_url() );
+		exit;
 	}
 
 	$providers = diluxone_users_sso_providers();

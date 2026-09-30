@@ -608,13 +608,20 @@ function diluxone_users_login_expiry(): int {
  *
  * With no page configured it falls back to wp-login.php, which is where
  * WordPress expects to send somebody who is not signed in: a plugin cannot
- * leave a site with no door.
+ * leave a site with no door. On a network it is always the hub's (see
+ * network-hub.php).
  */
 function diluxone_users_login_url(): string {
 	$url = diluxone_users_page_url( 'diluxone_users_login_page' );
 
 	if ( '' === $url ) {
 		$url = wp_login_url();
+	}
+
+	// On a site of a network other than the hub this is the hub's page, and
+	// it carries where the person is, to be sent back there once they are in.
+	if ( diluxone_users_sends_to_hub() ) {
+		$url = diluxone_users_with_return( $url );
 	}
 
 	/**
