@@ -1,9 +1,10 @@
-import { test, expect } from './support';
+import { test, expect, signInFrom, toTheHub } from './support';
 import { freshEmail } from '../support/api';
 import { expectSoundLayout } from '../support/layout';
 import { NETWORK_SCREENS, SITE_SCREENS_ON_A_NETWORK, networkAdminTabs } from '../support/screens';
-import { challengeScreen, savePanel, signInWithPassword } from '../support/ui';
-import { NETWORK_ADMIN_STATE, NETWORK_URL } from '../../../playwright.network.config';
+import { challengeScreen, fillCredentials, savePanel } from '../support/ui';
+import { wp } from '../support/cli';
+import { MAPPED_HOST, NETWORK_ADMIN_STATE, NETWORK_URL } from '../../../playwright.network.config';
 
 /**
  * The network's settings, set in Network Admin and nowhere else.
@@ -63,7 +64,7 @@ test.describe('Network Admin has the network’s screens', () => {
 });
 
 test.describe('What is saved in Network Admin is every site’s', () => {
-	test('the second step required there is asked on /alpha/ and on /beta/', async ({ page, guest, hub, alpha, beta }) => {
+	test('the second step required there is asked of whoever signs in from /alpha/ or /beta/', async ({ page, guest, hub, alpha, beta }) => {
 		// Written down first, so the fixture puts back what was there.
 		await hub.set({ diluxone_users_2fa_mode: 'optional', diluxone_users_2fa_methods: ['totp', 'email'], diluxone_users_2fa_scope: 'all' });
 
@@ -79,9 +80,8 @@ test.describe('What is saved in Network Admin is every site’s', () => {
 
 			await one.site.makeUser({ email, password: PASSWORD });
 			await guest.context().clearCookies();
-			await guest.goto(one.pages.login.url);
-			await signInWithPassword(guest, email, PASSWORD);
-			await expect(challengeScreen(guest), `asked on /${one.slug}/`).toBeVisible();
+			await signInFrom(guest, one, hub, email, PASSWORD);
+			await expect(challengeScreen(guest), `asked of whoever signs in from /${one.slug}/`).toBeVisible();
 		}
 	});
 
@@ -162,7 +162,7 @@ test.describe('Every tab that moved saves from Network Admin, for every site', (
 		});
 	}
 
-	test('a user field added in Network Admin is asked for on /alpha/’s registration form, and deleted there it is gone', async ({
+	test('a user field added in Network Admin is asked for by the registration /alpha/ sends to, and deleted there it is gone', async ({
 		page,
 		guest,
 		hub,
@@ -191,8 +191,8 @@ test.describe('Every tab that moved saves from Network Admin, for every site', (
 
 		expect(added, 'the field is the network’s: /beta/ reads it').toBeTruthy();
 
-		await guest.goto(alpha.pages.register.url);
-		await expect(guest.locator(`[name="${added!.key}"]`), 'asked for on /alpha/').toHaveCount(1);
+		await toTheHub(guest, alpha, hub, 'register');
+		await expect(guest.locator(`[name="${added!.key}"]`), 'asked for of whoever registers from /alpha/').toHaveCount(1);
 
 		await page.goto(network('admin.php?page=diluxone-users-fields'));
 
@@ -200,8 +200,8 @@ test.describe('Every tab that moved saves from Network Admin, for every site', (
 
 		await page.goto((await remove.getAttribute('href'))!.trim());
 
-		await guest.goto(alpha.pages.register.url);
-		await expect(guest.locator(`[name="${added!.key}"]`), 'gone from /alpha/').toHaveCount(0);
+		await toTheHub(guest, alpha, hub, 'register');
+		await expect(guest.locator(`[name="${added!.key}"]`), 'and gone').toHaveCount(0);
 	});
 });
 
@@ -281,5 +281,53 @@ test.describe('A site cannot change the network’s settings', () => {
 			Number((await hub.site.getOptions(['diluxone_users_passkey_enabled'])).diluxone_users_passkey_enabled),
 			'a box forced on and sent from a site’s screen'
 		).toBe(0);
+	});
+});
+
+test.describe('A site on a domain of its own', () => {
+	/**
+	 * A site of the network moved to a domain that is neither the network's
+	 * nor a subdomain of it — what a domain-mapping setup writes into
+	 * wp_blogs. A session opened on the hub does not reach it, and that is not
+	 * supported in this version: the network is told on its Overview, and the
+	 * site's administrator on its own dashboard. The browser reaches the
+	 * domain through the resolver rule in playwright.network.config.ts.
+	 */
+	test('is named on the network’s Overview and warned on its own dashboard', async ({ page, browser }) => {
+		const port = new URL(NETWORK_URL).port;
+		const domain = `${MAPPED_HOST}${port ? `:${port}` : ''}`;
+		const home = `http://${domain}/`;
+		const id = wp(['site', 'create', `--slug=e2e-mapped-${Date.now().toString(36)}`, '--title=Mapped', '--porcelain']);
+
+		try {
+			// Through WordPress, so the network's list of domains hears about it.
+			wp(['eval', `wp_update_site( ${id}, array( 'domain' => '${domain}', 'path' => '/' ) ); update_blog_option( ${id}, 'home', '${home.replace(/\/$/, '')}' ); update_blog_option( ${id}, 'siteurl', '${home.replace(/\/$/, '')}' );`]);
+
+			await page.goto(network('admin.php?page=diluxone-users'));
+			await expect(page.locator('.du-notice').filter({ hasText: domain }).first(), 'the Overview names it').toBeVisible();
+
+			// Its own dashboard: signed in again, on its own wp-login.php — a
+			// session on the network's domain does not arrive here.
+			const own = await (await browser.newContext({ storageState: { cookies: [], origins: [] } })).newPage();
+
+			await own.goto(`${home}wp-login.php`);
+			expect(new URL(own.url()).host, 'its wp-login.php stays its own').toBe(domain);
+
+			await fillCredentials(own, process.env.WP_USER ?? 'admin', process.env.WP_PASS ?? 'password');
+			await Promise.all([own.waitForURL(/wp-admin/), own.locator('#wp-submit').click()]);
+			await own.goto(`${home}wp-admin/`);
+
+			const warning = own.locator('[data-diluxone-users-mapped]');
+
+			await expect(warning, 'the site’s administrator is told').toBeVisible();
+			await expect(warning).toContainText(MAPPED_HOST);
+			await own.context().close();
+
+			// A site on the network's own domain is not warned.
+			await page.goto(`${NETWORK_URL}/alpha/wp-admin/`);
+			await expect(page.locator('[data-diluxone-users-mapped]')).toHaveCount(0);
+		} finally {
+			wp(['site', 'delete', id, '--yes']);
+		}
 	});
 });

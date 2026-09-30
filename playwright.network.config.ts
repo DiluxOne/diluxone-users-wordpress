@@ -25,6 +25,13 @@ export const NETWORK_URL = (process.env.WP_NETWORK_URL ?? 'http://localhost:8893
 /** A super admin session, kept by the setup, valid on every site of the network. */
 export const NETWORK_ADMIN_STATE = 'build/e2e-network-admin.json';
 
+/**
+ * A host no DNS answers, which the browser sends to this machine: the domain
+ * of its own a site of the network is moved to, to see what the plugin says
+ * about a site the network's cookies do not reach.
+ */
+export const MAPPED_HOST = 'e2e-mapped.test';
+
 /** Whether the pictures are being compared this run: see playwright.config.ts. */
 const PICTURES = process.env.DU_SNAPSHOTS === '1';
 
@@ -67,7 +74,10 @@ export default defineConfig({
 			name: 'network',
 			testMatch: /\.spec\.ts$/,
 			testIgnore: /network-snapshots\.spec\.ts/,
-			use: { ...devices['Desktop Chrome'] },
+			use: {
+				...devices['Desktop Chrome'],
+				launchOptions: { args: [`--host-resolver-rules=MAP ${MAPPED_HOST} 127.0.0.1`] },
+			},
 			dependencies: ['network-setup'],
 		},
 		...(PICTURES

@@ -1,6 +1,6 @@
-import { test, expect } from './support';
+import { test, expect, signInFrom } from './support';
 import { freshEmail, linkIn, waitForMail } from '../support/api';
-import { accountSection, signInWithPassword } from '../support/ui';
+import { accountSection } from '../support/ui';
 
 /**
  * "Download your data" on a network.
@@ -18,9 +18,7 @@ test('a member of /alpha/ confirming a copy on the account area finds it ready t
 	const email = freshEmail('net-copy');
 
 	await alpha.site.makeUser({ email, password: PASSWORD });
-	await page.goto(alpha.pages.login.url);
-	await signInWithPassword(page, email, PASSWORD);
-	await page.waitForLoadState('domcontentloaded');
+	await signInFrom(page, alpha, hub, email, PASSWORD);
 
 	await page.goto(accountSection(hub.pages.account.url, 'privacy'));
 

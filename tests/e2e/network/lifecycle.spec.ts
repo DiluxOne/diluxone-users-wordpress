@@ -1,4 +1,4 @@
-import { test, expect, whoOn } from './support';
+import { test, expect, whoOn, hubDoor } from './support';
 import { Site, freshEmail, linkIn, waitForMail } from '../support/api';
 import { PLUGIN_DIR, debugLogLines, debugLogSince, wp } from '../support/cli';
 import { askForLink, emailField } from '../support/ui';
@@ -27,17 +27,23 @@ test.describe('A site made after the plugin was switched on for the network', ()
 			const site = await Site.open(url);
 
 			// A page with the sign-in shortcode on it, as a site owner would
-			// publish one. Nothing else: the rules are the network's and the
-			// account area is the main site's, and a new site has them the
-			// moment it exists.
+			// publish one. Nothing else: the rules are the network's, and the
+			// sign-in and the account area are the main site's — the hub's — and
+			// a new site sends people there the moment it exists.
 			const seeded = await site.seed();
 
 			await site.setOptions({}, { flush: true });
 			const email = freshEmail('newborn');
 
-			await askForLink(page, seeded.pages.login.url, email);
-			await page.goto(linkIn(await waitForMail(site, email)));
+			await page.goto(seeded.pages.login.url);
+			await Promise.all([
+				page.waitForURL((address) => address.href.startsWith(hub.pages.login.url)),
+				hubDoor(page).locator('a').click(),
+			]);
+			await askForLink(page, page.url(), email);
+			await page.goto(linkIn(await waitForMail(hub.site, email)));
 
+			expect(page.url(), 'back on the newborn site').toBe(seeded.pages.login.url);
 			expect(await whoOn(page, url)).toBe(email);
 
 			// The account area — the main site's — with the network's fields,
@@ -76,9 +82,10 @@ test.describe('Switching the plugin off and on', () => {
 			await Promise.all([page.waitForLoadState('domcontentloaded'), row(page).locator('.deactivate a').click()]);
 			await expect(row(page).locator('.activate a'), 'the network’s screen offers Network Activate').toBeVisible();
 
-			// Off, the shortcodes are text and no form is drawn anywhere.
+			// Off, the shortcodes are text and no form or door is drawn anywhere.
 			await guest.goto(alpha.pages.login.url);
 			await expect(emailField(guest)).toHaveCount(0);
+			await expect(hubDoor(guest)).toHaveCount(0);
 
 			// A site's own Plugins screen has no Activate for it: there is no
 			// switching it on for one site alone.
@@ -91,6 +98,7 @@ test.describe('Switching the plugin off and on', () => {
 
 			await guest.goto(alpha.pages.login.url);
 			await expect(emailField(guest), 'no sign-in on /alpha/').toHaveCount(0);
+			await expect(hubDoor(guest), 'and no door').toHaveCount(0);
 
 			const screen = await page.goto(alpha.admin('admin.php?page=diluxone-users-login'));
 			expect(screen?.status(), 'no screens on /alpha/').not.toBe(200);
@@ -114,7 +122,7 @@ test.describe('Switching the plugin off and on', () => {
 
 			for (const one of [alpha, beta]) {
 				await guest.goto(one.pages.login.url);
-				await expect(emailField(guest), `back on ${one.slug}`).toBeVisible();
+				await expect(hubDoor(guest), `the door to the hub is back on ${one.slug}`).toBeVisible();
 			}
 
 			// WP-CLI, which this test uses to write /alpha/'s list, writes its
