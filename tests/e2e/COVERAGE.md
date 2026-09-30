@@ -101,6 +101,7 @@ product is fixed, not to be loosened.
 | Reports › Activity: logging groups, event filter | `activity-log`, `admin-tools` › Reports |
 | Reports › Logging: empty the log (asks first) | `activity-log` › emptying it asks first |
 | Reports › Activity: search by address finds refused attempts | `admin-tools` › …finds the refused attempts |
+| Reports › Activity on a single site: every row the site's, no Site column, no site filter, no network report or button | `activity-log` › on a single site every row is the site’s… |
 | Status › Tools: export, import, close sessions, fresh code, rebuild, test message | `admin-tools` › Status › Tools |
 | Status › Tools: a file round trip keeps nested settings | `admin-tools` › …nested ones included |
 | Status › Lockout | renders (`admin-settings`); what it describes is the escape hatch, covered in `password-login` |
@@ -121,6 +122,10 @@ product is fixed, not to be loosened.
 | A password is a network password | `doors` |
 | The main site's sign-in settings reach /alpha/ and /beta/ alike | `isolation` › The main site’s sign-in settings are every site’s |
 | Reports › Sessions on /alpha/ lists only its members | `isolation` |
+| Activity log: a sign-in on /alpha/ is on /alpha/'s report and not /beta/'s; Network Admin › Activity log has both, with their site, narrowed by the filter and by the Site cell | `activity-log` › a site’s report has its own rows… |
+| Activity log: “Empty it now” on /alpha/ asks first and takes /alpha/'s rows only; in Network Admin it asks first and takes every site's | `activity-log` › emptying it on a site… |
+| Activity log: a site's report carries its own button, never the network's report or button | `activity-log` › a site’s report carries the button… |
+| Activity log: a site's old table moved in by `wp diluxone-users network migrate`, with its site, old table dropped, second run does nothing | `migration` › each site’s old activity log moves… |
 | Add New User on a subsite | `isolation` |
 | Photo uploaded on /alpha/ is the same on /beta/ (the photo piece on a page of each site) | `isolation` |
 | Photo removed on /beta/ deletes no /beta/ file | `isolation` |
@@ -155,7 +160,15 @@ on each. The two end-to-end columns are the two topologies.
 | A setting saved in Network Admin is read on every site | — | net: `NetworkSettingsTest` › …read on every site · single: `SingleSiteTest` › the site's screen sets the second step | — | `network-admin` › What is saved in Network Admin…; Every tab that moved saves… (sessions, proxy, passkeys, social sign-in, deleting the plugin) |
 | Passkeys and social sign-in switched on their own tabs in Network Admin | — | net: `NetworkSettingsTest` › the network's doors are switched on their own tabs · single: `SingleSiteTest` › the doors are switched on Access and not on their own tabs | `single-site` › …do not repeat the switches Access has | `network-admin` › Every tab that moved saves… |
 | User fields are the network's: added and deleted in Network Admin | — | both: `SettingsFileTest` › a field keyed like… | `admin-tools` › User fields | `network-admin` › a user field added in Network Admin… |
-| Log settings are the network's; the rows and "Empty it now" stay with each site | — | net: `NetworkSettingsTest` › each place draws only its own tabs · single: `SingleSiteTest` › every screen and tab is on the site's dashboard | `single-site` › Reports › Log settings keeps the way to empty… | `network-admin` › the log's settings…; another site keeps… |
+| Log settings are the network's; each site's report and "Empty it now" are its own rows; Network Admin has every site's report | `NetworkLogTest` › every site's rows are a tab of the network's… | net: `NetworkSettingsTest` › each place draws only its own tabs · single: `SingleSiteTest` › every screen and tab is on the site's dashboard; the log is the site's own… | `single-site` › Reports › Log settings keeps the way to empty… | `network-admin` › the log's settings…; another site keeps…; network › diluxone-users-reports › network-activity |
+| Log: which table (network's prefix on a network, the site's on a single site and site by site) | `NetworkLogTest` › on a single site…; on a network…one table; site by site… | net: `NetworkLogTest` › the table is the network's and every row carries its site; switched on site by site… · single: `SingleSiteTest` › the log is the site's own and there is nothing to move | `activity-log` › on a single site every row is the site’s | `activity-log` › a site’s report has its own rows… |
+| Log: every row stamped with its site | `NetworkLogTest` › a row is stamped with the site…both ways | both: `ActivityLogTest` › every row carries the site it happened on · net: `NetworkLogTest` › the table is the network's… | `activity-log` › on a single site every row is the site’s | `activity-log` › a site’s report has its own rows… |
+| Log: a site's report shows its rows only; the network's shows every site's and narrows to one | — | both: `ActivityLogTest` › the site's report draws its own rows; a site asked for is in the query… · net: `NetworkLogTest` › a site's report shows its own rows…; the network's report shows every site… | `activity-log` › on a single site… | `activity-log` › a site’s report has its own rows… |
+| Log: “Empty it now” on a site vs in Network Admin; the network's asks for the network | — | both: `ActivityLogTest` › emptying it takes every row…; asks for the right to · net: `NetworkLogTest` › a site's button empties that site's rows only; the network's button empties every site's; …asks for the network · single: `SingleSiteTest` › the log is the site's own… (no network button) | `activity-log` › emptying it asks first | `activity-log` › emptying it on a site… |
+| Log: retention purge — the network's, once, from the main site over every site; a site's own table by itself | `NetworkLogTest` › the purge runs once for the network…; a site with a table of its own purges it itself | both: `ActivityLogTest` › the purge drops what is past the retention… · net: `NetworkLogTest` › the network's retention is one purge…; the daily event is the main site's alone | — (time passing) | — (time passing) |
+| Log: erasure takes a person's rows from every site in one query; the export names each row's site | — | both: `ActivityLogTest` › the erasure takes that person… · net: `NetworkLogTest` › erasing a person takes their rows from every site in one query | `account-area` › Your data | `account-closing` |
+| Log: a table from before rows had a site is brought up to date on first read, its rows the site's | — | both: `ActivityLogTest` › a table from before rows had a site… | — | — |
+| Log move: fresh, re-run, big and batched with cron, a failed batch copied once, counts that do not add up keep the old table, first request, deactivation forgets it | — | net: `NetworkLogTest` › the sites' old tables move in…; a big table moves in batches…; a batch that fails…; an old table whose rows do not add up…; the first request starts the move…; switching it off for the network… · single: `SingleSiteTest` › …nothing to move | — | `migration` › each site’s old activity log moves… |
 | Network Admin menu and every tab (answers, tab strip, layout) | `NetworkPlacesTest` | net: `NetworkSettingsTest` › each place draws only its own tabs · single: `SingleSiteTest` › every screen and tab… (no network tabs) | — | `network-admin` › Network Admin has the network's screens (one test per tab) |
 | Network screens leave the sites' menus; refused by address on a site | `NetworkPlacesTest` | net: `NetworkSettingsTest` › the network's screens leave the sites' menus · single: `SingleSiteTest` › every screen and tab is on the site's dashboard | `single-site` › the menu carries every screen | `network-admin` › A site's menu keeps only what is its own; refused |
 | A link to a screen goes where the screen is | — | net: `NetworkSettingsTest` › a link to a screen goes where the screen is · single: `SingleSiteTest` › every screen and tab… (all on this dashboard) | — | `network-admin` › the cards' links |
@@ -167,14 +180,14 @@ on each. The two end-to-end columns are the two topologies.
 | "Show me what I chose" writes nothing of the network's | — | net: `NetworkSettingsTest` › a trial run writes nothing of the network's · single: `SingleSiteTest` › a trial run writes nothing | `preview` | — |
 | 2FA: one network rule; a chosen role on any site; super admin | — | net: `MultisiteTest` › the second step is asked on every site alike; a chosen role on any site; a super admin… · single: `SingleSiteTest` › a chosen role puts somebody in scope · both: `TwoFactorFlowTest`, `AccountSecurityTest` | `two-factor` | `isolation` › The second step is the network's; `network-admin` › the second step required there… |
 | Who may create an account: the network's registration, then the site's doors | — | net: `MultisiteTest` › the network decides…; on a closed network the doors start closed · single: `SingleSiteTest` › the site's own switch decides…; the doors start where "Anyone can register" is | `magic-link`, `register` | `doors` |
-| Setup: activation, a site born on the network, a deleted site | — | net: `MultisiteTest` › a site born…; a deleted site takes its table… · single: `SingleSiteTest` › activation sets the site up in its own table | — | `lifecycle` |
+| Setup: activation, a site born on the network (no log table of its own), a deleted site (its rows and any old table go) | `NetworkLogTest` › a deleted site drops its own table and never the network's | net: `MultisiteTest` › a site born…; a deleted site takes its rows and its old table… · single: `SingleSiteTest` › activation sets the site up in its own table | — | `lifecycle` |
 | Deactivation leaves no purge event | — | net: `MultisiteTest` › network deactivation clears the event on every site · single: `SingleSiteTest` › deactivation clears the event | — | `lifecycle` |
 | Membership: the click, not the request; a closed site; a super admin | — | net: `MultisiteTest` › membership comes with the click…; a site that takes nobody…; a super admin is not made a subscriber · single: `SingleSiteTest` › joining the site changes nobody | — | `doors` |
 | Sessions report: whose sessions a site lists; closing them asks for the site's administrator and for rights over that person | — | net: `MultisiteTest` › the sessions report…lists only its members · single: `SingleSiteTest` › …lists everybody signed in · both: `ClosedDoorsTest` › closing an administrator's sessions needs rights…; an administrator closes another person's sessions | `admin-tools` › Reports | `isolation` |
 | Photo: read and deleted where it lives | — | net: `MultisiteTest` › a picture is read and deleted on the site that holds it · single: `SingleSiteTest` › a picture is read and deleted here · both: `AvatarSourcesTest` | `account-area` › Your photo | `isolation` |
 | Add New User and the username | — | net: `MultisiteTest` › Add New User is left alone · single: `SingleSiteTest` › Add New User uses the e-mail as username | `admin-tools` › Add New User | `isolation` |
 | Throttle per machine | — | net: `MultisiteTest` › one machine has one allowance on the whole network · both: `LoginRequestTest` | `magic-link` › asking twice | — |
-| Deleting an account empties the log | — | net: `MultisiteTest` › …from the network empties every log · both: `ActivityLogTest` | — | `account-closing` |
+| Deleting an account empties the log; taken off one site, only that site's rows go | — | net: `MultisiteTest` › …from the network empties every log; taking somebody off one site… · both: `ActivityLogTest` › deleting an account takes its rows | — | `account-closing` |
 | Move: fresh network (nothing to take, marker written) | — | net: `NetworkSettingsTest` › on a fresh network… · single: `SingleSiteTest` › there is nothing to move | — | `lifecycle` › a site made after… |
 | Move: the main site's values, the rest written down | `NetworkPlacesTest` › same setting; written down short | net: `NetworkSettingsTest` › the move takes the main site's values… (single: no move, above) | — | `migration` |
 | Move: credentials only noted as different | — | net: `NetworkSettingsTest` › credentials are only noted… | — | — |
@@ -183,11 +196,11 @@ on each. The two end-to-end columns are the two topologies.
 | Move: idempotent; batches, cron, marker last | — | net: `NetworkSettingsTest` › idempotent; the version is written last | — | `migration` › running it again does nothing |
 | Move: a notice once, dismissed for good; the table stays | — | net: `NetworkSettingsTest` › the differences are announced once · single: `SingleSiteTest` › there is nothing to move (no notice) | — | `migration` |
 | WP-CLI `wp diluxone-users network migrate` | — | — | — | `migration` |
-| Uninstall, network-activated: the box ticked takes everything (network options, old per-site copies, log tables, user meta) | — | net: `UninstallNetworkTest` › the network's one box takes everything… | — | — |
-| Uninstall, network-activated: the box unticked takes nothing, a site's old box does not count | — | net: `UninstallNetworkTest` › the network's box unticked takes nothing | — | — |
+| Uninstall, network-activated: the box ticked takes everything (network options, old per-site copies, the network's log and any old per-site log table, user meta) | — | net: `UninstallNetworkTest` › the network's one box takes everything… | — | — |
+| Uninstall, network-activated: the box unticked takes nothing (the network's log and old tables stay), a site's old box does not count | — | net: `UninstallNetworkTest` › the network's box unticked takes nothing | — | — |
 | Uninstall, activated site by site: every site ticked takes everything; one site unticked keeps the people's data | — | net: `UninstallNetworkTest` › site by site every box ticked…; one box unticked keeps the people | — | — |
 | Uninstall on a single site: ticked takes everything, unticked nothing | — | single: `UninstallSiteTest` › the box ticked…; the box unticked takes nothing | — | — |
-| The pictures of the network's screens | — | — | — | `network-snapshots` (`make test-visual-network`) |
+| The pictures of the network's screens (Activity log › Activity and Log settings included) | — | — | — | `network-snapshots` (`make test-visual-network`) |
 
 Every integration test not named in this table runs on both topologies and
 passes on each.
@@ -198,7 +211,9 @@ passes on each.
   second step is required: no browser speaks XML-RPC. Covered by the
   integration suite.
 - **Cron clean-up of the activity log** after `diluxone_users_log_days`: time
-  passing, not a page.
+  passing, not a page. Nor the cron batches of the move of each site's log:
+  the browser suite moves it with WP-CLI, and the integration suite runs the
+  batches one by one.
 - **The e-mail actually leaving the server**: the mu-plugin catches every
   message on `pre_wp_mail`, which is the point — the suite reads the message
   the site composed, not a mail server's delivery.
