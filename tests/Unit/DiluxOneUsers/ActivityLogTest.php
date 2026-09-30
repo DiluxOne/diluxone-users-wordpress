@@ -37,6 +37,7 @@ class ActivityLogTest extends TestCase {
 		Monkey\Functions\when( 'register_deactivation_hook' )->justReturn( true );
 
 		require_once DILUXONE_USERS_DIR . 'includes/options.php';
+		require_once DILUXONE_USERS_DIR . 'includes/options-scope.php';
 		require_once DILUXONE_USERS_DIR . 'includes/log.php';
 
 		$GLOBALS['_test_wp_options'] = array();

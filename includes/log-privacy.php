@@ -213,7 +213,7 @@ function diluxone_users_log_user_deleted_everywhere( $user_id ): void {
 	) as $site ) {
 		switch_to_blog( (int) $site );
 
-		if ( DILUXONE_USERS_LOG_SCHEMA === (int) get_option( DILUXONE_USERS_LOG_SCHEMA_OPTION ) ) {
+		if ( DILUXONE_USERS_LOG_SCHEMA === (int) diluxone_users_raw_get( DILUXONE_USERS_LOG_SCHEMA_OPTION ) ) {
 			diluxone_users_log_forget( (int) $user_id );
 		}
 

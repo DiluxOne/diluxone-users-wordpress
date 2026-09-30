@@ -312,7 +312,7 @@ function diluxone_users_mail_clean( $stored ): array {
  * @return array<string, array<string, array<string, string>>>
  */
 function diluxone_users_mail_store(): array {
-	$stored = get_option( DILUXONE_USERS_MAIL_TEMPLATES, array() );
+	$stored = diluxone_users_raw_get( DILUXONE_USERS_MAIL_TEMPLATES, array() );
 
 	return is_array( $stored ) ? diluxone_users_mail_clean( $stored ) : array();
 }
@@ -358,7 +358,7 @@ function diluxone_users_mail_rewrite( string $key, string $locale, string $subje
 		unset( $store[ $locale ] );
 	}
 
-	update_option( DILUXONE_USERS_MAIL_TEMPLATES, $store );
+	diluxone_users_update_option( DILUXONE_USERS_MAIL_TEMPLATES, $store );
 }
 
 /**

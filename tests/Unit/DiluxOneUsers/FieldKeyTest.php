@@ -20,6 +20,7 @@ class FieldKeyTest extends TestCase {
 		parent::setUp();
 		Monkey\setUp();
 		require_once DILUXONE_USERS_DIR . 'includes/options.php';
+		require_once DILUXONE_USERS_DIR . 'includes/options-scope.php';
 		require_once DILUXONE_USERS_DIR . 'includes/fields.php';
 
 		$GLOBALS['_test_wp_options'] = array();

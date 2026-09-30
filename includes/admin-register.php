@@ -211,7 +211,7 @@ function diluxone_users_screen_register_save(): bool {
 	// phpcs:enable
 
 	// The page changed, and with it the /register/ rules.
-	delete_option( 'diluxone_users_rewrite_version' );
+	diluxone_users_delete_option( 'diluxone_users_rewrite_version' );
 
 	return true;
 }

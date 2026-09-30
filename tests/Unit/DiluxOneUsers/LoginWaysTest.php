@@ -31,6 +31,7 @@ class LoginWaysTest extends TestCase {
 		// loads and those hooks are deliberately not stubbed.
 		Monkey\setUp();
 		require_once DILUXONE_USERS_DIR . 'includes/options.php';
+		require_once DILUXONE_USERS_DIR . 'includes/options-scope.php';
 		require_once DILUXONE_USERS_DIR . 'includes/login-ways.php';
 	}
 

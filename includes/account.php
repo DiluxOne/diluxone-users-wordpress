@@ -409,12 +409,12 @@ add_filter( 'query_vars', 'diluxone_users_account_query_var' );
  * changes version, the two moments at which the endpoint may have gone stale.
  */
 function diluxone_users_account_flush_rules(): void {
-	if ( get_option( 'diluxone_users_rewrite_version' ) === DILUXONE_USERS_VERSION ) {
+	if ( diluxone_users_raw_get( 'diluxone_users_rewrite_version' ) === DILUXONE_USERS_VERSION ) {
 		return;
 	}
 
 	flush_rewrite_rules( false );
-	update_option( 'diluxone_users_rewrite_version', DILUXONE_USERS_VERSION );
+	diluxone_users_update_option( 'diluxone_users_rewrite_version', DILUXONE_USERS_VERSION );
 }
 add_action( 'wp_loaded', 'diluxone_users_account_flush_rules' );
 

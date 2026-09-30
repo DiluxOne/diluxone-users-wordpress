@@ -20,6 +20,7 @@ class PasskeyTest extends TestCase {
 		Monkey\setUp();
 
 		require_once DILUXONE_USERS_DIR . 'includes/options.php';
+		require_once DILUXONE_USERS_DIR . 'includes/options-scope.php';
 		require_once DILUXONE_USERS_DIR . 'includes/auth-passkeys.php';
 
 		$GLOBALS['_test_wp_options']    = array();

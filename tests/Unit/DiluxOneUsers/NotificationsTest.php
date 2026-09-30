@@ -21,6 +21,7 @@ class NotificationsTest extends TestCase {
 		Monkey\setUp();
 
 		require_once DILUXONE_USERS_DIR . 'includes/options.php';
+		require_once DILUXONE_USERS_DIR . 'includes/options-scope.php';
 		require_once DILUXONE_USERS_DIR . 'includes/notify.php';
 		// What goes out whatever anybody says depends on the doors the site
 		// opened, and that is what login.php answers.

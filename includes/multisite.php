@@ -150,8 +150,8 @@ add_action( 'wp_initialize_site', 'diluxone_users_site_born', 11 );
  */
 function diluxone_users_seed_registration(): void {
 	foreach ( array( 'diluxone_users_login_register', 'diluxone_users_sso_register' ) as $door ) {
-		if ( null === get_option( $door, null ) ) {
-			add_option( $door, (int) diluxone_users_site_takes_accounts() );
+		if ( null === diluxone_users_raw_get( $door, null ) ) {
+			diluxone_users_update_option( $door, (int) diluxone_users_site_takes_accounts() );
 		}
 	}
 }
@@ -164,8 +164,8 @@ function diluxone_users_seed_registration(): void {
  * respected.
  */
 function diluxone_users_seed_fields(): void {
-	if ( false === get_option( 'diluxone_users_fields', false ) ) {
-		update_option( 'diluxone_users_fields', diluxone_users_default_fields() );
+	if ( false === diluxone_users_raw_get( 'diluxone_users_fields', false ) ) {
+		diluxone_users_update_option( 'diluxone_users_fields', diluxone_users_default_fields() );
 
 		return;
 	}
@@ -183,7 +183,7 @@ add_action( 'admin_init', 'diluxone_users_seed_fields' );
  * already had.
  */
 function diluxone_users_seed_native_fields(): void {
-	$fields  = (array) get_option( 'diluxone_users_fields', array() );
+	$fields  = (array) diluxone_users_raw_get( 'diluxone_users_fields', array() );
 	$keys    = array_column( $fields, 'key' );
 	$missing = array();
 
@@ -197,5 +197,5 @@ function diluxone_users_seed_native_fields(): void {
 		return;
 	}
 
-	update_option( 'diluxone_users_fields', array_merge( $missing, $fields ) );
+	diluxone_users_update_option( 'diluxone_users_fields', array_merge( $missing, $fields ) );
 }

@@ -307,7 +307,7 @@ function diluxone_users_normalize_field( array $field ): array {
  * @return array<int, array<string, mixed>>
  */
 function diluxone_users_fields( string $group = '', bool $only_active = true ): array {
-	$fields = array_map( 'diluxone_users_normalize_field', (array) get_option( 'diluxone_users_fields', array() ) );
+	$fields = array_map( 'diluxone_users_normalize_field', (array) diluxone_users_raw_get( 'diluxone_users_fields', array() ) );
 
 	$fields = array_values(
 		array_filter(

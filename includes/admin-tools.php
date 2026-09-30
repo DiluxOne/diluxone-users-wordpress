@@ -108,7 +108,7 @@ function diluxone_users_tools_action(): void {
  */
 function diluxone_users_tool_flush(): void {
 	flush_rewrite_rules( false );
-	update_option( 'diluxone_users_rewrite_version', DILUXONE_USERS_VERSION );
+	diluxone_users_update_option( 'diluxone_users_rewrite_version', DILUXONE_USERS_VERSION );
 
 	diluxone_users_tool_done( __( 'Rewrite rules rebuilt.', 'diluxone-users' ) );
 }
@@ -206,14 +206,14 @@ function diluxone_users_tool_settings(): array {
 		// What the site set, not what it reads by default: a default written
 		// into the file comes back as a stored value, and the next version's
 		// default would no longer reach this site.
-		$stored = get_option( $key, null );
+		$stored = diluxone_users_raw_get( $key, null );
 
 		if ( null !== $stored ) {
 			$out[ $key ] = $stored;
 		}
 	}
 
-	$out['diluxone_users_fields'] = get_option( 'diluxone_users_fields', array() );
+	$out['diluxone_users_fields'] = diluxone_users_raw_get( 'diluxone_users_fields', array() );
 
 	return $out;
 }
@@ -352,7 +352,7 @@ function diluxone_users_tool_restore( array $settings ): int {
 				}
 			}
 
-			update_option( 'diluxone_users_fields', $fields );
+			diluxone_users_update_option( 'diluxone_users_fields', $fields );
 			++$written;
 			continue;
 		}
@@ -362,7 +362,7 @@ function diluxone_users_tool_restore( array $settings ): int {
 		}
 
 		if ( 'diluxone_users_account_sections' === $key ) {
-			update_option( $key, diluxone_users_tool_sections( $value ) );
+			diluxone_users_update_option( $key, diluxone_users_tool_sections( $value ) );
 			++$written;
 			continue;
 		}

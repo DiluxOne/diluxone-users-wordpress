@@ -488,7 +488,7 @@ function diluxone_users_scope_includes( int $user_id, string $prefix ): bool {
  */
 function diluxone_users_option( string $key, $fallback = null ) {
 	$defaults = diluxone_users_option_defaults();
-	$value    = get_option( $key, null );
+	$value    = diluxone_users_raw_get( $key, null );
 
 	if ( null === $value ) {
 		$value = $defaults[ $key ] ?? $fallback;
@@ -513,7 +513,7 @@ function diluxone_users_option( string $key, $fallback = null ) {
  */
 function diluxone_users_option_forced( string $key ): bool {
 	$defaults = diluxone_users_option_defaults();
-	$stored   = get_option( $key, null );
+	$stored   = diluxone_users_raw_get( $key, null );
 	$stored   = null === $stored ? ( $defaults[ $key ] ?? null ) : $stored;
 
 	return diluxone_users_option( $key ) !== $stored;
@@ -608,7 +608,7 @@ function diluxone_users_save_options( array $input ): void {
 		$default = $defaults[ $key ];
 
 		if ( is_int( $default ) ) {
-			update_option( $key, (int) $value );
+			diluxone_users_update_option( $key, (int) $value );
 			continue;
 		}
 
@@ -630,11 +630,11 @@ function diluxone_users_save_options( array $input ): void {
 				$clean[] = sanitize_key( (string) $one );
 			}
 
-			update_option( $key, array() === $clean || isset( $clean[0] ) ? array_values( array_unique( $clean ) ) : $clean );
+			diluxone_users_update_option( $key, array() === $clean || isset( $clean[0] ) ? array_values( array_unique( $clean ) ) : $clean );
 			continue;
 		}
 
-		update_option(
+		diluxone_users_update_option(
 			$key,
 			diluxone_users_option_allows_markup( $key )
 				? wp_kses_post( (string) $value )

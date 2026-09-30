@@ -449,6 +449,45 @@ function diluxone_e2e_option_allowed( string $key ): bool {
 }
 
 /**
+ * Whether an option is one of the plugin's, stored where the plugin stores it.
+ *
+ * The plugin's settings go through its own helpers, which know the scope of
+ * each one on a network; reading them straight from this site's options table
+ * would be reading the wrong place the day they are routed. Everything else
+ * this route may touch is WordPress's or this file's, and per site.
+ */
+function diluxone_e2e_option_is_plugins( string $key ): bool {
+	return 0 === strpos( $key, 'diluxone_users_' ) && function_exists( 'diluxone_users_raw_get' );
+}
+
+/** One option, or the marker for "never written". */
+function diluxone_e2e_option_get( string $key ) {
+	return diluxone_e2e_option_is_plugins( $key )
+		? diluxone_users_raw_get( $key, DILUXONE_E2E_MISSING )
+		: get_option( $key, DILUXONE_E2E_MISSING );
+}
+
+/** Writes one option. */
+function diluxone_e2e_option_set( string $key, $value ): void {
+	if ( diluxone_e2e_option_is_plugins( $key ) ) {
+		diluxone_users_update_option( $key, $value );
+		return;
+	}
+
+	update_option( $key, $value );
+}
+
+/** Deletes one option. */
+function diluxone_e2e_option_delete( string $key ): void {
+	if ( diluxone_e2e_option_is_plugins( $key ) ) {
+		diluxone_users_delete_option( $key );
+		return;
+	}
+
+	delete_option( $key );
+}
+
+/**
  * Reads options, with the absent ones marked as absent.
  *
  * A setting that was never written is not the same as one written empty:
@@ -464,7 +503,7 @@ function diluxone_e2e_options_read( WP_REST_Request $request ): WP_REST_Response
 			continue;
 		}
 
-		$value       = get_option( $key, DILUXONE_E2E_MISSING );
+		$value       = diluxone_e2e_option_get( $key );
 		$out[ $key ] = DILUXONE_E2E_MISSING === $value ? null : $value;
 	}
 
@@ -488,15 +527,15 @@ function diluxone_e2e_options_write( WP_REST_Request $request ): WP_REST_Respons
 			continue;
 		}
 
-		$was              = get_option( $key, DILUXONE_E2E_MISSING );
+		$was              = diluxone_e2e_option_get( $key );
 		$previous[ $key ] = DILUXONE_E2E_MISSING === $was ? null : $was;
 
 		if ( null === $value ) {
-			delete_option( $key );
+			diluxone_e2e_option_delete( $key );
 			continue;
 		}
 
-		update_option( $key, $value );
+		diluxone_e2e_option_set( $key, $value );
 	}
 
 	if ( $request->get_param( 'flush' ) ) {
@@ -522,7 +561,7 @@ function diluxone_e2e_options_write( WP_REST_Request $request ): WP_REST_Respons
  * request, with the settings as they are by then.
  */
 function diluxone_e2e_rebuild_rules(): void {
-	delete_option( 'diluxone_users_rewrite_version' );
+	diluxone_e2e_option_delete( 'diluxone_users_rewrite_version' );
 }
 
 /** Throttles, OAuth states and the rest of the plugin's short-lived rows. */

@@ -974,15 +974,15 @@ function diluxone_users_social_toggle(): void {
 	$network = sanitize_key( wp_unslash( $_GET['red'] ) );
 
 	$action = sanitize_key( wp_unslash( $_GET['diluxone_users_action'] ) );
-	$all    = (array) get_option( 'diluxone_users_sso', array() );
+	$all    = (array) diluxone_users_raw_get( 'diluxone_users_sso', array() );
 
 	if ( 'forget' === $action && isset( diluxone_users_sso_providers()[ $network ] ) ) {
 		unset( $all[ $network ] );
-		update_option( 'diluxone_users_sso', $all, false );
+		diluxone_users_update_option( 'diluxone_users_sso', $all, false );
 	} elseif ( isset( diluxone_users_sso_providers()[ $network ] ) && diluxone_users_sso_tested( $network ) ) {
 		$all[ $network ]['active'] = 'on' === $action ? 1 : 0;
 
-		update_option( 'diluxone_users_sso', $all, false );
+		diluxone_users_update_option( 'diluxone_users_sso', $all, false );
 	}
 
 	// Back where the press came from — the grid or the provider's own screen —
