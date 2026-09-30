@@ -853,7 +853,7 @@ msgid "With “remember me”"
 msgstr "Con \"recordarme\""
 
 #: includes/admin-2fa.php:306
-#: includes/admin-log.php:124
+#: includes/admin-log.php:139
 #: includes/admin-sessions.php:163
 #: includes/admin-sessions.php:174
 msgid "days"
@@ -867,29 +867,29 @@ msgstr "El enlace de acceso cuenta siempre como \"recordarme\": no hay contrase�
 msgid "In their account"
 msgstr "En su cuenta"
 
-#: includes/admin-log.php:423
-#: includes/admin-log.php:448
+#: includes/admin-log.php:553
+#: includes/admin-log.php:595
 #: includes/admin-sessions.php:271
 #: includes/admin-sessions.php:273
 msgid "Search"
 msgstr "Buscar"
 
-#: includes/admin-log.php:424
+#: includes/admin-log.php:554
 #: includes/admin-sessions.php:272
 msgid "Email, username or name…"
 msgstr "Correo, usuario o nombre…"
 
-#: includes/admin-log.php:462
+#: includes/admin-log.php:609
 #: includes/admin-sessions.php:287
 msgid "Clear"
 msgstr "Limpiar"
 
-#: includes/admin-log.php:465
+#: includes/admin-log.php:612
 #: includes/admin-sessions.php:290
 msgid "Show"
 msgstr "Mostrar"
 
-#: includes/admin-log.php:471
+#: includes/admin-log.php:618
 #: includes/admin-sessions.php:296
 msgid "per page"
 msgstr "por página"
@@ -904,7 +904,7 @@ msgstr "Actualizar"
 msgid "%1$s people with an open session · page %2$d of %3$d"
 msgstr "%1$s personas con la sesión abierta · página %2$d de %3$d"
 
-#: includes/admin-log.php:504
+#: includes/admin-log.php:654
 #: includes/admin-sessions.php:333
 msgid "Person"
 msgstr "Persona"
@@ -917,13 +917,13 @@ msgstr "Último ingreso"
 msgid "Expires"
 msgstr "Vence"
 
-#: includes/admin-log.php:507
+#: includes/admin-log.php:657
 #: includes/admin-sessions.php:337
 #: includes/log-privacy.php:84
 msgid "IP"
 msgstr "IP"
 
-#: includes/admin-log.php:508
+#: includes/admin-log.php:658
 #: includes/admin-sessions.php:338
 #: includes/log-privacy.php:88
 msgid "Device"
@@ -1313,11 +1313,12 @@ msgstr "Entorno"
 msgid "Copy this into a support message and half the back-and-forth disappears."
 msgstr "Pegá esto en un pedido de soporte y te ahorrás la mitad de las idas y vueltas."
 
-#: includes/admin-log.php:624
+#: includes/admin-log.php:786
+#: includes/admin-log.php:817
 #: includes/admin-tools.php:74
 #: includes/admin-tools.php:448
 #: includes/pages.php:123
-#: includes/sessions.php:358
+#: includes/sessions.php:361
 msgid "You are not allowed to do this."
 msgstr "No tenés permiso para hacer esto."
 
@@ -1514,7 +1515,7 @@ msgstr "Se sumó una passkey: %s."
 msgid "Passkey saved."
 msgstr "Passkey guardada."
 
-#: includes/admin-log.php:327
+#: includes/admin-log.php:381
 #: includes/admin-people.php:253
 #: includes/auth-passkeys.php:601
 #: includes/login-ways.php:513
@@ -2549,7 +2550,7 @@ msgstr "Cómo entrás"
 msgid "Email"
 msgstr "Correo"
 
-#: includes/admin-log.php:324
+#: includes/admin-log.php:378
 #: includes/login-ways.php:551
 #: includes/login-ways.php:617
 #: templates/account/security.php:56
@@ -5812,7 +5813,7 @@ msgstr "Área de cuenta › Secciones"
 msgid "The box each person gets belongs to the Security section, which is turned on and ordered there."
 msgstr "El cuadro que recibe cada persona es de la sección Seguridad, que se prende y se ordena allá."
 
-#: includes/admin-log.php:597
+#: includes/admin-log.php:740
 #: includes/admin-sessions.php:413
 msgid "The settings behind this report"
 msgstr "Los ajustes detrás de este informe"
@@ -5981,170 +5982,172 @@ msgid "Nothing carries it: no method is ticked, so nobody could finish signing i
 msgstr "Nada lo lleva: no hay ningún método tildado, así que nadie podría terminar de entrar."
 
 #: includes/admin-log.php:31
+#: includes/admin-log.php:48
 msgid "Activity"
 msgstr "Actividad"
 
-#: includes/admin-log.php:45
-#: includes/admin-network.php:641
+#: includes/admin-log.php:60
+#: includes/admin-log.php:744
+#: includes/admin-network.php:644
 msgid "Log settings"
 msgstr "Ajustes del registro"
 
-#: includes/admin-log.php:90
+#: includes/admin-log.php:105
 msgid "What this site writes down about what people do, and how long it keeps it. Everything here decides what the Activity tab beside it can show: a group that is not ticked is not recorded, and what was never recorded cannot be looked up afterwards."
 msgstr "Qué anota este sitio sobre lo que hace la gente, y cuánto lo guarda. Todo lo de acá decide qué puede mostrar la pestaña Actividad de al lado: un grupo que no está tildado no se registra, y lo que nunca se registró después no se puede consultar."
 
-#: includes/admin-log.php:94
+#: includes/admin-log.php:109
 msgid "What is written down"
 msgstr "Qué se anota"
 
-#: includes/admin-log.php:95
+#: includes/admin-log.php:110
 msgid "A fresh install records the way in and the way out, and nothing else. The other two are ticked by whoever will be paying for the rows — which is why each one says roughly what it costs."
 msgstr "Una instalación nueva registra la entrada y la salida, y nada más. Los otros dos los tilda quien vaya a pagar por las filas: por eso cada uno dice más o menos lo que cuesta."
 
-#: includes/admin-log.php:117
+#: includes/admin-log.php:132
 msgid "How long it is kept"
 msgstr "Cuánto tiempo se guarda"
 
-#: includes/admin-log.php:121
+#: includes/admin-log.php:136
 msgid "Keep a row for"
 msgstr "Guardar cada fila durante"
 
-#: includes/admin-log.php:126
+#: includes/admin-log.php:141
 msgid "Anything older goes once a day, on its own. 0 keeps everything for ever, which is a real answer for a site that has to keep it — and the one that has no end."
 msgstr "Lo más viejo que eso se borra una vez por día, solo. Con 0 se guarda todo para siempre, que es una respuesta real para un sitio que tiene que guardarlo, y la única que no tiene fin."
 
-#: includes/admin-log.php:142
+#: includes/admin-log.php:157
 msgid "Every row is disk"
 msgstr "Cada fila es disco"
 
-#: includes/admin-log.php:143
+#: includes/admin-log.php:158
 msgid "This is the one setting in the plugin that writes to the database because of what other people do, so it grows with the traffic and not with the configuration. A busy site ticking all three groups writes tens of thousands of rows a month; the number of days above is what stops that from being for ever."
 msgstr "Este es el único ajuste del plugin que escribe en la base de datos por lo que hacen otras personas, así que crece con el tráfico y no con la configuración. Un sitio con movimiento que tilde los tres grupos escribe decenas de miles de filas por mes; la cantidad de días de arriba es lo que evita que eso sea para siempre."
 
-#: includes/admin-log.php:147
+#: includes/admin-log.php:162
 msgid "What this fills"
 msgstr "Qué llena esto"
 
-#: includes/admin-log.php:151
+#: includes/admin-log.php:166
 msgid "Reports › Activity"
 msgstr "Informes › Actividad"
 
-#: includes/admin-log.php:152
+#: includes/admin-log.php:167
 msgid "The rows themselves, by person, by kind and by date. It only ever shows what was already being recorded when it happened."
 msgstr "Las filas en sí, por persona, por tipo y por fecha. Sólo muestra lo que ya se estaba registrando cuando pasó."
 
-#: includes/admin-log.php:242
+#: includes/admin-log.php:272
 msgid "Nothing is being recorded on this site."
 msgstr "En este sitio no se está registrando nada."
 
 #. translators: %s: the groups being recorded, each in <code>.
-#: includes/admin-log.php:245
+#: includes/admin-log.php:275
 #, php-format
 msgid "This site records %s and nothing else."
 msgstr "Este sitio registra %s y nada más."
 
 #. translators: 1: number of rows, 2: size on disk, e.g. "4 MB".
-#: includes/admin-log.php:251
+#: includes/admin-log.php:286
+#: includes/admin-log.php:327
 #, php-format
 msgid "The table holds %1$s rows and takes %2$s."
 msgstr "La tabla tiene %1$s filas y ocupa %2$s."
 
-#: includes/admin-log.php:253
+#: includes/admin-log.php:279
+#: includes/admin-log.php:329
 msgid "a size this database will not report"
 msgstr "un tamaño que esta base de datos no informa"
 
 #. translators: %s: a date.
-#: includes/admin-log.php:259
+#: includes/admin-log.php:349
 #, php-format
 msgid "The oldest row is from %s."
 msgstr "La fila más vieja es del %s."
 
-#: includes/admin-log.php:268
-#: includes/admin-log.php:304
+#: includes/admin-log.php:359
 msgid "kept for ever"
 msgstr "se guarda para siempre"
 
 #. translators: %s: a number of days.
-#: includes/admin-log.php:271
-#: includes/admin-log.php:307
+#: includes/admin-log.php:362
 #, php-format
 msgid "kept %s days"
 msgstr "se guarda %s días"
 
-#: includes/admin-log.php:325
+#: includes/admin-log.php:379
 msgid "E-mail link"
 msgstr "Enlace por correo"
 
-#: includes/admin-log.php:326
+#: includes/admin-log.php:380
 msgid "Social account"
 msgstr "Cuenta social"
 
 #. translators: %s: how many passkeys the account has left.
-#: includes/admin-log.php:364
+#: includes/admin-log.php:418
 #, php-format
 msgid "%s on the account now"
 msgstr "%s en la cuenta ahora"
 
 #. translators: %s: how many sessions were closed at once.
-#: includes/admin-log.php:371
+#: includes/admin-log.php:425
 #, php-format
 msgid "%s closed"
 msgstr "%s cerradas"
 
-#: includes/admin-log.php:417
+#: includes/admin-log.php:544
 msgid "What happened on this site, newest first. It shows only what was being recorded at the time: a group ticked this morning has nothing in it from yesterday."
 msgstr "Qué pasó en este sitio, lo más nuevo primero. Muestra sólo lo que se estaba registrando en ese momento: un grupo tildado esta mañana no tiene nada de ayer."
 
-#: includes/admin-log.php:426
-#: includes/admin-log.php:505
+#: includes/admin-log.php:573
+#: includes/admin-log.php:655
 #: includes/log-privacy.php:80
 msgid "What happened"
 msgstr "Qué pasó"
 
-#: includes/admin-log.php:428
+#: includes/admin-log.php:575
 msgid "Anything that happened"
 msgstr "Cualquier cosa que haya pasado"
 
-#: includes/admin-log.php:442
+#: includes/admin-log.php:589
 msgid "From"
 msgstr "Desde"
 
-#: includes/admin-log.php:445
+#: includes/admin-log.php:592
 msgid "To"
 msgstr "Hasta"
 
 #. translators: 1: number of rows, 2: current page, 3: total pages
-#: includes/admin-log.php:478
+#: includes/admin-log.php:625
 #, php-format
 msgid "%1$s rows · page %2$d of %3$d"
 msgstr "%1$s filas · página %2$d de %3$d"
 
-#: includes/admin-log.php:503
+#: includes/admin-log.php:650
 #: includes/log-privacy.php:76
 msgid "When"
 msgstr "Cuándo"
 
-#: includes/admin-log.php:506
+#: includes/admin-log.php:656
 msgid "Detail"
 msgstr "Detalle"
 
-#: includes/admin-log.php:513
+#: includes/admin-log.php:663
 msgid "Nothing matches that."
 msgstr "No hay nada que coincida."
 
-#: includes/admin-log.php:587
+#: includes/admin-log.php:730
 msgid "What is not here"
 msgstr "Qué no está acá"
 
-#: includes/admin-log.php:588
+#: includes/admin-log.php:731
 msgid "A row exists because its group was ticked at the moment it happened. Turning a group on today fills this from today; turning one off leaves what was already written until the days above run out."
 msgstr "Una fila existe porque su grupo estaba tildado en el momento en que pasó. Encender un grupo hoy llena esto desde hoy; apagarlo deja lo que ya estaba escrito hasta que se cumplan los días de arriba."
 
-#: includes/admin-log.php:601
+#: includes/admin-log.php:744
 msgid "Reports › Log settings"
 msgstr "Informes › Ajustes del registro"
 
-#: includes/admin-log.php:602
+#: includes/admin-log.php:745
 msgid "Which of the three groups is written down, and how many days a row is kept before it goes on its own."
 msgstr "Cuál de los tres grupos se anota, y cuántos días se guarda una fila antes de irse sola."
 
@@ -6296,92 +6299,92 @@ msgstr "Tildalo y guardá: se descarta lo que esté escrito arriba y esto vuelve
 
 #: includes/admin.php:84
 #: includes/log-privacy.php:33
-#: includes/log-privacy.php:102
-#: includes/log-privacy.php:122
+#: includes/log-privacy.php:111
+#: includes/log-privacy.php:131
 msgid "Activity log"
 msgstr "Registro de actividad"
 
-#: includes/log.php:236
+#: includes/log.php:411
 msgid "Ways in and out"
 msgstr "Entradas y salidas"
 
-#: includes/log.php:237
+#: includes/log.php:412
 msgid "Every sign-in, every sign-out, and every attempt that was refused."
 msgstr "Cada ingreso, cada salida y cada intento rechazado."
 
-#: includes/log.php:238
+#: includes/log.php:413
 msgid "A few rows per person per day: this is the group that grows with how often people come back."
 msgstr "Unas pocas filas por persona por día: este es el grupo que crece con la frecuencia con que la gente vuelve."
 
-#: includes/log.php:241
+#: includes/log.php:416
 msgid "Changes to the account"
 msgstr "Cambios en la cuenta"
 
-#: includes/log.php:242
+#: includes/log.php:417
 msgid "The e-mail address, the password, the public name, and the details this site asks people for."
 msgstr "La dirección de correo, la contraseña, el nombre público y los datos que este sitio le pide a la gente."
 
-#: includes/log.php:243
+#: includes/log.php:418
 msgid "Almost nothing: most people change these once and never again."
 msgstr "Casi nada: la mayoría cambia esto una vez y nunca más."
 
-#: includes/log.php:246
+#: includes/log.php:421
 msgid "Changes to the security"
 msgstr "Cambios en la seguridad"
 
-#: includes/log.php:247
+#: includes/log.php:422
 msgid "Two-step verification turned on or off, a passkey added or removed, sessions closed."
 msgstr "Verificación en dos pasos activada o desactivada, una passkey agregada o borrada, sesiones cerradas."
 
-#: includes/log.php:248
+#: includes/log.php:423
 msgid "Almost nothing, and it is the group worth having when an account is taken over."
 msgstr "Casi nada, y es el grupo que vale la pena tener cuando le roban una cuenta a alguien."
 
-#: includes/log.php:293
+#: includes/log.php:468
 msgid "Signed in"
 msgstr "Entró"
 
-#: includes/log.php:294
+#: includes/log.php:469
 msgid "Signed out"
 msgstr "Salió"
 
-#: includes/log.php:295
+#: includes/log.php:470
 msgid "Sign-in refused"
 msgstr "Ingreso rechazado"
 
-#: includes/log.php:297
+#: includes/log.php:472
 msgid "E-mail address changed"
 msgstr "Cambió la dirección de correo"
 
-#: includes/log.php:298
+#: includes/log.php:473
 msgid "Password changed"
 msgstr "Cambió la contraseña"
 
-#: includes/log.php:299
+#: includes/log.php:474
 msgid "Public name changed"
 msgstr "Cambió el nombre público"
 
-#: includes/log.php:300
+#: includes/log.php:475
 msgid "Details saved"
 msgstr "Se guardaron los datos"
 
-#: includes/log.php:301
+#: includes/log.php:476
 msgid "Two-step verification turned on"
 msgstr "Se activó la verificación en dos pasos"
 
-#: includes/log.php:302
+#: includes/log.php:477
 msgid "Two-step verification turned off"
 msgstr "Se desactivó la verificación en dos pasos"
 
-#: includes/log.php:303
+#: includes/log.php:478
 msgid "Passkey added"
 msgstr "Se agregó una passkey"
 
-#: includes/log.php:304
+#: includes/log.php:479
 msgid "Passkey removed"
 msgstr "Se borró una passkey"
 
-#: includes/log.php:305
+#: includes/log.php:480
 msgid "Sessions closed"
 msgstr "Se cerraron sesiones"
 
@@ -6997,7 +7000,7 @@ msgstr "Qué pasa cuando se borra el plugin"
 msgid "By default, nothing. The settings stay, the activity log stays, and so does everything in people’s profiles — their details, their public names, their passkeys and their second factors. That is on purpose: a plugin deleted by accident, or deleted to be installed again, should not be what loses somebody their account. Tick this only when the plugin is going for good and the data is meant to go with it. It cannot be undone, and it runs on delete, not on deactivate."
 msgstr "Por omisión, nada. Quedan los ajustes, queda el registro de actividad y queda todo lo que hay en los perfiles: los datos de cada persona, sus nombres públicos, sus passkeys y sus segundos factores. Es a propósito: un plugin borrado por error, o borrado para volver a instalarlo, no tiene que ser lo que le haga perder la cuenta a alguien. Marcá esto solo si el plugin se va para siempre y los datos se van con él. No se puede deshacer, y corre al borrar, no al desactivar."
 
-#: includes/admin-network.php:587
+#: includes/admin-network.php:590
 #: includes/admin-tools.php:630
 msgid "Remove everything this plugin wrote when it is deleted"
 msgstr "Borrar todo lo que escribió este plugin cuando se lo elimine"
@@ -7018,7 +7021,7 @@ msgstr "Demasiados intentos. Esperá un momento y probá de nuevo."
 msgid "None — read the connection"
 msgstr "Ninguna — leer la conexión"
 
-#: includes/log.php:296
+#: includes/log.php:471
 msgid "Second step refused"
 msgstr "Segundo paso rechazado"
 
@@ -7220,7 +7223,7 @@ msgid "Error: the form expired. Load the page again and send it once more."
 msgstr "Error: el formulario venció. Cargá la página de nuevo y mandalo otra vez."
 
 #. translators: %d: how many refused sign-in attempts are kept.
-#: includes/log-privacy.php:172
+#: includes/log-privacy.php:181
 #, php-format
 msgid "%d refused sign-in attempt that typed this person's username or e-mail was kept: it is security evidence, and it is deleted when the activity log's retention runs out."
 msgid_plural "%d refused sign-in attempts that typed this person's username or e-mail were kept: they are security evidence, and they are deleted when the activity log's retention runs out."
@@ -7657,30 +7660,30 @@ msgid "There are unsaved changes"
 msgstr "Hay cambios sin guardar"
 
 #. translators: %s: number of rows deleted
-#: includes/admin-log.php:175
+#: includes/admin-log.php:195
 #, php-format
 msgid "The activity log was emptied: %s rows deleted."
 msgstr "Se vació el registro de actividad: se borraron %s filas."
 
-#: includes/admin-log.php:182
+#: includes/admin-log.php:207
 msgid "Empty it now"
 msgstr "Vaciarlo ahora"
 
-#: includes/admin-log.php:184
+#: includes/admin-log.php:202
 msgid "Every row goes, whatever its age, and the Activity tab starts again from nothing. What is recorded from then on follows the settings above."
 msgstr "Se van todas las filas, tengan la edad que tengan, y la pestaña Actividad arranca de cero. Lo que se registre desde entonces sigue los ajustes de arriba."
 
 #. translators: %s: number of rows
-#: includes/admin-log.php:195
+#: includes/admin-log.php:224
 #, php-format
 msgid "The %s rows of the activity log are deleted for good. It cannot be undone. Go ahead?"
 msgstr "Las %s filas del registro de actividad se borran para siempre. No se puede deshacer. ¿Seguimos?"
 
-#: includes/admin-log.php:199
+#: includes/admin-log.php:228
 msgid "Delete every row"
 msgstr "Borrar todas las filas"
 
-#: includes/admin-log.php:202
+#: includes/admin-log.php:231
 msgid "There is nothing in it."
 msgstr "No hay nada."
 
@@ -7720,25 +7723,15 @@ msgctxt "a sign-in provider"
 msgid "Turn it on"
 msgstr "Activar"
 
-#: includes/admin-log.php:89
-msgid "What every site of the network writes down about what people do, and how long it keeps it. Each site keeps its own rows, on its own Reports › Activity: a group that is not ticked here is not recorded on any of them."
-msgstr "Qué anota cada sitio de la red sobre lo que hace la gente, y cuánto lo guarda. Cada sitio guarda sus propias filas, en su propio Informes › Actividad: un grupo que no está tildado acá no se registra en ninguno."
-
-#: includes/admin-log.php:185
+#: includes/admin-log.php:203
 msgid "Every row of this site goes, whatever its age, and this tab starts again from nothing. What is recorded from then on follows the network’s log settings."
 msgstr "Se van todas las filas de este sitio, tengan la edad que tengan, y esta pestaña arranca de cero. Lo que se registre desde entonces sigue los ajustes del registro de la red."
 
-#: includes/admin-log.php:291
+#: includes/admin-log.php:316
 msgid "Nothing is being recorded on any site of the network."
 msgstr "No se está registrando nada en ningún sitio de la red."
 
-#. translators: %s: the groups being recorded, each in <code>.
-#: includes/admin-log.php:294
-#, php-format
-msgid "Every site of the network records %s and nothing else, each in its own table."
-msgstr "Cada sitio de la red registra %s y nada más, cada uno en su propia tabla."
-
-#: includes/admin-log.php:601
+#: includes/admin-log.php:744
 msgid "Network Admin › Activity log"
 msgstr "Administración de la red › Registro de actividad"
 
@@ -7746,44 +7739,44 @@ msgstr "Administración de la red › Registro de actividad"
 msgid "On this network these are switched on or off for every site at once, in Network Admin: social accounts under Social login › Rules, passkeys under Security › Passkeys."
 msgstr "En esta red, esto se prende o se apaga para todos los sitios a la vez, en la Administración de la red: las redes sociales en Login social › Reglas, las passkeys en Seguridad › Passkeys."
 
-#: includes/admin-network.php:274
+#: includes/admin-network.php:277
 msgid "The network"
 msgstr "La red"
 
-#: includes/admin-network.php:285
+#: includes/admin-network.php:288
 msgid "Deleting the plugin"
 msgstr "Borrar el plugin"
 
-#: includes/admin-network.php:350
+#: includes/admin-network.php:353
 msgid "On this network the plugin applies one set of rules to every site. Who gets in and how safely, the social sign-in apps, the fields a person has and what the activity log keeps are decided here, for all of them. Each site keeps its own menus, admin bar, reports and maintenance."
 msgstr "En esta red, el plugin aplica un solo juego de reglas a todos los sitios. Quién entra y con cuánta seguridad, las aplicaciones de acceso con redes sociales, los campos que tiene cada persona y qué guarda el registro de actividad se deciden acá, para todos. Cada sitio conserva sus propios menús, su barra de herramientas, sus informes y su mantenimiento."
 
-#: includes/admin-network.php:367
+#: includes/admin-network.php:370
 msgid "Where the accounts live"
 msgstr "Dónde viven las cuentas"
 
-#: includes/admin-network.php:369
+#: includes/admin-network.php:372
 msgid "The main site of the network. Its sign-in, registration and account pages, and how they look, are set on its own dashboard."
 msgstr "El sitio principal de la red. Sus páginas de acceso, de registro y de cuenta, y cómo se ven, se configuran en su propio escritorio."
 
-#: includes/admin-network.php:373
+#: includes/admin-network.php:376
 msgid "Open its dashboard"
 msgstr "Abrir su escritorio"
 
-#: includes/admin-network.php:382
+#: includes/admin-network.php:385
 msgid "How the sites are addressed"
 msgstr "Cómo se direccionan los sitios"
 
-#: includes/admin-network.php:383
+#: includes/admin-network.php:386
 msgid "Subdomains"
 msgstr "Subdominios"
 
-#: includes/admin-network.php:383
+#: includes/admin-network.php:386
 msgid "Subdirectories"
 msgstr "Subdirectorios"
 
 #. translators: %s: number of sites
-#: includes/admin-network.php:386
+#: includes/admin-network.php:389
 #, php-format
 msgid "%s site on this network."
 msgid_plural "%s sites on this network."
@@ -7791,117 +7784,120 @@ msgstr[0] "%s sitio en esta red."
 msgstr[1] "%s sitios en esta red."
 
 #. translators: %s: the addresses of the sites, each in <code>
-#: includes/admin-network.php:407
+#: includes/admin-network.php:410
 #, php-format
 msgid "These sites have a domain of their own: %s."
 msgstr "Estos sitios tienen un dominio propio: %s."
 
-#: includes/admin-network.php:410
+#: includes/admin-network.php:413
 msgid "People have to sign in again on these sites: a session opened on the rest of the network does not reach a domain of its own. That is not supported in this version."
 msgstr "En estos sitios la gente tiene que volver a iniciar sesión: una sesión abierta en el resto de la red no llega a un dominio propio. Eso no está soportado en esta versión."
 
-#: includes/admin-network.php:421
+#: includes/admin-network.php:424
 msgid "What a site can no longer change"
 msgstr "Lo que un sitio ya no puede cambiar"
 
-#: includes/admin-network.php:423
+#: includes/admin-network.php:426
 msgid "The second step, passkeys, how long a session lasts, the proxy, the social sign-in apps and their rules, the fields a person has and what the log keeps. A site administrator does not see these screens, and nothing sent to their own site writes them."
 msgstr "El segundo paso, las passkeys, cuánto dura una sesión, el proxy, las aplicaciones de acceso con redes sociales y sus reglas, los campos que tiene cada persona y qué guarda el registro. Un administrador del sitio no ve estas pantallas, y nada que se mande a su propio sitio las escribe."
 
-#: includes/admin-network.php:424
+#: includes/admin-network.php:427
 msgid "What fits into each site’s theme is still that site’s: where the account link goes in its menus, its admin bar and its dashboard profile."
 msgstr "Lo que encaja en el tema de cada sitio sigue siendo de ese sitio: dónde va el enlace a la cuenta en sus menús, su barra de herramientas y el perfil de su escritorio."
 
-#: includes/admin-network.php:439
+#: includes/admin-network.php:442
 msgid "Set for the whole network"
 msgstr "Configurado para toda la red"
 
-#: includes/admin-network.php:459
+#: includes/admin-network.php:462
 msgid "What the sites had set differently"
 msgstr "Lo que los sitios tenían configurado distinto"
 
-#: includes/admin-network.php:460
+#: includes/admin-network.php:463
 msgid "When the settings became the network’s, the main site’s were kept. These sites had something else, and now follow the network. The user fields are the exception: every site’s fields were kept."
 msgstr "Cuando los ajustes pasaron a ser de la red, se conservaron los del sitio principal. Estos sitios tenían otra cosa, y ahora siguen a la red. Los campos de usuario son la excepción: se conservaron los campos de todos los sitios."
 
-#: includes/admin-network.php:466
+#: includes/admin-log.php:560
+#: includes/admin-log.php:652
+#: includes/admin-network.php:469
+#: includes/log-privacy.php:97
 msgid "Site"
 msgstr "Sitio"
 
-#: includes/admin-network.php:467
+#: includes/admin-network.php:470
 msgid "Setting"
 msgstr "Ajuste"
 
-#: includes/admin-network.php:468
+#: includes/admin-network.php:471
 msgid "What it had"
 msgstr "Lo que tenía"
 
-#: includes/admin-network.php:492
+#: includes/admin-network.php:495
 msgid "Different credentials, not shown. The main site’s are the network’s now."
 msgstr "Otras credenciales, que no se muestran. Ahora las de la red son las del sitio principal."
 
-#: includes/admin-network.php:494
+#: includes/admin-network.php:497
 msgid "Everything was to go when the plugin is deleted. The network’s answer starts unticked: it is decided on the Deleting the plugin tab."
 msgstr "Estaba configurado para borrar todo al eliminar el plugin. La respuesta de la red arranca sin tildar: se decide en la pestaña Borrar el plugin."
 
 #. translators: %s: the key of a user field
-#: includes/admin-network.php:498
+#: includes/admin-network.php:501
 #, php-format
 msgid "A different definition of the field %s. The main site’s was kept."
 msgstr "Una definición distinta del campo %s. Se conservó la del sitio principal."
 
 #. translators: 1: plugin name, 2: the names of the sites, comma separated
-#: includes/admin-network.php:531
+#: includes/admin-network.php:534
 #, php-format
 msgid "%1$s now applies one set of settings to the whole network, taken from the main site. These sites had set some of them differently: %2$s."
 msgstr "%1$s ahora aplica un solo juego de ajustes a toda la red, tomado del sitio principal. Estos sitios tenían algunos configurados distinto: %2$s."
 
-#: includes/admin-network.php:537
+#: includes/admin-network.php:540
 msgid "See what was different"
 msgstr "Ver qué era distinto"
 
-#: includes/admin-network.php:539
+#: includes/admin-network.php:542
 msgid "Dismiss"
 msgstr "Descartar"
 
-#: includes/admin-network.php:578
+#: includes/admin-network.php:581
 msgid "By default, deleting the plugin removes nothing. The settings stay, every site’s activity log stays, and so does everything in people’s profiles — their details, their public names, their passkeys and their second factors. A plugin deleted by accident, or deleted to be installed again, should not be what loses somebody their account."
 msgstr "Por omisión, borrar el plugin no elimina nada. Quedan los ajustes, queda el registro de actividad de cada sitio y queda todo lo que hay en los perfiles: los datos de cada persona, sus nombres públicos, sus passkeys y sus segundos factores. Un plugin borrado por error, o borrado para volver a instalarlo, no tiene que ser lo que le haga perder la cuenta a alguien."
 
-#: includes/admin-network.php:588
+#: includes/admin-network.php:591
 msgid "The network’s settings, every site’s settings and activity log, and what the plugin keeps in people’s profiles. It cannot be undone, and it runs on delete, not on deactivate."
 msgstr "Los ajustes de la red, los ajustes y el registro de actividad de cada sitio, y lo que el plugin guarda en los perfiles de la gente. No se puede deshacer, y corre al borrar, no al desactivar."
 
-#: includes/admin-network.php:597
+#: includes/admin-network.php:600
 msgid "Deleting the plugin removes everything it wrote, on every site."
 msgstr "Borrar el plugin elimina todo lo que escribió, en todos los sitios."
 
-#: includes/admin-network.php:598
+#: includes/admin-network.php:601
 msgid "Deleting the plugin leaves the data where it is."
 msgstr "Borrar el plugin deja los datos donde están."
 
-#: includes/admin-network.php:646
+#: includes/admin-network.php:649
 msgid "Set somewhere else"
 msgstr "Se configura en otro lado"
 
-#: includes/admin-network.php:648
+#: includes/admin-network.php:651
 msgid "On this network the rules about people are the network’s, and the screens people sign in and keep their account on are the main site’s. This site keeps its own menus, admin bar, reports and maintenance."
 msgstr "En esta red, las reglas sobre la gente son de la red, y las pantallas donde la gente entra y maneja su cuenta son del sitio principal. Este sitio conserva sus propios menús, su barra de herramientas, sus informes y su mantenimiento."
 
-#: includes/admin-network.php:649
+#: includes/admin-network.php:652
 msgid "On this network the rules about people are the network’s: they apply to every site, and they are set in Network Admin."
 msgstr "En esta red, las reglas sobre la gente son de la red: valen para todos los sitios, y se configuran en la Administración de la red."
 
-#: includes/admin-network.php:661
+#: includes/admin-network.php:664
 msgid "Open it"
 msgstr "Abrir"
 
-#: includes/admin-network.php:670
+#: includes/admin-network.php:673
 msgid "Managed by the network: one setting for every site, set in Network Admin."
 msgstr "Lo maneja la red: un solo ajuste para todos los sitios, que se configura en la Administración de la red."
 
 #. translators: %s: the name of the network's main site
-#: includes/admin-network.php:673
+#: includes/admin-network.php:676
 #, php-format
 msgid "Set on %s, the site where people sign in and keep their account."
 msgstr "Se configura en %s, el sitio donde la gente entra y maneja su cuenta."
@@ -7931,3 +7927,55 @@ msgstr "Decidido para toda la red: borrar el plugin elimina todo lo que escribi�
 #: includes/admin-tools.php:616
 msgid "Decided for the whole network: deleting the plugin leaves the data where it is."
 msgstr "Decidido para toda la red: borrar el plugin deja los datos donde están."
+
+#: includes/admin-log.php:104
+msgid "What every site of the network writes down about what people do, and how long it keeps it. The rows are one table for the whole network: each site sees its own on its Reports › Activity, and the Activity tab beside this one has them all. A group that is not ticked here is not recorded on any site."
+msgstr "Lo que cada sitio de la red anota sobre lo que hace la gente, y cuánto tiempo lo guarda. Las filas son una sola tabla para toda la red: cada sitio ve las suyas en su Informes › Actividad, y la pestaña Actividad, al lado de esta, las tiene todas. Un grupo que no está tildado acá no se registra en ningún sitio."
+
+#: includes/admin-log.php:204
+msgid "Every row of every site goes, whatever its age, and every site’s Activity tab starts again from nothing. What is recorded from then on follows the log settings."
+msgstr "Se van todas las filas de todos los sitios, tengan la edad que tengan, y la pestaña Actividad de cada sitio arranca de cero. Lo que se registre desde entonces sigue los ajustes del registro."
+
+#. translators: %s: number of rows
+#: includes/admin-log.php:219
+#, php-format
+msgid "The %s rows of every site’s activity log are deleted for good. It cannot be undone. Go ahead?"
+msgstr "Las %s filas del registro de actividad de todos los sitios se borran para siempre. No se puede deshacer. ¿Seguimos?"
+
+#. translators: 1: number of rows, 2: size on disk, e.g. "4 MB".
+#: includes/admin-log.php:292
+#, php-format
+msgid "This site has %1$s rows in the network’s table, which takes %2$s for every site."
+msgstr "Este sitio tiene %1$s filas en la tabla de la red, que ocupa %2$s para todos los sitios."
+
+#. translators: %s: the groups being recorded, each in <code>.
+#: includes/admin-log.php:319
+#, php-format
+msgid "Every site of the network records %s and nothing else, in one table for the whole network."
+msgstr "Cada sitio de la red registra %s y nada más, en una sola tabla para toda la red."
+
+#: includes/admin-log.php:543
+msgid "What happened on every site of the network, newest first, with the site each row happened on. It shows only what was being recorded at the time: a group ticked this morning has nothing in it from yesterday."
+msgstr "Qué pasó en cada sitio de la red, lo más nuevo primero, con el sitio donde pasó cada fila. Muestra sólo lo que se estaba registrando en ese momento: un grupo tildado esta mañana no tiene nada de ayer."
+
+#: includes/admin-log.php:562
+msgid "Site ID"
+msgstr "ID del sitio"
+
+#: includes/admin-log.php:565
+msgid "Every site"
+msgstr "Todos los sitios"
+
+#: includes/admin-log.php:769
+msgid "The sites’ older rows are still being moved into the network’s table, a batch every minute. Until that finishes, some sites show only their newer rows."
+msgstr "Las filas más viejas de los sitios todavía se están pasando a la tabla de la red, una tanda por minuto. Hasta que termine, algunos sitios muestran sólo sus filas más nuevas."
+
+#: includes/admin-log.php:770
+msgid "This site’s older rows are still being moved into the network’s table, a batch every minute. Until that finishes, some of them may not be here yet."
+msgstr "Las filas más viejas de este sitio todavía se están pasando a la tabla de la red, una tanda por minuto. Hasta que termine, puede que algunas todavía no estén acá."
+
+#. translators: %d: the id of a site that no longer exists.
+#: includes/log.php:388
+#, php-format
+msgid "Site %d"
+msgstr "Sitio %d"
