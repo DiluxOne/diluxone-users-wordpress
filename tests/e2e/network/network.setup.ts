@@ -74,9 +74,9 @@ setup('two sites, seeded, and the network settings written down', async () => {
 			wp(['site', 'create', `--slug=${slug}`, `--title=${slug[0].toUpperCase()}${slug.slice(1)}`, '--porcelain']);
 		}
 
-		// Pages of its own all the same, each carrying its shortcode: a site
-		// of the network can draw the sign-in form on a page of its own, and
-		// the form posts to that site.
+		// Pages of its own all the same, each carrying its shortcode, the
+		// way a site owner publishes them: on a site that is not the hub each
+		// one draws a door to the hub's page instead of a form.
 		const site = await Site.open(subsiteUrl(slug));
 		const seeded = await site.seed();
 

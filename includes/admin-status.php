@@ -594,7 +594,10 @@ function diluxone_users_screen_status_lockout(): void {
 		__( 'That address shows the WordPress form with a username and a password, whatever the site is set to. It is no secret: the password is still what keeps the door shut, so it opens only for an account that has one.', 'diluxone-users' )
 	);
 
-	printf( '<p><code>%s</code></p>', esc_html( wp_login_url() . '?diluxone-users-admin=1' ) );
+	// This site's own wp-login.php and not wp_login_url(): on a network that
+	// is the hub's sign-in, and the emergency door is the one door each site
+	// keeps for itself.
+	printf( '<p><code>%s</code></p>', esc_html( site_url( 'wp-login.php', 'login' ) . '?diluxone-users-admin=1' ) );
 
 	diluxone_users_panel_actions(
 		array(

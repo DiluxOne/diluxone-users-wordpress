@@ -1,5 +1,5 @@
 import { Page } from '@playwright/test';
-import { test, expect, SiteHandle } from './support';
+import { test, expect, toTheHub, SiteHandle } from './support';
 import { freshEmail, linkIn, waitForMail } from '../support/api';
 import { accountSection, signInWithPassword } from '../support/ui';
 import { wp } from '../support/cli';
@@ -77,9 +77,9 @@ test.describe('Deleting an account on a network', () => {
 		// The address is not the account's any more: nobody answers to it.
 		expect((await beta.site.user(email)).exists, 'the address no longer names anybody').toBe(false);
 
-		// Signing in with what used to work does not.
+		// Signing in from /beta/ with what used to work does not.
 		await page.context().clearCookies();
-		await page.goto(beta.pages.login.url);
+		await toTheHub(page, beta, hub);
 		await signInWithPassword(page, email, PASSWORD);
 		await page.waitForLoadState('domcontentloaded');
 		await expect(page.locator('.diluxone-users-notice--error, #login_error').first()).toBeVisible();

@@ -1,8 +1,8 @@
 import { Page } from '@playwright/test';
-import { test, expect, whoOn, opensDashboard, pageWith, SiteHandle } from './support';
+import { test, expect, whoOn, opensDashboard, signInFrom, toTheHub, SiteHandle } from './support';
 import { freshEmail } from '../support/api';
 import { wp } from '../support/cli';
-import { adminUrl, challengeScreen, emailField, loginWay, passwordForm, savePanel, signInWithPassword } from '../support/ui';
+import { accountSection, adminUrl, challengeScreen, emailField, loginWay, openPanel, passwordForm, savePanel, signInWithPassword } from '../support/ui';
 import { NETWORK_ADMIN_STATE } from '../../../playwright.network.config';
 
 /**
@@ -27,7 +27,7 @@ const PIXEL = Buffer.from(
 test.describe('The main site’s sign-in settings are every site’s', () => {
 	test.use({ storageState: NETWORK_ADMIN_STATE });
 
-	test('“only the link” saved on the main site takes the password form off /alpha/ and /beta/ alike', async ({
+	test('“only the link” saved on the main site takes the password form off the sign-in every site sends to', async ({
 		page,
 		guest,
 		hub,
@@ -47,9 +47,11 @@ test.describe('The main site’s sign-in settings are every site’s', () => {
 				`/${one.slug}/ reads the main site’s answer`
 			).toBe('link');
 
-			await guest.goto(one.pages.login.url);
-			await expect(emailField(guest), `/${one.slug}/ still draws the form`).toBeVisible();
-			await expect(passwordForm(guest), `no password on /${one.slug}/`).toHaveCount(0);
+			// Each site's door leads to the one sign-in page, which has lost
+			// its password form for all of them.
+			await toTheHub(guest, one, hub);
+			await expect(emailField(guest), `from /${one.slug}/, the form`).toBeVisible();
+			await expect(passwordForm(guest), `from /${one.slug}/, no password`).toHaveCount(0);
 		}
 	});
 });
@@ -57,9 +59,10 @@ test.describe('The main site’s sign-in settings are every site’s', () => {
 test.describe('Reports › Sessions is a report on this site', () => {
 	test.use({ storageState: NETWORK_ADMIN_STATE });
 
-	test('on /alpha/ it lists the members of /alpha/, and not somebody signed in on /beta/ only', async ({
+	test('on /alpha/ it lists the members of /alpha/, and not somebody signed in from /beta/ only', async ({
 		page,
 		browser,
+		hub,
 		alpha,
 		beta,
 	}) => {
@@ -70,7 +73,7 @@ test.describe('Reports › Sessions is a report on this site', () => {
 		await alpha.site.makeUser({ email: here, password: PASSWORD });
 		await beta.site.makeUser({ email: there, password: PASSWORD });
 
-		// Both signed in, each on their own site, each in their own browser.
+		// Both signed in, each from their own site, each in their own browser.
 		for (const [who, one] of [
 			[here, alpha],
 			[there, beta],
@@ -81,9 +84,7 @@ test.describe('Reports › Sessions is a report on this site', () => {
 			const context = await browser.newContext({ storageState: { cookies: [], origins: [] } });
 			const person = await context.newPage();
 
-			await person.goto(one.pages.login.url);
-			await signInWithPassword(person, who, PASSWORD);
-			await person.waitForLoadState('domcontentloaded');
+			await signInFrom(person, one, hub, who, PASSWORD);
 			expect(await whoOn(person, one.url)).toBe(who);
 			await context.close();
 		}
@@ -142,22 +143,29 @@ test.describe('A photo belongs to the person, and the person to the network', ()
 		await hub.set({ diluxone_users_avatar_upload: 1, diluxone_users_2fa_mode: 'off' });
 	});
 
+	/** Opens the box on the account's details that holds the photo form. */
+	async function photoForm(page: Page) {
+		const form = page.locator('form.diluxone-users-avatar__form');
+
+		await openPanel(page, 'form.diluxone-users-avatar__form');
+
+		return form;
+	}
+
 	/**
-	 * Signs a member of both sites in on /alpha/ and uploads a photo there, on
-	 * a page of /alpha/ that draws the photo piece of the account.
+	 * Signs a member of both sites in from /alpha/ and uploads a photo on the
+	 * account — the hub's, where the account lives.
 	 */
-	async function uploadOnAlpha(page: Page, alpha: SiteHandle, beta: SiteHandle) {
+	async function uploadFromAlpha(page: Page, hub: SiteHandle, alpha: SiteHandle, beta: SiteHandle) {
 		const email = freshEmail('net-photo');
 		const person = await alpha.site.makeUser({ email, password: PASSWORD });
 
 		await beta.site.makeUser({ email, password: PASSWORD });
 
-		await page.goto(alpha.pages.login.url);
-		await signInWithPassword(page, email, PASSWORD);
-		await page.waitForLoadState('domcontentloaded');
-		await page.goto(pageWith(alpha, 'diluxone_users_avatar'));
+		await signInFrom(page, alpha, hub, email, PASSWORD);
+		await page.goto(accountSection(hub.pages.account.url, 'details'));
 
-		const form = page.locator('form.diluxone-users-avatar__form');
+		const form = await photoForm(page);
 
 		await form.locator('input[name="diluxone_users_avatar_file"]').setInputFiles({
 			name: 'me.png',
@@ -166,39 +174,46 @@ test.describe('A photo belongs to the person, and the person to the network', ()
 		});
 		await Promise.all([page.waitForURL(/diluxone-users=saved/), form.locator('button[type="submit"]').first().click()]);
 
-		const attachment = Number((await alpha.site.user(email, ['diluxone_users_avatar'])).fields.diluxone_users_avatar);
+		const attachment = Number((await hub.site.user(email, ['diluxone_users_avatar'])).fields.diluxone_users_avatar);
 
 		expect(attachment, 'the photo became an attachment').toBeGreaterThan(0);
 
 		const src = await page.locator('.diluxone-users-avatar__current img').getAttribute('src');
 
-		expect(src, 'the photo is drawn on /alpha/').toContain('/uploads/');
+		expect(src, 'the photo is drawn on the account').toContain('/uploads/');
 
 		return { email, person, attachment, src: src! };
 	}
 
-	test('uploaded on /alpha/, it is the same photo on /beta/', async ({ page, alpha, beta }) => {
-		const { src } = await uploadOnAlpha(page, alpha, beta);
+	test('uploaded on the account, it is the same photo in /beta/’s menu', async ({ page, hub, alpha, beta }) => {
+		const { src } = await uploadFromAlpha(page, hub, alpha, beta);
+		const menu = await beta.site.menu();
 
-		await page.goto(pageWith(beta, 'diluxone_users_avatar'));
+		await beta.set({ diluxone_users_menu_location: menu.location, diluxone_users_menu_style: 'avatar-name' });
 
-		// The same file. The address may start with /beta/ rather than
-		// /alpha/: WordPress builds a network's upload URLs from the content
-		// URL of the site serving the page, and the network's rewrite rules
-		// send both to the one file. What must match is the file.
-		const file = (url: string | null) => (url ?? '').replace(/^.*\/wp-content\//, '');
+		try {
+			await page.goto(menu.url);
 
-		expect(
-			file(await page.locator('.diluxone-users-avatar__current img').getAttribute('src')),
-			'the same picture on the next site of the network'
-		).toBe(file(src));
+			// The same file. The address may start with /beta/: WordPress
+			// builds a network's upload URLs from the content URL of the site
+			// serving the page, and the network's rewrite rules send both to
+			// the one file. What must match is the file.
+			const file = (url: string | null) => (url ?? '').replace(/^.*\/wp-content\//, '');
+
+			expect(
+				file(await page.locator('img.diluxone-users-menu__avatar').getAttribute('src')),
+				'the same picture on the next site of the network'
+			).toBe(file(src));
+		} finally {
+			await beta.site.forgetMenu();
+		}
 	});
 
-	test('removed on /beta/, it takes no file of /beta/ with it', async ({ page, alpha, beta }) => {
-		const { person, attachment } = await uploadOnAlpha(page, alpha, beta);
+	test('removed on the account, it takes no file of /beta/ with it', async ({ page, hub, alpha, beta }) => {
+		const { person, attachment } = await uploadFromAlpha(page, hub, alpha, beta);
 
 		// /beta/ has its own media library, and in it a file of this person's
-		// with the same number as the photo on /alpha/ — which is what two
+		// with the same number as the photo on the hub — which is what two
 		// auto-increment tables produce sooner or later on any network. It is
 		// the file a careless "delete the photo" deletes.
 		const own = Number(
@@ -220,16 +235,17 @@ test.describe('A photo belongs to the person, and the person to the network', ()
 		expect(own, '/beta/ has a file with the same id').toBe(attachment);
 
 		try {
-			await page.goto(pageWith(beta, 'diluxone_users_avatar'));
+			await page.goto(accountSection(hub.pages.account.url, 'details'));
 
-			const remove = page.locator('form.diluxone-users-avatar__form button[name="diluxone_users_avatar_remove"]');
+			const form = await photoForm(page);
+			const remove = form.locator('button[name="diluxone_users_avatar_remove"]');
 
-			await expect(remove, '/beta/ knows there is a photo to remove').toBeVisible();
+			await expect(remove, 'the account knows there is a photo to remove').toBeVisible();
 			await Promise.all([page.waitForURL(/diluxone-users=saved/), remove.click()]);
 
 			expect(
 				wp(['post', 'list', '--post_type=attachment', '--post_status=any', `--post__in=${attachment}`, '--field=ID'], beta.url),
-				'removing the photo on /beta/ deleted a file of /beta/'
+				'removing the photo on the hub deleted a file of /beta/'
 			).toBe(String(attachment));
 		} finally {
 			// Gone already when the assertion above failed; that is the finding,
@@ -244,7 +260,7 @@ test.describe('A photo belongs to the person, and the person to the network', ()
 });
 
 test.describe('The second step is the network’s', () => {
-	test('required of administrators, it is asked of an administrator of /alpha/ who signs in on /beta/ as a subscriber', async ({
+	test('required of administrators, it is asked of an administrator of /alpha/ who signs in for /beta/ as a subscriber', async ({
 		page,
 		hub,
 		alpha,
@@ -263,25 +279,33 @@ test.describe('The second step is the network’s', () => {
 		await alpha.site.makeUser({ email, password: PASSWORD, role: 'administrator' });
 		await beta.site.makeUser({ email, password: PASSWORD, role: 'subscriber' });
 
-		// The control: on /alpha/ itself the password is not enough.
-		await page.goto(alpha.pages.login.url);
-		await signInWithPassword(page, email, PASSWORD);
+		// The control: from /alpha/ the password is not enough.
+		await signInFrom(page, alpha, hub, email, PASSWORD);
 		await expect(challengeScreen(page)).toBeVisible();
 		expect(await whoOn(page, alpha.url), 'no session on /alpha/ before the code').toBeNull();
 
-		// On /beta/, where they are only a subscriber, the password is not
+		// From /beta/, where they are only a subscriber, the password is not
 		// enough either: the session a sign-in opens is a cookie on `/`, the
 		// whole network's, and it would open /alpha/'s dashboard. So "only
 		// administrators" means an administrator of any site of theirs.
 		await page.context().clearCookies();
-		await page.goto(beta.pages.login.url);
-		await signInWithPassword(page, email, PASSWORD);
+		await signInFrom(page, beta, hub, email, PASSWORD);
 		await expect(challengeScreen(page)).toBeVisible();
 		expect(await whoOn(page, beta.url), 'no session anywhere before the code').toBeNull();
 
 		expect(
 			await opensDashboard(page, alpha.url),
-			'a password typed on /beta/ opened /alpha/’s dashboard with no second step'
+			'a password typed for /beta/ opened /alpha/’s dashboard with no second step'
 		).toBe(false);
+
+		// A password posted to /beta/'s own wp-login.php — the emergency door,
+		// which each site keeps — is WordPress's, and still meets the second
+		// step, on the hub.
+		await page.context().clearCookies();
+		await page.goto(`${beta.url}wp-login.php?diluxone-users-admin=1`);
+		await signInWithPassword(page, email, PASSWORD);
+		await expect(challengeScreen(page)).toBeVisible();
+		expect(page.url().startsWith(hub.url) && !page.url().startsWith(beta.url), 'asked on the hub').toBe(true);
+		expect(await opensDashboard(page, alpha.url), 'the emergency door is no way round it').toBe(false);
 	});
 });

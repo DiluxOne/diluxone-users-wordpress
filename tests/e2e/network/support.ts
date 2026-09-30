@@ -1,6 +1,7 @@
 import { test as base, expect, Page, request as playwrightRequest } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { OptionBag, SeedPages, Site } from '../support/api';
+import { signInWithPassword } from '../support/ui';
 import { wp } from '../support/cli';
 import { NETWORK_URL } from '../../../playwright.network.config';
 
@@ -204,30 +205,53 @@ export async function opensDashboard(page: Page, siteUrl: string): Promise<boole
 	);
 }
 
-/**
- * A page of one site that draws one of the plugin's shortcodes, made once.
- *
- * On a network the account area is the main site's: its sections are routed
- * there and nowhere else. The pieces of it still work on a page of any site —
- * the photo, the linked social accounts — and a spec that is about which site
- * something happens on puts the piece on a page of that site.
- *
- * @returns The page's address.
- */
-export function pageWith(one: SiteHandle, shortcode: string): string {
-	const slug = `e2e-${shortcode.replace(/[^a-z]+/g, '-').replace(/^-|-$/g, '')}`;
-	const found = wp(['post', 'list', '--post_type=page', `--name=${slug}`, '--field=url'], one.url);
+/** The door a site of the network draws where a sign-in, registration or account form would be. */
+export function hubDoor(page: Page, door: 'login' | 'register' | 'account' = 'login') {
+	return page.locator(`.diluxone-users-hub-door[data-diluxone-users-door="${door}"]`);
+}
 
-	if ('' !== found) {
-		return found.split('\n')[0];
+/**
+ * From a page of `one`, through its door, to the hub's sign-in page.
+ *
+ * On the hub itself, its own page. On any other site the page that used to
+ * hold the sign-in form holds a button to the hub instead, and pressing it is
+ * what a person does: the hub's page opens with the way back in its address.
+ *
+ * @returns The page of `one` the person will be sent back to.
+ */
+export async function toTheHub(page: Page, one: SiteHandle, hub: SiteHandle, door: 'login' | 'register' = 'login'): Promise<string> {
+	const from = door === 'login' ? one.pages.login.url : one.pages.register.url;
+
+	await page.goto(from);
+
+	if (one.slug === '') {
+		return from;
 	}
 
-	const id = wp(
-		['post', 'create', '--post_type=page', '--post_status=publish', `--post_name=${slug}`, `--post_title=${slug}`, `--post_content=[${shortcode}]`, '--porcelain'],
-		one.url
-	);
+	const button = hubDoor(page, door).locator('a.diluxone-users-button');
 
-	return wp(['post', 'list', '--post_type=page', `--post__in=${id}`, '--field=url'], one.url);
+	await expect(button, `/${one.slug}/ draws a door to the hub`).toBeVisible();
+
+	const target = door === 'login' ? hub.pages.login.url : hub.pages.register.url;
+
+	await Promise.all([page.waitForURL((url) => url.href.startsWith(target)), button.click()]);
+
+	expect(new URL(page.url()).searchParams.get('redirect_to'), 'the hub’s page carries the way back').toBe(from);
+
+	return from;
+}
+
+/**
+ * Signs somebody in with a password the way a person on `one` does it: its
+ * door, the hub's form, and back.
+ */
+export async function signInFrom(page: Page, one: SiteHandle, hub: SiteHandle, email: string, password: string): Promise<void> {
+	const back = await toTheHub(page, one, hub);
+
+	await signInWithPassword(page, email, password);
+	await page.waitForURL((url) => url.href.startsWith(back) || url.searchParams.has('diluxone_users_2fa'), {
+		waitUntil: 'domcontentloaded',
+	});
 }
 
 /** A REST context with no session at all, for a question a stranger would ask. */

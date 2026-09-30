@@ -109,6 +109,34 @@ While the e-mail link is the only way in, `users_can_register` reads as off
 whatever is stored (`diluxone_users_block_registration()`), and both screens
 say so.
 
+### Doors on a network
+
+On a network every door is the hub's (the main site's), and people come back
+to the site they started from. What an add-on or a theme builds on:
+
+- `diluxone_users_login_url()` and `diluxone_users_register_url()` are the
+  hub's pages; from any other site they already carry `redirect_to`, the page
+  the person is on. WordPress's own `wp_login_url()`,
+  `wp_registration_url()` and `wp_lostpassword_url()` are the hub's there too
+  (filtered at priority 20). A link of your own to the hub takes
+  `diluxone_users_with_return( $url, $back )`, which checks `$back` and falls
+  back to where the person is.
+- `diluxone_users_safe_return( $url )` answers whether an address is one to
+  send somebody back to — an http(s) address on a site of this network — and
+  returns it, or `''`. Use it for any address that arrives in a request.
+  `allowed_redirect_hosts` already has this network's hosts and no others.
+- `diluxone_users_login_redirect` receives the way back at priority 5 on the
+  hub, spent the first time it is asked for a user. A filter at the default
+  priority sees it as `$redirect` and may send the person elsewhere.
+- On a site that is not the hub the plugin's shortcodes draw
+  `templates/hub-door.php` (`$door` is `login`, `register` or `account`,
+  `$url` the hub's address, `$hub` its name), which a theme can replace like
+  any other template.
+- `diluxone_users_off_hub()` says whether the current site is a site of a
+  network other than the hub; `diluxone_users_sends_to_hub()` whether it sends
+  people there (not a site on a domain of its own, see
+  `diluxone_users_mapped_sites()`). Both are false on a single site.
+
 ## Social login providers
 
 `includes/sso.php` is a generic OAuth2 engine with no branch per provider:

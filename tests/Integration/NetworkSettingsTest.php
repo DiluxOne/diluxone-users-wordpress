@@ -226,7 +226,8 @@ class NetworkSettingsTest extends IntegrationTestCase {
 
 		$this->assertSame( 0, diluxone_users_page_here( 'diluxone_users_login_page' ) );
 		$this->assertSame( $url, diluxone_users_page_url( 'diluxone_users_login_page' ) );
-		$this->assertSame( $url, diluxone_users_login_url() );
+		// The hub's page, with the way back to this site (NetworkHubTest).
+		$this->assertSame( $url, strtok( diluxone_users_login_url(), '?' ) );
 
 		restore_current_blog();
 

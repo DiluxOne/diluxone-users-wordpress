@@ -1,21 +1,35 @@
-import { test, expect, whoOn } from './support';
-import { freshEmail, linkIn, waitForMail } from '../support/api';
-import { askForLink, emailField, linkForm, registerForm, signInWithPassword, ssoButton, submitPluginForm } from '../support/ui';
+import { Page } from '@playwright/test';
+import { test, expect, whoOn, hubDoor, toTheHub, signInFrom, SiteHandle } from './support';
+import { codeIn, freshEmail, linkIn, waitForMail } from '../support/api';
+import { FRONT_RULES, WIDTHS, expectSoundLayout } from '../support/layout';
+import {
+	askForLink,
+	challengeCode,
+	challengeScreen,
+	emailField,
+	linkForm,
+	openPanel,
+	accountSection,
+	registerForm,
+	signInWithPassword,
+	ssoButton,
+	submitPluginForm,
+} from '../support/ui';
 
 /**
- * The ways in, on two sites of one network.
+ * Every door of the network is the hub's, and every one of them comes back.
  *
- * On a network the account belongs to the network and the membership to each
- * site. That splits every door in two questions the single-site suite never
- * has to ask: does this door open a session on THIS site, and does walking up
- * to it make somebody a member here. The second one has a strict answer —
- * asking for a link is not having used it, so nobody becomes a member of a
- * site by typing their address into its form — and the network's own
- * registration setting sits above everything.
+ * On a network the person's account lives on one site, the hub — the main
+ * site — and the other sites send people there: the page that holds the
+ * sign-in on /beta/ is a button to the hub's, /beta/wp-login.php is the hub's
+ * wp-login.php, the account link in /beta/'s menu is the account on the hub.
+ * Whichever way the person gets in there — a password, the e-mail link, a
+ * social account, a passkey, with the second step or without it — they land
+ * back on the page of /beta/ they started from, signed in, and a member of
+ * /beta/ if /beta/ takes members.
  *
- * Which doors there are, and the role a newcomer gets, are the main site's
- * settings — the hub's — and every site of the network follows them: they are
- * set through `hub` here, and a site's own form still posts to that site.
+ * Which doors there are, and the role a newcomer gets, are the hub's settings,
+ * and the network's own registration setting sits above everything.
  */
 
 const PASSWORD = 'e2e-Network-1!';
@@ -28,193 +42,419 @@ const PLAIN_FIELDS = [
 	{ key: 'last_name', label: 'Last name', type: 'text', required: 0, active: 1, group: 'main', edit: 'always' },
 ];
 
-test.describe('Each site of the network has its own door', () => {
-	test('every site draws its sign-in page, and the form posts to that site', async ({ page, alpha, beta }) => {
+/** The same key the single-site passkey spec uses: a laptop with a fingerprint reader. */
+const VIRTUAL_KEY = {
+	protocol: 'ctap2' as const,
+	transport: 'internal' as const,
+	hasResidentKey: true,
+	hasUserVerification: true,
+	isUserVerified: true,
+	automaticPresenceSimulation: true,
+};
+
+/** Waits to be back on a page of `one`, anywhere under its address. */
+async function backOn(page: Page, one: SiteHandle, what: string): Promise<void> {
+	await page.waitForURL((url) => url.href.startsWith(one.url), { waitUntil: 'domcontentloaded', timeout: 20_000 });
+	expect(new URL(page.url()).pathname, what).toMatch(new RegExp(`^/${one.slug}/`));
+}
+
+test.describe('A site of the network has no sign-in of its own: its doors are the hub’s', () => {
+	test.beforeEach(async ({ hub }) => {
+		await hub.set({ diluxone_users_login_register: 1, diluxone_users_register_form: 1, diluxone_users_fields: PLAIN_FIELDS });
+	});
+
+	test('the pages that held the forms on /alpha/ and /beta/ are buttons to the hub’s, with the way back', async ({
+		page,
+		hub,
+		alpha,
+		beta,
+	}) => {
 		for (const one of [alpha, beta]) {
 			await page.goto(one.pages.login.url);
-			await expect(emailField(page)).toBeVisible();
-			// admin-post.php of THIS site: the answer has to come back here,
-			// with this site's settings, and not to the main site's.
-			await expect(linkForm(page)).toHaveAttribute('action', new RegExp(`/${one.slug}/wp-admin/admin-post\\.php`));
+			await expect(emailField(page), `no form on /${one.slug}/`).toHaveCount(0);
+
+			const href = (await hubDoor(page).locator('a').getAttribute('href')) as string;
+
+			expect(href.startsWith(hub.pages.login.url), `/${one.slug}/'s sign-in goes to the hub's page`).toBe(true);
+			expect(new URL(href).searchParams.get('redirect_to'), 'and back to where it was pressed').toBe(one.pages.login.url);
+
+			await page.goto(one.pages.register.url);
+			const register = (await hubDoor(page, 'register').locator('a').getAttribute('href')) as string;
+
+			expect(register.startsWith(hub.pages.register.url), `/${one.slug}/'s registration is the hub's form`).toBe(true);
+
+			await page.goto(one.pages.account.url);
+			await expect(hubDoor(page, 'login'), `/${one.slug}/'s account page asks a stranger to sign in, on the hub`).toBeVisible();
 		}
+
+		// The door is a piece of the site's page, drawn by its theme: it holds
+		// together at every width, like the sign-in it stands in for.
+		await page.goto(beta.pages.login.url);
+		await expectSoundLayout(page, FRONT_RULES, WIDTHS);
+
+		// The hub draws its own forms.
+		await page.goto(hub.pages.login.url);
+		await expect(linkForm(page)).toBeVisible();
+		await expect(hubDoor(page)).toHaveCount(0);
 	});
 
-	test('a link asked for on /alpha/ opens a session on /alpha/, with the role the network’s doors give', async ({
+	test('from /beta/: Sign in → the hub → a password → back on /beta/, signed in and a member', async ({
 		page,
 		hub,
 		alpha,
 		beta,
 	}) => {
-		await hub.set({ diluxone_users_login_register: 1, diluxone_users_login_role: 'contributor' });
-
-		const email = freshEmail('net-link');
-
-		await askForLink(page, alpha.pages.login.url, email);
-
-		const link = linkIn(await waitForMail(alpha.site, email));
-
-		expect(link, 'the link points back at the site it was asked on').toContain(alpha.url);
-
-		await page.goto(link);
-
-		expect(new URL(page.url()).pathname, 'and it lands there').toMatch(/^\/alpha\//);
-		expect(await whoOn(page, alpha.url)).toBe(email);
-
-		const here = await alpha.site.user(email);
-
-		expect(here.member).toBe(true);
-		expect(here.roles, 'the role set on the main site').toEqual(['contributor']);
-		expect((await beta.site.user(email)).member, 'and a member of /alpha/ only').toBe(false);
-	});
-
-	test('a network member who asks on /beta/ is not a member there until they open the link', async ({
-		page,
-		hub,
-		alpha,
-		beta,
-	}) => {
-		await hub.set({ diluxone_users_login_register: 1, diluxone_users_login_role: 'subscriber' });
-
-		const email = freshEmail('net-join');
+		const email = freshEmail('hub-pass');
 
 		await alpha.site.makeUser({ email, password: PASSWORD });
-		expect((await beta.site.user(email)).member, 'starts as a member of /alpha/ only').toBe(false);
+		expect((await beta.site.user(email)).member).toBe(false);
 
-		await askForLink(page, beta.pages.login.url, email);
+		await signInFrom(page, beta, hub, email, PASSWORD);
+		await backOn(page, beta, 'back on /beta/');
 
-		const link = linkIn(await waitForMail(beta.site, email));
-
-		// Anybody can type anybody's address into a form. If typing it were
-		// enough, any address on the network could be made a member of any
-		// site by a stranger — and a member is what the site's mail, its
-		// reports and its content rules count.
-		expect(
-			(await beta.site.user(email)).member,
-			'asking for a link is not using it: no membership before the click'
-		).toBe(false);
-
-		await page.goto(link);
-
+		expect(page.url()).toBe(beta.pages.login.url);
 		expect(await whoOn(page, beta.url)).toBe(email);
-
-		const after = await beta.site.user(email);
-
-		expect(after.member, 'opening it is what makes them a member').toBe(true);
-		expect(after.roles).toEqual(['subscriber']);
+		expect((await beta.site.user(email)).member, 'signing in for /beta/ makes them a member of /beta/').toBe(true);
 	});
 
-	test('with the doors closed to new people, a network member from /alpha/ does not join /beta/', async ({
+	test('from /beta/: by e-mail link, from the hub’s mailbox, back on /beta/ — and on another browser, on the hub', async ({
 		page,
+		browser,
 		hub,
-		alpha,
 		beta,
 	}) => {
-		await hub.set({ diluxone_users_login_register: 0, diluxone_users_register_form: 0 });
+		const email = freshEmail('hub-link');
 
-		const email = freshEmail('net-closed');
+		await toTheHub(page, beta, hub);
+		await askForLink(page, page.url(), email);
 
-		await alpha.site.makeUser({ email, password: PASSWORD });
-		await askForLink(page, beta.pages.login.url, email);
+		const link = linkIn(await waitForMail(hub.site, email));
 
-		const mail = await beta.site.mail(email);
+		expect(link.startsWith(hub.url), 'the link is the hub’s').toBe(true);
+		expect(link, 'and carries no address of where to go').not.toContain('redirect_to');
+		expect((await beta.site.user(email)).member, 'asking is not being a member').toBe(false);
 
-		if (mail.length > 0) {
-			await page.goto(linkIn(mail[mail.length - 1]));
-		}
+		await page.goto(link);
+		await backOn(page, beta, 'the browser it was asked in comes back to /beta/');
+		expect(page.url()).toBe(beta.pages.login.url);
+		expect(await whoOn(page, beta.url)).toBe(email);
+		expect((await beta.site.user(email)).member).toBe(true);
 
-		expect((await beta.site.user(email)).member, 'a closed site takes nobody new, from anywhere').toBe(false);
+		// Asked from /beta/ and opened in another browser, which cannot know
+		// where the person came from: it lands on the hub, signed in.
+		const other = freshEmail('hub-link-elsewhere');
+
+		await page.context().clearCookies();
+		await toTheHub(page, beta, hub);
+		await askForLink(page, page.url(), other);
+
+		const elsewhere = await (await browser.newContext()).newPage();
+
+		await elsewhere.goto(linkIn(await waitForMail(hub.site, other)));
+		expect(new URL(elsewhere.url()).pathname, 'another browser lands on the hub’s front page').toBe('/');
+		expect(await whoOn(elsewhere, hub.url)).toBe(other);
+		await elsewhere.context().close();
 	});
-});
 
-test.describe('The network decides whether anybody new can exist at all', () => {
-	test.beforeEach(async ({ hub, alpha }) => {
-		// The fake social network answers on the site that asks it.
-		await alpha.set({ diluxone_e2e_sso: 1 });
-
-		// Every door open, so that the only thing saying no is the network's
-		// own registration setting.
+	test('from /beta/: by a social account, on the hub, back on /beta/', async ({ page, hub, beta }) => {
 		await hub.set({
-			diluxone_users_login_register: 1,
-			diluxone_users_register_form: 1,
-			diluxone_users_fields: PLAIN_FIELDS,
+			diluxone_e2e_sso: 1,
 			diluxone_users_sso: MOCK,
 			diluxone_users_sso_login: 1,
 			diluxone_users_sso_register: 1,
 			diluxone_users_2fa_mode: 'off',
 		});
+
+		const email = freshEmail('hub-sso');
+
+		await hub.site.setIdentity({ sub: `mock|${email}`, email, email_verified: true });
+
+		await toTheHub(page, beta, hub);
+
+		const button = ssoButton(page, 'mock');
+		const href = (await button.getAttribute('href')) as string;
+
+		expect(href.startsWith(`${hub.url}sso/mock/`), 'the round trip is the hub’s').toBe(true);
+
+		await button.click();
+		await backOn(page, beta, 'back on /beta/ from the provider');
+		expect(await whoOn(page, beta.url)).toBe(email);
+		expect((await beta.site.user(email)).member).toBe(true);
 	});
 
-	test('“Registration is currently turned off” on the network: no door of a site creates anybody', async ({
-		browser,
-		alpha,
-		root,
-		network,
-	}) => {
-		await network.set('registration', 'none');
+	test('from /beta/: by passkey, on the hub’s domain, back on /beta/', async ({ page, browserName, hub, alpha, beta }) => {
+		test.skip(browserName !== 'chromium', 'the virtual authenticator is a Chromium protocol');
 
-		// The link.
-		const byLink = freshEmail('net-none-link');
-		const one = await browser.newPage();
+		await hub.set({
+			diluxone_users_passkey_enabled: 1,
+			diluxone_users_passkey_where: 'any',
+			diluxone_users_passkey_verify: 1,
+			diluxone_users_login_method: 'both',
+			diluxone_users_2fa_mode: 'optional',
+		});
 
-		await askForLink(one, alpha.pages.login.url, byLink);
-		expect((await root.user(byLink)).exists, 'the sign-in link made an account').toBe(false);
-
-		// The site's own form.
-		const byForm = freshEmail('net-none-form');
-		const two = await browser.newPage();
-
-		await two.goto(alpha.pages.register.url);
-
-		if ((await registerForm(two).count()) > 0) {
-			await two.locator('input[name="diluxone_users_email"]').fill(byForm);
-			await submitPluginForm(two, registerForm(two));
-		}
-
-		expect((await root.user(byForm)).exists, 'the registration form made an account').toBe(false);
-
-		// A social network.
-		const bySocial = freshEmail('net-none-sso');
-		const three = await browser.newPage();
-
-		await alpha.site.setIdentity({ sub: `mock|${bySocial}`, email: bySocial, email_verified: true });
-		await three.goto(alpha.pages.login.url);
-		await ssoButton(three, 'mock').click();
-		await three.waitForLoadState('domcontentloaded');
-
-		expect((await root.user(bySocial)).exists, 'a social sign-in made an account').toBe(false);
-	});
-
-	test('“User accounts may be registered” on the network: the site’s own doors work', async ({
-		page,
-		alpha,
-		network,
-	}) => {
-		await network.set('registration', 'user');
-
-		const email = freshEmail('net-user');
-
-		await askForLink(page, alpha.pages.login.url, email);
-
-		const made = await alpha.site.user(email);
-
-		expect(made.exists).toBe(true);
-		expect(made.member).toBe(true);
-
-		await page.goto(linkIn(await waitForMail(alpha.site, email)));
-		expect(await whoOn(page, alpha.url)).toBe(email);
-	});
-});
-
-test.describe('A password is a network password', () => {
-	test('a member of /alpha/ signs in on /alpha/ with the password form', async ({ page, alpha }) => {
-		const email = freshEmail('net-pass');
+		const email = freshEmail('hub-passkey');
 
 		await alpha.site.makeUser({ email, password: PASSWORD });
 
-		await page.goto(alpha.pages.login.url);
+		const cdp = await page.context().newCDPSession(page);
+
+		await cdp.send('WebAuthn.enable', { enableUI: false });
+
+		const { authenticatorId } = await cdp.send('WebAuthn.addVirtualAuthenticator', { options: VIRTUAL_KEY });
+
+		// Made on the account, which is the hub's.
+		await signInFrom(page, alpha, hub, email, PASSWORD);
+		await page.goto(accountSection(hub.pages.account.url, 'security'));
+
+		const panel = await openPanel(page, '[data-diluxone-users-passkey="register"]');
+
+		await panel.locator('[data-diluxone-users-passkey-label]').fill('Network laptop');
+		await panel.locator('[data-diluxone-users-passkey="register"]').click();
+		await expect(page.locator('input[name="diluxone_users_passkey_label"]')).toHaveValue('Network laptop', { timeout: 20_000 });
+
+		// Out, and in again from /beta/ with the key alone.
+		await page.context().clearCookies();
+		await toTheHub(page, beta, hub);
+		await page.locator('[data-diluxone-users-passkey="login"]').click();
+		await backOn(page, beta, 'the passkey lands back on /beta/');
+		expect(await whoOn(page, beta.url)).toBe(email);
+
+		await cdp.send('WebAuthn.removeVirtualAuthenticator', { authenticatorId });
+	});
+
+	test('from /beta/: a password and the second step, both on the hub, back on /beta/', async ({ page, hub, alpha, beta }) => {
+		await hub.set({
+			diluxone_users_2fa_mode: 'required',
+			diluxone_users_2fa_methods: ['email'],
+			diluxone_users_2fa_scope: 'all',
+			diluxone_users_2fa_remember_days: 0,
+			diluxone_users_login_method: 'both',
+		});
+
+		const email = freshEmail('hub-2fa');
+
+		await alpha.site.makeUser({ email, password: PASSWORD });
+		await signInFrom(page, beta, hub, email, PASSWORD);
+
+		await expect(challengeScreen(page)).toBeVisible();
+		expect(page.url().startsWith(hub.pages.login.url), 'the second step is asked on the hub').toBe(true);
+		expect(await whoOn(page, beta.url), 'nobody is in before the code').toBeNull();
+
+		await challengeCode(page).fill(codeIn(await waitForMail(hub.site, email)));
+		await page.locator('form.diluxone-users-form button[type="submit"]').first().click();
+
+		await backOn(page, beta, 'the code sends them back to /beta/');
+		expect(await whoOn(page, beta.url)).toBe(email);
+	});
+
+	test('register from /beta/: the hub’s form, the link, and back on /beta/ as a member', async ({ page, hub, beta }) => {
+		const email = freshEmail('hub-register');
+
+		await toTheHub(page, beta, hub, 'register');
+		await registerForm(page).locator('input[name="diluxone_users_email"]').fill(email);
+		expect(await submitPluginForm(page, registerForm(page))).toBe('registered');
+
+		await page.goto(linkIn(await waitForMail(hub.site, email)));
+		await backOn(page, beta, 'the first sign-in lands on /beta/');
+		expect(await whoOn(page, beta.url)).toBe(email);
+		expect((await beta.site.user(email)).member, 'a member of the site they registered from').toBe(true);
+	});
+});
+
+test.describe('WordPress’s own doors on /beta/ are the hub’s', () => {
+	test('/beta/wp-login.php opens the hub’s, and signing in there comes back to /beta/', async ({ page, hub, alpha, beta }) => {
+		const email = freshEmail('hub-wplogin');
+
+		await alpha.site.makeUser({ email, password: PASSWORD });
+
+		await page.goto(`${beta.url}wp-login.php`);
+		expect(page.url().startsWith(`${hub.url}wp-login.php`), 'the hub’s wp-login.php').toBe(true);
+		expect(new URL(page.url()).searchParams.get('redirect_to')).toBe(beta.url);
+
+		await signInWithPassword(page, email, PASSWORD);
+		await backOn(page, beta, 'back on /beta/');
+		expect(await whoOn(page, beta.url)).toBe(email);
+	});
+
+	test('/beta/wp-admin/ with no session goes through the hub and back to /beta/’s dashboard', async ({ page, hub, beta }) => {
+		const email = freshEmail('hub-admin');
+
+		await beta.site.makeUser({ email, password: PASSWORD, role: 'editor' });
+
+		await page.goto(`${beta.url}wp-admin/`);
+		expect(page.url().startsWith(`${hub.url}wp-login.php`)).toBe(true);
+
+		await signInWithPassword(page, email, PASSWORD);
+		await page.waitForURL((url) => url.pathname.startsWith(`/${beta.slug}/wp-admin`));
+	});
+
+	test('what /beta/ keeps for itself stays on /beta/: the emergency door, logging out', async ({ page, beta }) => {
+		await page.goto(`${beta.url}wp-login.php?diluxone-users-admin=1`);
+		expect(new URL(page.url()).pathname).toBe(`/${beta.slug}/wp-login.php`);
+		await expect(page.locator('form#loginform')).toBeVisible();
+
+		await page.goto(`${beta.url}wp-login.php?action=logout`);
+		expect(new URL(page.url()).pathname, 'logging out is answered where it is asked').toBe(`/${beta.slug}/wp-login.php`);
+	});
+
+	test('a way back to somewhere that is not the network is dropped', async ({ page, hub, alpha, beta }) => {
+		await page.goto(`${beta.url}wp-login.php?redirect_to=${encodeURIComponent('https://evil.test/')}`);
+		expect(new URL(page.url()).searchParams.get('redirect_to'), 'replaced by /beta/’s front page').toBe(beta.url);
+
+		const email = freshEmail('hub-evil');
+
+		await alpha.site.makeUser({ email, password: PASSWORD });
+		await page.goto(`${hub.pages.login.url}?redirect_to=${encodeURIComponent('//evil.test/')}`);
 		await signInWithPassword(page, email, PASSWORD);
 		await page.waitForLoadState('domcontentloaded');
 
-		expect(await whoOn(page, alpha.url)).toBe(email);
+		expect(new URL(page.url()).host, 'still on the network').toBe(new URL(hub.url).host);
+	});
+});
+
+test.describe('/beta/’s menu', () => {
+	test('“Sign in” goes to the hub and back; the person’s item opens their account on the hub', async ({ page, hub, alpha, beta }) => {
+		const menu = await beta.site.menu();
+
+		await beta.set({ diluxone_users_menu_location: menu.location });
+
+		try {
+			await page.goto(menu.url);
+
+			const signIn = page.locator('.diluxone-users-menu--sign-in a');
+			const href = (await signIn.getAttribute('href')) as string;
+
+			expect(href.startsWith(hub.pages.login.url), '“Sign in” is the hub’s').toBe(true);
+			expect(new URL(href).searchParams.get('redirect_to')).toBe(menu.url);
+
+			const email = freshEmail('hub-menu');
+
+			await alpha.site.makeUser({ email, password: PASSWORD });
+			await signIn.click();
+			await signInWithPassword(page, email, PASSWORD);
+			await page.waitForURL(menu.url, { waitUntil: 'domcontentloaded' });
+
+			const person = page.locator('.diluxone-users-menu--person > a');
+
+			await expect(person).toHaveAttribute('href', hub.pages.account.url);
+			await person.click();
+			await expect(page.locator('.diluxone-users-account__nav'), 'the account, on the hub').toBeVisible();
+			expect(page.url().startsWith(hub.pages.account.url)).toBe(true);
+		} finally {
+			await beta.site.forgetMenu();
+		}
+	});
+});
+
+test.describe('Who may join, and who may exist', () => {
+	test('a network member signing in for /beta/ is not a member there until they open the link', async ({ page, hub, alpha, beta }) => {
+		await hub.set({ diluxone_users_login_register: 1, diluxone_users_login_role: 'subscriber' });
+
+		const email = freshEmail('net-join');
+
+		await alpha.site.makeUser({ email, password: PASSWORD });
+
+		await toTheHub(page, beta, hub);
+		await askForLink(page, page.url(), email);
+
+		// Anybody can type anybody's address into a form. If typing it were
+		// enough, any address on the network could be made a member of any
+		// site by a stranger.
+		expect((await beta.site.user(email)).member, 'asking for a link is not using it').toBe(false);
+
+		await page.goto(linkIn(await waitForMail(hub.site, email)));
+		await backOn(page, beta, 'back on /beta/');
+
+		const after = await beta.site.user(email);
+
+		expect(after.member, 'opening it is what makes them a member').toBe(true);
+		expect(after.roles, 'with the role the hub gives newcomers').toEqual(['subscriber']);
+	});
+
+	test('with the doors closed to new people, a network member from /alpha/ does not join /beta/', async ({ page, hub, alpha, beta }) => {
+		await hub.set({ diluxone_users_login_register: 0, diluxone_users_register_form: 0, diluxone_users_sso_register: 0 });
+
+		const email = freshEmail('net-closed');
+
+		await alpha.site.makeUser({ email, password: PASSWORD });
+		await signInFrom(page, beta, hub, email, PASSWORD);
+		await backOn(page, beta, 'back on /beta/ all the same');
+
+		expect(await whoOn(page, alpha.url), 'signed in: the session is the network’s, and /alpha/ knows them').toBe(email);
+		expect(await whoOn(page, beta.url), '/beta/ does not: they are not one of its members').toBe('');
+		expect((await beta.site.user(email)).member, 'a closed site takes nobody new, from anywhere').toBe(false);
+	});
+
+	test.describe('the network decides whether anybody new can exist at all', () => {
+		test.beforeEach(async ({ hub }) => {
+			await hub.set({
+				diluxone_e2e_sso: 1,
+				diluxone_users_login_register: 1,
+				diluxone_users_register_form: 1,
+				diluxone_users_fields: PLAIN_FIELDS,
+				diluxone_users_sso: MOCK,
+				diluxone_users_sso_login: 1,
+				diluxone_users_sso_register: 1,
+				diluxone_users_2fa_mode: 'off',
+			});
+		});
+
+		test('“Registration is currently turned off”: no door of the hub creates anybody', async ({ browser, hub, alpha, root, network }) => {
+			await network.set('registration', 'none');
+
+			// The link.
+			const byLink = freshEmail('net-none-link');
+			const one = await browser.newPage();
+
+			await toTheHub(one, alpha, hub);
+			await askForLink(one, one.url(), byLink);
+			expect((await root.user(byLink)).exists, 'the sign-in link made an account').toBe(false);
+
+			// The hub's own form.
+			const byForm = freshEmail('net-none-form');
+			const two = await browser.newPage();
+
+			await two.goto(hub.pages.register.url);
+
+			if ((await registerForm(two).count()) > 0) {
+				await two.locator('input[name="diluxone_users_email"]').fill(byForm);
+				await submitPluginForm(two, registerForm(two));
+			}
+
+			expect((await root.user(byForm)).exists, 'the registration form made an account').toBe(false);
+
+			// A social network.
+			const bySocial = freshEmail('net-none-sso');
+			const three = await browser.newPage();
+
+			await hub.site.setIdentity({ sub: `mock|${bySocial}`, email: bySocial, email_verified: true });
+			await toTheHub(three, alpha, hub);
+			await ssoButton(three, 'mock').click();
+			await three.waitForLoadState('domcontentloaded');
+
+			expect((await root.user(bySocial)).exists, 'a social sign-in made an account').toBe(false);
+		});
+
+		test('“User accounts may be registered”: the link makes the account, and a member of the site it came from', async ({
+			page,
+			hub,
+			alpha,
+			network,
+		}) => {
+			await network.set('registration', 'user');
+
+			const email = freshEmail('net-user');
+
+			await toTheHub(page, alpha, hub);
+			await askForLink(page, page.url(), email);
+
+			expect((await hub.site.user(email)).exists).toBe(true);
+
+			await page.goto(linkIn(await waitForMail(hub.site, email)));
+			await backOn(page, alpha, 'back on /alpha/');
+			expect(await whoOn(page, alpha.url)).toBe(email);
+			expect((await alpha.site.user(email)).member).toBe(true);
+		});
 	});
 });

@@ -1,7 +1,7 @@
 import type { Browser, Page } from '@playwright/test';
 import { test, expect, whoOn, SiteHandle } from './support';
 import { wp } from '../support/cli';
-import { adminUrl, signInWithPassword } from '../support/ui';
+import { adminUrl, fillCredentials } from '../support/ui';
 import { NETWORK_ADMIN_STATE, NETWORK_URL } from '../../../playwright.network.config';
 
 /**
@@ -40,16 +40,23 @@ function idOf(one: SiteHandle): string {
 	return wp(['eval', 'echo get_current_blog_id();'], one.url).trim();
 }
 
-/** Somebody signs in on one site, in a browser of their own. */
+/**
+ * Somebody signs in on one site, in a browser of their own.
+ *
+ * Through the site's own wp-login.php, the emergency door each site keeps: a
+ * sign-in through the hub is the hub's, and is in the hub's rows. What this
+ * file is about is a row that belongs to /alpha/ or to /beta/.
+ */
 async function signInOn(browser: Browser, one: SiteHandle, email: string): Promise<void> {
 	// Explicitly nobody: a new context in this file would inherit the
 	// network administrator's session.
 	const context = await browser.newContext({ storageState: { cookies: [], origins: [] } });
 	const person = await context.newPage();
 
-	await person.goto(one.pages.login.url);
-	await signInWithPassword(person, email, PASSWORD);
-	await person.waitForLoadState('domcontentloaded');
+	await person.goto(`${one.url}wp-login.php?diluxone-users-admin=1`);
+	await fillCredentials(person, email, PASSWORD);
+	await Promise.all([person.waitForLoadState('domcontentloaded'), person.locator('#wp-submit').click()]);
+	await person.waitForURL((url) => !url.pathname.endsWith('/wp-login.php'));
 	expect(await whoOn(person, one.url)).toBe(email);
 	await context.close();
 }
