@@ -113,30 +113,56 @@ product is fixed, not to be loosened.
 
 | Scenario | Covered by |
 |---|---|
-| Each site draws its sign-in page and posts to itself | `doors` › every site draws its sign-in page |
-| Link on /alpha/ opens a session there with /alpha/'s role | `doors` |
-| Member of /alpha/ asking on /beta/ joins only by opening the link | `doors` |
-| /beta/ closed: a member of /alpha/ does not join | `doors` |
-| Network `registration=none`: no door creates anybody | `doors` |
-| Network `registration=user`: the doors work | `doors` |
-| A password is a network password | `doors` |
-| The main site's sign-in settings reach /alpha/ and /beta/ alike | `isolation` › The main site’s sign-in settings are every site’s |
+| A site that is not the hub draws doors to the hub's sign-in, registration and account, with the way back | `doors` › the pages that held the forms… |
+| From /beta/, through the hub, back on /beta/: password, e-mail link, social, passkey, second step, registration | `doors` › from /beta/: … (see “The hub” below) |
+| Member of /alpha/ signing in for /beta/ joins only by opening the link | `doors` › …not a member there until they open the link |
+| /beta/ closed: a member of /alpha/ signs in for it and does not join | `doors` › with the doors closed to new people… |
+| Network `registration=none`: no door of the hub creates anybody | `doors` › “Registration is currently turned off”… |
+| Network `registration=user`: the link makes the account, and a member of the site it came from | `doors` › “User accounts may be registered”… |
+| The main site's sign-in settings are the sign-in /alpha/ and /beta/ send to | `isolation` › The main site’s sign-in settings are every site’s |
 | Reports › Sessions on /alpha/ lists only its members | `isolation` |
 | Activity log: a sign-in on /alpha/ is on /alpha/'s report and not /beta/'s; Network Admin › Activity log has both, with their site, narrowed by the filter and by the Site cell | `activity-log` › a site’s report has its own rows… |
 | Activity log: “Empty it now” on /alpha/ asks first and takes /alpha/'s rows only; in Network Admin it asks first and takes every site's | `activity-log` › emptying it on a site… |
 | Activity log: a site's report carries its own button, never the network's report or button | `activity-log` › a site’s report carries the button… |
 | Activity log: a site's old table moved in by `wp diluxone-users network migrate`, with its site, old table dropped, second run does nothing | `migration` › each site’s old activity log moves… |
 | Add New User on a subsite | `isolation` |
-| Photo uploaded on /alpha/ is the same on /beta/ (the photo piece on a page of each site) | `isolation` |
-| Photo removed on /beta/ deletes no /beta/ file | `isolation` |
-| 2FA required of administrators: an administrator of /alpha/ signing in on /beta/ as a subscriber is asked | `isolation` › The second step is the network’s |
-| Social identity linked on /alpha/ reaches the same account on /beta/ | `social` |
+| Photo uploaded on the hub's account is the same in /beta/'s menu | `isolation` |
+| Photo removed on the hub's account deletes no /beta/ file with the same id | `isolation` |
+| 2FA required of administrators: an administrator of /alpha/ signing in for /beta/ as a subscriber is asked, on the hub; a password posted to /beta/'s own wp-login.php is asked too | `isolation` › The second step is the network’s |
+| Social identity linked on the hub's account reaches the same account from /beta/ | `social` |
 | A new site used from its public pages first, nothing in debug.log | `lifecycle` |
 | Only for the whole network: a site's Plugins screen has no Activate; left on for one site alone it does nothing there and asks super admins to network-activate; back on for the network; nothing in debug.log | `lifecycle` › only for the whole network… |
 | Account deleted from the main site's account area: member of the main site only, deleted from the network | `account-closing` |
 | Account deleted: member of another site too, anonymised there | `account-closing` |
 | Copy asked for by a member of /alpha/ on the account area, handed over by the main site | `account-export` |
+| A site on a domain of its own: named on the network's Overview, warned on its own dashboard, its wp-login.php its own | `network-admin` › A site on a domain of its own |
 | Uninstall | not covered in a browser: deleting the plugin removes the code the suite runs against. Integration: `UninstallNetworkTest` (network: ticked and not, and a network whose settings never moved), `UninstallSiteTest` (single site, ticked and not) |
+
+## The hub: every door on a network leads to one site, and back
+
+Every case at every layer, on both topologies: unit tests are pure and run
+once; integration runs on the network (`make test-integration`) and on a
+single site (`make test-integration-single`), each network case in
+`NetworkHubTest` having a single-site counterpart in the same class that
+asserts nothing is sent anywhere; the single-site browser suite runs unchanged
+and green, which is its half of every row.
+
+| Case | Unit | Integration | E2E single site | E2E network |
+|---|---|---|---|---|
+| A return address is an http(s) address on a site of this network: foreign host, protocol-relative, backslashes, encoded, user names, control characters dropped | `NetworkHubTest` › an address on a site of the network…; anything else is dropped | net: `NetworkHubTest` › a foreign or malformed return address is dropped · single: …an address elsewhere is not one either | — (unchanged) | `doors` › a way back to somewhere that is not the network is dropped |
+| Every door on another site is the hub's with `redirect_to`: the plugin's sign-in and registration, `wp_login_url()` (+ `reauth`), `wp_registration_url()`, `wp_lostpassword_url()`, the account | — | net: `NetworkHubTest` › every door on another site leads to the hub… · single: …every door is the site's own | — (unchanged) | `doors` › the pages that held the forms… |
+| The site's menu: “Sign in” to the hub and back; the person's item to the account on the hub | — | net: `NetworkHubTest` › the site's menu leads to the hub · single: …every door is the site's own (menu) | `site-menu` (unchanged) | `doors` › /beta/’s menu |
+| Shortcodes on another site draw a door to the hub, never a form; the pieces draw nothing to a stranger | — | net: `NetworkHubTest` › the shortcodes on another site are doors… · single: …the shortcodes and forms are the site's | `account-area`, `register` (unchanged) | `doors` › the pages that held the forms…; `lifecycle` |
+| A form posted to another site goes to the hub, writing nothing | — | net: `NetworkHubTest` › a form posted to another site goes to the hub · single: …the shortcodes and forms are the site's | — | — |
+| Which wp-login.php requests go to the hub and which stay | `NetworkHubTest` › which wp-login requests stay on the site | net: `NetworkHubTest` › wp-login on another site goes to the hub with its action and return; what a site keeps for itself stays there · single: …wp-login is left alone | `password-login` (unchanged) | `doors` › /beta/wp-login.php…; /beta/wp-admin/…; what /beta/ keeps for itself… |
+| The return cookie: HttpOnly, Lax, twenty minutes, read by the password form, spent by the first sign-in, then gone; a cookie written by hand is checked again | — | net: `NetworkHubTest` › the return address is held in a short-lived httponly cookie and spent once; a foreign… · single: …no return is held or used | — | `doors` (every way in) |
+| Coming back makes a member of the site, if it takes members | — | net: `NetworkHubTest` › …spent once; a site that takes nobody is not joined on the way back | — | `doors` › from /beta/: … a member; with the doors closed… |
+| Every way in comes back: e-mail link (another browser: the hub's front page), password, social (state still checked), passkey, second step, registration | — | net: `NetworkHubTest` › the e-mail link comes back…; a password comes back…; a social sign-in comes back and keeps its state check; the second step keeps the way back · single: …every way in lands where it always did | `magic-link`, `password-login`, `sso`, `passkeys`, `two-factor`, `register` (unchanged) | `doors` › from /beta/: by e-mail link…; a password…; by a social account…; by passkey…; the second step…; register from /beta/… |
+| Social sign-in is the hub's: one redirect URI, the `/sso/` route on the hub only, an old address on another site starts nothing | — | net: `NetworkHubTest` › social sign-in and its route are the hub's · single: …social and passkeys are the site's own | `sso` (unchanged) | `doors` › by a social account…; `social` |
+| Passkeys belong to the hub's domain (RP ID and origin), and another site's endpoint says where to go | — | net: `NetworkHubTest` › passkeys belong to the hub's domain · single: …social and passkeys are the site's own | `passkeys` (unchanged) | `doors` › by passkey… |
+| The account's route is the hub's only | — | net: `NetworkHubTest` › the account route is the hub's · single: (the site is the hub) | `account-area` | `lifecycle` |
+| The network's hosts, and only those, are safe redirects; the list follows sites added, changed and deleted | — | net: `NetworkHubTest` › the network's hosts and only those…; a site on a domain of its own is found and told · single: …an address elsewhere is not one either | — | `doors` › a way back… |
+| A site on a domain of its own: detected, its wp-login.php left alone, warned on the Overview and on its dashboard | `NetworkHubTest` › a domain of its own is told from the network's | net: `NetworkHubTest` › a site on a domain of its own is found and told · single: …there is no domain of its own | — | `network-admin` › A site on a domain of its own |
 
 ## Network settings, and the network's screens
 
@@ -174,7 +200,7 @@ on each. The two end-to-end columns are the two topologies.
 | Network screens leave the sites' menus; refused by address on a site | `NetworkPlacesTest` | net: `NetworkSettingsTest` › the network's screens leave the sites' menus · single: `SingleSiteTest` › every screen and tab is on the site's dashboard | `single-site` › the menu carries every screen | `network-admin` › A site's menu keeps only what is its own; refused |
 | A link to a screen goes where the screen is | — | net: `NetworkSettingsTest` › a link to a screen goes where the screen is · single: `SingleSiteTest` › every screen and tab… (all on this dashboard) | — | `network-admin` › the cards' links |
 | A site's Overview names each moved area ("Managed by the network", "Set on …"), with the way there only for whoever can go | — | net: `NetworkSettingsTest` › a site administrator is told where things went… · single: `SingleSiteTest` › nothing is managed elsewhere | `single-site` › the Overview has no network tabs… | `network-admin` › another site…says where the rest went |
-| Network Overview: hub, addressing, mapped-domain warning, conflicts table | — | single: `SingleSiteTest` › there is nothing to move (no notice) | — | `network-admin` › network › diluxone-users › network; `migration` |
+| Network Overview: hub, addressing, mapped-domain warning, conflicts table | `NetworkHubTest` › a domain of its own… | net: `NetworkHubTest` › a site on a domain of its own… · single: `SingleSiteTest` › there is nothing to move (no notice) | — | `network-admin` › network › diluxone-users › network; A site on a domain of its own; `migration` |
 | Social provider switched only from Network Admin | — | both: `SsoToggleTest` › off hides the button…; forgetting it… · net: …a site cannot switch a provider · single: …the site's screen switches a provider | `admin-effects` › a provider switched off | `network-admin` (providers tab) |
 | Settings file: a site restores and exports only its own | — | both: `SettingsFileTest` › round trip, wipe does not travel, default not written back · net: …restored on a site of a network… · single: …restored on a single site restores everything | `admin-tools` › Settings as a file | — |
 | Deleting the plugin: one network box; a site's Tools say so | — | net: `NetworkSettingsTest`; `UninstallNetworkTest` · single: `UninstallSiteTest` | `single-site` › Maintenance › Tools still asks | `network-admin` › …deleting the plugin; another site keeps… |

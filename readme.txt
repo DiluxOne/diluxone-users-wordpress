@@ -141,7 +141,9 @@ registration pages, `[diluxone_users_account]` for the account area and
 `[diluxone_users_account_nav]` for its menu alone. The account's pieces work on
 their own too: `[diluxone_users_fields]`, `[diluxone_users_avatar]`,
 `[diluxone_users_handle]`, `[diluxone_users_accounts]`,
-`[diluxone_users_sessions]` and `[diluxone_users_notifications]`.
+`[diluxone_users_sessions]` and `[diluxone_users_notifications]`. On a
+network they are the main site's: placed on another site, each one draws a
+button to the main site's page, which brings people back afterwards.
 
 = Does it work on multisite? =
 
@@ -159,12 +161,27 @@ log** shows every site's, with the site each row happened on, and empties
 them all. On a network that used the plugin before, each site's old log is
 moved into it in the background (or at once with `wp diluxone-users network
 migrate`), and each old table is dropped once all its rows are in.
-Whether new accounts may be created at all is the network's **Allow new
-registrations**; somebody becomes a member of a site when they sign in there
-through one of its doors. On a network that used the plugin before, the main
-site's settings become the network's, and Network Admin lists what the other
-sites had set differently. A site on a domain of its own (not the network's or
-one of its subdomains) makes people sign in again; that is not supported yet.
+People sign in, register and keep their account on the main site. On every
+other site the doors lead there — the "Sign in" in its menu, the plugin's
+shortcodes, its wp-login.php, WordPress's own sign-in links — and, whichever
+way the person gets in (e-mail link, password, social account, passkey,
+second step), they are sent back to the page they started from. The way back
+is only ever an address on a site of the network, kept for twenty minutes in
+a cookie of the main site and used once; a sign-in link opened on another
+device lands on the main site, signed in. Social sign-in and passkeys work on
+the main site only: register one redirect address per network in the
+providers' consoles. Whether new accounts may be created at all is the
+network's **Allow new registrations**; somebody becomes a member of a site
+when they sign in for it, if the site takes new people. On a network that used
+the plugin before, the main site's settings become the network's, and Network
+Admin lists what the other sites had set differently. Subdirectory and
+subdomain networks are supported. On a subdomain network WordPress sets the
+session cookie for the network's domain, which is what lets a sign-in on the
+main site reach every subdomain: do not pin `COOKIE_DOMAIN` to one host in
+`wp-config.php`. A site on a domain of its own (not the network's or one of its
+subdomains) does not share that cookie, so people must sign in again there;
+that is not supported in this version, and Network Admin and that site's
+dashboard say so.
 On a network the plugin is activated for the whole network or not at all:
 WordPress offers only **Network Activate**, and a site it was left on for
 alone does nothing and asks the network's administrator to activate it for
