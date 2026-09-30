@@ -212,34 +212,12 @@ add_action( 'deleted_user', 'diluxone_users_log_user_deleted' );
 /**
  * The same, for an account deleted from a whole network.
  *
- * The person's rows are wherever they signed in: in the network's table, one
- * query for every site; or, where each site keeps a table of its own, in the
- * table of every site that has one.
+ * The person's rows are wherever they signed in, all in the network's table:
+ * one query for every site.
  *
  * @param int $user_id The account being deleted.
  */
 function diluxone_users_log_user_deleted_everywhere( $user_id ): void {
-	if ( diluxone_users_log_network() ) {
-		diluxone_users_log_forget( (int) $user_id );
-
-		return;
-	}
-
-	foreach ( get_sites(
-		array(
-			'fields' => 'ids',
-			'number' => 0,
-		)
-	) as $site ) {
-		switch_to_blog( (int) $site );
-
-		// The table, and not the schema marker: a site whose table is a shape
-		// behind still has the person's rows in it.
-		if ( diluxone_users_log_table_exists() ) {
-			diluxone_users_log_forget( (int) $user_id );
-		}
-
-		restore_current_blog();
-	}
+	diluxone_users_log_forget( (int) $user_id );
 }
 add_action( 'wpmu_delete_user', 'diluxone_users_log_user_deleted_everywhere' );

@@ -165,7 +165,10 @@ through one of its doors. On a network that used the plugin before, the main
 site's settings become the network's, and Network Admin lists what the other
 sites had set differently. A site on a domain of its own (not the network's or
 one of its subdomains) makes people sign in again; that is not supported yet.
-Activated site by site, each site keeps its own settings.
+On a network the plugin is activated for the whole network or not at all:
+WordPress offers only **Network Activate**, and a site it was left on for
+alone does nothing and asks the network's administrator to activate it for
+the whole network.
 
 = Is it behind a proxy or a CDN? =
 

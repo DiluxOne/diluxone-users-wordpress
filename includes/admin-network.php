@@ -19,8 +19,7 @@
  *
  * Four places a screen can be looked at from, and one question each answers:
  *
- *   - 'single': a site on its own, or a network where the plugin was switched
- *     on site by site. Everything is here, as it always was.
+ *   - 'single': a site on its own. Everything is here, as it always was.
  *   - 'network': Network Admin. The network's settings and nothing else.
  *   - 'hub': the site people sign in, register and keep their account on. Its
  *     own screens and the site's.

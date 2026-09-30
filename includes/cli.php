@@ -89,10 +89,6 @@ function diluxone_users_cli_network_migrate(): void {
 		WP_CLI::error( 'This is not a network: there is nothing to move.' );
 	}
 
-	if ( ! diluxone_users_scoped_storage_active() ) {
-		WP_CLI::error( 'The plugin is not active for the whole network, so each site keeps its own settings.' );
-	}
-
 	if ( diluxone_users_network_migrated() ) {
 		WP_CLI::log( 'The network’s settings were already moved.' );
 	} else {

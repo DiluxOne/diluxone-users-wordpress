@@ -52,21 +52,6 @@ function diluxone_users_log_moved(): bool {
 }
 
 /**
- * Forgets that the move was made, so that it looks again.
- *
- * When the plugin stops being on for the whole network: switched on site by
- * site after that, each site writes to a table of its own again, and the day
- * it is on for the network once more those rows have to be brought in too.
- * Sites with no table of their own cost one question each.
- */
-function diluxone_users_log_move_forget(): void {
-	if ( is_multisite() ) {
-		delete_site_option( DILUXONE_USERS_LOG_MOVED );
-		delete_site_option( DILUXONE_USERS_LOG_MOVING );
-	}
-}
-
-/**
  * The table a site kept before the network's.
  *
  * @param int $site A site of the network.

@@ -69,29 +69,27 @@ const DILUXONE_USERS_LOG_PURGE = 'diluxone_users_log_purge';
 /**
  * Is the table the network's, one for every site?
  *
- * Where the settings are: on a network where the plugin is on for every site
- * the log's settings are one decision for all of them, and its rows are one
- * table, each row stamped with the site it happened on. Everywhere else — a
- * single site, or a network that switched the plugin on site by site — the
- * table is the site's own, as every other setting is.
+ * On a network — where the plugin only works activated for the whole network
+ * — the log's settings are one decision for every site, and its rows are one
+ * table, each row stamped with the site it happened on. On a single site the
+ * table is the site's.
  */
 function diluxone_users_log_network(): bool {
 	return diluxone_users_scoped_storage_active();
 }
 
 /**
- * The table's name.
+ * The table's name: under `$wpdb->base_prefix`.
  *
- * On a network whose settings are the network's, one table under
- * `$wpdb->base_prefix` holds every site's rows: the network's administrator
- * reads them all on one screen, erasing a person is one query and not one per
- * site, and a new site has nothing to create. Everywhere else, `$wpdb->prefix`:
- * the site's own table, which on a single site is the same name.
+ * On a network, one table holds every site's rows: the network's
+ * administrator reads them all on one screen, erasing a person is one query
+ * and not one per site, and a new site has nothing to create. On a single
+ * site the base prefix is the site's prefix, so it is the site's own table.
  */
 function diluxone_users_log_table(): string {
 	global $wpdb;
 
-	return ( diluxone_users_log_network() ? $wpdb->base_prefix : $wpdb->prefix ) . 'diluxone_users_log';
+	return $wpdb->base_prefix . 'diluxone_users_log';
 }
 
 /**
@@ -238,10 +236,9 @@ function diluxone_users_log_has_sites(): bool {
 /**
  * The rows written before rows said which site they were from, given one.
  *
- * They were all written by the site whose prefix the table carries: the
- * current site where the table is the site's own, and the first site of the
- * network — the one whose prefix is the network's — where it is the
- * network's. The other sites' rows arrive stamped, when their own tables are
+ * They were all written by the site whose prefix is the base prefix: the
+ * site itself on a single site, and on a network the first site — site 1
+ * either way. The other sites' rows arrive stamped, when their own tables are
  * moved in (see migrate-log.php).
  *
  * Ten thousand at a time, like the purge, so a table with years in it is not
@@ -250,11 +247,9 @@ function diluxone_users_log_has_sites(): bool {
 function diluxone_users_log_claim_unstamped(): void {
 	global $wpdb;
 
-	$owner = diluxone_users_log_network() ? 1 : diluxone_users_log_site();
-
 	do {
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- the plugin's own table, stamped once.
-		$stamped = (int) $wpdb->query( $wpdb->prepare( 'UPDATE %i SET site_id = %d WHERE site_id = 0 LIMIT 10000', diluxone_users_log_table(), $owner ) );
+		$stamped = (int) $wpdb->query( $wpdb->prepare( 'UPDATE %i SET site_id = %d WHERE site_id = 0 LIMIT 10000', diluxone_users_log_table(), 1 ) );
 	} while ( 10000 === $stamped );
 }
 
@@ -333,21 +328,19 @@ function diluxone_users_log_ready(): void {
 add_action( 'admin_init', 'diluxone_users_log_ready', 0 );
 
 /**
- * Whether the purge runs from this site: any site with a table of its own,
- * and only the main site where the table is the network's.
+ * Whether the purge runs from this site: a single site, and on a network only
+ * its main site, once for every site.
  */
 function diluxone_users_log_purges_here(): bool {
 	return ! diluxone_users_log_network() || is_main_site();
 }
 
 /*
- * The table is created on activation where it is the site's own (see
- * diluxone_users_site_setup()), and where it is the network's, once, by the
- * first request after the plugin is on for the whole network: the check above
- * on the dashboard, and the move of the sites' old tables on any request (see
- * migrate-log.php). A site born on the network has nothing to create. The
- * check above stays as the safety net for a table that went missing some
- * other way.
+ * The table is created on activation: on a single site by its setup, and on a
+ * network once, for every site, by the network's activation (see
+ * diluxone_users_activate()). A site born on the network has nothing to
+ * create. The check above stays as the safety net for a table that went
+ * missing some other way, and for a plugin updated over FTP or git.
  */
 
 /**
@@ -369,11 +362,6 @@ function diluxone_users_log_unschedule( $network_wide = false ): void {
 			wp_clear_scheduled_hook( DILUXONE_USERS_LOG_MOVE_EVENT );
 			restore_current_blog();
 		}
-
-		// Switched on site by site after this, each site writes to a table of
-		// its own; switched on for the network again, whatever those tables
-		// gathered in the meantime is moved in with the rest.
-		diluxone_users_log_move_forget();
 
 		return;
 	}
@@ -721,7 +709,7 @@ function diluxone_users_log_purge(): int {
 	$runs  = 0;
 
 	// The network's rows are its own sites' rows, and no other network's
-	// that shares the table; a site with a table of its own keeps to its own.
+	// that shares the table; a single site's are its own.
 	$groups = diluxone_users_log_network() ? diluxone_users_log_site_groups( diluxone_users_log_network_sites() ) : array( array( diluxone_users_log_site() ) );
 
 	// Batch after batch until a batch comes back short, and never more than

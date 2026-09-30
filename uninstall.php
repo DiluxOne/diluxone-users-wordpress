@@ -15,18 +15,15 @@
  * the table, the settings, and every meta key the plugin ever wrote,
  * including the answers to the fields the site invented.
  *
- * On a network where the plugin was on for every site, the decision is the
- * network's, one box in Network Admin, because the data is about the
+ * On a network — where the plugin only works activated for the whole network
+ * — the decision is the network's, one box in Network Admin, because the data is about the
  * network's people. Ticked, everything goes: the network's settings and its
  * activity log, every site's settings — the copies each site kept from before
  * the settings moved to the network included — any log table a site still
  * kept from before the log was the network's, and what the plugin kept in
  * people's profiles.
- *
- * On a network where it was switched on site by site, each site kept its own
- * settings and its own box, and the profiles are still everybody's: each site
- * that ticked it loses its own settings and log, and the people's data goes
- * only when every site that used the plugin ticked it.
+ * A box a site ticked for itself before the settings were the network's does
+ * not count: it was never the network deciding.
  *
  * @package DiluxOneUsers
  */
@@ -74,7 +71,7 @@ function diluxone_users_uninstall_site(): void {
 	// The site's own table. On the network's first site its prefix is the
 	// network's, so this is also the network's activity log, one table for
 	// every site; on any other site it is a table kept from before the log
-	// was the network's, or from when the plugin was on site by site.
+	// was the network's.
 	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- dropping our own table is the one thing there is no API for.
 	$wpdb->query( $wpdb->prepare( 'DROP TABLE IF EXISTS %i', $wpdb->prefix . 'diluxone_users_log' ) );
 
@@ -229,11 +226,9 @@ function diluxone_users_uninstall_field_keys( $fields = null ): array {
 /* ── The run ───────────────────────────────────────────────────────── */
 
 /*
- * A network whose settings are the network's: the version marker is written
- * once the settings have moved there, and from then on the wipe is one
- * network setting.
+ * A network: one decision, the network's, for every site.
  */
-if ( is_multisite() && false !== get_site_option( 'diluxone_users_network_version', false ) ) {
+if ( is_multisite() ) {
 	if ( ! get_site_option( 'diluxone_users_uninstall_wipe' ) ) {
 		return;
 	}
@@ -259,47 +254,6 @@ if ( is_multisite() && false !== get_site_option( 'diluxone_users_network_versio
 
 	diluxone_users_uninstall_people( $diluxone_users_keys );
 	diluxone_users_uninstall_network();
-
-	return;
-}
-
-if ( is_multisite() ) {
-	$diluxone_users_keys  = array();
-	$diluxone_users_any   = false;
-	$diluxone_users_all   = true;
-	$diluxone_users_sites = get_sites(
-		array(
-			'fields' => 'ids',
-			'number' => 0,
-		)
-	);
-
-	foreach ( $diluxone_users_sites as $diluxone_users_site ) {
-		switch_to_blog( (int) $diluxone_users_site );
-
-		// Asked before the settings go, and only asked: the meta itself is
-		// shared across the network and is deleted once, at the end — if at
-		// all. A site that used the plugin (it has its fields) and did not
-		// tick the box keeps its people's data, which is everybody's.
-		if ( get_option( 'diluxone_users_uninstall_wipe' ) ) {
-			$diluxone_users_any  = true;
-			$diluxone_users_keys = array_merge( $diluxone_users_keys, diluxone_users_uninstall_field_keys() );
-
-			diluxone_users_uninstall_site();
-		} elseif ( false !== get_option( 'diluxone_users_fields', false ) ) {
-			$diluxone_users_all = false;
-		}
-
-		restore_current_blog();
-	}
-
-	// A flag and not "did we collect any keys": a site that ticked the box and
-	// had no fields of its own collects none, and its people's passkeys and
-	// second factors would have stayed behind for ever.
-	if ( $diluxone_users_any && $diluxone_users_all ) {
-		diluxone_users_uninstall_people( $diluxone_users_keys );
-		diluxone_users_uninstall_network();
-	}
 
 	return;
 }

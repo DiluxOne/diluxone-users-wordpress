@@ -11,6 +11,7 @@
  * Text Domain:       diluxone-users
  * Requires at least: 6.2
  * Requires PHP:      8.0
+ * Network:           true
  *
  * @package DiluxOneUsers
  *
@@ -40,6 +41,25 @@ define( 'DILUXONE_USERS_DIR', plugin_dir_path( __FILE__ ) );
 define( 'DILUXONE_USERS_URL', plugin_dir_url( __FILE__ ) );
 define( 'DILUXONE_USERS_FILE', __FILE__ );
 
+/*
+ * On a network the plugin is on for the whole network or it does nothing: the
+ * gate is read first, and a site it was left on for alone gets a notice and no
+ * more. See includes/network-gate.php.
+ *
+ * Activation is registered before the gate, because on a network WordPress
+ * runs it before it writes down that the plugin is on for the network: it
+ * loads the plugin itself and sets up every site (includes/multisite.php).
+ */
+require_once DILUXONE_USERS_DIR . 'includes/network-gate.php';
+
+register_activation_hook( __FILE__, 'diluxone_users_activate_now' );
+
+if ( ! diluxone_users_awake() ) {
+	diluxone_users_sleep();
+
+	return;
+}
+
 /**
  * Every file in includes/ stands on its own and only registers hooks. They are
  * loaded in alphabetical order on purpose: if one of them needed another to
@@ -49,15 +69,4 @@ define( 'DILUXONE_USERS_FILE', __FILE__ );
  * packs translate.wordpress.org publishes into wp-content/languages/plugins/.
  * The plugin calls no load_plugin_textdomain() and ships no .mo of its own.
  */
-foreach ( (array) glob( DILUXONE_USERS_DIR . 'includes/*.php' ) as $diluxone_users_file ) {
-	require_once (string) $diluxone_users_file;
-}
-
-/**
- * On activation: what each site needs — its starter fields, its registration
- * switch as the site had it, and the activity log's table.
- *
- * It lives in includes/multisite.php, because on a network it runs once per
- * site and again when a new site is born, where this hook does not run.
- */
-register_activation_hook( __FILE__, 'diluxone_users_activate' );
+diluxone_users_load();

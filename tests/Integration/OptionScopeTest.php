@@ -3,11 +3,10 @@
  * The settings go through the scoped helpers, and each lands where it says.
  *
  * On a single site every scope is the site's own table, as it always was. On
- * a network where the plugin is on for every site, a network setting is one
- * value in the network's options, a hub setting lives on the hub and is read
- * from there by every other site, and a site setting stays with its site. The
- * last test turns the routing off, which is what a network that switched the
- * plugin on site by site gets.
+ * a network — where the plugin only runs activated for the whole network — a
+ * network setting is one value in the network's options, a hub setting lives
+ * on the hub and is read from there by every other site, and a site setting
+ * stays with its site.
  */
 
 namespace Tests\Integration;
@@ -17,7 +16,6 @@ class OptionScopeTest extends IntegrationTestCase {
 	private int $site = 0;
 
 	protected function tearDown(): void {
-		remove_all_filters( 'diluxone_users_scoped_storage' );
 		remove_all_filters( 'diluxone_users_option_scope' );
 
 		if ( is_multisite() ) {
@@ -158,23 +156,13 @@ class OptionScopeTest extends IntegrationTestCase {
 		$this->assertSame( 'site', diluxone_users_option_scope( 'diluxone_users_login_title' ) );
 	}
 
-	/** Switched on site by site, each site keeps every setting to itself. */
-	public function test_switched_off_a_setting_is_the_sites_own(): void {
-		$other = $this->second_site();
+	/** A network is always routed by scope: there is no per-site way to fall back to. */
+	public function test_a_network_is_always_routed_by_scope(): void {
+		if ( ! is_multisite() ) {
+			$this->markTestSkipped( 'Needs a multisite network; on a single site SingleSiteTest asserts the opposite.' );
+		}
 
-		add_filter( 'diluxone_users_scoped_storage', '__return_false' );
-		$this->assertFalse( diluxone_users_scoped_storage_active() );
-		$this->assertSame( 'single', diluxone_users_admin_context() );
-
-		diluxone_users_update_option( 'diluxone_users_2fa_mode', 'all' );
-
-		switch_to_blog( $other );
-		$there = diluxone_users_raw_get( 'diluxone_users_2fa_mode', null );
-		restore_current_blog();
-
-		$this->assertNull( $there );
-		$this->assertFalse( get_site_option( 'diluxone_users_2fa_mode' ) );
-
-		delete_option( 'diluxone_users_2fa_mode' );
+		$this->assertTrue( diluxone_users_scoped_storage_active() );
+		$this->assertNotSame( 'single', diluxone_users_admin_context() );
 	}
 }

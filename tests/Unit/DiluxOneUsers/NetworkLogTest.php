@@ -2,9 +2,8 @@
 /**
  * Where the activity log lives, on a single site and on a network.
  *
- * On a network whose settings are the network's the log is one table, under
- * the network's prefix, every row stamped with its site; on a single site, or
- * a network that switched the plugin on site by site, it is the site's own.
+ * On a network the log is one table, under the network's prefix, every row
+ * stamped with its site; on a single site it is the site's own.
  * Which table, which site a row is stamped with, who runs the purge, which
  * tab shows every site's rows and whose bookkeeping the table's shape is: all
  * of it is answered without a database, both ways round, here. The rows
@@ -28,6 +27,7 @@ class NetworkLogTest extends TestCase {
 		Monkey\Functions\when( 'register_activation_hook' )->justReturn( true );
 		Monkey\Functions\when( 'register_deactivation_hook' )->justReturn( true );
 
+		require_once DILUXONE_USERS_DIR . 'includes/network-gate.php';
 		require_once DILUXONE_USERS_DIR . 'includes/options.php';
 		require_once DILUXONE_USERS_DIR . 'includes/options-scope.php';
 		require_once DILUXONE_USERS_DIR . 'includes/log.php';
@@ -100,11 +100,12 @@ class NetworkLogTest extends TestCase {
 		$this->assertSame( 'wp_diluxone_users_log', diluxone_users_log_table(), 'The network’s prefix, not the site’s' );
 	}
 
-	public function test_on_a_network_switched_on_site_by_site_each_site_keeps_its_own(): void {
+	/** A site of a network never has a table of its own: there is no second way. */
+	public function test_on_a_network_no_site_keeps_a_table_of_its_own(): void {
 		$this->network( false );
 
-		$this->assertFalse( diluxone_users_log_network() );
-		$this->assertSame( 'wp_3_diluxone_users_log', diluxone_users_log_table() );
+		$this->assertTrue( diluxone_users_log_network() );
+		$this->assertSame( 'wp_diluxone_users_log', diluxone_users_log_table() );
 	}
 
 	/* ── Which site a row is stamped with ──────────────────────────── */
@@ -129,11 +130,8 @@ class NetworkLogTest extends TestCase {
 		$this->assertTrue( diluxone_users_log_purges_here() );
 	}
 
-	public function test_a_site_with_a_table_of_its_own_purges_it_itself(): void {
+	public function test_a_single_site_purges_its_own_table(): void {
 		Monkey\Functions\when( 'is_main_site' )->justReturn( false );
-
-		$this->network( false );
-		$this->assertTrue( diluxone_users_log_purges_here(), 'Site by site, each purges its own' );
 
 		$this->single();
 		$this->assertTrue( diluxone_users_log_purges_here() );

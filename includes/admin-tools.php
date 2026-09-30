@@ -630,16 +630,6 @@ function diluxone_users_screen_tools_boxes(): void {
 			esc_html_e( 'Remove everything this plugin wrote when it is deleted', 'diluxone-users' );
 			echo '</label></p>';
 
-			// On a network where the plugin was switched on site by site, the
-			// profiles are everybody's: one site's answer takes its own
-			// settings and log, and the people only go when every site that
-			// uses the plugin gave the same answer.
-			if ( is_multisite() ) {
-				echo '<p class="description">';
-				esc_html_e( 'On this network, ticking it removes this site’s settings and activity log. What is in people’s profiles is shared by every site, so it is removed only when every site that uses the plugin has ticked it too.', 'diluxone-users' );
-				echo '</p>';
-			}
-
 			submit_button( __( 'Save', 'diluxone-users' ), 'secondary', 'submit', false );
 		}
 	);

@@ -702,35 +702,4 @@ class NetworkLogTest extends IntegrationTestCase {
 		$this->assertTrue( diluxone_users_log_moved() );
 		$this->assertSame( array( $one => 3 ), $this->per_site() );
 	}
-
-	/** Switched off for the network, the move is forgotten, so it looks again. */
-	public function test_switching_it_off_for_the_network_forgets_the_move(): void {
-		$this->assertTrue( diluxone_users_log_moved() );
-
-		diluxone_users_log_unschedule( true );
-
-		$this->assertFalse( diluxone_users_log_moved() );
-	}
-
-	/** Switched on site by site, a site's log is a table of its own again. */
-	public function test_switched_on_site_by_site_each_site_writes_its_own_table(): void {
-		global $wpdb;
-
-		$one = $this->site();
-
-		add_filter( 'diluxone_users_scoped_storage', '__return_false' );
-		switch_to_blog( $one );
-		update_option( 'diluxone_users_log_levels', array( 'access' ) );
-
-		$this->assertSame( $wpdb->get_blog_prefix( $one ) . 'diluxone_users_log', diluxone_users_log_table() );
-		$this->assertTrue( diluxone_users_log_install() );
-		$this->assertTrue( diluxone_users_log_record( 'signed_in', 1 ) );
-		$this->assertSame( 1, diluxone_users_log_search( array( 'site' => $one ) )['total'] );
-		$this->assertTrue( diluxone_users_log_purges_here(), 'It purges its own table' );
-
-		restore_current_blog();
-		remove_filter( 'diluxone_users_scoped_storage', '__return_false' );
-
-		$this->assertSame( array(), $this->per_site(), 'Nothing in the network’s table' );
-	}
 }
