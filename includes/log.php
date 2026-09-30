@@ -775,7 +775,10 @@ function diluxone_users_log_size( int $site = 0 ): array {
 function diluxone_users_log_empty_rows( int $site = 0 ): int {
 	global $wpdb;
 
-	if ( ! diluxone_users_log_current() ) {
+	// Asked of the database too, and not only of the shape marker: a site is
+	// deleted from a network whose table somebody already dropped by hand, and
+	// that is no reason for a database error on the way out.
+	if ( ! diluxone_users_log_current() || ! diluxone_users_log_table_exists() ) {
 		return 0;
 	}
 
