@@ -405,6 +405,149 @@ class NetworkLogTest extends IntegrationTestCase {
 		$this->assertSame( 0, (int) $wpdb->get_var( $wpdb->prepare( 'SELECT COUNT(*) FROM %i WHERE user_id = %d', diluxone_users_log_table(), $person->ID ) ) );
 	}
 
+	/* ── One table, several networks ───────────────────────────────── */
+
+	/**
+	 * A second network of the installation, with one site, made as rows of
+	 * WordPress's own tables: the log only asks which network a site belongs
+	 * to, and the site needs no tables of its own for that.
+	 *
+	 * @return array{0: int, 1: int} The network's id and its site's.
+	 */
+	private function another_network(): array {
+		global $wpdb;
+
+		$wpdb->insert(
+			$wpdb->site,
+			array(
+				'domain' => 'far.example.test',
+				'path'   => '/',
+			)
+		);
+		$network = (int) $wpdb->insert_id;
+
+		$wpdb->insert(
+			$wpdb->blogs,
+			array(
+				'site_id'    => $network,
+				'domain'     => 'far.example.test',
+				'path'       => '/',
+				'registered' => current_time( 'mysql', true ),
+			)
+		);
+		$site = (int) $wpdb->insert_id;
+
+		wp_cache_set_sites_last_changed();
+
+		$this->far = array( $network, $site );
+
+		return $this->far;
+	}
+
+	/** @var array<int, int> The other network and its site, removed after the test. */
+	private array $far = array();
+
+	/** Rows written on another network's site, the way that network would. */
+	private function rows_on_another_network( int $site, int $user, int $rows ): void {
+		global $wpdb;
+
+		for ( $i = 0; $i < $rows; $i++ ) {
+			$wpdb->insert(
+				diluxone_users_log_table(),
+				array(
+					'site_id'  => $site,
+					'user_id'  => $user,
+					'event'    => 'signed_in',
+					'happened' => gmdate( 'Y-m-d H:i:s' ),
+					'detail'   => '{}',
+				)
+			);
+		}
+	}
+
+	private function forget_another_network(): void {
+		global $wpdb;
+
+		if ( array() === $this->far ) {
+			return;
+		}
+
+		$wpdb->delete( $wpdb->blogs, array( 'blog_id' => $this->far[1] ) );
+		$wpdb->delete( $wpdb->site, array( 'id' => $this->far[0] ) );
+		wp_cache_set_sites_last_changed();
+
+		$this->far = array();
+	}
+
+	/**
+	 * One table serves every network of the installation: this network's
+	 * report, its "Empty it now" and its purge touch its own sites' rows and
+	 * never another network's.
+	 */
+	public function test_the_network_reads_empties_and_purges_its_own_sites_rows_only(): void {
+		$one            = $this->site();
+		list( , $far )  = $this->another_network();
+
+		try {
+			$this->record_on( $one, 'signed_in', 1 );
+			$this->rows_on_another_network( $far, 1, 2 );
+
+			$this->assertNotContains( $far, diluxone_users_log_network_sites() );
+			$this->assertContains( $one, diluxone_users_log_network_sites() );
+
+			// The report.
+			wp_set_current_user( 1 );
+			$this->in_network_admin();
+
+			$drawn = $this->drawn_sites( $this->draw( 'diluxone_users_screen_log_network' ) );
+			$this->assertContains( (string) $one, $drawn );
+			$this->assertNotContains( (string) $far, $drawn, 'Another network’s rows are not on this network’s report' );
+
+			$_GET['site'] = (string) $far;
+			$this->assertSame( array(), $this->drawn_sites( $this->draw( 'diluxone_users_screen_log_network' ) ), 'Not even asked for by address' );
+			$_GET = array();
+
+			$this->assertSame( 1, diluxone_users_log_size( diluxone_users_log_network_sites() )['rows'] );
+
+			// The purge.
+			$this->age_all( 200 );
+			diluxone_users_update_option( 'diluxone_users_log_days', 90 );
+
+			$this->assertSame( 1, diluxone_users_log_purge(), 'Its own old row' );
+			$this->assertSame( array( $far => 2 ), $this->per_site(), 'Another network’s old rows are its own purge’s to take' );
+
+			// The button.
+			$this->record_on( $one, 'signed_in', 1 );
+			$_REQUEST['_wpnonce'] = wp_create_nonce( 'diluxone_users_log_empty_network' );
+
+			$url = $this->expectRedirect( 'diluxone_users_log_empty_network' );
+
+			$this->assertSame( '1', $this->queryArg( $url, 'diluxone-users-emptied' ) );
+			$this->assertSame( array( $far => 2 ), $this->per_site(), 'Another network’s rows stay' );
+		} finally {
+			$this->forget_another_network();
+		}
+	}
+
+	/** A person is the installation's: erasing them reaches every network's rows. */
+	public function test_erasing_a_person_reaches_every_network(): void {
+		$one           = $this->site();
+		list( , $far ) = $this->another_network();
+		$person        = get_userdata( $this->make_user() );
+
+		try {
+			$this->record_on( $one, 'signed_in', (int) $person->ID );
+			$this->rows_on_another_network( $far, (int) $person->ID, 2 );
+			$this->rows_on_another_network( $far, 1, 1 );
+
+			diluxone_users_log_erase( $person->user_email );
+
+			$this->assertSame( array( $far => 1 ), $this->per_site(), 'Only somebody else’s row is left, on the other network' );
+		} finally {
+			$this->forget_another_network();
+		}
+	}
+
 	/* ── The move of each site's old table ─────────────────────────── */
 
 	/**

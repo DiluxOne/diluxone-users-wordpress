@@ -185,7 +185,7 @@ function diluxone_users_screen_log_settings(): void {
  */
 function diluxone_users_log_empty_box( string $where ): void {
 	$network = 'network' === $where;
-	$size    = diluxone_users_log_size( $network ? 0 : diluxone_users_log_site() );
+	$size    = diluxone_users_log_size( $network ? diluxone_users_log_network_sites() : diluxone_users_log_site() );
 
 	// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- only which notice to show after the redirect.
 	if ( isset( $_GET['diluxone-users-emptied'] ) ) {
@@ -320,7 +320,7 @@ function diluxone_users_log_network_state( array $on, array $groups ): void {
 			implode( ', ', $names )
 		);
 
-	$size = diluxone_users_log_size();
+	$size = diluxone_users_log_size( diluxone_users_log_network_sites() );
 
 	$line .= ' ' . sprintf(
 		/* translators: 1: number of rows, 2: size on disk, e.g. "4 MB". */
@@ -516,6 +516,12 @@ function diluxone_users_log_report( bool $network ): void {
 		'from'  => $from,
 		'to'    => $to,
 	);
+
+	// The network's report is its own sites' rows: on an installation of
+	// several networks the table has the others' too.
+	if ( $network ) {
+		$filters['sites'] = diluxone_users_log_network_sites();
+	}
 
 	$result  = diluxone_users_log_search( $filters, $page, $per );
 	$total   = $result['total'];
@@ -804,7 +810,7 @@ function diluxone_users_log_empty(): void {
 add_action( 'admin_post_diluxone_users_log_empty', 'diluxone_users_log_empty' );
 
 /**
- * Empties the network's activity log: every row of every site.
+ * Empties the network's activity log: every row of every site of this network.
  *
  * Only whoever administers the network, and only where the log is the
  * network's: a site administrator's way to empty the log is their own site's,
@@ -819,7 +825,7 @@ function diluxone_users_log_empty_network(): void {
 
 	check_admin_referer( 'diluxone_users_log_empty_network' );
 
-	$gone = diluxone_users_log_empty_rows();
+	$gone = diluxone_users_log_empty_rows( diluxone_users_log_network_sites() );
 
 	wp_safe_redirect(
 		diluxone_users_admin_url(

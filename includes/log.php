@@ -105,6 +105,60 @@ function diluxone_users_log_site(): int {
 }
 
 /**
+ * The sites of the network being looked at, by id.
+ *
+ * One table serves every network of an installation — its prefix is the
+ * installation's — so whatever the network does to "every row" it does to
+ * the rows of its own sites and no other network's: its report, its "Empty it
+ * now" and its purge. Erasing a person is the exception, and does not ask
+ * this: a person is the installation's, on every network.
+ *
+ * Only the ids, through get_sites(), whose answer WordPress keeps in the
+ * object cache until a site of the installation is added or removed.
+ *
+ * @return array<int, int>
+ */
+function diluxone_users_log_network_sites(): array {
+	return array_values(
+		array_map(
+			'intval',
+			get_sites(
+				array(
+					'fields'     => 'ids',
+					'number'     => 0,
+					'network_id' => (int) get_current_network_id(),
+				)
+			)
+		)
+	);
+}
+
+/**
+ * The sites of a network, in groups small enough for one `IN ( … )`.
+ *
+ * A delete over a network of thousands of sites is a delete per group, each
+ * in batches like every other delete here, rather than one statement with a
+ * placeholder per site.
+ *
+ * @param array<int, int> $sites Site ids.
+ * @return array<int, array<int, int>>
+ */
+function diluxone_users_log_site_groups( array $sites ): array {
+	$sites = array_values( array_unique( array_filter( array_map( 'intval', $sites ), static fn( int $site ): bool => $site > 0 ) ) );
+
+	return array() === $sites ? array() : array_chunk( $sites, 500 );
+}
+
+/**
+ * `%d, %d, …`: one placeholder per site, for an `IN ( … )` that prepare() fills.
+ *
+ * @param array<int, int> $sites Site ids, at least one.
+ */
+function diluxone_users_log_placeholders( array $sites ): string {
+	return implode( ', ', array_fill( 0, max( 1, count( $sites ) ), '%d' ) );
+}
+
+/**
  * Creates the table, or brings it up to the current shape.
  *
  * The statement is written the way dbDelta wants it and not the way that reads
@@ -661,26 +715,31 @@ function diluxone_users_log_purge(): int {
 		return 0;
 	}
 
-	$table   = diluxone_users_log_table();
-	$edge    = gmdate( 'Y-m-d H:i:s', time() - $days * DAY_IN_SECONDS );
-	$network = diluxone_users_log_network();
-	$site    = diluxone_users_log_site();
-	$gone    = 0;
+	$table = diluxone_users_log_table();
+	$edge  = gmdate( 'Y-m-d H:i:s', time() - $days * DAY_IN_SECONDS );
+	$gone  = 0;
+	$runs  = 0;
+
+	// The network's rows are its own sites' rows, and no other network's
+	// that shares the table; a site with a table of its own keeps to its own.
+	$groups = diluxone_users_log_network() ? diluxone_users_log_site_groups( diluxone_users_log_network_sites() ) : array( array( diluxone_users_log_site() ) );
 
 	// Batch after batch until a batch comes back short, and never more than
 	// fifty in one run: a site that writes more than ten thousand rows a day
 	// still catches up, and one that has a backlog of millions spreads it
 	// over a few nights instead of one long lock.
-	for ( $batch = 0; $batch < 50; $batch++ ) {
-		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- the plugin's own table; a delete is not cached.
-		$deleted = $network
-			? (int) $wpdb->query( $wpdb->prepare( 'DELETE FROM %i WHERE happened < %s LIMIT 10000', $table, $edge ) )
-			: (int) $wpdb->query( $wpdb->prepare( 'DELETE FROM %i WHERE site_id = %d AND happened < %s LIMIT 10000', $table, $site, $edge ) );
-		// phpcs:enable
+	foreach ( $groups as $group ) {
+		do {
+			// phpcs:disable WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber -- the IN list is placeholders only, one per site, and the values come as one array, filled by prepare(); the plugin's own table; a delete is not cached.
+			$in      = diluxone_users_log_placeholders( $group );
+			$deleted = (int) $wpdb->query( $wpdb->prepare( "DELETE FROM %i WHERE site_id IN ( {$in} ) AND happened < %s LIMIT 10000", array_merge( array( $table ), $group, array( $edge ) ) ) );
+			// phpcs:enable
 
-		$gone += $deleted;
+			$gone += $deleted;
+			++$runs;
+		} while ( 10000 === $deleted && $runs < 50 );
 
-		if ( $deleted < 10000 ) {
+		if ( $runs >= 50 ) {
 			break;
 		}
 	}
@@ -718,10 +777,10 @@ add_action( DILUXONE_USERS_LOG_PURGE, 'diluxone_users_log_purge_run' );
  * rows of one site in them. Where the table is the network's, a site's screen
  * says so.
  *
- * @param int $site One site's rows, or 0 for every row in the table.
+ * @param int|array<int, int> $site One site's rows, several sites' (a network's), or 0 for every row in the table.
  * @return array{rows: int, bytes: int, oldest: string} Oldest is a GMT datetime, or '' when there is none.
  */
-function diluxone_users_log_size( int $site = 0 ): array {
+function diluxone_users_log_size( $site = 0 ): array {
 	global $wpdb;
 
 	if ( ! diluxone_users_log_current() ) {
@@ -735,7 +794,19 @@ function diluxone_users_log_size( int $site = 0 ): array {
 	$table = diluxone_users_log_table();
 
 	// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- the plugin's own table, and the number from now.
-	if ( $site > 0 ) {
+	if ( is_array( $site ) ) {
+		$rows   = 0;
+		$oldest = '';
+
+		foreach ( diluxone_users_log_site_groups( $site ) as $group ) {
+			// phpcs:disable WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- the IN list is placeholders only, filled by prepare().
+			$in     = diluxone_users_log_placeholders( $group );
+			$rows  += (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM %i WHERE site_id IN ( {$in} )", array_merge( array( $table ), $group ) ) );
+			$first  = (string) $wpdb->get_var( $wpdb->prepare( "SELECT MIN(happened) FROM %i WHERE site_id IN ( {$in} )", array_merge( array( $table ), $group ) ) );
+			$oldest = '' !== $first && ( '' === $oldest || $first < $oldest ) ? $first : $oldest;
+			// phpcs:enable WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter
+		}
+	} elseif ( $site > 0 ) {
 		$rows   = (int) $wpdb->get_var( $wpdb->prepare( 'SELECT COUNT(*) FROM %i WHERE site_id = %d', $table, $site ) );
 		$oldest = (string) $wpdb->get_var( $wpdb->prepare( 'SELECT MIN(happened) FROM %i WHERE site_id = %d', $table, $site ) );
 	} else {
@@ -763,16 +834,18 @@ function diluxone_users_log_size( int $site = 0 ): array {
 }
 
 /**
- * Deletes every row of one site, or every row there is.
+ * Deletes every row of one site, or of several — a network's.
  *
  * What "Empty it now" does, and what a site deleted from the network does to
  * its rows. In batches, like the purge: emptying a network's log is the one
- * delete here that can be as big as the whole table.
+ * delete here that can be as big as the whole table. Never "every row in the
+ * table": on an installation of several networks, part of the table is
+ * another network's.
  *
- * @param int $site One site's rows, or 0 for every row in the table.
+ * @param int|array<int, int> $sites One site, or several.
  * @return int How many rows went.
  */
-function diluxone_users_log_empty_rows( int $site = 0 ): int {
+function diluxone_users_log_empty_rows( $sites ): int {
 	global $wpdb;
 
 	// Asked of the database too, and not only of the shape marker: a site is
@@ -785,15 +858,16 @@ function diluxone_users_log_empty_rows( int $site = 0 ): int {
 	$table = diluxone_users_log_table();
 	$gone  = 0;
 
-	do {
-		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- the plugin's own table; a delete is not cached.
-		$deleted = $site > 0
-			? (int) $wpdb->query( $wpdb->prepare( 'DELETE FROM %i WHERE site_id = %d LIMIT 10000', $table, $site ) )
-			: (int) $wpdb->query( $wpdb->prepare( 'DELETE FROM %i LIMIT 10000', $table ) );
-		// phpcs:enable
+	foreach ( diluxone_users_log_site_groups( (array) $sites ) as $group ) {
+		do {
+			// phpcs:disable WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter -- the IN list is placeholders only, filled by prepare(); the plugin's own table; a delete is not cached.
+			$in      = diluxone_users_log_placeholders( $group );
+			$deleted = (int) $wpdb->query( $wpdb->prepare( "DELETE FROM %i WHERE site_id IN ( {$in} ) LIMIT 10000", array_merge( array( $table ), $group ) ) );
+			// phpcs:enable
 
-		$gone += $deleted;
-	} while ( 10000 === $deleted );
+			$gone += $deleted;
+		} while ( 10000 === $deleted );
+	}
 
 	return $gone;
 }
@@ -803,7 +877,7 @@ function diluxone_users_log_empty_rows( int $site = 0 ): int {
 /**
  * The rows, filtered and paginated.
  *
- * There are five filters and they are all optional, which is thirty-two
+ * There are six filters and they are all optional, which is sixty-four
  * shapes of query. Written as sixteen literal strings this file would be unreadable, and
  * assembled from pieces neither the analysers nor a reviewer could tell what
  * reaches the database — which is the trade the sessions report chose the
@@ -822,7 +896,7 @@ function diluxone_users_log_empty_rows( int $site = 0 ): int {
  * The site is one of the filters and not a given: a site's screen asks for its
  * own rows, and the network's screen for everybody's or for one site's.
  *
- * @param array<string, mixed> $filters site (a site id, 0 for every site), who (free text), event, from and to (Y-m-d, site time).
+ * @param array<string, mixed> $filters site (a site id, 0 for any), sites (only these site ids: a network's), who (free text), event, from and to (Y-m-d, site time).
  * @param int                  $page    From 1.
  * @param int                  $per     How many per page.
  * @return array{rows: array<int, array<string, mixed>>, total: int}
@@ -843,6 +917,16 @@ function diluxone_users_log_search( array $filters = array(), int $page = 1, int
 	$offset = ( $page - 1 ) * $per;
 
 	$site  = max( 0, (int) ( $filters['site'] ?? 0 ) );
+	$sites = isset( $filters['sites'] ) ? diluxone_users_log_site_groups( (array) $filters['sites'] ) : null;
+
+	// Asked for a list of sites and handed none — a network with no site —
+	// is nothing, not everything.
+	if ( array() === $sites ) {
+		return array(
+			'rows'  => array(),
+			'total' => 0,
+		);
+	}
 	$who   = trim( (string) ( $filters['who'] ?? '' ) );
 	$like  = '' === $who ? '' : '%' . $wpdb->esc_like( $who ) . '%';
 	$event = (string) ( $filters['event'] ?? '' );
@@ -877,6 +961,12 @@ function diluxone_users_log_search( array $filters = array(), int $page = 1, int
 	if ( $site > 0 ) {
 		$where[] = 'l.site_id = %d';
 		$args[]  = $site;
+	}
+
+	if ( null !== $sites ) {
+		$all     = array_merge( ...$sites );
+		$where[] = 'l.site_id IN ( ' . diluxone_users_log_placeholders( $all ) . ' )';
+		$args    = array_merge( $args, $all );
 	}
 
 	if ( '' !== $who ) {

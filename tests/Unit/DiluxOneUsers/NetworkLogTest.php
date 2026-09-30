@@ -148,6 +148,41 @@ class NetworkLogTest extends TestCase {
 		$this->assertSame( array( 'wp_posts' ), diluxone_users_log_drop_with_site( array( 'wp_posts' ), 1 ), 'The first site’s table is the network’s' );
 	}
 
+	/* ── One table, several networks ───────────────────────────────── */
+
+	/** The network's sites are asked of the current network, and of no other. */
+	public function test_the_networks_sites_are_the_current_networks(): void {
+		$this->network( true );
+
+		$asked = array();
+
+		Monkey\Functions\when( 'get_current_network_id' )->justReturn( 7 );
+		Monkey\Functions\when( 'get_sites' )->alias(
+			static function ( array $args ) use ( &$asked ): array {
+				$asked[] = $args;
+
+				return array( '12', '15' );
+			}
+		);
+
+		$this->assertSame( array( 12, 15 ), diluxone_users_log_network_sites() );
+		$this->assertSame( 7, $asked[0]['network_id'] );
+		$this->assertSame( 'ids', $asked[0]['fields'] );
+	}
+
+	/** A network of thousands of sites is deleted from in groups, never all at once and never with none. */
+	public function test_a_networks_sites_come_in_groups_small_enough_for_one_in(): void {
+		$groups = diluxone_users_log_site_groups( range( 1, 1203 ) );
+
+		$this->assertCount( 3, $groups );
+		$this->assertCount( 500, $groups[0] );
+		$this->assertSame( 1203, $groups[2][ count( $groups[2] ) - 1 ] );
+
+		$this->assertSame( array(), diluxone_users_log_site_groups( array() ), 'No site is no group: nothing, never every row' );
+		$this->assertSame( array( array( 3 ) ), diluxone_users_log_site_groups( array( 3, '3', 0, -1 ) ) );
+		$this->assertSame( '%d, %d, %d', diluxone_users_log_placeholders( array( 1, 2, 3 ) ) );
+	}
+
 	/* ── Whose bookkeeping ─────────────────────────────────────────── */
 
 	public function test_the_shape_of_the_table_and_its_move_are_the_networks_to_keep(): void {
