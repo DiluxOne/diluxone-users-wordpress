@@ -102,6 +102,11 @@ a change:
   escaped, SQL prepared, secrets hashed and never logged, single-use tokens
   consumed on first use.
 - **A stored option or user meta key is not renamed** without a migration.
+- **A new stored setting gets a scope** (`network`, `hub` or `site`) in
+  `includes/options-scope.php`, and is read and written through the plugin's
+  helpers (`diluxone_users_option()`, `diluxone_users_raw_get()`,
+  `diluxone_users_update_option()`, `diluxone_users_delete_option()`), never
+  with `get_option()` directly ([`docs/architecture.md`](docs/architecture.md#data)).
 - **Docs change in the same PR as the behaviour they describe.** That
   includes this file, `docs/architecture.md`, `docs/extending.md`,
   `readme.txt` and `docs/`. A doc that describes something the code no longer

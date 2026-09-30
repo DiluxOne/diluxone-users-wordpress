@@ -23,7 +23,7 @@ Procedural, no classes, no namespace, everything prefixed `diluxone_users_` / `D
 | Area | Files |
 |---|---|
 | Main file: constants, the loader, activation | `diluxone-users.php` |
-| Options and their defaults | `options.php` |
+| Options, their defaults and where each is stored on a network | `options.php`, `options-scope.php` |
 | User fields (definition, values, edit policy) | `fields.php`, `fields-forms.php` |
 | Account area, sections registry | `account.php`, `account-sections.php`, `account-security.php` |
 | Sign-in: link, password, passwordless mode, the ways in | `login.php`, `login-ways.php`, `login-messages.php`, `passwordless.php` |
@@ -64,7 +64,7 @@ Templates live in `templates/` and are overridable from the active theme at `wp-
 ### WordPress conventions
 
 - All user-facing strings go through translation functions with the text domain `diluxone-users`, with a `/* translators: */` comment on the line right before any placeholder. Eight locales are kept complete in `languages/`.
-- Multisite-aware: configuration is per site. Users are network-wide, so anything that gives access calls `diluxone_users_join_site()`.
+- Multisite-aware: configuration is per site today, each setting already carrying the scope it will have on a network (see Data below). Users are network-wide, so anything that gives access calls `diluxone_users_join_site()`.
 - HTTP calls use `wp_remote_*` with an explicit `timeout`. Never raw cURL.
 - Every `.php` file starts with `defined( 'ABSPATH' ) || exit;`.
 - **PHP 8.0 and WordPress 6.2** are the minimums. No Composer dependencies at runtime.
@@ -72,6 +72,7 @@ Templates live in `templates/` and are overridable from the active theme at `wp-
 ### Data
 
 - Renaming an option or a user meta key **requires a migration**, in a file of its own, run once and marked as done. There is none in the tree: 1.0.0 is the first version, so there is no earlier shape to come from, and a migration for a state no site can be in is dead code.
+- **Every stored setting has a scope** in `includes/options-scope.php`: `network` (who gets in and how safely: the second step, passkeys, sessions, the proxy, the social credentials and linking rules, the fields, the log's retention, the wipe), `hub` (the screens people sign in, register and keep their account on, and how they look and what they say) or `site` (the plugin's bookkeeping about the site it runs on). The map is explicit, key by key, and a unit test fails when a stored setting has no line in it. Settings are read and written only through `diluxone_users_option()`, `diluxone_users_raw_get()`, `diluxone_users_update_option()`, `diluxone_users_delete_option()` and `diluxone_users_save_options()`, never with `get_option()` and company on the plugin's own keys. Today every scope is stored on the current site, as before; routing them on a network (network settings in the network's options, hub settings on the hub) is one switch, `diluxone_users_scoped_storage_active()`, that is still off.
 - Field keys are user-visible configuration: once a field exists, its key does not change, because the key is also the meta key holding everybody's answer.
 - `uninstall.php` wipes only when an administrator asked for it beforehand (Maintenance → Tools); otherwise deleting the plugin keeps people's data. On a network it runs per site, and the shared user meta goes only when every site that used the plugin asked.
 

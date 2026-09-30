@@ -454,6 +454,12 @@ one from code gets it pinned for good — and the admin says so, with the
 function and file doing the pinning, rather than showing a control that does
 nothing.
 
+`diluxone_users_option_scope` filters where a setting belongs on a network:
+`network`, `hub` or `site`, as `includes/options-scope.php` has it for the
+plugin's own. An add-on that stores settings through
+`diluxone_users_update_option()` gives its keys a scope here; a key nobody
+gave one is `site`. Today every scope is still stored on the current site.
+
 ## Things that happen
 
 - `diluxone_users_logged_in` — somebody got in. Receives the user and how.
