@@ -49,6 +49,7 @@ When `make env` finishes, open <http://localhost:8892> and log in with `admin` /
 | `make test-e2e-network` | `make env-multisite`, then Playwright on the tests site as a network, with `/alpha/` and `/beta/`. |
 | `make test-layout` | Only the layout measurements. |
 | `make test-visual` / `make test-visual-update` | Compare every screen with its committed picture / retake and accept them. Local only ([`testing-and-quality.md`](testing-and-quality.md#visual-regression-the-pictures)). |
+| `make test-visual-network` / `make test-visual-network-update` | The same for Network Admin's screens and the network's differences on a site, on the tests site as a network. |
 | `make screenshots` | Retake the listing screenshots in `.wordpress-org/`. |
 | `make test-all` | Unit, integration and single-site end-to-end in one go. |
 | `make i18n` | `wp i18n make-pot`: refresh `languages/diluxone-users.pot`. |

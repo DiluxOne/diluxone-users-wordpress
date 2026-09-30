@@ -140,7 +140,7 @@ make test-e2e           # every single-site spec, including the layout measureme
 make test-e2e-network   # the network suite
 ```
 
-The same plugin network-activated has a suite of its own, in [`tests/e2e/network/`](../tests/e2e/network/) with [`playwright.network.config.ts`](../playwright.network.config.ts). It drives the wp-env tests site (port 8893) converted into a subdirectory network, makes `/alpha/` and `/beta/` with WP-CLI and deletes them afterwards. `make test-e2e-network` does the conversion and the run. [`tests/e2e/COVERAGE.md`](../tests/e2e/COVERAGE.md) maps every feature to the test that covers it, in both suites.
+The same plugin network-activated has a suite of its own, in [`tests/e2e/network/`](../tests/e2e/network/) with [`playwright.network.config.ts`](../playwright.network.config.ts). It drives the wp-env tests site (port 8893) converted into a subdirectory network, makes `/alpha/` and `/beta/` with WP-CLI and deletes them afterwards, and writes the baseline settings through the main site — the hub — putting back what was there when it ends. `make test-e2e-network` does the conversion and the run, including the layout measurements of every Network Admin tab (`NETWORK_SCREENS` in [`tests/e2e/support/screens.ts`](../tests/e2e/support/screens.ts)). [`tests/e2e/COVERAGE.md`](../tests/e2e/COVERAGE.md) maps every feature to the test that covers it, in both suites.
 
 ## Layout invariants
 
@@ -183,6 +183,8 @@ Three decisions keep it from crying wolf:
 - **The window, the pixel ratio, the motion and the caret are pinned** in the `visual` project in [`playwright.config.ts`](../playwright.config.ts): 1280×900, device scale 1, `reducedMotion`, `animations: 'disabled'`, `caret: 'hide'`, and a 0.2% tolerance for antialiasing.
 
 **Updating a picture when the change IS what you wanted.** `make test-visual-update` — Playwright's `--update-snapshots` — rewrites the baselines. Then look at `git diff --stat tests/e2e/snapshots` **before committing**: that diff is the review of the redesign, and accepting it without looking is how a bug becomes the baseline.
+
+**The network's pictures.** Network Admin's screens, and the three places a site of a network looks different (its Overview, the hub's Ways in, another site's Tools), are photographed by [`tests/e2e/network/network-snapshots.spec.ts`](../tests/e2e/network/network-snapshots.spec.ts) against the network: `make test-visual-network` and `make test-visual-network-update`, same rules, pictures named `network-…`.
 
 **Why it is not in CI.** A baseline image is a picture of one machine's font rendering, its sub-pixel smoothing and its scrollbars. Committing those and asking a runner to match them is a job that is red for reasons nobody can act on, and a gate nobody can act on is a gate that gets switched off. So the `visual` project only exists when `DU_SNAPSHOTS=1` is set, which `make test-visual` does, and the baselines carry the platform in their filename. The layout measurements — which are portable — carry the load in CI.
 

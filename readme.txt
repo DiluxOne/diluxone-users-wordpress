@@ -119,8 +119,9 @@ Each step can be set to WordPress's own way.
 By default deleting the plugin leaves everything in place, so a plugin deleted
 by accident does not lose anybody's account. To remove it all, tick **Remove
 everything this plugin wrote** on **DiluxOne Users+ → Maintenance → Tools**
-first. On a network, people's profile data goes only when every site that uses
-the plugin has ticked it.
+first. On a network where the plugin is on for every site it is one box, in
+**Network Admin → DiluxOne Users+ → Overview → Deleting the plugin**, and
+ticked it takes everything, on every site.
 
 == Third-party resources ==
 
@@ -144,17 +145,26 @@ their own too: `[diluxone_users_fields]`, `[diluxone_users_avatar]`,
 
 = Does it work on multisite? =
 
-Yes. Settings are per site; accounts are the network's. Whether new accounts
-may be created at all is the network's **Allow new registrations**. Somebody
-becomes a member of a site when they sign in there through one of its doors,
-if that site takes new people. The second step is asked wherever a person signs
-in when any site they belong to asks it. Each site's reports count its own
-members. For social login, use one app on every site: some providers give a
-different account id per app.
+Yes. Activated for the whole network, the plugin applies one set of rules to
+every site: the second step, passkeys, sessions, the proxy, the social sign-in
+apps and their rules, the user fields and what the activity log keeps are set
+once, in **Network Admin → DiluxOne Users+**, and a site administrator cannot
+change them for their own site. "Only some roles" means a role on any of the
+person's sites. The sign-in, registration and account pages, and how they look
+and what they say, are set on the main site, and every site uses them. Each
+site keeps its own menus, admin bar, reports, activity log and maintenance.
+Whether new accounts may be created at all is the network's **Allow new
+registrations**; somebody becomes a member of a site when they sign in there
+through one of its doors. On a network that used the plugin before, the main
+site's settings become the network's, and Network Admin lists what the other
+sites had set differently. A site on a domain of its own (not the network's or
+one of its subdomains) makes people sign in again; that is not supported yet.
+Activated site by site, each site keeps its own settings.
 
 = Is it behind a proxy or a CDN? =
 
-Then say so on **DiluxOne Users+ → Security → Behind a proxy**: pick the
+Then say so on **DiluxOne Users+ → Security → Behind a proxy** (on a network,
+in Network Admin): pick the
 header your proxy writes and list its addresses. Until then the plugin ignores
 every forwarding header, because a header nobody is writing is one a visitor
 can write.
