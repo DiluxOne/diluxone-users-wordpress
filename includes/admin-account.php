@@ -677,8 +677,11 @@ function diluxone_users_screen_account_section( string $id, array $sections, int
 
 	$with_code = ! $fresh && diluxone_users_section_has_code( $section );
 	?>
-	<form method="post" class="diluxone-users-endpoint-form">
-		<?php wp_nonce_field( 'diluxone_users_section_form', 'diluxone_users_section_form_nonce' ); ?>
+	<form method="post" class="diluxone-users-endpoint-form" id="diluxone-users-section-form">
+		<?php
+		wp_nonce_field( 'diluxone_users_section_form', 'diluxone_users_section_form_nonce' );
+		diluxone_users_ui_save( 'diluxone-users-section-form', $fresh ? __( 'Add section', 'diluxone-users' ) : __( 'Save section', 'diluxone-users' ) );
+		?>
 		<input type="hidden" name="diluxone_users_section_form[id]" value="<?php echo esc_attr( $fresh ? '' : $id ); ?>">
 
 		<div class="diluxone-users-endpoint-form__head">
@@ -876,8 +879,6 @@ function diluxone_users_screen_account_section( string $id, array $sections, int
 					: '' )
 			);
 		}
-
-		submit_button( $fresh ? __( 'Add section', 'diluxone-users' ) : __( 'Save section', 'diluxone-users' ) );
 		?>
 	</form>
 	<?php
@@ -1128,6 +1129,11 @@ function diluxone_users_screen_account_dashboard(): void {
 	);
 
 	diluxone_users_ui_field_open( __( 'For whom', 'diluxone-users' ) );
+
+	if ( 'allow' === $profile ) {
+		diluxone_users_not_now( __( 'The profile is left as WordPress ships it, so nobody is sent anywhere. Who this reaches applies the day it sends people to the site or closes the screen.', 'diluxone-users' ) );
+	}
+
 	diluxone_users_scope_control(
 		'diluxone_users_wp_profile',
 		'',
@@ -1236,6 +1242,7 @@ function diluxone_users_screen_account_dashboard(): void {
 			),
 		)
 	);
+	diluxone_users_ui_field_close();
 
 	/*
 	 * Where anybody sent away from the dashboard ends up is the one fact both
@@ -1478,9 +1485,10 @@ function diluxone_users_screen_account_privacy(): void {
 		__( 'This is what the section holds. With neither of them on there is nothing in it, and it is not shown.', 'diluxone-users' )
 	);
 	?>
-	<form method="post" class="diluxone-users-endpoint-form">
+	<form method="post" class="diluxone-users-endpoint-form" id="diluxone-users-privacy-form">
 		<?php
 		wp_nonce_field( 'diluxone_users_privacy', 'diluxone_users_privacy_nonce' );
+		diluxone_users_ui_save( 'diluxone-users-privacy-form', __( 'Save what they can do', 'diluxone-users' ) );
 
 		diluxone_users_ui_choices(
 			array(
@@ -1551,8 +1559,6 @@ function diluxone_users_screen_account_privacy(): void {
 				),
 			)
 		);
-
-		submit_button( __( 'Save what they can do', 'diluxone-users' ), 'primary', 'diluxone_users_privacy_submit' );
 		?>
 	</form>
 	<?php

@@ -55,11 +55,13 @@ add_action( 'diluxone_users_register_panels', 'diluxone_users_register_panels' )
 function diluxone_users_register_doors_open(): array {
 	$open = array();
 
-	if ( diluxone_users_option( 'diluxone_users_login_register' ) ) {
+	if ( diluxone_users_link_registers() ) {
 		$open[] = __( 'the e-mail link', 'diluxone-users' );
 	}
 
-	if ( diluxone_users_option( 'diluxone_users_sso_register' ) ) {
+	// The same test the network runs before taking somebody in by this door:
+	// the switch, and a provider working on the sign-in screen to press.
+	if ( diluxone_users_option( 'diluxone_users_sso_register' ) && array() !== diluxone_users_sso_for_login() ) {
 		$open[] = __( 'a social account', 'diluxone-users' );
 	}
 
@@ -233,6 +235,8 @@ function diluxone_users_register_doors( array $social ): array {
 			'checked' => (bool) diluxone_users_option( 'diluxone_users_login_register' ),
 			'title'   => __( 'Signing in with the e-mail link creates the account', 'diluxone-users' ),
 			'help'    => __( 'Somebody types an address the site has never seen, gets a link, and the account exists by the time they are in. Nothing to fill in.', 'diluxone-users' ),
+			'state'   => diluxone_users_login_has_link() ? '' : 'pending',
+			'note'    => diluxone_users_login_has_link() ? '' : __( 'the e-mail link is not one of the ways in, so nobody gets one', 'diluxone-users' ),
 		),
 		array(
 			'type'    => 'checkbox',
@@ -241,8 +245,10 @@ function diluxone_users_register_doors( array $social ): array {
 			'checked' => (bool) diluxone_users_option( 'diluxone_users_sso_register' ),
 			'title'   => __( 'Signing in with a social account creates the account', 'diluxone-users' ),
 			'help'    => __( 'The same thing through Google or Microsoft. Off, a social account only lets in somebody who already has one here.', 'diluxone-users' ),
-			'state'   => array() === $social ? 'pending' : '',
-			'note'    => array() === $social ? __( 'no provider is working yet', 'diluxone-users' ) : '',
+			'state'   => array() === $social || ! diluxone_users_option( 'diluxone_users_sso_login' ) ? 'pending' : '',
+			'note'    => array() === $social
+				? __( 'no provider is working yet', 'diluxone-users' )
+				: ( diluxone_users_option( 'diluxone_users_sso_login' ) ? '' : __( 'social sign-in is not one of the ways in', 'diluxone-users' ) ),
 		),
 		array(
 			'type'     => 'checkbox',

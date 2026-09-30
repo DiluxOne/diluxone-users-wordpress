@@ -292,14 +292,23 @@ export function needsOne(page: Page, name: string): Locator {
 export async function submitPanelWithoutScript(page: Page): Promise<void> {
 	await Promise.all([
 		page.waitForLoadState('domcontentloaded'),
-		page.locator('#submit').evaluate((button: HTMLInputElement) => {
-			// Through the prototype, because `form.submit` is not the method
-			// here: `submit_button()` gives the button name="submit", and a
-			// named control shadows the form member of the same name. Calling
-			// it the obvious way reaches the button and throws.
+		saveButton(page).evaluate((button: HTMLButtonElement) => {
+			// The button sits in the column beside the form and reaches it by
+			// its `form` attribute, which `button.form` resolves.
 			HTMLFormElement.prototype.submit.call(button.form as HTMLFormElement);
 		}),
 	]);
+}
+
+/**
+ * The button that saves the tab.
+ *
+ * It is in the box at the head of the column beside the settings, on every
+ * tab that saves, and its words are translated eight ways: the box is the
+ * stable hold. A tab with two forms has two buttons; the first is the tab's.
+ */
+export function saveButton(page: Page): Locator {
+	return page.locator('[data-diluxone-users-save] .du-save__button').first();
 }
 
 /** What the dashboard shows when a save was refused. */
@@ -318,14 +327,9 @@ export function adminSaved(page: Page): Locator {
 	return page.locator('.notice-success');
 }
 
-/**
- * Presses the button a panel's form ends with.
- *
- * `submit_button()` gives it id="submit"; the value is translated and the
- * class is shared with half the dashboard, so the id is the only stable hold.
- */
+/** Presses the button that saves the tab. */
 export async function savePanel(page: Page): Promise<void> {
-	await Promise.all([page.waitForLoadState('domcontentloaded'), page.locator('#submit').click()]);
+	await Promise.all([page.waitForLoadState('domcontentloaded'), saveButton(page).click()]);
 
 	// The screen says "Saved." through the plugin's own notice. Waiting for it
 	// and not only for the page load is what makes the next assertion about the

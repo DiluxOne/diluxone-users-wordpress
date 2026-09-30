@@ -255,6 +255,33 @@ class ActivityLogTest extends IntegrationTestCase {
 		$this->assertGreaterThan( time() - 120, $row['happened'] );
 	}
 
+	public function test_emptying_it_takes_every_row_and_says_how_many(): void {
+		wp_set_current_user( $this->make_user( 'administrator' ) );
+		diluxone_users_log_record( 'sessions_closed', 0 );
+		diluxone_users_log_record( 'sessions_closed', 0 );
+
+		$_REQUEST['_wpnonce'] = wp_create_nonce( 'diluxone_users_log_empty' );
+
+		$url = $this->expectRedirect( 'diluxone_users_log_empty' );
+
+		$this->assertSame( array(), $this->rows() );
+		$this->assertSame( '2', $this->queryArg( $url, 'diluxone-users-emptied' ) );
+	}
+
+	public function test_emptying_it_asks_for_the_right_to(): void {
+		wp_set_current_user( $this->make_user() );
+		diluxone_users_log_record( 'sessions_closed', 0 );
+		$_REQUEST['_wpnonce'] = wp_create_nonce( 'diluxone_users_log_empty' );
+
+		$this->expectException( \WPAjaxDieContinueException::class );
+
+		try {
+			diluxone_users_log_empty();
+		} finally {
+			$this->assertCount( 1, $this->rows() );
+		}
+	}
+
 	/* ── Finding one row among many ────────────────────────────────── */
 
 	public function test_the_filters_find_by_person_by_kind_and_by_day(): void {

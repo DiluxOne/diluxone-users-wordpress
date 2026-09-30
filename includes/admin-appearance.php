@@ -809,11 +809,24 @@ function diluxone_users_screen_appearance_photo(): void {
 	diluxone_users_ui_choices(
 		array(
 			array(
-				'type'    => 'checkbox',
-				'name'    => 'diluxone_users_avatar_upload',
-				'value'   => '1',
-				'checked' => (bool) diluxone_users_option( 'diluxone_users_avatar_upload' ),
-				'title'   => __( 'Let people upload their own', 'diluxone-users' ),
+				'type'     => 'checkbox',
+				'name'     => 'diluxone_users_avatar_upload',
+				'value'    => '1',
+				'checked'  => (bool) diluxone_users_option( 'diluxone_users_avatar_upload' ),
+				'title'    => __( 'Let people upload their own', 'diluxone-users' ),
+				// How big a photo may be is a question only while there are
+				// photos, so it lives inside the box that allows them.
+				'children' => static function (): void {
+					diluxone_users_ui_number(
+						array(
+							'label'  => __( 'Largest photo accepted', 'diluxone-users' ),
+							'name'   => 'diluxone_users_avatar_max_kb',
+							'value'  => (string) diluxone_users_option( 'diluxone_users_avatar_max_kb' ),
+							'suffix' => __( 'KB', 'diluxone-users' ),
+							'min'    => 64,
+						)
+					);
+				},
 			),
 			array(
 				'type'    => 'checkbox',
@@ -832,16 +845,6 @@ function diluxone_users_screen_appearance_photo(): void {
 		)
 	);
 	diluxone_users_ui_field_close();
-
-	diluxone_users_ui_number(
-		array(
-			'label'  => __( 'Largest photo accepted', 'diluxone-users' ),
-			'name'   => 'diluxone_users_avatar_max_kb',
-			'value'  => (string) diluxone_users_option( 'diluxone_users_avatar_max_kb' ),
-			'suffix' => __( 'KB', 'diluxone-users' ),
-			'min'    => 64,
-		)
-	);
 
 	/*
 	 * Where a visitor's e-mail address goes is not a note under a tick box. It

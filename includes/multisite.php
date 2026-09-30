@@ -68,7 +68,7 @@ function diluxone_users_join_site( int $user_id ): void {
 	// would have created the account had it not existed yet.
 	$social = diluxone_users_option( 'diluxone_users_sso_register' ) && array() !== diluxone_users_sso_for_login();
 
-	if ( ! diluxone_users_option( 'diluxone_users_login_register' ) && ! diluxone_users_option( 'diluxone_users_register_form' ) && ! $social ) {
+	if ( ! diluxone_users_link_registers() && ! diluxone_users_option( 'diluxone_users_register_form' ) && ! $social ) {
 		return;
 	}
 

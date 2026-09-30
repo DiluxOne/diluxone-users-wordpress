@@ -82,10 +82,8 @@ function diluxone_users_login_panels(): void {
 			'save'     => 'diluxone_users_login_arrangement_save',
 			'preview'  => 'diluxone_users_login_preview',
 			'note'     => __( 'The sign-in page, at the width shown. Drag a way in and this follows: the order here is the order of the tabs, and stacked it is the order down the page.', 'diluxone-users' ),
-			// The order travels in a form of this panel's own, with a button
-			// the drag can press. The registry's form ends in one WordPress
-			// names `submit`, and a control named that shadows the form's own
-			// submit method — so dropping a row would throw instead of saving.
+			// The order travels in a form of this panel's own, which the drop
+			// that ends a drag sends.
 			'form'     => false,
 		)
 	);
@@ -95,12 +93,21 @@ add_action( 'diluxone_users_register_panels', 'diluxone_users_login_panels' );
 /** Where people sign in, and what becomes of wp-login.php. */
 function diluxone_users_login_page_save(): void {
 	// phpcs:disable WordPress.Security.NonceVerification.Missing -- the panel verifies it.
+	$screens = in_array( $_POST['diluxone_users_wp_screens'] ?? '', array( 'auto', 'mine', 'wp' ), true )
+		? sanitize_key( wp_unslash( $_POST['diluxone_users_wp_screens'] ) )
+		: 'auto';
+
+	// The second door is not an answer on a site with no password: the screen
+	// does not offer it, and a request that sends it anyway gets the answer
+	// in force instead.
+	if ( 'wp' === $screens && ! diluxone_users_login_has_password() ) {
+		$screens = 'auto';
+	}
+
 	diluxone_users_save_options(
 		array(
 			'diluxone_users_login_page'    => absint( wp_unslash( $_POST['diluxone_users_login_page'] ?? 0 ) ),
-			'diluxone_users_wp_screens'    => in_array( $_POST['diluxone_users_wp_screens'] ?? '', array( 'auto', 'mine', 'wp' ), true )
-				? sanitize_key( wp_unslash( $_POST['diluxone_users_wp_screens'] ) )
-				: 'auto',
+			'diluxone_users_wp_screens'    => $screens,
 			'diluxone_users_lost_password' => in_array( $_POST['diluxone_users_lost_password'] ?? '', array( 'wp', 'site', 'link' ), true )
 				? sanitize_key( wp_unslash( $_POST['diluxone_users_lost_password'] ) )
 				: 'wp',
@@ -166,6 +173,16 @@ function diluxone_users_login_ways_save(): bool {
 	 */
 	if ( function_exists( 'diluxone_users_passkeys_enabled' ) ) {
 		$saved['diluxone_users_passkey_enabled'] = isset( $_POST['diluxone_users_passkey_enabled'] ) ? 1 : 0;
+	}
+
+	/*
+	 * Closing the password closes wp-login.php as a second door with it. Its
+	 * form takes nothing else, so "keep it as a second sign-in screen" stops
+	 * being an answer, and the one in force is the one written — the tab that
+	 * asks the question shows what is stored, not a guess on top of it.
+	 */
+	if ( ! $password && 'wp' === diluxone_users_wp_screens() ) {
+		$saved['diluxone_users_wp_screens'] = 'auto';
 	}
 
 	diluxone_users_save_options( $saved );
@@ -362,9 +379,7 @@ function diluxone_users_wp_login_seen(): bool {
 		return true;
 	}
 
-	$chosen = diluxone_users_wp_screens();
-
-	return 'wp' === $chosen || ( 'auto' === $chosen && ! diluxone_users_login_only_link() );
+	return ! diluxone_users_wp_screens_taken();
 }
 
 /** Where people sign in, and what becomes of wp-login.php. */
@@ -402,8 +417,30 @@ function diluxone_users_screen_login_page(): void {
 		__( 'wp-login.php is the sign-in screen WordPress brings with it, at /wp-login.php: the grey box with the logo on it that everybody has seen. It keeps working whatever is chosen here — what changes is whether anybody still lands on it.', 'diluxone-users' )
 	);
 
+	/*
+	 * Without a password the question has one answer. wp-login.php's form
+	 * takes a password and nothing else, so leaving it open as a second door
+	 * would be leaving open the one door this site closed — and the runtime
+	 * does not (see diluxone_users_wp_screens_taken()). So the screen says
+	 * what is true: the third answer is the one in force, the second cannot
+	 * be picked. Turning the password off moves a stored second door to the
+	 * third answer; one left from before that rule is shown moved, and the
+	 * next save writes it.
+	 */
+	$password = diluxone_users_login_has_password();
+
+	if ( ! $password && 'wp' === $chosen ) {
+		$chosen = 'auto';
+	}
+
 	if ( $page <= 0 ) {
 		diluxone_users_not_now( __( 'There is no sign-in page to send anybody to. What is chosen here waits for one.', 'diluxone-users' ) );
+	} elseif ( ! $password ) {
+		diluxone_users_not_now(
+			__( 'Nobody signs in with a password on this site, so wp-login.php has nothing left to offer and everybody is sent to the sign-in page. What is chosen here applies the day a password is a way in again.', 'diluxone-users' ),
+			diluxone_users_admin_url( 'diluxone-users-login', array( 'tab' => 'ways' ) ),
+			__( 'Ways in →', 'diluxone-users' )
+		);
 	}
 
 	diluxone_users_ui_choices(
@@ -416,11 +453,14 @@ function diluxone_users_screen_login_page(): void {
 				'help'    => __( 'wp-login.php stops being a screen: an old bookmark, a plugin’s link or its “register” link all land on this site’s own pages. Whoever administers the site keeps the emergency way in on the Summary tab.', 'diluxone-users' ),
 			),
 			array(
-				'name'    => 'diluxone_users_wp_screens',
-				'value'   => 'wp',
-				'checked' => 'wp' === $chosen,
-				'title'   => __( 'Keep it as a second sign-in screen', 'diluxone-users' ),
-				'help'    => __( 'The site has two screens that sign people in: yours, and the one WordPress brings. Anybody arriving on wp-login.php from a bookmark or a plugin sees the second.', 'diluxone-users' ),
+				'name'     => 'diluxone_users_wp_screens',
+				'value'    => 'wp',
+				'checked'  => 'wp' === $chosen,
+				'title'    => __( 'Keep it as a second sign-in screen', 'diluxone-users' ),
+				'help'     => __( 'The site has two screens that sign people in: yours, and the one WordPress brings. Anybody arriving on wp-login.php from a bookmark or a plugin sees the second.', 'diluxone-users' ),
+				'disabled' => ! $password,
+				'state'    => $password ? '' : 'off',
+				'note'     => $password ? '' : __( 'its form only takes a password, and this site takes none', 'diluxone-users' ),
 			),
 			array(
 				'name'    => 'diluxone_users_wp_screens',
@@ -757,10 +797,9 @@ function diluxone_users_login_arrangeable(): array {
  * dragged — and it is the same list, with the same rows and the same grip, so
  * that a person who has ordered one has already learnt this one.
  *
- * It is a form of this panel's own, with a plain button at the end of it. The
- * one the panel registry adds is named `submit`, and a control by that name
- * shadows the form's own submit method, so the drop that ends a drag would
- * throw rather than save. This one has nothing named `submit` in it.
+ * It is a form of this panel's own, and a drop that ends a drag sends it. Its
+ * button is on the preview, where every tab keeps the one that saves it; it
+ * reaches the form by its id.
  */
 function diluxone_users_screen_login_arrangement(): void {
 	$ways    = diluxone_users_login_arrangeable();
@@ -771,8 +810,9 @@ function diluxone_users_screen_login_arrangement(): void {
 
 	diluxone_users_intro( __( 'What the sign-in screen does with the ways in the tab before this one switched on. Which ones there are is decided there; this is how they are laid out once there are several, and in what order.', 'diluxone-users' ) );
 
-	echo '<form method="post">';
+	echo '<form method="post" id="diluxone-users-arrangement">';
 	wp_nonce_field( 'diluxone_users_panel_diluxone-users-login', 'diluxone_users_panel_nonce' );
+	diluxone_users_ui_save( 'diluxone-users-arrangement', __( 'Save the arrangement', 'diluxone-users' ) );
 
 	diluxone_users_ui_section(
 		__( 'Stacked or in tabs', 'diluxone-users' ),
@@ -844,25 +884,32 @@ function diluxone_users_screen_login_arrangement(): void {
 		__( 'Only the first time. After that it is whichever one that person used last, which their browser remembers — one id in a cookie, nothing about who they are.', 'diluxone-users' )
 	);
 
+	/*
+	 * Stacked there are no tabs, so none opens first; and a way in the site
+	 * does not offer is not a tab. The first is said above the box, while it
+	 * is the saved answer. The second is not offered in it: the screen would
+	 * quietly open the first one instead.
+	 */
+	$in_tabs = array_diff_key( $offered, $outside );
+
+	if ( 'stack' === diluxone_users_way_layout( count( $in_tabs ) ) ) {
+		diluxone_users_not_now( __( 'The ways in are stacked on this site, so there are no tabs and none opens first. What is chosen here applies the day they are in tabs.', 'diluxone-users' ) );
+	}
+
 	diluxone_users_ui_select(
 		array(
 			'label'   => __( 'For somebody this site has never seen', 'diluxone-users' ),
 			'name'    => 'diluxone_users_login_open',
-			'value'   => $open,
+			'value'   => isset( $in_tabs[ $open ] ) ? $open : '',
 			'options' => array( '' => __( 'The first one in the order above', 'diluxone-users' ) ) + array_map(
 				static fn( array $way ): string => (string) $way['label'],
-				$ways
+				array_intersect_key( $ways, $in_tabs )
 			),
 			'help'    => __( 'A screen that comes back from a refused attempt ignores this and shows the way in that was refused, whatever it says here: a message about an address, read over a password form, explains nothing.', 'diluxone-users' ),
 		)
 	);
 
-	?>
-	<p class="submit">
-		<button type="submit" class="button button-primary" name="diluxone_users_arrangement" value="1"><?php esc_html_e( 'Save the arrangement', 'diluxone-users' ); ?></button>
-	</p>
-	</form>
-	<?php
+	echo '</form>';
 }
 
 /**

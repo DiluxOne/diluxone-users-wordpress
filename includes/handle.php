@@ -363,6 +363,18 @@ function diluxone_users_handle_check(): void {
 add_action( 'wp_ajax_diluxone_users_handle_check', 'diluxone_users_handle_check' );
 
 /**
+ * Does the sign-in box take a public name today?
+ *
+ * Its switch on the Ways in tab, and public names being on at all, which is
+ * the account screen's switch. With names off nobody has chosen one and none
+ * is shown anywhere, so a box that still resolved them would answer to the
+ * login name WordPress made up — a name the site stopped showing.
+ */
+function diluxone_users_handle_login_on(): bool {
+	return (bool) diluxone_users_option( 'diluxone_users_handle_login' ) && (bool) diluxone_users_option( 'diluxone_users_handle_enabled' );
+}
+
+/**
  * Signing in by typing the public name.
  *
  * The sign-in form asks for an e-mail; if what arrived is not one and this is
@@ -371,7 +383,7 @@ add_action( 'wp_ajax_diluxone_users_handle_check', 'diluxone_users_handle_check'
  * to the account's, which is what stops this from opening a new door.
  */
 function diluxone_users_handle_login_email( string $typed ): string {
-	if ( is_email( $typed ) || ! diluxone_users_option( 'diluxone_users_handle_login' ) ) {
+	if ( is_email( $typed ) || ! diluxone_users_handle_login_on() ) {
 		return $typed;
 	}
 

@@ -581,7 +581,7 @@ function diluxone_users_way_email(): void {
 		<input type="hidden" name="action" value="diluxone_users_link_request">
 		<?php wp_nonce_field( 'diluxone_users_login', 'diluxone_users_nonce' ); ?>
 
-		<?php if ( diluxone_users_option( 'diluxone_users_handle_login' ) ) : ?>
+		<?php if ( diluxone_users_handle_login_on() ) : ?>
 			<?php
 			// A public name is not an address, and a box of type "email" would
 			// have the browser refuse it before the site is ever asked. It is

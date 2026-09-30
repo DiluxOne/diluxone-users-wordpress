@@ -156,7 +156,7 @@ So this measures it, on **every tab of every screen**, at **four widths** — 16
 | `overflow` | Nothing reaches past the right-hand edge of the plugin's own block, and the page never scrolls sideways. |
 | `air` | Two blocks of a screen never touch. Asked only between the blocks of a screen — options inside a group touch on purpose. |
 | `blank` | No box with a border or a ground and nothing inside it. The stylesheet already hides the ones that are `:empty`; this catches the ones whose contents came out blank. |
-| `rail` | Where a screen declares a second column, it is beside the settings above 960px and underneath below it. |
+| `rail` | Where a screen declares a second column, it is beside the settings above 960px and underneath below it. Inside it, the box that saves goes first and the state of the site right after it. |
 | `hidden` | Nothing carrying the `hidden` attribute still has a box. The browser's own rule for it has the weight of a bare tag, so any component that gives itself a `display` outranks it and what a script hid stays on the screen. |
 
 They need no baseline image, they mean the same thing on every machine, they say which element is wrong — so they run with everything else, in `make test-e2e` and in CI.

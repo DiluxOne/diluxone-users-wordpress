@@ -192,9 +192,19 @@ function diluxone_users_screen_panels( string $screen, string $title ): void {
 	 * a form itself — sit beside the settings instead of underneath them. A
 	 * form inside a form is thrown away by the browser; two siblings are not.
 	 */
-	if ( $preview ) {
-		echo '<div class="diluxone-users-studio"><div class="diluxone-users-studio__fields">';
+	if ( $form ) {
+		diluxone_users_ui_save( DILUXONE_USERS_PANEL_FORM );
 	}
+
+	/*
+	 * The button is drawn by whichever second column the panel ends up with,
+	 * and which one that is is only known once the panel has been drawn: the
+	 * rail is opened from inside it. So the panel is drawn into a buffer, and
+	 * a button still waiting afterwards goes on the preview if there is one,
+	 * or on a rail of its own if the panel had nothing else to put beside
+	 * itself — every tab that saves has its button in the same place.
+	 */
+	ob_start();
 
 	if ( $form ) {
 		printf( '<form method="post" id="%s">', esc_attr( DILUXONE_USERS_PANEL_FORM ) );
@@ -206,8 +216,22 @@ function diluxone_users_screen_panels( string $screen, string $title ): void {
 	}
 
 	if ( $form ) {
-		submit_button();
 		echo '</form>';
+	}
+
+	$drawn = (string) ob_get_clean();
+	$alone = ! $preview && diluxone_users_ui_save_pending();
+
+	if ( $preview || $alone ) {
+		echo '<div class="diluxone-users-studio"><div class="diluxone-users-studio__fields">';
+	}
+
+	// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- the panel escaped what it printed.
+	echo $drawn;
+
+	if ( $alone ) {
+		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped inside.
+		echo '</div><div class="diluxone-users-studio__aside">' . diluxone_users_ui_save_box() . '</div></div>';
 	}
 
 	if ( $preview ) {
@@ -230,6 +254,8 @@ function diluxone_users_screen_panels( string $screen, string $title ): void {
 		}
 
 		echo '>';
+		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped inside.
+		echo diluxone_users_ui_save_box();
 		diluxone_users_preview_stage( $panel, $screen, $current );
 		echo '</div></div>';
 	}

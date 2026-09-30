@@ -17,6 +17,7 @@ product is fixed, not to be loosened.
 | Password form: `both`, `password`, `link` | `password-login` › the three ways in |
 | wp-login.php taken over (`auto`), POST allowed (H-05), escape hatch, logout | `password-login` |
 | wp-login.php left to WordPress (`wp`) and sent to the site's page (`mine`) | `admin-effects` › Access › The sign-in page |
+| No password: `wp` not offered, the third answer in force, wp-login.php sent to the page | `admin-effects` › with no password, wp-login.php is no second door |
 | The four ways in as tabs or stacked, order, the tab that opens, no JS | `login-ways` |
 | Split-screen layout, messages rewritten in the dashboard | `login-screen` |
 | Sign in with the public name (handle login) | `account-area` › The public name |
@@ -88,13 +89,17 @@ product is fixed, not to be loosened.
 | Every tab of every screen renders, no notice, no layout breakage | `admin-settings` › Every settings screen renders; `admin-layout` |
 | Pictures of every tab | `admin-snapshots` (`make test-visual`, not in CI) |
 | Access › Ways in / Registration / Messages / Arrangement saves | `admin-settings`, `login-ways`, `login-screen` |
+| Every tab that saves has its button in the box beside it, first in the column, in view | `admin-layout` › Every tab saves from beside itself |
+| The save box: changed back is clean, discard, leaving asks | `admin-settings` › The box that saves |
+| The tabs on a phone stay in one row | `admin-settings` › The tabs on a phone |
 | Security › Summary, Two-step, Sessions, Proxy | `security-summary`, `admin-settings`, `admin-effects` |
-| Social › Providers toggle | `admin-effects` › Social › Providers |
+| Social › Providers: turn off (asks first), delete its settings (asks first) | `admin-effects` › Social › Providers |
 | Design › Brand and previews | `design-brand`, `preview` |
 | Design › Photo, Registration, Account, WordPress's screens | `admin-effects` |
 | Notifications › Rules / E-mails | `admin-effects` › Notifications › Rules; `admin-settings` › the site's own words |
 | Reports › Sessions: list and close | `admin-tools` › Reports |
 | Reports › Activity: logging groups, event filter | `activity-log`, `admin-tools` › Reports |
+| Reports › Logging: empty the log (asks first) | `activity-log` › emptying it asks first |
 | Reports › Activity: search by address finds refused attempts | `admin-tools` › …finds the refused attempts |
 | Status › Tools: export, import, close sessions, fresh code, rebuild, test message | `admin-tools` › Status › Tools |
 | Status › Tools: a file round trip keeps nested settings | `admin-tools` › …nested ones included |

@@ -336,7 +336,7 @@ test.describe('The arrangement tab', () => {
 			nodes.map((node) => (node as HTMLInputElement).value)
 		);
 
-		await page.locator('button[name="diluxone_users_arrangement"]').click();
+		await page.locator('[data-diluxone-users-save] [form="diluxone-users-arrangement"]').click();
 		await expect(page.locator('.notice, .updated').first(), 'the save said nothing').toBeVisible();
 
 		// It came back written, and the screen shows what was written.
@@ -358,7 +358,7 @@ test.describe('The arrangement tab', () => {
 		await page.goto(adminUrl('diluxone-users-login', 'arrangement'));
 
 		await page.locator('input[name="diluxone_users_login_layout"][value="stack"]').check();
-		await page.locator('button[name="diluxone_users_arrangement"]').click();
+		await page.locator('[data-diluxone-users-save] [form="diluxone-users-arrangement"]').click();
 
 		await guest.setViewportSize(LAPTOPS[0]);
 		await guest.goto(pages.login.url);

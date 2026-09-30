@@ -454,11 +454,24 @@ function diluxone_users_user_for( string $email ): int {
 	// Signing in only creates an account when that is how this site registers
 	// people. With a form of its own, or with registration closed, an address
 	// nobody has seen before is simply an address nobody has seen before.
-	if ( ! diluxone_users_option( 'diluxone_users_login_register' ) ) {
+	if ( ! diluxone_users_link_registers() ) {
 		return 0;
 	}
 
 	return diluxone_users_create_account( $email );
+}
+
+/**
+ * Does signing in with the e-mail link create the account today?
+ *
+ * The switch on the Registration screen, and the link itself being a way in:
+ * on a site that signs in with a password only, no link is mailed, so a door
+ * that creates the account by mailing one is not open, whatever it says. Read
+ * here, once, by everything that asks whether that door is open — the
+ * sign-in, the Registration screen, the summary and the network.
+ */
+function diluxone_users_link_registers(): bool {
+	return (bool) diluxone_users_option( 'diluxone_users_login_register' ) && diluxone_users_login_has_link();
 }
 
 /**
@@ -475,7 +488,7 @@ function diluxone_users_register_mode(): string {
 		return 'closed';
 	}
 
-	$link = (bool) diluxone_users_option( 'diluxone_users_login_register' );
+	$link = diluxone_users_link_registers();
 	$form = (bool) diluxone_users_option( 'diluxone_users_register_form' );
 
 	if ( $link && $form ) {
@@ -735,7 +748,7 @@ function diluxone_users_login_request(): void {
 	// public name. In the second case it goes on with that account's e-mail:
 	// the link never goes out to an address typed on the spot.
 	$typed  = sanitize_text_field( wp_unslash( $_POST['diluxone_users_email'] ?? '' ) );
-	$handle = ! is_email( $typed ) && diluxone_users_option( 'diluxone_users_handle_login' );
+	$handle = ! is_email( $typed ) && diluxone_users_handle_login_on();
 	$email  = sanitize_email( diluxone_users_handle_login_email( $typed ) );
 
 	// Everything that follows ends on the same screen, account or no account,

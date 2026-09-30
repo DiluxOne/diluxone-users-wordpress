@@ -2,7 +2,7 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { Browser, Page } from '@playwright/test';
 import { test, expect, expectSignedIn } from '../support/fixtures';
 import { Site, codeIn, freshEmail, waitForMail } from '../support/api';
-import { accountSection, adminUrl, signInWithPassword } from '../support/ui';
+import { accountSection, adminUrl, saveButton, signInWithPassword } from '../support/ui';
 import { ADMIN_STATE } from '../../../playwright.config';
 
 /**
@@ -372,7 +372,7 @@ test.describe('Account area › Sections', () => {
 		await page.goto(adminUrl('diluxone-users-account', 'sections') + '&section=diluxone-users-new');
 		await page.locator('[name="diluxone_users_section_form[label]"]').fill(label);
 		await page.locator('[name="diluxone_users_section_form[intro]"]').fill(intro);
-		await Promise.all([page.waitForLoadState('domcontentloaded'), page.locator('#submit').click()]);
+		await Promise.all([page.waitForLoadState('domcontentloaded'), saveButton(page).click()]);
 
 		const email = freshEmail('sections-own');
 
@@ -427,7 +427,7 @@ test.describe('Account area › Sections', () => {
 
 		await page.goto(adminUrl('diluxone-users-account', 'sections') + '&section=privacy');
 		await page.locator('input[name="diluxone_users_privacy_export"]').setChecked(true, { force: true });
-		await Promise.all([page.waitForLoadState('domcontentloaded'), page.locator('[name="diluxone_users_privacy_submit"]').click()]);
+		await Promise.all([page.waitForLoadState('domcontentloaded'), page.locator('[data-diluxone-users-save] [form="diluxone-users-privacy-form"]').click()]);
 
 		await guest.goto(pages.account.url);
 		await expect(guest.locator('a.diluxone-users-account__tab[href*="/privacy/"]')).toBeVisible();
@@ -448,7 +448,7 @@ test.describe('Account area › Sections', () => {
 		await options.set({ diluxone_users_privacy_export: 1, diluxone_users_privacy_delete: 1 });
 
 		const save = async () =>
-			Promise.all([page.waitForLoadState('domcontentloaded'), page.locator('[name="diluxone_users_privacy_submit"]').click()]);
+			Promise.all([page.waitForLoadState('domcontentloaded'), page.locator('[data-diluxone-users-save] [form="diluxone-users-privacy-form"]').click()]);
 
 		await page.goto(adminUrl('diluxone-users-account', 'sections') + '&section=privacy');
 

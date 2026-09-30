@@ -224,7 +224,10 @@ diluxoneUsersFieldTypes( document );
 
 			if ( dragged ) {
 				dragged = null;
-				list.closest( 'form' ).submit();
+				// requestSubmit and not submit: it fires the submit event,
+				// which is how the rest of the page knows this is a save and
+				// not somebody walking away from unsaved changes.
+				list.closest( 'form' ).requestSubmit();
 			}
 		} );
 
@@ -926,90 +929,6 @@ function diluxoneUsersChoiceGroups( root ) {
 }() );
 
 /**
- * A rail longer than the window still has to show its end.
- *
- * Staying in view while the settings scroll past is `position: sticky` in the
- * stylesheet, and for almost every rail that is the whole story: it comes to
- * rest under the toolbar and the form goes by underneath it.
- *
- * The exception is the rail that is taller than the window — the sign-in tab
- * with three providers half configured, a state, a note and five ways out.
- * Resting its top under the toolbar pins its first line and pushes its last
- * one below the bottom edge, for good: no amount of scrolling brings the links
- * back, because the thing holding them is nailed to the top of the screen. The
- * pattern that answers it is to rest later — the rail travels up with the page
- * until its own last line is on the bottom edge, and stops there — and the
- * distance to rest at is the window's height less the rail's, which is a
- * measurement and not something a stylesheet can work out.
- *
- * So the stylesheet keeps the rule and this hands it the one number: where the
- * rail rests, as `--du-follow-top`. Nothing else here decides anything. With
- * the script off, or before it runs, the fallback in the stylesheet applies and
- * the rail behaves like the preview column does.
- */
-( function () {
-	'use strict';
-
-	var rails = document.querySelectorAll( '[data-diluxone-users-follow]' );
-
-	if ( ! rails.length ) {
-		return;
-	}
-
-	function place( rail ) {
-		// Always measured at rest. What is worked out below is the offset, so
-		// reading the rail while a previous answer is still on it measures the
-		// answer instead of the rail.
-		rail.style.removeProperty( '--du-follow-top' );
-
-		var how = window.getComputedStyle( rail );
-
-		// Under 960px the stylesheet puts the rail below the settings and
-		// stops it following. That breakpoint is WordPress's and it is written
-		// down once, over there: what is asked here is whether the rail is
-		// still a column beside something, which is the same question without
-		// a second copy of the number.
-		if ( 'static' === how.position ) {
-			return;
-		}
-
-		var rest = parseFloat( how.top );
-
-		if ( isNaN( rest ) ) {
-			return;
-		}
-
-		// The same air under it as over it: a last line touching the bottom
-		// edge of the window reads as a line that has been cut off.
-		var room = window.innerHeight - ( rest * 2 );
-		var tall = rail.getBoundingClientRect().height;
-
-		if ( tall > room ) {
-			rail.style.setProperty( '--du-follow-top', Math.round( rest - ( tall - room ) ) + 'px' );
-		}
-	}
-
-	function all() {
-		rails.forEach( place );
-	}
-
-	// Both halves of the sum change while the page is open: the window is
-	// resized, and the rail itself grows when something in it is answered —
-	// a provider turned on adds a caveat, a state line becomes two.
-	window.addEventListener( 'resize', all );
-
-	if ( 'function' === typeof window.ResizeObserver ) {
-		var watch = new window.ResizeObserver( all );
-
-		rails.forEach( function ( rail ) {
-			watch.observe( rail );
-		} );
-	} else {
-		all();
-	}
-}() );
-
-/**
  * Asking before something that cannot be undone, and filters that apply as
  * soon as they change. Said in the markup (`data-diluxone-users-confirm`,
  * `data-diluxone-users-autosubmit`) and wired here, once, for the whole page.
@@ -1029,7 +948,210 @@ function diluxoneUsersChoiceGroups( root ) {
 		var field = event.target;
 
 		if ( field.hasAttribute && field.hasAttribute( 'data-diluxone-users-autosubmit' ) && field.form ) {
-			field.form.submit();
+			field.form.requestSubmit();
 		}
 	} );
+}() );
+
+/**
+ * The box that saves says whether there is anything to save, takes it back,
+ * and does not let it be lost by walking away.
+ *
+ * "Anything to save" is a comparison, not a history: what the form holds now
+ * against what it held when the screen was opened. Choosing another answer
+ * and then the one that was there is nothing to save, and the box says so.
+ *
+ * Taking it back puts every field of the form back to that first reading and
+ * tells the page it changed, so what hangs off an option and the preview
+ * follow. Leaving with something unsaved asks first: a link on the page asks
+ * in the plugin's words, anything else — the back button, closing the tab —
+ * gets the browser's own question, which is the only one it allows there.
+ *
+ * The button sits in the column beside the form, tied to it by its `form`
+ * attribute, so it is the form it names that is watched. The line over it is
+ * printed hidden: without this nobody is watching, and "nothing changed yet"
+ * is not something the page can vouch for on its own.
+ */
+( function () {
+	'use strict';
+
+	var boxes = document.querySelectorAll( '[data-diluxone-users-save]' );
+
+	if ( ! boxes.length ) {
+		return;
+	}
+
+	var watched = [];
+	var leaving = false;
+
+	function fields( form ) {
+		return Array.prototype.filter.call( form.elements, function ( field ) {
+			return field.name && 'submit' !== field.type && 'button' !== field.type && ! field.disabled;
+		} );
+	}
+
+	function read( form ) {
+		return fields( form ).map( function ( field ) {
+			if ( 'checkbox' === field.type || 'radio' === field.type ) {
+				return field.name + '=' + field.value + ':' + field.checked;
+			}
+
+			if ( 'select-multiple' === field.type ) {
+				return field.name + '=' + Array.prototype.map.call( field.selectedOptions, function ( option ) {
+					return option.value;
+				} ).join( ',' );
+			}
+
+			return field.name + '=' + field.value;
+		} ).join( '&' );
+	}
+
+	function remember( form ) {
+		return fields( form ).map( function ( field ) {
+			return {
+				field: field,
+				value: field.value,
+				checked: field.checked,
+				selected: 'select-multiple' === field.type
+					? Array.prototype.map.call( field.options, function ( option ) {
+						return option.selected;
+					} )
+					: null,
+			};
+		} );
+	}
+
+	function dirty() {
+		return watched.some( function ( one ) {
+			return read( one.form ) !== one.first;
+		} );
+	}
+
+	boxes.forEach( function ( box ) {
+		var mine = [];
+
+		box.querySelectorAll( '.du-save__button' ).forEach( function ( button ) {
+			var form = button.form;
+
+			if ( ! form ) {
+				return;
+			}
+
+			var one = { form: form, first: read( form ), values: remember( form ), box: box };
+
+			mine.push( one );
+			watched.push( one );
+		} );
+
+		function review() {
+			var changed = mine.some( function ( one ) {
+				return read( one.form ) !== one.first;
+			} );
+
+			box.classList.toggle( 'is-dirty', changed );
+		}
+
+		mine.forEach( function ( one ) {
+			one.form.addEventListener( 'input', review );
+			one.form.addEventListener( 'change', review );
+		} );
+
+		var undo = box.querySelector( '.du-save__undo' );
+
+		if ( undo ) {
+			undo.addEventListener( 'click', function () {
+				mine.forEach( function ( one ) {
+					one.values.forEach( function ( kept ) {
+						kept.field.value = kept.value;
+						kept.field.checked = kept.checked;
+
+						if ( kept.selected ) {
+							Array.prototype.forEach.call( kept.field.options, function ( option, at ) {
+								option.selected = kept.selected[ at ];
+							} );
+						}
+					} );
+
+					one.form.dispatchEvent( new Event( 'change', { bubbles: true } ) );
+				} );
+
+				review();
+			} );
+		}
+
+		var state = box.querySelector( '.du-save__state' );
+
+		if ( state ) {
+			state.hidden = false;
+		}
+	} );
+
+	// A save is not walking away, unless something stopped it — the rule that
+	// wants one box ticked cancels the press, and then the changes are still
+	// only on the screen. A button that sends the form into the preview frame
+	// does not leave the page either.
+	document.addEventListener( 'submit', function ( event ) {
+		var aside = event.submitter && event.submitter.getAttribute( 'formtarget' );
+
+		if ( event.defaultPrevented || aside ) {
+			return;
+		}
+
+		// A tab with two forms sends one of them. What was changed in the
+		// other is left behind like any other walk away, and asked about.
+		var behind = watched.some( function ( one ) {
+			return one.form !== event.target && read( one.form ) !== one.first;
+		} );
+
+		if ( behind && ! window.confirm( document.querySelector( '[data-diluxone-users-save]' ).getAttribute( 'data-diluxone-users-leave' ) ) ) {
+			event.preventDefault();
+			return;
+		}
+
+		leaving = true;
+	} );
+
+	document.addEventListener( 'click', function ( event ) {
+		var link = event.target.closest ? event.target.closest( 'a[href]' ) : null;
+
+		if ( ! link || event.defaultPrevented || leaving || ! dirty() ) {
+			return;
+		}
+
+		var href = link.getAttribute( 'href' );
+
+		if ( '#' === href.charAt( 0 ) || '_blank' === link.target || event.ctrlKey || event.metaKey || event.shiftKey ) {
+			return;
+		}
+
+		if ( window.confirm( document.querySelector( '[data-diluxone-users-save]' ).getAttribute( 'data-diluxone-users-leave' ) ) ) {
+			leaving = true;
+		} else {
+			event.preventDefault();
+		}
+	} );
+
+	window.addEventListener( 'beforeunload', function ( event ) {
+		if ( leaving || ! dirty() ) {
+			return;
+		}
+
+		event.preventDefault();
+		event.returnValue = '';
+	} );
+}() );
+
+/**
+ * On a phone the tabs are one row that scrolls sideways, and the open one can
+ * be past the edge. It is brought into view once, when the screen opens.
+ */
+( function () {
+	'use strict';
+
+	var open = document.querySelector( '.diluxone-users-admin .nav-tab-wrapper .nav-tab-active' );
+	var strip = open && open.parentElement;
+
+	if ( strip && strip.scrollWidth > strip.clientWidth ) {
+		strip.scrollLeft = open.offsetLeft - ( strip.clientWidth - open.offsetWidth ) / 2;
+	}
 }() );
