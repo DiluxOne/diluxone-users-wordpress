@@ -20,9 +20,25 @@
 
 defined( 'ABSPATH' ) || exit;
 
-/** The attachment the person uploaded, or 0. */
+/**
+ * The attachment the person uploaded, or 0.
+ *
+ * Also 0 when it was uploaded on a site of the network that has since been
+ * deleted: its media library went with it, and asking for it there would be
+ * asking a table that is not there.
+ */
 function diluxone_users_avatar_id( int $user_id ): int {
-	return (int) get_user_meta( $user_id, 'diluxone_users_avatar', true );
+	$id = (int) get_user_meta( $user_id, 'diluxone_users_avatar', true );
+
+	if ( $id > 0 && is_multisite() ) {
+		$site = (int) get_user_meta( $user_id, 'diluxone_users_avatar_site', true );
+
+		if ( $site > 0 && null === get_site( $site ) ) {
+			return 0;
+		}
+	}
+
+	return $id;
 }
 
 /**

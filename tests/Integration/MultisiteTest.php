@@ -415,4 +415,36 @@ class MultisiteTest extends IntegrationTestCase {
 
 		$this->assertNull( get_post( $picture ), 'Deleted where it lives' );
 	}
+
+	/** A picture uploaded on a site deleted since is no picture, and nothing asks that site for it. */
+	public function test_a_picture_on_a_deleted_site_is_no_picture(): void {
+		$user = $this->make_user();
+		$gone = (int) wp_insert_site(
+			array(
+				'domain' => (string) get_network()->domain,
+				'path'   => get_network()->path . 'gone-avatar-' . wp_generate_password( 6, false, false ) . '/',
+			)
+		);
+
+		update_user_meta( $user, 'diluxone_users_avatar', 5 );
+		update_user_meta( $user, 'diluxone_users_avatar_site', $gone );
+		wp_delete_site( $gone );
+
+		global $wpdb;
+		$errors = 0;
+		$count  = static function ( $query ) use ( &$errors, $wpdb, $gone ) {
+			if ( false !== strpos( (string) $query, $wpdb->get_blog_prefix( $gone ) . 'posts' ) ) {
+				++$errors;
+			}
+
+			return $query;
+		};
+		add_filter( 'query', $count );
+		$url = diluxone_users_avatar_url( $user );
+		remove_filter( 'query', $count );
+
+		$this->assertSame( 0, diluxone_users_avatar_id( $user ) );
+		$this->assertSame( '', $url );
+		$this->assertSame( 0, $errors, 'the deleted site’s tables were not asked' );
+	}
 }

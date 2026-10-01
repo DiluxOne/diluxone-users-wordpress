@@ -153,7 +153,13 @@ function diluxone_users_uninstall_photos(): void {
 	);
 
 	foreach ( (array) $rows as $row ) {
-		$site   = (int) $row->site;
+		$site = (int) $row->site;
+
+		// A site deleted since took its media library with it.
+		if ( is_multisite() && $site > 0 && null === get_site( $site ) ) {
+			continue;
+		}
+
 		$switch = is_multisite() && $site > 0 && get_current_blog_id() !== $site;
 
 		if ( $switch ) {
