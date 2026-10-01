@@ -163,6 +163,21 @@ export class Site {
 		return this.call('post', '/identity', { identity });
 	}
 
+	/**
+	 * Registers somebody through register_new_user() the way another plugin's
+	 * sign-up does: nothing of this plugin's in the request.
+	 */
+	register(login: string, email: string): Promise<{ id?: number; errors?: string[] }> {
+		return this.call('post', '/register', { login, email });
+	}
+
+	/** How many times `wp_login` fired for an address, by the mu-plugin's count. */
+	async wpLogins(email: string): Promise<number> {
+		const heard = ((await this.getOptions(['diluxone_e2e_wp_login'])).diluxone_e2e_wp_login ?? {}) as Record<string, number>;
+
+		return Number(heard[email.toLowerCase()] ?? 0);
+	}
+
 	/** Moves a deadline into the past: 'link', '2fa' or 'resend'. */
 	expire(email: string, what: 'link' | '2fa' | 'resend'): Promise<unknown> {
 		return this.call('post', '/expire', { email, what });

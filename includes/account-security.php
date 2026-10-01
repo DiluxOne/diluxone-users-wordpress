@@ -18,6 +18,12 @@ function diluxone_users_2fa_offered( int $user_id ): bool {
 		return false;
 	}
 
+	// Turned on from here, it would be asked on a screen that is not there:
+	// with nowhere to answer it, it is not offered (diluxone_users_2fa_surface()).
+	if ( '' === diluxone_users_2fa_surface() ) {
+		return false;
+	}
+
 	// The same question the sign-in asks, in the same words: who is in the
 	// scope. Reading the list of roles directly disagreed with it whenever the
 	// scope was "everybody" with roles still ticked from before.
@@ -67,6 +73,13 @@ function diluxone_users_security_submit(): void {
 			exit;
 
 		case 'on':
+			// The form only offers it when the site does; a form sent by hand
+			// does not get to switch on a step nobody could answer.
+			if ( ! diluxone_users_2fa_offered( $user_id ) ) {
+				wp_safe_redirect( add_query_arg( 'diluxone-users', 'notoffered', $target ) );
+				exit;
+			}
+
 			if ( array() === diluxone_users_2fa_available( $user_id ) ) {
 				wp_safe_redirect( add_query_arg( 'diluxone-users', 'nomethod', $target ) );
 				exit;
@@ -101,6 +114,11 @@ function diluxone_users_security_submit(): void {
 			exit;
 
 		case 'totp':
+			if ( ! diluxone_users_2fa_offered( $user_id ) ) {
+				wp_safe_redirect( add_query_arg( 'diluxone-users', 'notoffered', $target ) );
+				exit;
+			}
+
 			if ( ! diluxone_users_totp_activate( $user_id, $code ) ) {
 				wp_safe_redirect( add_query_arg( 'diluxone-users', 'badcode', $target ) );
 				exit;

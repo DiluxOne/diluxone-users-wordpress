@@ -73,6 +73,32 @@ class MembershipTest extends TestCase {
 		$this->assertSame( 'invite', diluxone_users_membership() );
 	}
 
+	public function test_on_a_single_site_there_is_nothing_to_confirm(): void {
+		$GLOBALS['_test_multisite'] = false;
+		Functions\expect( 'diluxone_users_option' )->never();
+
+		$this->assertTrue( diluxone_users_membership_confirmed() );
+	}
+
+	/**
+	 * @dataProvider confirmations
+	 * @param mixed $stored
+	 */
+	public function test_on_a_network_the_policy_waits_for_its_confirmation( $stored, bool $confirmed ): void {
+		$GLOBALS['_test_multisite'] = true;
+		Functions\when( 'diluxone_users_option' )->justReturn( $stored );
+
+		$this->assertSame( $confirmed, diluxone_users_membership_confirmed() );
+	}
+
+	public static function confirmations(): array {
+		return array(
+			'never confirmed (the default)' => array( 0, false ),
+			'confirmed'                     => array( 1, true ),
+			'nothing stored'                => array( null, false ),
+		);
+	}
+
 	/**
 	 * @dataProvider roles
 	 */

@@ -82,6 +82,11 @@ function diluxone_users_confirm_sign_in( int $request_id, string $key ): void {
  * link that is not good any more is left to WordPress, which says why.
  */
 function diluxone_users_confirm_intercept(): void {
+	// In safe mode wp-login.php is WordPress's, its confirmation included.
+	if ( diluxone_users_safe_mode() ) {
+		return;
+	}
+
 	// phpcs:disable WordPress.Security.NonceVerification.Recommended -- the confirmation key is what vouches for this link, and it is checked below.
 	$request_id = isset( $_GET['request_id'] ) ? absint( $_GET['request_id'] ) : 0;
 	$key        = isset( $_GET['confirm_key'] ) ? sanitize_text_field( wp_unslash( $_GET['confirm_key'] ) ) : '';

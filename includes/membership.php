@@ -29,6 +29,13 @@
  * what this plugin removes itself, closing an account, is not an
  * administrator's decision and is not written down.
  *
+ * None of it happens until the network has confirmed its policy on that
+ * screen (the network setting `diluxone_users_membership_confirmed`). A
+ * plugin being network-activated is not a decision to make every account a
+ * member of every site, so until the confirmation the policy adds nobody to
+ * anything — WordPress's own memberships stand — and Network Admin says so.
+ * Confirming "every site" adds everybody, through the same queue.
+ *
  * A few additions are made on the spot. Past a threshold (50, filterable)
  * they are a job in a queue, a network setting, worked through by WP-Cron in
  * batches under a lock, with its progress on the Membership screen; the same
@@ -45,6 +52,9 @@ defined( 'ABSPATH' ) || exit;
 
 /** The network setting: 'all', 'click' or 'invite'. */
 const DILUXONE_USERS_MEMBERSHIP = 'diluxone_users_membership';
+
+/** The network setting that says the policy was confirmed. */
+const DILUXONE_USERS_MEMBERSHIP_CONFIRMED = 'diluxone_users_membership_confirmed';
 
 /** The network setting that holds the jobs still to do. */
 const DILUXONE_USERS_MEMBERSHIP_QUEUE = 'diluxone_users_membership_queue';
@@ -190,6 +200,17 @@ function diluxone_users_membership(): string {
 }
 
 /**
+ * Has the network confirmed its policy?
+ *
+ * Until it has, nothing the policy would do on its own is done: no new
+ * account or new site is joined to anything, signing in adds nobody, and the
+ * queue waits. On a single site there is nothing to confirm.
+ */
+function diluxone_users_membership_confirmed(): bool {
+	return ! is_multisite() || (bool) diluxone_users_option( DILUXONE_USERS_MEMBERSHIP_CONFIRMED );
+}
+
+/**
  * Is a site of this network one people are added to?
  *
  * @param int $site_id The site.
@@ -319,6 +340,12 @@ function diluxone_users_membership_quiet( ?bool $set = null ): bool {
  * @return bool Whether they are a member now and were not before.
  */
 function diluxone_users_membership_add( int $user_id, int $site_id, string $how ): bool {
+	// Until the network confirms its policy, the policy adds nobody. A person
+	// pressing "Join this site" is not the policy acting on its own.
+	if ( 'click' !== $how && ! diluxone_users_membership_confirmed() ) {
+		return false;
+	}
+
 	if ( ! diluxone_users_membership_may_join( $user_id, $site_id ) ) {
 		return false;
 	}
@@ -579,7 +606,7 @@ function diluxone_users_membership_batch(): int {
 function diluxone_users_membership_new_account( $user_id ): void {
 	$user_id = (int) $user_id;
 
-	if ( ! is_multisite() || $user_id <= 0 || 'all' !== diluxone_users_membership() ) {
+	if ( ! is_multisite() || $user_id <= 0 || 'all' !== diluxone_users_membership() || ! diluxone_users_membership_confirmed() ) {
 		return;
 	}
 
@@ -614,7 +641,7 @@ add_action( 'wpmu_activate_user', 'diluxone_users_membership_new_account', 20 );
  * @param WP_Site $site The new site.
  */
 function diluxone_users_membership_new_site( $site ): void {
-	if ( ! $site instanceof WP_Site || ! diluxone_users_network_activated() || 'all' !== diluxone_users_membership() ) {
+	if ( ! $site instanceof WP_Site || ! diluxone_users_network_activated() || 'all' !== diluxone_users_membership() || ! diluxone_users_membership_confirmed() ) {
 		return;
 	}
 
@@ -814,6 +841,12 @@ function diluxone_users_membership_step( array $job ): ?array {
  * @return bool|null True when the queue is empty afterwards, false when some is left, null when another run holds the lock.
  */
 function diluxone_users_membership_drain( int $batches = 10 ) {
+	// Not confirmed: the jobs wait, untouched, for the confirmation — which
+	// queues everybody anyway — and cron stops asking.
+	if ( ! diluxone_users_membership_confirmed() ) {
+		return true;
+	}
+
 	if ( 'all' !== diluxone_users_membership() ) {
 		diluxone_users_membership_queue_save( array() );
 
@@ -893,7 +926,7 @@ function diluxone_users_membership_enqueue_all(): int {
  * @return bool Whether it is all done already.
  */
 function diluxone_users_membership_sync(): bool {
-	if ( ! is_multisite() || 'all' !== diluxone_users_membership() ) {
+	if ( ! is_multisite() || 'all' !== diluxone_users_membership() || ! diluxone_users_membership_confirmed() ) {
 		return true;
 	}
 

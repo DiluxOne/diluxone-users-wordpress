@@ -42,8 +42,11 @@ function diluxone_users_option_defaults(): array {
 		'diluxone_users_login_role'            => 'subscriber',
 
 		// ── Session length ────────────────────────────────────────────
-		'diluxone_users_session_long_days'     => 30,  // With "remember me".
-		'diluxone_users_session_short_days'    => 2,   // Without "remember me".
+		// In days. 0 leaves it to WordPress (14 days with "remember me", 2
+		// without, or whatever another plugin on the site decided): a length
+		// is only set here when an administrator chooses one.
+		'diluxone_users_session_long_days'     => 0,   // With "remember me".
+		'diluxone_users_session_short_days'    => 0,   // Without "remember me".
 
 		// ── Social login ──────────────────────────────────────────────
 		// If the e-mail the network returns already exists on the site, that
@@ -423,6 +426,11 @@ function diluxone_users_option_defaults(): array {
 		// with "Join this site") or 'invite' (the hub; administrators add them
 		// anywhere else). Meaningless on a single site. See membership.php.
 		'diluxone_users_membership'            => 'all',
+		// Whether the network has confirmed that policy on Network Admin ›
+		// Membership. Until it has, the policy adds nobody to anything: a
+		// plugin being turned on is not a decision to make every account a
+		// member of every site.
+		'diluxone_users_membership_confirmed'  => 0,
 
 		// ── Deleting the plugin ───────────────────────────────────────
 		// Whether removing the plugin also removes everything it wrote.
@@ -611,15 +619,42 @@ function diluxone_users_login_expiry(): int {
 }
 
 /**
+ * Is the sign-in page chosen in the admin one a stranger can actually open?
+ *
+ * A page that was chosen and then sent to the bin, left as a draft, made
+ * private or given a password is still a number in the setting, and its
+ * address answers with a 404 or a password box. Sending somebody halfway
+ * through signing in there — the second step, the way back from a link — is
+ * leaving them on a screen with no form on it, so such a page counts as no
+ * page at all, and wp-login.php takes its place.
+ */
+function diluxone_users_login_page_live(): bool {
+	$page = (int) diluxone_users_option( 'diluxone_users_login_page' );
+
+	if ( $page <= 0 ) {
+		return false;
+	}
+
+	return (bool) diluxone_users_on_hub(
+		static function () use ( $page ): bool {
+			$post = get_post( $page );
+
+			return $post instanceof WP_Post && 'publish' === $post->post_status && '' === $post->post_password;
+		}
+	);
+}
+
+/**
  * The URL of the site's sign-in screen.
  *
- * With no page configured it falls back to wp-login.php, which is where
- * WordPress expects to send somebody who is not signed in: a plugin cannot
- * leave a site with no door. On a network it is always the hub's (see
+ * With no page configured — or one nobody can open, see
+ * diluxone_users_login_page_live() — it falls back to wp-login.php, which is
+ * where WordPress expects to send somebody who is not signed in: a plugin
+ * cannot leave a site with no door. On a network it is always the hub's (see
  * network-hub.php).
  */
 function diluxone_users_login_url(): string {
-	$url = diluxone_users_page_url( 'diluxone_users_login_page' );
+	$url = diluxone_users_login_page_live() ? diluxone_users_page_url( 'diluxone_users_login_page' ) : '';
 
 	if ( '' === $url ) {
 		$url = wp_login_url();

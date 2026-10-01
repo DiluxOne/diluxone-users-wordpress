@@ -171,6 +171,83 @@ function diluxone_users_2fa_available( int $user_id ): array {
 	);
 }
 
+/* ── Where it is answered ──────────────────────────────────────────── */
+
+/**
+ * Where somebody halfway through signing in can type the code: 'page',
+ * 'wp-login' or ''.
+ *
+ * The sign-in page draws the second step when there is one a stranger can
+ * open (diluxone_users_login_page_live()). Without it the second step used to
+ * be sent to wp-login.php, which knew nothing about it and drew the password
+ * form again — and a person who had turned the second step on could not
+ * finish signing in anywhere. So wp-login.php draws it too
+ * (includes/auth-wp-login.php), and the second step always has somewhere to
+ * be answered.
+ *
+ * '' is the one answer left: no page, and a site that said wp-login.php is
+ * not reachable. Then the second step is neither asked nor offered, and the
+ * screens say so; "required" cannot be saved.
+ */
+function diluxone_users_2fa_surface(): string {
+	if ( diluxone_users_login_page_live() ) {
+		return 'page';
+	}
+
+	/**
+	 * Filters whether wp-login.php may draw the second step.
+	 *
+	 * For a site that hides wp-login.php at the server or behind another
+	 * address that does not run WordPress's login actions. Return false and,
+	 * while no sign-in page is chosen, the second step is not asked of
+	 * anybody — rather than asked on a screen nobody can reach.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param bool $drawn Whether wp-login.php draws it. True by default.
+	 */
+	return (bool) apply_filters( 'diluxone_users_2fa_on_wp_login', true ) ? 'wp-login' : '';
+}
+
+/**
+ * The address of the second-step screen for one attempt.
+ *
+ * The sign-in page when there is one; otherwise wp-login.php with the action
+ * that draws it, so the screen comes up wherever the attempt started.
+ *
+ * @param int    $user_id Whose attempt.
+ * @param string $key     The attempt's nonce, which is its credential.
+ * @param string $method  The method to show first.
+ */
+function diluxone_users_2fa_url( int $user_id, string $key, string $method ): string {
+	$args = array(
+		'diluxone_users_2fa'    => $user_id,
+		'diluxone_users_key'    => $key,
+		'diluxone_users_method' => $method,
+	);
+
+	if ( 'page' === diluxone_users_2fa_surface() ) {
+		return add_query_arg( $args, diluxone_users_login_url() );
+	}
+
+	return add_query_arg( array( 'action' => DILUXONE_USERS_2FA_ACTION ) + $args, wp_login_url() );
+}
+
+/**
+ * Where somebody whose attempt ran out starts over.
+ *
+ * The sign-in page says it with its own "expired" message. wp-login.php has
+ * a state of its own, `retry`, because "expired" there is also the e-mail
+ * link that ran out (includes/auth-wp-login.php says each in its words).
+ */
+function diluxone_users_2fa_restart_url(): string {
+	if ( 'page' === diluxone_users_2fa_surface() ) {
+		return add_query_arg( 'diluxone-users', 'expired', diluxone_users_login_url() );
+	}
+
+	return add_query_arg( 'diluxone-users', 'retry', wp_login_url() );
+}
+
 /* ── The policy: who gets asked ────────────────────────────────────── */
 
 /**
@@ -200,7 +277,15 @@ function diluxone_users_2fa_available( int $user_id ): array {
 function diluxone_users_2fa_required( int $user_id, string $via ): bool {
 	$mode = (string) diluxone_users_option( 'diluxone_users_2fa_mode' );
 
-	if ( 'off' === $mode ) {
+	// The emergency switch: WordPress's own sign-in, and nothing after it.
+	if ( 'off' === $mode || diluxone_users_safe_mode() ) {
+		return false;
+	}
+
+	// Asking for a code nobody can type anywhere is not a second step, it is
+	// a locked door: whoever got the password right would be sent to a
+	// screen that is not there, with no way back in.
+	if ( '' === diluxone_users_2fa_surface() ) {
 		return false;
 	}
 
@@ -409,22 +494,95 @@ function diluxone_users_complete_login( int $user_id, string $via, bool $remembe
 
 	// A passkey goes straight in: it already proved both things.
 	if ( 'passkey' === $via || ! diluxone_users_2fa_required( $user_id, $via ) || diluxone_users_2fa_trusted( $user_id ) ) {
-		wp_set_current_user( $user_id );
-		wp_set_auth_cookie( $user_id, $remember );
-
-		/**
-		 * Somebody came in, with everything that was needed already done.
-		 *
-		 * @param int    $user_id
-		 * @param string $via
-		 */
-		do_action( 'diluxone_users_logged_in', $user_id, $via );
+		diluxone_users_open_session( $user_id, $via, $remember );
 
 		wp_safe_redirect( $redirect );
 		exit;
 	}
 
 	diluxone_users_2fa_challenge( $user_id, $via, $remember, $redirect );
+}
+
+/**
+ * Opens the session, and says so the way WordPress does and the way the
+ * plugin does.
+ *
+ * WordPress announces every sign-in with `wp_login`, and half the plugins a
+ * site runs hang off it: a security plugin counting sign-ins, a membership
+ * plugin starting a trial, an analytics tag. A sign-in through one of this
+ * plugin's own doors — the e-mail link, a social account, a passkey, the end
+ * of the second step — never went through wp_signon(), so none of them heard
+ * it. Now each door fires it, with the login name and the account like core,
+ * once the session really is open.
+ *
+ * @param int    $user_id  Who came in.
+ * @param string $via      Through which door: 'link', 'sso', 'passkey', or the
+ *                         door the second step was asked on.
+ * @param bool   $remember Long session.
+ */
+function diluxone_users_open_session( int $user_id, string $via, bool $remember ): void {
+	wp_set_current_user( $user_id );
+	wp_set_auth_cookie( $user_id, $remember );
+
+	diluxone_users_announce_wp_login( $user_id, $via );
+
+	/**
+	 * Somebody came in, with everything that was needed already done.
+	 *
+	 * @param int    $user_id
+	 * @param string $via
+	 */
+	do_action( 'diluxone_users_logged_in', $user_id, $via );
+}
+
+/**
+ * Fires WordPress's `wp_login` for a sign-in through one of the plugin's doors.
+ *
+ * The plugin listens on `wp_login` itself, for the password: the second step
+ * (priority 10), the announcement every other door makes (999) and, on a
+ * network, the way back from the hub (1). None of them is about this sign-in
+ * — the second step has been decided, the announcement is made by the caller,
+ * the way back was already spent — so while this fires they stand aside
+ * (diluxone_users_own_door()). Without that, a sign-in by link would meet the
+ * second step a second time and loop, and be written in the log twice.
+ *
+ * A password sign-in that went through the second step does not come here: its
+ * `wp_login` already fired when the password was right.
+ *
+ * @param int    $user_id Who came in.
+ * @param string $via     Through which door.
+ */
+function diluxone_users_announce_wp_login( int $user_id, string $via ): void {
+	$user = get_userdata( $user_id );
+
+	if ( ! $user instanceof WP_User ) {
+		return;
+	}
+
+	diluxone_users_own_door( $via );
+
+	try {
+		/** This action is documented in wp-includes/user.php */
+		do_action( 'wp_login', $user->user_login, $user ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- WordPress's own action, fired the way wp_signon() fires it.
+	} finally {
+		diluxone_users_own_door( '' );
+	}
+}
+
+/**
+ * Which of the plugin's own doors is announcing a sign-in right now.
+ *
+ * @param string|null $set The door, '' when it is done, null to only ask.
+ * @return string The door, or '' when `wp_login` is WordPress's own.
+ */
+function diluxone_users_own_door( ?string $set = null ): string {
+	static $door = '';
+
+	if ( null !== $set ) {
+		$door = $set;
+	}
+
+	return $door;
 }
 
 /**
@@ -466,16 +624,7 @@ function diluxone_users_2fa_challenge( int $user_id, string $via, bool $remember
 
 	diluxone_users_2fa_send( $user_id, $method );
 
-	wp_safe_redirect(
-		add_query_arg(
-			array(
-				'diluxone_users_2fa'    => $user_id,
-				'diluxone_users_key'    => $nonce,
-				'diluxone_users_method' => $method,
-			),
-			diluxone_users_login_url()
-		)
-	);
+	wp_safe_redirect( diluxone_users_2fa_url( $user_id, $nonce, $method ) );
 	exit;
 }
 
@@ -830,18 +979,11 @@ function diluxone_users_2fa_handle(): void {
 	$pending = diluxone_users_2fa_pending( $user_id, $key );
 
 	if ( array() === $pending ) {
-		wp_safe_redirect( add_query_arg( 'diluxone-users', 'expired', diluxone_users_login_url() ) );
+		wp_safe_redirect( diluxone_users_2fa_restart_url() );
 		exit;
 	}
 
-	$back = add_query_arg(
-		array(
-			'diluxone_users_2fa'    => $user_id,
-			'diluxone_users_key'    => $key,
-			'diluxone_users_method' => $method,
-		),
-		diluxone_users_login_url()
-	);
+	$back = diluxone_users_2fa_url( $user_id, $key, $method );
 
 	if ( $resend ) {
 		// Asked too soon, nothing goes out and nothing is claimed: the screen
@@ -870,7 +1012,7 @@ function diluxone_users_2fa_handle(): void {
 		// A wrong code costs a try; the last one costs the attempt, and the
 		// person is back at the first step as if the window had closed.
 		if ( ! diluxone_users_2fa_strike( $user_id, $key ) ) {
-			wp_safe_redirect( add_query_arg( 'diluxone-users', 'expired', diluxone_users_login_url() ) );
+			wp_safe_redirect( diluxone_users_2fa_restart_url() );
 			exit;
 		}
 
@@ -881,7 +1023,7 @@ function diluxone_users_2fa_handle(): void {
 	// The attempt is spent by whoever deletes it: two right codes sent at
 	// once open one session, not two.
 	if ( ! delete_user_meta( $user_id, 'diluxone_users_2fa_pending' ) ) {
-		wp_safe_redirect( add_query_arg( 'diluxone-users', 'expired', diluxone_users_login_url() ) );
+		wp_safe_redirect( diluxone_users_2fa_restart_url() );
 		exit;
 	}
 
@@ -889,13 +1031,20 @@ function diluxone_users_2fa_handle(): void {
 		diluxone_users_2fa_trust( $user_id );
 	}
 
-	wp_set_current_user( $user_id );
-	wp_set_auth_cookie( $user_id, ! empty( $pending['remember'] ) );
-
 	// On a network, the site this sign-in on the hub was for.
 	diluxone_users_sign_in_from_url( (string) $pending['redirect'] );
 
-	do_action( 'diluxone_users_logged_in', $user_id, (string) $pending['via'] );
+	$via = (string) $pending['via'];
+
+	if ( 'password' === $via ) {
+		// WordPress already said `wp_login` when the password was right.
+		wp_set_current_user( $user_id );
+		wp_set_auth_cookie( $user_id, ! empty( $pending['remember'] ) );
+
+		do_action( 'diluxone_users_logged_in', $user_id, $via );
+	} else {
+		diluxone_users_open_session( $user_id, $via, ! empty( $pending['remember'] ) );
+	}
 
 	wp_safe_redirect( (string) $pending['redirect'] );
 	exit;
@@ -911,6 +1060,11 @@ add_action( 'init', 'diluxone_users_2fa_handle', 5 );
  * "the cookie is set".
  */
 function diluxone_users_2fa_after_password( string $login, WP_User $user ): void {
+	// A door of the plugin's own announcing a sign-in it already decided.
+	if ( '' !== diluxone_users_own_door() ) {
+		return;
+	}
+
 	if ( ! diluxone_users_2fa_required( (int) $user->ID, 'password' ) || diluxone_users_2fa_trusted( (int) $user->ID ) ) {
 		return;
 	}
@@ -943,6 +1097,11 @@ add_action( 'wp_login', 'diluxone_users_2fa_after_password', 10, 2 );
  * @param WP_User $user
  */
 function diluxone_users_password_logged_in( string $login, WP_User $user ): void {
+	// Not a password: the door that fired `wp_login` announces itself.
+	if ( '' !== diluxone_users_own_door() ) {
+		return;
+	}
+
 	/** This action is documented in includes/auth.php */
 	do_action( 'diluxone_users_logged_in', (int) $user->ID, 'password' );
 }

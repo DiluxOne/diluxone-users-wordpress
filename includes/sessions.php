@@ -17,7 +17,13 @@
 
 defined( 'ABSPATH' ) || exit;
 
-/** Session cookie lifetime, according to the settings. */
+/**
+ * Session cookie lifetime, according to the settings.
+ *
+ * Only when one is set. At 0 — the default — what arrives is handed back
+ * untouched: WordPress's own length, or the one another plugin on the site
+ * already chose, which this has no business overriding unasked.
+ */
 function diluxone_users_session_duration( int $expiry, int $user_id, bool $remember ): int {
 	$days = $remember
 		? (int) diluxone_users_option( 'diluxone_users_session_long_days' )

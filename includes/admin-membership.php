@@ -24,10 +24,15 @@ function diluxone_users_membership_panels(): void {
 		DILUXONE_USERS_MEMBERSHIP_SCREEN,
 		'policy',
 		array(
-			'label'    => __( 'Membership', 'diluxone-users' ),
-			'position' => 10,
-			'render'   => 'diluxone_users_screen_membership_policy',
-			'save'     => 'diluxone_users_membership_save',
+			'label'      => __( 'Membership', 'diluxone-users' ),
+			'position'   => 10,
+			'render'     => 'diluxone_users_screen_membership_policy',
+			'save'       => 'diluxone_users_membership_save',
+			// Until the policy is confirmed, saving it is confirming it, and
+			// the button says so.
+			'save_label' => static fn(): string => diluxone_users_membership_confirmed()
+				? __( 'Save changes', 'diluxone-users' )
+				: __( 'Confirm the policy', 'diluxone-users' ),
 		)
 	);
 }
@@ -39,7 +44,12 @@ function diluxone_users_screen_membership(): void {
 }
 
 /**
- * Saves the policy.
+ * Saves the policy, which is also confirming it.
+ *
+ * The first save is the confirmation the network has been waiting for (see
+ * diluxone_users_membership_confirmed()). Under "every site" it is also the
+ * moment everybody already there is added — on the spot when that is small,
+ * through the queue when it is not — since until then nothing was.
  *
  * @return false|void False when what was sent is not one of the three.
  */
@@ -53,8 +63,50 @@ function diluxone_users_membership_save() {
 		return false;
 	}
 
-	diluxone_users_save_options( array( DILUXONE_USERS_MEMBERSHIP => $policy ) );
+	$confirming = ! diluxone_users_membership_confirmed();
+
+	diluxone_users_save_options(
+		array(
+			DILUXONE_USERS_MEMBERSHIP           => $policy,
+			DILUXONE_USERS_MEMBERSHIP_CONFIRMED => 1,
+		)
+	);
+
+	if ( ! $confirming || 'all' !== $policy ) {
+		return;
+	}
+
+	if ( diluxone_users_membership_sync() ) {
+		diluxone_users_notice( __( 'The policy is confirmed, and everybody is a member of every live site now.', 'diluxone-users' ) );
+	} else {
+		diluxone_users_notice( __( 'The policy is confirmed. Adding everybody to every site has started; it goes on in the background, a batch at a time, and its progress is below.', 'diluxone-users' ), 'info' );
+	}
 }
+
+/**
+ * Says, everywhere in Network Admin, that the policy is waiting to be confirmed.
+ *
+ * Not on the Membership screen itself, which asks the question where it can
+ * be answered; and only to whoever can answer it.
+ */
+function diluxone_users_membership_unconfirmed_notice(): void {
+	if ( diluxone_users_membership_confirmed() || ! current_user_can( DILUXONE_USERS_NETWORK_CAP ) ) {
+		return;
+	}
+
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- which screen this is, to stay quiet on the one that asks.
+	if ( DILUXONE_USERS_MEMBERSHIP_SCREEN === sanitize_key( wp_unslash( $_GET['page'] ?? '' ) ) ) {
+		return;
+	}
+
+	printf(
+		'<div class="notice notice-warning" data-diluxone-users-membership-unconfirmed><p>%1$s</p><p><a href="%2$s">%3$s</a></p></div>',
+		esc_html__( 'DiluxOne Users+: the network’s membership policy has not been confirmed, so nobody is added to any site by it yet and WordPress’s own memberships stand. Choose who is a member of which site and confirm it.', 'diluxone-users' ),
+		esc_url( diluxone_users_admin_url( DILUXONE_USERS_MEMBERSHIP_SCREEN ) ),
+		esc_html__( 'Network Admin › Membership →', 'diluxone-users' )
+	);
+}
+add_action( 'network_admin_notices', 'diluxone_users_membership_unconfirmed_notice' );
 
 /**
  * The three answers, each in a sentence.
@@ -165,12 +217,24 @@ function diluxone_users_screen_membership_policy(): void {
 
 	diluxone_users_ui_choices( $list );
 
-	if ( 'all' === $policy ) {
+	$confirmed = diluxone_users_membership_confirmed();
+
+	if ( ! $confirmed ) {
+		diluxone_users_not_now( __( 'Not confirmed yet: until it is, none of this happens and WordPress’s own memberships stand. The button beside confirms the answer that is ticked; under “Every site”, confirming it adds every account to every live site.', 'diluxone-users' ) );
+	} elseif ( 'all' === $policy ) {
 		diluxone_users_membership_sync_box( $queue );
 	}
 
 	diluxone_users_ui_aside_close(
-		static function () use ( $policy, $choices, $queue ): void {
+		static function () use ( $policy, $choices, $queue, $confirmed ): void {
+			if ( ! $confirmed ) {
+				diluxone_users_ui_aside_state(
+					esc_html__( 'The policy is waiting to be confirmed: nobody is added to any site by it yet.', 'diluxone-users' ),
+					'pending',
+					__( 'not confirmed', 'diluxone-users' )
+				);
+			}
+
 			$line = esc_html( $choices[ $policy ]['state'] );
 
 			if ( 'all' === $policy ) {
@@ -193,7 +257,9 @@ function diluxone_users_screen_membership_policy(): void {
 				);
 			}
 
-			diluxone_users_ui_aside_state( $line, array() !== $queue ? 'pending' : 'active' );
+			if ( $confirmed ) {
+				diluxone_users_ui_aside_state( $line, array() !== $queue ? 'pending' : 'active' );
+			}
 
 			diluxone_users_ui_note(
 				__( 'A removal is a decision', 'diluxone-users' ),

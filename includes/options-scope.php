@@ -62,6 +62,8 @@ function diluxone_users_option_scopes(): array {
 		'diluxone_users_ip_header'              => 'network',
 		'diluxone_users_log_days'               => 'network',
 		'diluxone_users_membership'             => 'network',
+		// Whether the network confirmed it. See includes/membership.php.
+		'diluxone_users_membership_confirmed'   => 'network',
 		// The additions to sites still to be made, worked through by cron.
 		// See includes/membership.php.
 		'diluxone_users_membership_queue'       => 'network',

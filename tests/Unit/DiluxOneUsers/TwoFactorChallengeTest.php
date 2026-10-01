@@ -26,6 +26,7 @@ class TwoFactorChallengeTest extends TestCase {
 		}
 
 		require_once DILUXONE_USERS_DIR . 'includes/options.php';
+		require_once DILUXONE_USERS_DIR . 'includes/safe-mode.php';
 		require_once DILUXONE_USERS_DIR . 'includes/options-scope.php';
 		require_once DILUXONE_USERS_DIR . 'includes/auth-totp.php';
 		require_once DILUXONE_USERS_DIR . 'includes/auth-email.php';

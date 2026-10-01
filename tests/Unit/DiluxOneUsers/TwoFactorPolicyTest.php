@@ -21,6 +21,7 @@ class TwoFactorPolicyTest extends TestCase {
 		Monkey\setUp();
 
 		require_once DILUXONE_USERS_DIR . 'includes/options.php';
+		require_once DILUXONE_USERS_DIR . 'includes/safe-mode.php';
 		require_once DILUXONE_USERS_DIR . 'includes/options-scope.php';
 		require_once DILUXONE_USERS_DIR . 'includes/auth-totp.php';
 		require_once DILUXONE_USERS_DIR . 'includes/auth-email.php';
@@ -64,6 +65,20 @@ class TwoFactorPolicyTest extends TestCase {
 		$this->settings( array( 'diluxone_users_2fa_mode' => 'off' ) );
 
 		$this->assertFalse( diluxone_users_2fa_required( self::USER_ID, 'password' ) );
+	}
+
+	public function test_safe_mode_never_asks(): void {
+		// DILUXONE_USERS_SAFE_MODE: WordPress's own sign-in and nothing after it.
+		\Brain\Monkey\Functions\when( 'diluxone_users_safe_mode' )->justReturn( true );
+
+		$this->assertFalse( diluxone_users_2fa_required( self::USER_ID, 'password' ) );
+		$this->assertFalse( diluxone_users_2fa_required( self::USER_ID, 'link' ) );
+		$this->assertFalse( diluxone_users_2fa_required( self::USER_ID, 'sso' ) );
+	}
+
+	public function test_without_safe_mode_the_constant_is_not_there(): void {
+		$this->assertFalse( defined( 'DILUXONE_USERS_SAFE_MODE' ) );
+		$this->assertFalse( diluxone_users_safe_mode() );
 	}
 
 	public function test_required_asks_everybody(): void {

@@ -80,20 +80,7 @@ $diluxone_users_actual = $methods[ $method ] ?? array(
 			<?php esc_html_e( 'Or use:', 'diluxone-users' ); ?>
 			<?php foreach ( $methods as $diluxone_users_id => $diluxone_users_m ) : ?>
 				<?php if ( $diluxone_users_id !== $method ) : ?>
-					<a href="
-					<?php
-					echo esc_url(
-						add_query_arg(
-							array(
-								'diluxone_users_2fa'    => $user_id,
-								'diluxone_users_key'    => $key,
-								'diluxone_users_method' => $diluxone_users_id,
-							),
-							diluxone_users_login_url()
-						)
-					);
-					?>
-								"><?php echo esc_html( $diluxone_users_m['label'] ); ?></a>
+					<a href="<?php echo esc_url( diluxone_users_2fa_url( $user_id, $key, (string) $diluxone_users_id ) ); ?>"><?php echo esc_html( $diluxone_users_m['label'] ); ?></a>
 				<?php endif; ?>
 			<?php endforeach; ?>
 		</p>

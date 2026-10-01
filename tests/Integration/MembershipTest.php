@@ -51,6 +51,10 @@ class MembershipTest extends IntegrationTestCase {
 			// what the tests hear starts after that.
 			$this->added = array();
 
+			// A network whose policy was confirmed: the cases of one that was
+			// not are the ones that say so.
+			diluxone_users_update_option( DILUXONE_USERS_MEMBERSHIP_CONFIRMED, 1 );
+
 			diluxone_users_update_option( 'diluxone_users_login_role', 'contributor' );
 		}
 
@@ -254,6 +258,143 @@ class MembershipTest extends IntegrationTestCase {
 		$this->assertTrue( diluxone_users_membership_drain(), 'nothing to drain' );
 		$this->assertTrue( diluxone_users_membership_sync(), 'nothing to sync' );
 		$this->assertSame( array(), $this->added, 'nobody announced' );
+	}
+
+	/* ── The confirmation ───────────────────────────────────────────── */
+
+	/**
+	 * A network that has not confirmed its policy — every network the day the
+	 * plugin is network-activated, and every one that ran it before this
+	 * setting existed — has the policy do nothing on its own: no new account,
+	 * new site or sign-in adds anybody, the queue waits, and Network Admin
+	 * says so everywhere but on the screen that asks.
+	 */
+	public function test_until_the_policy_is_confirmed_it_adds_nobody(): void {
+		$this->network_only();
+
+		diluxone_users_update_option( DILUXONE_USERS_MEMBERSHIP_CONFIRMED, 0 );
+
+		$this->assertFalse( diluxone_users_membership_confirmed() );
+		$this->assertSame( 'all', diluxone_users_membership(), 'every site is still the answer waiting to be confirmed' );
+
+		// Past the threshold too: nothing is even queued.
+		add_filter( 'diluxone_users_membership_inline', '__return_zero', 20 );
+
+		// A new account: what WordPress makes it, nothing more.
+		$user = (int) wpmu_create_user( 'mbwait' . strtolower( wp_generate_password( 8, false ) ), wp_generate_password( 16 ), wp_generate_password( 8, false ) . '@example.test' );
+		$this->assertSame( array(), get_blogs_of_user( $user ), 'no site' );
+
+		// A new site: nobody.
+		$gamma = $this->site( 'author' );
+		$this->assertFalse( is_user_member_of_blog( $user, $gamma ) );
+		$this->assertSame( array(), diluxone_users_membership_queue(), 'nothing queued' );
+
+		remove_filter( 'diluxone_users_membership_inline', '__return_zero', 20 );
+
+		// Signing in: nobody, not even the hub.
+		switch_to_blog( $this->alpha );
+		diluxone_users_join_site( $user );
+		restore_current_blog();
+		$this->assertSame( array(), get_blogs_of_user( $user ) );
+
+		// A job left from before waits for the confirmation, untouched.
+		diluxone_users_membership_enqueue_all();
+		$this->assertTrue( diluxone_users_membership_drain( 0 ) );
+		$this->assertCount( 1, diluxone_users_membership_queue(), 'kept, not dropped' );
+		$this->assertTrue( diluxone_users_membership_sync(), 'nothing to sync' );
+		$this->assertSame( array(), get_blogs_of_user( $user ) );
+		$this->assertSame( array(), $this->added, 'nobody announced' );
+
+		// Network Admin says so, to whoever runs the network, except on the
+		// screen that asks the question.
+		wp_set_current_user( $this->super_admin() );
+
+		ob_start();
+		diluxone_users_membership_unconfirmed_notice();
+		$this->assertStringContainsString( 'data-diluxone-users-membership-unconfirmed', (string) ob_get_clean() );
+
+		$_GET = array( 'page' => DILUXONE_USERS_MEMBERSHIP_SCREEN );
+		ob_start();
+		diluxone_users_membership_unconfirmed_notice();
+		$this->assertSame( '', (string) ob_get_clean(), 'quiet on the Membership screen' );
+
+		wp_set_current_user( $this->make_user( 'administrator' ) );
+		$_GET = array();
+		ob_start();
+		diluxone_users_membership_unconfirmed_notice();
+		$this->assertSame( '', (string) ob_get_clean(), 'and to a site administrator' );
+	}
+
+	/**
+	 * Confirming is the first save of the Membership screen. Under "every
+	 * site" it adds everybody already there, then the policy runs on its own.
+	 */
+	public function test_confirming_every_site_adds_everybody_and_from_then_on_the_policy_runs(): void {
+		$this->network_only();
+
+		diluxone_users_update_option( DILUXONE_USERS_MEMBERSHIP_CONFIRMED, 0 );
+
+		$person = $this->nobody();
+
+		$this->in_network_admin();
+		wp_set_current_user( $this->super_admin() );
+
+		diluxone_users_membership_panels();
+		$label = diluxone_users_panels( DILUXONE_USERS_MEMBERSHIP_SCREEN )['policy']['save_label'];
+		$this->assertSame( __( 'Confirm the policy', 'diluxone-users' ), $label(), 'the button says what it does' );
+
+		$_POST = array( DILUXONE_USERS_MEMBERSHIP => 'all' );
+		ob_start();
+		diluxone_users_membership_save();
+		ob_end_clean();
+
+		$this->assertTrue( diluxone_users_membership_confirmed() );
+		$this->assertSame( __( 'Save changes', 'diluxone-users' ), $label() );
+		$this->assertSame( 'contributor', $this->role_on( $person, get_main_site_id() ), 'everybody already there, added' );
+		$this->assertSame( 'author', $this->role_on( $person, $this->alpha ) );
+		$this->assertSame( 'subscriber', $this->role_on( $person, $this->beta ) );
+
+		// And from now on on its own: a new account joins every live site.
+		$other = (int) wpmu_create_user( 'mbconf' . strtolower( wp_generate_password( 8, false ) ), wp_generate_password( 16 ), wp_generate_password( 8, false ) . '@example.test' );
+		$this->assertTrue( is_user_member_of_blog( $other, $this->alpha ) );
+		$this->assertTrue( is_user_member_of_blog( $other, $this->beta ) );
+
+		// Saving again later is not another sync.
+		$later = $this->nobody();
+		ob_start();
+		diluxone_users_membership_save();
+		ob_end_clean();
+		$this->assertFalse( is_user_member_of_blog( $later, $this->alpha ), 'a later save adds nobody: that is what Sync is for' );
+	}
+
+	public function test_confirming_another_policy_adds_nobody(): void {
+		$this->network_only();
+
+		diluxone_users_update_option( DILUXONE_USERS_MEMBERSHIP_CONFIRMED, 0 );
+
+		$person = $this->nobody();
+
+		$this->in_network_admin();
+		wp_set_current_user( $this->super_admin() );
+
+		$_POST = array( DILUXONE_USERS_MEMBERSHIP => 'click' );
+		ob_start();
+		diluxone_users_membership_save();
+		ob_end_clean();
+
+		$this->assertTrue( diluxone_users_membership_confirmed() );
+		$this->assertSame( array(), get_blogs_of_user( $person ) );
+	}
+
+	public function test_on_a_single_site_there_is_nothing_to_confirm(): void {
+		$this->single_only();
+
+		$this->assertTrue( diluxone_users_membership_confirmed(), 'every account is a member of the only site' );
+
+		wp_set_current_user( 1 );
+		ob_start();
+		diluxone_users_membership_unconfirmed_notice();
+		$this->assertSame( '', (string) ob_get_clean(), 'no notice' );
 	}
 
 	/* ── A new account ──────────────────────────────────────────────── */

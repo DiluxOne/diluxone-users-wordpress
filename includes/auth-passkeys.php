@@ -347,7 +347,9 @@ function diluxone_users_passkey_signature_ok( string $der, int $alg, string $aut
 
 /** Does the site offer passkeys? */
 function diluxone_users_passkeys_enabled(): bool {
-	return (bool) diluxone_users_option( 'diluxone_users_passkey_enabled' );
+	// Shut while the emergency switch is on (safe-mode.php); the setting is
+	// kept, and read as it is on Access, so a save there does not lose it.
+	return (bool) diluxone_users_option( 'diluxone_users_passkey_enabled' ) && ! diluxone_users_safe_mode();
 }
 
 /**
@@ -706,10 +708,7 @@ function diluxone_users_passkeys_login( array $post ): array {
 	// somebody is (see diluxone_users_complete_login()).
 	diluxone_users_join_site( $user_id );
 
-	wp_set_current_user( $user_id );
-	wp_set_auth_cookie( $user_id, true );
-
-	do_action( 'diluxone_users_logged_in', $user_id, 'passkey' );
+	diluxone_users_open_session( $user_id, 'passkey', true );
 
 	return array(
 		'success' => true,

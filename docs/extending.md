@@ -34,6 +34,9 @@ add_action( 'diluxone_users_register_panels', function () {
             'render'   => 'my_addon_sms_fields',
             'save'     => 'my_addon_sms_save',   // omit for a tab with nothing to save
             'preview'  => 'my_addon_sms_preview', // optional: shown beside the fields
+            // optional: what the button says instead of "Save changes"; a
+            // closure is asked when the tab is drawn, after its own save.
+            'save_label' => static fn(): string => __( 'Save the SMS settings', 'my-addon' ),
         )
     );
 } );
@@ -157,6 +160,12 @@ or a theme builds on:
   the hub sent them back to. It draws nothing for nobody, for a member, and on
   a single site. The same box goes at the top of that page through
   `wp_body_open`.
+- Nothing is added by the policy until the network confirms it
+  (`diluxone_users_membership_confirmed()`, the network setting
+  `diluxone_users_membership_confirmed`): the first save of Network Admin ›
+  Membership is the confirmation, and under "every site" it adds everybody
+  already there. Before it, `diluxone_users_member_added` never fires for an
+  addition the policy would make, and WordPress's own memberships stand.
 - `diluxone_users_membership_inline` (filter, default 50) is how many
   additions a new account or a new site makes on the spot; more are queued
   and made by WP-Cron. `diluxone_users_membership_batch` (filter, default 200)
@@ -232,6 +241,15 @@ add_filter( 'diluxone_users_2fa_methods', function ( array $methods ): array {
 } );
 ```
 
+Wherever the challenge is drawn, it is drawn from the registry: on the sign-in
+page when there is one a stranger can open, and on wp-login.php
+(`?action=diluxone_users_2fa`) when there is not. A site that hides
+wp-login.php behind something that does not run its login actions says so
+with `diluxone_users_2fa_on_wp_login` (filter, default true): with that false
+and no sign-in page, there is nowhere to type the code, so the second step is
+not asked of anybody and "required" cannot be saved
+(`diluxone_users_2fa_surface()` answers `page`, `wp-login` or `''`).
+
 A method registered this way appears on **Security → Two-step verification**
 as one more box to tick, and it does **not** work until the site ticks it:
 which methods a site offers is the site's decision, not the add-on's. The
@@ -265,6 +283,13 @@ add_filter( 'diluxone_users_sanitize_value', function ( $clean, string $value, a
 The markup from the second one goes through `wp_kses` with form tags and the
 attributes they need: you can replace a text box, not turn it into a script
 tag.
+
+A new site starts with the first and last name only, neither required. The
+fields offered on User fields › Suggested fields — a country, a date of birth,
+a gender and a phone — come from `diluxone_users_suggested_fields` (filter):
+an array of field definitions as the stored list holds them. A key already on
+the list is not offered again; one ticked is added at the end of the list by
+`diluxone_users_add_suggested_fields( $keys )`.
 
 ## Looks
 
@@ -522,8 +547,34 @@ Network Admin instead of on the sites. A save that writes through
 `diluxone_users_save_options()` only writes the settings owned where it is
 drawn, whatever the form sends.
 
+## The emergency switch
+
+`define( 'DILUXONE_USERS_SAFE_MODE', true );` in `wp-config.php` makes the
+plugin step aside at every door it put up: nothing redirects, nobody is asked
+for the second step, passkeys and social sign-in are shut, and WordPress's own
+wp-login.php is the way in, on every site of a network. Every dashboard page
+says so while it lasts. The constant feeds `diluxone_users_safe_mode`
+(filter), which is also how a must-use plugin turns it on.
+`diluxone_users_safe_mode()` answers whether it is on: an add-on that adds a
+redirect, a door or a step of its own asks it and stands aside too.
+
+## Caching
+
+The sign-in, registration and account pages — the pages chosen for them, and
+any page whose content carries one of the plugin's shortcodes — send
+WordPress's `nocache_headers()` and define `DONOTCACHEPAGE` on
+`template_redirect`; a shortcode drawn from a widget or a template does it as
+it renders. A site that draws the shortcodes from its own templates says so
+early with `diluxone_users_no_cache` (filter, default false), so the headers
+go before the page starts.
+
 ## Things that happen
 
+- `wp_login` — WordPress's own action fires for every way in, not only the
+  password: the e-mail link, a social account, a passkey and the end of the
+  second step fire it once, with the login name and the `WP_User`, after the
+  session is open. A password that went through the second step fires it once,
+  when the password was right, as WordPress does.
 - `diluxone_users_logged_in` — somebody got in. Receives the user and how.
 - `diluxone_users_member_added` — on a network, the plugin made somebody a
   member of a site. Receives the user, the site, the role and what made it

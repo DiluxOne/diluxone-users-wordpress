@@ -129,7 +129,7 @@ function diluxone_users_lost_password_url( string $url ): string {
 	// Only for the answer that says nobody resets anything here: the other two
 	// send people to a form that asks for a reset, which is where the link
 	// already goes.
-	if ( 'link' !== (string) diluxone_users_option( 'diluxone_users_lost_password' ) ) {
+	if ( 'link' !== (string) diluxone_users_option( 'diluxone_users_lost_password' ) || diluxone_users_safe_mode() ) {
 		return $url;
 	}
 
@@ -140,7 +140,7 @@ function diluxone_users_lost_password_url( string $url ): string {
 	// The page itself, and not diluxone_users_login_url(), which falls back to
 	// wp-login.php when none is chosen — sending "I forgot my password" to
 	// wp-login.php without its action is sending it nowhere.
-	$page = diluxone_users_page_url( 'diluxone_users_login_page' );
+	$page = diluxone_users_login_page_live() ? diluxone_users_page_url( 'diluxone_users_login_page' ) : '';
 
 	return '' !== $page ? $page : $url;
 }

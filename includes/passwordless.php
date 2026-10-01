@@ -41,6 +41,10 @@ const DILUXONE_USERS_LOGIN_ALLOWED = array( 'logout', 'postpass', 'rp', 'resetpa
  * said it wants its own screens: left alone means left alone.
  */
 function diluxone_users_reset_to_site(): void {
+	if ( diluxone_users_safe_mode() ) {
+		return;
+	}
+
 	// phpcs:disable WordPress.Security.NonceVerification.Recommended -- the key is the credential and is checked on arrival.
 	$action = isset( $_GET['action'] ) ? sanitize_key( wp_unslash( $_GET['action'] ) ) : '';
 
@@ -57,7 +61,7 @@ function diluxone_users_reset_to_site(): void {
 		return;
 	}
 
-	$page = diluxone_users_page_url( 'diluxone_users_login_page' );
+	$page = diluxone_users_login_page_live() ? diluxone_users_page_url( 'diluxone_users_login_page' ) : '';
 
 	if ( '' === $page || ! isset( $_GET['key'], $_GET['login'] ) ) {
 		return;
@@ -181,7 +185,8 @@ function diluxone_users_wp_screens_taken(): bool {
 
 /** Sends wp-login.php to the sign-in page. */
 function diluxone_users_block_wp_login(): void {
-	if ( ! diluxone_users_wp_screens_taken() ) {
+	// The emergency switch gives wp-login.php back to WordPress (safe-mode.php).
+	if ( diluxone_users_safe_mode() || ! diluxone_users_wp_screens_taken() ) {
 		return;
 	}
 
@@ -328,7 +333,7 @@ function diluxone_users_wp_profile_guard(): void {
 	// they are the person who has to be able to fix what broke, and the
 	// dashboard profile is where it gets fixed. On a network that is the super
 	// admin; on a single site, the administrator.
-	if ( 'allow' === $mode || current_user_can( 'edit_users' ) ) {
+	if ( 'allow' === $mode || current_user_can( 'edit_users' ) || diluxone_users_safe_mode() ) {
 		return;
 	}
 
