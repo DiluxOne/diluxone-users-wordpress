@@ -22,7 +22,7 @@ export const SCREENS: Record<string, string[]> = {
 	'diluxone-users-security': ['summary', '2fa', 'passkeys', 'sessions', 'proxy'],
 	'diluxone-users-social': ['providers', 'general'],
 	'diluxone-users-account': ['summary', 'page', 'sections', 'handle', 'menu', 'dashboard'],
-	'diluxone-users-fields': ['list', 'usage'],
+	'diluxone-users-fields': ['list', 'suggested', 'usage'],
 	'diluxone-users-design': ['brand', 'login', 'register', 'account', 'social', 'photo', 'wp'],
 	'diluxone-users-notices': ['summary', 'rules', 'templates'],
 	'diluxone-users-reports': ['sessions', 'activity', 'logging'],
@@ -43,7 +43,7 @@ export const NETWORK_SCREENS: Record<string, string[]> = {
 	'diluxone-users-membership': ['policy'],
 	'diluxone-users-security': ['summary', '2fa', 'passkeys', 'sessions', 'proxy'],
 	'diluxone-users-social': ['providers', 'general'],
-	'diluxone-users-fields': ['list', 'usage'],
+	'diluxone-users-fields': ['list', 'suggested', 'usage'],
 	'diluxone-users-reports': ['network-activity', 'logging'],
 };
 

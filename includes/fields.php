@@ -77,8 +77,13 @@ function diluxone_users_field_is_native( string $key ): bool {
 /**
  * The fields a new site starts with.
  *
- * They are the ones almost always needed. Any of them can be deleted from the
- * admin: there are no untouchable fields.
+ * WordPress's own two and nothing else, neither of them required. A plugin
+ * that arrives asking everybody who registers for their country, their
+ * birthday and a phone number is a plugin that made a privacy decision on
+ * the site's behalf — and a required field nobody asked for is a sign-up
+ * form that refuses people on the day it is installed. The rest are a
+ * suggestion the administrator takes on purpose: see
+ * diluxone_users_suggested_fields() and the Suggested fields tab.
  *
  * @return array<int, array<string, mixed>>
  */
@@ -90,7 +95,7 @@ function diluxone_users_default_fields(): array {
 			'type'     => 'text',
 			'help'     => '',
 			'options'  => array(),
-			'required' => 1,
+			'required' => 0,
 			'group'    => 'main',
 			'active'   => 1,
 		),
@@ -104,6 +109,21 @@ function diluxone_users_default_fields(): array {
 			'group'    => 'main',
 			'active'   => 1,
 		),
+	);
+}
+
+/**
+ * The fields many sites ask for, offered and never seeded.
+ *
+ * Added from User fields › Suggested fields, ticked one by one; once added
+ * each is a field like any other, edited, moved or deleted from the list.
+ * None is required: whether a site needs somebody's birthday is the site's
+ * call, made on the field once it is there.
+ *
+ * @return array<int, array<string, mixed>>
+ */
+function diluxone_users_suggested_fields(): array {
+	$fields = array(
 		array(
 			'key'      => 'diluxone_users_country',
 			'label'    => __( 'Country', 'diluxone-users' ),
@@ -152,6 +172,52 @@ function diluxone_users_default_fields(): array {
 			'active'   => 1,
 		),
 	);
+
+	/**
+	 * Filters the fields offered on User fields › Suggested fields.
+	 *
+	 * Each one is a field definition, as the stored list holds them. A key
+	 * already on the list is not offered again.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param array<int, array<string, mixed>> $fields
+	 */
+	return (array) apply_filters( 'diluxone_users_suggested_fields', $fields );
+}
+
+/**
+ * Adds the suggested fields asked for, the ones not on the list yet.
+ *
+ * At the end of the list, in the order they are suggested. A key that is
+ * already there — added before, or a field of the site's own under the same
+ * name — is left exactly as it is.
+ *
+ * @param array<int, string> $keys The suggested fields' keys.
+ * @return int How many were added.
+ */
+function diluxone_users_add_suggested_fields( array $keys ): int {
+	$stored = (array) diluxone_users_raw_get( 'diluxone_users_fields', array() );
+	$have   = array_map( 'strval', array_column( $stored, 'key' ) );
+	$added  = 0;
+
+	foreach ( diluxone_users_suggested_fields() as $field ) {
+		$key = (string) ( $field['key'] ?? '' );
+
+		if ( ! in_array( $key, $keys, true ) || in_array( $key, $have, true ) || ! diluxone_users_field_key_allowed( $key ) ) {
+			continue;
+		}
+
+		$stored[] = $field;
+		$have[]   = $key;
+		++$added;
+	}
+
+	if ( $added > 0 ) {
+		diluxone_users_update_option( 'diluxone_users_fields', array_values( $stored ) );
+	}
+
+	return $added;
 }
 
 /**

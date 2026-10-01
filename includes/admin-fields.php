@@ -166,6 +166,14 @@ function diluxone_users_fields_actions(): void {
 		return;
 	}
 
+	// The suggested fields ticked on their tab, added in one go.
+	if ( isset( $_POST['diluxone_users_suggested_nonce'] ) && wp_verify_nonce( sanitize_key( wp_unslash( $_POST['diluxone_users_suggested_nonce'] ) ), 'diluxone_users_suggested' ) ) {
+		$added = diluxone_users_add_suggested_fields( array_map( 'sanitize_key', (array) wp_unslash( $_POST['diluxone_users_suggested'] ?? array() ) ) );
+
+		wp_safe_redirect( diluxone_users_admin_url( 'diluxone-users-fields', array( 'diluxone_users_done' => $added > 0 ? 'suggested' : 'nosuggested' ) ) );
+		exit;
+	}
+
 	if ( isset( $_POST['diluxone_users_field_nonce'] ) && wp_verify_nonce( sanitize_key( wp_unslash( $_POST['diluxone_users_field_nonce'] ) ), 'diluxone_users_field' ) ) {
 		// Cleaned as it is read (multi-line text keeps its lines: the options of
 		// a list are one per line), and typed again field by field on save.
@@ -243,13 +251,15 @@ function diluxone_users_screen_fields(): void {
 	}
 
 	$notices = array(
-		'saved'   => __( 'Field saved.', 'diluxone-users' ),
-		'delete'  => __( 'Field deleted. The data already stored was left alone.', 'diluxone-users' ),
-		'nolabel' => __( 'A field needs a name.', 'diluxone-users' ),
+		'saved'       => __( 'Field saved.', 'diluxone-users' ),
+		'delete'      => __( 'Field deleted. The data already stored was left alone.', 'diluxone-users' ),
+		'nolabel'     => __( 'A field needs a name.', 'diluxone-users' ),
+		'suggested'   => __( 'The fields ticked were added at the end of the list. Each one can be edited, moved or deleted like any other.', 'diluxone-users' ),
+		'nosuggested' => __( 'Nothing was added: no suggested field was ticked, or the ones ticked were already on the list.', 'diluxone-users' ),
 	);
 
 	if ( isset( $notices[ $done ] ) ) {
-		diluxone_users_notice( $notices[ $done ], 'nolabel' === $done ? 'error' : 'success' );
+		diluxone_users_notice( $notices[ $done ], in_array( $done, array( 'nolabel', 'nosuggested' ), true ) ? 'error' : 'success' );
 	}
 
 	diluxone_users_screen_panels( 'diluxone-users-fields', __( 'User fields', 'diluxone-users' ) );
@@ -270,6 +280,17 @@ function diluxone_users_fields_panels(): void {
 			'label'    => __( 'Fields', 'diluxone-users' ),
 			'position' => 10,
 			'render'   => 'diluxone_users_screen_fields_list',
+			'form'     => false,
+		)
+	);
+
+	diluxone_users_register_panel(
+		'diluxone-users-fields',
+		'suggested',
+		array(
+			'label'    => __( 'Suggested fields', 'diluxone-users' ),
+			'position' => 15,
+			'render'   => 'diluxone_users_screen_fields_suggested',
 			'form'     => false,
 		)
 	);
@@ -367,6 +388,9 @@ function diluxone_users_screen_fields_list(): void {
 			data-diluxone-users-dialog-title="<?php esc_attr_e( 'New field', 'diluxone-users' ); ?>">
 			<?php esc_html_e( 'Add field', 'diluxone-users' ); ?>
 		</a>
+		<?php if ( array() !== diluxone_users_suggested_missing() ) : ?>
+			<a class="button" href="<?php echo esc_url( diluxone_users_admin_url( 'diluxone-users-fields', array( 'tab' => 'suggested' ) ) ); ?>"><?php esc_html_e( 'Add suggested fields', 'diluxone-users' ); ?></a>
+		<?php endif; ?>
 	</p>
 
 	<?php diluxone_users_ui_wide_open(); ?>
@@ -505,6 +529,98 @@ function diluxone_users_screen_fields_list(): void {
 	);
 
 	diluxone_users_field_dialog();
+}
+
+/**
+ * The suggested fields that are not on the list yet.
+ *
+ * @return array<int, array<string, mixed>>
+ */
+function diluxone_users_suggested_missing(): array {
+	$have = wp_list_pluck( diluxone_users_fields( '', false ), 'key' );
+
+	return array_values(
+		array_filter(
+			diluxone_users_suggested_fields(),
+			static fn( array $field ): bool => ! in_array( (string) ( $field['key'] ?? '' ), $have, true )
+		)
+	);
+}
+
+/**
+ * Suggested fields: the ones a site often asks for, added on purpose.
+ *
+ * The plugin starts with the first and last name and nothing else; the rest
+ * used to arrive with it, and a site found itself asking strangers for their
+ * birthday and their phone because a plugin was turned on. Here they are one
+ * tick away instead, each with what it is, and pressing the button in the
+ * rail adds the ones ticked to the list. A tab of its own and its own form:
+ * the list beside it is a table of links, not a form.
+ */
+function diluxone_users_screen_fields_suggested(): void {
+	$missing = diluxone_users_suggested_missing();
+	$types   = diluxone_users_field_types();
+	$form    = 'diluxone-users-suggested-form';
+
+	diluxone_users_ui_aside_open();
+
+	diluxone_users_intro( __( 'A few questions many sites ask the people who register. None of them is asked until it is added here: tick the ones this site needs and they join the list, where each can be edited, made required, moved or deleted like any other field.', 'diluxone-users' ) );
+
+	diluxone_users_ui_section( __( 'Add suggested fields', 'diluxone-users' ) );
+
+	if ( array() === $missing ) {
+		diluxone_users_not_now(
+			__( 'Every suggested field is already on the list.', 'diluxone-users' ),
+			diluxone_users_admin_url( 'diluxone-users-fields' ),
+			__( 'The fields →', 'diluxone-users' )
+		);
+	} else {
+		$cards = array();
+
+		foreach ( $missing as $field ) {
+			$type    = (string) ( $field['type'] ?? 'text' );
+			$cards[] = array(
+				'type'  => 'checkbox',
+				'name'  => 'diluxone_users_suggested[]',
+				'value' => (string) $field['key'],
+				'title' => (string) $field['label'],
+				// Its type, and what it says to the person filling it in.
+				'help'  => esc_html( (string) ( $types[ $type ] ?? $type ) ) . ( '' !== (string) ( $field['help'] ?? '' ) ? ' · ' . esc_html( (string) $field['help'] ) : '' ),
+			);
+		}
+
+		printf( '<form method="post" id="%1$s" action="%2$s">', esc_attr( $form ), esc_url( diluxone_users_admin_url( 'diluxone-users-fields', array( 'tab' => 'suggested' ) ) ) );
+		wp_nonce_field( 'diluxone_users_suggested', 'diluxone_users_suggested_nonce' );
+		diluxone_users_ui_choices( $cards );
+		echo '</form>';
+
+		diluxone_users_ui_save( $form, __( 'Add the ones ticked', 'diluxone-users' ) );
+	}
+
+	diluxone_users_ui_aside_close(
+		static function () use ( $missing ): void {
+			diluxone_users_ui_aside_state(
+				array() === $missing
+					? esc_html__( 'Every suggested field is on the list.', 'diluxone-users' )
+					: esc_html(
+						sprintf(
+							/* translators: %s: how many suggested fields are not on the list */
+							_n( '%s suggested field is not on the list.', '%s suggested fields are not on the list.', count( $missing ), 'diluxone-users' ),
+							number_format_i18n( count( $missing ) )
+						)
+					),
+				array() === $missing ? 'active' : 'off'
+			);
+
+			diluxone_users_ui_note(
+				__( 'Why they are not there from the start', 'diluxone-users' ),
+				array(
+					esc_html__( 'Asking for somebody’s birthday, gender or phone is a decision about their data, and it is the site’s to make — not something a plugin should do on the day it is turned on.', 'diluxone-users' ),
+					esc_html__( 'A field deleted later keeps the answers already given, the same as any other.', 'diluxone-users' ),
+				)
+			);
+		}
+	);
 }
 
 /**
