@@ -502,7 +502,7 @@ function diluxone_users_screen_social_general(): void {
 
 	diluxone_users_scope_control(
 		'diluxone_users_sso',
-		__( 'The roles ticked can use the buttons. Everybody else signs in with the email link.', 'diluxone-users' )
+		__( 'The roles ticked can use the buttons. Everybody else uses the site’s other ways in.', 'diluxone-users' )
 	);
 
 	diluxone_users_ui_field_close();
