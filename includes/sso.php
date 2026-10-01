@@ -715,6 +715,12 @@ function diluxone_users_sso_user( string $id, array $identity ): int {
 			return 0;
 		}
 
+		// An account social sign-in would then refuse is not created: the
+		// role a new account gets has to be one that may use it.
+		if ( 'some' === diluxone_users_scope( 'diluxone_users_sso' ) && ! in_array( diluxone_users_register_role(), (array) diluxone_users_option( 'diluxone_users_sso_roles' ), true ) ) {
+			return 0;
+		}
+
 		// Its own switch decides, not the e-mail link's: a site can create
 		// accounts from social sign-in and not from a typed address.
 		$user_id = diluxone_users_create_account( $identity['email'] );
@@ -756,21 +762,14 @@ function diluxone_users_sso_user( string $id, array $identity ): int {
  * @param int $user_id User to check.
  */
 function diluxone_users_sso_role_blocked( int $user_id ): bool {
-	if ( 'some' !== diluxone_users_option( 'diluxone_users_sso_scope' ) ) {
+	if ( ! get_userdata( $user_id ) instanceof WP_User ) {
 		return false;
 	}
 
-	$allowed = (array) diluxone_users_option( 'diluxone_users_sso_roles' );
-	$user    = get_userdata( $user_id );
-
-	if ( ! $user instanceof WP_User ) {
-		return false;
-	}
-
-	// "Only some roles" with none ticked reaches nobody, which is what it
-	// says. It is the answer somebody is halfway through giving, and the one
-	// the screen warns about rather than quietly reading as "everybody".
-	return array() === array_intersect( $allowed, (array) $user->roles );
+	// The same reading as every "only some roles" rule: on a network a role
+	// on any of the person's sites, a super admin counted as an
+	// administrator, and none ticked reaching nobody.
+	return ! diluxone_users_scope_includes( $user_id, 'diluxone_users_sso' );
 }
 
 /**
