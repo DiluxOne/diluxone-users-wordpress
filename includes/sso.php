@@ -1055,7 +1055,8 @@ function diluxone_users_sso_unlink(): void {
 
 	$id = sanitize_key( wp_unslash( $_POST['diluxone_users_provider'] ?? '' ) );
 
-	if ( '' !== $id && is_user_logged_in() ) {
+	// One of the providers, and nothing else under the prefix.
+	if ( isset( diluxone_users_sso_providers()[ $id ] ) && is_user_logged_in() ) {
 		delete_user_meta( get_current_user_id(), 'diluxone_users_sso_' . $id );
 
 		diluxone_users_notify_security(

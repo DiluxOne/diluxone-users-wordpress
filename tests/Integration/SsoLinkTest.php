@@ -79,6 +79,32 @@ class SsoLinkTest extends IntegrationTestCase {
 		$this->assertTrue( diluxone_users_sso_role_blocked( $user ), 'a subscriber everywhere' );
 	}
 
+	/** Unlinking takes off a provider's link and nothing else the prefix happens to cover. */
+	public function test_unlinking_touches_only_a_providers_link(): void {
+		$user = $this->make_user();
+		update_user_meta( $user, 'diluxone_users_sso_mock', $this->sub );
+		update_user_meta( $user, 'diluxone_users_sso_scope_note', 'kept' );
+		add_filter( 'wp_redirect', array( $this, 'throw_redirect' ) );
+
+		foreach ( array( 'scope_note', MockProvider::ID ) as $provider ) {
+			wp_set_current_user( $user );
+			$this->postAs(
+				$user,
+				array(
+					'diluxone_users_provider' => $provider,
+					'_wpnonce'                => wp_create_nonce( 'diluxone_users_sso_unlink' ),
+				)
+			);
+			$this->expectRedirect( 'diluxone_users_sso_unlink' );
+		}
+
+		remove_filter( 'wp_redirect', array( $this, 'throw_redirect' ) );
+		wp_set_current_user( 0 );
+
+		$this->assertSame( 'kept', get_user_meta( $user, 'diluxone_users_sso_scope_note', true ), 'not a provider: left alone' );
+		$this->assertSame( '', get_user_meta( $user, 'diluxone_users_sso_mock', true ), 'the provider’s link is gone' );
+	}
+
 	public function test_a_verified_email_links_the_existing_account(): void {
 		$victim = $this->make_user();
 		$email  = get_userdata( $victim )->user_email;

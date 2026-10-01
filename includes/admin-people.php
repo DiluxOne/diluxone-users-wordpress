@@ -365,7 +365,7 @@ function diluxone_users_profile_block_save( int $user_id ): void {
 		diluxone_users_passkey_forget( $user_id, (string) $id );
 	}
 
-	foreach ( $unlink as $id ) {
+	foreach ( array_intersect( $unlink, array_keys( diluxone_users_sso_providers() ) ) as $id ) {
 		delete_user_meta( $user_id, 'diluxone_users_sso_' . (string) $id );
 	}
 }

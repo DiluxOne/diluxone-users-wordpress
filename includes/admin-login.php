@@ -93,9 +93,8 @@ add_action( 'diluxone_users_register_panels', 'diluxone_users_login_panels' );
 /** Where people sign in, and what becomes of wp-login.php. */
 function diluxone_users_login_page_save(): void {
 	// phpcs:disable WordPress.Security.NonceVerification.Missing -- the panel verifies it.
-	$screens = in_array( $_POST['diluxone_users_wp_screens'] ?? '', array( 'auto', 'mine', 'wp' ), true )
-		? sanitize_key( wp_unslash( $_POST['diluxone_users_wp_screens'] ) )
-		: 'auto';
+	$screens = sanitize_key( wp_unslash( $_POST['diluxone_users_wp_screens'] ?? '' ) );
+	$screens = in_array( $screens, array( 'auto', 'mine', 'wp' ), true ) ? $screens : 'auto';
 
 	// The second door is not an answer on a site with no password: the screen
 	// does not offer it, and a request that sends it anyway gets the answer
@@ -104,13 +103,13 @@ function diluxone_users_login_page_save(): void {
 		$screens = 'auto';
 	}
 
+	$lost = sanitize_key( wp_unslash( $_POST['diluxone_users_lost_password'] ?? '' ) );
+
 	diluxone_users_save_options(
 		array(
 			'diluxone_users_login_page'    => absint( wp_unslash( $_POST['diluxone_users_login_page'] ?? 0 ) ),
 			'diluxone_users_wp_screens'    => $screens,
-			'diluxone_users_lost_password' => in_array( $_POST['diluxone_users_lost_password'] ?? '', array( 'wp', 'site', 'link' ), true )
-				? sanitize_key( wp_unslash( $_POST['diluxone_users_lost_password'] ) )
-				: 'wp',
+			'diluxone_users_lost_password' => in_array( $lost, array( 'wp', 'site', 'link' ), true ) ? $lost : 'wp',
 		)
 	);
 	// phpcs:enable
