@@ -15,8 +15,9 @@ Custom user fields, a front-end account area, passwordless sign-in, social login
 Everything about the people who use your site, in one place.
 
 * **User fields** defined from the dashboard: type, whether it is required,
-  where it shows and who can change it, and how many times. WordPress's own
-  first and last name follow the same rules.
+  where it shows and who can change it, and how many times. A new site asks
+  for WordPress's own first and last name only; a country, a date of birth, a
+  gender and a phone are suggested, one tick away.
 * **An account area on the front end**: Home, Your details, Linked accounts,
   Security, Your data and Notifications, as tabs or a side menu. Sections can
   be renamed, reordered, turned off and added.
@@ -28,7 +29,7 @@ Everything about the people who use your site, in one place.
 * **Two-step verification**: a code by e-mail, an authenticator app with a QR
   code, and backup codes, with a policy per role and per way in.
 * **Passkeys** (WebAuthn), each one with a name of its own.
-* **Sessions**: how long they last, where they are open, and how to close them.
+* **Sessions**: how long they last (WordPress's length until you choose one), where they are open, and how to close them.
 * **An activity log** of its own: who signed in, who was refused and what
   changed. It records IP addresses; see Privacy below.
 * **Privacy**: WordPress's own export and erasure requests answer for
@@ -176,7 +177,8 @@ the main site only: register one redirect address per network in the
 providers' consoles. Whether new accounts may be created at all is the
 network's **Allow new registrations**. Which sites an account is a member of
 is one decision for the network, on **Network Admin → DiluxOne Users+ →
-Membership**: every live site (the default: a new account joins every site, a
+Membership**, and nothing is added until you confirm it there (Network Admin
+says so; until then WordPress's own memberships stand): every live site (the default: a new account joins every site, a
 new site gets every account, big networks in the background, and "Sync
 everyone now" or `wp diluxone-users network membership sync` for what was
 there before), whoever asks (a "Join this site" button in the menu, in the
@@ -199,6 +201,20 @@ On a network the plugin is activated for the whole network or not at all:
 WordPress offers only **Network Activate**, and a site it was left on for
 alone does nothing and asks the network's administrator to activate it for
 the whole network.
+
+= I'm locked out. How do I get back in? =
+
+Add `define( 'DILUXONE_USERS_SAFE_MODE', true );` to `wp-config.php`. While it
+is there the plugin steps aside: nothing redirects, wp-login.php is
+WordPress's own on every site, nobody is asked for the second step, and
+passkeys and social sign-in are off, so your username and password get you in.
+Every dashboard page says safe mode is on; fix the cause and remove the line.
+With no sign-in page chosen, the second step is asked on wp-login.php itself.
+
+= Does it work with page caching? =
+
+Yes. The sign-in, registration and account pages, and any page with one of the
+plugin's shortcodes, send no-cache headers and define `DONOTCACHEPAGE`.
 
 = Is it behind a proxy or a CDN? =
 
