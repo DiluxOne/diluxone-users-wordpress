@@ -32,6 +32,37 @@ class AvatarSourcesTest extends IntegrationTestCase {
 		$this->assertStringNotContainsString( 'gravatar.com', (string) get_avatar( 'nobody-here@example.test' ) );
 	}
 
+	/**
+	 * The photo in the site menu is the drawn one too, not an empty src.
+	 *
+	 * The drawing is a data: URL, and esc_url() drops a scheme it does not
+	 * know and returns nothing: the menu showed a ring around no picture.
+	 */
+	public function test_the_menu_photo_is_drawn_when_gravatar_is_off(): void {
+		$user = $this->make_user();
+		$menu = wp_create_nav_menu( 'Avatar menu ' . wp_generate_password( 6, false ) );
+		$this->assertIsInt( $menu );
+
+		register_nav_menu( 'diluxone-avatar-test', 'Avatar test' );
+		$locations = get_theme_mod( 'nav_menu_locations' );
+		set_theme_mod( 'nav_menu_locations', array( 'diluxone-avatar-test' => $menu ) );
+		diluxone_users_update_option( 'diluxone_users_menu_location', 'diluxone-avatar-test' );
+		diluxone_users_update_option( 'diluxone_users_menu_style', 'avatar-name' );
+		wp_set_current_user( $user );
+
+		try {
+			$items = diluxone_users_menu_items( array(), (object) array( 'menu' => get_term( $menu, 'nav_menu' ) ) );
+			$title = (string) ( $items[0]->title ?? '' );
+
+			$this->assertStringContainsString( 'diluxone-users-menu__avatar', $title );
+			$this->assertStringContainsString( 'src="data:image/svg+xml', $title );
+		} finally {
+			wp_set_current_user( 0 );
+			set_theme_mod( 'nav_menu_locations', $locations );
+			wp_delete_nav_menu( $menu );
+		}
+	}
+
 	public function test_with_gravatar_on_wordpress_asks_it_as_always(): void {
 		diluxone_users_update_option( 'diluxone_users_avatar_gravatar', 1 );
 

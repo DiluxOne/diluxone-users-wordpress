@@ -113,7 +113,7 @@ function diluxone_users_avatar_svg( int $user_id, int $size ): string {
 		esc_html( $letters )
 	);
 
-	return 'data:image/svg+xml;base64,' . base64_encode( $svg );
+	return 'data:image/svg+xml,' . rawurlencode( $svg );
 }
 
 /**
@@ -130,7 +130,18 @@ function diluxone_users_avatar_blank( int $size ): string {
 		$size
 	);
 
-	return 'data:image/svg+xml;base64,' . base64_encode( $svg );
+	return 'data:image/svg+xml,' . rawurlencode( $svg );
+}
+
+/**
+ * An avatar URL ready for a src attribute.
+ *
+ * esc_url() drops a scheme it does not know, and the drawn pictures above are
+ * data: URLs: through it they become an empty src. A drawing is escaped as the
+ * attribute it is; anything else is a URL like any other.
+ */
+function diluxone_users_avatar_src( string $url ): string {
+	return 0 === strpos( $url, 'data:image/svg+xml,' ) ? esc_attr( $url ) : esc_url( $url );
 }
 
 /**
