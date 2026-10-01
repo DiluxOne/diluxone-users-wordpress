@@ -66,6 +66,10 @@ function diluxone_users_2fa_wp_login(): void {
 		}
 	}
 
+	// wp-login.php sends WordPress's no-cache headers itself; the constant is
+	// for the page caches that do not read them (includes/no-cache.php).
+	diluxone_users_no_cache();
+
 	login_header( __( 'One more step', 'diluxone-users' ), '', $errors );
 	?>
 	<div class="diluxone-users-login--2fa">
