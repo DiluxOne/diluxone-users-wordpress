@@ -691,16 +691,6 @@ function diluxone_users_2fa_locked( int $user_id ): bool {
 }
 
 /**
- * Counts a wrong code against the account and closes the door when there
- * have been too many.
- *
- * @return int How many failures the account has now.
- */
-function diluxone_users_2fa_fail( int $user_id ): int {
-	return diluxone_users_2fa_close( $user_id, diluxone_users_2fa_count( $user_id, 1 ) );
-}
-
-/**
  * Moves the account's count by one, in the database.
  *
  * The increment is left to MySQL rather than read here and written back:
@@ -792,8 +782,8 @@ function diluxone_users_2fa_forgive( int $user_id ): void {
  * Returns whether the attempt is still alive. On the last strike it is
  * thrown away whole: the person starts over from the first step. That much is
  * about the screen, not about safety — starting over costs one request, so
- * the limit that means anything is `diluxone_users_2fa_fail()` above, which
- * this attempt cannot reset by dying.
+ * the limit that means anything is the account's count above
+ * (`diluxone_users_2fa_reserve()`), which this attempt cannot reset by dying.
  */
 function diluxone_users_2fa_strike( int $user_id, string $nonce ): bool {
 	$pending = diluxone_users_2fa_pending( $user_id, $nonce );

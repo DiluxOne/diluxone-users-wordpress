@@ -880,17 +880,10 @@ function diluxone_users_log_empty_rows( $sites ): int {
 /**
  * The rows, filtered and paginated.
  *
- * There are six filters and they are all optional, which is sixty-four
- * shapes of query. Written as sixteen literal strings this file would be unreadable, and
- * assembled from pieces neither the analysers nor a reviewer could tell what
- * reaches the database — which is the trade the sessions report chose the
- * other way round, and it only had one filter.
- *
- * So there is one query, and every filter carries its own "or nothing was
- * asked" beside it: `%d = 0 OR l.user_id = %d`. Every value goes through
- * `prepare()` and the string itself never changes, so what runs is exactly
- * what is written here. MySQL folds the constant half away before it plans
- * anything, so an unused filter costs nothing and the indexes are still used.
+ * The filters are all optional. The WHERE is built from the ones that are
+ * set, each a fixed fragment with its own placeholders, and every value goes
+ * through `prepare()`; why it is not one fixed query with an "or nothing was
+ * asked" beside each filter is said where the clause is built, below.
  *
  * The join is LEFT and not INNER on purpose: a refused sign-in belongs to
  * nobody, and an account deleted last week still has the rows that say what it
