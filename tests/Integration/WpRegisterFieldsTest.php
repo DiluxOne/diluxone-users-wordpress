@@ -51,6 +51,53 @@ class WpRegisterFieldsTest extends IntegrationTestCase {
 		$this->assertSame( '', (string) get_user_meta( $user, 'test_city', true ) );
 	}
 
+	public function test_a_registration_that_never_drew_the_fields_goes_through(): void {
+		// Another plugin's sign-up, a checkout: register_new_user() with none
+		// of this plugin's fields and no nonce. A required field it never
+		// showed is not a reason to refuse it.
+		$this->postAs( 0, array() );
+
+		$errors = diluxone_users_register_validate( new \WP_Error(), 'someone', 'someone@example.test' );
+		$this->assertSame( array(), $errors->get_error_codes() );
+
+		$login = 'dlxreg' . strtolower( wp_generate_password( 8, false ) );
+		$user  = register_new_user( $login, $login . '@example.test' );
+
+		$this->assertIsInt( $user, 'register_new_user() made the account' );
+		$this->assertSame( '', (string) get_user_meta( $user, 'test_city', true ) );
+	}
+
+	public function test_the_fields_with_a_wrong_nonce_are_refused(): void {
+		$this->postAs(
+			0,
+			array(
+				'diluxone_users_wp_register_nonce' => 'not-the-nonce',
+				'test_city'                        => 'Mendoza',
+			)
+		);
+
+		$errors = diluxone_users_register_validate( new \WP_Error(), 'someone', 'someone@example.test' );
+
+		$this->assertContains( 'diluxone_users_nonce', $errors->get_error_codes() );
+	}
+
+	public function test_a_wrong_nonce_alone_is_refused(): void {
+		// The nonce is the form's: posted, it is checked, fields or not.
+		$this->postAs( 0, array( 'diluxone_users_wp_register_nonce' => 'not-the-nonce' ) );
+
+		$errors = diluxone_users_register_validate( new \WP_Error(), 'someone', 'someone@example.test' );
+
+		$this->assertContains( 'diluxone_users_nonce', $errors->get_error_codes() );
+	}
+
+	public function test_a_field_posted_as_a_list_still_asks_for_the_nonce(): void {
+		$this->postAs( 0, array( 'test_city' => array( 'a', 'b' ) ) );
+
+		$errors = diluxone_users_register_validate( new \WP_Error(), 'someone', 'someone@example.test' );
+
+		$this->assertContains( 'diluxone_users_nonce', $errors->get_error_codes() );
+	}
+
 	public function test_the_form_without_its_nonce_is_refused(): void {
 		$this->postAs( 0, array( 'test_city' => 'Mendoza' ) );
 

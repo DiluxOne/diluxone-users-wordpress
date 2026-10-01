@@ -353,7 +353,34 @@ function diluxone_users_register_form_fields(): void {
 add_action( 'register_form', 'diluxone_users_register_form_fields' );
 
 /**
+ * Did this request post any of the plugin's fields?
+ *
+ * Asked by name, whatever the value is — a list posted where one answer goes
+ * still counts as somebody sending the field.
+ */
+function diluxone_users_register_fields_posted(): bool {
+	foreach ( diluxone_users_fields() as $field ) {
+		foreach ( array( (string) $field['key'], (string) $field['key'] . '_dial' ) as $name ) {
+			// phpcs:ignore WordPress.Security.NonceVerification.Missing -- only whether the name is there; the caller verifies the nonce before reading anything.
+			if ( isset( $_POST[ $name ] ) ) {
+				return true;
+			}
+		}
+	}
+
+	return false;
+}
+
+/**
  * An empty required field does not let the registration go through.
+ *
+ * Only for the form that carries the plugin's fields. `registration_errors`
+ * runs for every call to register_new_user() — another plugin's sign-up, a
+ * shop's checkout, a form that never drew these fields — and refusing those
+ * for a field they never showed was refusing every registration on the site
+ * but WordPress's own. So with neither the fields' nonce nor any of the
+ * fields in the request, there is nothing of this plugin's to check. Once a
+ * field of this plugin is posted, the nonce has to be there and be right.
  *
  * @param WP_Error $errors The errors WordPress has already gathered.
  * @param string   $login  The username being registered.
@@ -364,6 +391,10 @@ function diluxone_users_register_validate( $errors, $login, $email ) {
 	$fields = diluxone_users_fields();
 
 	if ( array() === $fields ) {
+		return $errors;
+	}
+
+	if ( ! isset( $_POST['diluxone_users_wp_register_nonce'] ) && ! diluxone_users_register_fields_posted() ) {
 		return $errors;
 	}
 
