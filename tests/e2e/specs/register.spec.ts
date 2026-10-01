@@ -18,13 +18,12 @@ import { notice, registerForm, registerScreen, submitPluginForm } from '../suppo
 /**
  * The field set every test in this file starts from.
  *
- * WordPress's own two are in it on purpose and NOT required: the plugin
- * re-seeds them on `admin_init` whenever they are missing from the list, and
- * admin-post.php — where every one of these forms posts — is an admin request.
- * A list that leaves them out gets them back, required, between the first
- * submission and the second, and then the browser refuses to submit a form
- * with an empty required field and the test hangs on a navigation that never
- * comes. Pinning them is cheaper than fighting them.
+ * WordPress's own two are in it on purpose: the plugin re-seeds them on
+ * `admin_init` whenever they are missing from the list, and admin-post.php —
+ * where every one of these forms posts — is an admin request. A list that
+ * leaves them out gets them back between the first submission and the second,
+ * and a test that counts the fields on the form would count two more than it
+ * set. Pinning them is cheaper than fighting them.
  */
 const PLAIN_FIELDS = [
 	{ key: 'first_name', label: 'First name', type: 'text', required: 0, active: 1, group: 'main', edit: 'always' },

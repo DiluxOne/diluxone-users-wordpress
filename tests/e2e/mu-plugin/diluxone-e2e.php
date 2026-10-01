@@ -234,6 +234,79 @@ function diluxone_e2e_menu_forget(): WP_REST_Response {
 	return new WP_REST_Response( array( 'deleted' => $page instanceof WP_Post ) );
 }
 
+/* ── What the browser cannot see: hooks, constants, switches ────────── */
+
+/**
+ * Counts every `wp_login`, by the e-mail of whoever signed in.
+ *
+ * Another plugin of the site listens on it like this; the count is how a spec
+ * asks "did the plugin's own door say it, and only once". Read and reset
+ * through the options route, as `diluxone_e2e_wp_login`.
+ *
+ * @param string  $login The login name.
+ * @param WP_User $user  The account.
+ */
+function diluxone_e2e_hear_wp_login( $login, $user ): void {
+	if ( ! $user instanceof WP_User ) {
+		return;
+	}
+
+	$heard = (array) get_option( 'diluxone_e2e_wp_login', array() );
+	$email = strtolower( (string) $user->user_email );
+
+	$heard[ $email ] = (int) ( $heard[ $email ] ?? 0 ) + 1;
+
+	update_option( 'diluxone_e2e_wp_login', $heard, false );
+}
+add_action( 'wp_login', 'diluxone_e2e_hear_wp_login', 100, 2 );
+
+/**
+ * Two switches a site turns on from code, flipped from a spec.
+ *
+ * `diluxone_e2e_safe_mode` is the emergency switch the way a must-use plugin
+ * turns it on — DILUXONE_USERS_SAFE_MODE cannot be defined and undefined
+ * between two tests — and `diluxone_e2e_no_wp_login_2fa` is a site saying its
+ * wp-login.php cannot draw the second step.
+ */
+function diluxone_e2e_switches(): void {
+	if ( get_option( 'diluxone_e2e_safe_mode' ) ) {
+		add_filter( 'diluxone_users_safe_mode', '__return_true' );
+	}
+
+	if ( get_option( 'diluxone_e2e_no_wp_login_2fa' ) ) {
+		add_filter( 'diluxone_users_2fa_on_wp_login', '__return_false' );
+	}
+}
+add_action( 'plugins_loaded', 'diluxone_e2e_switches' );
+
+/**
+ * Says in a header whether the page defined DONOTCACHEPAGE before it was drawn.
+ *
+ * The constant is read by page caches at the end of the request, where no
+ * browser can see it; at `template_redirect` priority 99 — after the
+ * plugin's own at 0 — a header can still go.
+ */
+function diluxone_e2e_donotcache_header(): void {
+	if ( defined( 'DONOTCACHEPAGE' ) && DONOTCACHEPAGE && ! headers_sent() ) {
+		header( 'X-Diluxone-E2E-Donotcachepage: 1' );
+	}
+}
+add_action( 'template_redirect', 'diluxone_e2e_donotcache_header', 99 );
+
+/**
+ * Registers somebody the way another plugin's sign-up does: register_new_user()
+ * with nothing of this plugin's in the request.
+ */
+function diluxone_e2e_register( WP_REST_Request $request ): WP_REST_Response {
+	$user = register_new_user( sanitize_user( (string) $request->get_param( 'login' ) ), sanitize_email( (string) $request->get_param( 'email' ) ) );
+
+	return new WP_REST_Response(
+		is_wp_error( $user )
+			? array( 'errors' => $user->get_error_codes() )
+			: array( 'id' => (int) $user )
+	);
+}
+
 /* ── The routes ────────────────────────────────────────────────────── */
 
 /** Is this request allowed to drive the site? */
@@ -335,6 +408,16 @@ function diluxone_e2e_routes(): void {
 				'permission_callback' => $guard,
 				'callback'            => 'diluxone_e2e_menu_forget',
 			),
+		)
+	);
+
+	register_rest_route(
+		DILUXONE_E2E_NS,
+		'/register',
+		array(
+			'methods'             => 'POST',
+			'permission_callback' => $guard,
+			'callback'            => 'diluxone_e2e_register',
 		)
 	);
 

@@ -107,6 +107,7 @@ product is fixed, not to be loosened.
 | Status › Lockout | renders (`admin-settings`); what it describes is the escape hatch, covered in `password-login` |
 | Status › Tools › wipe on uninstall | not in a browser: it only takes effect when the plugin is deleted. Integration: `UninstallSiteTest` (single site, ticked and not) |
 | User fields: add, show, delete | `admin-tools` › User fields |
+| User fields › Suggested fields: seeded names only, the rest added from the tab | `coexistence` › A fresh site asks for a name… |
 | The wordpress.org listing screenshots | `listing-screenshots` (`make screenshots`, writes files) |
 
 ## On a network (`network/`)
@@ -256,6 +257,49 @@ code broken on purpose, the test failing) and then green.
 | Signing in: the safety net under “every site” (the site and the hub); only the hub under “click” / “invite”; asking for a link adds nobody | — | net: under every site membership comes with the click, not with the request; under click or invite signing in joins only the hub; `NetworkHubTest` › under click or invite the way back… · single: signing in changes nobody's role | `magic-link`, `password-login` (unchanged) | `doors` › from /beta/…; …not a member there until they open the link |
 | The log: a sign-in on the hub for /beta/ carries `from_site`, is on /beta/'s report and the hub's, not /alpha/'s; the network's report has a From column | — | net: a sign-in on the hub for a site is in that site's report and the hub's; a sign-in on the hub itself comes from nowhere · single: a sign-in comes from nowhere and the report is its rows (the query unchanged) | `activity-log` (unchanged) | `membership` › The activity log |
 | The Membership screen's layout and picture | — | — | — | `network-admin` › network › diluxone-users-membership › policy; `network-snapshots` |
+
+## Living with WordPress and with the rest of the site
+
+The defaults and seams that decide whether the plugin gets in the way of
+anything it was not asked about. Every case at every layer, on both
+topologies: unit tests are pure (`make test`, `make test-unit-min`);
+integration runs on the network (`make test-integration`) and on a single
+site (`make test-integration-single`) — **both:** one test passing on each,
+**net:** / **single:** a test that skips loudly on the other topology and
+names its counterpart; the two browser columns are `specs/coexistence.spec.ts`
+(`make test-e2e`) and `network/coexistence.spec.ts` (`make test-e2e-network`).
+Every guard was seen red (the code broken on purpose, the test failing) and
+then green at the integration layer; in both browser suites the second step
+on wp-login.php, `wp_login`, the seeded fields, the membership confirmation
+(network), safe mode and the cache were broken on purpose and seen red too.
+
+| Case | Unit | Integration | E2E single site | E2E network |
+|---|---|---|---|---|
+| No sign-in page: the second step is drawn on wp-login.php (`?action=diluxone_users_2fa`), with a password and the code by e-mail | — | both: `TwoFactorSurfaceTest` › with no page the challenge is drawn by wp-login | `coexistence` › a password and the code by e-mail finish signing in, on wp-login.php | `coexistence` › from /beta/: a password and the code by e-mail on the hub's wp-login.php, back on /beta/ |
+| …with the authenticator app | — | both: `TwoFactorSurfaceTest` (the same screen, any method) | `coexistence` › a password and the authenticator app… | `coexistence` › a password and the authenticator app, on the hub's wp-login.php |
+| …a wrong code comes back to wp-login.php; an attempt that ran out restarts there and says so (`retry`) | — | both: `TwoFactorSurfaceTest` › a wrong code on wp-login…; an attempt that ran out… | `coexistence` › a wrong code comes back to wp-login.php and says so | (the same handler) |
+| A chosen page that is a draft, private, in the bin or behind a password is no page | — | both: `TwoFactorSurfaceTest` › a page nobody can open is no page | — | — |
+| With a sign-in page, the second step is on the page | — | both: `TwoFactorSurfaceTest` › with a page the challenge is drawn by the page; `TwoFactorFlowTest` | `coexistence` › with a sign-in page…; `two-factor` | `coexistence` › with a sign-in page on the hub…; `doors` › the second step… |
+| Nowhere to answer it (no page, `diluxone_users_2fa_on_wp_login` false): not asked, not offered, not switched on from the account | `TwoFactorPolicyTest` (the policy) | both: `TwoFactorSurfaceTest` › with nowhere to answer it…; the account refuses to turn it on… | — | — |
+| …"required" is disabled with the reason beside it, and refused when sent by hand | — | both: `TwoFactorSurfaceTest` › required cannot be saved with nowhere to answer it | `coexistence` › “required” cannot be chosen or saved… | `coexistence` › …in Network Admin |
+| The e-mail link fires `wp_login` once, logged once | — | both: `OwnDoorsWpLoginTest` › a door of the plugin fires wp_login once (e-mail link) | `coexistence` › the e-mail link | `coexistence` › the hub's own doors… the e-mail link |
+| A social account fires `wp_login` once | — | both: `OwnDoorsWpLoginTest` › … (social account) | `coexistence` › a social account | `coexistence` › …a social account |
+| A passkey fires `wp_login` once | — | both: `OwnDoorsWpLoginTest` › a passkey fires wp_login once | `coexistence` › a passkey (Chromium) | `coexistence` › …a passkey (Chromium) |
+| A door that asks for the second step: asked once, `wp_login` once it is answered; a password still fires it once | — | both: `OwnDoorsWpLoginTest` › the second step is asked once…; a password still fires wp_login once… | `coexistence` › a link that asks for the second step… | (the same code; `doors` › the second step…) |
+| `register_new_user()` from somewhere else, with none of the plugin's fields, goes through | — | both: `WpRegisterFieldsTest` › a registration that never drew the fields goes through | `coexistence` › register_new_user() with none of the plugin's fields goes through | `coexistence` › …on the hub and on /beta/ |
+| The plugin's fields posted with no nonce, a wrong nonce, or as a list are refused | — | both: `WpRegisterFieldsTest` › the fields with a wrong nonce…; a wrong nonce alone…; a field posted as a list…; the form without its nonce… | `coexistence` › WordPress's own form with the plugin's fields and a wrong nonce is refused | — (a network registers on wp-signup.php, which never draws the fields; the check is the integration's, on both) |
+| A fresh install seeds the first and last name, neither required; an existing list is kept | — | both: `SuggestedFieldsTest` › a fresh install seeds only the two names…; an existing list is kept as it is | `coexistence` › only the first and last name are seeded… | `coexistence` › a fresh network seeds the first and last name… |
+| Suggested fields: offered, added once behind a nonce, not offered again; a site of a network adds nothing | — | both: `SuggestedFieldsTest` › the suggested fields are offered and added once; the screen adds the ones ticked… · net: …a site administrator on a network adds nothing | `coexistence` › …the suggested fields are added from their tab | `coexistence` › …added in Network Admin and reach /beta/ |
+| A session lasts what WordPress decides (14 days with "remember me") until a length is saved; another plugin's length is left alone; the screen and the summary say 0 is WordPress's | — | both: `SessionLengthTest` | `coexistence` › How long a session lasts | `coexistence` › How long a session lasts, on the network |
+| Membership: unconfirmed, nothing is added (new account, new site, sign-in, queue, sync) and Network Admin says so; confirming "every site" adds everybody | `MembershipTest` › on a network the policy waits for its confirmation; on a single site there is nothing to confirm | net: `MembershipTest` › until the policy is confirmed it adds nobody; confirming every site adds everybody…; confirming another policy adds nobody · single: …on a single site there is nothing to confirm | `single-site` › there is no membership… | `coexistence` › Membership waits for the network to confirm it |
+| Safe mode: wp-login.php is WordPress's (no takeover, no reset, privacy or lost-password hand-off), the dashboard profile stays, no second step | `TwoFactorPolicyTest` › safe mode never asks | both: `SafeModeTest` › wp-login is WordPress's again; the reset link stays…; forgetting a password…; the dashboard profile…; the privacy confirmation…; nobody is asked for the second step | `coexistence` › wp-login.php is WordPress's, its password signs in with no second step; off, the same settings take wp-login.php over… | `coexistence` › /beta/'s wp-login.php is its own… |
+| Safe mode: passkeys and social sign-in shut, their settings kept | — | both: `SafeModeTest` › passkeys and social sign-in are shut… | `coexistence` › the sign-in page has no social button and no passkey | — (the same functions) |
+| Safe mode: on a network every site keeps its own wp-login.php and forms | — | net: `SafeModeTest` › on a network every site keeps its own wp-login · single: …on a single site wp-login is the site's own | — | `coexistence` › /beta/'s wp-login.php is its own… |
+| Safe mode: every dashboard page says so, only to whoever manages it | — | both: `SafeModeTest` › the dashboard says so on every page | `coexistence` › the dashboard says so on every page | `coexistence` › Network Admin and every site say so |
+| The sign-in, registration and account pages send no-store and define `DONOTCACHEPAGE`; another page does neither | — | both: `NoCacheTest` (the decision; the constant in a process of its own) | `coexistence` › the sign-in, registration and account pages send no-store… | `coexistence` › the hub's pages a cache must not keep |
+| A shortcode drawn from a template says it as it renders; a list of posts is left to the cache | — | both: `NoCacheTest` › a shortcode drawn from a template…; a list of posts… | — | — |
+| The second step on wp-login.php is not cached | — | — | `coexistence` › the second step on wp-login.php is not cached either | (wp-login.php's own headers) |
+| The Suggested fields tab's layout and picture | — | — | `admin-layout`, `admin-snapshots` (`SCREENS`) | `network-admin`, `network-snapshots` (`NETWORK_SCREENS`) |
 
 ## Not coverable in a browser
 
