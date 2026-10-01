@@ -730,6 +730,29 @@ class MembershipTest extends IntegrationTestCase {
 		$this->assertSame( 0, $writes );
 	}
 
+	/** What is written down about a removal is the person's: exported, and erased with the rest. */
+	public function test_a_removal_is_in_the_export_and_goes_with_the_erasure(): void {
+		$this->network_only();
+
+		$user = $this->make_user();
+		update_user_meta( $user, DILUXONE_USERS_MEMBERSHIP_REMOVED, array( $this->alpha ) );
+
+		$export = diluxone_users_privacy_export( get_userdata( $user )->user_email );
+		$names  = array();
+
+		foreach ( $export['data'] as $item ) {
+			foreach ( $item['data'] as $row ) {
+				$names[ $row['name'] ] = $row['value'];
+			}
+		}
+
+		$this->assertSame( (string) get_site( $this->alpha )->blogname, $names['Sites an administrator removed you from'] ?? null );
+
+		diluxone_users_privacy_erase( get_userdata( $user )->user_email );
+
+		$this->assertSame( array(), diluxone_users_membership_removed( $user ), 'erased' );
+	}
+
 	public function test_on_a_single_site_nothing_is_written_down_about_removals(): void {
 		$this->single_only();
 

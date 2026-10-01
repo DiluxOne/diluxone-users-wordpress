@@ -232,6 +232,22 @@ function diluxone_users_privacy_access( int $user_id ): array {
 		);
 	}
 
+	// On a network: the sites an administrator took them off, which the
+	// plugin keeps so that nothing adds them back on its own.
+	$removed = array();
+
+	foreach ( diluxone_users_membership_removed( $user_id ) as $site_id ) {
+		$site      = is_multisite() ? get_site( $site_id ) : null;
+		$removed[] = $site instanceof WP_Site ? (string) $site->blogname : '#' . $site_id;
+	}
+
+	if ( array() !== $removed ) {
+		$rows[] = array(
+			'name'  => __( 'Sites an administrator removed you from', 'diluxone-users' ),
+			'value' => implode( ', ', $removed ),
+		);
+	}
+
 	$devices = diluxone_users_meta_list( $user_id, 'diluxone_users_devices' );
 	$devices = array_filter( array_map( 'strval', $devices ) );
 
@@ -353,6 +369,7 @@ function diluxone_users_privacy_keys( int $user_id ): array {
 		'diluxone_users_backup_codes',
 		'_diluxone_users_link_hash',
 		'_diluxone_users_link_expires',
+		DILUXONE_USERS_MEMBERSHIP_REMOVED,
 	);
 
 	foreach ( diluxone_users_fields( '', false ) as $field ) {
