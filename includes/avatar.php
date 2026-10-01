@@ -152,7 +152,7 @@ function diluxone_users_avatar_blank( int $size ): string {
 /**
  * An avatar URL ready for a src attribute.
  *
- * esc_url() drops a scheme it does not know, and the drawn pictures above are
+ * WordPress's esc_url() drops a scheme it does not know, and the drawn pictures above are
  * data: URLs: through it they become an empty src. A drawing is escaped as the
  * attribute it is; anything else is a URL like any other.
  */

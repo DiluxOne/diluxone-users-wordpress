@@ -66,8 +66,7 @@ function diluxone_users_tools_people_allowed(): bool {
  */
 function diluxone_users_tools_person( string $field ): ?WP_User {
 	// phpcs:ignore WordPress.Security.NonceVerification.Missing -- verified in diluxone_users_tools_action().
-	$raw   = isset( $_POST[ $field ] ) ? wp_unslash( $_POST[ $field ] ) : '';
-	$typed = is_string( $raw ) ? sanitize_email( $raw ) : '';
+	$typed = isset( $_POST[ $field ] ) && is_string( $_POST[ $field ] ) ? sanitize_email( wp_unslash( $_POST[ $field ] ) ) : '';
 	$user  = '' !== $typed ? get_user_by( 'email', $typed ) : false;
 
 	return $user instanceof WP_User && current_user_can( 'edit_user', $user->ID ) ? $user : null;
