@@ -85,6 +85,24 @@ function diluxone_users_2fa_wp_login(): void {
 				<input type="text" id="diluxone-users-2fa-code" name="diluxone_users_2fa_code" class="input" inputmode="numeric" autocomplete="one-time-code" maxlength="20" size="20" required>
 			</p>
 
+			<?php
+			// The other methods and the backup codes inside the box, not under
+			// it: on a branded screen the space around the box is the brand's
+			// colour, and a sentence there is grey on blue.
+			?>
+			<?php if ( count( $methods ) > 1 ) : ?>
+				<p class="description">
+					<?php esc_html_e( 'Or use:', 'diluxone-users' ); ?>
+					<?php foreach ( $methods as $id => $other ) : ?>
+						<?php if ( $id !== $method ) : ?>
+							<a href="<?php echo esc_url( diluxone_users_2fa_url( $user_id, $key, (string) $id ) ); ?>"><?php echo esc_html( (string) $other['label'] ); ?></a>
+						<?php endif; ?>
+					<?php endforeach; ?>
+				</p>
+			<?php endif; ?>
+
+			<p class="description"><?php esc_html_e( 'Lost the phone and the email? Use one of your backup codes: they go in the same box.', 'diluxone-users' ); ?></p>
+
 			<?php if ( $days > 0 ) : ?>
 				<p class="forgetmenot">
 					<input type="checkbox" id="diluxone-users-2fa-trust" name="diluxone_users_2fa_trust" value="1">
@@ -114,19 +132,6 @@ function diluxone_users_2fa_wp_login(): void {
 				<?php endif; ?>
 			</p>
 		</form>
-
-		<?php if ( count( $methods ) > 1 ) : ?>
-			<p id="nav">
-				<?php esc_html_e( 'Or use:', 'diluxone-users' ); ?>
-				<?php foreach ( $methods as $id => $other ) : ?>
-					<?php if ( $id !== $method ) : ?>
-						<a href="<?php echo esc_url( diluxone_users_2fa_url( $user_id, $key, (string) $id ) ); ?>"><?php echo esc_html( (string) $other['label'] ); ?></a>
-					<?php endif; ?>
-				<?php endforeach; ?>
-			</p>
-		<?php endif; ?>
-
-		<p id="backtoblog"><?php esc_html_e( 'Lost the phone and the email? Use one of your backup codes: they go in the same box.', 'diluxone-users' ); ?></p>
 	</div>
 	<?php
 	login_footer( 'diluxone-users-2fa-code' );
