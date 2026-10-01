@@ -127,7 +127,7 @@
 				label: label ? label.value : '',
 				publicKey: toB64url( key ),
 				algorithm: cred.response.getPublicKeyAlgorithm(),
-				clientDataJSON: new TextDecoder().decode( cred.response.clientDataJSON )
+				clientDataJSON: toB64url( cred.response.clientDataJSON )
 			} );
 		} ).then( function ( r ) {
 			if ( ! r.success ) {
@@ -173,7 +173,7 @@
 			return ask( {
 				step: 'login',
 				id: cred.id,
-				clientDataJSON: new TextDecoder().decode( cred.response.clientDataJSON ),
+				clientDataJSON: toB64url( cred.response.clientDataJSON ),
 				authenticatorData: toB64url( cred.response.authenticatorData ),
 				signature: toB64url( cred.response.signature )
 			} );
