@@ -69,6 +69,9 @@ function diluxone_users_network_moved_keys(): array {
 		DILUXONE_USERS_NETWORK_CONFLICTS,
 		DILUXONE_USERS_NETWORK_CONFLICTS_SEEN,
 		'diluxone_users_uninstall_wipe',
+		// Confirming the membership policy is a decision for the network,
+		// taken on its own screen: no site's copy of anything stands for it.
+		'diluxone_users_membership_confirmed',
 		// The log's own bookkeeping is about the network's table, which no
 		// site had: a site's number for the shape of its own table says
 		// nothing about it. See migrate-log.php.

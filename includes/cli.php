@@ -174,6 +174,10 @@ function diluxone_users_cli_membership_sync(): void {
 		WP_CLI::error( 'This is not a network: every account is a member of the only site there is.' );
 	}
 
+	if ( ! diluxone_users_membership_confirmed() ) {
+		WP_CLI::error( 'The network’s membership policy has not been confirmed: until it is, nobody is added anywhere. Confirm it on Network Admin › Membership.' );
+	}
+
 	if ( 'all' !== diluxone_users_membership() ) {
 		WP_CLI::error( sprintf( 'The network’s membership policy is “%s”: only “all” adds everybody to every site.', diluxone_users_membership() ) );
 	}

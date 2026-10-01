@@ -74,9 +74,9 @@ function diluxone_users_panel_registry( string $screen = '', string $id = '', ?a
  * that sorts before this one would be calling a function that does not exist
  * yet. It did, and it took the whole site down with it.
  *
- * @param string                                                                                                                                        $screen Which screen, e.g. 'diluxone-users-login'.
- * @param string                                                                                                                                        $id     The tab's slug, which ends up in the URL.
- * @param array{label: string, render: callable, save?: callable, preview?: callable, preview_src?: string, note?: string, position?: int, form?: bool} $panel
+ * @param string                                                                                                                                                                     $screen Which screen, e.g. 'diluxone-users-login'.
+ * @param string                                                                                                                                                                     $id     The tab's slug, which ends up in the URL.
+ * @param array{label: string, render: callable, save?: callable, preview?: callable, preview_src?: string, note?: string, position?: int, form?: bool, save_label?: string|Closure} $panel
  */
 function diluxone_users_register_panel( string $screen, string $id, array $panel ): void {
 	diluxone_users_panel_registry(
@@ -104,6 +104,11 @@ function diluxone_users_register_panel( string $screen, string $id, array $panel
 				// it would be part of what is being previewed.
 				'note'        => '',
 				'form'        => true,
+				// What the button that saves the tab says, when "Save
+				// changes" is not true: a string, or a closure asked when
+				// the tab is drawn (after its own save), so it can follow
+				// what was just written.
+				'save_label'  => '',
 				'position'    => 50,
 			)
 		)
@@ -195,7 +200,7 @@ function diluxone_users_screen_panels( string $screen, string $title ): void {
 	 * form inside a form is thrown away by the browser; two siblings are not.
 	 */
 	if ( $form ) {
-		diluxone_users_ui_save( DILUXONE_USERS_PANEL_FORM );
+		diluxone_users_ui_save( DILUXONE_USERS_PANEL_FORM, $panel['save_label'] instanceof Closure ? (string) call_user_func( $panel['save_label'] ) : (string) $panel['save_label'] );
 	}
 
 	/*

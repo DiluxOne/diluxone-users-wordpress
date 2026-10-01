@@ -43,6 +43,10 @@ class NetworkHubTest extends IntegrationTestCase {
 		diluxone_users_update_option( 'diluxone_users_account_page', $this->page( 'Hub account' ) );
 
 		if ( is_multisite() ) {
+			// The way back joins under a confirmed policy (MembershipTest has
+			// the network that has not confirmed it).
+			diluxone_users_update_option( DILUXONE_USERS_MEMBERSHIP_CONFIRMED, 1 );
+
 			$this->beta = $this->site( (string) get_network()->domain, '/hub-beta-' . strtolower( wp_generate_password( 6, false ) ) . '/' );
 		}
 	}

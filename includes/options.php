@@ -426,6 +426,11 @@ function diluxone_users_option_defaults(): array {
 		// with "Join this site") or 'invite' (the hub; administrators add them
 		// anywhere else). Meaningless on a single site. See membership.php.
 		'diluxone_users_membership'            => 'all',
+		// Whether the network has confirmed that policy on Network Admin ›
+		// Membership. Until it has, the policy adds nobody to anything: a
+		// plugin being turned on is not a decision to make every account a
+		// member of every site.
+		'diluxone_users_membership_confirmed'  => 0,
 
 		// ── Deleting the plugin ───────────────────────────────────────
 		// Whether removing the plugin also removes everything it wrote.
