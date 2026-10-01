@@ -376,13 +376,16 @@ function diluxone_users_log_unschedule( $network_wide = false ): void {
  * addresses, which nothing answers once the plugin is off. Deleting the
  * stored copy rather than flushing, because in this request the plugin's own
  * rules are still registered; WordPress rebuilds the copy on its next request
- * from whatever is active then.
+ * from whatever is active then. And the note that the rules are current, so
+ * that switched on again the plugin writes its addresses back on its first
+ * request (see diluxone_users_account_flush_rules()).
  */
 function diluxone_users_switched_off_here(): void {
 	wp_clear_scheduled_hook( DILUXONE_USERS_LOG_PURGE );
 	wp_clear_scheduled_hook( DILUXONE_USERS_LOG_MOVE_EVENT );
 	wp_clear_scheduled_hook( DILUXONE_USERS_NETWORK_MIGRATE_EVENT );
 	delete_option( 'rewrite_rules' );
+	diluxone_users_delete_option( 'diluxone_users_rewrite_version' );
 }
 register_deactivation_hook( DILUXONE_USERS_FILE, 'diluxone_users_log_unschedule' );
 

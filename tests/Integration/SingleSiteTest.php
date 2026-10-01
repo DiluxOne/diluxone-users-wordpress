@@ -131,11 +131,13 @@ class SingleSiteTest extends IntegrationTestCase {
 		foreach ( array( false, true ) as $network_wide ) {
 			wp_schedule_event( time() + HOUR_IN_SECONDS, 'daily', DILUXONE_USERS_LOG_PURGE );
 			update_option( 'rewrite_rules', array( 'account/(.+)/?$' => 'index.php' ) );
+			update_option( 'diluxone_users_rewrite_version', DILUXONE_USERS_VERSION );
 
 			diluxone_users_log_unschedule( $network_wide );
 
 			$this->assertFalse( wp_next_scheduled( DILUXONE_USERS_LOG_PURGE ) );
 			$this->assertEmpty( get_option( 'rewrite_rules' ), 'the stored addresses are gone, to be rebuilt without the plugin' );
+			$this->assertFalse( get_option( 'diluxone_users_rewrite_version' ), 'and written back when it is switched on again' );
 		}
 	}
 
