@@ -673,7 +673,9 @@ add_filter( 'diluxone_users_login_redirect', 'diluxone_users_return_after_sign_i
  * @param WP_User $user  Who signed in.
  */
 function diluxone_users_return_password( $login, $user ): void {
-	if ( ! diluxone_users_scoped_storage_active() || ! $user instanceof WP_User ) {
+	// One of the plugin's own doors: the way back was spent when it chose
+	// where to send them (diluxone_users_announce_wp_login()).
+	if ( ! diluxone_users_scoped_storage_active() || ! $user instanceof WP_User || '' !== diluxone_users_own_door() ) {
 		return;
 	}
 
