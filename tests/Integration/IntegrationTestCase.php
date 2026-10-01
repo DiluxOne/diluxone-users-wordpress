@@ -41,6 +41,167 @@ class IntegrationTestCase extends TestCase {
 	/** @var string|null The network's registration setting before the test, on a network. */
 	private ?string $network_registration = null;
 
+	/** @var int The highest user ID before the test: every account above it was made by the test. */
+	private int $users_before = 0;
+
+	/** @var int The highest site ID before the test, on a network: every site above it was made by the test. */
+	private int $sites_before = 0;
+
+	/** @var array<int, int> The highest post ID before the test, by site: every post above it was made by the test. */
+	private array $posts_before = array();
+
+	/**
+	 * Where the database stood before the test, taken before any setUp().
+	 *
+	 * An `@before` method runs ahead of setUp(), the subclasses' included, so
+	 * a user or a site a test case makes in its own setUp() is counted as the
+	 * test's too.
+	 *
+	 * @before
+	 */
+	public function remember_the_database(): void {
+		global $wpdb;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery
+		$this->users_before = (int) $wpdb->get_var( "SELECT MAX(ID) FROM {$wpdb->users}" );
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery
+		$this->sites_before = is_multisite() ? (int) $wpdb->get_var( "SELECT MAX(blog_id) FROM {$wpdb->blogs}" ) : 0;
+
+		// Posts are per site: privacy requests, pages, menu items. Read from
+		// each site's own table, without switching to it.
+		$this->posts_before = array();
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery
+		$sites = is_multisite() ? array_map( 'intval', (array) $wpdb->get_col( "SELECT blog_id FROM {$wpdb->blogs}" ) ) : array( get_current_blog_id() );
+
+		foreach ( $sites as $site ) {
+			$posts = $wpdb->get_blog_prefix( $site ) . 'posts';
+
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$this->posts_before[ $site ] = (int) $wpdb->get_var( "SELECT MAX(ID) FROM {$posts}" );
+		}
+	}
+
+	/**
+	 * Every user and site the test made, gone: the database as it was found.
+	 *
+	 * By ID, not by a list the helpers keep, so the accounts the code under
+	 * test creates (a registration, a social sign-in) go too. Nothing at or
+	 * below the mark is touched: the administrator and whatever the
+	 * environment seeded stay. A test that already deleted what it made is
+	 * fine: only what is still there is deleted. An `@after` method runs after
+	 * every tearDown(), so the subclasses have closed their own sites first.
+	 * Posts go per site, for the sites there were before; a site the test
+	 * made goes whole, with its posts.
+	 *
+	 * @after
+	 */
+	public function forget_what_the_test_made(): void {
+		self::delete_posts_above( $this->posts_before );
+		self::delete_users_above( $this->users_before );
+		self::delete_sites_above( $this->sites_before );
+	}
+
+	/**
+	 * Every post above its site's mark deleted, for good, with its meta.
+	 *
+	 * @param array<int, int> $marks The highest post ID, by site.
+	 */
+	protected static function delete_posts_above( array $marks ): void {
+		global $wpdb;
+
+		foreach ( $marks as $site => $mark ) {
+			// A site the test deleted took its posts with it.
+			if ( is_multisite() && null === get_site( $site ) ) {
+				continue;
+			}
+
+			$posts = $wpdb->get_blog_prefix( $site ) . 'posts';
+
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$ids = array_map( 'intval', (array) $wpdb->get_col( $wpdb->prepare( "SELECT ID FROM {$posts} WHERE ID > %d", $mark ) ) );
+
+			if ( array() === $ids ) {
+				continue;
+			}
+
+			$switched = is_multisite() && get_current_blog_id() !== $site;
+
+			if ( $switched ) {
+				switch_to_blog( $site );
+			}
+
+			foreach ( $ids as $id ) {
+				wp_delete_post( $id, true );
+			}
+
+			if ( $switched ) {
+				restore_current_blog();
+			}
+		}
+
+		wp_cache_flush();
+	}
+
+	/** Every user with an ID above the mark, and their meta, deleted. */
+	protected static function delete_users_above( int $mark ): void {
+		global $wpdb;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery
+		$ids = array_map( 'intval', (array) $wpdb->get_col( $wpdb->prepare( "SELECT ID FROM {$wpdb->users} WHERE ID > %d", $mark ) ) );
+
+		if ( array() === $ids ) {
+			return;
+		}
+
+		require_once ABSPATH . 'wp-admin/includes/user.php';
+
+		if ( is_multisite() ) {
+			require_once ABSPATH . 'wp-admin/includes/ms.php';
+		}
+
+		foreach ( $ids as $id ) {
+			// On a network wp_delete_user() only takes the person off this
+			// site; wpmu_delete_user() deletes the account and its meta.
+			if ( is_multisite() ) {
+				wpmu_delete_user( $id );
+			} else {
+				wp_delete_user( $id );
+			}
+		}
+
+		wp_cache_flush();
+	}
+
+	/** Every site with an ID above the mark deleted, on a network. */
+	protected static function delete_sites_above( int $mark ): void {
+		global $wpdb;
+
+		if ( ! is_multisite() || $mark < 1 ) {
+			return;
+		}
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery
+		$ids = array_map( 'intval', (array) $wpdb->get_col( $wpdb->prepare( "SELECT blog_id FROM {$wpdb->blogs} WHERE blog_id > %d", $mark ) ) );
+
+		if ( array() === $ids ) {
+			return;
+		}
+
+		// A test that ends inside a switch_to_blog() would delete from the
+		// wrong tables.
+		while ( ms_is_switched() ) {
+			restore_current_blog();
+		}
+
+		foreach ( $ids as $id ) {
+			wp_delete_site( $id );
+		}
+
+		wp_cache_flush();
+	}
+
 	protected function setUp(): void {
 		parent::setUp();
 
