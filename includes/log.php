@@ -345,7 +345,7 @@ function diluxone_users_log_purges_here(): bool {
 
 /**
  * A plugin that is switched off leaves no event of its own behind — on every
- * site it was switched off for.
+ * site of the network it was switched off for — and none of its addresses.
  *
  * @param bool $network_wide Whether it was deactivated for the whole network.
  */
@@ -353,21 +353,36 @@ function diluxone_users_log_unschedule( $network_wide = false ): void {
 	if ( is_multisite() && $network_wide ) {
 		foreach ( get_sites(
 			array(
-				'fields' => 'ids',
-				'number' => 0,
+				'fields'     => 'ids',
+				'number'     => 0,
+				'network_id' => (int) get_current_network_id(),
 			)
 		) as $site ) {
 			switch_to_blog( (int) $site );
-			wp_clear_scheduled_hook( DILUXONE_USERS_LOG_PURGE );
-			wp_clear_scheduled_hook( DILUXONE_USERS_LOG_MOVE_EVENT );
+			diluxone_users_switched_off_here();
 			restore_current_blog();
 		}
 
 		return;
 	}
 
+	diluxone_users_switched_off_here();
+}
+
+/**
+ * What one site is left without when the plugin is switched off.
+ *
+ * Its events, and its stored rewrite rules: they hold the account area's
+ * addresses, which nothing answers once the plugin is off. Deleting the
+ * stored copy rather than flushing, because in this request the plugin's own
+ * rules are still registered; WordPress rebuilds the copy on its next request
+ * from whatever is active then.
+ */
+function diluxone_users_switched_off_here(): void {
 	wp_clear_scheduled_hook( DILUXONE_USERS_LOG_PURGE );
 	wp_clear_scheduled_hook( DILUXONE_USERS_LOG_MOVE_EVENT );
+	wp_clear_scheduled_hook( DILUXONE_USERS_NETWORK_MIGRATE_EVENT );
+	delete_option( 'rewrite_rules' );
 }
 register_deactivation_hook( DILUXONE_USERS_FILE, 'diluxone_users_log_unschedule' );
 

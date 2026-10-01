@@ -117,8 +117,9 @@ function diluxone_users_activate( $network_wide = false ): void {
 
 	foreach ( get_sites(
 		array(
-			'fields' => 'ids',
-			'number' => 0,
+			'fields'     => 'ids',
+			'number'     => 0,
+			'network_id' => (int) get_current_network_id(),
 		)
 	) as $site ) {
 		switch_to_blog( (int) $site );

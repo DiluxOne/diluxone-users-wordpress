@@ -198,15 +198,19 @@ class MultisiteTest extends IntegrationTestCase {
 	public function test_network_deactivation_clears_the_event_on_every_site(): void {
 		switch_to_blog( $this->site );
 		wp_schedule_event( time() + HOUR_IN_SECONDS, 'daily', DILUXONE_USERS_LOG_PURGE );
+		update_option( 'rewrite_rules', array( 'account/(.+)/?$' => 'index.php' ) );
 		restore_current_blog();
+		wp_schedule_single_event( time() + MINUTE_IN_SECONDS, DILUXONE_USERS_NETWORK_MIGRATE_EVENT );
 
 		diluxone_users_log_unschedule( true );
 
 		switch_to_blog( $this->site );
 		$this->assertFalse( wp_next_scheduled( DILUXONE_USERS_LOG_PURGE ) );
+		$this->assertEmpty( get_option( 'rewrite_rules' ), 'its stored addresses are gone, to be rebuilt without the plugin' );
 		restore_current_blog();
 
 		$this->assertFalse( wp_next_scheduled( DILUXONE_USERS_LOG_PURGE ) );
+		$this->assertFalse( wp_next_scheduled( DILUXONE_USERS_NETWORK_MIGRATE_EVENT ), 'nor the move of the old logs' );
 	}
 
 	/** A passkey belongs to a person, whichever site they are a member of. */
