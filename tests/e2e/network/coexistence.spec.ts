@@ -316,6 +316,9 @@ test.describe('Membership waits for the network to confirm it', () => {
 		await page.goto(`${NETWORK_URL}/wp-admin/network/`);
 		await expect(page.locator('[data-diluxone-users-membership-unconfirmed]')).toBeVisible();
 
+		await page.goto(`${NETWORK_URL}/wp-admin/network/users.php`);
+		await expect(page.locator('[data-diluxone-users-membership-unconfirmed]'), 'quiet on a screen that is not about the plugin').toHaveCount(0);
+
 		await page.goto(MEMBERSHIP);
 		await expect(page.locator('[data-diluxone-users-membership-unconfirmed]'), 'quiet on the screen that asks').toHaveCount(0);
 		await expect(page.locator('.diluxone-users-not-now')).toBeVisible();

@@ -43,7 +43,7 @@ function diluxone_users_admin_login_is_email(): bool {
  */
 function diluxone_users_admin_new_user_login(): void {
 	// phpcs:disable WordPress.Security.NonceVerification.Missing -- user-new.php verifies its own nonce right after this; nothing is saved here.
-	if ( ! diluxone_users_admin_login_is_email() || 'createuser' !== sanitize_key( wp_unslash( $_POST['action'] ?? '' ) ) || empty( $_POST['email'] ) ) {
+	if ( ! diluxone_users_admin_login_is_email() || 'createuser' !== sanitize_key( wp_unslash( $_POST['action'] ?? '' ) ) || empty( $_POST['email'] ) || ! is_string( $_POST['email'] ) ) {
 		return;
 	}
 	// $_POST arrives slashed and WordPress unslashes it when it reads it, so

@@ -65,6 +65,26 @@ function diluxone_users_activate_now( $network_wide = false ): void {
 	diluxone_users_activate( is_multisite() || (bool) $network_wide );
 }
 
+/**
+ * Whether a notice about the plugin may speak on this admin screen.
+ *
+ * Where the plugin is looked at — the dashboard, the plugins list and its own
+ * screens — and nowhere else: a notice on every screen of the dashboard is a
+ * notice nobody asked for on the screens that have nothing to do with it.
+ */
+function diluxone_users_notice_here(): bool {
+	$now = (string) ( $GLOBALS['pagenow'] ?? '' );
+
+	if ( in_array( $now, array( 'index.php', 'plugins.php' ), true ) ) {
+		return true;
+	}
+
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- which screen this is, to decide whether to speak on it.
+	$page = isset( $_GET['page'] ) && is_string( $_GET['page'] ) ? sanitize_key( wp_unslash( $_GET['page'] ) ) : '';
+
+	return 'admin.php' === $now && 0 === strpos( $page, 'diluxone-users' );
+}
+
 /** On a site of a network where it is not on for the network: only the notice. */
 function diluxone_users_sleep(): void {
 	add_action( 'network_admin_notices', 'diluxone_users_asleep_notice' );
@@ -76,12 +96,13 @@ function diluxone_users_sleep(): void {
  *
  * In Network Admin, when the main site is one it was left on for, and on the
  * dashboard of every site it was left on for: WordPress only loads a plugin
- * on the sites it is on for, so those are the places it can speak. Only
- * whoever can manage the network's plugins sees it, because only they can do
- * what it asks.
+ * on the sites it is on for, so those are the places it can speak — on the
+ * dashboard and the plugins list, not on every screen. Only whoever can
+ * manage the network's plugins sees it, because only they can do what it
+ * asks.
  */
 function diluxone_users_asleep_notice(): void {
-	if ( ! current_user_can( 'manage_network_plugins' ) ) {
+	if ( ! current_user_can( 'manage_network_plugins' ) || ! diluxone_users_notice_here() ) {
 		return;
 	}
 

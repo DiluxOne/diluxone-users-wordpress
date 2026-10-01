@@ -345,7 +345,7 @@ function diluxone_users_log_purges_here(): bool {
 
 /**
  * A plugin that is switched off leaves no event of its own behind — on every
- * site it was switched off for.
+ * site of the network it was switched off for — and none of its addresses.
  *
  * @param bool $network_wide Whether it was deactivated for the whole network.
  */
@@ -353,21 +353,39 @@ function diluxone_users_log_unschedule( $network_wide = false ): void {
 	if ( is_multisite() && $network_wide ) {
 		foreach ( get_sites(
 			array(
-				'fields' => 'ids',
-				'number' => 0,
+				'fields'     => 'ids',
+				'number'     => 0,
+				'network_id' => (int) get_current_network_id(),
 			)
 		) as $site ) {
 			switch_to_blog( (int) $site );
-			wp_clear_scheduled_hook( DILUXONE_USERS_LOG_PURGE );
-			wp_clear_scheduled_hook( DILUXONE_USERS_LOG_MOVE_EVENT );
+			diluxone_users_switched_off_here();
 			restore_current_blog();
 		}
 
 		return;
 	}
 
+	diluxone_users_switched_off_here();
+}
+
+/**
+ * What one site is left without when the plugin is switched off.
+ *
+ * Its events, and its stored rewrite rules: they hold the account area's
+ * addresses, which nothing answers once the plugin is off. Deleting the
+ * stored copy rather than flushing, because in this request the plugin's own
+ * rules are still registered; WordPress rebuilds the copy on its next request
+ * from whatever is active then. And the note that the rules are current, so
+ * that switched on again the plugin writes its addresses back on its first
+ * request (see diluxone_users_account_flush_rules()).
+ */
+function diluxone_users_switched_off_here(): void {
 	wp_clear_scheduled_hook( DILUXONE_USERS_LOG_PURGE );
 	wp_clear_scheduled_hook( DILUXONE_USERS_LOG_MOVE_EVENT );
+	wp_clear_scheduled_hook( DILUXONE_USERS_NETWORK_MIGRATE_EVENT );
+	delete_option( 'rewrite_rules' );
+	diluxone_users_delete_option( 'diluxone_users_rewrite_version' );
 }
 register_deactivation_hook( DILUXONE_USERS_FILE, 'diluxone_users_log_unschedule' );
 
@@ -865,17 +883,10 @@ function diluxone_users_log_empty_rows( $sites ): int {
 /**
  * The rows, filtered and paginated.
  *
- * There are six filters and they are all optional, which is sixty-four
- * shapes of query. Written as sixteen literal strings this file would be unreadable, and
- * assembled from pieces neither the analysers nor a reviewer could tell what
- * reaches the database — which is the trade the sessions report chose the
- * other way round, and it only had one filter.
- *
- * So there is one query, and every filter carries its own "or nothing was
- * asked" beside it: `%d = 0 OR l.user_id = %d`. Every value goes through
- * `prepare()` and the string itself never changes, so what runs is exactly
- * what is written here. MySQL folds the constant half away before it plans
- * anything, so an unused filter costs nothing and the indexes are still used.
+ * The filters are all optional. The WHERE is built from the ones that are
+ * set, each a fixed fragment with its own placeholders, and every value goes
+ * through `prepare()`; why it is not one fixed query with an "or nothing was
+ * asked" beside each filter is said where the clause is built, below.
  *
  * The join is LEFT and not INNER on purpose: a refused sign-in belongs to
  * nobody, and an account deleted last week still has the rows that say what it

@@ -43,6 +43,68 @@ class SsoLinkTest extends IntegrationTestCase {
 		);
 	}
 
+	/** "Only some roles" refuses before it creates: no account is left behind that may not use it. */
+	public function test_an_account_social_sign_in_would_refuse_is_not_created(): void {
+		diluxone_users_update_option( 'diluxone_users_sso_scope', 'some' );
+		diluxone_users_update_option( 'diluxone_users_sso_roles', array( 'editor' ) );
+		diluxone_users_update_option( 'diluxone_users_login_role', 'subscriber' );
+
+		$email = 'refused-' . wp_generate_password( 6, false, false ) . '@example.test';
+
+		$this->assertSame( 0, diluxone_users_sso_user( MockProvider::ID, $this->identity( $email, true ) ) );
+		$this->assertFalse( get_user_by( 'email', $email ), 'no account created' );
+	}
+
+	/** On a network, "only some roles" means a role on any of the person's sites, as everywhere else. */
+	public function test_only_some_roles_counts_a_role_on_any_site_of_the_person(): void {
+		if ( ! is_multisite() ) {
+			$this->markTestSkipped( 'A network case.' );
+		}
+
+		diluxone_users_update_option( 'diluxone_users_sso_scope', 'some' );
+		diluxone_users_update_option( 'diluxone_users_sso_roles', array( 'editor' ) );
+
+		$user = $this->make_user();
+		$site = (int) wp_insert_site(
+			array(
+				'domain' => (string) get_network()->domain,
+				'path'   => get_network()->path . 'sso-roles-' . wp_generate_password( 6, false, false ) . '/',
+			)
+		);
+		add_user_to_blog( $site, $user, 'editor' );
+
+		$this->assertFalse( diluxone_users_sso_role_blocked( $user ), 'an editor of another site of theirs' );
+
+		remove_user_from_blog( $user, $site );
+		$this->assertTrue( diluxone_users_sso_role_blocked( $user ), 'a subscriber everywhere' );
+	}
+
+	/** Unlinking takes off a provider's link and nothing else the prefix happens to cover. */
+	public function test_unlinking_touches_only_a_providers_link(): void {
+		$user = $this->make_user();
+		update_user_meta( $user, 'diluxone_users_sso_mock', $this->sub );
+		update_user_meta( $user, 'diluxone_users_sso_scope_note', 'kept' );
+		add_filter( 'wp_redirect', array( $this, 'throw_redirect' ) );
+
+		foreach ( array( 'scope_note', MockProvider::ID ) as $provider ) {
+			wp_set_current_user( $user );
+			$this->postAs(
+				$user,
+				array(
+					'diluxone_users_provider' => $provider,
+					'_wpnonce'                => wp_create_nonce( 'diluxone_users_sso_unlink' ),
+				)
+			);
+			$this->expectRedirect( 'diluxone_users_sso_unlink' );
+		}
+
+		remove_filter( 'wp_redirect', array( $this, 'throw_redirect' ) );
+		wp_set_current_user( 0 );
+
+		$this->assertSame( 'kept', get_user_meta( $user, 'diluxone_users_sso_scope_note', true ), 'not a provider: left alone' );
+		$this->assertSame( '', get_user_meta( $user, 'diluxone_users_sso_mock', true ), 'the provider’s link is gone' );
+	}
+
 	public function test_a_verified_email_links_the_existing_account(): void {
 		$victim = $this->make_user();
 		$email  = get_userdata( $victim )->user_email;

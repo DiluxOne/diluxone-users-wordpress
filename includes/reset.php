@@ -33,7 +33,7 @@ function diluxone_users_reset_cookie(): string {
  */
 function diluxone_users_reset_catch(): void {
 	// phpcs:disable WordPress.Security.NonceVerification.Recommended -- the key IS the credential and is checked below.
-	if ( ! isset( $_GET['diluxone_users_key'], $_GET['diluxone_users_login'] ) ) {
+	if ( ! isset( $_GET['diluxone_users_key'], $_GET['diluxone_users_login'] ) || ! is_string( $_GET['diluxone_users_key'] ) || ! is_string( $_GET['diluxone_users_login'] ) ) {
 		return;
 	}
 

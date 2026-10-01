@@ -43,6 +43,35 @@ function diluxone_users_tool_done( string $text, string $type = 'success' ): voi
 	exit;
 }
 
+/**
+ * Whether whoever is here may act on other people's sign-ins.
+ *
+ * On a network a person's sessions and second step are the network's, not
+ * one site's: closing them, or sending a code that voids the one they were
+ * waiting for, is for whoever administers the network's users. A site's
+ * administrator keeps the tools that are the site's own.
+ */
+function diluxone_users_tools_people_allowed(): bool {
+	return ! is_multisite() || current_user_can( 'manage_network_users' );
+}
+
+/**
+ * The account a tool was asked to act on, if this person may act on it.
+ *
+ * `edit_user` as well as the screen's own capability, the way the sessions
+ * report asks it: on a network it is where WordPress keeps a site's
+ * administrator off a super admin.
+ *
+ * @return WP_User|null
+ */
+function diluxone_users_tools_person( string $field ): ?WP_User {
+	// phpcs:ignore WordPress.Security.NonceVerification.Missing -- verified in diluxone_users_tools_action().
+	$typed = isset( $_POST[ $field ] ) && is_string( $_POST[ $field ] ) ? sanitize_email( wp_unslash( $_POST[ $field ] ) ) : '';
+	$user  = '' !== $typed ? get_user_by( 'email', $typed ) : false;
+
+	return $user instanceof WP_User && current_user_can( 'edit_user', $user->ID ) ? $user : null;
+}
+
 /** Its tab on the maintenance screen. */
 function diluxone_users_tools_panels(): void {
 	diluxone_users_register_panel(
@@ -125,11 +154,13 @@ add_action( 'admin_post_diluxone_users_tools', 'diluxone_users_tools_action' );
  * @return never
  */
 function diluxone_users_tool_send_code(): void {
-	// phpcs:ignore WordPress.Security.NonceVerification.Missing -- verified in diluxone_users_tools_action().
-	$typed = sanitize_email( wp_unslash( $_POST['email'] ?? '' ) );
-	$user  = '' !== $typed ? get_user_by( 'email', $typed ) : false;
+	if ( ! diluxone_users_tools_people_allowed() ) {
+		wp_die( esc_html__( 'You are not allowed to do this.', 'diluxone-users' ) );
+	}
 
-	if ( ! $user instanceof WP_User ) {
+	$user = diluxone_users_tools_person( 'email' );
+
+	if ( null === $user ) {
 		diluxone_users_tool_done( __( 'No account with that e-mail address.', 'diluxone-users' ), 'error' );
 	}
 
@@ -158,10 +189,12 @@ function diluxone_users_tool_send_code(): void {
  * @return never
  */
 function diluxone_users_tool_close_sessions(): void {
-	// phpcs:disable WordPress.Security.NonceVerification.Missing -- verified in diluxone_users_tools_action().
+	if ( ! diluxone_users_tools_people_allowed() ) {
+		wp_die( esc_html__( 'You are not allowed to do this.', 'diluxone-users' ) );
+	}
+
+	// phpcs:ignore WordPress.Security.NonceVerification.Missing -- verified in diluxone_users_tools_action().
 	$scope = isset( $_POST['scope'] ) ? sanitize_key( wp_unslash( $_POST['scope'] ) ) : 'one';
-	$typed = sanitize_email( wp_unslash( $_POST['close_email'] ?? '' ) );
-	// phpcs:enable
 
 	if ( 'all' === $scope ) {
 		WP_Session_Tokens::destroy_all_for_all_users();
@@ -169,9 +202,9 @@ function diluxone_users_tool_close_sessions(): void {
 		diluxone_users_tool_done( __( 'Every session on the site is closed. Everyone signs in again, you included.', 'diluxone-users' ) );
 	}
 
-	$user = '' !== $typed ? get_user_by( 'email', $typed ) : false;
+	$user = diluxone_users_tools_person( 'close_email' );
 
-	if ( ! $user instanceof WP_User ) {
+	if ( null === $user ) {
 		diluxone_users_tool_done( __( 'No account with that e-mail address.', 'diluxone-users' ), 'error' );
 	}
 
@@ -529,7 +562,7 @@ function diluxone_users_screen_tools_boxes(): void {
 		diluxone_users_notice( (string) $result[0], (string) $result[1] );
 	}
 
-	diluxone_users_intro( __( 'Six buttons for when something went wrong and somebody is waiting on the other side.', 'diluxone-users' ) );
+	diluxone_users_intro( __( 'The buttons for when something went wrong and somebody is waiting on the other side.', 'diluxone-users' ) );
 
 	diluxone_users_tool_box(
 		__( 'Rebuild the rewrite rules', 'diluxone-users' ),
@@ -550,36 +583,11 @@ function diluxone_users_screen_tools_boxes(): void {
 		'diluxone_users_mail_test'
 	);
 
-	diluxone_users_tool_box(
-		__( 'Send someone a fresh code', 'diluxone-users' ),
-		__( 'For when a person says the second-step code never arrived. It sends a new one and voids the previous one. You never get to see it — the code is stored hashed, which is the point.', 'diluxone-users' ),
-		static function (): void {
-			echo '<input type="hidden" name="tool" value="code">';
-			printf(
-				'<input type="email" name="email" class="regular-text" required placeholder="%s"> ',
-				esc_attr__( 'their e-mail address', 'diluxone-users' )
-			);
-			submit_button( __( 'Send the code', 'diluxone-users' ), 'secondary', 'submit', false );
-		}
-	);
-
-	diluxone_users_tool_box(
-		__( 'Close sessions', 'diluxone-users' ),
-		__( 'Closing every session on the site signs you out too. That is on purpose: if you are doing this, the session you are least sure about might be your own.', 'diluxone-users' ),
-		static function (): void {
-			echo '<input type="hidden" name="tool" value="close">';
-			echo '<p><label><input type="radio" name="scope" value="one" checked> ';
-			esc_html_e( 'Just this person:', 'diluxone-users' );
-			printf(
-				' <input type="email" name="close_email" class="regular-text" placeholder="%s"></label></p>',
-				esc_attr__( 'their e-mail address', 'diluxone-users' )
-			);
-			echo '<p><label><input type="radio" name="scope" value="all"> ';
-			esc_html_e( 'Everyone on the site, me included', 'diluxone-users' );
-			echo '</label></p>';
-			submit_button( __( 'Close them', 'diluxone-users' ), 'delete', 'submit', false );
-		}
-	);
+	// Somebody else's sign-ins: on a network, only for whoever administers
+	// its users (see diluxone_users_tools_people_allowed()).
+	if ( diluxone_users_tools_people_allowed() ) {
+		diluxone_users_tools_people_boxes();
+	}
 
 	diluxone_users_tool_box(
 		__( 'Settings as a file', 'diluxone-users' ),
@@ -631,6 +639,45 @@ function diluxone_users_screen_tools_boxes(): void {
 			echo '</label></p>';
 
 			submit_button( __( 'Save', 'diluxone-users' ), 'secondary', 'submit', false );
+		}
+	);
+}
+
+/** The two tools that act on somebody else's sign-ins. */
+function diluxone_users_tools_people_boxes(): void {
+	diluxone_users_tool_box(
+		__( 'Send someone a fresh code', 'diluxone-users' ),
+		__( 'For when a person says the second-step code never arrived. It sends a new one and voids the previous one. You never get to see it — the code is stored hashed, which is the point.', 'diluxone-users' ),
+		static function (): void {
+			echo '<input type="hidden" name="tool" value="code">';
+			printf(
+				'<input type="email" name="email" class="regular-text" required placeholder="%s"> ',
+				esc_attr__( 'their e-mail address', 'diluxone-users' )
+			);
+			submit_button( __( 'Send the code', 'diluxone-users' ), 'secondary', 'submit', false );
+		}
+	);
+
+	diluxone_users_tool_box(
+		__( 'Close sessions', 'diluxone-users' ),
+		__( 'Closing every session on the site signs you out too. That is on purpose: if you are doing this, the session you are least sure about might be your own.', 'diluxone-users' ),
+		static function (): void {
+			echo '<input type="hidden" name="tool" value="close">';
+			echo '<p><label><input type="radio" name="scope" value="one" checked> ';
+			esc_html_e( 'Just this person:', 'diluxone-users' );
+			printf(
+				' <input type="email" name="close_email" class="regular-text" placeholder="%s"></label></p>',
+				esc_attr__( 'their e-mail address', 'diluxone-users' )
+			);
+			echo '<p><label><input type="radio" name="scope" value="all"> ';
+			// A session is the network's: on a network, everyone on it.
+			if ( is_multisite() ) {
+				esc_html_e( 'Everyone on the network, me included', 'diluxone-users' );
+			} else {
+				esc_html_e( 'Everyone on the site, me included', 'diluxone-users' );
+			}
+			echo '</label></p>';
+			submit_button( __( 'Close them', 'diluxone-users' ), 'delete', 'submit', false );
 		}
 	);
 }

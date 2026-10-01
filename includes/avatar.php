@@ -20,9 +20,25 @@
 
 defined( 'ABSPATH' ) || exit;
 
-/** The attachment the person uploaded, or 0. */
+/**
+ * The attachment the person uploaded, or 0.
+ *
+ * Also 0 when it was uploaded on a site of the network that has since been
+ * deleted: its media library went with it, and asking for it there would be
+ * asking a table that is not there.
+ */
 function diluxone_users_avatar_id( int $user_id ): int {
-	return (int) get_user_meta( $user_id, 'diluxone_users_avatar', true );
+	$id = (int) get_user_meta( $user_id, 'diluxone_users_avatar', true );
+
+	if ( $id > 0 && is_multisite() ) {
+		$site = (int) get_user_meta( $user_id, 'diluxone_users_avatar_site', true );
+
+		if ( $site > 0 && null === get_site( $site ) ) {
+			return 0;
+		}
+	}
+
+	return $id;
 }
 
 /**
@@ -113,7 +129,7 @@ function diluxone_users_avatar_svg( int $user_id, int $size ): string {
 		esc_html( $letters )
 	);
 
-	return 'data:image/svg+xml;base64,' . base64_encode( $svg );
+	return 'data:image/svg+xml,' . rawurlencode( $svg );
 }
 
 /**
@@ -130,7 +146,18 @@ function diluxone_users_avatar_blank( int $size ): string {
 		$size
 	);
 
-	return 'data:image/svg+xml;base64,' . base64_encode( $svg );
+	return 'data:image/svg+xml,' . rawurlencode( $svg );
+}
+
+/**
+ * An avatar URL ready for a src attribute.
+ *
+ * WordPress's esc_url() drops a scheme it does not know, and the drawn pictures above are
+ * data: URLs: through it they become an empty src. A drawing is escaped as the
+ * attribute it is; anything else is a URL like any other.
+ */
+function diluxone_users_avatar_src( string $url ): string {
+	return 0 === strpos( $url, 'data:image/svg+xml,' ) ? esc_attr( $url ) : esc_url( $url );
 }
 
 /**

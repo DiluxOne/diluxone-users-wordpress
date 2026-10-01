@@ -440,7 +440,7 @@ function diluxone_users_wp_login_to_hub(): void {
 		}
 	}
 
-	$asked = isset( $_GET['redirect_to'] ) ? esc_url_raw( wp_unslash( $_GET['redirect_to'] ) ) : '';
+	$asked = isset( $_GET['redirect_to'] ) && is_string( $_GET['redirect_to'] ) ? esc_url_raw( wp_unslash( $_GET['redirect_to'] ) ) : '';
 	// phpcs:enable
 
 	$action = (string) ( $query['action'] ?? '' );
@@ -559,7 +559,7 @@ add_filter( 'lostpassword_url', 'diluxone_users_core_lostpassword_url', 20, 2 );
  * and goes straight back.
  */
 function diluxone_users_return_capture(): void {
-	if ( ! diluxone_users_scoped_storage_active() || ! diluxone_users_on_the_hub() ) {
+	if ( ! diluxone_users_scoped_storage_active() || ! diluxone_users_on_the_hub() || diluxone_users_safe_mode() ) {
 		return;
 	}
 
@@ -574,7 +574,7 @@ function diluxone_users_return_capture(): void {
 	}
 
 	// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- an address to come back to, checked against the network's hosts before it is kept.
-	$return = diluxone_users_safe_return( isset( $_GET['redirect_to'] ) ? esc_url_raw( wp_unslash( $_GET['redirect_to'] ) ) : '' );
+	$return = diluxone_users_safe_return( isset( $_GET['redirect_to'] ) && is_string( $_GET['redirect_to'] ) ? esc_url_raw( wp_unslash( $_GET['redirect_to'] ) ) : '' );
 
 	if ( '' === $return ) {
 		return;
@@ -608,7 +608,7 @@ function diluxone_users_return_hold( string $url ): void {
 
 /** The return address held for this browser, checked again, or ''. */
 function diluxone_users_return_held(): string {
-	if ( ! isset( $_COOKIE[ DILUXONE_USERS_RETURN_COOKIE ] ) ) {
+	if ( ! isset( $_COOKIE[ DILUXONE_USERS_RETURN_COOKIE ] ) || ! is_string( $_COOKIE[ DILUXONE_USERS_RETURN_COOKIE ] ) ) {
 		return '';
 	}
 
@@ -681,7 +681,7 @@ function diluxone_users_return_password( $login, $user ): void {
 	}
 
 	// phpcs:ignore WordPress.Security.NonceVerification.Missing -- WordPress verified the password; this is where it sends them next, checked below.
-	$return = diluxone_users_safe_return( isset( $_POST['redirect_to'] ) ? esc_url_raw( wp_unslash( $_POST['redirect_to'] ) ) : '' );
+	$return = diluxone_users_safe_return( isset( $_POST['redirect_to'] ) && is_string( $_POST['redirect_to'] ) ? esc_url_raw( wp_unslash( $_POST['redirect_to'] ) ) : '' );
 
 	diluxone_users_return_forget();
 

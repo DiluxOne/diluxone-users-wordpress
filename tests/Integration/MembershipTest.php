@@ -309,6 +309,8 @@ class MembershipTest extends IntegrationTestCase {
 		// screen that asks the question.
 		wp_set_current_user( $this->super_admin() );
 
+		$pagenow            = $GLOBALS['pagenow'] ?? null;
+		$GLOBALS['pagenow'] = 'index.php';
 		ob_start();
 		diluxone_users_membership_unconfirmed_notice();
 		$this->assertStringContainsString( 'data-diluxone-users-membership-unconfirmed', (string) ob_get_clean() );
@@ -318,11 +320,27 @@ class MembershipTest extends IntegrationTestCase {
 		diluxone_users_membership_unconfirmed_notice();
 		$this->assertSame( '', (string) ob_get_clean(), 'quiet on the Membership screen' );
 
+		// Where the plugin is looked at, and not on every screen of Network Admin.
+		$GLOBALS['pagenow'] = 'users.php';
+		$_GET               = array();
+		ob_start();
+		diluxone_users_membership_unconfirmed_notice();
+		$quiet = (string) ob_get_clean();
+		$GLOBALS['pagenow'] = 'admin.php';
+		$_GET               = array( 'page' => 'diluxone-users' );
+		ob_start();
+		diluxone_users_membership_unconfirmed_notice();
+		$spoken             = (string) ob_get_clean();
+		$GLOBALS['pagenow'] = 'index.php';
+		$this->assertSame( '', $quiet, 'quiet on a screen that is not about the plugin' );
+		$this->assertStringContainsString( 'data-diluxone-users-membership-unconfirmed', $spoken, 'said on the plugin’s own screens' );
+
 		wp_set_current_user( $this->make_user( 'administrator' ) );
 		$_GET = array();
 		ob_start();
 		diluxone_users_membership_unconfirmed_notice();
 		$this->assertSame( '', (string) ob_get_clean(), 'and to a site administrator' );
+		$GLOBALS['pagenow'] = $pagenow;
 	}
 
 	/**
@@ -710,6 +728,31 @@ class MembershipTest extends IntegrationTestCase {
 
 		$this->assertFalse( get_userdata( $user ), 'closed' );
 		$this->assertSame( 0, $writes );
+	}
+
+	/** What is written down about a removal is in the export, and outlives an erasure that keeps the account. */
+	public function test_a_removal_is_in_the_export_and_outlives_the_erasure(): void {
+		$this->network_only();
+
+		$user = $this->make_user();
+		update_user_meta( $user, DILUXONE_USERS_MEMBERSHIP_REMOVED, array( $this->alpha ) );
+
+		$export = diluxone_users_privacy_export( get_userdata( $user )->user_email );
+		$names  = array();
+
+		foreach ( $export['data'] as $item ) {
+			foreach ( $item['data'] as $row ) {
+				$names[ $row['name'] ] = $row['value'];
+			}
+		}
+
+		$this->assertSame( (string) get_site( $this->alpha )->blogname, $names['Sites an administrator removed you from'] ?? null );
+
+		$erased = diluxone_users_privacy_erase( get_userdata( $user )->user_email );
+
+		$this->assertSame( array( $this->alpha ), diluxone_users_membership_removed( $user ), 'kept: it is what keeps them off that site' );
+		$this->assertTrue( $erased['items_retained'] );
+		$this->assertCount( 1, $erased['messages'], 'and the site owner is told why' );
 	}
 
 	public function test_on_a_single_site_nothing_is_written_down_about_removals(): void {

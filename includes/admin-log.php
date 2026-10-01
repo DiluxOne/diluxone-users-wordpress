@@ -193,7 +193,7 @@ function diluxone_users_log_empty_box( string $where ): void {
 			sprintf(
 				/* translators: %s: number of rows deleted */
 				__( 'The activity log was emptied: %s rows deleted.', 'diluxone-users' ),
-				number_format_i18n( absint( wp_unslash( $_GET['diluxone-users-emptied'] ) ) ) // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+				number_format_i18n( absint( wp_unslash( $_GET['diluxone-users-emptied'] ) ) ) // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- a count shown once after the redirect, cast to a number.
 			)
 		);
 	}

@@ -180,4 +180,30 @@ class PasskeyStoreTest extends IntegrationTestCase {
 
 		$this->assertSame( array( 'here-' . $user, 'unknown-' . $user ), $ids );
 	}
+
+	/**
+	 * What the browser sends is sanitised where it is read: base64url kept to
+	 * its alphabet, the client data decoded from it byte for byte, the
+	 * algorithm a number, the label a line of text, and a list read as nothing.
+	 */
+	public function test_what_the_browser_sends_is_sanitised_where_it_is_read(): void {
+		$client = '{"type":"webauthn.get","challenge":"abc","origin":"https://example.test"}';
+
+		$_POST = array(
+			'id'             => 'AbC-_9+/= x',
+			'clientDataJSON' => diluxone_users_b64url_encode( $client ),
+			'signature'      => array( 'x' ),
+			'algorithm'      => '-7; drop',
+			'label'          => '<b>My key</b>',
+		);
+
+		$sent = diluxone_users_passkeys_posted();
+		$_POST = array();
+
+		$this->assertSame( 'AbC-_9x', $sent['id'] );
+		$this->assertSame( $client, $sent['clientDataJSON'], 'byte for byte' );
+		$this->assertArrayNotHasKey( 'signature', $sent );
+		$this->assertSame( '-7', $sent['algorithm'] );
+		$this->assertSame( 'My key', $sent['label'] );
+	}
 }

@@ -232,6 +232,22 @@ function diluxone_users_privacy_access( int $user_id ): array {
 		);
 	}
 
+	// On a network: the sites an administrator took them off, which the
+	// plugin keeps so that nothing adds them back on its own.
+	$removed = array();
+
+	foreach ( diluxone_users_membership_removed( $user_id ) as $site_id ) {
+		$site      = is_multisite() ? get_site( $site_id ) : null;
+		$removed[] = $site instanceof WP_Site ? (string) $site->blogname : '#' . $site_id;
+	}
+
+	if ( array() !== $removed ) {
+		$rows[] = array(
+			'name'  => __( 'Sites an administrator removed you from', 'diluxone-users' ),
+			'value' => implode( ', ', $removed ),
+		);
+	}
+
 	$devices = diluxone_users_meta_list( $user_id, 'diluxone_users_devices' );
 	$devices = array_filter( array_map( 'strval', $devices ) );
 
@@ -315,10 +331,15 @@ function diluxone_users_privacy_erase( string $email, int $page = 1 ): array {
 	// still says whose passkey a credential is.
 	diluxone_users_passkeys_save( $user_id, array() );
 
+	// The sites an administrator removed them from stay: it is the one thing
+	// that keeps the plugin from adding them back, and the account may outlive
+	// the erasure. The export lists them; the site owner is told why they stay.
+	$kept = array() !== diluxone_users_membership_removed( $user_id );
+
 	return array(
 		'items_removed'  => $removed,
-		'items_retained' => false,
-		'messages'       => array(),
+		'items_retained' => $kept,
+		'messages'       => $kept ? array( __( 'The list of sites an administrator removed this person from was kept: it is what keeps them from being added back to those sites.', 'diluxone-users' ) ) : array(),
 		'done'           => true,
 	);
 }

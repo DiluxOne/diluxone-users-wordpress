@@ -5,11 +5,15 @@
  * Overridable from the theme at:
  *   wp-content/themes/<your-theme>/diluxone-users/login.php
  *
- * @var string                             $state     What happened ('sent', 'expired', 'email', 'error', 'social', 'confirm', 'closed').
- * @var string                             $email     What the person typed to ask for the link.
- * @var array<string, array<string,mixed>> $providers Available networks, for a theme that draws its own.
- * @var int                                $minutes   How long the link is good for.
- * @var bool                               $title     Whether to draw the "Sign in" heading.
+ * What it is given, in `$args`:
+ *
+ * - `state`     What happened ('sent', 'expired', 'email', 'error', 'social', 'confirm', 'closed').
+ * - `email`     What the person typed to ask for the link.
+ * - `providers` Available networks, for a theme that draws its own.
+ * - `minutes`   How long the link is good for.
+ * - `title`     Whether to draw the "Sign in" heading.
+ *
+ * @var array{state: string, email: string, providers: array<string, array<string,mixed>>, minutes: int, title: bool} $args
  *
  * The shape of the page around this — the card, the split, the background —
  * is not in here: it wraps both steps of signing in, so it is printed by
@@ -32,18 +36,18 @@ defined( 'ABSPATH' ) || exit;
 
 	<?php diluxone_users_login_logo(); ?>
 
-	<?php if ( 'sent' === $state ) : ?>
+	<?php if ( 'sent' === $args['state'] ) : ?>
 
 		<p class="diluxone-users-login__icon <?php echo 'circle' === diluxone_users_option( 'diluxone_users_sent_icon' ) ? 'diluxone-users-login__icon--circle' : ''; ?>"><?php echo diluxone_users_icon( 'mail' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- our own markup. ?></p>
 		<h2 class="diluxone-users-login__title"><?php echo esc_html( diluxone_users_text( 'diluxone_users_sent_title', __( 'Check your email', 'diluxone-users' ) ) ); ?></h2>
 		<p><?php esc_html_e( 'We sent a sign-in link to', 'diluxone-users' ); ?></p>
-		<p class="diluxone-users-login__email"><strong><?php echo esc_html( $email ); ?></strong></p>
+		<p class="diluxone-users-login__email"><strong><?php echo esc_html( $args['email'] ); ?></strong></p>
 		<p class="diluxone-users-note">
 			<?php
 			printf(
 				/* translators: %d: how many minutes the link lasts */
 				esc_html__( 'Click the link and you are in. It expires in %d minutes and works once.', 'diluxone-users' ),
-				(int) $minutes
+				(int) $args['minutes']
 			);
 			?>
 		</p>
@@ -77,7 +81,7 @@ defined( 'ABSPATH' ) || exit;
 		$diluxone_users_intro   = diluxone_users_text( 'diluxone_users_login_intro' );
 		?>
 
-		<?php if ( $title || '' !== $diluxone_users_heading ) : ?>
+		<?php if ( $args['title'] || '' !== $diluxone_users_heading ) : ?>
 			<h2 class="diluxone-users-login__title">
 				<?php echo esc_html( '' !== $diluxone_users_heading ? $diluxone_users_heading : __( 'Sign in', 'diluxone-users' ) ); ?>
 			</h2>
@@ -106,8 +110,8 @@ defined( 'ABSPATH' ) || exit;
 		);
 		?>
 
-		<?php if ( isset( $diluxone_users_says[ $state ] ) ) : ?>
-			<?php diluxone_users_login_notice( $diluxone_users_says[ $state ] ); ?>
+		<?php if ( isset( $diluxone_users_says[ $args['state'] ] ) ) : ?>
+			<?php diluxone_users_login_notice( $diluxone_users_says[ $args['state'] ] ); ?>
 		<?php endif; ?>
 
 		<?php diluxone_users_ways_render(); ?>

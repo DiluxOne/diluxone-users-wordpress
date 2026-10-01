@@ -55,8 +55,10 @@ function diluxone_users_template( string $file ): string {
 /**
  * Draws a template and returns what it printed.
  *
- * The variables arrive as loose variables, which is what whoever writes a
- * template and not a class expects.
+ * What the template is given arrives as `$args`, the way WordPress's own
+ * get_template_part() hands it over: one array, each key named in the
+ * template's docblock, and nothing else turned into a variable behind the
+ * template's back.
  *
  * @param array<string, mixed> $data
  */
@@ -67,13 +69,19 @@ function diluxone_users_render( string $file, array $data = array() ): string {
 		return '';
 	}
 
-	// phpcs:ignore WordPress.PHP.DontExtract.extract_extract -- it is a template's contract.
-	extract( $data, EXTR_SKIP );
-
 	ob_start();
-	include $path;
+	diluxone_users_template_include( $path, $data );
 
 	return (string) ob_get_clean();
+}
+
+/**
+ * Includes a template with `$args` in its scope and nothing of the caller's.
+ *
+ * @param array<string, mixed> $args What the template is given.
+ */
+function diluxone_users_template_include( string $path, array $args ): void {
+	include $path;
 }
 
 /**

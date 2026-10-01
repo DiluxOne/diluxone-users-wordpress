@@ -161,7 +161,7 @@ function diluxone_users_field_delete( string $key ): void {
  * redirect ends in a "headers already sent" notice in the log.
  */
 function diluxone_users_fields_actions(): void {
-	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- which screen this is; every action below checks its own nonce.
 	if ( 'diluxone-users-fields' !== sanitize_key( wp_unslash( $_GET['page'] ?? '' ) ) || ! diluxone_users_admin_owns( 'network' ) || ! current_user_can( diluxone_users_admin_cap() ) ) {
 		return;
 	}
@@ -183,7 +183,7 @@ function diluxone_users_fields_actions(): void {
 		exit;
 	}
 
-	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- whether an action was asked for; check_admin_referer() right below verifies it.
 	if ( ! isset( $_GET['diluxone_users_action'], $_GET['field'] ) ) {
 		return;
 	}
@@ -231,13 +231,13 @@ function diluxone_users_field_move( string $key, int $dir ): void {
 
 /** The fields screen: the listing, or one field's detail. */
 function diluxone_users_screen_fields(): void {
-	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- which field the screen shows, nothing is changed.
 	$editing = isset( $_GET['field'] ) ? sanitize_key( wp_unslash( $_GET['field'] ) ) : '';
 
-	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- which message to show after the redirect, from a fixed list.
 	$done = isset( $_GET['diluxone_users_done'] ) ? sanitize_key( wp_unslash( $_GET['diluxone_users_done'] ) ) : '';
 
-	if ( '' !== $editing || isset( $_GET['diluxone_users_new'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+	if ( '' !== $editing || isset( $_GET['diluxone_users_new'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- it only picks what the screen shows.
 
 		/*
 		 * The dialog opens this very screen in the background and lifts the

@@ -2,7 +2,7 @@
 /**
  * Datos personales.
  *
- * Variables: $user.
+ * What it is given, in `$args`: `user`, the account (unused here: each piece draws itself).
  *
  * @package DiluxOneUsers
  */

@@ -291,6 +291,11 @@ dist: ## Build build/diluxone-users/ — exactly what gets published.
 
 .PHONY: zip
 zip: dist ## Package build/diluxone-users.zip — the file you upload to wordpress.org.
+	@# The dist is copied from the working tree, so a file on disk that git does
+	@# not know — a scratch script, a credentials file — would ship. The file
+	@# that goes to wordpress.org carries only what the repository has.
+	@untracked=$$(comm -13 <(git ls-files | sort) <(cd "$(DIST_DIR)" && find . -type f | sed 's|^\./||' | sort)); \
+	if [ -n "$$untracked" ]; then echo "✗ the dist has files git does not track:"; echo "$$untracked"; exit 1; fi
 	@cd build && rm -f diluxone-users.zip && zip -qr diluxone-users.zip diluxone-users
 	@echo "✔ build/diluxone-users.zip ($$(du -h build/diluxone-users.zip | cut -f1))"
 

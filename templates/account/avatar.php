@@ -2,9 +2,13 @@
 /**
  * The profile picture.
  *
- * @var string  $error
- * @var bool    $has
- * @var WP_User $user
+ * What it is given, in `$args`:
+ *
+ * - `error`
+ * - `has`
+ * - `user`
+ *
+ * @var array{error: string, has: bool, user: WP_User} $args
  *
  * @package DiluxOneUsers
  */
@@ -13,15 +17,15 @@ defined( 'ABSPATH' ) || exit;
 ?>
 <?php diluxone_users_panel_open( __( 'Your photo', 'diluxone-users' ), true, 'diluxone-users-avatar' ); ?>
 
-	<?php if ( '' !== $error ) : ?>
-		<p class="diluxone-users-notice diluxone-users-notice--error"><?php echo esc_html( $error ); ?></p>
+	<?php if ( '' !== $args['error'] ) : ?>
+		<p class="diluxone-users-notice diluxone-users-notice--error"><?php echo esc_html( $args['error'] ); ?></p>
 	<?php endif; ?>
 
 	<form method="post" enctype="multipart/form-data" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="diluxone-users-avatar__form">
 		<input type="hidden" name="action" value="diluxone_users_avatar">
 		<?php wp_nonce_field( 'diluxone_users_avatar' ); ?>
 
-		<span class="diluxone-users-avatar__current"><?php echo get_avatar( $user->ID, 88 ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- WordPress markup. ?></span>
+		<span class="diluxone-users-avatar__current"><?php echo get_avatar( $args['user']->ID, 88 ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- WordPress markup. ?></span>
 
 		<div class="diluxone-users-avatar__actions">
 			<label class="diluxone-users-button diluxone-users-button--soft" for="diluxone-users-avatar-file">
@@ -31,7 +35,7 @@ defined( 'ABSPATH' ) || exit;
 
 			<button type="submit" class="diluxone-users-button"><?php esc_html_e( 'Save', 'diluxone-users' ); ?></button>
 
-			<?php if ( $has ) : ?>
+			<?php if ( $args['has'] ) : ?>
 				<button type="submit" name="diluxone_users_avatar_remove" value="1" class="diluxone-users-button diluxone-users-button--soft"><?php esc_html_e( 'Remove it', 'diluxone-users' ); ?></button>
 			<?php endif; ?>
 		</div>

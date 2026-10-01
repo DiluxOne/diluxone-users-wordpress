@@ -133,10 +133,10 @@ class TwoFactorLockoutTest extends IntegrationTestCase {
 	public function test_the_wait_grows_with_every_failure_past_the_limit(): void {
 		update_user_meta( $this->user, 'diluxone_users_2fa_fails', DILUXONE_USERS_2FA_LOCK_AFTER - 1 );
 
-		diluxone_users_2fa_fail( $this->user );
+		diluxone_users_2fa_close( $this->user, diluxone_users_2fa_count( $this->user, 1 ) );
 		$first = $this->lockedUntil() - time();
 
-		diluxone_users_2fa_fail( $this->user );
+		diluxone_users_2fa_close( $this->user, diluxone_users_2fa_count( $this->user, 1 ) );
 		$second = $this->lockedUntil() - time();
 
 		$this->assertGreaterThan( $first, $second );
@@ -146,7 +146,7 @@ class TwoFactorLockoutTest extends IntegrationTestCase {
 	public function test_the_wait_never_grows_past_its_ceiling(): void {
 		update_user_meta( $this->user, 'diluxone_users_2fa_fails', DILUXONE_USERS_2FA_LOCK_AFTER + 500 );
 
-		diluxone_users_2fa_fail( $this->user );
+		diluxone_users_2fa_close( $this->user, diluxone_users_2fa_count( $this->user, 1 ) );
 
 		$this->assertLessThanOrEqual( DILUXONE_USERS_2FA_LOCK_MAX, $this->lockedUntil() - time() );
 	}
@@ -208,7 +208,7 @@ class TwoFactorLockoutTest extends IntegrationTestCase {
 	/** Once a wait is over, one try goes through and the door closes again for longer. */
 	public function test_after_a_wait_exactly_one_try_goes_through(): void {
 		update_user_meta( $this->user, 'diluxone_users_2fa_fails', DILUXONE_USERS_2FA_LOCK_AFTER - 1 );
-		diluxone_users_2fa_fail( $this->user );
+		diluxone_users_2fa_close( $this->user, diluxone_users_2fa_count( $this->user, 1 ) );
 		$first = $this->lockedUntil() - time();
 
 		// The wait is over.

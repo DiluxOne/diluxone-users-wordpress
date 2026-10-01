@@ -198,15 +198,21 @@ class MultisiteTest extends IntegrationTestCase {
 	public function test_network_deactivation_clears_the_event_on_every_site(): void {
 		switch_to_blog( $this->site );
 		wp_schedule_event( time() + HOUR_IN_SECONDS, 'daily', DILUXONE_USERS_LOG_PURGE );
+		update_option( 'rewrite_rules', array( 'account/(.+)/?$' => 'index.php' ) );
+		update_option( 'diluxone_users_rewrite_version', DILUXONE_USERS_VERSION );
 		restore_current_blog();
+		wp_schedule_single_event( time() + MINUTE_IN_SECONDS, DILUXONE_USERS_NETWORK_MIGRATE_EVENT );
 
 		diluxone_users_log_unschedule( true );
 
 		switch_to_blog( $this->site );
 		$this->assertFalse( wp_next_scheduled( DILUXONE_USERS_LOG_PURGE ) );
+		$this->assertEmpty( get_option( 'rewrite_rules' ), 'its stored addresses are gone, to be rebuilt without the plugin' );
+		$this->assertFalse( get_option( 'diluxone_users_rewrite_version' ), 'and written back when it is switched on again' );
 		restore_current_blog();
 
 		$this->assertFalse( wp_next_scheduled( DILUXONE_USERS_LOG_PURGE ) );
+		$this->assertFalse( wp_next_scheduled( DILUXONE_USERS_NETWORK_MIGRATE_EVENT ), 'nor the move of the old logs' );
 	}
 
 	/** A passkey belongs to a person, whichever site they are a member of. */
@@ -410,5 +416,37 @@ class MultisiteTest extends IntegrationTestCase {
 		restore_current_blog();
 
 		$this->assertNull( get_post( $picture ), 'Deleted where it lives' );
+	}
+
+	/** A picture uploaded on a site deleted since is no picture, and nothing asks that site for it. */
+	public function test_a_picture_on_a_deleted_site_is_no_picture(): void {
+		$user = $this->make_user();
+		$gone = (int) wp_insert_site(
+			array(
+				'domain' => (string) get_network()->domain,
+				'path'   => get_network()->path . 'gone-avatar-' . wp_generate_password( 6, false, false ) . '/',
+			)
+		);
+
+		update_user_meta( $user, 'diluxone_users_avatar', 5 );
+		update_user_meta( $user, 'diluxone_users_avatar_site', $gone );
+		wp_delete_site( $gone );
+
+		global $wpdb;
+		$errors = 0;
+		$count  = static function ( $query ) use ( &$errors, $wpdb, $gone ) {
+			if ( false !== strpos( (string) $query, $wpdb->get_blog_prefix( $gone ) . 'posts' ) ) {
+				++$errors;
+			}
+
+			return $query;
+		};
+		add_filter( 'query', $count );
+		$url = diluxone_users_avatar_url( $user );
+		remove_filter( 'query', $count );
+
+		$this->assertSame( 0, diluxone_users_avatar_id( $user ) );
+		$this->assertSame( '', $url );
+		$this->assertSame( 0, $errors, 'the deleted site’s tables were not asked' );
 	}
 }

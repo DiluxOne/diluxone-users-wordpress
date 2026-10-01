@@ -331,8 +331,8 @@ function diluxone_users_session_ip_of( array $session ): string {
  * and both write the same number, so the ceiling is approximate by a request
  * or two. That is the right trade here: these are ceilings on flooding — mail
  * sent, accounts created, rows written — and none of them is a limit on
- * guessing a credential. The one that is, `diluxone_users_2fa_fail()`, leaves
- * its increment to the database for exactly this reason.
+ * guessing a credential. The one that is, `diluxone_users_2fa_reserve()`,
+ * leaves its increment to the database for exactly this reason.
  *
  * @param string $what   What is being counted, e.g. `link` or `register`.
  * @param int    $many   How many are allowed inside the window.

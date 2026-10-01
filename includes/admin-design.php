@@ -46,7 +46,7 @@ function diluxone_users_design_brand_save(): void {
 			'diluxone_users_styles'        => 'site' === $look ? 0 : 1,
 			'diluxone_users_colors'        => 'theme' === $look ? 'theme' : 'own',
 			'diluxone_users_color_map'     => (array) map_deep( wp_unslash( $_POST['diluxone_users_color_map'] ?? array() ), 'sanitize_key' ),
-			'diluxone_users_style_accent'  => sanitize_hex_color( wp_unslash( $_POST['diluxone_users_style_accent'] ?? '' ) ) ?? '',
+			'diluxone_users_style_accent'  => ( isset( $_POST['diluxone_users_style_accent'] ) && is_string( $_POST['diluxone_users_style_accent'] ) ? sanitize_hex_color( wp_unslash( $_POST['diluxone_users_style_accent'] ) ) : null ) ?? '',
 			'diluxone_users_style_radius'  => sanitize_text_field( wp_unslash( $_POST['diluxone_users_style_radius'] ?? '' ) ),
 			'diluxone_users_style_control' => sanitize_text_field( wp_unslash( $_POST['diluxone_users_style_control'] ?? '' ) ),
 			'diluxone_users_style_border'  => sanitize_text_field( wp_unslash( $_POST['diluxone_users_style_border'] ?? '' ) ),
@@ -89,7 +89,7 @@ function diluxone_users_design_login_save(): void {
 			'diluxone_users_login_intro'        => sanitize_text_field( wp_unslash( $_POST['diluxone_users_login_intro'] ?? '' ) ),
 			// Links allowed, and only links: the terms and the privacy policy
 			// are pages, and a legal line that cannot point at them is not one.
-			'diluxone_users_login_legal'        => wp_kses_post( wp_unslash( $_POST['diluxone_users_login_legal'] ?? '' ) ),
+			'diluxone_users_login_legal'        => ( isset( $_POST['diluxone_users_login_legal'] ) && is_string( $_POST['diluxone_users_login_legal'] ) ? wp_kses_post( wp_unslash( $_POST['diluxone_users_login_legal'] ) ) : '' ),
 			'diluxone_users_sent_title'         => sanitize_text_field( wp_unslash( $_POST['diluxone_users_sent_title'] ?? '' ) ),
 			'diluxone_users_sent_note'          => sanitize_text_field( wp_unslash( $_POST['diluxone_users_sent_note'] ?? '' ) ),
 			// Beside the two lines it belongs with, because the screen that
@@ -124,12 +124,12 @@ function diluxone_users_design_account_save(): void {
 			// is not posted at all, and with the script off it is posted with
 			// a colour nobody chose.
 			'diluxone_users_account_cover'       => isset( $_POST['diluxone_users_account_cover_own'] )
-				? ( sanitize_hex_color( wp_unslash( $_POST['diluxone_users_account_cover'] ?? '' ) ) ?? '' )
+				? ( ( isset( $_POST['diluxone_users_account_cover'] ) && is_string( $_POST['diluxone_users_account_cover'] ) ? sanitize_hex_color( wp_unslash( $_POST['diluxone_users_account_cover'] ) ) : null ) ?? '' )
 				: '',
 			// Same tick-box-decides shape as the cover colour above, and for
 			// the same reason: a colour picker has no way of saying "none".
 			'diluxone_users_account_ground'      => isset( $_POST['diluxone_users_account_ground_own'] )
-				? ( sanitize_hex_color( wp_unslash( $_POST['diluxone_users_account_ground'] ?? '' ) ) ?? '' )
+				? ( ( isset( $_POST['diluxone_users_account_ground'] ) && is_string( $_POST['diluxone_users_account_ground'] ) ? sanitize_hex_color( wp_unslash( $_POST['diluxone_users_account_ground'] ) ) : null ) ?? '' )
 				: '',
 			'diluxone_users_account_cover_kind'  => sanitize_key( wp_unslash( $_POST['diluxone_users_account_cover_kind'] ?? 'color' ) ),
 			'diluxone_users_account_cover_image' => absint( wp_unslash( $_POST['diluxone_users_account_cover_image'] ?? 0 ) ),
@@ -182,7 +182,7 @@ function diluxone_users_design_wp_save(): void {
 		array(
 			'diluxone_users_wp_login_brand' => isset( $_POST['diluxone_users_wp_login_brand'] ) ? 1 : 0,
 			'diluxone_users_wp_login_logo'  => absint( wp_unslash( $_POST['diluxone_users_wp_login_logo'] ?? 0 ) ),
-			'diluxone_users_wp_login_bg'    => sanitize_hex_color( wp_unslash( $_POST['diluxone_users_wp_login_bg'] ?? '' ) ) ?? '',
+			'diluxone_users_wp_login_bg'    => ( isset( $_POST['diluxone_users_wp_login_bg'] ) && is_string( $_POST['diluxone_users_wp_login_bg'] ) ? sanitize_hex_color( wp_unslash( $_POST['diluxone_users_wp_login_bg'] ) ) : null ) ?? '',
 		)
 	);
 	// phpcs:enable

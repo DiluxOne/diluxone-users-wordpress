@@ -2,9 +2,13 @@
 /**
  * The public name.
  *
- * @var bool   $can
- * @var string $error
- * @var int    $next
+ * What it is given, in `$args`:
+ *
+ * - `can`
+ * - `error`
+ * - `next`
+ *
+ * @var array{can: bool, error: string, next: int} $args
  *
  * @package DiluxOneUsers
  */
@@ -15,8 +19,8 @@ defined( 'ABSPATH' ) || exit;
 	<h3><?php esc_html_e( 'Your public name', 'diluxone-users' ); ?></h3>
 	<p><?php esc_html_e( 'This is how people see you, and what goes in the address of your profile. Your email is how you get in, and nobody sees it.', 'diluxone-users' ); ?></p>
 
-	<?php if ( '' !== $error ) : ?>
-		<p class="diluxone-users-notice diluxone-users-notice--error"><?php echo esc_html( $error ); ?></p>
+	<?php if ( '' !== $args['error'] ) : ?>
+		<p class="diluxone-users-notice diluxone-users-notice--error"><?php echo esc_html( $args['error'] ); ?></p>
 	<?php endif; ?>
 
 	<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="diluxone-users-form">
@@ -28,7 +32,7 @@ defined( 'ABSPATH' ) || exit;
 		<?php
 		// When the name cannot change yet, the field itself says until when:
 		// the panel only offers the button while there is something to save.
-		if ( $can ) :
+		if ( $args['can'] ) :
 			?>
 			<button type="submit" class="diluxone-users-button"><?php esc_html_e( 'Save', 'diluxone-users' ); ?></button>
 		<?php endif; ?>

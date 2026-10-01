@@ -201,7 +201,7 @@ function diluxone_users_passkey_owner( string $id ): int {
 
 	$indexed = get_users(
 		array(
-			'meta_key' => diluxone_users_passkey_index_key( $id ), // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
+			'meta_key' => diluxone_users_passkey_index_key( $id ), // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- one lookup, on sign-in, of the account a passkey belongs to.
 			'fields'   => 'ID',
 			'number'   => 2,
 			// The network's accounts, not only this site's members: a passkey
@@ -403,29 +403,38 @@ function diluxone_users_passkeys_login_options(): array {
 }
 
 /**
- * The six values a browser sends for a passkey, by name.
+ * The values a browser sends for a passkey, by name, each one sanitised here.
  *
- * Everything here is base64url or JSON that the two handlers then decode and
- * verify — nothing is stored as it arrives and nothing is printed — but the
- * whole `$_POST` used to travel in, and a call site that hands over the
- * request tells the next reader nothing about what is actually read.
+ * Five are base64url — the browser encodes every byte string it hands over,
+ * the client data included, so it arrives byte for byte: the signature is
+ * checked over its hash — and are kept to that alphabet; the algorithm is a
+ * number and the label a line of text. The two handlers then decode and
+ * verify them; nothing is stored as it arrives and nothing is printed.
  *
  * @return array<string, string>
  */
 function diluxone_users_passkeys_posted(): array {
+	// phpcs:disable WordPress.Security.NonceVerification.Missing -- the caller checks the nonce for the two steps that can have one; the other two are verified by signature.
 	$sent = array();
 
-	foreach ( array( 'id', 'publicKey', 'algorithm', 'clientDataJSON', 'authenticatorData', 'signature', 'label' ) as $name ) {
-		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- the caller checks the nonce for the two steps that can have one; the other two are verified by signature.
-		if ( ! isset( $_POST[ $name ] ) ) {
-			continue;
+	foreach ( array( 'id', 'publicKey', 'clientDataJSON', 'authenticatorData', 'signature' ) as $name ) {
+		if ( isset( $_POST[ $name ] ) && is_string( $_POST[ $name ] ) ) {
+			$sent[ $name ] = (string) preg_replace( '/[^A-Za-z0-9_-]/', '', sanitize_text_field( wp_unslash( $_POST[ $name ] ) ) );
 		}
-
-		// phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- base64url and JSON, decoded and verified by the handler; sanitising here would corrupt the bytes a signature is checked over.
-		$value = wp_unslash( $_POST[ $name ] );
-
-		$sent[ $name ] = is_scalar( $value ) ? (string) $value : '';
 	}
+
+	if ( isset( $sent['clientDataJSON'] ) ) {
+		$sent['clientDataJSON'] = diluxone_users_b64url_decode( $sent['clientDataJSON'] );
+	}
+
+	if ( isset( $_POST['algorithm'] ) && is_scalar( $_POST['algorithm'] ) ) {
+		$sent['algorithm'] = (string) intval( wp_unslash( $_POST['algorithm'] ) );
+	}
+
+	if ( isset( $_POST['label'] ) && is_string( $_POST['label'] ) ) {
+		$sent['label'] = sanitize_text_field( wp_unslash( $_POST['label'] ) );
+	}
+	// phpcs:enable
 
 	return $sent;
 }

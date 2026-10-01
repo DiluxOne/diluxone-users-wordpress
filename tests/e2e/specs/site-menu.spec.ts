@@ -92,6 +92,15 @@ test.describe('The person in the site menu', () => {
 		await page.goto(menuUrl);
 		await expect(item(page, 'person').locator('img.diluxone-users-menu__avatar')).toHaveCount(1);
 		await expect(item(page, 'person').locator('.screen-reader-text')).toContainText('Styled Person');
+
+		// With Gravatar off the photo is the one the plugin draws: a data:
+		// URL, which esc_url() would have turned into an empty src.
+		await options.set({ diluxone_users_avatar_gravatar: 0 });
+		await page.goto(menuUrl);
+		await expect(item(page, 'person').locator('img.diluxone-users-menu__avatar')).toHaveAttribute(
+			'src',
+			/^data:image\/svg\+xml,/
+		);
 	});
 
 	test('with no location chosen, the menu is the site’s own and nothing more', async ({ page, options }) => {

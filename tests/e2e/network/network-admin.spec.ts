@@ -243,6 +243,20 @@ test.describe('A site’s menu keeps only what is its own', () => {
 		await expect(page.locator('.du-notice').filter({ hasText: 'Decided for the whole network' })).toHaveCount(1);
 	});
 
+	test('a site’s administrator gets the site’s own tools, and none that signs somebody else out', async ({ guest, alpha, hub }) => {
+		const email = freshEmail('net-tools');
+
+		await alpha.site.makeUser({ email, password: PASSWORD, role: 'administrator' });
+		await signInFrom(guest, alpha, hub, email, PASSWORD);
+
+		// A session is the network's: closing somebody's, or sending a code
+		// that voids theirs, is for whoever administers the network's users.
+		await guest.goto(alpha.admin('admin.php?page=diluxone-users-status&tab=tools'));
+		await expect(guest.locator('input[name="tool"][value="flush"]')).toHaveCount(1);
+		await expect(guest.locator('input[name="tool"][value="close"]')).toHaveCount(0);
+		await expect(guest.locator('input[name="tool"][value="code"]')).toHaveCount(0);
+	});
+
 	test('a network screen asked for by its address on a site is refused', async ({ page, alpha, hub }) => {
 		for (const url of [
 			alpha.admin('admin.php?page=diluxone-users-security'),

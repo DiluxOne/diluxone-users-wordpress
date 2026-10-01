@@ -6,8 +6,12 @@
  * draws, the key has been checked and the person it belongs to is known: what
  * is left is to type the new password twice.
  *
- * @var WP_User $user  Whose password is being changed.
- * @var string  $state What happened on the way here.
+ * What it is given, in `$args`:
+ *
+ * - `user`  Whose password is being changed.
+ * - `state` What happened on the way here.
+ *
+ * @var array{user: WP_User, state: string} $args
  *
  * @package DiluxOneUsers
  */
@@ -25,12 +29,12 @@ defined( 'ABSPATH' ) || exit;
 		printf(
 			/* translators: %s: the account's e-mail address */
 			esc_html__( 'For %s', 'diluxone-users' ),
-			'<strong>' . esc_html( $user->user_email ) . '</strong>'
+			'<strong>' . esc_html( $args['user']->user_email ) . '</strong>'
 		);
 		?>
 	</p>
 
-	<?php if ( 'nomatch' === $state ) : ?>
+	<?php if ( 'nomatch' === $args['state'] ) : ?>
 		<?php diluxone_users_login_notice( 'reset_mismatch' ); ?>
 	<?php endif; ?>
 

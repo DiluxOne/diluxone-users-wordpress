@@ -194,7 +194,7 @@ function diluxone_users_register_request(): void {
 		exit;
 	}
 
-	$email = sanitize_email( wp_unslash( $_POST['diluxone_users_email'] ?? '' ) );
+	$email = isset( $_POST['diluxone_users_email'] ) && is_string( $_POST['diluxone_users_email'] ) ? sanitize_email( wp_unslash( $_POST['diluxone_users_email'] ) ) : '';
 
 	if ( '' === $email || ! is_email( $email ) ) {
 		wp_safe_redirect( add_query_arg( 'diluxone-users', 'email', $back ) );

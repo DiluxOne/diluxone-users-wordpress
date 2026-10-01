@@ -6,10 +6,14 @@
  * hub sends somebody back to, for a signed-in person who is not a member of
  * this site.
  *
- * @var string $state  'click' (they may join), 'invite' (only administrators add people) or 'joined'.
- * @var string $site   The name of this site.
- * @var string $hub    The name of the site the network's accounts live on.
- * @var bool   $notice Drawn at the top of the page rather than where a shortcode is.
+ * What it is given, in `$args`:
+ *
+ * - `state`  'click' (they may join), 'invite' (only administrators add people) or 'joined'.
+ * - `site`   The name of this site.
+ * - `hub`    The name of the site the network's accounts live on.
+ * - `notice` Drawn at the top of the page rather than where a shortcode is.
+ *
+ * @var array{state: string, site: string, hub: string, notice: bool} $args
  *
  * @package DiluxOneUsers
  */
@@ -33,12 +37,12 @@ $diluxone_users_words = array(
 		'text'  => __( 'You are a member of %1$s now, with your account from %2$s.', 'diluxone-users' ),
 	),
 );
-$diluxone_users_words = $diluxone_users_words[ $state ] ?? $diluxone_users_words['invite'];
+$diluxone_users_words = $diluxone_users_words[ $args['state'] ] ?? $diluxone_users_words['invite'];
 ?>
-<div class="diluxone-users-account diluxone-users-account--guest diluxone-users-join<?php echo $notice ? ' diluxone-users-join--notice' : ''; ?>" data-diluxone-users-join="<?php echo esc_attr( $state ); ?>"<?php echo $notice ? ' role="status"' : ''; ?>>
+<div class="diluxone-users-account diluxone-users-account--guest diluxone-users-join<?php echo $args['notice'] ? ' diluxone-users-join--notice' : ''; ?>" data-diluxone-users-join="<?php echo esc_attr( $args['state'] ); ?>"<?php echo $args['notice'] ? ' role="status"' : ''; ?>>
 	<h2><?php echo esc_html( $diluxone_users_words['title'] ); ?></h2>
-	<p><?php echo esc_html( sprintf( $diluxone_users_words['text'], $site, $hub ) ); ?></p>
-	<?php if ( 'click' === $state ) : ?>
+	<p><?php echo esc_html( sprintf( $diluxone_users_words['text'], $args['site'], $args['hub'] ) ); ?></p>
+	<?php if ( 'click' === $args['state'] ) : ?>
 		<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 			<input type="hidden" name="action" value="diluxone_users_join">
 			<?php wp_nonce_field( 'diluxone_users_join' ); ?>

@@ -2,7 +2,11 @@
 /**
  * The account-area front page: the summary.
  *
- * @var array<int, array<string, string>> $cards
+ * What it is given, in `$args`:
+ *
+ * - `cards`
+ *
+ * @var array{cards: array<int, array<string, string>>} $args
  *
  * @package DiluxOneUsers
  */
@@ -10,11 +14,11 @@
 defined( 'ABSPATH' ) || exit;
 ?>
 
-<?php if ( array() === $cards ) : ?>
+<?php if ( array() === $args['cards'] ) : ?>
 	<p><?php esc_html_e( 'Nothing to show yet. The sections above are all yours.', 'diluxone-users' ); ?></p>
 <?php else : ?>
 	<div class="diluxone-users-cards">
-		<?php foreach ( $cards as $diluxone_users_card ) : ?>
+		<?php foreach ( $args['cards'] as $diluxone_users_card ) : ?>
 			<a class="diluxone-users-card-summary" href="<?php echo esc_url( $diluxone_users_card['link'] ); ?>">
 				<span class="diluxone-users-card-summary__label"><?php echo esc_html( $diluxone_users_card['label'] ); ?></span>
 				<?php

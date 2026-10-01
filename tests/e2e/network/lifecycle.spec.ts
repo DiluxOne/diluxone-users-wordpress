@@ -110,6 +110,10 @@ test.describe('Switching the plugin off and on', () => {
 			await expect(notice).toHaveCount(1);
 			await expect(notice.locator('a')).toHaveAttribute('href', `${NETWORK_URL}/wp-admin/network/plugins.php`);
 
+			// On the dashboard and the plugins list, not on every screen.
+			await page.goto(alpha.admin('users.php'));
+			await expect(page.locator('[data-diluxone-users-asleep]'), 'not on a screen that is not about the plugin').toHaveCount(0);
+
 			await page.goto(beta.admin('index.php'));
 			await expect(page.locator('[data-diluxone-users-asleep]'), 'not on a site it is not on for').toHaveCount(0);
 

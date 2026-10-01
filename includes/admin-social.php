@@ -27,7 +27,7 @@ defined( 'ABSPATH' ) || exit;
 
 /** Screen social. */
 function diluxone_users_screen_social(): void {
-	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- which provider the screen shows, nothing is changed.
 	$id        = isset( $_GET['provider'] ) ? sanitize_key( wp_unslash( $_GET['provider'] ) ) : '';
 	$providers = diluxone_users_sso_providers();
 
@@ -502,7 +502,7 @@ function diluxone_users_screen_social_general(): void {
 
 	diluxone_users_scope_control(
 		'diluxone_users_sso',
-		__( 'The roles ticked can use the buttons. Everybody else signs in with the email link.', 'diluxone-users' )
+		__( 'The roles ticked can use the buttons. Everybody else uses the site’s other ways in.', 'diluxone-users' )
 	);
 
 	diluxone_users_ui_field_close();

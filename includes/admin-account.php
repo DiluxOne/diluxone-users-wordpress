@@ -152,7 +152,7 @@ function diluxone_users_section_save( array $input ): string {
  * notice in the log.
  */
 function diluxone_users_account_actions(): void {
-	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- which screen this is; the action below checks its nonce before doing anything.
 	if ( 'diluxone-users-account' !== sanitize_key( wp_unslash( $_GET['page'] ?? '' ) ) || ! isset( $_GET['diluxone_users_action'], $_GET['section'] ) ) {
 		return;
 	}

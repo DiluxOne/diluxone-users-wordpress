@@ -113,7 +113,7 @@ function diluxone_users_menu_items( $items, $args ) {
 	// picture the rest of the site shows, and it always has one to give.
 	$photo = sprintf(
 		'<img class="diluxone-users-menu__avatar" src="%s" alt="" width="32" height="32" loading="lazy" decoding="async">',
-		esc_url( (string) get_avatar_url( (int) $user->ID, array( 'size' => 64 ) ) )
+		diluxone_users_avatar_src( (string) get_avatar_url( (int) $user->ID, array( 'size' => 64 ) ) )
 	);
 	$title = match ( $style ) {
 		'avatar' => $photo . '<span class="screen-reader-text">' . esc_html( $name ) . '</span>',

@@ -92,7 +92,7 @@ function diluxone_users_home_numbers(): array {
 	// everybody and on a network is not.
 	$members = $wpdb->get_blog_prefix() . 'capabilities';
 
-	// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+	// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- counts for the overview that WordPress has no API for, read as they are now.
 	$numbers = array(
 		'users'    => (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$wpdb->usermeta} WHERE meta_key = %s", $members ) ),
 		'sessions' => (int) $wpdb->get_var(

@@ -308,4 +308,22 @@ class SafeModeTest extends IntegrationTestCase {
 		$this->assertFalse( diluxone_users_sends_to_hub() );
 		$this->assertSame( site_url( 'wp-login.php', 'login' ), wp_login_url() );
 	}
+
+	/** The hub keeps no address to send people back to: in safe mode nothing redirects. */
+	public function test_the_hub_holds_no_way_back_in_safe_mode(): void {
+		$_GET = array( 'redirect_to' => home_url( '/somewhere/' ) );
+		unset( $_COOKIE[ DILUXONE_USERS_RETURN_COOKIE ] );
+
+		if ( is_multisite() ) {
+			diluxone_users_return_capture();
+			$this->assertNotEmpty( $_COOKIE[ DILUXONE_USERS_RETURN_COOKIE ] ?? '', 'the control: the hub keeps the way back' );
+			unset( $_COOKIE[ DILUXONE_USERS_RETURN_COOKIE ] );
+		}
+
+		$this->safe_mode();
+		diluxone_users_return_capture();
+		$_GET = array();
+
+		$this->assertArrayNotHasKey( DILUXONE_USERS_RETURN_COOKIE, $_COOKIE );
+	}
 }

@@ -59,7 +59,7 @@ When `make env` finishes, open <http://localhost:8892> and log in with `admin` /
 | `make i18n-mo` | Compile every `languages/*.po` into its `.mo`. |
 | `make i18n-check` | Fail if any `.po` is malformed, has untranslated strings or fuzzy ones. |
 | `make dist` | Build `build/diluxone-users/`: the tree wordpress.org receives, under the slug, with `.distignore` applied. |
-| `make zip` | Package `build/diluxone-users.zip`, the file uploaded to wordpress.org for the first review. |
+| `make zip` | Package `build/diluxone-users.zip`, the file uploaded to wordpress.org for the first review. It refuses a dist with a file git does not track. |
 | `make plugin-check` / `make plugin-check-all` | wordpress.org's Plugin Check on the built dist, in a throwaway `wp-env` on ports 8894/8895 (errors only / with warnings). `make plugin-check-down` stops it. |
 | `make deploy-test` | Copy what ships (`.distignore` decides) into a real site's `wp-content/plugins/diluxone-users/`, plus the `.mo` files into `wp-content/languages/plugins/`. The site defaults to `~/repos/cst-website`; override with `SITE=/path/to/wordpress`. |
 | `make release` | `make check` plus the version-alignment dry-run. |

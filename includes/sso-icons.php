@@ -11,7 +11,8 @@
  * in to that service with. That is why the ones with a brand colour keep it —
  * the Google logo is not painted another colour — and the ones that are a
  * silhouette use `currentColor`, which is how those same guidelines admit
- * them over coloured backgrounds.
+ * them over coloured backgrounds. The GitLab drawing is Simple Icons' path
+ * (https://simpleicons.org/, CC0 1.0).
  *
  * WordPress.com is the one that has no mark here, and on purpose. The "W" is
  * a WordPress Foundation trademark, its policy does not read as an invitation
