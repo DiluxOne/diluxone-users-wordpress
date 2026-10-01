@@ -309,6 +309,8 @@ class MembershipTest extends IntegrationTestCase {
 		// screen that asks the question.
 		wp_set_current_user( $this->super_admin() );
 
+		$pagenow            = $GLOBALS['pagenow'] ?? null;
+		$GLOBALS['pagenow'] = 'index.php';
 		ob_start();
 		diluxone_users_membership_unconfirmed_notice();
 		$this->assertStringContainsString( 'data-diluxone-users-membership-unconfirmed', (string) ob_get_clean() );
@@ -318,11 +320,27 @@ class MembershipTest extends IntegrationTestCase {
 		diluxone_users_membership_unconfirmed_notice();
 		$this->assertSame( '', (string) ob_get_clean(), 'quiet on the Membership screen' );
 
+		// Where the plugin is looked at, and not on every screen of Network Admin.
+		$GLOBALS['pagenow'] = 'users.php';
+		$_GET               = array();
+		ob_start();
+		diluxone_users_membership_unconfirmed_notice();
+		$quiet = (string) ob_get_clean();
+		$GLOBALS['pagenow'] = 'admin.php';
+		$_GET               = array( 'page' => 'diluxone-users' );
+		ob_start();
+		diluxone_users_membership_unconfirmed_notice();
+		$spoken             = (string) ob_get_clean();
+		$GLOBALS['pagenow'] = 'index.php';
+		$this->assertSame( '', $quiet, 'quiet on a screen that is not about the plugin' );
+		$this->assertStringContainsString( 'data-diluxone-users-membership-unconfirmed', $spoken, 'said on the plugin’s own screens' );
+
 		wp_set_current_user( $this->make_user( 'administrator' ) );
 		$_GET = array();
 		ob_start();
 		diluxone_users_membership_unconfirmed_notice();
 		$this->assertSame( '', (string) ob_get_clean(), 'and to a site administrator' );
+		$GLOBALS['pagenow'] = $pagenow;
 	}
 
 	/**

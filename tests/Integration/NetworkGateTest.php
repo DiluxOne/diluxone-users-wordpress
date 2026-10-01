@@ -42,8 +42,12 @@ class NetworkGateTest extends IntegrationTestCase {
 
 	/** What the notice prints for the user signed in now. */
 	private function notice(): string {
+		// On the dashboard, one of the screens it speaks on.
+		$pagenow            = $GLOBALS['pagenow'] ?? null;
+		$GLOBALS['pagenow'] = 'index.php';
 		ob_start();
 		diluxone_users_asleep_notice();
+		$GLOBALS['pagenow'] = $pagenow;
 
 		return (string) ob_get_clean();
 	}

@@ -84,13 +84,15 @@ function diluxone_users_membership_save() {
 }
 
 /**
- * Says, everywhere in Network Admin, that the policy is waiting to be confirmed.
+ * Says, in Network Admin, that the policy is waiting to be confirmed.
  *
- * Not on the Membership screen itself, which asks the question where it can
- * be answered; and only to whoever can answer it.
+ * On the network's dashboard, its plugins list and the plugin's own screens
+ * (see diluxone_users_notice_here()); not on the Membership screen itself,
+ * which asks the question where it can be answered; and only to whoever can
+ * answer it.
  */
 function diluxone_users_membership_unconfirmed_notice(): void {
-	if ( diluxone_users_membership_confirmed() || ! current_user_can( DILUXONE_USERS_NETWORK_CAP ) ) {
+	if ( diluxone_users_membership_confirmed() || ! current_user_can( DILUXONE_USERS_NETWORK_CAP ) || ! diluxone_users_notice_here() ) {
 		return;
 	}
 

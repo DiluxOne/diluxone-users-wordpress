@@ -81,9 +81,18 @@ class NetworkGateTest extends TestCase {
 		$this->assertSame( '', (string) ob_get_clean(), 'A site administrator cannot do what it asks' );
 
 		Monkey\Functions\when( 'current_user_can' )->alias( static fn( string $cap ): bool => 'manage_network_plugins' === $cap );
+
+		// Not on a screen that has nothing to do with the plugin.
+		$GLOBALS['pagenow'] = 'users.php';
+		ob_start();
+		diluxone_users_asleep_notice();
+		$this->assertSame( '', (string) ob_get_clean(), 'quiet on the Users screen' );
+
+		$GLOBALS['pagenow'] = 'plugins.php';
 		ob_start();
 		diluxone_users_asleep_notice();
 		$html = (string) ob_get_clean();
+		unset( $GLOBALS['pagenow'] );
 
 		$this->assertStringContainsString( 'href="https://example.test/wp-admin/network/plugins.php"', $html );
 		$this->assertStringContainsString( 'Activate DiluxOne Users+ for the whole network', $html );
