@@ -5,11 +5,15 @@
  * Overridable from the theme at:
  *   wp-content/themes/<your-theme>/diluxone-users/register.php
  *
- * @var string                              $state     What happened.
- * @var array<int, array<string, mixed>>    $fields    What is asked for, besides the address.
- * @var bool                                $open      Whether the form takes accounts.
- * @var bool                                $by_link   Whether accounts are created by signing in with an e-mail link instead.
- * @var array<string, array<string, mixed>> $providers Networks, when they can create accounts.
+ * What it is given, in `$args`:
+ *
+ * - `state`     What happened.
+ * - `fields`    What is asked for, besides the address.
+ * - `open`      Whether the form takes accounts.
+ * - `by_link`   Whether accounts are created by signing in with an e-mail link instead.
+ * - `providers` Networks, when they can create accounts.
+ *
+ * @var array{state: string, fields: array<int, array<string, mixed>>, open: bool, by_link: bool, providers: array<string, array<string, mixed>>} $args
  *
  * @package DiluxOneUsers
  */
@@ -20,7 +24,7 @@ defined( 'ABSPATH' ) || exit;
 
 	<?php diluxone_users_login_logo(); ?>
 
-	<?php if ( 'registered' === $state ) : ?>
+	<?php if ( 'registered' === $args['state'] ) : ?>
 
 		<p class="diluxone-users-login__icon"><?php echo diluxone_users_icon( 'mail' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- our own markup. ?></p>
 		<h2 class="diluxone-users-login__title">
@@ -32,7 +36,7 @@ defined( 'ABSPATH' ) || exit;
 			<span><?php echo esc_html( diluxone_users_text( 'diluxone_users_sent_note', __( 'Did not arrive? Check your spam or promotions folder.', 'diluxone-users' ) ) ); ?></span>
 		</p>
 
-	<?php elseif ( ! $open && ! empty( $by_link ) ) : ?>
+	<?php elseif ( ! $args['open'] && ! empty( $args['by_link'] ) ) : ?>
 
 		<h2 class="diluxone-users-login__title"><?php esc_html_e( 'Sign in to create your account', 'diluxone-users' ); ?></h2>
 		<p><?php esc_html_e( 'There is no form to fill in: sign in with your e-mail and the account is created the first time.', 'diluxone-users' ); ?></p>
@@ -42,10 +46,10 @@ defined( 'ABSPATH' ) || exit;
 			</a>
 		</p>
 
-	<?php elseif ( ! $open ) : ?>
+	<?php elseif ( ! $args['open'] ) : ?>
 
 		<h2 class="diluxone-users-login__title"><?php esc_html_e( 'Registration is closed', 'diluxone-users' ); ?></h2>
-		<?php if ( 'closed' === $state ) : ?>
+		<?php if ( 'closed' === $args['state'] ) : ?>
 			<?php
 			// A form was sent to a site that has stopped taking accounts since
 			// it was drawn: that is the message the site wrote for it.
@@ -88,11 +92,11 @@ defined( 'ABSPATH' ) || exit;
 		);
 		?>
 
-		<?php if ( isset( $diluxone_users_says[ $state ] ) ) : ?>
+		<?php if ( isset( $diluxone_users_says[ $args['state'] ] ) ) : ?>
 			<?php
 			diluxone_users_login_notice(
-				$diluxone_users_says[ $state ],
-				'taken' === $state
+				$diluxone_users_says[ $args['state'] ],
+				'taken' === $args['state']
 					? sprintf(
 						'<a href="%1$s">%2$s</a>',
 						esc_url( diluxone_users_login_url() ),
@@ -103,8 +107,8 @@ defined( 'ABSPATH' ) || exit;
 			?>
 		<?php endif; ?>
 
-		<?php if ( array() !== $providers ) : ?>
-			<?php echo diluxone_users_sso_buttons( $providers ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- our own markup, already escaped. ?>
+		<?php if ( array() !== $args['providers'] ) : ?>
+			<?php echo diluxone_users_sso_buttons( $args['providers'] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- our own markup, already escaped. ?>
 
 			<p class="diluxone-users-divider"><span><?php esc_html_e( 'or with your email', 'diluxone-users' ); ?></span></p>
 		<?php endif; ?>
@@ -130,7 +134,7 @@ defined( 'ABSPATH' ) || exit;
 			// Only what the fields screen marks as required. Everything else is
 			// waiting in their account: a registration form that asks for
 			// everything is a registration form nobody finishes.
-			foreach ( $fields as $diluxone_users_field ) :
+			foreach ( $args['fields'] as $diluxone_users_field ) :
 				?>
 				<div class="diluxone-users-field diluxone-users-field--<?php echo esc_attr( $diluxone_users_field['type'] ); ?>">
 					<?php if ( 'checkbox' !== $diluxone_users_field['type'] ) : ?>

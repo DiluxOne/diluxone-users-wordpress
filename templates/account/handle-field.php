@@ -2,16 +2,20 @@
 /**
  * The public-name field, for dropping inside another form.
  *
- * @var bool   $can
- * @var string $handle
- * @var int    $next
+ * What it is given, in `$args`:
+ *
+ * - `can`
+ * - `handle`
+ * - `next`
+ *
+ * @var array{can: bool, handle: string, next: int} $args
  *
  * @package DiluxOneUsers
  */
 
 defined( 'ABSPATH' ) || exit;
 
-$diluxone_users_url_actual = diluxone_users_handle_base_url() . $handle . '/';
+$diluxone_users_url_actual = diluxone_users_handle_base_url() . $args['handle'] . '/';
 ?>
 <div class="diluxone-users-handle-field">
 	<label for="diluxone-users-handle"><?php esc_html_e( 'Public name', 'diluxone-users' ); ?></label>
@@ -20,18 +24,18 @@ $diluxone_users_url_actual = diluxone_users_handle_base_url() . $handle . '/';
 		<?php esc_html_e( 'It is your short name on the site: the one that goes in the address of your profile and the one other people use to find you. It is not how you sign in: that is always your email.', 'diluxone-users' ); ?>
 	</p>
 
-	<input type="text" id="diluxone-users-handle" name="diluxone_users_handle" value="<?php echo esc_attr( $handle ); ?>"
+	<input type="text" id="diluxone-users-handle" name="diluxone_users_handle" value="<?php echo esc_attr( $args['handle'] ); ?>"
 		minlength="<?php echo esc_attr( (string) diluxone_users_option( 'diluxone_users_handle_min' ) ); ?>"
 		maxlength="<?php echo esc_attr( (string) diluxone_users_option( 'diluxone_users_handle_max' ) ); ?>"
 		autocomplete="off" spellcheck="false"
-		<?php disabled( ! $can ); ?>>
+		<?php disabled( ! $args['can'] ); ?>>
 
-	<p class="diluxone-users-handle__preview" data-diluxone-users-handle-preview<?php echo '' === $handle ? ' hidden' : ''; ?>>
+	<p class="diluxone-users-handle__preview" data-diluxone-users-handle-preview<?php echo '' === $args['handle'] ? ' hidden' : ''; ?>>
 		<?php esc_html_e( 'Your profile:', 'diluxone-users' ); ?>
 		<a href="<?php echo esc_url( $diluxone_users_url_actual ); ?>" target="_blank" rel="noopener" data-diluxone-users-handle-url><?php echo esc_html( $diluxone_users_url_actual ); ?></a>
 	</p>
 
-	<?php if ( $can ) : ?>
+	<?php if ( $args['can'] ) : ?>
 		<p class="diluxone-users-handle__state">
 			<a href="<?php echo esc_url( $diluxone_users_url_actual ); ?>" target="_blank" rel="noopener" data-diluxone-users-handle-check><?php esc_html_e( 'Check if it is available', 'diluxone-users' ); ?></a>
 			<span data-diluxone-users-handle-notice></span>
@@ -39,13 +43,13 @@ $diluxone_users_url_actual = diluxone_users_handle_base_url() . $handle . '/';
 	<?php endif; ?>
 
 	<p class="diluxone-users-note">
-		<?php if ( ! $can ) : ?>
+		<?php if ( ! $args['can'] ) : ?>
 			<?php
 			echo esc_html(
 				sprintf(
 				/* translators: %s: date from which it can be changed */
 					__( 'You changed it recently. You can change it again on %s.', 'diluxone-users' ),
-					wp_date( 'j M Y', $next )
+					wp_date( 'j M Y', $args['next'] )
 				)
 			);
 			?>

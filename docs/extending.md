@@ -132,9 +132,9 @@ to the site they started from. What an add-on or a theme builds on:
   hub, spent the first time it is asked for a user. A filter at the default
   priority sees it as `$redirect` and may send the person elsewhere.
 - On a site that is not the hub the plugin's shortcodes draw
-  `templates/hub-door.php` (`$door` is `login`, `register` or `account`,
-  `$url` the hub's address, `$hub` its name), which a theme can replace like
-  any other template.
+  `templates/hub-door.php` (`$args['door']` is `login`, `register` or
+  `account`, `$args['url']` the hub's address, `$args['hub']` its name),
+  which a theme can replace like any other template.
 - `diluxone_users_off_hub()` says whether the current site is a site of a
   network other than the hub; `diluxone_users_sends_to_hub()` whether it sends
   people there (not a site on a domain of its own, see
@@ -524,6 +524,10 @@ was a row of items *until Tuesday*.
 loaded. A theme does not need it: dropping a file in
 `wp-content/themes/<theme>/diluxone-users/` is enough, and the list of files
 is on the Status screen.
+
+A template receives what it draws in one array, `$args`, the way WordPress's
+own `get_template_part()` passes it: `$args['state']`, `$args['user']`. Each
+template's docblock names its keys and their types.
 
 ## Options
 

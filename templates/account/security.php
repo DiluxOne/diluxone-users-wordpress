@@ -9,14 +9,18 @@
  * it; and last the authenticator app, which is a detail of that second factor
  * and makes no sense before turning it on.
  *
- * @var WP_User $user
+ * What it is given, in `$args`:
+ *
+ * - `user`
+ *
+ * @var array{user: WP_User} $args
  *
  * @package DiluxOneUsers
  */
 
 defined( 'ABSPATH' ) || exit;
 
-$diluxone_users_id      = (int) $user->ID;
+$diluxone_users_id      = (int) $args['user']->ID;
 $diluxone_users_offers  = diluxone_users_2fa_offered( $diluxone_users_id );
 $diluxone_users_on      = diluxone_users_2fa_on( $diluxone_users_id );
 $diluxone_users_ready   = diluxone_users_2fa_available( $diluxone_users_id );
@@ -53,7 +57,7 @@ if ( diluxone_users_has_passkeys() ) {
 <?php diluxone_users_panel_open( __( 'How you get in', 'diluxone-users' ), true ); ?>
 	<dl class="diluxone-users-data">
 		<dt><?php esc_html_e( 'Email', 'diluxone-users' ); ?></dt>
-		<dd><?php echo esc_html( $user->user_email ); ?></dd>
+		<dd><?php echo esc_html( $args['user']->user_email ); ?></dd>
 		<dt><?php esc_html_e( 'Password', 'diluxone-users' ); ?></dt>
 		<dd>
 			<?php

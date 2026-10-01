@@ -12,9 +12,13 @@
  * of what this site e-mails them. They are shown the way any site worth
  * copying shows them — visible, and plainly not up for discussion.
  *
- * @var array<string, array<string, string>> $prefs Notices with a switch.
- * @var array<string, array<string, string>> $musts Notices without one.
- * @var WP_User                              $user
+ * What it is given, in `$args`:
+ *
+ * - `prefs` Notices with a switch.
+ * - `musts` Notices without one.
+ * - `user`
+ *
+ * @var array{prefs: array<string, array<string, string>>, musts: array<string, array<string, string>>, user: WP_User} $args
  *
  * @package DiluxOneUsers
  */
@@ -26,8 +30,8 @@ defined( 'ABSPATH' ) || exit;
 // list — everything this site sends them.
 $diluxone_users_rows = array();
 
-foreach ( $prefs as $diluxone_users_key => $diluxone_users_pref ) {
-	$diluxone_users_saved = get_user_meta( $user->ID, $diluxone_users_key, true );
+foreach ( $args['prefs'] as $diluxone_users_key => $diluxone_users_pref ) {
+	$diluxone_users_saved = get_user_meta( $args['user']->ID, $diluxone_users_key, true );
 
 	$diluxone_users_rows[] = array(
 		'key'    => (string) $diluxone_users_key,
@@ -38,7 +42,7 @@ foreach ( $prefs as $diluxone_users_key => $diluxone_users_pref ) {
 	);
 }
 
-foreach ( $musts as $diluxone_users_key => $diluxone_users_must ) {
+foreach ( $args['musts'] as $diluxone_users_key => $diluxone_users_must ) {
 	$diluxone_users_rows[] = array(
 		'key'    => (string) $diluxone_users_key,
 		'label'  => (string) $diluxone_users_must['label'],
@@ -50,7 +54,7 @@ foreach ( $musts as $diluxone_users_key => $diluxone_users_must ) {
 	);
 }
 
-$diluxone_users_choose = array() !== $prefs;
+$diluxone_users_choose = array() !== $args['prefs'];
 ?>
 
 <?php // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- it only picks which message to show. ?>

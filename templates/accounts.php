@@ -5,9 +5,14 @@
  * Overridable from the theme at:
  *   wp-content/themes/<your-theme>/diluxone-users/accounts.php
  *
- * @var array<string, array<string, mixed>> $providers Available networks.
- * @var array<int, string>                  $linked    IDs already linked.
- * @var string                              $state
+ * What it is given, in `$args`:
+ *
+ * - `providers` Available networks.
+ * - `linked`    IDs already linked.
+ * - `state`
+ * - `only`
+ *
+ * @var array{providers: array<string, array<string, mixed>>, linked: array<int, string>, state: string, only: mixed} $args
  *
  * @package DiluxOneUsers
  */
@@ -16,18 +21,18 @@ defined( 'ABSPATH' ) || exit;
 ?>
 <div class="diluxone-users diluxone-users-accounts">
 
-	<?php if ( 'linked' === $state ) : ?>
+	<?php if ( 'linked' === $args['state'] ) : ?>
 		<p class="diluxone-users-notice diluxone-users-notice--ok"><?php esc_html_e( 'Account linked.', 'diluxone-users' ); ?></p>
-	<?php elseif ( 'taken' === $state ) : ?>
+	<?php elseif ( 'taken' === $args['state'] ) : ?>
 		<p class="diluxone-users-notice diluxone-users-notice--error"><?php esc_html_e( 'That social account already opens another account on this site, so it was not linked to this one.', 'diluxone-users' ); ?></p>
 	<?php endif; ?>
 
-	<?php if ( array() === $providers ) : ?>
+	<?php if ( array() === $args['providers'] ) : ?>
 		<p class="diluxone-users-note">
 			<?php
-			if ( 'linked' === ( $only ?? '' ) ) {
+			if ( 'linked' === ( $args['only'] ?? '' ) ) {
 				esc_html_e( 'None yet. Link one below and it opens this same account.', 'diluxone-users' );
-			} elseif ( 'available' === ( $only ?? '' ) ) {
+			} elseif ( 'available' === ( $args['only'] ?? '' ) ) {
 				esc_html_e( 'You already have them all linked.', 'diluxone-users' );
 			} else {
 				esc_html_e( 'No provider has been set up yet.', 'diluxone-users' );
@@ -38,8 +43,8 @@ defined( 'ABSPATH' ) || exit;
 
 	<ul class="diluxone-users-linked">
 		<?php
-		foreach ( $providers as $diluxone_users_id => $diluxone_users_provider ) :
-			$diluxone_users_is_linked = in_array( $diluxone_users_id, $linked, true );
+		foreach ( $args['providers'] as $diluxone_users_id => $diluxone_users_provider ) :
+			$diluxone_users_is_linked = in_array( $diluxone_users_id, $args['linked'], true );
 			?>
 			<?php
 			/*

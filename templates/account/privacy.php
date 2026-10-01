@@ -2,11 +2,15 @@
 /**
  * Privacy: downloading your data or asking for the account to be deleted.
  *
- * @var bool                $can_erase
- * @var array<int, WP_Post> $erasures
- * @var array<int, WP_Post> $exports
- * @var int                 $closing   The erasure the person came from the e-mail to confirm, or 0.
- * @var string              $key       Its confirmation key.
+ * What it is given, in `$args`:
+ *
+ * - `can_erase`
+ * - `erasures`
+ * - `exports`
+ * - `closing`   The erasure the person came from the e-mail to confirm, or 0.
+ * - `key`       Its confirmation key.
+ *
+ * @var array{can_erase: bool, erasures: array<int, WP_Post>, exports: array<int, WP_Post>, closing: int, key: string} $args
  *
  * @package DiluxOneUsers
  */
@@ -19,8 +23,8 @@ $diluxone_users_estados    = diluxone_users_data_states();
 $diluxone_users_mail_ready = diluxone_users_data_mail_ready();
 
 /** Draws a table of requests. */
-$diluxone_users_table = static function ( array $requests ) use ( $diluxone_users_estados ): void {
-	if ( array() === $requests ) {
+$diluxone_users_table = static function ( array $diluxone_users_list ) use ( $diluxone_users_estados ): void {
+	if ( array() === $diluxone_users_list ) {
 		return;
 	}
 	?>
@@ -34,7 +38,7 @@ $diluxone_users_table = static function ( array $requests ) use ( $diluxone_user
 		</thead>
 		<tbody>
 			<?php
-			foreach ( $requests as $diluxone_users_request ) :
+			foreach ( $diluxone_users_list as $diluxone_users_request ) :
 				[ $diluxone_users_tono, $diluxone_users_text ] = $diluxone_users_estados[ $diluxone_users_request->post_status ] ?? array( 'off', $diluxone_users_request->post_status );
 				$diluxone_users_file                           = diluxone_users_data_file( $diluxone_users_request );
 				?>
@@ -66,7 +70,7 @@ $diluxone_users_losses = static function (): void {
 	<?php
 };
 ?>
-<?php if ( $closing > 0 ) : ?>
+<?php if ( $args['closing'] > 0 ) : ?>
 	<?php
 	/*
 	 * Arrived from the e-mail's link, signed in as the account that asked:
@@ -82,9 +86,9 @@ $diluxone_users_losses = static function (): void {
 
 		<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="diluxone-users-closing__actions">
 			<input type="hidden" name="action" value="diluxone_users_confirm_close">
-			<input type="hidden" name="diluxone_users_request_id" value="<?php echo esc_attr( (string) $closing ); ?>">
-			<input type="hidden" name="diluxone_users_key" value="<?php echo esc_attr( $key ); ?>">
-			<?php wp_nonce_field( 'diluxone_users_confirm_close_' . $closing ); ?>
+			<input type="hidden" name="diluxone_users_request_id" value="<?php echo esc_attr( (string) $args['closing'] ); ?>">
+			<input type="hidden" name="diluxone_users_key" value="<?php echo esc_attr( $args['key'] ); ?>">
+			<?php wp_nonce_field( 'diluxone_users_confirm_close_' . $args['closing'] ); ?>
 			<button type="submit" class="diluxone-users-button diluxone-users-button--danger"><?php esc_html_e( 'Yes, delete my account', 'diluxone-users' ); ?></button>
 			<a class="diluxone-users-button diluxone-users-button--soft" href="<?php echo esc_url( diluxone_users_account_url( 'privacy' ) ); ?>"><?php esc_html_e( 'No, keep it', 'diluxone-users' ); ?></a>
 		</form>
@@ -121,7 +125,7 @@ $diluxone_users_losses = static function (): void {
 	<?php diluxone_users_panel_open( __( 'Download your data', 'diluxone-users' ), true ); ?>
 	<p><?php esc_html_e( 'A file with everything this site keeps about you: your details, and what the site and its plugins record about you. You get an email to confirm; once you do, we prepare it and it shows up here to download.', 'diluxone-users' ); ?></p>
 
-	<?php $diluxone_users_table( $exports ); ?>
+	<?php $diluxone_users_table( $args['exports'] ); ?>
 
 	<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 		<input type="hidden" name="action" value="diluxone_users_data_request">
@@ -129,7 +133,7 @@ $diluxone_users_losses = static function (): void {
 		<?php wp_nonce_field( 'diluxone_users_data_request' ); ?>
 		<button type="submit" class="diluxone-users-button">
 			<?php
-			echo array() === $exports
+			echo array() === $args['exports']
 				? esc_html__( 'Ask for my data', 'diluxone-users' )
 				: esc_html__( 'Ask for it again, up to date', 'diluxone-users' );
 			?>
@@ -147,7 +151,7 @@ $diluxone_users_losses = static function (): void {
 	?>
 	<?php diluxone_users_panel_open( __( 'Delete your account', 'diluxone-users' ), ! diluxone_users_option( 'diluxone_users_privacy_export' ), 'diluxone-users-panel--danger' ); ?>
 
-	<?php if ( ! $can_erase ) : ?>
+	<?php if ( ! $args['can_erase'] ) : ?>
 		<p class="diluxone-users-notice diluxone-users-notice--info">
 			<?php esc_html_e( 'This account administers the site, so it cannot delete itself: the site would be left with nobody in charge. Another administrator has to lower its role first, and then it can ask.', 'diluxone-users' ); ?>
 		</p>
@@ -157,7 +161,7 @@ $diluxone_users_losses = static function (): void {
 		<p><?php esc_html_e( 'If you want a copy of anything, download your data first.', 'diluxone-users' ); ?></p>
 		<p class="diluxone-users-note"><?php esc_html_e( 'Asking is not deleting: we send you an email and nothing happens until you click the link in it. That is what stops somebody who borrowed your screen for a minute.', 'diluxone-users' ); ?></p>
 
-		<?php $diluxone_users_table( $erasures ); ?>
+		<?php $diluxone_users_table( $args['erasures'] ); ?>
 
 		<?php
 		/*

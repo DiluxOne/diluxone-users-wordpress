@@ -2,18 +2,22 @@
 /**
  * The second step of signing in.
  *
- * @var string                              $key
- * @var string                              $method
- * @var array<string, array<string, mixed>> $methods
- * @var string                              $state
- * @var int                                 $user_id
+ * What it is given, in `$args`:
+ *
+ * - `key`
+ * - `method`
+ * - `methods`
+ * - `state`
+ * - `user_id`
+ *
+ * @var array{key: string, method: string, methods: array<string, array<string, mixed>>, state: string, user_id: int} $args
  *
  * @package DiluxOneUsers
  */
 
 defined( 'ABSPATH' ) || exit;
 
-$diluxone_users_actual = $methods[ $method ] ?? array(
+$diluxone_users_actual = $args['methods'][ $args['method'] ] ?? array(
 	'label' => '',
 	'help'  => '',
 );
@@ -23,18 +27,18 @@ $diluxone_users_actual = $methods[ $method ] ?? array(
 	<h2 class="diluxone-users-login__title"><?php esc_html_e( 'One more step', 'diluxone-users' ); ?></h2>
 	<p><?php echo esc_html( (string) $diluxone_users_actual['help'] ); ?></p>
 
-	<?php if ( 'locked' === $state ) : ?>
+	<?php if ( 'locked' === $args['state'] ) : ?>
 		<?php diluxone_users_login_notice( 'two_step_locked' ); ?>
-	<?php elseif ( 'code' === $state ) : ?>
+	<?php elseif ( 'code' === $args['state'] ) : ?>
 		<?php diluxone_users_login_notice( 'two_step_wrong' ); ?>
-	<?php elseif ( 'sent' === $state ) : ?>
+	<?php elseif ( 'sent' === $args['state'] ) : ?>
 		<?php diluxone_users_login_notice( 'two_step_sent' ); ?>
 	<?php endif; ?>
 
 	<form class="diluxone-users-form" method="post" action="">
-		<input type="hidden" name="diluxone_users_2fa_user" value="<?php echo esc_attr( (string) $user_id ); ?>">
-		<input type="hidden" name="diluxone_users_2fa_key" value="<?php echo esc_attr( $key ); ?>">
-		<input type="hidden" name="diluxone_users_2fa_method" value="<?php echo esc_attr( $method ); ?>">
+		<input type="hidden" name="diluxone_users_2fa_user" value="<?php echo esc_attr( (string) $args['user_id'] ); ?>">
+		<input type="hidden" name="diluxone_users_2fa_key" value="<?php echo esc_attr( $args['key'] ); ?>">
+		<input type="hidden" name="diluxone_users_2fa_method" value="<?php echo esc_attr( $args['method'] ); ?>">
 
 		<label for="diluxone-users-2fa-code"><?php esc_html_e( 'The code', 'diluxone-users' ); ?></label>
 		<input type="text" id="diluxone-users-2fa-code" name="diluxone_users_2fa_code" inputmode="numeric" autocomplete="one-time-code"
@@ -70,17 +74,17 @@ $diluxone_users_actual = $methods[ $method ] ?? array(
 		 * the handler reads `resend` before it looks at the code.
 		 */
 		?>
-		<?php if ( isset( $methods[ $method ]['send'] ) ) : ?>
+		<?php if ( isset( $args['methods'][ $args['method'] ]['send'] ) ) : ?>
 			<button type="submit" name="diluxone_users_2fa_resend" value="1" formnovalidate class="diluxone-users-button diluxone-users-button--soft"><?php esc_html_e( 'Send it again', 'diluxone-users' ); ?></button>
 		<?php endif; ?>
 	</form>
 
-	<?php if ( count( $methods ) > 1 ) : ?>
+	<?php if ( count( $args['methods'] ) > 1 ) : ?>
 		<p class="diluxone-users-note">
 			<?php esc_html_e( 'Or use:', 'diluxone-users' ); ?>
-			<?php foreach ( $methods as $diluxone_users_id => $diluxone_users_m ) : ?>
-				<?php if ( $diluxone_users_id !== $method ) : ?>
-					<a href="<?php echo esc_url( diluxone_users_2fa_url( $user_id, $key, (string) $diluxone_users_id ) ); ?>"><?php echo esc_html( $diluxone_users_m['label'] ); ?></a>
+			<?php foreach ( $args['methods'] as $diluxone_users_id => $diluxone_users_m ) : ?>
+				<?php if ( $diluxone_users_id !== $args['method'] ) : ?>
+					<a href="<?php echo esc_url( diluxone_users_2fa_url( $args['user_id'], $args['key'], (string) $diluxone_users_id ) ); ?>"><?php echo esc_html( $diluxone_users_m['label'] ); ?></a>
 				<?php endif; ?>
 			<?php endforeach; ?>
 		</p>
