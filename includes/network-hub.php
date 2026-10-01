@@ -181,7 +181,8 @@ function diluxone_users_site_mapped( int $site_id = 0 ): bool {
  * where a session opened on the hub would not arrive.
  */
 function diluxone_users_sends_to_hub(): bool {
-	return diluxone_users_off_hub() && ! diluxone_users_site_mapped();
+	// In safe mode every site keeps its own wp-login.php (safe-mode.php).
+	return diluxone_users_off_hub() && ! diluxone_users_site_mapped() && ! diluxone_users_safe_mode();
 }
 
 /* ── The network's addresses ───────────────────────────────────────── */
@@ -859,7 +860,7 @@ function diluxone_users_hub_posts(): array {
 
 /** Sends a form posted to a site that is not the hub to the hub, before its handler runs. */
 function diluxone_users_post_to_hub(): void {
-	if ( ! diluxone_users_off_hub() ) {
+	if ( ! diluxone_users_off_hub() || diluxone_users_safe_mode() ) {
 		return;
 	}
 

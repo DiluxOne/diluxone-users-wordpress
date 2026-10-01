@@ -19,6 +19,7 @@ class PasswordlessTest extends TestCase {
 		// precisely so as not to cover its own.
 		Monkey\setUp();
 		require_once DILUXONE_USERS_DIR . 'includes/options.php';
+		require_once DILUXONE_USERS_DIR . 'includes/safe-mode.php';
 		require_once DILUXONE_USERS_DIR . 'includes/options-scope.php';
 		require_once DILUXONE_USERS_DIR . 'includes/passwordless.php';
 	}

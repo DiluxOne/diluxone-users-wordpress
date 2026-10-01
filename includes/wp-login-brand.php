@@ -129,7 +129,7 @@ function diluxone_users_lost_password_url( string $url ): string {
 	// Only for the answer that says nobody resets anything here: the other two
 	// send people to a form that asks for a reset, which is where the link
 	// already goes.
-	if ( 'link' !== (string) diluxone_users_option( 'diluxone_users_lost_password' ) ) {
+	if ( 'link' !== (string) diluxone_users_option( 'diluxone_users_lost_password' ) || diluxone_users_safe_mode() ) {
 		return $url;
 	}
 

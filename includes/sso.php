@@ -119,6 +119,11 @@ function diluxone_users_sso_ready( string $id ): bool {
  * @return array<string, mixed>
  */
 function diluxone_users_sso_available(): array {
+	// Shut while the emergency switch is on (safe-mode.php).
+	if ( diluxone_users_safe_mode() ) {
+		return array();
+	}
+
 	return array_filter(
 		diluxone_users_sso_providers(),
 		static fn( array $p, string $id ): bool => diluxone_users_sso_ready( $id ),
@@ -842,7 +847,9 @@ function diluxone_users_sso_handle( $wp = null ): void {
 		? sanitize_key( (string) $wp->query_vars['diluxone_users_sso'] )
 		: sanitize_key( diluxone_users_sso_param( 'diluxone_users_sso' ) );
 
-	if ( '' === $id ) {
+	// The emergency switch shuts the door: the route is nothing, as if the
+	// plugin were not there (safe-mode.php).
+	if ( '' === $id || diluxone_users_safe_mode() ) {
 		return;
 	}
 

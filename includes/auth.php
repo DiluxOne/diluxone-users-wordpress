@@ -277,7 +277,8 @@ function diluxone_users_2fa_restart_url(): string {
 function diluxone_users_2fa_required( int $user_id, string $via ): bool {
 	$mode = (string) diluxone_users_option( 'diluxone_users_2fa_mode' );
 
-	if ( 'off' === $mode ) {
+	// The emergency switch: WordPress's own sign-in, and nothing after it.
+	if ( 'off' === $mode || diluxone_users_safe_mode() ) {
 		return false;
 	}
 

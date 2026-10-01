@@ -21,6 +21,7 @@ class NetworkHubTest extends TestCase {
 		parent::setUp();
 		Monkey\setUp();
 		require_once DILUXONE_USERS_DIR . 'includes/options.php';
+		require_once DILUXONE_USERS_DIR . 'includes/safe-mode.php';
 		require_once DILUXONE_USERS_DIR . 'includes/options-scope.php';
 		require_once DILUXONE_USERS_DIR . 'includes/network-hub.php';
 	}

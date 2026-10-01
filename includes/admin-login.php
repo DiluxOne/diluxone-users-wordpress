@@ -697,7 +697,7 @@ function diluxone_users_screen_login_ways(): void {
 			'type'    => 'checkbox',
 			'name'    => 'diluxone_users_passkey_enabled',
 			'value'   => '1',
-			'checked' => diluxone_users_passkeys_enabled(),
+			'checked' => (bool) diluxone_users_option( 'diluxone_users_passkey_enabled' ),
 			'title'   => __( 'A passkey', 'diluxone-users' ),
 			'help'    => __( 'A key that stays on the person’s device or keychain: nothing to type, nothing to phish, and it counts as both steps at once.', 'diluxone-users' ),
 			'state'   => $diluxone_users_insecure ? 'pending' : '',

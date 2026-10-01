@@ -347,7 +347,9 @@ function diluxone_users_passkey_signature_ok( string $der, int $alg, string $aut
 
 /** Does the site offer passkeys? */
 function diluxone_users_passkeys_enabled(): bool {
-	return (bool) diluxone_users_option( 'diluxone_users_passkey_enabled' );
+	// Shut while the emergency switch is on (safe-mode.php); the setting is
+	// kept, and read as it is on Access, so a save there does not lose it.
+	return (bool) diluxone_users_option( 'diluxone_users_passkey_enabled' ) && ! diluxone_users_safe_mode();
 }
 
 /**
