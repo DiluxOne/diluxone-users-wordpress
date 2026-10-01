@@ -140,7 +140,7 @@ function diluxone_users_lost_password_url( string $url ): string {
 	// The page itself, and not diluxone_users_login_url(), which falls back to
 	// wp-login.php when none is chosen — sending "I forgot my password" to
 	// wp-login.php without its action is sending it nowhere.
-	$page = diluxone_users_page_url( 'diluxone_users_login_page' );
+	$page = diluxone_users_login_page_live() ? diluxone_users_page_url( 'diluxone_users_login_page' ) : '';
 
 	return '' !== $page ? $page : $url;
 }

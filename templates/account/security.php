@@ -33,6 +33,7 @@ $diluxone_users_notices = array(
 	'backup'      => array( 'ok', __( 'New backup codes. The old ones no longer work.', 'diluxone-users' ) ),
 	'badcode'     => array( 'error', __( 'That code is not right. Check the app and try again — they change every thirty seconds.', 'diluxone-users' ) ),
 	'nomethod'    => array( 'error', __( 'First set up a way to receive the second step.', 'diluxone-users' ) ),
+	'notoffered'  => array( 'error', __( 'Two-step verification is not available on this site right now.', 'diluxone-users' ) ),
 	'required'    => array( 'error', __( 'This site requires two-step verification: it cannot be turned off.', 'diluxone-users' ) ),
 	'reauth'      => array( 'error', __( 'That needs a current code — from your app, one of your backup codes, or one we email you — and it was missing or not right.', 'diluxone-users' ) ),
 	'codesent'    => array( 'ok', __( 'We emailed you a code. Type it in below and try again.', 'diluxone-users' ) ),

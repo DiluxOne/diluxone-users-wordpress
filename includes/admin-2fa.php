@@ -43,6 +43,17 @@ function diluxone_users_2fa_needs_a_method(): string {
 }
 
 /**
+ * What is said while the second step has nowhere to be answered.
+ *
+ * Written once and read twice, like the sentence above: the screen carries
+ * it under the three answers, and the save prints it when "required" arrived
+ * anyway.
+ */
+function diluxone_users_2fa_needs_a_surface(): string {
+	return __( 'There is no sign-in page, and this site says wp-login.php does not draw the second step, so there is nowhere to type the code: it is not asked of anybody and cannot be required. Choose a sign-in page and it can.', 'diluxone-users' );
+}
+
+/**
  * Saves it.
  *
  * @return bool False when the second step is on with no way of sending the
@@ -67,6 +78,15 @@ function diluxone_users_2fa_save(): bool {
 	 * screen showing what was refused as though it had been kept.
 	 */
 	if ( 'off' !== $mode && ! diluxone_users_ui_needs_one( $methods, diluxone_users_2fa_needs_a_method() ) ) {
+		return false;
+	}
+
+	// Required, with nowhere to answer it, is everybody it applies to
+	// locked out at the second screen. The browser never offered it; a form
+	// sent by hand is refused here, before anything is written.
+	if ( 'required' === $mode && '' === diluxone_users_2fa_surface() ) {
+		diluxone_users_notice( diluxone_users_2fa_needs_a_surface(), 'error' );
+
 		return false;
 	}
 
@@ -181,6 +201,7 @@ function diluxone_users_screen_login_2fa(): void {
 	$enabled = (array) diluxone_users_option( 'diluxone_users_2fa_methods' );
 	$mode    = (string) diluxone_users_option( 'diluxone_users_2fa_mode' );
 	$today   = diluxone_users_2fa_link_today();
+	$nowhere = '' === diluxone_users_2fa_surface();
 
 	diluxone_users_ui_section( __( 'When it is asked for', 'diluxone-users' ) );
 
@@ -194,11 +215,14 @@ function diluxone_users_screen_login_2fa(): void {
 				'help'    => __( 'Nobody is made to do anything, and whoever turned it on is asked from then on.', 'diluxone-users' ),
 			),
 			array(
-				'name'    => 'diluxone_users_2fa_mode',
-				'value'   => 'required',
-				'checked' => 'required' === $mode,
-				'title'   => __( 'Required: everybody it applies to has to set it up', 'diluxone-users' ),
-				'help'    => __( 'They are walked through it the next time they sign in, and there is no way past.', 'diluxone-users' ),
+				'name'     => 'diluxone_users_2fa_mode',
+				'value'    => 'required',
+				'checked'  => 'required' === $mode,
+				'disabled' => $nowhere && 'required' !== $mode,
+				'state'    => $nowhere ? 'pending' : '',
+				'note'     => $nowhere ? __( 'needs a sign-in page', 'diluxone-users' ) : '',
+				'title'    => __( 'Required: everybody it applies to has to set it up', 'diluxone-users' ),
+				'help'     => __( 'They are walked through it the next time they sign in, and there is no way past.', 'diluxone-users' ),
 			),
 			array(
 				'name'    => 'diluxone_users_2fa_mode',
@@ -218,6 +242,12 @@ function diluxone_users_screen_login_2fa(): void {
 	 */
 	if ( 'off' === $mode ) {
 		diluxone_users_not_now( __( 'The second step is off, so nothing below is asked of anybody. What is chosen applies the day it is turned on.', 'diluxone-users' ) );
+	} elseif ( $nowhere ) {
+		diluxone_users_not_now(
+			diluxone_users_2fa_needs_a_surface(),
+			diluxone_users_admin_url( 'diluxone-users-login', array( 'tab' => 'page' ) ),
+			__( 'The sign-in page →', 'diluxone-users' )
+		);
 	}
 
 	diluxone_users_ui_field_open( __( 'To whom', 'diluxone-users' ) );
@@ -385,12 +415,13 @@ function diluxone_users_2fa_who(): string {
  * @return array<int, array<string, string>>
  */
 function diluxone_users_2fa_summary_rows( array $rows ): array {
-	$mode  = (string) diluxone_users_option( 'diluxone_users_2fa_mode' );
-	$on    = 'off' !== $mode;
-	$who   = diluxone_users_2fa_who();
-	$none  = 'some' === diluxone_users_scope( 'diluxone_users_2fa' ) && array() === (array) diluxone_users_option( 'diluxone_users_2fa_roles' );
-	$today = diluxone_users_2fa_link_today();
-	$tab   = diluxone_users_admin_url( DILUXONE_USERS_SECURITY, array( 'tab' => '2fa' ) );
+	$mode    = (string) diluxone_users_option( 'diluxone_users_2fa_mode' );
+	$on      = 'off' !== $mode;
+	$who     = diluxone_users_2fa_who();
+	$none    = 'some' === diluxone_users_scope( 'diluxone_users_2fa' ) && array() === (array) diluxone_users_option( 'diluxone_users_2fa_roles' );
+	$nowhere = '' === diluxone_users_2fa_surface();
+	$today   = diluxone_users_2fa_link_today();
+	$tab     = diluxone_users_admin_url( DILUXONE_USERS_SECURITY, array( 'tab' => '2fa' ) );
 
 	if ( 'required' === $mode ) {
 		/* translators: %s: who it applies to — a list of roles, or "everybody with an account" */
@@ -406,9 +437,9 @@ function diluxone_users_2fa_summary_rows( array $rows ): array {
 		'label'  => __( 'Two-step verification', 'diluxone-users' ),
 		// On, and reaching nobody, is the one answer that is neither: the
 		// site is asking for a code from a list of roles it never filled in.
-		'state'  => $on ? ( $none ? 'pending' : 'active' ) : 'off',
-		'why'    => $on && $none ? __( 'it reaches nobody as it stands', 'diluxone-users' ) : '',
-		'detail' => $detail,
+		'state'  => $on ? ( $none || $nowhere ? 'pending' : 'active' ) : 'off',
+		'why'    => $on && $nowhere ? __( 'there is nowhere to type the code', 'diluxone-users' ) : ( $on && $none ? __( 'it reaches nobody as it stands', 'diluxone-users' ) : '' ),
+		'detail' => $on && $nowhere ? esc_html( diluxone_users_2fa_needs_a_surface() ) : $detail,
 		'url'    => $tab,
 	);
 

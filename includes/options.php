@@ -611,15 +611,42 @@ function diluxone_users_login_expiry(): int {
 }
 
 /**
+ * Is the sign-in page chosen in the admin one a stranger can actually open?
+ *
+ * A page that was chosen and then sent to the bin, left as a draft, made
+ * private or given a password is still a number in the setting, and its
+ * address answers with a 404 or a password box. Sending somebody halfway
+ * through signing in there — the second step, the way back from a link — is
+ * leaving them on a screen with no form on it, so such a page counts as no
+ * page at all, and wp-login.php takes its place.
+ */
+function diluxone_users_login_page_live(): bool {
+	$page = (int) diluxone_users_option( 'diluxone_users_login_page' );
+
+	if ( $page <= 0 ) {
+		return false;
+	}
+
+	return (bool) diluxone_users_on_hub(
+		static function () use ( $page ): bool {
+			$post = get_post( $page );
+
+			return $post instanceof WP_Post && 'publish' === $post->post_status && '' === $post->post_password;
+		}
+	);
+}
+
+/**
  * The URL of the site's sign-in screen.
  *
- * With no page configured it falls back to wp-login.php, which is where
- * WordPress expects to send somebody who is not signed in: a plugin cannot
- * leave a site with no door. On a network it is always the hub's (see
+ * With no page configured — or one nobody can open, see
+ * diluxone_users_login_page_live() — it falls back to wp-login.php, which is
+ * where WordPress expects to send somebody who is not signed in: a plugin
+ * cannot leave a site with no door. On a network it is always the hub's (see
  * network-hub.php).
  */
 function diluxone_users_login_url(): string {
-	$url = diluxone_users_page_url( 'diluxone_users_login_page' );
+	$url = diluxone_users_login_page_live() ? diluxone_users_page_url( 'diluxone_users_login_page' ) : '';
 
 	if ( '' === $url ) {
 		$url = wp_login_url();

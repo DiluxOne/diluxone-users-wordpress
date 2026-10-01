@@ -57,7 +57,7 @@ function diluxone_users_reset_to_site(): void {
 		return;
 	}
 
-	$page = diluxone_users_page_url( 'diluxone_users_login_page' );
+	$page = diluxone_users_login_page_live() ? diluxone_users_page_url( 'diluxone_users_login_page' ) : '';
 
 	if ( '' === $page || ! isset( $_GET['key'], $_GET['login'] ) ) {
 		return;

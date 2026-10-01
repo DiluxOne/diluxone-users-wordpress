@@ -21,6 +21,21 @@ class TwoFactorFlowTest extends IntegrationTestCase {
 		diluxone_users_update_option( 'diluxone_users_2fa_methods', array( 'email' ) );
 		diluxone_users_update_option( 'diluxone_users_2fa_remember_days', 0 );
 
+		// The site's own sign-in page, where the challenge is drawn and where
+		// an attempt that ran out says "expired". Without one it is
+		// wp-login.php, which TwoFactorSurfaceTest walks.
+		diluxone_users_update_option(
+			'diluxone_users_login_page',
+			(int) wp_insert_post(
+				array(
+					'post_type'    => 'page',
+					'post_status'  => 'publish',
+					'post_title'   => 'Sign in',
+					'post_content' => '[diluxone_users_login]',
+				)
+			)
+		);
+
 		$this->user = $this->make_user();
 	}
 
