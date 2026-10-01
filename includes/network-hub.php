@@ -559,7 +559,7 @@ add_filter( 'lostpassword_url', 'diluxone_users_core_lostpassword_url', 20, 2 );
  * and goes straight back.
  */
 function diluxone_users_return_capture(): void {
-	if ( ! diluxone_users_scoped_storage_active() || ! diluxone_users_on_the_hub() ) {
+	if ( ! diluxone_users_scoped_storage_active() || ! diluxone_users_on_the_hub() || diluxone_users_safe_mode() ) {
 		return;
 	}
 
