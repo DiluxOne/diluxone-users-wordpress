@@ -63,7 +63,7 @@ function diluxone_users_reset_to_site(): void {
 
 	$page = diluxone_users_login_page_live() ? diluxone_users_page_url( 'diluxone_users_login_page' ) : '';
 
-	if ( '' === $page || ! isset( $_GET['key'], $_GET['login'] ) ) {
+	if ( '' === $page || ! isset( $_GET['key'], $_GET['login'] ) || ! is_string( $_GET['key'] ) || ! is_string( $_GET['login'] ) ) {
 		return;
 	}
 

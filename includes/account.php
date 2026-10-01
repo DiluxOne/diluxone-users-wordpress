@@ -308,7 +308,7 @@ function diluxone_users_current_section(): string {
 
 	if ( '' === $asked ) {
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- it only picks what to draw.
-		$asked = isset( $_GET['section'] ) ? sanitize_title( wp_unslash( $_GET['section'] ) ) : '';
+		$asked = isset( $_GET['section'] ) && is_string( $_GET['section'] ) ? sanitize_title( wp_unslash( $_GET['section'] ) ) : '';
 	}
 
 	if ( '' === $asked ) {
