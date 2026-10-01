@@ -331,10 +331,15 @@ function diluxone_users_privacy_erase( string $email, int $page = 1 ): array {
 	// still says whose passkey a credential is.
 	diluxone_users_passkeys_save( $user_id, array() );
 
+	// The sites an administrator removed them from stay: it is the one thing
+	// that keeps the plugin from adding them back, and the account may outlive
+	// the erasure. The export lists them; the site owner is told why they stay.
+	$kept = array() !== diluxone_users_membership_removed( $user_id );
+
 	return array(
 		'items_removed'  => $removed,
-		'items_retained' => false,
-		'messages'       => array(),
+		'items_retained' => $kept,
+		'messages'       => $kept ? array( __( 'The list of sites an administrator removed this person from was kept: it is what keeps them from being added back to those sites.', 'diluxone-users' ) ) : array(),
 		'done'           => true,
 	);
 }
@@ -369,7 +374,6 @@ function diluxone_users_privacy_keys( int $user_id ): array {
 		'diluxone_users_backup_codes',
 		'_diluxone_users_link_hash',
 		'_diluxone_users_link_expires',
-		DILUXONE_USERS_MEMBERSHIP_REMOVED,
 	);
 
 	foreach ( diluxone_users_fields( '', false ) as $field ) {

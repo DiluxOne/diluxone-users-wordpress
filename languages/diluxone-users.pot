@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-01T03:24:51+00:00\n"
+"POT-Creation-Date: 2026-10-01T03:32:18+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: diluxone-users\n"
@@ -1446,7 +1446,7 @@ msgstr ""
 
 #: includes/admin-appearance.php:262
 #: includes/admin-fields.php:827
-#: includes/privacy.php:414
+#: includes/privacy.php:418
 msgid "Where it goes"
 msgstr ""
 
@@ -7145,43 +7145,47 @@ msgstr ""
 msgid "Devices recognised"
 msgstr ""
 
-#: includes/privacy.php:405
-msgid "This site uses DiluxOne Users+ to hold accounts and sign people in."
-msgstr ""
-
-#: includes/privacy.php:406
-msgid "What is stored in your profile"
-msgstr ""
-
-#: includes/privacy.php:407
-msgid "the answers to the fields this site asks for, your public name, your profile picture, which social accounts you have linked, your passkeys, whether two-step verification is on, and a hash of each browser you have signed in from so that a new one can be announced once."
-msgstr ""
-
-#: includes/privacy.php:408
-msgid "What is stored in the activity log"
+#: includes/privacy.php:342
+msgid "The list of sites an administrator removed this person from was kept: it is what keeps them from being added back to those sites."
 msgstr ""
 
 #: includes/privacy.php:409
-msgid "for each recorded event: the date, the account, your IP address and your browser’s user-agent string. When a sign-in is refused, what was typed in the username box is kept with it, because that is how an attempt to guess an account is recognised. Which events are recorded, and for how many days, are settings of this site."
+msgid "This site uses DiluxOne Users+ to hold accounts and sign people in."
 msgstr ""
 
 #: includes/privacy.php:410
-msgid "Cookies"
+msgid "What is stored in your profile"
 msgstr ""
 
 #: includes/privacy.php:411
-msgid "while you sign in, short-lived cookies hold the progress of the attempt: a social sign-in, a password reset, the address you asked a link for, the request you are signing in to confirm. If you ask not to be asked for the second step again on a browser, a cookie remembers that browser for the number of days this site sets. And a cookie remembers which way of signing in you used last, so the sign-in page opens on it."
+msgid "the answers to the fields this site asks for, your public name, your profile picture, which social accounts you have linked, your passkeys, whether two-step verification is on, and a hash of each browser you have signed in from so that a new one can be announced once."
 msgstr ""
 
 #: includes/privacy.php:412
-msgid "Deleting your account"
+msgid "What is stored in the activity log"
 msgstr ""
 
 #: includes/privacy.php:413
-msgid "you can ask for it from your account; once you confirm it by e-mail and the site carries it out, your data is erased and the account deleted, or, if you published something here or belong to another site of the network, left with no name, e-mail or password so what you wrote stays without your name."
+msgid "for each recorded event: the date, the account, your IP address and your browser’s user-agent string. When a sign-in is refused, what was typed in the username box is kept with it, because that is how an attempt to guess an account is recognised. Which events are recorded, and for how many days, are settings of this site."
+msgstr ""
+
+#: includes/privacy.php:414
+msgid "Cookies"
 msgstr ""
 
 #: includes/privacy.php:415
+msgid "while you sign in, short-lived cookies hold the progress of the attempt: a social sign-in, a password reset, the address you asked a link for, the request you are signing in to confirm. If you ask not to be asked for the second step again on a browser, a cookie remembers that browser for the number of days this site sets. And a cookie remembers which way of signing in you used last, so the sign-in page opens on it."
+msgstr ""
+
+#: includes/privacy.php:416
+msgid "Deleting your account"
+msgstr ""
+
+#: includes/privacy.php:417
+msgid "you can ask for it from your account; once you confirm it by e-mail and the site carries it out, your data is erased and the account deleted, or, if you published something here or belong to another site of the network, left with no name, e-mail or password so what you wrote stays without your name."
+msgstr ""
+
+#: includes/privacy.php:419
 msgid "the plugin sends nothing anywhere on its own. If this site offers social sign-in, the provider you choose receives what it needs to identify you, and only when you use it; the account id it answers with is kept in your profile so it can recognise you next time. If your profile has no picture of its own and this site shows Gravatar pictures, your browser asks Gravatar (gravatar.com) for one using a hash of your e-mail address."
 msgstr ""
 

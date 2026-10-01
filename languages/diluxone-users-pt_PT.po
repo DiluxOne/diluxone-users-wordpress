@@ -529,7 +529,7 @@ msgid "How many times"
 msgstr "Quantas vezes"
 
 #: includes/admin-appearance.php:262 includes/admin-fields.php:827
-#: includes/privacy.php:414
+#: includes/privacy.php:418
 msgid "Where it goes"
 msgstr "Onde vai"
 
@@ -9214,17 +9214,17 @@ msgstr "Configurado"
 msgid "Devices recognised"
 msgstr "Dispositivos reconhecidos"
 
-#: includes/privacy.php:405
+#: includes/privacy.php:409
 msgid "This site uses DiluxOne Users+ to hold accounts and sign people in."
 msgstr ""
 "Este site usa o DiluxOne Users+ para guardar as contas e dar entrada às "
 "pessoas."
 
-#: includes/privacy.php:406
+#: includes/privacy.php:410
 msgid "What is stored in your profile"
 msgstr "O que fica guardado no seu perfil"
 
-#: includes/privacy.php:407
+#: includes/privacy.php:411
 msgid ""
 "the answers to the fields this site asks for, your public name, your profile "
 "picture, which social accounts you have linked, your passkeys, whether two-"
@@ -9236,7 +9236,7 @@ msgstr ""
 "verificação em dois passos está ligada, e um hash de cada navegador a partir "
 "do qual entrou, para que um novo seja anunciado uma só vez."
 
-#: includes/privacy.php:408
+#: includes/privacy.php:412
 msgid "What is stored in the activity log"
 msgstr "O que fica guardado no registo de atividade"
 
@@ -9432,7 +9432,7 @@ msgstr[1] ""
 msgid "Email address or public name"
 msgstr "Endereço de e-mail ou nome público"
 
-#: includes/privacy.php:409
+#: includes/privacy.php:413
 msgid ""
 "for each recorded event: the date, the account, your IP address and your "
 "browser’s user-agent string. When a sign-in is refused, what was typed in "
@@ -9446,11 +9446,11 @@ msgstr ""
 "tentativa de adivinhar uma conta. Que eventos são registados, e durante "
 "quantos dias, são definições deste site."
 
-#: includes/privacy.php:410
+#: includes/privacy.php:414
 msgid "Cookies"
 msgstr "Cookies"
 
-#: includes/privacy.php:415
+#: includes/privacy.php:419
 msgid ""
 "the plugin sends nothing anywhere on its own. If this site offers social "
 "sign-in, the provider you choose receives what it needs to identify you, and "
@@ -9521,7 +9521,7 @@ msgstr "pode pedir a eliminação da própria conta"
 msgid "They can ask for their account to be deleted"
 msgstr "Pode pedir que a sua conta seja eliminada"
 
-#: includes/privacy.php:412
+#: includes/privacy.php:416
 msgid "Deleting your account"
 msgstr "Eliminar a tua conta"
 
@@ -9581,7 +9581,7 @@ msgstr "Assim que confirmarem"
 msgid "When you carry it out"
 msgstr "Quando tu o executares"
 
-#: includes/privacy.php:413
+#: includes/privacy.php:417
 msgid ""
 "you can ask for it from your account; once you confirm it by e-mail and the "
 "site carries it out, your data is erased and the account deleted, or, if you "
@@ -9877,7 +9877,7 @@ msgstr ""
 msgid "Your account was deleted and your data erased."
 msgstr "A tua conta foi eliminada e os teus dados foram apagados."
 
-#: includes/privacy.php:411
+#: includes/privacy.php:415
 msgid ""
 "while you sign in, short-lived cookies hold the progress of the attempt: a "
 "social sign-in, a password reset, the address you asked a link for, the "
@@ -11100,3 +11100,11 @@ msgstr "Todos na rede, eu incluído"
 #: includes/privacy.php:246
 msgid "Sites an administrator removed you from"
 msgstr "Sites dos quais um administrador o removeu"
+
+#: includes/privacy.php:342
+msgid ""
+"The list of sites an administrator removed this person from was kept: it is "
+"what keeps them from being added back to those sites."
+msgstr ""
+"A lista de sites dos quais um administrador removeu esta pessoa foi mantida: "
+"é o que impede que volte a ser adicionada a esses sites."

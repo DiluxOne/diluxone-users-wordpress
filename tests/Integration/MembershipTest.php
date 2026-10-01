@@ -730,8 +730,8 @@ class MembershipTest extends IntegrationTestCase {
 		$this->assertSame( 0, $writes );
 	}
 
-	/** What is written down about a removal is the person's: exported, and erased with the rest. */
-	public function test_a_removal_is_in_the_export_and_goes_with_the_erasure(): void {
+	/** What is written down about a removal is in the export, and outlives an erasure that keeps the account. */
+	public function test_a_removal_is_in_the_export_and_outlives_the_erasure(): void {
 		$this->network_only();
 
 		$user = $this->make_user();
@@ -748,9 +748,11 @@ class MembershipTest extends IntegrationTestCase {
 
 		$this->assertSame( (string) get_site( $this->alpha )->blogname, $names['Sites an administrator removed you from'] ?? null );
 
-		diluxone_users_privacy_erase( get_userdata( $user )->user_email );
+		$erased = diluxone_users_privacy_erase( get_userdata( $user )->user_email );
 
-		$this->assertSame( array(), diluxone_users_membership_removed( $user ), 'erased' );
+		$this->assertSame( array( $this->alpha ), diluxone_users_membership_removed( $user ), 'kept: it is what keeps them off that site' );
+		$this->assertTrue( $erased['items_retained'] );
+		$this->assertCount( 1, $erased['messages'], 'and the site owner is told why' );
 	}
 
 	public function test_on_a_single_site_nothing_is_written_down_about_removals(): void {

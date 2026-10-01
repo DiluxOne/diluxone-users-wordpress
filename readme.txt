@@ -117,6 +117,8 @@ The plugin itself sends nothing anywhere: no telemetry, no licence check.
 export leaves out credentials (authenticator secret, backup-code hashes,
 passkey keys); the erasure removes them. Refused sign-ins that typed a name are
 exported, and kept on erasure as security evidence until the log removes them.
+On a network, the sites an administrator removed somebody from are exported
+and kept on erasure: that list is what keeps them from being added back.
 
 People ask on their account. The e-mail's link has them sign in, deleting asks
 once more, and then it is done (or waits in **Tools**, if the site says so).
