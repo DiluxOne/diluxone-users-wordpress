@@ -19,7 +19,7 @@ Everything about the people who use your site, in one place.
   for WordPress's own first and last name only; a country, a date of birth, a
   gender and a phone are suggested, one tick away.
 * **An account area on the front end**: Home, Your details, Linked accounts,
-  Security, Your data and Notifications, as tabs or a side menu. Sections can
+  Security, Notifications and Your data, as tabs or a side menu. Sections can
   be renamed, reordered, turned off and added.
 * **How people get in**: a link sent to their e-mail with no password, username
   and password, or both, plus control over WordPress's own registration and
@@ -27,7 +27,8 @@ Everything about the people who use your site, in one place.
 * **Social login** with twelve providers, a step-by-step guide for each console
   and a live test before one is turned on.
 * **Two-step verification**: a code by e-mail, an authenticator app with a QR
-  code, and backup codes, with a policy per role and per way in.
+  code, and backup codes, with a policy per role and a rule of its own for
+  sign-ins by e-mail link.
 * **Passkeys** (WebAuthn), each one with a name of its own.
 * **Sessions**: how long they last (WordPress's length until you choose one), where they are open, and how to close them.
 * **An activity log** of its own: who signed in, who was refused and what
@@ -37,17 +38,21 @@ Everything about the people who use your site, in one place.
 
 == External services ==
 
+= Social sign-in providers =
+
 The plugin talks to a third-party service only when an administrator has
 entered that provider's credentials and turned it on, and only when somebody
-clicks its button on the sign-in page (or an administrator runs its live test).
-With no provider on, it makes no outbound request at all.
+uses its button — on the sign-in or registration page, or to link it from
+their account — or an administrator runs its live test. With no provider on,
+it makes no outbound request at all.
 
 What is sent: the client ID and secret you registered with the provider, the
 authorisation code the browser came back with and your site's redirect URL
 (and, for X, a PKCE verifier); then the access token the provider issued, to
 read the person's profile. What comes back: the person's identifier at that
 provider, their name and their e-mail address (X does not provide one).
-Nothing else about your site or its visitors is sent.
+The requests carry WordPress's usual user-agent, which names your site's
+address; nothing else about your site or its visitors is sent.
 
 * **Google** — accounts.google.com, oauth2.googleapis.com, openidconnect.googleapis.com. [Terms](https://policies.google.com/terms), [Privacy](https://policies.google.com/privacy)
 * **Microsoft** — login.microsoftonline.com, graph.microsoft.com. [Terms](https://www.microsoft.com/servicesagreement), [Privacy](https://privacy.microsoft.com/privacystatement)
@@ -64,8 +69,10 @@ Nothing else about your site or its visitors is sent.
 
 The settings screens link to each provider's console and docs (links, not requests).
 
+= Gravatar =
+
 **Gravatar** (Automattic) is WordPress's own avatar service; the plugin's switch
-for it comes on. While on, browsers request avatars from gravatar.com, which
+for it is on by default. While on, browsers request avatars from gravatar.com, which
 receives a hash of the e-mail address and the visitor's IP. Off, the plugin
 draws them. Switch: **DiluxOne Users+ → Design → Profile photo**.
 [Terms](https://automattic.com/terms/), [Privacy](https://automattic.com/privacy/)
@@ -85,13 +92,16 @@ network's setting); change it on **Access → Registration**.
 
 In each person's profile: the answers to your fields, their public name and
 picture, which social accounts are linked, their passkeys, whether two-step
-verification is on, and a hash of each browser they signed in from (so "a new
-device signed in" is said once).
+verification is on, a hash of each browser they signed in from (so "a new
+device signed in" is said once), their notification choices and, on a
+network, the sites an administrator removed them from.
 
-In its own table, `{prefix}diluxone_users_log`: one row per event with the
-date, the account, the **IP address** and the browser's user-agent. When a
-sign-in is refused, the name typed in the username box is kept with it. Out of
-the box it records signing in, signing out and refused sign-ins; other groups
+In its own table, `{prefix}diluxone_users_log` (one for the whole network, on
+a network): one row per event with the date, the account, the **IP address**
+and the browser's user-agent. When a sign-in is refused, the name typed in the
+username box is kept with it; when an account changes, what changed (an old
+and a new e-mail address or public name). Out of the box it records signing
+in, signing out and refused sign-ins and second steps; other groups
 and how long rows are kept (90 days to start) are set on
 **DiluxOne Users+ → Reports → Log settings**.
 
@@ -122,14 +132,17 @@ by accident does not lose anybody's account. To remove it all, tick **Remove
 everything this plugin wrote** on **DiluxOne Users+ → Maintenance → Tools**
 first. On a network where the plugin is on for every site it is one box, in
 **Network Admin → DiluxOne Users+ → Overview → Deleting the plugin**, and
-ticked it takes everything, on every site.
+ticked it takes everything, on every site. The pages it created for you
+(sign-in, registration, account) are your content and stay either way.
 
 == Third-party resources ==
 
 The social buttons show each network's logo as inline SVG
 (`includes/sso-icons.php`). The logos are trademarks of their owners, shown
 only to identify the button that signs in with that service, as their brand
-guidelines allow. Everything else is original work under GPLv2 or later; no
+guidelines allow; the GitLab drawing comes from Simple Icons
+(https://simpleicons.org/, CC0 1.0). Everything else is original work under
+GPLv2 or later; no
 third-party library is bundled (the QR encoder, TOTP and WebAuthn verification
 are written for this plugin).
 
@@ -205,8 +218,8 @@ the whole network.
 = I'm locked out. How do I get back in? =
 
 Add `define( 'DILUXONE_USERS_SAFE_MODE', true );` to `wp-config.php`. While it
-is there the plugin steps aside: nothing redirects, wp-login.php is
-WordPress's own on every site, nobody is asked for the second step, and
+is there the plugin steps aside: nothing redirects, wp-login.php signs people
+in the way WordPress does on every site, nobody is asked for the second step, and
 passkeys and social sign-in are off, so your username and password get you in.
 Every dashboard page says safe mode is on; fix the cause and remove the line.
 With no sign-in page chosen, the second step is asked on wp-login.php itself.
