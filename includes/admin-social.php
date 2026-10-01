@@ -27,7 +27,7 @@ defined( 'ABSPATH' ) || exit;
 
 /** Screen social. */
 function diluxone_users_screen_social(): void {
-	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- which provider the screen shows, nothing is changed.
 	$id        = isset( $_GET['provider'] ) ? sanitize_key( wp_unslash( $_GET['provider'] ) ) : '';
 	$providers = diluxone_users_sso_providers();
 

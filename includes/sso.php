@@ -644,8 +644,8 @@ function diluxone_users_sso_owner( string $id, string $identity ): int {
 
 	$found = get_users(
 		array(
-			'meta_key'   => 'diluxone_users_sso_' . $id, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
-			'meta_value' => $identity, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
+			'meta_key'   => 'diluxone_users_sso_' . $id, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- one lookup, on sign-in, of the account a social identity belongs to.
+			'meta_value' => $identity, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value -- the same lookup.
 			'number'     => 1,
 			'orderby'    => 'ID',
 			'order'      => 'ASC',

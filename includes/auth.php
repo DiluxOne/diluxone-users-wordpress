@@ -1073,7 +1073,7 @@ function diluxone_users_2fa_after_password( string $login, WP_User $user ): void
 	$redirect = isset( $_POST['redirect_to'] ) && is_string( $_POST['redirect_to'] ) ? esc_url_raw( wp_unslash( $_POST['redirect_to'] ) ) : '';
 	$redirect = '' !== $redirect ? diluxone_users_join_mark( $redirect, (int) $user->ID ) : (string) apply_filters( 'diluxone_users_login_redirect', home_url( '/' ), (int) $user->ID );
 
-	// phpcs:ignore WordPress.Security.NonceVerification.Missing
+	// phpcs:ignore WordPress.Security.NonceVerification.Missing -- WordPress verified the sign-in form while authenticating; this reads the box it posted.
 	$remember = ! empty( $_POST['rememberme'] );
 
 	diluxone_users_2fa_challenge( (int) $user->ID, 'password', $remember, $redirect );

@@ -201,7 +201,7 @@ function diluxone_users_passkey_owner( string $id ): int {
 
 	$indexed = get_users(
 		array(
-			'meta_key' => diluxone_users_passkey_index_key( $id ), // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
+			'meta_key' => diluxone_users_passkey_index_key( $id ), // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- one lookup, on sign-in, of the account a passkey belongs to.
 			'fields'   => 'ID',
 			'number'   => 2,
 			// The network's accounts, not only this site's members: a passkey

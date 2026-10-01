@@ -165,7 +165,7 @@ function diluxone_users_admin_url( string $screen, array $args = array() ): stri
  * @param array<string, string> $tabs
  */
 function diluxone_users_tab( array $tabs ): string {
-	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- which tab the screen shows, nothing is changed.
 	$tab = isset( $_GET['tab'] ) ? sanitize_key( wp_unslash( $_GET['tab'] ) ) : '';
 
 	return isset( $tabs[ $tab ] ) ? $tab : (string) array_key_first( $tabs );
