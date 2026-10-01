@@ -10,6 +10,11 @@
 .distignore
 .editorconfig
 
+# Local secrets. The dist is built from the working tree, tracked or not, so a
+# credentials file on disk ships unless it is named here.
+.env
+.env.*
+
 # wp.org listing assets — handled separately by the deploy action (uploaded to
 # SVN /assets/, not /trunk/). Excluding it here prevents duplication in /trunk/.
 .wordpress-org
