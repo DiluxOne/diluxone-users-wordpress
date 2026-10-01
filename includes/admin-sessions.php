@@ -134,8 +134,8 @@ function diluxone_users_sessions_save(): void {
 	// phpcs:disable WordPress.Security.NonceVerification.Missing -- the panel verifies it.
 	diluxone_users_save_options(
 		array(
-			'diluxone_users_session_long_days'  => absint( wp_unslash( $_POST['diluxone_users_session_long_days'] ?? 30 ) ),
-			'diluxone_users_session_short_days' => absint( wp_unslash( $_POST['diluxone_users_session_short_days'] ?? 2 ) ),
+			'diluxone_users_session_long_days'  => absint( wp_unslash( $_POST['diluxone_users_session_long_days'] ?? 0 ) ),
+			'diluxone_users_session_short_days' => absint( wp_unslash( $_POST['diluxone_users_session_short_days'] ?? 0 ) ),
 			'diluxone_users_sessions_show'      => isset( $_POST['diluxone_users_sessions_show'] ) ? 1 : 0,
 		)
 	);
@@ -150,7 +150,7 @@ function diluxone_users_screen_sessions(): void {
 
 	diluxone_users_ui_section(
 		__( 'How long a session lasts', 'diluxone-users' ),
-		__( 'WordPress ends one after 2 days, or 14 with “remember me”. On a site people come into by e-mail link, that is the inbox again every other day.', 'diluxone-users' )
+		__( 'Left at 0, WordPress decides: 2 days, or 14 with “remember me”. On a site people come into by e-mail link that is the inbox again every other day, so a number here sets a length of the site’s own.', 'diluxone-users' )
 	);
 
 	diluxone_users_ui_fields_open();
@@ -161,8 +161,8 @@ function diluxone_users_screen_sessions(): void {
 			'name'   => 'diluxone_users_session_long_days',
 			'value'  => (string) diluxone_users_option( 'diluxone_users_session_long_days' ),
 			'suffix' => __( 'days', 'diluxone-users' ),
-			'min'    => 1,
-			'help'   => __( 'The sign-in link always counts as “remember me”: there is no password to type again.', 'diluxone-users' ),
+			'min'    => 0,
+			'help'   => __( '0 for what WordPress decides, 14 days. The sign-in link always counts as “remember me”: there is no password to type again.', 'diluxone-users' ),
 		)
 	);
 
@@ -172,8 +172,8 @@ function diluxone_users_screen_sessions(): void {
 			'name'   => 'diluxone_users_session_short_days',
 			'value'  => (string) diluxone_users_option( 'diluxone_users_session_short_days' ),
 			'suffix' => __( 'days', 'diluxone-users' ),
-			'min'    => 1,
-			'help'   => __( 'What somebody gets when they leave the box unticked on a form that offers it.', 'diluxone-users' ),
+			'min'    => 0,
+			'help'   => __( '0 for what WordPress decides, 2 days. What somebody gets when they leave the box unticked on a form that offers it.', 'diluxone-users' ),
 		)
 	);
 
@@ -424,6 +424,23 @@ function diluxone_users_screen_sessions_list(): void {
 }
 
 /**
+ * One of the two lengths, in words: a number of days, or WordPress's own.
+ *
+ * @param int $days The setting; 0 or less leaves it to WordPress.
+ */
+function diluxone_users_session_days_words( int $days ): string {
+	if ( $days <= 0 ) {
+		return __( 'what WordPress decides', 'diluxone-users' );
+	}
+
+	return sprintf(
+		/* translators: %s: a number of days */
+		_n( '%s day', '%s days', $days, 'diluxone-users' ),
+		number_format_i18n( $days )
+	);
+}
+
+/**
  * Sessions and the proxy, as four lines of the security summary.
  *
  * They come from one file because one file owns them, and they go in at the
@@ -446,12 +463,14 @@ function diluxone_users_sessions_summary_rows( array $rows ): array {
 	$rows[] = array(
 		'label'  => __( 'How long a session lasts', 'diluxone-users' ),
 		'state'  => 'active',
-		'detail' => sprintf(
-			/* translators: 1: days with "remember me", 2: days without it */
-			esc_html__( '%1$s days with “remember me”, %2$s days without. The e-mail link always counts as “remember me”.', 'diluxone-users' ),
-			esc_html( number_format_i18n( $long ) ),
-			esc_html( number_format_i18n( $short ) )
-		),
+		'detail' => $long <= 0 && $short <= 0
+			? esc_html__( 'What WordPress decides: 14 days with “remember me”, 2 without. The e-mail link always counts as “remember me”.', 'diluxone-users' )
+			: sprintf(
+				/* translators: 1: how long with "remember me" (a number of days, or what WordPress decides), 2: the same without it */
+				esc_html__( '%1$s with “remember me”, %2$s without. The e-mail link always counts as “remember me”.', 'diluxone-users' ),
+				esc_html( diluxone_users_session_days_words( $long ) ),
+				esc_html( diluxone_users_session_days_words( $short ) )
+			),
 		'url'    => $tab,
 	);
 

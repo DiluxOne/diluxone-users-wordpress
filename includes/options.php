@@ -42,8 +42,11 @@ function diluxone_users_option_defaults(): array {
 		'diluxone_users_login_role'            => 'subscriber',
 
 		// ── Session length ────────────────────────────────────────────
-		'diluxone_users_session_long_days'     => 30,  // With "remember me".
-		'diluxone_users_session_short_days'    => 2,   // Without "remember me".
+		// In days. 0 leaves it to WordPress (14 days with "remember me", 2
+		// without, or whatever another plugin on the site decided): a length
+		// is only set here when an administrator chooses one.
+		'diluxone_users_session_long_days'     => 0,   // With "remember me".
+		'diluxone_users_session_short_days'    => 0,   // Without "remember me".
 
 		// ── Social login ──────────────────────────────────────────────
 		// If the e-mail the network returns already exists on the site, that
