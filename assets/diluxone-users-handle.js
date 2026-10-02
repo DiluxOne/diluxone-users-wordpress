@@ -28,14 +28,13 @@
 	function clean( text ) {
 		var t = text.toLowerCase().trim();
 
-		// Accents are stripped unless the site accepts them. `normalize`
-		// separates the letter from its mark and then the mark is thrown away.
-		if ( ! data.unicode ) {
-			t = t.normalize( 'NFD' ).replace( /[̀-ͯ]/g, '' );
-		}
+		// Accents are stripped, as WordPress strips them from every address.
+		// `normalize` separates the letter from its mark and then the mark is
+		// thrown away.
+		t = t.normalize( 'NFD' ).replace( /[̀-ͯ]/g, '' );
 
 		t = t.replace( /\s+/g, '-' );
-		t = data.unicode ? t.replace( /[^\p{L}\p{N}._-]/gu, '' ) : t.replace( /[^a-z0-9._-]/g, '' );
+		t = t.replace( /[^a-z0-9._-]/g, '' );
 
 		return t.replace( /-{2,}/g, '-' ).replace( /^-+|-+$/g, '' );
 	}

@@ -159,7 +159,7 @@ test.describe('Security › Summary', () => {
 		const lasts = row(page, 'sessions', 0);
 
 		await expect(lasts).toContainText('21');
-		await expect(lasts).toContainText('3');
+		await expect(lasts).toContainText(/\b3\b/);
 
 		// And again with different numbers, so this is a reading and not a
 		// coincidence with whatever the site was left on.

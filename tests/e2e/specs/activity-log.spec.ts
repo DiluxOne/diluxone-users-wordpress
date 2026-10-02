@@ -1,7 +1,7 @@
 import type { Page } from '@playwright/test';
-import { test, expect } from '../support/fixtures';
+import { test, expect, expectSignedIn } from '../support/fixtures';
 import { freshEmail } from '../support/api';
-import { adminUrl, savePanel, saveButton, signInWithPassword } from '../support/ui';
+import { adminUrl, answeringDialog, saveButton, savePanel, signInWithPassword } from '../support/ui';
 import { ADMIN_STATE } from '../../../playwright.config';
 
 /**
@@ -65,6 +65,7 @@ async function signIn(guest: Page, loginPage: string, email: string): Promise<vo
 	await guest.context().clearCookies();
 	await guest.goto(loginPage);
 	await signInWithPassword(guest, email, PASSWORD);
+	await expectSignedIn(guest, email);
 }
 
 test.describe('The activity log', () => {
@@ -142,25 +143,35 @@ test.describe('The activity log', () => {
 		await options.set({ diluxone_users_login_method: 'both' });
 		await record(page, ['access']);
 
-		const email = freshEmail('log-empty');
-		await site.makeUser({ email, password: PASSWORD });
-		await signIn(guest, pages.login.url, email);
+		// The log being emptied is the development site's, with whatever its
+		// owner has been looking at: it is kept here and put back at the end,
+		// pass or fail, like a setting.
+		const kept = await site.logRows();
 
-		await page.goto(SETTINGS);
+		try {
+			const email = freshEmail('log-empty');
+			await site.makeUser({ email, password: PASSWORD });
+			await signIn(guest, pages.login.url, email);
 
-		const empty = page.locator('a[href*="action=diluxone_users_log_empty"]');
+			await page.goto(SETTINGS);
 
-		page.once('dialog', (dialog) => dialog.dismiss());
-		await empty.click();
-		await page.goto(activity(email));
-		await expect(rows(page)).not.toHaveCount(0);
+			const empty = page.locator('a[href*="action=diluxone_users_log_empty"]');
 
-		await page.goto(SETTINGS);
-		page.once('dialog', (dialog) => dialog.accept());
-		await Promise.all([page.waitForURL(/diluxone-users-emptied=/), empty.click()]);
+			await answeringDialog(page, 'dismiss', () => empty.click());
+			await page.goto(activity(email));
+			await expect(rows(page)).not.toHaveCount(0);
 
-		await page.goto(activity(''));
-		await expect(rows(page)).toHaveCount(0);
+			await page.goto(SETTINGS);
+			await answeringDialog(page, 'accept', () => Promise.all([page.waitForURL(/diluxone-users-emptied=/), empty.click()]));
+
+			await page.goto(activity(''));
+			await expect(rows(page)).toHaveCount(0);
+			expect(await site.logRows(), 'the table holds nothing of this site').toHaveLength(0);
+		} finally {
+			await site.restoreLog(kept);
+		}
+
+		expect((await site.logRows()).map((row) => row.id), 'what the site had is back').toEqual(kept.map((row) => row.id));
 	});
 
 	test('on a single site every row is the site’s, with no Site column, no site filter and no network report', async ({
@@ -193,7 +204,7 @@ test.describe('The activity log', () => {
 		// button on it.
 		await page.goto(activity(''));
 		await expect(saveButton(page)).toHaveCount(0);
-		await expect(rows(page)).toHaveCount(await rows(page).count());
+		await expect(page.locator('table[data-diluxone-users-log]'), 'the table is there').toHaveCount(1);
 
 		await page.goto(SETTINGS);
 		await expect(saveButton(page)).toHaveCount(1);

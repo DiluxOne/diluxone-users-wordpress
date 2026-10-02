@@ -62,12 +62,11 @@ function diluxone_users_tools_people_allowed(): bool {
  * report asks it: on a network it is where WordPress keeps a site's
  * administrator off a super admin.
  *
+ * @param string $typed The e-mail address typed into the tool, already read and cleaned.
  * @return WP_User|null
  */
-function diluxone_users_tools_person( string $field ): ?WP_User {
-	// phpcs:ignore WordPress.Security.NonceVerification.Missing -- verified in diluxone_users_tools_action().
-	$typed = isset( $_POST[ $field ] ) && is_string( $_POST[ $field ] ) ? sanitize_email( wp_unslash( $_POST[ $field ] ) ) : '';
-	$user  = '' !== $typed ? get_user_by( 'email', $typed ) : false;
+function diluxone_users_tools_person( string $typed ): ?WP_User {
+	$user = '' !== $typed ? get_user_by( 'email', $typed ) : false;
 
 	return $user instanceof WP_User && current_user_can( 'edit_user', $user->ID ) ? $user : null;
 }
@@ -96,35 +95,48 @@ add_action( 'diluxone_users_register_panels', 'diluxone_users_tools_panels' );
  * over five endpoints, sooner or later one of them ends up missing one of the
  * three.
  *
+ * And a single place the form is read: everything any tool needs from it is
+ * read here, after the two checks, and handed to the tool. None of the tools
+ * touches the request itself.
+ *
  * @return void
  */
 function diluxone_users_tools_action(): void {
 	if ( ! current_user_can( 'manage_options' ) ) {
-		wp_die( esc_html__( 'You are not allowed to do this.', 'diluxone-users' ) );
+		wp_die( esc_html__( 'You are not allowed to do this.', 'diluxone-users' ), '', array( 'response' => 403 ) );
 	}
 
 	check_admin_referer( 'diluxone_users_tools' );
 
-	// phpcs:ignore WordPress.Security.NonceVerification.Missing -- verified above.
-	$tool = isset( $_POST['tool'] ) ? sanitize_key( wp_unslash( $_POST['tool'] ) ) : '';
+	$tool        = isset( $_POST['tool'] ) ? sanitize_key( wp_unslash( $_POST['tool'] ) ) : '';
+	$email       = isset( $_POST['email'] ) && is_string( $_POST['email'] ) ? sanitize_email( wp_unslash( $_POST['email'] ) ) : '';
+	$close_email = isset( $_POST['close_email'] ) && is_string( $_POST['close_email'] ) ? sanitize_email( wp_unslash( $_POST['close_email'] ) ) : '';
+	$scope       = isset( $_POST['scope'] ) ? sanitize_key( wp_unslash( $_POST['scope'] ) ) : 'one';
+	$wipe        = isset( $_POST['wipe'] );
+
+	// PHP's own temporary path: never slashed, so not unslashed either — that
+	// would strip the backslashes of a Windows path — and only a string.
+	// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- the import checks the path with is_uploaded_file() and validates the content as JSON.
+	$uploaded = isset( $_FILES['file']['tmp_name'] ) && is_string( $_FILES['file']['tmp_name'] ) ? $_FILES['file']['tmp_name'] : '';
+	$problem  = isset( $_FILES['file']['error'] ) ? (int) $_FILES['file']['error'] : UPLOAD_ERR_NO_FILE;
 
 	// A map and not a switch: every tool ends in a redirect that stops
 	// execution, so a `break` behind each one would be dead code and a
-	// fall-through comment would be a lie.
+	// fall-through comment would be a lie. Each tool, with what it is given.
 	$tools = array(
-		'flush'  => 'diluxone_users_tool_flush',
-		'code'   => 'diluxone_users_tool_send_code',
-		'close'  => 'diluxone_users_tool_close_sessions',
-		'export' => 'diluxone_users_tool_export',
-		'import' => 'diluxone_users_tool_import',
-		'wipe'   => 'diluxone_users_tool_wipe',
+		'flush'  => array( 'diluxone_users_tool_flush', array() ),
+		'code'   => array( 'diluxone_users_tool_send_code', array( $email ) ),
+		'close'  => array( 'diluxone_users_tool_close_sessions', array( $scope, $close_email ) ),
+		'export' => array( 'diluxone_users_tool_export', array() ),
+		'import' => array( 'diluxone_users_tool_import', array( $uploaded, $problem ) ),
+		'wipe'   => array( 'diluxone_users_tool_wipe', array( $wipe ) ),
 	);
 
 	if ( ! isset( $tools[ $tool ] ) ) {
 		diluxone_users_tool_done( __( 'Nothing to do.', 'diluxone-users' ), 'error' );
 	}
 
-	$tools[ $tool ]();
+	call_user_func_array( $tools[ $tool ][0], $tools[ $tool ][1] );
 }
 
 /**
@@ -151,14 +163,15 @@ add_action( 'admin_post_diluxone_users_tools', 'diluxone_users_tools_action' );
  * for the administrator, but the habit of not confirming who is registered is
  * kept all the same.
  *
+ * @param string $email The address typed, as diluxone_users_tools_action() read it.
  * @return never
  */
-function diluxone_users_tool_send_code(): void {
+function diluxone_users_tool_send_code( string $email ): void {
 	if ( ! diluxone_users_tools_people_allowed() ) {
-		wp_die( esc_html__( 'You are not allowed to do this.', 'diluxone-users' ) );
+		wp_die( esc_html__( 'You are not allowed to do this.', 'diluxone-users' ), '', array( 'response' => 403 ) );
 	}
 
-	$user = diluxone_users_tools_person( 'email' );
+	$user = diluxone_users_tools_person( $email );
 
 	if ( null === $user ) {
 		diluxone_users_tool_done( __( 'No account with that e-mail address.', 'diluxone-users' ), 'error' );
@@ -186,15 +199,14 @@ function diluxone_users_tool_send_code(): void {
  * your own alive for convenience would be leaving open precisely the one that
  * matters.
  *
+ * @param string $scope 'all', or anything else for one person.
+ * @param string $email That person's address, as diluxone_users_tools_action() read it.
  * @return never
  */
-function diluxone_users_tool_close_sessions(): void {
+function diluxone_users_tool_close_sessions( string $scope, string $email ): void {
 	if ( ! diluxone_users_tools_people_allowed() ) {
-		wp_die( esc_html__( 'You are not allowed to do this.', 'diluxone-users' ) );
+		wp_die( esc_html__( 'You are not allowed to do this.', 'diluxone-users' ), '', array( 'response' => 403 ) );
 	}
-
-	// phpcs:ignore WordPress.Security.NonceVerification.Missing -- verified in diluxone_users_tools_action().
-	$scope = isset( $_POST['scope'] ) ? sanitize_key( wp_unslash( $_POST['scope'] ) ) : 'one';
 
 	if ( 'all' === $scope ) {
 		WP_Session_Tokens::destroy_all_for_all_users();
@@ -202,7 +214,7 @@ function diluxone_users_tool_close_sessions(): void {
 		diluxone_users_tool_done( __( 'Every session on the site is closed. Everyone signs in again, you included.', 'diluxone-users' ) );
 	}
 
-	$user = diluxone_users_tools_person( 'close_email' );
+	$user = diluxone_users_tools_person( $email );
 
 	if ( null === $user ) {
 		diluxone_users_tool_done( __( 'No account with that e-mail address.', 'diluxone-users' ), 'error' );
@@ -326,18 +338,30 @@ function diluxone_users_tool_sections( $value ): array {
 }
 
 /**
- * Downloads the settings as JSON.
+ * What an export file holds: who made it, when, and the settings.
  *
- * @return never
+ * Apart from the download so what goes into the file can be looked at
+ * without a response that streams and exits.
+ *
+ * @return array{plugin: string, version: string, site: string, exported: string, settings: array<string, mixed>}
  */
-function diluxone_users_tool_export(): void {
-	$payload = array(
+function diluxone_users_tool_export_payload(): array {
+	return array(
 		'plugin'   => 'diluxone-users',
 		'version'  => DILUXONE_USERS_VERSION,
 		'site'     => home_url(),
 		'exported' => gmdate( 'c' ),
 		'settings' => diluxone_users_tool_settings(),
 	);
+}
+
+/**
+ * Downloads the settings as JSON.
+ *
+ * @return never
+ */
+function diluxone_users_tool_export(): void {
+	$payload = diluxone_users_tool_export_payload();
 
 	$name = 'diluxone-users-' . gmdate( 'Y-m-d' ) . '.json';
 
@@ -424,45 +448,56 @@ function diluxone_users_tool_restore( array $settings ): int {
  * or from another plugin, or edited by hand — cannot write options that are
  * not its own.
  *
+ * @param string $uploaded PHP's temporary path for the file, as diluxone_users_tools_action() read it.
+ * @param int    $problem  The upload's error code.
  * @return never
  */
-function diluxone_users_tool_import(): void {
-	// PHP's own temporary path: never slashed, so not unslashed either — that
-	// would strip the backslashes of a Windows path — and only a string.
-	// phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- verified above; the path is checked with is_uploaded_file() below and the content is validated as JSON.
-	$uploaded = isset( $_FILES['file']['tmp_name'] ) && is_string( $_FILES['file']['tmp_name'] ) ? $_FILES['file']['tmp_name'] : '';
-	// phpcs:ignore WordPress.Security.NonceVerification.Missing -- verified above.
-	$problem = isset( $_FILES['file']['error'] ) ? (int) $_FILES['file']['error'] : UPLOAD_ERR_NO_FILE;
-
+function diluxone_users_tool_import( string $uploaded, int $problem ): void {
 	if ( UPLOAD_ERR_OK !== $problem || '' === $uploaded || ! is_uploaded_file( $uploaded ) ) {
 		diluxone_users_tool_done( __( 'No file uploaded.', 'diluxone-users' ), 'error' );
 	}
 
+	[ $text, $type ] = diluxone_users_tool_import_file( $uploaded );
+
+	diluxone_users_tool_done( $text, $type );
+}
+
+/**
+ * Restores the settings in a file, and says how it went.
+ *
+ * Apart from the upload so a file can be restored from a test: the upload
+ * itself is checked by diluxone_users_tool_import(), and a file that is no
+ * upload cannot be made from the command line.
+ *
+ * @return array{0: string, 1: string} What to say, and whether it is a success or an error.
+ */
+function diluxone_users_tool_import_file( string $path ): array {
 	/*
 	 * Measured before it is read. What comes out of the button beside this one
 	 * is a few kilobytes of JSON; anything past a megabyte is not that file,
 	 * and reading it first to find out means holding all of it in memory to
 	 * decide it was too big.
 	 */
-	if ( (int) filesize( $uploaded ) > MB_IN_BYTES ) {
-		diluxone_users_tool_done( __( 'That file is too big to be a settings export.', 'diluxone-users' ), 'error' );
+	if ( (int) filesize( $path ) > MB_IN_BYTES ) {
+		return array( __( 'That file is too big to be a settings export.', 'diluxone-users' ), 'error' );
 	}
 
-	$raw  = (string) file_get_contents( $uploaded ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- a local file that was just uploaded, not a URL, and capped above.
+	$raw  = (string) file_get_contents( $path ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- a local file, the one diluxone_users_tool_import() checked with is_uploaded_file(), never a URL, and its size capped above.
 	$json = json_decode( $raw, true );
 
 	if ( ! is_array( $json ) || ! isset( $json['settings'] ) || ! is_array( $json['settings'] ) ) {
-		diluxone_users_tool_done( __( 'That file is not a DiluxOne Users+ export.', 'diluxone-users' ), 'error' );
+		return array( __( 'That file is not a DiluxOne Users+ export.', 'diluxone-users' ), 'error' );
 	}
 
 	$written = diluxone_users_tool_restore( $json['settings'] );
 
-	diluxone_users_tool_done(
+	return array(
 		sprintf(
 			/* translators: %d: number of settings written */
 			_n( '%d setting restored.', '%d settings restored.', $written, 'diluxone-users' ),
 			$written
-		)
+		),
+		'success',
 	);
 }
 
@@ -478,7 +513,7 @@ function diluxone_users_tool_import(): void {
  */
 function diluxone_users_mail_test(): void {
 	if ( ! current_user_can( 'manage_options' ) ) {
-		wp_die( esc_html__( 'You are not allowed to do this.', 'diluxone-users' ) );
+		wp_die( esc_html__( 'You are not allowed to do this.', 'diluxone-users' ), '', array( 'response' => 403 ) );
 	}
 
 	check_admin_referer( 'diluxone_users_mail_test' );
@@ -685,11 +720,11 @@ function diluxone_users_tools_people_boxes(): void {
 /**
  * Remembers whether deleting the plugin should take the data with it.
  *
+ * @param bool $wipe Whether the box was ticked.
  * @return never
  */
-function diluxone_users_tool_wipe(): void {
-	// phpcs:ignore WordPress.Security.NonceVerification.Missing -- verified in diluxone_users_tools_action().
-	diluxone_users_save_options( array( 'diluxone_users_uninstall_wipe' => isset( $_POST['wipe'] ) ? 1 : 0 ) );
+function diluxone_users_tool_wipe( bool $wipe ): void {
+	diluxone_users_save_options( array( 'diluxone_users_uninstall_wipe' => $wipe ? 1 : 0 ) );
 
 	diluxone_users_tool_done(
 		diluxone_users_option( 'diluxone_users_uninstall_wipe' )

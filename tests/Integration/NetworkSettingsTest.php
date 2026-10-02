@@ -70,9 +70,12 @@ class NetworkSettingsTest extends IntegrationTestCase {
 
 	/** Sends the second-step tab as a form would. */
 	private function save_second_step( string $mode ): void {
-		$_POST = array(
-			'diluxone_users_2fa_mode'    => $mode,
-			'diluxone_users_2fa_methods' => array( 'email' ),
+		$this->postPanel(
+			DILUXONE_USERS_SECURITY,
+			array(
+				'diluxone_users_2fa_mode'    => $mode,
+				'diluxone_users_2fa_methods' => array( 'email' ),
+			)
 		);
 
 		diluxone_users_2fa_save();
@@ -247,15 +250,18 @@ class NetworkSettingsTest extends IntegrationTestCase {
 		diluxone_users_update_option( 'diluxone_users_passkey_enabled', 0 );
 		diluxone_users_update_option( 'diluxone_users_sso_login', 1 );
 
-		$_POST = array( 'diluxone_users_passkey_enabled' => '1' );
+		$this->postPanel( DILUXONE_USERS_SECURITY, array( 'diluxone_users_passkey_enabled' => '1' ) );
 		diluxone_users_passkeys_settings_save();
+		$this->postPanel( 'diluxone-users-social', array() );
 		diluxone_users_social_rules_save();
 		$this->assertSame( 0, (int) diluxone_users_raw_get( 'diluxone_users_passkey_enabled' ), 'Not from a site' );
 		$this->assertSame( 1, (int) diluxone_users_raw_get( 'diluxone_users_sso_login' ), 'Not from a site' );
 
 		$this->in_network_admin();
 
+		$this->postPanel( DILUXONE_USERS_SECURITY, array( 'diluxone_users_passkey_enabled' => '1' ) );
 		diluxone_users_passkeys_settings_save();
+		$this->postPanel( 'diluxone-users-social', array() );
 		diluxone_users_social_rules_save();
 		$this->assertSame( 1, (int) diluxone_users_raw_get( 'diluxone_users_passkey_enabled' ) );
 		$this->assertSame( 0, (int) diluxone_users_raw_get( 'diluxone_users_sso_login' ), 'Unticked, it is off' );
@@ -272,9 +278,12 @@ class NetworkSettingsTest extends IntegrationTestCase {
 		diluxone_users_update_option( 'diluxone_users_2fa_mode', 'optional' );
 		$this->in_network_admin();
 
-		$_POST  = array(
-			'diluxone_users_2fa_mode'    => 'required',
-			'diluxone_users_2fa_methods' => array( 'email' ),
+		$this->postPanel(
+			DILUXONE_USERS_SECURITY,
+			array(
+				'diluxone_users_2fa_mode'    => 'required',
+				'diluxone_users_2fa_methods' => array( 'email' ),
+			)
 		);
 		$caught = diluxone_users_preview_would_save( diluxone_users_panels( DILUXONE_USERS_SECURITY )['2fa'] );
 		$_POST  = array();
@@ -301,6 +310,13 @@ class NetworkSettingsTest extends IntegrationTestCase {
 			)
 		);
 
+		$pagenow            = $GLOBALS['pagenow'] ?? null;
+		$GLOBALS['pagenow'] = 'edit.php';
+		ob_start();
+		diluxone_users_network_conflicts_notice();
+		$this->assertSame( '', (string) ob_get_clean(), 'Not on every screen of the admin: guideline 11' );
+
+		$GLOBALS['pagenow'] = 'index.php';
 		ob_start();
 		diluxone_users_network_conflicts_notice();
 		$this->assertStringContainsString( 'had set some of them differently', (string) ob_get_clean() );
@@ -314,6 +330,7 @@ class NetworkSettingsTest extends IntegrationTestCase {
 		diluxone_users_network_conflicts_notice();
 		$this->assertSame( '', (string) ob_get_clean(), 'Dismissed is dismissed' );
 
+		$GLOBALS['pagenow'] = $pagenow;
 		revoke_super_admin( $admin );
 	}
 
@@ -386,6 +403,34 @@ class NetworkSettingsTest extends IntegrationTestCase {
 
 		$this->assertSame( DILUXONE_USERS_NETWORK_VERSION, (int) get_site_option( DILUXONE_USERS_NETWORK_VERSION_OPTION ) );
 		$this->assertSame( 'off', get_blog_option( $other, 'diluxone_users_2fa_mode' ), 'The old copy stays until the plugin is deleted' );
+	}
+
+	/** A value the network already has is the network's: the main site's old copy does not overwrite it. */
+	public function test_a_value_the_network_already_has_is_never_overwritten(): void {
+		$this->before_the_move();
+
+		add_site_option( 'diluxone_users_2fa_mode', 'required' );
+		update_blog_option( get_main_site_id(), 'diluxone_users_2fa_mode', 'off' );
+
+		diluxone_users_network_migrate();
+
+		$this->assertSame( 'required', get_site_option( 'diluxone_users_2fa_mode' ) );
+	}
+
+	/** A site that kept the plugin's default differs from nothing; one that chose otherwise is written down. */
+	public function test_a_site_compared_with_nothing_is_compared_with_the_default(): void {
+		$same  = $this->site();
+		$other = $this->site();
+		$this->before_the_move();
+
+		$default = diluxone_users_option_defaults()['diluxone_users_2fa_link'];
+		update_blog_option( $same, 'diluxone_users_2fa_link', $default );
+		update_blog_option( $other, 'diluxone_users_2fa_link', 'never' === $default ? 'always' : 'never' );
+
+		diluxone_users_network_migrate();
+
+		$this->assertSame( array(), array_values( $this->conflicts_of( $same ) ), 'the default is no difference' );
+		$this->assertSame( array( 'diluxone_users_2fa_link' ), array_column( array_values( $this->conflicts_of( $other ) ), 'key' ) );
 	}
 
 	/** A credential is never copied into the list of differences. */

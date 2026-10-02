@@ -120,6 +120,104 @@ class AccountClosingTest extends IntegrationTestCase {
 		wp_delete_post( $post, true );
 	}
 
+	/**
+	 * A request carries the address it was filed for: one whose account
+	 * now has another address — changed since, or a request filed for A
+	 * naming B — closes nobody.
+	 */
+	public function test_a_request_whose_address_is_not_the_accounts_closes_nothing(): void {
+		diluxone_users_update_option( 'diluxone_users_membership', 'invite' );
+		$a = $this->make_user();
+		$b = $this->make_user();
+
+		$request = wp_create_user_request( get_userdata( $a )->user_email, 'remove_personal_data', array( DILUXONE_USERS_CLOSE_KEY => $b ), 'confirmed' );
+		$this->assertIsInt( $request );
+		do_action( 'wp_privacy_personal_data_erased', $request );
+		// WordPress takes one open request per address and action.
+		wp_delete_post( $request, true );
+
+		$this->assertInstanceOf( \WP_User::class, get_userdata( $b ), 'B was named, but the request is A’s' );
+		$this->assertNotSame( 'deleted-' . $b, get_userdata( $b )->user_login );
+
+		$request = wp_create_user_request( get_userdata( $a )->user_email, 'remove_personal_data', array( DILUXONE_USERS_CLOSE_KEY => $a ), 'confirmed' );
+		$this->assertIsInt( $request );
+		wp_update_user( array( 'ID' => $a, 'user_email' => 'changed-' . $a . '@example.test' ) );
+		do_action( 'wp_privacy_personal_data_erased', $request );
+
+		$this->assertInstanceOf( \WP_User::class, get_userdata( $a ), 'the address changed since it was filed' );
+		$this->assertNotSame( 'deleted-' . $a, get_userdata( $a )->user_login );
+	}
+
+	/**
+	 * An emptied account keeps no session, and cannot be signed into even
+	 * with a password set on it afterwards: it is closed, not only renamed.
+	 */
+	public function test_an_emptied_account_keeps_no_session_and_stays_closed(): void {
+		$user = $this->make_user();
+		$post = wp_insert_post(
+			array(
+				'post_title'  => 'Theirs',
+				'post_status' => 'publish',
+				'post_author' => $user,
+			)
+		);
+		$sessions = \WP_Session_Tokens::get_instance( $user );
+		$sessions->create( time() + HOUR_IN_SECONDS );
+		$sessions->create( time() + HOUR_IN_SECONDS );
+
+		$this->erase_from_account( $user );
+
+		$this->assertSame( array(), \WP_Session_Tokens::get_instance( $user )->get_all() );
+
+		wp_set_password( 'Known-Now-123', $user );
+		$refused = wp_authenticate( 'deleted-' . $user, 'Known-Now-123' );
+
+		$this->assertInstanceOf( \WP_Error::class, $refused );
+		$this->assertSame( 'diluxone_users_closed', $refused->get_error_code() );
+
+		wp_delete_post( (int) $post, true );
+	}
+
+	/** What decides "it has content" is a filter a site can answer. */
+	public function test_a_site_decides_what_counts_as_content(): void {
+		if ( is_multisite() ) {
+			$this->markTestSkipped( 'A single-site case: on a network a member of another site is anonymised whatever it has (test_on_a_network_a_member_of_another_site_is_anonymised).' );
+		}
+
+		$quiet = $this->make_user();
+		$this->hook( 'diluxone_users_account_has_content', '__return_true' );
+		$this->erase_from_account( $quiet );
+		$this->assertSame( 'deleted-' . $quiet, get_userdata( $quiet )->user_login, 'nothing published, kept as a shell' );
+
+		remove_filter( 'diluxone_users_account_has_content', '__return_true' );
+		$this->hook( 'diluxone_users_account_has_content', '__return_false' );
+		$writer = $this->make_user();
+		$post   = wp_insert_post( array( 'post_title' => 'Theirs', 'post_status' => 'publish', 'post_author' => $writer ) );
+		$this->erase_from_account( $writer );
+		$this->assertFalse( get_userdata( $writer ), 'something published, deleted all the same' );
+
+		wp_delete_post( (int) $post, true );
+	}
+
+	/** On a network a super admin is never closed this way. */
+	public function test_on_a_network_a_super_admin_is_never_closed_this_way(): void {
+		if ( ! is_multisite() ) {
+			$this->markTestSkipped( 'A network case; on a single site the counterpart is test_an_administrator_is_never_closed_this_way.' );
+		}
+
+		$user = $this->make_user();
+		grant_super_admin( $user );
+
+		try {
+			$this->erase_from_account( $user );
+
+			$this->assertInstanceOf( \WP_User::class, get_userdata( $user ) );
+			$this->assertNotSame( 'deleted-' . $user, get_userdata( $user )->user_login );
+		} finally {
+			revoke_super_admin( $user );
+		}
+	}
+
 	public function test_a_request_filed_from_tools_leaves_the_account(): void {
 		$user = $this->make_user();
 
@@ -162,6 +260,86 @@ class AccountClosingTest extends IntegrationTestCase {
 		$this->assertInstanceOf( \WP_User::class, get_userdata( $user ) );
 		$this->assertSame( 'deleted-' . $user, get_userdata( $user )->user_login );
 
+		// No role left on any site it belonged to.
+		foreach ( array( get_current_blog_id(), $other ) as $site ) {
+			switch_to_blog( $site );
+			$this->assertSame( array(), ( new \WP_User( $user ) )->roles, "site $site" );
+			$this->assertFalse( user_can( $user, 'read' ), "site $site" );
+			restore_current_blog();
+		}
+
 		wp_delete_site( $other );
+	}
+
+	/** What WordPress keeps on its own behalf is not something the person published. */
+	public function test_revisions_requests_and_styles_are_not_content(): void {
+		$user = $this->make_user();
+
+		foreach ( array( 'revision', 'user_request', 'wp_global_styles', 'customize_changeset', 'oembed_cache' ) as $type ) {
+			wp_insert_post(
+				array(
+					'post_type'   => $type,
+					'post_status' => 'publish',
+					'post_title'  => $type,
+					'post_author' => $user,
+				)
+			);
+		}
+
+		$this->assertFalse( diluxone_users_account_has_content( $user ) );
+
+		$page = (int) wp_insert_post(
+			array(
+				'post_type'   => 'page',
+				'post_status' => 'draft',
+				'post_title'  => 'A draft',
+				'post_author' => $user,
+			)
+		);
+
+		$this->assertTrue( diluxone_users_account_has_content( $user ), 'a page, even a draft, is theirs' );
+
+		wp_delete_post( $page, true );
+	}
+
+	/** Every eraser is asked page after page until it is done, and no further than a hundred. */
+	public function test_each_eraser_is_asked_page_after_page_until_it_is_done(): void {
+		diluxone_users_update_option( 'diluxone_users_membership', 'invite' );
+		$user  = $this->make_user();
+		$pages = array(
+			'two'   => array(),
+			'never' => array(),
+		);
+
+		$this->hook(
+			'wp_privacy_personal_data_erasers',
+			static function ( array $erasers ) use ( &$pages ): array {
+				$erasers['two']   = array(
+					'eraser_friendly_name' => 'Two pages',
+					'callback'             => static function ( string $email, int $page ) use ( &$pages ): array {
+						$pages['two'][] = $page;
+
+						return array( 'done' => 2 === $page );
+					},
+				);
+				$erasers['never'] = array(
+					'eraser_friendly_name' => 'Never done',
+					'callback'             => static function ( string $email, int $page ) use ( &$pages ): array {
+						$pages['never'][] = $page;
+
+						return array( 'done' => false );
+					},
+				);
+				$erasers['broken'] = array( 'callback' => 'no_such_eraser' );
+
+				return $erasers;
+			}
+		);
+
+		$request = $this->confirm_from_account( $user );
+
+		$this->assertSame( array( 1, 2 ), $pages['two'] );
+		$this->assertSame( range( 1, 100 ), $pages['never'], 'a ceiling, so the request is not held' );
+		$this->assertSame( 'request-completed', get_post_status( $request ) );
 	}
 }

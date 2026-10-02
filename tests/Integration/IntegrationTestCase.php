@@ -50,6 +50,9 @@ class IntegrationTestCase extends TestCase {
 	/** @var array<int, int> The highest post ID before the test, by site: every post above it was made by the test. */
 	private array $posts_before = array();
 
+	/** @var int The highest row of the activity log before the test: every row above it was written by the test. */
+	private int $log_before = 0;
+
 	/**
 	 * Where the database stood before the test, taken before any setUp().
 	 *
@@ -67,6 +70,11 @@ class IntegrationTestCase extends TestCase {
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery
 		$this->sites_before = is_multisite() ? (int) $wpdb->get_var( "SELECT MAX(blog_id) FROM {$wpdb->blogs}" ) : 0;
+
+		$this->log_before = diluxone_users_log_table_exists()
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			? (int) $wpdb->get_var( 'SELECT MAX(id) FROM ' . diluxone_users_log_table() )
+			: 0;
 
 		// Posts are per site: privacy requests, pages, menu items. Read from
 		// each site's own table, without switching to it.
@@ -98,9 +106,28 @@ class IntegrationTestCase extends TestCase {
 	 * @after
 	 */
 	public function forget_what_the_test_made(): void {
+		global $wpdb;
+
 		self::delete_posts_above( $this->posts_before );
 		self::delete_users_above( $this->users_before );
 		self::delete_sites_above( $this->sites_before );
+
+		// The rows the test wrote in the activity log, and what it left
+		// queued: the suite shares its database with the network's screenshot
+		// run, where a job left behind for a site that no longer exists shows
+		// up as a sync "in progress".
+		if ( diluxone_users_log_table_exists() ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$wpdb->query( $wpdb->prepare( 'DELETE FROM ' . diluxone_users_log_table() . ' WHERE id > %d', $this->log_before ) );
+		}
+
+		foreach ( self::$options as $option ) {
+			delete_option( $option );
+
+			if ( is_multisite() ) {
+				delete_site_option( $option );
+			}
+		}
 	}
 
 	/**
@@ -165,6 +192,12 @@ class IntegrationTestCase extends TestCase {
 			// On a network wp_delete_user() only takes the person off this
 			// site; wpmu_delete_user() deletes the account and its meta.
 			if ( is_multisite() ) {
+				// WordPress will not delete a super admin: a test that granted
+				// it and failed before taking it back would leave the account.
+				if ( is_super_admin( $id ) ) {
+					revoke_super_admin( $id );
+				}
+
 				wpmu_delete_user( $id );
 			} else {
 				wp_delete_user( $id );
@@ -202,8 +235,16 @@ class IntegrationTestCase extends TestCase {
 		wp_cache_flush();
 	}
 
+	/** @var array<int, array{0: string, 1: callable, 2: int}> Filters and actions the test added through hook(). */
+	private array $hooks = array();
+
+	/** @var array<string, mixed> $_SERVER as the test found it. */
+	private array $server = array();
+
 	protected function setUp(): void {
 		parent::setUp();
+
+		$this->server = $_SERVER;
 
 		// Both places a setting can be: this site's table, and on a network
 		// the network's own options, where the network's settings live.
@@ -227,6 +268,10 @@ class IntegrationTestCase extends TestCase {
 
 		$_SERVER['REQUEST_METHOD'] = 'GET';
 		$_SERVER['REMOTE_ADDR']    = '203.0.113.1';
+
+		// Social sign-in reads the query from a copy taken early in the
+		// request; a copy a test before this one took would answer for it.
+		diluxone_users_sso_query( true );
 
 		wp_set_current_user( 0 );
 
@@ -257,6 +302,16 @@ class IntegrationTestCase extends TestCase {
 
 		unset( $GLOBALS['current_screen'] );
 
+		foreach ( $this->hooks as $hook ) {
+			remove_filter( $hook[0], $hook[1], $hook[2] );
+		}
+
+		$this->hooks = array();
+
+		// SCRIPT_NAME, REQUEST_URI, HTTP_HOST, a referer: whatever the test
+		// made the request look like stays with the test.
+		$_SERVER = $this->server;
+
 		if ( null !== $this->network_registration ) {
 			update_site_option( 'registration', $this->network_registration );
 			$this->network_registration = null;
@@ -277,6 +332,23 @@ class IntegrationTestCase extends TestCase {
 		require_once ABSPATH . 'wp-admin/includes/screen.php';
 
 		$GLOBALS['current_screen'] = \WP_Screen::get( 'dashboard-network' );
+	}
+
+	/**
+	 * The rest of the test runs as the front of the site.
+	 *
+	 * The suite loads WordPress as the dashboard — WP_ADMIN and DOING_AJAX
+	 * are defined in the bootstrap, so the handlers register and wp_die() can
+	 * be caught — and so is_admin() is true everywhere unless a screen says
+	 * otherwise. is_admin() asks the current screen first: this one says it
+	 * is not in the admin, and the base class forgets it after the test.
+	 */
+	protected function as_front_end(): void {
+		$GLOBALS['current_screen'] = new class() {
+			public function in_admin( ?string $admin = null ): bool {
+				return false;
+			}
+		};
 	}
 
 	/** The plugin's transients — throttles, states, challenges — gone. */
@@ -338,6 +410,83 @@ class IntegrationTestCase extends TestCase {
 		$this->fail( 'A redirect was expected and none happened.' );
 	}
 
+	/**
+	 * A filter or an action for this test only, taken off after it.
+	 *
+	 * Taken off in tearDown(), so an assertion that fails halfway through
+	 * does not leave it hooked for every test after.
+	 */
+	protected function hook( string $hook, callable $callback, int $priority = 10, int $args = 1 ): void {
+		add_filter( $hook, $callback, $priority, $args );
+		$this->hooks[] = array( $hook, $callback, $priority );
+	}
+
+	/**
+	 * Runs a handler that has to end in wp_die(), and returns the message.
+	 *
+	 * With a message, it has to be that message; with a status, that status.
+	 * A refusal is two things — what it says and that it is a refusal — and
+	 * a wp_die() that answers 200, or dies for some other reason entirely,
+	 * is not the refusal the test is about.
+	 */
+	protected function expectDie( callable $handler, ?string $message = null, ?int $status = null ): string {
+		ob_start();
+
+		try {
+			$handler();
+		} catch ( \WPAjaxDieContinueException $e ) {
+			ob_end_clean();
+
+			if ( null !== $message ) {
+				$this->assertSame( $message, $e->getMessage(), 'wp_die() said something else' );
+			}
+
+			if ( null !== $status ) {
+				$this->assertSame( $status, $e->status, 'wp_die() answered another status' );
+			}
+
+			return $e->getMessage();
+		} catch ( \Throwable $e ) {
+			ob_end_clean();
+
+			throw $e;
+		}
+
+		ob_end_clean();
+		$this->fail( 'wp_die() was expected and the handler went on.' );
+	}
+
+	/**
+	 * WordPress writes a copy of somebody's data as a zip, with ZipArchive.
+	 *
+	 * Without it the test would have nothing to look at, and a skip there is
+	 * silent in CI: the copy of a person's data would stop being tested and
+	 * nobody would notice. Every environment this suite runs in has it, so
+	 * its absence is a broken environment, and says so.
+	 */
+	protected function needs_zip(): void {
+		$this->assertTrue( class_exists( 'ZipArchive' ), 'This environment has no ZipArchive: the tests image is broken, and the copy of a person\'s data cannot be tested.' );
+	}
+
+	/**
+	 * Runs a handler that must neither redirect nor stop: it leaves the
+	 * request to whatever comes after it.
+	 */
+	protected function stays( callable $handler, string $why = '' ): void {
+		try {
+			$handler();
+		} catch ( RedirectException $e ) {
+			$this->fail( 'Sent to ' . $e->url . ( '' !== $why ? ' — ' . $why : '' ) );
+		} catch ( \WPAjaxDieContinueException $e ) {
+			$this->fail( 'Stopped: ' . $e->getMessage() . ( '' !== $why ? ' — ' . $why : '' ) );
+		}
+
+		$this->addToAssertionCount( 1 );
+	}
+
+	/** What wp_die() says when a nonce fails and there is no page to go back to. */
+	protected const EXPIRED = 'The link you followed has expired.';
+
 	/** One argument out of a URL's query string, or '' when it is not there. */
 	protected function queryArg( string $url, string $key ): string {
 		// wp_nonce_url() escapes the ampersands for HTML; they are undone here.
@@ -365,6 +514,24 @@ class IntegrationTestCase extends TestCase {
 		$_REQUEST = array_merge( $get, $post );
 
 		$_SERVER['REQUEST_METHOD'] = 'POST';
+	}
+
+	/**
+	 * Sets up a panel's form as the screen sends it: with the screen's nonce,
+	 * from somebody allowed to save it.
+	 *
+	 * Every save checks both before it reads anything. Whoever is signed in
+	 * stays when they may save here; otherwise the first account, which is an
+	 * administrator on a single site and the super admin on a network, sends it.
+	 *
+	 * @param array<string, mixed> $post
+	 */
+	protected function postPanel( string $screen, array $post ): void {
+		if ( ! current_user_can( diluxone_users_admin_cap() ) ) {
+			wp_set_current_user( 1 );
+		}
+
+		$this->postAs( get_current_user_id(), $post + array( 'diluxone_users_panel_nonce' => wp_create_nonce( 'diluxone_users_panel_' . $screen ) ) );
 	}
 
 	/**

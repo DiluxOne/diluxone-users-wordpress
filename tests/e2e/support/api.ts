@@ -103,6 +103,21 @@ export class Site {
 		return this.call('delete', '/menu');
 	}
 
+	/** A page of the spec's own, `e2e-<slug>`, drawing `content`; made once, rewritten when it changes. */
+	page(slug: string, content: string): Promise<{ id: number; url: string }> {
+		return this.call('post', '/page', { slug, content });
+	}
+
+	/** That page, deleted. */
+	forgetPage(slug: string): Promise<unknown> {
+		return this.call('delete', `/page?slug=${encodeURIComponent(slug)}`);
+	}
+
+	/** A page the plugin made itself, deleted by its ID. */
+	forgetPageId(id: number): Promise<unknown> {
+		return this.call('delete', `/page?id=${id}`);
+	}
+
 	/**
 	 * Writes settings and hands back what they were.
 	 *
@@ -145,6 +160,8 @@ export class Site {
 		role?: string;
 		name?: string;
 		meta?: Record<string, unknown>;
+		/** An account that already exists keeps its password; `password` in the answer is then ''. */
+		keep_password?: boolean;
 	}): Promise<{ id: number; email: string; password: string; totp: string }> {
 		return this.call('post', '/user', user);
 	}
@@ -176,6 +193,16 @@ export class Site {
 		const heard = ((await this.getOptions(['diluxone_e2e_wp_login'])).diluxone_e2e_wp_login ?? {}) as Record<string, number>;
 
 		return Number(heard[email.toLowerCase()] ?? 0);
+	}
+
+	/** This site's rows of the activity log, as they are in the table. */
+	logRows(): Promise<Record<string, unknown>[]> {
+		return this.call('get', '/log');
+	}
+
+	/** Rows read by logRows() put back under their own ids; a row still there is left alone. */
+	restoreLog(rows: Record<string, unknown>[]): Promise<{ restored: number }> {
+		return this.call('post', '/log', { rows });
 	}
 
 	/** Moves a deadline into the past: 'link', '2fa' or 'resend'. */

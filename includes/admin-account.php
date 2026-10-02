@@ -77,6 +77,14 @@ function diluxone_users_section_reorder( array $ids ): void {
  * @param array<string, mixed> $input
  */
 function diluxone_users_section_save( array $input ): string {
+	// One word per box: a box sent as a list is not one, and cast as it came
+	// it named a section "Array".
+	foreach ( array( 'id', 'label', 'slug', 'intro', 'content', 'placement', 'visibility' ) as $word ) {
+		if ( isset( $input[ $word ] ) && ! is_scalar( $input[ $word ] ) ) {
+			unset( $input[ $word ] );
+		}
+	}
+
 	$id     = sanitize_key( (string) ( $input['id'] ?? '' ) );
 	$exists = diluxone_users_sections( true );
 	$fresh  = '' === $id || ! isset( $exists[ $id ] );
@@ -92,9 +100,17 @@ function diluxone_users_section_save( array $input ): string {
 	if ( $fresh ) {
 		$id = '' === $id ? $slug : $id;
 
-			// One of the site's own sections cannot tread on one from code: there
-			// would be two with the same address and either could win.
+		// One of the site's own sections cannot tread on one from code: there
+		// would be two with the same address and either could win.
 		if ( '' === $id || isset( $exists[ $id ] ) ) {
+			return '';
+		}
+	}
+
+	// Nor can any section, new or edited, take another's address: two
+	// sections on one address is one of them that can never be opened.
+	foreach ( $exists as $other => $section ) {
+		if ( (string) $other !== $id && $slug === (string) ( $section['slug'] ?? $other ) ) {
 			return '';
 		}
 	}
@@ -182,7 +198,9 @@ function diluxone_users_account_actions(): void {
 			'tab'                => 'sections',
 			'diluxone_users_msg' => 'deleted',
 		);
-	} elseif ( 'on' === $action || 'off' === $action ) {
+	} elseif ( ( 'on' === $action || 'off' === $action ) && isset( diluxone_users_sections( true )[ $id ] ) ) {
+		// Only a section there is: a made-up id was written down as a
+		// section with nothing but a switch.
 		diluxone_users_section_config_save( $id, array( 'enabled' => 'on' === $action ? 1 : 0 ) );
 	}
 
@@ -282,13 +300,14 @@ add_action( 'diluxone_users_register_panels', 'diluxone_users_account_panels' );
 
 /** The page that is "my account". */
 function diluxone_users_account_page_save(): void {
-	// phpcs:disable WordPress.Security.NonceVerification.Missing -- the panel verifies it.
+	check_admin_referer( 'diluxone_users_panel_diluxone-users-account', 'diluxone_users_panel_nonce' );
+	diluxone_users_panel_allowed();
+
 	diluxone_users_save_options(
 		array(
-			'diluxone_users_account_page' => absint( wp_unslash( $_POST['diluxone_users_account_page'] ?? 0 ) ),
+			'diluxone_users_account_page' => ( isset( $_POST['diluxone_users_account_page'] ) && is_scalar( $_POST['diluxone_users_account_page'] ) ? absint( wp_unslash( $_POST['diluxone_users_account_page'] ) ) : 0 ),
 		)
 	);
-	// phpcs:enable
 
 	// The page changed: the /account/<section>/ rules have to be rebuilt.
 	diluxone_users_delete_option( 'diluxone_users_rewrite_version' );
@@ -296,10 +315,11 @@ function diluxone_users_account_page_save(): void {
 
 /** Which menu gets the person, and how the person looks in it. */
 function diluxone_users_account_menu_save(): void {
-	// phpcs:disable WordPress.Security.NonceVerification.Missing -- the panel verifies it.
+	check_admin_referer( 'diluxone_users_panel_diluxone-users-account', 'diluxone_users_panel_nonce' );
+	diluxone_users_panel_allowed();
+
 	$location = sanitize_key( wp_unslash( $_POST['diluxone_users_menu_location'] ?? '' ) );
 	$style    = sanitize_key( wp_unslash( $_POST['diluxone_users_menu_style'] ?? 'avatar-name' ) );
-	// phpcs:enable
 
 	diluxone_users_save_options(
 		array(
@@ -354,50 +374,70 @@ function diluxone_users_screen_account_menu(): void {
 
 /** The two things WordPress shows a signed-in person that the site may not want. */
 function diluxone_users_account_dashboard_save(): void {
-	// phpcs:disable WordPress.Security.NonceVerification.Missing -- the panel verifies it.
-	$bar = sanitize_key( wp_unslash( $_POST['diluxone_users_admin_bar'] ?? 'wp' ) );
+	check_admin_referer( 'diluxone_users_panel_diluxone-users-account', 'diluxone_users_panel_nonce' );
+	diluxone_users_panel_allowed();
+
+	$bar     = sanitize_key( wp_unslash( $_POST['diluxone_users_admin_bar'] ?? 'wp' ) );
+	$profile = sanitize_key( wp_unslash( $_POST['diluxone_users_wp_profile'] ?? 'allow' ) );
 
 	diluxone_users_save_options(
 		array(
-			'diluxone_users_wp_profile'            => sanitize_key( wp_unslash( $_POST['diluxone_users_wp_profile'] ?? 'allow' ) ),
+			// One of the three answers on the screen; anything else is the
+			// one WordPress has, which leaves the profile screen alone.
+			'diluxone_users_wp_profile'            => in_array( $profile, array( 'allow', 'redirect', 'block' ), true ) ? $profile : 'allow',
 			// One radio with three answers on the screen, two options
 			// underneath: whether it is hidden, and from whom.
 			'diluxone_users_admin_bar'             => 'wp' === $bar ? 'wp' : 'hide',
 			'diluxone_users_admin_bar_scope'       => 'hide-some' === $bar ? 'some' : 'all',
-			'diluxone_users_admin_bar_roles'       => array_map( 'sanitize_key', (array) wp_unslash( $_POST['diluxone_users_admin_bar_roles'] ?? array() ) ),
+			'diluxone_users_admin_bar_roles'       => array_values( array_filter( array_map( 'sanitize_key', (array) wp_unslash( $_POST['diluxone_users_admin_bar_roles'] ?? array() ) ) ) ),
 			'diluxone_users_admin_bar_keep_admins' => isset( $_POST['diluxone_users_admin_bar_keep_admins'] ) ? 1 : 0,
 			'diluxone_users_bar_account'           => isset( $_POST['diluxone_users_bar_account'] ) ? 1 : 0,
-		) + diluxone_users_scope_posted( 'diluxone_users_wp_profile' )
+		) + diluxone_users_scope_posted( 'diluxone_users_wp_profile', 'diluxone-users-account' )
 	);
-	// phpcs:enable
 }
 
-/** What each person can do with their own data. */
+/**
+ * What each person can do with their own data.
+ *
+ * Its form is the "Your data" section's, with a nonce of its own: checked
+ * here, with the capability, before anything is read.
+ */
 function diluxone_users_account_privacy_save(): void {
-	// phpcs:disable WordPress.Security.NonceVerification.Missing -- diluxone_users_account_post() verifies it.
+	check_admin_referer( 'diluxone_users_privacy', 'diluxone_users_privacy_nonce' );
+
+	if ( ! diluxone_users_admin_owns( 'hub' ) || ! current_user_can( 'manage_options' ) ) {
+		wp_die( esc_html__( 'You are not allowed to do this.', 'diluxone-users' ), '', array( 'response' => 403 ) );
+	}
+
+	$posted = array();
+
+	foreach ( array( 'export_when', 'export_link', 'export_file', 'delete_when', 'delete_link' ) as $question ) {
+		$posted[ $question ] = sanitize_key( wp_unslash( $_POST[ 'diluxone_users_privacy_' . $question ] ?? '' ) );
+	}
+
 	diluxone_users_save_options(
 		array(
 			'diluxone_users_privacy_export'      => isset( $_POST['diluxone_users_privacy_export'] ) ? 1 : 0,
 			'diluxone_users_privacy_delete'      => isset( $_POST['diluxone_users_privacy_delete'] ) ? 1 : 0,
-			'diluxone_users_privacy_export_when' => diluxone_users_privacy_answer( 'diluxone_users_privacy_export_when', 'admin', 'confirm' ),
-			'diluxone_users_privacy_export_link' => diluxone_users_privacy_answer( 'diluxone_users_privacy_export_link', 'direct', 'account' ),
-			'diluxone_users_privacy_export_file' => diluxone_users_privacy_answer( 'diluxone_users_privacy_export_file', 'link', 'account' ),
-			'diluxone_users_privacy_delete_when' => diluxone_users_privacy_answer( 'diluxone_users_privacy_delete_when', 'admin', 'confirm' ),
-			'diluxone_users_privacy_delete_link' => diluxone_users_privacy_answer( 'diluxone_users_privacy_delete_link', 'direct', 'account' ),
+			'diluxone_users_privacy_export_when' => diluxone_users_privacy_answer( $posted['export_when'], 'admin', 'confirm' ),
+			'diluxone_users_privacy_export_link' => diluxone_users_privacy_answer( $posted['export_link'], 'direct', 'account' ),
+			'diluxone_users_privacy_export_file' => diluxone_users_privacy_answer( $posted['export_file'], 'link', 'account' ),
+			'diluxone_users_privacy_delete_when' => diluxone_users_privacy_answer( $posted['delete_when'], 'admin', 'confirm' ),
+			'diluxone_users_privacy_delete_link' => diluxone_users_privacy_answer( $posted['delete_link'], 'direct', 'account' ),
 		)
 	);
-	// phpcs:enable
 }
 
 /**
- * One of those two-way answers, as posted: the other way only when it says so.
+ * One of those two-way answers: the other way only when it says so.
  *
  * Each question has the answer the plugin ships and one that departs from
  * it, so anything else posted is the one it ships.
+ *
+ * @param string $posted What the form sent, already read and cleaned.
  */
-function diluxone_users_privacy_answer( string $name, string $other, string $usual ): string {
-	// phpcs:ignore WordPress.Security.NonceVerification.Missing -- diluxone_users_account_post() verifies it.
-	return $other === sanitize_key( wp_unslash( $_POST[ $name ] ?? '' ) ) ? $other : $usual;
+function diluxone_users_privacy_answer( string $posted, string $other, string $usual ): string {
+	return $other === $posted ? $other : $usual;
 }
 
 /**
@@ -430,44 +470,53 @@ function diluxone_users_privacy_ask( string $name, string $question, array $answ
  * headers. And redirecting is needed — it is not only hygiene — because after
  * creating a section it has to be opened, and because reloading must not
  * submit the form again.
+ *
+ * Three forms post here, each with a nonce of its own, and which one was sent
+ * is told by which nonce field is there. Each branch checks that nonce and the
+ * capability before it reads anything else; the sections belong to the hub,
+ * so on another site of a network there is nothing to save.
  */
 function diluxone_users_account_post(): void {
-	// phpcs:disable WordPress.Security.NonceVerification -- each branch verifies its own.
-	if ( 'diluxone-users-account' !== sanitize_key( wp_unslash( $_GET['page'] ?? '' ) ) || ! diluxone_users_admin_owns( 'hub' ) || ! current_user_can( 'manage_options' ) ) {
-		return;
-	}
+	if ( isset( $_POST['diluxone_users_order_form_nonce'] ) ) {
+		check_admin_referer( 'diluxone_users_order_form', 'diluxone_users_order_form_nonce' );
 
-	$open_box = sanitize_key( wp_unslash( $_GET['section'] ?? '' ) );
+		if ( ! diluxone_users_admin_owns( 'hub' ) || ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( 'You are not allowed to do this.', 'diluxone-users' ), '', array( 'response' => 403 ) );
+		}
 
-	if ( isset( $_POST['diluxone_users_order_form_nonce'] ) && wp_verify_nonce( sanitize_key( wp_unslash( $_POST['diluxone_users_order_form_nonce'] ) ), 'diluxone_users_order_form' ) ) {
 		diluxone_users_section_reorder( array_map( 'sanitize_key', (array) wp_unslash( $_POST['diluxone_users_order_form'] ?? array() ) ) );
 
-		diluxone_users_account_back( 'order', $open_box );
+		diluxone_users_account_back( 'order', sanitize_key( wp_unslash( $_GET['section'] ?? '' ) ) );
 	}
 
 	/*
 	 * The two switches of the "Your data" section. They are saved here and not
 	 * by the panel registry because the sections tab registers no form of its
-	 * own — it has three, and one of them wraps a rich-text editor.
+	 * own — it has three, and one of them wraps a rich-text editor. The save
+	 * checks the form's nonce and the capability itself, first thing.
 	 */
-	if ( isset( $_POST['diluxone_users_privacy_nonce'] ) && wp_verify_nonce( sanitize_key( wp_unslash( $_POST['diluxone_users_privacy_nonce'] ) ), 'diluxone_users_privacy' ) ) {
+	if ( isset( $_POST['diluxone_users_privacy_nonce'] ) ) {
 		diluxone_users_account_privacy_save();
 
 		diluxone_users_account_back( 'privacy', 'privacy' );
 	}
 
-	if ( isset( $_POST['diluxone_users_section_form_nonce'] ) && wp_verify_nonce( sanitize_key( wp_unslash( $_POST['diluxone_users_section_form_nonce'] ) ), 'diluxone_users_section_form' ) ) {
+	if ( isset( $_POST['diluxone_users_section_form_nonce'] ) ) {
+		check_admin_referer( 'diluxone_users_section_form', 'diluxone_users_section_form_nonce' );
+
+		if ( ! diluxone_users_admin_owns( 'hub' ) || ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( 'You are not allowed to do this.', 'diluxone-users' ), '', array( 'response' => 403 ) );
+		}
+
 		// Cleaned as it is read — a section's content may carry links, so as
 		// post content — and typed again field by field on save.
 		$saved = diluxone_users_section_save( (array) map_deep( wp_unslash( $_POST['diluxone_users_section_form'] ?? array() ), 'wp_kses_post' ) );
 
 		diluxone_users_account_back(
 			'' === $saved ? 'error' : 'saved',
-			'' === $saved ? $open_box : $saved
+			'' === $saved ? sanitize_key( wp_unslash( $_GET['section'] ?? '' ) ) : $saved
 		);
 	}
-
-	// phpcs:enable
 }
 add_action( 'admin_init', 'diluxone_users_account_post' );
 
@@ -1012,8 +1061,7 @@ function diluxone_users_screen_account_page(): void {
 		'option_none_value' => 0,
 	);
 
-	// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- wp_dropdown_pages() escapes its own and prints it.
-	wp_dropdown_pages( $dropdown );
+	diluxone_users_ui_page_dropdown( $dropdown );
 	diluxone_users_create_page_link( 'diluxone_users_account_page' );
 
 	$help = esc_html__( 'The account area appears on this page, below whatever the page already says.', 'diluxone-users' );
@@ -1288,19 +1336,19 @@ function diluxone_users_screen_account_dashboard(): void {
 
 /** The public name and its rules. */
 function diluxone_users_account_handle_save(): void {
-	// phpcs:disable WordPress.Security.NonceVerification.Missing -- the panel verifies it.
+	check_admin_referer( 'diluxone_users_panel_diluxone-users-account', 'diluxone_users_panel_nonce' );
+	diluxone_users_panel_allowed();
+
 	diluxone_users_save_options(
 		array(
 			'diluxone_users_handle_enabled'  => isset( $_POST['diluxone_users_handle_enabled'] ) ? 1 : 0,
-			'diluxone_users_handle_min'      => absint( wp_unslash( $_POST['diluxone_users_handle_min'] ?? 3 ) ),
-			'diluxone_users_handle_max'      => absint( wp_unslash( $_POST['diluxone_users_handle_max'] ?? 30 ) ),
-			'diluxone_users_handle_charset'  => sanitize_key( wp_unslash( $_POST['diluxone_users_handle_charset'] ?? 'strict' ) ),
+			'diluxone_users_handle_min'      => ( isset( $_POST['diluxone_users_handle_min'] ) && is_scalar( $_POST['diluxone_users_handle_min'] ) ? absint( wp_unslash( $_POST['diluxone_users_handle_min'] ) ) : 3 ),
+			'diluxone_users_handle_max'      => ( isset( $_POST['diluxone_users_handle_max'] ) && is_scalar( $_POST['diluxone_users_handle_max'] ) ? absint( wp_unslash( $_POST['diluxone_users_handle_max'] ) ) : 30 ),
 			'diluxone_users_handle_spaces'   => sanitize_key( wp_unslash( $_POST['diluxone_users_handle_spaces'] ?? 'dash' ) ),
-			'diluxone_users_handle_cooldown' => absint( wp_unslash( $_POST['diluxone_users_handle_cooldown'] ?? 30 ) ),
+			'diluxone_users_handle_cooldown' => ( isset( $_POST['diluxone_users_handle_cooldown'] ) && is_scalar( $_POST['diluxone_users_handle_cooldown'] ) ? absint( wp_unslash( $_POST['diluxone_users_handle_cooldown'] ) ) : 30 ),
 			'diluxone_users_handle_reserved' => sanitize_textarea_field( wp_unslash( $_POST['diluxone_users_handle_reserved'] ?? '' ) ),
 		)
 	);
-	// phpcs:enable
 }
 
 /**
@@ -1352,27 +1400,6 @@ function diluxone_users_screen_account_handle(): void {
 			'between' => __( 'to', 'diluxone-users' ),
 			'suffix'  => __( 'characters', 'diluxone-users' ),
 		)
-	);
-
-	$charset = (string) diluxone_users_option( 'diluxone_users_handle_charset' );
-
-	diluxone_users_ui_inline_choices(
-		__( 'Letters', 'diluxone-users' ),
-		array(
-			array(
-				'name'    => 'diluxone_users_handle_charset',
-				'value'   => 'strict',
-				'checked' => 'unicode' !== $charset,
-				'title'   => __( 'Plain: a–z, digits, dot, dash and underscore', 'diluxone-users' ),
-			),
-			array(
-				'name'    => 'diluxone_users_handle_charset',
-				'value'   => 'unicode',
-				'checked' => 'unicode' === $charset,
-				'title'   => __( 'Also accents and ñ', 'diluxone-users' ),
-			),
-		),
-		__( 'Whatever is typed is turned into the same thing WordPress would put in a URL, so what passes here is exactly what ends up in the address. Anything that does not fit —punctuation, symbols, emoji— is dropped, and the person sees what it turned into before saving.', 'diluxone-users' )
 	);
 
 	$spaces = (string) diluxone_users_option( 'diluxone_users_handle_spaces' );

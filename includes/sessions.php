@@ -187,7 +187,7 @@ function diluxone_users_sessions_close_others( int $user_id ): void {
 /** Handles the buttons in the session list. */
 function diluxone_users_sessions_action(): void {
 	if ( ! is_user_logged_in() ) {
-		wp_die( esc_html__( 'You have to sign in first.', 'diluxone-users' ) );
+		wp_die( esc_html__( 'You have to sign in first.', 'diluxone-users' ), '', array( 'response' => 401 ) );
 	}
 
 	check_admin_referer( 'diluxone_users_sessions' );
@@ -355,16 +355,23 @@ function diluxone_users_sessions_search( string $search = '', int $page = 1, int
 function diluxone_users_sessions_admin_close(): void {
 	check_admin_referer( 'diluxone_users_sessions_admin' );
 
-	$user_id = absint( wp_unslash( $_POST['diluxone_users_user'] ?? 0 ) );
+	// Two questions. First, before anything of the request is read, whether
+	// this is somebody who administers the site — the report the button lives
+	// on asks for `manage_options`, and so does the button: on a single site
+	// `edit_user` alone is granted by `edit_users`, so a role that may edit
+	// users could otherwise sign an administrator out. Then whether they may
+	// act on this person: on a network, `edit_user` is where WordPress keeps a
+	// site's administrator off a super admin.
+	if ( ! current_user_can( 'manage_options' ) ) {
+		wp_die( esc_html__( 'You are not allowed to do this.', 'diluxone-users' ), '', array( 'response' => 403 ) );
+	}
 
-	// Two questions. Whether this is somebody who administers the site — the
-	// report the button lives on asks for `manage_options`, and so does the
-	// button: on a single site `edit_user` alone is granted by `edit_users`,
-	// so a role that may edit users could otherwise sign an administrator out.
-	// And whether they may act on this person: on a network, `edit_user` is
-	// where WordPress keeps a site's administrator off a super admin.
-	if ( $user_id <= 0 || ! current_user_can( 'manage_options' ) || ! current_user_can( 'edit_user', $user_id ) ) {
-		wp_die( esc_html__( 'You are not allowed to do this.', 'diluxone-users' ) );
+	// One id, or nobody: absint() reads a list as 1, the first account.
+	$user_id = isset( $_POST['diluxone_users_user'] ) && is_scalar( $_POST['diluxone_users_user'] ) ? absint( wp_unslash( $_POST['diluxone_users_user'] ) ) : 0;
+
+	// Somebody there is: an id that is no account was answered "closed".
+	if ( $user_id <= 0 || ! get_userdata( $user_id ) instanceof WP_User || ! current_user_can( 'edit_user', $user_id ) ) {
+		wp_die( esc_html__( 'You are not allowed to do this.', 'diluxone-users' ), '', array( 'response' => 403 ) );
 	}
 
 	diluxone_users_2fa_forget_browsers( $user_id );

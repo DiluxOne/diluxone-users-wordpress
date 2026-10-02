@@ -9,7 +9,7 @@
 
 defined( 'ABSPATH' ) || exit;
 ?>
-<?php echo do_shortcode( '[diluxone_users_avatar]' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- the plugin's own shortcode, which escapes its output. ?>
-<?php echo do_shortcode( '[diluxone_users_handle]' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- the plugin's own shortcode, which escapes its output. ?>
+<?php diluxone_users_avatar_form(); ?>
+<?php diluxone_users_handle_form(); ?>
 <?php
-echo do_shortcode( '[diluxone_users_fields]' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- the plugin's own shortcode, which escapes its output. 
+diluxone_users_fields_form();

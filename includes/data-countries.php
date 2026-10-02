@@ -311,7 +311,10 @@ function diluxone_users_countries_sorted( array $first = array() ): array {
 		$names[ $iso ] = $data[0];
 	}
 
-	asort( $names, SORT_LOCALE_STRING );
+	// By name as a person reads it: an accent does not move a country to the
+	// end of its letter. SORT_LOCALE_STRING would, on any server whose locale
+	// is C — most of them — where "Côte d'Ivoire" came after "Cuba".
+	uasort( $names, static fn( string $a, string $b ): int => strcasecmp( remove_accents( $a ), remove_accents( $b ) ) );
 
 	$top = array();
 

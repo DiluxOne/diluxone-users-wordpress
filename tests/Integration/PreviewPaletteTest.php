@@ -153,7 +153,7 @@ class PreviewPaletteTest extends IntegrationTestCase {
 	public function test_a_trial_run_sees_an_unticked_box_and_writes_nothing(): void {
 		diluxone_users_update_option( 'diluxone_users_wp_login_brand', 1 );
 
-		$_POST = array( 'diluxone_users_wp_login_bg' => '#123456' );
+		$this->postPanel( DILUXONE_USERS_DESIGN, array( 'diluxone_users_wp_login_bg' => '#123456' ) );
 
 		$would = diluxone_users_preview_would_save(
 			array( 'save' => 'diluxone_users_design_wp_save' )

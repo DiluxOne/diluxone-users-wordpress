@@ -33,7 +33,7 @@ function diluxone_users_state(): string {
  * @return array<string, mixed>|array{}
  */
 function diluxone_users_login_challenge(): array {
-	// phpcs:disable WordPress.Security.NonceVerification.Recommended -- our own nonce IS the credential.
+	// phpcs:disable WordPress.Security.NonceVerification.Recommended -- the person is not signed in yet, so no nonce can belong to them: the single-use pending-attempt key is the credential, validated by diluxone_users_2fa_pending() before anything is drawn.
 	if ( ! isset( $_GET['diluxone_users_2fa'], $_GET['diluxone_users_key'] ) ) {
 		return array();
 	}
@@ -131,9 +131,9 @@ add_shortcode( 'diluxone_users_login', 'diluxone_users_shortcode_login' );
  *
  * @param array<string, string>|string $atts WordPress sends '' when there are none.
  */
-function diluxone_users_shortcode_fields( $atts = array() ): string {
+function diluxone_users_fields_form( $atts = array() ): void {
 	if ( ! is_user_logged_in() ) {
-		return '';
+		return;
 	}
 
 	$atts = shortcode_atts(
@@ -147,7 +147,7 @@ function diluxone_users_shortcode_fields( $atts = array() ): string {
 
 	diluxone_users_enqueue_styles();
 
-	return diluxone_users_render(
+	diluxone_users_template_part(
 		'fields.php',
 		array(
 			'user_id' => get_current_user_id(),
@@ -158,18 +158,30 @@ function diluxone_users_shortcode_fields( $atts = array() ): string {
 		)
 	);
 }
+
+/**
+ * The same, returned for the shortcode.
+ *
+ * @param array<string, string>|string $atts WordPress sends '' when there are none.
+ */
+function diluxone_users_shortcode_fields( $atts = array() ): string {
+	ob_start();
+	diluxone_users_fields_form( $atts );
+
+	return (string) ob_get_clean();
+}
 add_shortcode( 'diluxone_users_fields', 'diluxone_users_shortcode_fields' );
 
 /** Saves the [diluxone_users_fields] form. */
 function diluxone_users_save_fields_form(): void {
 	if ( ! is_user_logged_in() ) {
-		wp_die( esc_html__( 'You have to sign in first.', 'diluxone-users' ) );
+		wp_die( esc_html__( 'You have to sign in first.', 'diluxone-users' ), '', array( 'response' => 401 ) );
 	}
 
 	check_admin_referer( 'diluxone_users_fields_save' );
 
 	$group   = sanitize_key( wp_unslash( $_POST['diluxone_users_group'] ?? '' ) );
-	$missing = diluxone_users_save( get_current_user_id(), diluxone_users_posted_fields( $group ), $group );
+	$missing = diluxone_users_save( get_current_user_id(), diluxone_users_posted_fields( 'diluxone_users_fields_save', '_wpnonce', $group ), $group );
 	$back    = wp_get_referer();
 	$back    = $back ? $back : home_url( '/' );
 
@@ -183,14 +195,14 @@ add_action( 'admin_post_diluxone_users_fields_save', 'diluxone_users_save_fields
  *
  * @param array<string, string>|string $atts WordPress sends '' when there are none.
  */
-function diluxone_users_shortcode_sessions( $atts = array() ): string {
+function diluxone_users_sessions_list( $atts = array() ): void {
 	if ( ! is_user_logged_in() ) {
-		return '';
+		return;
 	}
 
 	diluxone_users_enqueue_styles();
 
-	return diluxone_users_render(
+	diluxone_users_template_part(
 		'sessions.php',
 		array(
 			'sessions'      => diluxone_users_sessions( get_current_user_id() ),
@@ -198,6 +210,18 @@ function diluxone_users_shortcode_sessions( $atts = array() ): string {
 			'state'         => diluxone_users_state(),
 		)
 	);
+}
+
+/**
+ * The same, returned for the shortcode.
+ *
+ * @param array<string, string>|string $atts WordPress sends '' when there are none.
+ */
+function diluxone_users_shortcode_sessions( $atts = array() ): string {
+	ob_start();
+	diluxone_users_sessions_list( $atts );
+
+	return (string) ob_get_clean();
 }
 add_shortcode( 'diluxone_users_sessions', 'diluxone_users_shortcode_sessions' );
 
@@ -211,9 +235,9 @@ add_shortcode( 'diluxone_users_sessions', 'diluxone_users_shortcode_sessions' );
  *
  * @param array<string, string>|string $atts WordPress sends '' when there are none.
  */
-function diluxone_users_shortcode_accounts( $atts = array() ): string {
+function diluxone_users_accounts_list( $atts = array() ): void {
 	if ( ! is_user_logged_in() ) {
-		return '';
+		return;
 	}
 
 	diluxone_users_enqueue_styles();
@@ -247,7 +271,7 @@ function diluxone_users_shortcode_accounts( $atts = array() ): string {
 		$providers = array_filter( $providers, static fn( string $id ): bool => ! in_array( $id, $linked, true ), ARRAY_FILTER_USE_KEY );
 	}
 
-	return diluxone_users_render(
+	diluxone_users_template_part(
 		'accounts.php',
 		array(
 			'providers' => $providers,
@@ -256,5 +280,17 @@ function diluxone_users_shortcode_accounts( $atts = array() ): string {
 			'only'      => (string) $atts['only'],
 		)
 	);
+}
+
+/**
+ * The same, returned for the shortcode.
+ *
+ * @param array<string, string>|string $atts WordPress sends '' when there are none.
+ */
+function diluxone_users_shortcode_accounts( $atts = array() ): string {
+	ob_start();
+	diluxone_users_accounts_list( $atts );
+
+	return (string) ob_get_clean();
 }
 add_shortcode( 'diluxone_users_accounts', 'diluxone_users_shortcode_accounts' );

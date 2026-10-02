@@ -203,7 +203,17 @@ if (!function_exists('get_user_meta')) {
 }
 
 if (!function_exists('update_user_meta')) {
-	function update_user_meta(int $user_id, string $key, $value): bool {
+	function update_user_meta(int $user_id, string $key, $value, $prev_value = ''): bool {
+		// As WordPress does: with a previous value, only a row still holding
+		// it is written. That is what makes a conditional write lose a race.
+		if ('' !== $prev_value) {
+			$now = $GLOBALS['diluxone_users_test_user_meta'][$user_id][$key] ?? null;
+
+			if (serialize($now) !== serialize($prev_value)) {
+				return false;
+			}
+		}
+
 		$GLOBALS['diluxone_users_test_user_meta'][$user_id][$key] = $value;
 		return true;
 	}

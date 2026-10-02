@@ -152,9 +152,7 @@ class AccountConfirmTest extends IntegrationTestCase {
 	}
 
 	public function test_arriving_for_a_copy_confirms_it_and_makes_the_file(): void {
-		if ( ! class_exists( 'ZipArchive' ) ) {
-			$this->markTestSkipped( 'WordPress needs ZipArchive to write the file.' );
-		}
+		$this->needs_zip();
 
 		$user              = $this->make_user();
 		[ $request, $key ] = $this->file( $user, 'export_personal_data' );
@@ -175,7 +173,7 @@ class AccountConfirmTest extends IntegrationTestCase {
 			array(
 				'diluxone_users_request_id' => $request,
 				'diluxone_users_key'        => $key,
-				'_wpnonce'                  => wp_create_nonce( 'diluxone_users_confirm_close_' . $request ),
+				'_wpnonce'                  => wp_create_nonce( 'diluxone_users_confirm_close' ),
 			)
 		);
 
@@ -217,9 +215,7 @@ class AccountConfirmTest extends IntegrationTestCase {
 	}
 
 	public function test_the_ready_mail_sends_them_to_the_account_or_mails_the_file(): void {
-		if ( ! class_exists( 'ZipArchive' ) ) {
-			$this->markTestSkipped( 'WordPress needs ZipArchive to write the file.' );
-		}
+		$this->needs_zip();
 
 		[ $request ] = $this->file( $this->make_user(), 'export_personal_data' );
 		do_action( 'user_request_action_confirmed', $request );

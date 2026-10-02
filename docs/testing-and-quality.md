@@ -23,6 +23,7 @@ Today the checks run from this repository's own workflows in [`.github/workflows
 | Layout invariants | Playwright (measurements) | Blocks overlapping, anything past the right edge, blocks touching, bordered boxes with nothing in them, something with `hidden` still on screen, the rail falling underneath. Part of `make test-e2e`. | `make test-layout` |
 | Visual regression | Playwright (`toHaveScreenshot`) | Everything else about how a screen looks. | `make test-visual` (local only, see below) |
 | Listing screenshots | Playwright (`listing` project) | Not a check: retakes the pictures wordpress.org shows. | `make screenshots` |
+| Coverage | PCOV + phpcov (unit, integration on both topologies, merged); a script for the browser suites | Lines, functions and classes per file of `includes/` and `templates/` no test runs; a screen, tab, shortcode, action, address, command or template no spec walks. | `make coverage`, `make coverage-e2e-map` |
 | JS supply chain | CodeQL (JS) | Common JS vulnerability patterns. | (runs when JS changes) |
 | Claude review (after the move) | shared `claude-review` workflow | Everything in [`architecture.md`](architecture.md) and the organisation's WordPress review profile; rates risk and complexity. | (runs on PR) |
 
@@ -78,7 +79,13 @@ make test-integration-single-down   # stop the single-site environment when done
 
 **A constant.** `NoCacheTest` asserts that `DONOTCACHEPAGE` gets defined, and a constant cannot be taken back: those two cases run in a process of their own (`@runInSeparateProcess`). The emergency switch is a constant too, which is why its tests turn it on through the `diluxone_users_safe_mode` filter it feeds. Shortcodes registered by the plugin are not in the registry `has_shortcode()` reads inside the suite (the bootstrap loads WordPress inside a function), so a test that needs them there registers them by name and takes them out after.
 
+**What the base class gives a test.** `IntegrationTestCase` catches the ways a handler ends: `expectRedirect()` for a redirect, and `expectDie( $handler, $message, $status )` for a `wp_die()`, which checks what it said and the status it answered — a refusal is both, and the bootstrap's handler keeps the status and code `wp_die()` was given instead of only its words (`self::EXPIRED` is what a failed nonce says). `hook()` adds a filter or an action that is taken off in `tearDown()`, so an assertion that fails halfway leaves nothing hooked; `$_SERVER` is put back after every test, and so is the copy of the query social sign-in takes. The suite loads WordPress as the dashboard (`WP_ADMIN`, `DOING_AJAX`), so `is_admin()` is true everywhere: `as_front_end()` makes the rest of the test the front of the site. The copy of a person's data needs `ZipArchive`; `needs_zip()` fails, not skips, without it, because a skip there is silent in CI. In the unit suite, every test uses `Tests\Unit\ResetsWpStubs`: the stubs' options, transients, users and meta start empty and the request is put back, because the suite runs in random order.
+
 **Uninstall.** `uninstall.php` declares its functions when it is loaded, so it can be loaded once per process: `UninstallSiteTest` and `UninstallNetworkTest` run each test in a process of its own (`@runTestsInSeparateProcesses`, `@preserveGlobalState disabled`) and put back what they took. Between them they cover the box ticked and unticked on a single site, and on a network — including one whose settings never moved, where the network's box still decides and a site's own old box never counts.
+
+**The `Cover*Test` classes** were written against the coverage report (`make coverage`), one family per area: `CoverAdmin*` (the dashboard's own screens, tools and reports), `CoverSettings*` (the settings panels, design, social and e-mail templates), `CoverSignIn*` (passkeys, social sign-in, the e-mail link, the second step, reset, registration, WP-CLI), `CoverAccount*` (sessions, privacy export and erasure, account security and closing, pages, the menu, the hub and membership, the log) and `CoverFields*` (each field type saved and drawn, the public name, the photo, the account area, the front end's CSS). Each proves the refusals of what it covers — nonce, capability, owner, scope on a network — before the happy path, and follows the same rule as everything else: a case only one topology has skips on the other and names its counterpart. Three doubles live in `tests/Integration/Support/`: `CoverSignInWpLogin.php` stands in for wp-login.php's `login_header()`/`login_footer()`, `CoverSignInCli.php` is a minimal `WP_CLI`, and `CoverSignInStop.php` is what both throw where the code would `exit`; the tests that use them run in a process of their own.
+
+**What the integration suite cannot run**, and is covered in the browser instead: an `exit;` after a redirect or `wp_die()` (the harness throws on both, so the line after never runs); a real upload (`is_uploaded_file()` is false from the command line — the photo and the settings file are uploaded in `account-area` and `admin-tools`); a response that streams a file and exits (the settings export, a copy of a person's data).
 
 Use them for what depends on WordPress core: hooks, options, user meta, the activity log's table, AJAX handlers, REST routes, the sign-in and registration requests.
 
@@ -163,7 +170,7 @@ Located in [`tests/e2e/specs/admin-layout.spec.ts`](../tests/e2e/specs/admin-lay
 
 Why this layer exists at all: the unit, integration and end-to-end suites answer *does the code behave*, and they answer it well. Every visual bug this plugin has shipped got past all three of them green — a block drawn on top of the card above it, half a screen of nothing beside a column of settings, a bordered box with nothing inside it, a rail that fell underneath the form it belongs beside. None of those is a wrong value or a missing hook. They are geometry, and only a browser can see geometry.
 
-So this measures it, on **every tab of every screen**, at **four widths** — 1600, 1280, and WordPress's own two breakpoints, 960 (the menu folds to icons) and 782 (the phone layout, where the second column has to give up and go underneath). Six rules, none of which is an opinion about the design:
+So this measures it, on **every tab of every screen**, at **four widths** — 1600, 1280, and WordPress's own two breakpoints, 960 (the menu folds to icons) and 782 (the phone layout, where the second column has to give up and go underneath). The public pages — the sign-in page stacked and in tabs, the registration form, the account area to a stranger and every section of it on both its menus, and on a network the door to the hub — are measured at those four and at the three widths the front end's own stylesheet changes at, 640, 560 and 480, and at a phone's 390 (`FRONT_WIDTHS`). Six rules, none of which is an opinion about the design:
 
 | Rule | What it means |
 | --- | --- |
@@ -182,7 +189,7 @@ They need no baseline image, they mean the same thing on every machine, they say
 
 ## Visual regression (the pictures)
 
-Located in [`tests/e2e/specs/admin-snapshots.spec.ts`](../tests/e2e/specs/admin-snapshots.spec.ts); the baselines are in [`tests/e2e/snapshots/`](../tests/e2e/snapshots/).
+Located in [`tests/e2e/specs/admin-snapshots.spec.ts`](../tests/e2e/specs/admin-snapshots.spec.ts) (every tab, Your brand on each answer, Design on each shape of the sign-in page and the account), [`tests/e2e/specs/front-snapshots.spec.ts`](../tests/e2e/specs/front-snapshots.spec.ts) (the public pages: the sign-in page on every shape, stacked and in tabs, with one way in, with its words, the link on its way, a link that ran out; the second step; a new password; the registration form open and closed; the account to a stranger, on both shapes and both menus, and each section) and [`tests/e2e/specs/admin-mobile-snapshots.spec.ts`](../tests/e2e/specs/admin-mobile-snapshots.spec.ts); the baselines are in [`tests/e2e/snapshots/`](../tests/e2e/snapshots/).
 
 ```bash
 make test-visual          # compare every screen with the picture committed
@@ -196,10 +203,13 @@ Three decisions keep it from crying wolf:
 - **What is photographed is the plugin's own block** (`.wrap.diluxone-users-admin`), not the window. The admin bar counts how long the page took to build, the menu carries update badges, the footer prints the WordPress version — none of that is this plugin's and all of it changes on its own.
 - **What moves by itself inside that block is masked** — the dates and session counts in the reports, the environment table, an avatar. A mask keeps the element's box and fills it, so a block that changes *size* is still a difference. Only the content is forgiven, never the geometry.
 - **The window, the pixel ratio, the motion and the caret are pinned** in the `visual` project in [`playwright.config.ts`](../playwright.config.ts): 1280×900, device scale 1, `reducedMotion`, `animations: 'disabled'`, `caret: 'hide'`, and a 0.2% tolerance for antialiasing.
+- **What the screens are drawn from is pinned too**, by [`tests/e2e/support/visual-state.ts`](../tests/e2e/support/visual-state.ts) before every picture: every setting the pictures can show (fields, sections, colours, design, providers, rules), written through the `options` fixture so the site gets its own back, and the ten example people the overview and the reports count, made if missing, with their sessions counted from the moment of the picture. The development site's own configuration never reaches a baseline.
+
+**On a phone.** The `visual-mobile` project runs the public pages and the dashboard's screens whose stylesheet changes below 782px at 390×844, device scale 1; its pictures carry `-mobile` in their name. `make test-visual` runs both projects.
 
 **Updating a picture when the change IS what you wanted.** `make test-visual-update` — Playwright's `--update-snapshots` — rewrites the baselines. Then look at `git diff --stat tests/e2e/snapshots` **before committing**: that diff is the review of the redesign, and accepting it without looking is how a bug becomes the baseline.
 
-**The network's pictures.** Network Admin's screens, and the three places a site of a network looks different (its Overview, the hub's Ways in, another site's Tools), are photographed by [`tests/e2e/network/network-snapshots.spec.ts`](../tests/e2e/network/network-snapshots.spec.ts) against the network: `make test-visual-network` and `make test-visual-network-update`, same rules, pictures named `network-…`.
+**The network's pictures.** Network Admin's screens, and the three places a site of a network looks different (its Overview, the hub's Ways in, another site's Tools), are photographed by [`tests/e2e/network/network-snapshots.spec.ts`](../tests/e2e/network/network-snapshots.spec.ts) against the network, and the public pages only a network has — a site's three doors to the hub, the hub's sign-in and second step reached from another site, and "Join this site" offered, by invitation and welcomed — by [`tests/e2e/network/network-front-snapshots.spec.ts`](../tests/e2e/network/network-front-snapshots.spec.ts): `make test-visual-network` and `make test-visual-network-update`, same rules, pictures named `network-…`.
 
 **Why it is not in CI.** A baseline image is a picture of one machine's font rendering, its sub-pixel smoothing and its scrollbars. Committing those and asking a runner to match them is a job that is red for reasons nobody can act on, and a gate nobody can act on is a gate that gets switched off. So the `visual` project only exists when `DU_SNAPSHOTS=1` is set, which `make test-visual` does, and the baselines carry the platform in their filename. The layout measurements — which are portable — carry the load in CI.
 
@@ -210,6 +220,27 @@ make screenshots
 ```
 
 The pictures the wordpress.org listing shows, written into [`.wordpress-org/`](../.wordpress-org/) by [`tests/e2e/specs/listing-screenshots.spec.ts`](../tests/e2e/specs/listing-screenshots.spec.ts), in a Playwright project of its own that exists only when `DU_LISTING=1` is set: nothing that writes the shop window should run as a side effect of `make test-e2e`. The captions under `== Screenshots ==` in `readme.txt` are what they answer to. Retake them in the pull request that changes one of those screens, and read the diff before committing.
+
+## Coverage
+
+How much of `includes/` and `templates/` the suites run, and which doors the browser walks. Nothing here is a gate in CI yet; it is how a gap is found before a reviewer finds it.
+
+```bash
+make coverage-unit          # the unit suite: build/coverage/unit/
+make coverage-integration   # the integration suite on the network and on a single site, merged: build/coverage/integration/
+make coverage               # both, merged into one: build/coverage/all/
+make coverage-e2e-map       # every screen, tab, shortcode, action, address, command and template mapped to a spec
+```
+
+Each report directory has `report.txt` (lines, functions run and classes per file of `includes/` and `templates/`, the totals, the twenty files covered least and every function no test ran — the same text is printed at the end of the run), `clover.xml`, `html/` and `coverage.cov` (php-code-coverage's own format). The parts each run writes are in `build/coverage/parts/`.
+
+**How it is measured.** PCOV. The unit suite runs in a PHP 8.5 image with PCOV built in (`diluxone-users-pcov:php8.5`, built on first use). The integration suite runs where it always does, in each wp-env's `tests-cli`, where [`tests/coverage/pcov.sh`](../tests/coverage/pcov.sh) installs PCOV switched off (`pcov.enabled=0`), so `make test-integration` is as fast as before; the coverage targets switch it on for their own run. Every run sees the checkout at the same path, `/var/www/html/wp-content/plugins/diluxone-users-wordpress/`, so `phpcov merge` can add the parts up.
+
+**What runs while the plugin loads counts.** PHPUnit measures from the first test on, and every `add_action()` at the top of a file runs before that, once, when WordPress loads the plugin. So [`tests/bootstrap-integration.php`](../tests/bootstrap-integration.php) measures the load itself when `DU_COVERAGE_BOOTSTRAP` names a file, and the targets merge it in as one more part (`network-load.cov`, `single-load.cov`).
+
+**A file no test loads** is in no part; [`tests/coverage/report.php`](../tests/coverage/report.php) adds it to `report.txt` at 0%, with its functions listed as never run. The HTML and Clover reports leave it out, so read `report.txt` for the totals. The runs leave such files out on purpose (`includeUncoveredFiles="false"`): php-code-coverage would otherwise add its parser's idea of a file's lines, which is not always PCOV's, and a line only the parser counts can never be run.
+
+**`make coverage-e2e-map`** ([`tests/coverage/e2e-map.mjs`](../tests/coverage/e2e-map.mjs)) answers the question a coverage driver cannot for the browser suites, which drive a server in another container: is every door walked? It reads `includes/` for every panel (`diluxone_users_register_panel()`), shortcode, `admin_post_` and `wp_ajax_` action, `login_form_` action, rewrite rule, REST route and WP-CLI command, and lists `templates/`. A tab must be in [`tests/e2e/support/screens.ts`](../tests/e2e/support/screens.ts), the list the behaviour, layout and picture suites walk; everything else must have a row in the "Every door, by name" table of [`tests/e2e/COVERAGE.md`](../tests/e2e/COVERAGE.md) naming a spec that exists (`specs/<name>` or `network/<name>`). A row or a tab for something the plugin no longer registers fails too. A door added without its row is a red run; adding the row is saying, in the same pull request, which spec walks it.
 
 ## Running everything at once
 

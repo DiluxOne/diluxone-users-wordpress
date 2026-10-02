@@ -55,4 +55,29 @@ class TotpReplayTest extends IntegrationTestCase {
 
 		$this->assertTrue( diluxone_users_totp_verify( $this->user, diluxone_users_totp_code( self::SECRET ) ) );
 	}
+
+	/**
+	 * The code that turned the app on is spent: typed again straight away as
+	 * a sign-in code — by somebody who watched it typed — it is refused.
+	 */
+	public function test_the_code_that_turned_the_app_on_is_spent(): void {
+		delete_user_meta( $this->user, 'diluxone_users_totp' );
+		$secret = diluxone_users_totp_pending( $this->user );
+		$code   = diluxone_users_totp_code( $secret );
+
+		$this->assertTrue( diluxone_users_totp_activate( $this->user, $code ) );
+		$this->assertFalse( diluxone_users_totp_verify( $this->user, $code ) );
+	}
+
+	/** Removing the app forgets its secret and its last step; a new one is another secret. */
+	public function test_removing_the_app_forgets_it(): void {
+		$this->assertTrue( diluxone_users_totp_verify( $this->user, diluxone_users_totp_code( self::SECRET ) ) );
+
+		diluxone_users_totp_forget( $this->user );
+
+		$this->assertFalse( diluxone_users_totp_verify( $this->user, diluxone_users_totp_code( self::SECRET ) ) );
+		$this->assertSame( '', get_user_meta( $this->user, 'diluxone_users_totp_step', true ) );
+		$this->assertNotSame( self::SECRET, diluxone_users_totp_pending( $this->user ) );
+		delete_user_meta( $this->user, 'diluxone_users_totp_pending' );
+	}
 }

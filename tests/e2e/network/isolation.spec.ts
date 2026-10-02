@@ -2,7 +2,7 @@ import { Page } from '@playwright/test';
 import { test, expect, whoOn, opensDashboard, signInFrom, toTheHub, SiteHandle } from './support';
 import { freshEmail } from '../support/api';
 import { wp } from '../support/cli';
-import { accountSection, adminUrl, challengeScreen, emailField, loginWay, openPanel, passwordForm, savePanel, signInWithPassword } from '../support/ui';
+import { accountSection, adminUrl, challengeScreen, emailField, loginWay, navigated, openPanel, passwordForm, savePanel, signInWithPassword } from '../support/ui';
 import { NETWORK_ADMIN_STATE } from '../../../playwright.network.config';
 
 /**
@@ -130,7 +130,7 @@ test.describe('Add New User on a site of the network', () => {
 			await skip.check();
 		}
 
-		await Promise.all([page.waitForLoadState('domcontentloaded'), form.locator('#createusersub').click()]);
+		await navigated(page, () => form.locator('#createusersub').click());
 
 		// WordPress's own error box, if the network refused the username.
 		await expect(page.locator('#message.error, .notice-error, .error'), 'the network refused the account').toHaveCount(0);
@@ -309,7 +309,8 @@ test.describe('The second step is the network’s', () => {
 		await page.goto(`${beta.url}wp-login.php?diluxone-users-admin=1`);
 		await signInWithPassword(page, email, PASSWORD);
 		await expect(challengeScreen(page)).toBeVisible();
-		expect(page.url().startsWith(hub.url) && !page.url().startsWith(beta.url), 'asked on the hub').toBe(true);
+		expect(page.url().startsWith(hub.url), 'asked on the network').toBe(true);
+		expect(new URL(page.url()).pathname, 'on the hub, not under another site’s path').not.toMatch(new RegExp(`^/(${alpha.slug}|${beta.slug})/`));
 		expect(await opensDashboard(page, alpha.url), 'the emergency door is no way round it').toBe(false);
 	});
 });

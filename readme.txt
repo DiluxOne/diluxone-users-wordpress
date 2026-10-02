@@ -30,7 +30,7 @@ Everything about the people who use your site, in one place.
   code, and backup codes, with a policy per role and a rule of its own for
   sign-ins by e-mail link.
 * **Passkeys** (WebAuthn), each one with a name of its own.
-* **Sessions**: how long they last (WordPress's length until you choose one), where they are open, and how to close them.
+* **Sessions**: how long they last (WordPress's length until you choose one), where they are open, and how to close them. A new password closes every one of them.
 * **An activity log** of its own: who signed in, who was refused and what
   changed. It records IP addresses; see Privacy below.
 * **Privacy**: WordPress's own export and erasure requests answer for
@@ -171,7 +171,8 @@ every site: the second step, passkeys, sessions, the proxy, the social sign-in
 apps and their rules, the user fields and what the activity log keeps are set
 once, in **Network Admin → DiluxOne Users+**, and a site administrator cannot
 change them for their own site. "Only some roles" means a role on any of the
-person's sites. The sign-in, registration and account pages, and how they look
+person's sites; the roles that may use social sign-in are asked of every one of
+them, so a role left unticked on any site keeps that person out. The sign-in, registration and account pages, and how they look
 and what they say, are set on the main site, and every site uses them. Each
 site keeps its own menus, admin bar, reports and maintenance. The activity
 log is one table for the whole network: each site's Reports › Activity shows

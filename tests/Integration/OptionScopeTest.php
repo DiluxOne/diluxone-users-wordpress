@@ -117,6 +117,21 @@ class OptionScopeTest extends IntegrationTestCase {
 		$this->assertFalse( get_blog_option( diluxone_users_hub_site_id(), 'diluxone_users_login_title' ) );
 	}
 
+	/** A hub setting deleted from another site is gone there in the same request. */
+	public function test_a_hub_setting_deleted_from_another_site_leaves_no_copy_behind(): void {
+		$other = $this->second_site();
+
+		diluxone_users_update_option( 'diluxone_users_login_title', 'Hub title' );
+
+		switch_to_blog( $other );
+		$this->assertSame( 'Hub title', diluxone_users_raw_get( 'diluxone_users_login_title' ), 'read once, and kept for the request' );
+
+		diluxone_users_delete_option( 'diluxone_users_login_title' );
+
+		$this->assertSame( 'fallback', diluxone_users_raw_get( 'diluxone_users_login_title', 'fallback' ) );
+		restore_current_blog();
+	}
+
 	/**
 	 * Another site reads the hub once per request, and never goes on reading
 	 * what was there before somebody wrote it — even somebody going past the

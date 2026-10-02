@@ -122,6 +122,10 @@ function diluxone_users_screen_callbacks(): array {
  * On a network, a site's menu carries only the screens that belong to it:
  * the network's settings are in Network Admin (see admin-network.php), and
  * on a site that is not the hub, the hub's screens are on the hub.
+ *
+ * No position: the item goes where WordPress puts a plugin that does not ask
+ * for one, after the menus WordPress brings. A plugin is part of the
+ * workspace, not the first thing in it.
  */
 function diluxone_users_menu(): void {
 	add_menu_page(
@@ -130,8 +134,7 @@ function diluxone_users_menu(): void {
 		'manage_options',
 		DILUXONE_USERS_MENU,
 		'diluxone_users_screen_home',
-		'dashicons-groups',
-		71
+		'dashicons-groups'
 	);
 
 	$callbacks = diluxone_users_screen_callbacks();
@@ -361,14 +364,21 @@ function diluxone_users_scope_control( string $prefix, string $help = '', string
 /**
  * Reads the control back out of a submitted form.
  *
+ * It is a panel's form, and the panel's check is made here as well, before
+ * anything is read: the save that asks has made it already, and this does not
+ * lean on that.
+ *
  * @param string $prefix Option prefix.
+ * @param string $screen The screen whose panel posted it.
  * @return array<string, mixed>
  */
-function diluxone_users_scope_posted( string $prefix ): array {
-	// phpcs:disable WordPress.Security.NonceVerification.Missing -- the caller verifies it.
+function diluxone_users_scope_posted( string $prefix, string $screen ): array {
+	check_admin_referer( 'diluxone_users_panel_' . $screen, 'diluxone_users_panel_nonce' );
+	diluxone_users_panel_allowed();
+
 	$scope = sanitize_key( wp_unslash( $_POST[ $prefix . '_scope' ] ?? 'all' ) );
-	$roles = array_map( 'sanitize_key', (array) wp_unslash( $_POST[ $prefix . '_roles' ] ?? array() ) );
-	// phpcs:enable
+	// A role sent as a list is no role, and an empty one is not kept as one.
+	$roles = array_values( array_filter( array_map( 'sanitize_key', (array) wp_unslash( $_POST[ $prefix . '_roles' ] ?? array() ) ) ) );
 
 	$scope = 'some' === $scope ? 'some' : 'all';
 
@@ -498,6 +508,13 @@ function diluxone_users_admin_styles( string $hook ): void {
 	// WordPress's own and it is not small, so it is loaded where it is used.
 	if ( false !== strpos( $hook, 'diluxone-users-design' ) ) {
 		wp_enqueue_media();
+	}
+
+	// The editor a section's own content is written in. Loaded with the head
+	// of the page, so that wp_editor() finds its stylesheet already printed
+	// rather than printing a <link> in the middle of the tab.
+	if ( false !== strpos( $hook, 'diluxone-users-account' ) ) {
+		wp_enqueue_editor();
 	}
 
 	wp_enqueue_script( 'diluxone-users-admin', DILUXONE_USERS_URL . 'assets/diluxone-users-admin.js', array(), diluxone_users_asset_version( 'assets/diluxone-users-admin.js' ), true );

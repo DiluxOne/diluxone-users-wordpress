@@ -43,7 +43,12 @@ function diluxone_users_safe_mode(): bool {
 }
 
 /**
- * Says so on every dashboard page, for as long as it lasts.
+ * Says so on the dashboard, the plugins list and the plugin's own screens, for
+ * as long as it lasts.
+ *
+ * The places every other notice of the plugin speaks, and no more: the
+ * WordPress admin is a workspace, and a warning on every screen of it is the
+ * kind of noise people learn to stop reading.
  *
  * To whoever can manage the site, or the network in Network Admin: they are
  * the ones who put the constant there and the ones who have to take it out.
@@ -51,7 +56,7 @@ function diluxone_users_safe_mode(): bool {
  * that is forgotten, and this one is about the second step being off.
  */
 function diluxone_users_safe_mode_notice(): void {
-	if ( ! diluxone_users_safe_mode() || ! current_user_can( is_network_admin() ? 'manage_network_options' : 'manage_options' ) ) {
+	if ( ! diluxone_users_safe_mode() || ! current_user_can( is_network_admin() ? 'manage_network_options' : 'manage_options' ) || ! diluxone_users_notice_here() ) {
 		return;
 	}
 

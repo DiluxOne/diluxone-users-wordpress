@@ -197,6 +197,10 @@ class PasskeyStoreTest extends IntegrationTestCase {
 			'label'          => '<b>My key</b>',
 		);
 
+		$this->assertSame( array(), diluxone_users_passkeys_posted(), 'Without the dialogue\'s nonce nothing was sent' );
+
+		$_REQUEST['nonce'] = wp_create_nonce( 'diluxone_users_passkeys' );
+
 		$sent = diluxone_users_passkeys_posted();
 		$_POST = array();
 

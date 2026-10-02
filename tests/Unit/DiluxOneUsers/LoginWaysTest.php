@@ -20,10 +20,13 @@
 
 namespace Tests\Unit\DiluxOneUsers;
 
+use Tests\Unit\ResetsWpStubs;
 use Brain\Monkey;
 use PHPUnit\Framework\TestCase;
 
 class LoginWaysTest extends TestCase {
+
+	use ResetsWpStubs;
 
 	protected function setUp(): void {
 		parent::setUp();

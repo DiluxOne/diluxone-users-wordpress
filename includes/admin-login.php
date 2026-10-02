@@ -92,7 +92,9 @@ add_action( 'diluxone_users_register_panels', 'diluxone_users_login_panels' );
 
 /** Where people sign in, and what becomes of wp-login.php. */
 function diluxone_users_login_page_save(): void {
-	// phpcs:disable WordPress.Security.NonceVerification.Missing -- the panel verifies it.
+	check_admin_referer( 'diluxone_users_panel_diluxone-users-login', 'diluxone_users_panel_nonce' );
+	diluxone_users_panel_allowed();
+
 	$screens = sanitize_key( wp_unslash( $_POST['diluxone_users_wp_screens'] ?? '' ) );
 	$screens = in_array( $screens, array( 'auto', 'mine', 'wp' ), true ) ? $screens : 'auto';
 
@@ -107,12 +109,11 @@ function diluxone_users_login_page_save(): void {
 
 	diluxone_users_save_options(
 		array(
-			'diluxone_users_login_page'    => absint( wp_unslash( $_POST['diluxone_users_login_page'] ?? 0 ) ),
+			'diluxone_users_login_page'    => ( isset( $_POST['diluxone_users_login_page'] ) && is_scalar( $_POST['diluxone_users_login_page'] ) ? absint( wp_unslash( $_POST['diluxone_users_login_page'] ) ) : 0 ),
 			'diluxone_users_wp_screens'    => $screens,
 			'diluxone_users_lost_password' => in_array( $lost, array( 'wp', 'site', 'link' ), true ) ? $lost : 'wp',
 		)
 	);
-	// phpcs:enable
 }
 
 /**
@@ -132,7 +133,9 @@ function diluxone_users_login_ways_needs_one(): string {
  *              was written.
  */
 function diluxone_users_login_ways_save(): bool {
-	// phpcs:disable WordPress.Security.NonceVerification.Missing -- the panel verifies it.
+	check_admin_referer( 'diluxone_users_panel_diluxone-users-login', 'diluxone_users_panel_nonce' );
+	diluxone_users_panel_allowed();
+
 	$ways = array_map( 'sanitize_key', (array) wp_unslash( $_POST['diluxone_users_login_method'] ?? array() ) );
 
 	/*
@@ -155,8 +158,8 @@ function diluxone_users_login_ways_save(): bool {
 	 */
 	$saved = array(
 		'diluxone_users_login_method'   => $link && $password ? 'both' : ( $password ? 'password' : 'link' ),
-		'diluxone_users_login_expiry'   => absint( wp_unslash( $_POST['diluxone_users_login_expiry'] ?? 15 ) ),
-		'diluxone_users_login_throttle' => absint( wp_unslash( $_POST['diluxone_users_login_throttle'] ?? 60 ) ),
+		'diluxone_users_login_expiry'   => ( isset( $_POST['diluxone_users_login_expiry'] ) && is_scalar( $_POST['diluxone_users_login_expiry'] ) ? absint( wp_unslash( $_POST['diluxone_users_login_expiry'] ) ) : 15 ),
+		'diluxone_users_login_throttle' => ( isset( $_POST['diluxone_users_login_throttle'] ) && is_scalar( $_POST['diluxone_users_login_throttle'] ) ? absint( wp_unslash( $_POST['diluxone_users_login_throttle'] ) ) : 60 ),
 		// It is about what the sign-in box accepts, so it is decided here;
 		// what a public name is, is decided on the account screen.
 		'diluxone_users_handle_login'   => isset( $_POST['diluxone_users_handle_login'] ) ? 1 : 0,
@@ -185,7 +188,6 @@ function diluxone_users_login_ways_save(): bool {
 	}
 
 	diluxone_users_save_options( $saved );
-	// phpcs:enable
 
 	return true;
 }
@@ -405,8 +407,7 @@ function diluxone_users_screen_login_page(): void {
 		'option_none_value' => 0,
 	);
 
-	// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- wp_dropdown_pages() escapes its own and prints it.
-	wp_dropdown_pages( $diluxone_users_dropdown );
+	diluxone_users_ui_page_dropdown( $diluxone_users_dropdown );
 	diluxone_users_create_page_link( 'diluxone_users_login_page' );
 
 	diluxone_users_ui_field_close( __( 'With none chosen, everybody signs in on wp-login.php and nothing below applies.', 'diluxone-users' ) );
@@ -769,7 +770,9 @@ function diluxone_users_screen_login_ways(): void {
  * in the option for ever.
  */
 function diluxone_users_login_arrangement_save(): void {
-	// phpcs:disable WordPress.Security.NonceVerification.Missing -- the panel verifies it.
+	check_admin_referer( 'diluxone_users_panel_diluxone-users-login', 'diluxone_users_panel_nonce' );
+	diluxone_users_panel_allowed();
+
 	$known  = array_keys( diluxone_users_login_arrangeable() );
 	$layout = sanitize_key( wp_unslash( $_POST['diluxone_users_login_layout'] ?? 'auto' ) );
 	$open   = sanitize_key( wp_unslash( $_POST['diluxone_users_login_open'] ?? '' ) );
@@ -784,7 +787,6 @@ function diluxone_users_login_arrangement_save(): void {
 			'diluxone_users_login_order'  => array_values( array_intersect( array_unique( $order ), $known ) ),
 		)
 	);
-	// phpcs:enable
 }
 
 /**
@@ -939,7 +941,7 @@ function diluxone_users_login_preview(): void {
 	// exist.
 	diluxone_users_login_frame_open();
 
-	echo diluxone_users_render( // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- the template escapes its own output.
+	diluxone_users_template_part(
 		'login.php',
 		array(
 			'state'     => diluxone_users_state(),

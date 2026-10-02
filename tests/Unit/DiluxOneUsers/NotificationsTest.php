@@ -9,10 +9,13 @@
 
 namespace Tests\Unit\DiluxOneUsers;
 
+use Tests\Unit\ResetsWpStubs;
 use Brain\Monkey;
 use PHPUnit\Framework\TestCase;
 
 class NotificationsTest extends TestCase {
+
+	use ResetsWpStubs;
 
 	private const USER_ID = 11;
 
@@ -230,6 +233,11 @@ class NotificationsTest extends TestCase {
 			'diluxone_users_notify_security' => 'sometimes',
 		);
 
+		// The panel's nonce and capability are the integration suite's to
+		// prove (PanelNonceTest); here it is only asked for, first.
+		Monkey\Functions\expect( 'check_admin_referer' )->once()->with( 'diluxone_users_panel_' . DILUXONE_USERS_NOTICES, 'diluxone_users_panel_nonce' );
+		Monkey\Functions\expect( 'diluxone_users_panel_allowed' )->once();
+
 		diluxone_users_notices_rules_save();
 
 		$this->assertSame(
@@ -241,6 +249,24 @@ class NotificationsTest extends TestCase {
 		);
 
 		unset( $_POST['diluxone_users_notice_rules'] );
+	}
+
+	/** The nonce is checked before anything posted is read: refused there, nothing is written. */
+	public function test_saving_asks_for_its_nonce_before_reading_anything(): void {
+		require_once DILUXONE_USERS_DIR . 'includes/admin-notices.php';
+
+		$GLOBALS['_test_wp_options']['diluxone_users_notice_rules'] = array( self::LOGIN => 'always' );
+		$_POST['diluxone_users_notice_rules']                       = array( self::LOGIN => 'never' );
+
+		Monkey\Functions\expect( 'check_admin_referer' )->once()->andThrow( new \RuntimeException( 'expired' ) );
+		Monkey\Functions\expect( 'diluxone_users_panel_allowed' )->never();
+
+		try {
+			diluxone_users_notices_rules_save();
+			$this->fail( 'A refused nonce stops the save' );
+		} catch ( \RuntimeException $e ) {
+			$this->assertSame( array( self::LOGIN => 'always' ), $GLOBALS['_test_wp_options']['diluxone_users_notice_rules'] );
+		}
 	}
 
 	public function test_the_same_browser_gives_the_same_identifier(): void {

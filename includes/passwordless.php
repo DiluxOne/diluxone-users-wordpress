@@ -333,7 +333,9 @@ function diluxone_users_wp_profile_guard(): void {
 	// they are the person who has to be able to fix what broke, and the
 	// dashboard profile is where it gets fixed. On a network that is the super
 	// admin; on a single site, the administrator.
-	if ( 'allow' === $mode || current_user_can( 'edit_users' ) || diluxone_users_safe_mode() ) {
+	// Only the two answers that close it close it: a value nobody chose is
+	// not a decision to keep people off their own profile.
+	if ( ! in_array( $mode, array( 'redirect', 'block' ), true ) || current_user_can( 'edit_users' ) || diluxone_users_safe_mode() ) {
 		return;
 	}
 

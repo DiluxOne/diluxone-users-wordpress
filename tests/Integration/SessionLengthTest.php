@@ -68,9 +68,12 @@ class SessionLengthTest extends IntegrationTestCase {
 
 		diluxone_users_update_option( 'diluxone_users_session_long_days', 21 );
 
-		$_POST = array(
-			'diluxone_users_session_long_days'  => '0',
-			'diluxone_users_session_short_days' => '0',
+		$this->postPanel(
+			DILUXONE_USERS_SECURITY,
+			array(
+				'diluxone_users_session_long_days'  => '0',
+				'diluxone_users_session_short_days' => '0',
+			)
 		);
 		diluxone_users_sessions_save();
 

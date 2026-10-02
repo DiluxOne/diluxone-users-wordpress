@@ -318,7 +318,8 @@ function diluxone_users_privacy_erase( string $email, int $page = 1 ): array {
 	}
 
 	foreach ( diluxone_users_privacy_keys( $user_id ) as $key ) {
-		if ( '' === (string) get_user_meta( $user_id, $key, true ) ) {
+		// Not cast to a string: the devices and the backup codes are lists.
+		if ( '' === get_user_meta( $user_id, $key, true ) ) {
 			continue;
 		}
 

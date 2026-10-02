@@ -55,14 +55,18 @@ class SsoLinkTest extends IntegrationTestCase {
 		$this->assertFalse( get_user_by( 'email', $email ), 'no account created' );
 	}
 
-	/** On a network, "only some roles" means a role on any of the person's sites, as everywhere else. */
-	public function test_only_some_roles_counts_a_role_on_any_site_of_the_person(): void {
+	/**
+	 * On a network the roles are every role on any of the person's sites, and
+	 * the social list, which lets people in, is asked of each of them: one
+	 * role left unticked anywhere keeps the person out — an editor of another
+	 * site does not get in through a door kept for subscribers.
+	 */
+	public function test_only_some_roles_is_asked_of_every_role_on_any_site_of_the_person(): void {
 		if ( ! is_multisite() ) {
-			$this->markTestSkipped( 'A network case.' );
+			$this->markTestSkipped( 'A network case; on a single site the person has the one role this site gives them.' );
 		}
 
 		diluxone_users_update_option( 'diluxone_users_sso_scope', 'some' );
-		diluxone_users_update_option( 'diluxone_users_sso_roles', array( 'editor' ) );
 
 		$user = $this->make_user();
 		$site = (int) wp_insert_site(
@@ -73,10 +77,18 @@ class SsoLinkTest extends IntegrationTestCase {
 		);
 		add_user_to_blog( $site, $user, 'editor' );
 
-		$this->assertFalse( diluxone_users_sso_role_blocked( $user ), 'an editor of another site of theirs' );
+		diluxone_users_update_option( 'diluxone_users_sso_roles', array( 'subscriber' ) );
+		$this->assertTrue( diluxone_users_sso_role_blocked( $user ), 'a subscriber here who edits another site is kept out of the subscribers\' door' );
+
+		diluxone_users_update_option( 'diluxone_users_sso_roles', array( 'editor' ) );
+		$this->assertTrue( diluxone_users_sso_role_blocked( $user ), 'nor let in by the editors\' door while a role of theirs is left unticked' );
+
+		diluxone_users_update_option( 'diluxone_users_sso_roles', array( 'subscriber', 'editor' ) );
+		$this->assertFalse( diluxone_users_sso_role_blocked( $user ), 'every role of theirs ticked' );
 
 		remove_user_from_blog( $user, $site );
-		$this->assertTrue( diluxone_users_sso_role_blocked( $user ), 'a subscriber everywhere' );
+		diluxone_users_update_option( 'diluxone_users_sso_roles', array( 'subscriber' ) );
+		$this->assertFalse( diluxone_users_sso_role_blocked( $user ), 'a subscriber everywhere' );
 	}
 
 	/** Unlinking takes off a provider's link and nothing else the prefix happens to cover. */
@@ -84,7 +96,6 @@ class SsoLinkTest extends IntegrationTestCase {
 		$user = $this->make_user();
 		update_user_meta( $user, 'diluxone_users_sso_mock', $this->sub );
 		update_user_meta( $user, 'diluxone_users_sso_scope_note', 'kept' );
-		add_filter( 'wp_redirect', array( $this, 'throw_redirect' ) );
 
 		foreach ( array( 'scope_note', MockProvider::ID ) as $provider ) {
 			wp_set_current_user( $user );
@@ -98,7 +109,6 @@ class SsoLinkTest extends IntegrationTestCase {
 			$this->expectRedirect( 'diluxone_users_sso_unlink' );
 		}
 
-		remove_filter( 'wp_redirect', array( $this, 'throw_redirect' ) );
 		wp_set_current_user( 0 );
 
 		$this->assertSame( 'kept', get_user_meta( $user, 'diluxone_users_sso_scope_note', true ), 'not a provider: left alone' );
@@ -169,6 +179,7 @@ class SsoLinkTest extends IntegrationTestCase {
 		$email  = get_userdata( $victim )->user_email;
 
 		$this->assertSame( 0, diluxone_users_sso_user( MockProvider::ID, $this->identity( $email, true ) ) );
+		$this->assertSame( '', get_user_meta( $victim, 'diluxone_users_sso_mock', true ), 'and nothing was linked to it' );
 	}
 
 	/**
@@ -202,5 +213,20 @@ class SsoLinkTest extends IntegrationTestCase {
 		$this->assertSame( 'Ada', $clean['name'] );
 		$this->assertStringNotContainsString( '<', $clean['email'] );
 		$this->assertNull( $clean['verified'], 'Only a real yes or no is a claim' );
+	}
+
+	/**
+	 * An existing account found by its verified address, whose role social
+	 * sign-in keeps out, is neither opened nor quietly linked.
+	 */
+	public function test_an_account_found_by_address_whose_role_is_kept_out_is_not_linked(): void {
+		diluxone_users_update_option( 'diluxone_users_sso_link_by_email', 1 );
+		diluxone_users_update_option( 'diluxone_users_sso_scope', 'some' );
+		diluxone_users_update_option( 'diluxone_users_sso_roles', array( 'subscriber' ) );
+
+		$admin = $this->make_user( 'administrator' );
+
+		$this->assertSame( 0, diluxone_users_sso_user( MockProvider::ID, $this->identity( get_userdata( $admin )->user_email, true ) ) );
+		$this->assertSame( '', get_user_meta( $admin, 'diluxone_users_sso_mock', true ) );
 	}
 }

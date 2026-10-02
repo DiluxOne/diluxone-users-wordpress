@@ -672,6 +672,28 @@ function diluxone_users_membership_new_site( $site ): void {
 }
 add_action( 'wp_initialize_site', 'diluxone_users_membership_new_site', 20 );
 
+/**
+ * A site deleted while its job waits: the job goes with it.
+ *
+ * Left in the queue, it would show on Membership as a sync in progress for a
+ * site that no longer exists until the next run dropped it.
+ *
+ * @param WP_Site $site The site being deleted.
+ */
+function diluxone_users_membership_site_gone( $site ): void {
+	if ( ! $site instanceof WP_Site ) {
+		return;
+	}
+
+	$jobs = diluxone_users_membership_queue();
+	$left = array_filter( $jobs, static fn( array $job ): bool => ! ( 'site' === $job['kind'] && (int) $site->blog_id === $job['id'] ) );
+
+	if ( count( $left ) !== count( $jobs ) ) {
+		diluxone_users_membership_queue_save( $left );
+	}
+}
+add_action( 'wp_uninitialize_site', 'diluxone_users_membership_site_gone' );
+
 /* ── The queue ─────────────────────────────────────────────────────── */
 
 /**

@@ -54,7 +54,9 @@ function diluxone_users_screen_membership(): void {
  * @return false|void False when what was sent is not one of the three.
  */
 function diluxone_users_membership_save() {
-	// phpcs:ignore WordPress.Security.NonceVerification.Missing -- the panel verifies it.
+	check_admin_referer( 'diluxone_users_panel_' . DILUXONE_USERS_MEMBERSHIP_SCREEN, 'diluxone_users_panel_nonce' );
+	diluxone_users_panel_allowed();
+
 	$policy = sanitize_key( wp_unslash( $_POST[ DILUXONE_USERS_MEMBERSHIP ] ?? '' ) );
 
 	if ( ! in_array( $policy, diluxone_users_membership_policies(), true ) ) {
@@ -356,7 +358,7 @@ function diluxone_users_membership_sync_box( array $queue ): void {
 function diluxone_users_membership_sync_request(): void {
 	// On a single site nobody has the network's capability.
 	if ( ! current_user_can( DILUXONE_USERS_NETWORK_CAP ) ) {
-		wp_die( esc_html__( 'You are not allowed to do this.', 'diluxone-users' ) );
+		wp_die( esc_html__( 'You are not allowed to do this.', 'diluxone-users' ), '', array( 'response' => 403 ) );
 	}
 
 	check_admin_referer( 'diluxone_users_membership_sync' );

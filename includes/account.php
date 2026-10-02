@@ -32,7 +32,17 @@ function diluxone_users_register_section( string $id, array $args ): void {
 
 	$diluxone_users_sections = is_array( $diluxone_users_sections ) ? $diluxone_users_sections : array();
 
-	$diluxone_users_sections[ $id ] = wp_parse_args(
+	$diluxone_users_sections[ $id ] = diluxone_users_section_shape( $id, $args );
+}
+
+/**
+ * One section with every key filled in: what was given, and the rest by default.
+ *
+ * @param array<string, mixed> $args
+ * @return array<string, mixed>
+ */
+function diluxone_users_section_shape( string $id, array $args ): array {
+	return wp_parse_args(
 		$args,
 		array(
 			'label'      => $id,
@@ -98,10 +108,12 @@ function diluxone_users_sections( bool $all = false ): array {
 
 	$sections = is_array( $diluxone_users_sections ) ? $diluxone_users_sections : array();
 
-	// The site's own sections are in no code: they live in the option.
+	// The site's own sections are in no code: they live in the option, and
+	// are read from it on every call. Kept in the registry, one deleted
+	// earlier in the request would still be listed, and its address taken.
 	foreach ( (array) diluxone_users_option( 'diluxone_users_account_sections' ) as $id => $config ) {
 		if ( ! isset( $sections[ $id ] ) && ! empty( $config['custom'] ) ) {
-			diluxone_users_register_section(
+			$sections[ (string) $id ] = diluxone_users_section_shape(
 				(string) $id,
 				array(
 					'label'   => (string) ( $config['label'] ?? $id ),
@@ -112,8 +124,6 @@ function diluxone_users_sections( bool $all = false ): array {
 			);
 		}
 	}
-
-	$sections = is_array( $diluxone_users_sections ) ? $diluxone_users_sections : array();
 
 	foreach ( $sections as $id => $section ) {
 		$config = diluxone_users_section_config( $id );
@@ -253,7 +263,7 @@ function diluxone_users_section_has_code( array $section ): bool {
 }
 
 /**
- * What gets drawn inside a section.
+ * Draws what goes inside a section.
  *
  * Two things can live together: what the code knows how to draw — the
  * details, the security, another plugin's courses — and what was written from
@@ -262,35 +272,37 @@ function diluxone_users_section_has_code( array $section ): bool {
  * does not want to lose the details. Now it is a choice, and replacing is
  * still there for whoever wants it.
  *
+ * The code draws itself, where it is called. What the admin wrote is filtered
+ * on the way in, as a post would be, and its shortcodes are expanded and the
+ * result filtered again on the way out, right where it is printed.
+ *
  * @param array<string, mixed> $section
  */
-function diluxone_users_account_section_html( array $section, WP_User $user ): string {
-	$code = '';
+function diluxone_users_account_section( array $section, WP_User $user ): void {
+	$code  = diluxone_users_section_has_code( $section );
+	$own   = '' !== (string) $section['content'];
+	$first = $own && $code && in_array( (string) $section['placement'], array( 'before', 'replace' ), true );
 
-	if ( diluxone_users_section_has_code( $section ) ) {
-		ob_start();
+	if ( $first ) {
+		diluxone_users_account_section_own( $section );
+	}
+
+	if ( $code && ! ( $own && 'replace' === (string) $section['placement'] ) ) {
 		call_user_func( $section['render'], $user );
-		$code = (string) ob_get_clean();
 	}
 
-	$own = '' === (string) $section['content']
-		? ''
-		: do_shortcode( wp_kses_post( (string) $section['content'] ) );
-
-	if ( '' === $code || '' === $own ) {
-		return $code . $own;
+	if ( $own && ! $first ) {
+		diluxone_users_account_section_own( $section );
 	}
+}
 
-	switch ( (string) $section['placement'] ) {
-		case 'before':
-			return $own . $code;
-
-		case 'replace':
-			return $own;
-
-		default:
-			return $code . $own;
-	}
+/**
+ * What the admin wrote for a section, with its shortcodes.
+ *
+ * @param array<string, mixed> $section
+ */
+function diluxone_users_account_section_own( array $section ): void {
+	echo wp_kses( do_shortcode( wp_kses_post( (string) $section['content'] ) ), diluxone_users_allowed_html(), diluxone_users_avatar_protocols() );
 }
 
 /** The first section shown when arriving without asking for one. */
@@ -514,7 +526,7 @@ function diluxone_users_account_nav( ?array $sections = null, string $current = 
 			// The menu can be placed on its own with the shortcode, far from
 			// the area it navigates, so it carries its own direction rather
 			// than waiting to be told by a parent that may not be there.
-			'column'   => 'side' === (string) diluxone_users_option( 'diluxone_users_account_layout' ),
+			'column'   => 'side' === diluxone_users_account_layout(),
 		)
 	);
 }
@@ -537,6 +549,32 @@ function diluxone_users_account_template(): string {
 		: array( 'plain', 'cover' );
 
 	return in_array( $template, $known, true ) ? $template : 'plain';
+}
+
+/**
+ * Where the menu can go.
+ *
+ * @return array<string, string> Layout => what it is called.
+ */
+function diluxone_users_account_layouts(): array {
+	return array(
+		'tabs' => __( 'Tabs across the top', 'diluxone-users' ),
+		'side' => __( 'A menu down the side', 'diluxone-users' ),
+		'none' => __( 'No menu — the site places it with [diluxone_users_account_nav]', 'diluxone-users' ),
+	);
+}
+
+/**
+ * Where the menu goes, read against the places there are.
+ *
+ * Anything else — an option written by hand, a settings file — was drawn as
+ * no menu at all, since neither the tabs nor the side matched: an account
+ * area nobody could move around in. It is the tabs instead.
+ */
+function diluxone_users_account_layout(): string {
+	$layout = (string) diluxone_users_option( 'diluxone_users_account_layout' );
+
+	return isset( diluxone_users_account_layouts()[ $layout ] ) ? $layout : 'tabs';
 }
 
 /**
@@ -653,29 +691,31 @@ function diluxone_users_account_cover_image(): string {
 	return diluxone_users_hub_image_url( (int) diluxone_users_option( 'diluxone_users_account_cover_image' ), 'full' );
 }
 
-/** The whole account area. Shortcode: [diluxone_users_account] */
-function diluxone_users_shortcode_account(): string {
+/** Draws the whole account area. */
+function diluxone_users_account_area(): void {
 	if ( ! is_user_logged_in() ) {
-		return diluxone_users_render( 'account-guest', array( 'url' => diluxone_users_login_url() ) );
+		diluxone_users_template_part( 'account-guest', array( 'url' => diluxone_users_login_url() ) );
+
+		return;
 	}
 
 	$sections = diluxone_users_sections();
 
 	if ( array() === $sections ) {
-		return '';
+		return;
 	}
 
 	diluxone_users_enqueue_styles();
 
 	$current = diluxone_users_current_section();
 
-	return diluxone_users_render(
+	diluxone_users_template_part(
 		'account',
 		array(
 			'user'     => wp_get_current_user(),
 			'sections' => $sections,
 			'current'  => $current,
-			'layout'   => (string) diluxone_users_option( 'diluxone_users_account_layout' ),
+			'layout'   => diluxone_users_account_layout(),
 			'header'   => (bool) diluxone_users_option( 'diluxone_users_account_header' ),
 			'template' => diluxone_users_account_template(),
 			'avatar'   => (bool) diluxone_users_option( 'diluxone_users_account_avatar' ),
@@ -688,6 +728,15 @@ function diluxone_users_shortcode_account(): string {
 		)
 	);
 }
+
+/** The whole account area. Shortcode: [diluxone_users_account] */
+function diluxone_users_shortcode_account(): string {
+	ob_start();
+	diluxone_users_account_area();
+
+	return (string) ob_get_clean();
+}
+
 add_shortcode( 'diluxone_users_account', 'diluxone_users_shortcode_account' );
 
 /** The navigation alone. Shortcode: [diluxone_users_account_nav] */

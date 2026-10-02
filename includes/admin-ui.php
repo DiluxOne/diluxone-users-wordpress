@@ -230,8 +230,7 @@ function diluxone_users_ui_aside_close( callable $aside ): void {
 	if ( '' !== $rail ) {
 		// The rail stays in view while the settings scroll past it, which is
 		// `position: sticky` in the stylesheet and nothing here.
-		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- the pieces that printed it escaped it.
-		echo '<div class="diluxone-users-studio__aside">' . $rail . '</div>';
+		echo '<div class="diluxone-users-studio__aside">' . wp_kses( $rail, diluxone_users_allowed_html() ) . '</div>';
 	}
 
 	echo '</div>';
@@ -383,11 +382,14 @@ function diluxone_users_ui_aside_state( string $line, string $state, string $why
 		return;
 	}
 
-	printf(
-		'<div class="du-state"><span class="du-state__head"><span class="du-state__now">%1$s</span>%2$s</span><p class="du-state__line">%3$s</p></div>',
-		esc_html_x( 'Right now', 'the head of the rail: how this site stands today', 'diluxone-users' ),
-		diluxone_users_state_pill( $state, $why ), // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped inside.
-		wp_kses_post( $line )
+	echo wp_kses(
+		sprintf(
+			'<div class="du-state"><span class="du-state__head"><span class="du-state__now">%1$s</span>%2$s</span><p class="du-state__line">%3$s</p></div>',
+			esc_html_x( 'Right now', 'the head of the rail: how this site stands today', 'diluxone-users' ),
+			diluxone_users_state_pill( $state, $why ),
+			wp_kses_post( $line )
+		),
+		diluxone_users_allowed_html()
 	);
 }
 
@@ -495,8 +497,7 @@ function diluxone_users_ui_card( array $card ): void {
 		: esc_html( (string) ( $card['value'] ?? '' ) );
 
 	if ( '' !== $value ) {
-		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- a pill escapes itself; a value was escaped above.
-		echo '<b class="diluxone-users-card__value">' . $value . '</b>';
+		echo '<b class="diluxone-users-card__value">' . wp_kses( $value, diluxone_users_allowed_html() ) . '</b>';
 	}
 
 	if ( ! empty( $card['detail'] ) ) {
@@ -605,7 +606,7 @@ function diluxone_users_ui_choice( array $choice ): void {
 			value="<?php echo esc_attr( (string) $choice['value'] ); ?>"
 			<?php echo isset( $choice['id'] ) ? 'id="' . esc_attr( (string) $choice['id'] ) . '"' : ''; ?>
 			<?php echo isset( $choice['piece'] ) ? 'data-diluxone-users-piece="' . esc_attr( (string) $choice['piece'] ) . '"' : ''; ?>
-			<?php echo diluxone_users_ui_data( (array) ( $choice['data'] ?? array() ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped inside. ?>
+			<?php diluxone_users_ui_print_data( (array) ( $choice['data'] ?? array() ) ); ?>
 			<?php checked( $checked ); ?>
 			<?php disabled( $disabled ); ?>>
 
@@ -613,7 +614,7 @@ function diluxone_users_ui_choice( array $choice ): void {
 			<span class="du-choice__title">
 				<?php echo esc_html( (string) $choice['title'] ); ?>
 				<?php if ( ! empty( $choice['state'] ) ) : ?>
-					<?php echo diluxone_users_state_pill( (string) $choice['state'], (string) ( $choice['note'] ?? '' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped inside. ?>
+					<?php echo wp_kses( diluxone_users_state_pill( (string) $choice['state'], (string) ( $choice['note'] ?? '' ) ), diluxone_users_allowed_html() ); ?>
 				<?php endif; ?>
 			</span>
 
@@ -670,9 +671,12 @@ function diluxone_users_ui_choices( array $choices, string $needs_one = '', arra
 				)
 			);
 
-		printf(
-			'<div class="du-needs-one" data-diluxone-users-atleast-one%s>',
-			$armed // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped inside.
+		echo wp_kses(
+			sprintf(
+				'<div class="du-needs-one" data-diluxone-users-atleast-one%s>',
+				$armed
+			),
+			diluxone_users_allowed_html()
 		);
 	}
 
@@ -826,7 +830,7 @@ function diluxone_users_ui_number( array $field ): void {
 	);
 
 	echo '<span class="du-number">';
-	echo diluxone_users_ui_number_box( $field ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped inside.
+	echo wp_kses( diluxone_users_ui_number_box( $field ), diluxone_users_allowed_html() );
 
 	if ( ! empty( $field['suffix'] ) ) {
 		printf( '<span class="du-number__unit">%s</span>', esc_html( (string) $field['suffix'] ) );
@@ -862,13 +866,13 @@ function diluxone_users_ui_range( array $field ): void {
 	);
 
 	echo '<span class="du-number">';
-	echo diluxone_users_ui_number_box( $from ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped inside.
+	echo wp_kses( diluxone_users_ui_number_box( $from ), diluxone_users_allowed_html() );
 
 	if ( ! empty( $field['between'] ) ) {
 		printf( '<span class="du-number__unit">%s</span>', esc_html( (string) $field['between'] ) );
 	}
 
-	echo diluxone_users_ui_number_box( $to ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped inside.
+	echo wp_kses( diluxone_users_ui_number_box( $to ), diluxone_users_allowed_html() );
 
 	if ( ! empty( $field['suffix'] ) ) {
 		printf( '<span class="du-number__unit">%s</span>', esc_html( (string) $field['suffix'] ) );
@@ -906,6 +910,59 @@ function diluxone_users_ui_data( array $data ): string {
 }
 
 /**
+ * WordPress's list of pages, for choosing one.
+ *
+ * What `wp_dropdown_pages()` draws — the same pages, in the same tree, by the
+ * same walker — written here because that function prints by itself, and
+ * everything the plugin prints is escaped at the line that prints it. Like
+ * it, it draws nothing when the site has no pages.
+ *
+ * @param array<string, mixed> $args name, id, selected, show_option_none and option_none_value.
+ */
+function diluxone_users_ui_page_dropdown( array $args ): void {
+	$pages = get_pages();
+
+	if ( array() === $pages ) {
+		return;
+	}
+
+	printf( '<select name="%1$s" id="%2$s">', esc_attr( (string) $args['name'] ), esc_attr( (string) $args['id'] ) );
+
+	if ( ! empty( $args['show_option_none'] ) ) {
+		printf(
+			'<option value="%1$s">%2$s</option>',
+			esc_attr( (string) ( $args['option_none_value'] ?? '' ) ),
+			esc_html( (string) $args['show_option_none'] )
+		);
+	}
+
+	echo wp_kses(
+		walk_page_dropdown_tree(
+			$pages,
+			0,
+			array(
+				'selected'    => (int) ( $args['selected'] ?? 0 ),
+				'value_field' => 'ID',
+			)
+		),
+		diluxone_users_allowed_html()
+	);
+
+	echo '</select>';
+}
+
+/**
+ * The same attributes, printed where they go.
+ *
+ * @param array<string, string> $data Attribute names without their prefix.
+ */
+function diluxone_users_ui_print_data( array $data ): void {
+	foreach ( $data as $key => $value ) {
+		printf( ' data-diluxone-users-%1$s="%2$s"', esc_attr( (string) $key ), esc_attr( (string) $value ) );
+	}
+}
+
+/**
  * A line of text, with its title above it and its help under it.
  *
  * This is the piece whose absence did the most damage. There was a number and
@@ -934,18 +991,21 @@ function diluxone_users_ui_text( array $field ): void {
 
 	diluxone_users_ui_field_open( (string) ( $field['label'] ?? '' ), $id );
 
-	printf(
-		'<input type="%1$s" id="%2$s" name="%3$s" class="large-text%4$s" value="%5$s"%6$s%7$s%8$s%9$s%10$s>',
-		esc_attr( in_array( $type, array( 'text', 'email', 'url', 'password' ), true ) ? $type : 'text' ),
-		esc_attr( $id ),
-		esc_attr( $name ),
-		empty( $field['code'] ) ? '' : ' code',
-		esc_attr( (string) ( $field['value'] ?? '' ) ),
-		empty( $field['placeholder'] ) ? '' : ' placeholder="' . esc_attr( (string) $field['placeholder'] ) . '"',
-		empty( $field['required'] ) ? '' : ' required',
-		empty( $field['readonly'] ) ? '' : ' readonly',
-		disabled( ! empty( $field['disabled'] ), true, false ),
-		diluxone_users_ui_data( (array) ( $field['data'] ?? array() ) ) // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped inside.
+	echo wp_kses(
+		sprintf(
+			'<input type="%1$s" id="%2$s" name="%3$s" class="large-text%4$s" value="%5$s"%6$s%7$s%8$s%9$s%10$s>',
+			esc_attr( in_array( $type, array( 'text', 'email', 'url', 'password' ), true ) ? $type : 'text' ),
+			esc_attr( $id ),
+			esc_attr( $name ),
+			empty( $field['code'] ) ? '' : ' code',
+			esc_attr( (string) ( $field['value'] ?? '' ) ),
+			empty( $field['placeholder'] ) ? '' : ' placeholder="' . esc_attr( (string) $field['placeholder'] ) . '"',
+			empty( $field['required'] ) ? '' : ' required',
+			empty( $field['readonly'] ) ? '' : ' readonly',
+			disabled( ! empty( $field['disabled'] ), true, false ),
+			diluxone_users_ui_data( (array) ( $field['data'] ?? array() ) )
+		),
+		diluxone_users_allowed_html()
 	);
 
 	diluxone_users_ui_field_close( (string) ( $field['help'] ?? '' ) );
@@ -971,18 +1031,21 @@ function diluxone_users_ui_textarea( array $field ): void {
 
 	diluxone_users_ui_field_open( (string) ( $field['label'] ?? '' ), $id );
 
-	printf(
-		'<textarea id="%1$s" name="%2$s" rows="%3$d" class="large-text%4$s"%5$s%6$s%7$s%8$s%9$s>%10$s</textarea>',
-		esc_attr( $id ),
-		esc_attr( $name ),
-		(int) ( $field['rows'] ?? 4 ),
-		empty( $field['code'] ) ? '' : ' code',
-		empty( $field['placeholder'] ) ? '' : ' placeholder="' . esc_attr( (string) $field['placeholder'] ) . '"',
-		empty( $field['required'] ) ? '' : ' required',
-		empty( $field['readonly'] ) ? '' : ' readonly',
-		disabled( ! empty( $field['disabled'] ), true, false ),
-		diluxone_users_ui_data( (array) ( $field['data'] ?? array() ) ), // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped inside.
-		esc_textarea( (string) ( $field['value'] ?? '' ) )
+	echo wp_kses(
+		sprintf(
+			'<textarea id="%1$s" name="%2$s" rows="%3$d" class="large-text%4$s"%5$s%6$s%7$s%8$s%9$s>%10$s</textarea>',
+			esc_attr( $id ),
+			esc_attr( $name ),
+			(int) ( $field['rows'] ?? 4 ),
+			empty( $field['code'] ) ? '' : ' code',
+			empty( $field['placeholder'] ) ? '' : ' placeholder="' . esc_attr( (string) $field['placeholder'] ) . '"',
+			empty( $field['required'] ) ? '' : ' required',
+			empty( $field['readonly'] ) ? '' : ' readonly',
+			disabled( ! empty( $field['disabled'] ), true, false ),
+			diluxone_users_ui_data( (array) ( $field['data'] ?? array() ) ),
+			esc_textarea( (string) ( $field['value'] ?? '' ) )
+		),
+		diluxone_users_allowed_html()
 	);
 
 	diluxone_users_ui_field_close( (string) ( $field['help'] ?? '' ) );
@@ -1087,14 +1150,17 @@ function diluxone_users_ui_fold( array $block, callable $inside ): void {
 	 * after another down the screen, on the two tabs that use this. It did not
 	 * look like the plugin because it was not using the plugin's pieces.
 	 */
-	printf(
-		'<details class="du-fold"%1$s%2$s><summary class="du-fold__head"><span class="du-fold__text"><span class="du-fold__title">%3$s</span>%4$s</span></summary><div class="du-fold__body">',
-		empty( $block['open'] ) ? '' : ' open',
-		diluxone_users_ui_data( (array) ( $block['data'] ?? array() ) ), // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped inside.
-		esc_html( (string) ( $block['label'] ?? '' ) ),
-		empty( $block['help'] )
-			? ''
-			: '<span class="du-fold__help">' . esc_html( (string) $block['help'] ) . '</span>'
+	echo wp_kses(
+		sprintf(
+			'<details class="du-fold"%1$s%2$s><summary class="du-fold__head"><span class="du-fold__text"><span class="du-fold__title">%3$s</span>%4$s</span></summary><div class="du-fold__body">',
+			empty( $block['open'] ) ? '' : ' open',
+			diluxone_users_ui_data( (array) ( $block['data'] ?? array() ) ),
+			esc_html( (string) ( $block['label'] ?? '' ) ),
+			empty( $block['help'] )
+				? ''
+				: '<span class="du-fold__help">' . esc_html( (string) $block['help'] ) . '</span>'
+		),
+		diluxone_users_allowed_html()
 	);
 
 	call_user_func( $inside );
@@ -1204,12 +1270,15 @@ function diluxone_users_ui_select( array $field ): void {
 
 	diluxone_users_ui_field_open( (string) ( $field['label'] ?? '' ), $id );
 
-	printf(
-		'<select id="%1$s" name="%2$s"%3$s%4$s>',
-		esc_attr( $id ),
-		esc_attr( $name ),
-		disabled( ! empty( $field['disabled'] ), true, false ),
-		diluxone_users_ui_data( (array) ( $field['data'] ?? array() ) ) // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped inside.
+	echo wp_kses(
+		sprintf(
+			'<select id="%1$s" name="%2$s"%3$s%4$s>',
+			esc_attr( $id ),
+			esc_attr( $name ),
+			disabled( ! empty( $field['disabled'] ), true, false ),
+			diluxone_users_ui_data( (array) ( $field['data'] ?? array() ) )
+		),
+		diluxone_users_allowed_html()
 	);
 
 	/** @var array<string, string> $options */
@@ -1404,10 +1473,13 @@ function diluxone_users_ui_note( string $title, $body, string $state = '', strin
 	echo '<div class="du-note">';
 
 	if ( '' !== $title || '' !== $state ) {
-		printf(
-			'<span class="du-note__title">%1$s%2$s</span>',
-			esc_html( $title ),
-			'' === $state ? '' : diluxone_users_state_pill( $state, $why, $word ) // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped inside.
+		echo wp_kses(
+			sprintf(
+				'<span class="du-note__title">%1$s%2$s</span>',
+				esc_html( $title ),
+				'' === $state ? '' : diluxone_users_state_pill( $state, $why, $word )
+			),
+			diluxone_users_allowed_html()
 		);
 	}
 

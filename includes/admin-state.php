@@ -92,7 +92,7 @@ function diluxone_users_summary_table( array $rows ): void {
 			<?php foreach ( $rows as $row ) : ?>
 				<tr>
 					<th scope="row" class="diluxone-users-summary__what"><?php echo esc_html( (string) $row['label'] ); ?></th>
-					<td class="diluxone-users-summary__state"><?php echo diluxone_users_state_pill( (string) $row['state'], (string) ( $row['why'] ?? '' ), (string) ( $row['word'] ?? '' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped inside. ?></td>
+					<td class="diluxone-users-summary__state"><?php echo wp_kses( diluxone_users_state_pill( (string) $row['state'], (string) ( $row['why'] ?? '' ), (string) ( $row['word'] ?? '' ) ), diluxone_users_allowed_html() ); ?></td>
 					<td class="diluxone-users-summary__detail"><?php echo wp_kses_post( (string) ( $row['detail'] ?? '' ) ); ?></td>
 					<td class="diluxone-users-summary__change">
 						<?php if ( ! empty( $row['url'] ) ) : ?>
@@ -125,7 +125,7 @@ function diluxone_users_summary_table( array $rows ): void {
  */
 function diluxone_users_not_now( string $why, string $url = '', string $go = '' ): void {
 	echo '<p class="diluxone-users-not-now">';
-	echo diluxone_users_state_pill( 'pending' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped inside.
+	echo wp_kses( diluxone_users_state_pill( 'pending' ), diluxone_users_allowed_html() );
 	echo ' ' . esc_html( $why );
 
 	if ( '' !== $url ) {

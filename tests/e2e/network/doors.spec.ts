@@ -1,7 +1,7 @@
 import { Page } from '@playwright/test';
 import { test, expect, whoOn, hubDoor, toTheHub, signInFrom, SiteHandle } from './support';
 import { codeIn, freshEmail, linkIn, waitForMail } from '../support/api';
-import { FRONT_RULES, WIDTHS, expectSoundLayout } from '../support/layout';
+import { FRONT_RULES, FRONT_WIDTHS, expectSoundLayout } from '../support/layout';
 import {
 	askForLink,
 	challengeCode,
@@ -91,7 +91,7 @@ test.describe('A site of the network has no sign-in of its own: its doors are th
 		// The door is a piece of the site's page, drawn by its theme: it holds
 		// together at every width, like the sign-in it stands in for.
 		await page.goto(beta.pages.login.url);
-		await expectSoundLayout(page, FRONT_RULES, WIDTHS);
+		await expectSoundLayout(page, FRONT_RULES, FRONT_WIDTHS);
 
 		// The hub draws its own forms.
 		await page.goto(hub.pages.login.url);
@@ -126,6 +126,7 @@ test.describe('A site of the network has no sign-in of its own: its doors are th
 		page,
 		browser,
 		hub,
+		alpha,
 		beta,
 	}) => {
 		const email = freshEmail('hub-link');
@@ -136,6 +137,7 @@ test.describe('A site of the network has no sign-in of its own: its doors are th
 		const link = linkIn(await waitForMail(hub.site, email));
 
 		expect(link.startsWith(hub.url), 'the link is the hub’s').toBe(true);
+		expect(new URL(link).pathname, 'the hub’s, not another site’s under the same host').not.toMatch(new RegExp(`^/(${alpha.slug}|${beta.slug})/`));
 		expect(link, 'and carries no address of where to go').not.toContain('redirect_to');
 		expect((await beta.site.user(email)).member, 'under “every site” the account the link request made is a member of every site').toBe(true);
 
@@ -311,10 +313,10 @@ test.describe('WordPress’s own doors on /beta/ are the hub’s', () => {
 
 		await alpha.site.makeUser({ email, password: PASSWORD });
 		await page.goto(`${hub.pages.login.url}?redirect_to=${encodeURIComponent('//evil.test/')}`);
-		await signInWithPassword(page, email, PASSWORD);
-		await page.waitForLoadState('domcontentloaded');
+		await Promise.all([page.waitForURL((url) => !url.href.startsWith(hub.pages.login.url)), signInWithPassword(page, email, PASSWORD)]);
 
 		expect(new URL(page.url()).host, 'still on the network').toBe(new URL(hub.url).host);
+		expect(await whoOn(page, hub.url), 'and signed in').toBe(email);
 	});
 });
 
@@ -410,11 +412,7 @@ test.describe('Who may join, and who may exist', () => {
 			const two = await browser.newPage();
 
 			await two.goto(hub.pages.register.url);
-
-			if ((await registerForm(two).count()) > 0) {
-				await two.locator('input[name="diluxone_users_email"]').fill(byForm);
-				await submitPluginForm(two, registerForm(two));
-			}
+			await expect(registerForm(two), 'no form while the network takes no accounts').toHaveCount(0);
 
 			expect((await root.user(byForm)).exists, 'the registration form made an account').toBe(false);
 
@@ -424,8 +422,10 @@ test.describe('Who may join, and who may exist', () => {
 
 			await hub.site.setIdentity({ sub: `mock|${bySocial}`, email: bySocial, email_verified: true });
 			await toTheHub(three, alpha, hub);
-			await ssoButton(three, 'mock').click();
-			await three.waitForLoadState('domcontentloaded');
+			await Promise.all([
+				three.waitForURL((url) => url.searchParams.get('diluxone-users') === 'social'),
+				ssoButton(three, 'mock').click(),
+			]);
 
 			expect((await root.user(bySocial)).exists, 'a social sign-in made an account').toBe(false);
 		});

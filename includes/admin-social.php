@@ -79,11 +79,13 @@ add_action( 'diluxone_users_register_panels', 'diluxone_users_social_panels' );
 
 /** Saves the rules that hold for every network. */
 function diluxone_users_social_rules_save(): void {
-	// phpcs:disable WordPress.Security.NonceVerification.Missing -- the panel verifies it.
+	check_admin_referer( 'diluxone_users_panel_diluxone-users-social', 'diluxone_users_panel_nonce' );
+	diluxone_users_panel_allowed();
+
 	$saved = array(
 		'diluxone_users_sso_link_by_email' => isset( $_POST['diluxone_users_sso_link_by_email'] ) ? 1 : 0,
 		'diluxone_users_sso_verified_only' => isset( $_POST['diluxone_users_sso_verified_only'] ) ? 1 : 0,
-	) + diluxone_users_scope_posted( 'diluxone_users_sso' );
+	) + diluxone_users_scope_posted( 'diluxone_users_sso', 'diluxone-users-social' );
 
 	// On a site, social sign-in is switched on with the other ways in, on
 	// Access; in Network Admin there is no Access, and this is where it is.
@@ -92,7 +94,6 @@ function diluxone_users_social_rules_save(): void {
 	}
 
 	diluxone_users_save_options( $saved );
-	// phpcs:enable
 }
 
 /**
@@ -157,15 +158,25 @@ function diluxone_users_sso_forget_url( string $id ): string {
 	return diluxone_users_sso_action_url( $id, 'forget' );
 }
 
-/** One of the three things done to a provider from a link: on, off, forget. */
+/**
+ * One of the three things done to a provider from a link: on, off, forget.
+ *
+ * An action of WordPress's own admin (`admin.php?action=…`), in Network Admin
+ * on a network: WordPress routes it to diluxone_users_social_toggle() and
+ * nothing else, so the handler starts with the nonce instead of first reading
+ * which screen the request came from.
+ */
 function diluxone_users_sso_action_url( string $id, string $action ): string {
+	$admin = diluxone_users_admin_owns( 'network' ) && is_multisite() ? network_admin_url( 'admin.php' ) : admin_url( 'admin.php' );
+
 	return wp_nonce_url(
-		diluxone_users_admin_url(
-			'diluxone-users-social',
+		add_query_arg(
 			array(
+				'action'                => 'diluxone_users_social_toggle',
 				'red'                   => $id,
 				'diluxone_users_action' => $action,
-			)
+			),
+			$admin
 		),
 		'diluxone_users_social_toggle'
 	);
@@ -303,18 +314,29 @@ function diluxone_users_screen_social_providers(): void {
 /**
  * What the buttons read back out of the form that draws them.
  *
+ * That form is the Social buttons tab of the design screen, and its check is
+ * made here before anything is read.
+ *
  * @return array<string, mixed>
  */
 function diluxone_users_sso_buttons_posted(): array {
-	// phpcs:disable WordPress.Security.NonceVerification.Missing -- the caller verifies it.
+	check_admin_referer( 'diluxone_users_panel_' . DILUXONE_USERS_DESIGN, 'diluxone_users_panel_nonce' );
+	diluxone_users_panel_allowed();
+
+	$skin    = sanitize_key( wp_unslash( $_POST['diluxone_users_sso_button_skin'] ?? 'brand' ) );
+	$shape   = sanitize_key( wp_unslash( $_POST['diluxone_users_sso_button_shape'] ?? 'rounded' ) );
+	$show    = sanitize_key( wp_unslash( $_POST['diluxone_users_sso_button_show'] ?? 'icon-text' ) );
+	$columns = isset( $_POST['diluxone_users_sso_button_columns'] ) && is_scalar( $_POST['diluxone_users_sso_button_columns'] ) ? absint( wp_unslash( $_POST['diluxone_users_sso_button_columns'] ) ) : 2;
+
+	// Each one of the answers the screen offers, or its default: anything else
+	// was kept as a class name the stylesheet knows nothing about.
 	return array(
-		'diluxone_users_sso_button_skin'    => sanitize_key( wp_unslash( $_POST['diluxone_users_sso_button_skin'] ?? 'brand' ) ),
-		'diluxone_users_sso_button_shape'   => sanitize_key( wp_unslash( $_POST['diluxone_users_sso_button_shape'] ?? 'rounded' ) ),
-		'diluxone_users_sso_button_show'    => sanitize_key( wp_unslash( $_POST['diluxone_users_sso_button_show'] ?? 'icon-text' ) ),
+		'diluxone_users_sso_button_skin'    => isset( diluxone_users_sso_button_skins()[ $skin ] ) ? $skin : 'brand',
+		'diluxone_users_sso_button_shape'   => isset( diluxone_users_sso_button_shapes()[ $shape ] ) ? $shape : 'rounded',
+		'diluxone_users_sso_button_show'    => isset( diluxone_users_sso_button_contents()[ $show ] ) ? $show : 'icon-text',
 		'diluxone_users_sso_button_text'    => sanitize_text_field( wp_unslash( $_POST['diluxone_users_sso_button_text'] ?? '' ) ),
-		'diluxone_users_sso_button_columns' => absint( wp_unslash( $_POST['diluxone_users_sso_button_columns'] ?? 2 ) ),
+		'diluxone_users_sso_button_columns' => isset( diluxone_users_sso_button_columns()[ $columns ] ) ? $columns : 2,
 	);
-	// phpcs:enable
 }
 
 /**
@@ -409,8 +431,7 @@ function diluxone_users_screen_social_buttons(): void {
  * that instead of offering two grounds and being right about neither.
  */
 function diluxone_users_social_buttons_preview(): void {
-	// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- our own markup, already escaped.
-	echo diluxone_users_sso_buttons( array_slice( diluxone_users_sso_providers(), 0, 4, true ), false );
+	echo wp_kses( diluxone_users_sso_buttons( array_slice( diluxone_users_sso_providers(), 0, 4, true ), false ), diluxone_users_allowed_html() );
 }
 
 /**
@@ -580,7 +601,6 @@ function diluxone_users_screen_provider( string $id, array $provider ): void {
 	$current = diluxone_users_tab( $tabs );
 
 	if ( diluxone_users_admin_owns( 'network' ) && current_user_can( diluxone_users_admin_cap() ) && isset( $_POST['diluxone_users_provider_nonce'] ) && wp_verify_nonce( sanitize_key( wp_unslash( $_POST['diluxone_users_provider_nonce'] ) ), 'diluxone_users_provider' ) ) {
-		// phpcs:disable WordPress.Security.NonceVerification.Missing -- verified above.
 		$typed = sanitize_text_field( wp_unslash( $_POST['diluxone_users_client_secret'] ?? '' ) );
 
 		diluxone_users_sso_save_credentials(
@@ -595,7 +615,6 @@ function diluxone_users_screen_provider( string $id, array $provider ): void {
 				'secret' => '' === $typed ? diluxone_users_sso_credentials( $id )['secret'] : $typed,
 			)
 		);
-		// phpcs:enable
 
 		diluxone_users_notice( __( 'Provider saved.', 'diluxone-users' ) );
 	}
@@ -978,27 +997,21 @@ function diluxone_users_provider_rail( string $id, array $provider, string $stat
  * Turning a provider's button on or off, from the row on the list as well as
  * from the provider's own screen: both point here.
  *
- * On `admin_init`, before the dashboard prints a byte: it ends in a redirect,
- * and a redirect from inside the page is a header sent after the page began —
- * the change was written and the screen came back empty.
+ * As an admin action, before the dashboard prints a byte: it ends in a
+ * redirect, and a redirect from inside the page is a header sent after the
+ * page began — the change was written and the screen came back empty.
  */
 function diluxone_users_social_toggle(): void {
-	// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- only which page this is; the nonce is checked below.
-	if ( 'diluxone-users-social' !== sanitize_key( wp_unslash( $_GET['page'] ?? '' ) ) || ! isset( $_GET['diluxone_users_action'], $_GET['red'] ) ) {
-		return;
-	}
+	check_admin_referer( 'diluxone_users_social_toggle' );
 
 	// On a network the providers are the network's, and so is this switch.
 	if ( ! diluxone_users_admin_owns( 'network' ) || ! current_user_can( diluxone_users_admin_cap() ) ) {
-		return;
+		wp_die( esc_html__( 'You are not allowed to do this.', 'diluxone-users' ), '', array( 'response' => 403 ) );
 	}
 
-	check_admin_referer( 'diluxone_users_social_toggle' );
-
-	$network = sanitize_key( wp_unslash( $_GET['red'] ) );
-
-	$action = sanitize_key( wp_unslash( $_GET['diluxone_users_action'] ) );
-	$all    = (array) diluxone_users_raw_get( 'diluxone_users_sso', array() );
+	$network = sanitize_key( wp_unslash( $_GET['red'] ?? '' ) );
+	$action  = sanitize_key( wp_unslash( $_GET['diluxone_users_action'] ?? '' ) );
+	$all     = (array) diluxone_users_raw_get( 'diluxone_users_sso', array() );
 
 	if ( 'forget' === $action && isset( diluxone_users_sso_providers()[ $network ] ) ) {
 		unset( $all[ $network ] );
@@ -1017,4 +1030,4 @@ function diluxone_users_social_toggle(): void {
 	wp_safe_redirect( '' !== $back ? $back : diluxone_users_admin_url( 'diluxone-users-social' ) );
 	exit;
 }
-add_action( 'admin_init', 'diluxone_users_social_toggle' );
+add_action( 'admin_action_diluxone_users_social_toggle', 'diluxone_users_social_toggle' );

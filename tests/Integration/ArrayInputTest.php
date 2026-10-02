@@ -89,9 +89,8 @@ class ArrayInputTest extends IntegrationTestCase {
 			'diluxone_users_login' => array( 'admin' ),
 		);
 
-		diluxone_users_reset_catch();
-
-		$this->addToAssertionCount( 1 );
+		$this->stays( 'diluxone_users_reset_catch' );
+		$this->assertSame( array(), self::$cookies, 'no reset cookie' );
 	}
 
 	public function test_wordpress_reset_link_with_a_list_for_a_login_is_left_alone(): void {
@@ -103,13 +102,7 @@ class ArrayInputTest extends IntegrationTestCase {
 			'login' => array( 'admin' ),
 		);
 
-		try {
-			diluxone_users_reset_to_site();
-		} catch ( Support\RedirectException $e ) {
-			$this->fail( 'A login sent as a list was carried on to ' . $e->url );
-		}
-
-		$this->addToAssertionCount( 1 );
+		$this->stays( 'diluxone_users_reset_to_site', 'a login sent as a list is carried nowhere' );
 	}
 
 	public function test_a_return_address_sent_as_a_list_after_a_password_is_no_address(): void {
@@ -117,12 +110,154 @@ class ArrayInputTest extends IntegrationTestCase {
 
 		$this->postAs( null, array( 'redirect_to' => array( home_url( '/' ) ) ) );
 
+		$this->stays( fn() => diluxone_users_return_password( (string) get_userdata( $user )->user_login, get_userdata( $user ) ), 'no address, nowhere to go back to' );
+	}
+
+	/**
+	 * Every whole number a settings screen reads, and what it saves when the
+	 * value is not one value.
+	 *
+	 * @return array<string, array{0: string, 1: string, 2: string, 3: int, 4: array<string, mixed>}>
+	 */
+	public static function numbers(): array {
+		$design = 'diluxone-users-design';
+
+		return array(
+			'the days a browser is remembered' => array( 'diluxone_users_2fa_save', 'diluxone-users-security', 'diluxone_users_2fa_remember_days', 30, array( 'diluxone_users_2fa_mode' => 'off' ) ),
+			'the long session'                 => array( 'diluxone_users_sessions_save', 'diluxone-users-security', 'diluxone_users_session_long_days', 0, array() ),
+			'the short session'                => array( 'diluxone_users_sessions_save', 'diluxone-users-security', 'diluxone_users_session_short_days', 0, array() ),
+			'the days the log keeps'           => array( 'diluxone_users_log_settings_save', 'diluxone-users-reports', 'diluxone_users_log_days', 90, array() ),
+			'the sign-in page'                 => array( 'diluxone_users_login_page_save', 'diluxone-users-login', 'diluxone_users_login_page', 0, array() ),
+			'the life of a link'               => array( 'diluxone_users_login_ways_save', 'diluxone-users-login', 'diluxone_users_login_expiry', 15, array( 'diluxone_users_login_method' => array( 'link', 'password' ) ) ),
+			'the wait between links'           => array( 'diluxone_users_login_ways_save', 'diluxone-users-login', 'diluxone_users_login_throttle', 60, array( 'diluxone_users_login_method' => array( 'link', 'password' ) ) ),
+			'the registration page'            => array( 'diluxone_users_screen_register_save', 'diluxone-users-login', 'diluxone_users_register_page', 0, array() ),
+			'the account page'                 => array( 'diluxone_users_account_page_save', 'diluxone-users-account', 'diluxone_users_account_page', 0, array() ),
+			'the shortest public name'         => array( 'diluxone_users_account_handle_save', 'diluxone-users-account', 'diluxone_users_handle_min', 3, array() ),
+			'the longest public name'          => array( 'diluxone_users_account_handle_save', 'diluxone-users-account', 'diluxone_users_handle_max', 30, array() ),
+			'the wait between public names'    => array( 'diluxone_users_account_handle_save', 'diluxone-users-account', 'diluxone_users_handle_cooldown', 30, array() ),
+			'the sign-in logo'                 => array( 'diluxone_users_design_brand_save', $design, 'diluxone_users_login_logo', 0, array() ),
+			'the sign-in picture'              => array( 'diluxone_users_design_login_save', $design, 'diluxone_users_login_image', 0, array() ),
+			'the panel logo'                   => array( 'diluxone_users_design_login_save', $design, 'diluxone_users_login_panel_logo', 0, array() ),
+			'the account cover'                => array( 'diluxone_users_design_account_save', $design, 'diluxone_users_account_cover_image', 0, array() ),
+			'the largest photo'                => array( 'diluxone_users_design_photo_save', $design, 'diluxone_users_avatar_max_kb', 2048, array() ),
+			'the wp-login.php logo'            => array( 'diluxone_users_design_wp_save', $design, 'diluxone_users_wp_login_logo', 0, array() ),
+		);
+	}
+
+	/**
+	 * `field[]=99` is no number. absint() reads a list as 1: the first
+	 * attachment as the logo, page 1 as the sign-in page, a log kept for one
+	 * day and purged down to nothing the next night. A list is read as no
+	 * answer at all, the way a field that was not sent is.
+	 *
+	 * @dataProvider numbers
+	 *
+	 * @param array<string, mixed> $with
+	 */
+	public function test_a_number_sent_as_a_list_is_no_number( string $save, string $screen, string $key, int $absent, array $with ): void {
+		if ( is_multisite() && 'network' === diluxone_users_option_scope( $key ) ) {
+			$this->in_network_admin();
+		}
+
+		// The registration screen lists roles with WordPress's admin helper.
+		require_once ABSPATH . 'wp-admin/includes/user.php';
+
+		diluxone_users_update_option( $key, 7 );
+		$this->postPanel( $screen, $with + array( $key => array( '99' ) ) );
+
+		$errors = array();
+		set_error_handler(
+			static function ( int $level, string $message ) use ( &$errors ): bool {
+				$errors[] = $message;
+
+				return true;
+			}
+		);
+
+		ob_start();
+
 		try {
-			diluxone_users_return_password( (string) get_userdata( $user )->user_login, get_userdata( $user ) );
+			call_user_func( $save );
+		} finally {
+			ob_end_clean();
+			restore_error_handler();
+		}
+
+		$this->assertSame( array(), $errors, 'no warning' );
+		$this->assertSame( $absent, (int) diluxone_users_raw_get( $key ), 'read as not sent, never as 1' );
+	}
+
+	/**
+	 * A sign-in link whose parts arrive as lists is no link: absint() would
+	 * read the person as 1, the first administrator. Nobody is signed in.
+	 */
+	public function test_a_link_whose_parts_are_lists_signs_nobody_in(): void {
+		$user  = $this->make_user();
+		$token = diluxone_users_token_create( $user );
+
+		foreach ( array( array( array( (string) $user ), array( $token ) ), array( array( '1' ), $token ) ) as [ $who, $what ] ) {
+			$_GET = array(
+				'diluxone_users_login' => $who,
+				'diluxone_users_token' => $what,
+			);
+
+			$url = $this->expectRedirect( 'diluxone_users_login_consume' );
+
+			$this->assertSame( 'expired', $this->redirectState( $url ) );
+			$this->assertSame( 0, get_current_user_id() );
+		}
+	}
+
+	/** An address sent as a list to the link request is no address: nothing is mailed, nothing remembered. */
+	public function test_an_address_sent_as_a_list_asks_for_no_link(): void {
+		$this->postAs(
+			null,
+			array(
+				'diluxone_users_nonce' => wp_create_nonce( 'diluxone_users_login' ),
+				'diluxone_users_email' => array( 'a@b.c' ),
+			)
+		);
+
+		$this->stays_or_redirects( 'diluxone_users_login_request' );
+
+		$this->assertSame( array(), self::$mail );
+		$this->assertArrayNotHasKey( 'diluxone_users_sent', self::$cookies );
+	}
+
+	/** Runs a handler that may redirect, and swallows only that. */
+	private function stays_or_redirects( callable $handler ): void {
+		try {
+			$handler();
 		} catch ( Support\RedirectException $e ) {
 			$this->assertStringNotContainsString( 'Array', $e->url );
 		}
+	}
 
-		$this->addToAssertionCount( 1 );
+	/** The social return with lists for its parameters reads them as absent, and asks the provider nothing. */
+	public function test_the_social_return_with_lists_asks_for_nothing(): void {
+		Support\MockProvider::install();
+
+		try {
+			$_GET = array(
+				'diluxone_users_sso' => array( 'mock' ),
+				'code'               => array( 'x' ),
+				'state'              => array( 'y' ),
+			);
+			diluxone_users_sso_query_snapshot();
+
+			$this->assertSame( '', diluxone_users_sso_param( 'code' ) );
+			$this->stays( 'diluxone_users_sso_handle', 'no provider named: nothing to do' );
+			$this->assertSame( array(), Support\MockProvider::$requests );
+
+			$_GET = array(
+				'diluxone_users_sso' => 'mock',
+				'error'              => array( 'a' ),
+			);
+			diluxone_users_sso_query_snapshot();
+			$this->stays_or_redirects( 'diluxone_users_sso_handle' );
+			$this->assertSame( array(), Support\MockProvider::$requests );
+		} finally {
+			Support\MockProvider::remove();
+		}
 	}
 }

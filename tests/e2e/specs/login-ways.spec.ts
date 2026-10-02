@@ -1,5 +1,5 @@
 import { test, expect } from '../support/fixtures';
-import { adminUrl } from '../support/ui';
+import { adminError, adminSaved, adminUrl, navigated } from '../support/ui';
 import { ADMIN_STATE } from '../../../playwright.config';
 import type { Locator, Page } from '@playwright/test';
 
@@ -336,8 +336,9 @@ test.describe('The arrangement tab', () => {
 			nodes.map((node) => (node as HTMLInputElement).value)
 		);
 
-		await page.locator('[data-diluxone-users-save] [form="diluxone-users-arrangement"]').click();
-		await expect(page.locator('.notice, .updated').first(), 'the save said nothing').toBeVisible();
+		await navigated(page, () => page.locator('[data-diluxone-users-save] [form="diluxone-users-arrangement"]').click());
+		await expect(adminSaved(page), 'the save said nothing').toBeVisible();
+		await expect(adminError(page)).toHaveCount(0);
 
 		// It came back written, and the screen shows what was written.
 		expect(
@@ -354,11 +355,16 @@ test.describe('The arrangement tab', () => {
 		expect(await tabOrder(guest), 'the sign-in page ignored the order that was saved').toEqual(asked);
 	});
 
-	test('saves the arrangement itself', async ({ page, guest, pages }) => {
+	test('saves the arrangement itself', async ({ page, guest, pages, options, site }) => {
+		// From tabs, so that only the save can make it a stack.
+		await options.set({ diluxone_users_login_layout: 'tabs' });
 		await page.goto(adminUrl('diluxone-users-login', 'arrangement'));
 
 		await page.locator('input[name="diluxone_users_login_layout"][value="stack"]').check();
-		await page.locator('[data-diluxone-users-save] [form="diluxone-users-arrangement"]').click();
+		await navigated(page, () => page.locator('[data-diluxone-users-save] [form="diluxone-users-arrangement"]').click());
+		await expect(adminSaved(page)).toBeVisible();
+
+		expect((await site.getOptions(['diluxone_users_login_layout'])).diluxone_users_login_layout).toBe('stack');
 
 		await guest.setViewportSize(LAPTOPS[0]);
 		await guest.goto(pages.login.url);

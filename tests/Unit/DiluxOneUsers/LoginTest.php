@@ -7,10 +7,13 @@
 
 namespace Tests\Unit\DiluxOneUsers;
 
+use Tests\Unit\ResetsWpStubs;
 use Brain\Monkey;
 use PHPUnit\Framework\TestCase;
 
 class LoginTest extends TestCase {
+
+	use ResetsWpStubs;
 
 	private const USER_ID = 4242;
 

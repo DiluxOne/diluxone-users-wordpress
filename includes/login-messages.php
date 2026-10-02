@@ -478,7 +478,7 @@ add_action( 'diluxone_users_register_panels', 'diluxone_users_login_messages_pan
  * language nobody can switch to would never be shown.
  */
 function diluxone_users_login_messages_locale(): string {
-	// phpcs:disable WordPress.Security.NonceVerification -- it only decides which language is drawn; the panel verifies the nonce before anything is written.
+	// phpcs:disable WordPress.Security.NonceVerification -- only which language: a locale picked from the site's installed languages, used to choose which texts are drawn or written; this function saves nothing.
 	$asked = isset( $_GET['lang'] ) ? sanitize_text_field( wp_unslash( $_GET['lang'] ) ) : '';
 
 	if ( '' === $asked && isset( $_POST['diluxone_users_message_locale'] ) ) {
@@ -703,14 +703,15 @@ function diluxone_users_login_messages_languages( string $current ): void {
  * said in that language; equal means there is nothing to store.
  */
 function diluxone_users_login_messages_save(): void {
+	check_admin_referer( 'diluxone_users_panel_diluxone-users-login', 'diluxone_users_panel_nonce' );
+	diluxone_users_panel_allowed();
+
 	$locale = diluxone_users_login_messages_locale();
 
-	// phpcs:disable WordPress.Security.NonceVerification.Missing -- the panel verifies it.
 	/** @var array<string, mixed> $sent */
 	$sent = (array) map_deep( wp_unslash( $_POST['diluxone_users_message'] ?? array() ), 'sanitize_textarea_field' );
 	/** @var array<string, mixed> $back */
 	$back = (array) map_deep( wp_unslash( $_POST['diluxone_users_message_shipped'] ?? array() ), 'sanitize_key' );
-	// phpcs:enable
 
 	foreach ( array_keys( diluxone_users_login_messages() ) as $key ) {
 		$key = (string) $key;

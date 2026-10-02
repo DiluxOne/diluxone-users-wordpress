@@ -156,9 +156,12 @@ class TwoFactorSurfaceTest extends IntegrationTestCase {
 		$this->in_network_admin();
 		wp_set_current_user( 1 );
 
-		$_POST = array(
-			'diluxone_users_2fa_mode'    => 'required',
-			'diluxone_users_2fa_methods' => array( 'email' ),
+		$this->postPanel(
+			DILUXONE_USERS_SECURITY,
+			array(
+				'diluxone_users_2fa_mode'    => 'required',
+				'diluxone_users_2fa_methods' => array( 'email' ),
+			)
 		);
 
 		ob_start();

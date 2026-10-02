@@ -136,11 +136,15 @@ export const test = base.extend<{
 		}
 	},
 
-	/** The throttles are per site; both start at zero. */
+	/**
+	 * The throttles start at zero: the network's counts per machine, and each
+	 * site's own — the hub's included, where every door of the network leads
+	 * and where the counts of a run would otherwise pile up.
+	 */
 	freshCounters: [
 		async ({}, use) => {
-			for (const slug of SUBSITES) {
-				await (await Site.open(subsiteUrl(slug))).setOptions({}, { forgetTransients: true });
+			for (const url of [`${NETWORK_URL}/`, ...SUBSITES.map((slug) => subsiteUrl(slug))]) {
+				await (await Site.open(url)).setOptions({}, { forgetTransients: true });
 			}
 
 			await use();

@@ -212,9 +212,12 @@ class SingleSiteTest extends IntegrationTestCase {
 	public function test_the_sites_screen_sets_the_second_step(): void {
 		diluxone_users_update_option( 'diluxone_users_2fa_mode', 'optional' );
 
-		$_POST = array(
-			'diluxone_users_2fa_mode'    => 'required',
-			'diluxone_users_2fa_methods' => array( 'email' ),
+		$this->postPanel(
+			DILUXONE_USERS_SECURITY,
+			array(
+				'diluxone_users_2fa_mode'    => 'required',
+				'diluxone_users_2fa_methods' => array( 'email' ),
+			)
 		);
 		diluxone_users_2fa_save();
 		$_POST = array();
@@ -293,8 +296,9 @@ class SingleSiteTest extends IntegrationTestCase {
 		diluxone_users_update_option( 'diluxone_users_passkey_enabled', 0 );
 		diluxone_users_update_option( 'diluxone_users_sso_login', 1 );
 
-		$_POST = array( 'diluxone_users_passkey_enabled' => '1' );
+		$this->postPanel( DILUXONE_USERS_SECURITY, array( 'diluxone_users_passkey_enabled' => '1' ) );
 		diluxone_users_passkeys_settings_save();
+		$this->postPanel( 'diluxone-users-social', array() );
 		diluxone_users_social_rules_save();
 		$_POST = array();
 
@@ -306,9 +310,12 @@ class SingleSiteTest extends IntegrationTestCase {
 	public function test_a_trial_run_writes_nothing(): void {
 		diluxone_users_update_option( 'diluxone_users_2fa_mode', 'optional' );
 
-		$_POST  = array(
-			'diluxone_users_2fa_mode'    => 'required',
-			'diluxone_users_2fa_methods' => array( 'email' ),
+		$this->postPanel(
+			DILUXONE_USERS_SECURITY,
+			array(
+				'diluxone_users_2fa_mode'    => 'required',
+				'diluxone_users_2fa_methods' => array( 'email' ),
+			)
 		);
 		$caught = diluxone_users_preview_would_save( diluxone_users_panels( DILUXONE_USERS_SECURITY )['2fa'] );
 		$_POST  = array();

@@ -137,6 +137,27 @@ function diluxone_users_shortcode_register(): string {
 add_shortcode( 'diluxone_users_register', 'diluxone_users_shortcode_register' );
 
 /**
+ * Out of what a registration form sent, the answers to what it asked.
+ *
+ * The form draws the fields of diluxone_users_register_fields() and no
+ * others, so only those — and a phone's dialling code — are kept: an optional
+ * field it never showed, one the person may not edit, one switched off, is
+ * not an answer to this form, whatever was posted beside it.
+ *
+ * @param array<string, string> $sent What diluxone_users_posted_fields() read.
+ * @return array<string, string>
+ */
+function diluxone_users_register_answers( array $sent ): array {
+	$asked = array_flip( array_map( 'strval', wp_list_pluck( diluxone_users_register_fields(), 'key' ) ) );
+
+	return array_filter(
+		$sent,
+		static fn( string $name ): bool => isset( $asked[ $name ] ) || ( '_dial' === substr( $name, -5 ) && isset( $asked[ substr( $name, 0, -5 ) ] ) ),
+		ARRAY_FILTER_USE_KEY
+	);
+}
+
+/**
  * How many accounts one machine may create in an hour.
  *
  * Not one: a household, an office or a school share an address, and two
@@ -201,7 +222,7 @@ function diluxone_users_register_request(): void {
 		exit;
 	}
 
-	if ( array() !== diluxone_users_register_missing( diluxone_users_posted_fields() ) ) {
+	if ( array() !== diluxone_users_register_missing( diluxone_users_posted_fields( 'diluxone_users_register', 'diluxone_users_register_nonce' ) ) ) {
 		wp_safe_redirect( add_query_arg( 'diluxone-users', 'missing', $back ) );
 		exit;
 	}
@@ -212,6 +233,16 @@ function diluxone_users_register_request(): void {
 	}
 
 	if ( email_exists( $email ) ) {
+		// "Taken" says an address has an account here, so it is counted on
+		// its own, per machine, whatever the checks above happen to count:
+		// probing the form for addresses stops at the same number a machine
+		// may register, and past it the answer is "slow", which says nothing
+		// about the address.
+		if ( ! diluxone_users_ip_burst( 'register_taken', diluxone_users_register_burst() ) ) {
+			wp_safe_redirect( add_query_arg( 'diluxone-users', 'slow', $back ) );
+			exit;
+		}
+
 		// Not an error to hide: whoever is here wanted an account and already
 		// has one, so the useful thing is the way in, not a shrug.
 		wp_safe_redirect( add_query_arg( 'diluxone-users', 'taken', $back ) );
@@ -229,7 +260,7 @@ function diluxone_users_register_request(): void {
 	// asking again on the other side would be asking twice. What it reports as
 	// missing was already refused above, before there was an account to save
 	// it to.
-	diluxone_users_save( $user_id, diluxone_users_posted_fields() );
+	diluxone_users_save( $user_id, diluxone_users_register_answers( diluxone_users_posted_fields( 'diluxone_users_register', 'diluxone_users_register_nonce' ) ) );
 
 	/**
 	 * Fires once an account has been created from the registration form.

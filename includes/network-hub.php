@@ -680,7 +680,7 @@ function diluxone_users_return_password( $login, $user ): void {
 		return;
 	}
 
-	// phpcs:ignore WordPress.Security.NonceVerification.Missing -- WordPress verified the password; this is where it sends them next, checked below.
+	// phpcs:ignore WordPress.Security.NonceVerification.Missing -- wp-login.php's form carries no nonce; what vouches for it is the password WordPress has just verified, since `wp_login` only fires after that. This is where it sends them next, kept to the network's own hosts by diluxone_users_safe_return().
 	$return = diluxone_users_safe_return( isset( $_POST['redirect_to'] ) && is_string( $_POST['redirect_to'] ) ? esc_url_raw( wp_unslash( $_POST['redirect_to'] ) ) : '' );
 
 	diluxone_users_return_forget();
@@ -813,6 +813,13 @@ function diluxone_users_shortcode_off_hub( $output, $tag, $attr = array() ) {
 
 	if ( 'register' === $door ) {
 		$url = diluxone_users_register_form_open() ? diluxone_users_register_url() : diluxone_users_login_url();
+	} elseif ( 'login' === $door && diluxone_users_site_mapped() ) {
+		// On a domain of its own a session opened on the hub never arrives:
+		// sent there, a person signed in, came back still signed out, and was
+		// shown the same door again. They sign in here, on this site's own
+		// wp-login.php, and come back to this page.
+		$door = 'here';
+		$url  = wp_login_url( diluxone_users_here() );
 	} elseif ( 'login' === $door ) {
 		$url = diluxone_users_login_url();
 	} else {
@@ -868,9 +875,41 @@ function diluxone_users_post_to_hub(): void {
 	exit;
 }
 
+/**
+ * The hub's actions somebody signed out may send: the sign-in link, the
+ * registration and a new password. Every other one needs a session.
+ *
+ * @return array<int, string>
+ */
+function diluxone_users_hub_posts_public(): array {
+	return array( 'diluxone_users_link_request', 'diluxone_users_signup', 'diluxone_users_reset' );
+}
+
+/**
+ * Answers somebody signed out who posts an action that needs a session.
+ *
+ * Those actions have no handler for a stranger, only this hook, which is
+ * there for the bounce above; on the hub or a single site it used to step
+ * aside and leave admin-post.php to end in a blank page. The answer is the
+ * one a stranger gets everywhere else: the sign-in page.
+ */
+function diluxone_users_post_signed_out(): void {
+	diluxone_users_post_to_hub();
+
+	wp_safe_redirect( diluxone_users_login_url() );
+	exit;
+}
+
 foreach ( diluxone_users_hub_posts() as $diluxone_users_hub_post ) {
 	add_action( 'admin_post_' . $diluxone_users_hub_post, 'diluxone_users_post_to_hub', 0 );
+}
+
+foreach ( diluxone_users_hub_posts_public() as $diluxone_users_hub_post ) {
 	add_action( 'admin_post_nopriv_' . $diluxone_users_hub_post, 'diluxone_users_post_to_hub', 0 );
+}
+
+foreach ( array_diff( diluxone_users_hub_posts(), diluxone_users_hub_posts_public() ) as $diluxone_users_hub_post ) {
+	add_action( 'admin_post_nopriv_' . $diluxone_users_hub_post, 'diluxone_users_post_signed_out', 0 );
 }
 unset( $diluxone_users_hub_post );
 

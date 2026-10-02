@@ -38,7 +38,7 @@ defined( 'ABSPATH' ) || exit;
 
 	<?php if ( 'sent' === $args['state'] ) : ?>
 
-		<p class="diluxone-users-login__icon <?php echo 'circle' === diluxone_users_option( 'diluxone_users_sent_icon' ) ? 'diluxone-users-login__icon--circle' : ''; ?>"><?php echo diluxone_users_icon( 'mail' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- our own markup. ?></p>
+		<p class="diluxone-users-login__icon <?php echo 'circle' === diluxone_users_option( 'diluxone_users_sent_icon' ) ? 'diluxone-users-login__icon--circle' : ''; ?>"><?php echo wp_kses( diluxone_users_icon( 'mail' ), diluxone_users_allowed_html() ); ?></p>
 		<h2 class="diluxone-users-login__title"><?php echo esc_html( diluxone_users_text( 'diluxone_users_sent_title', __( 'Check your email', 'diluxone-users' ) ) ); ?></h2>
 		<p><?php esc_html_e( 'We sent a sign-in link to', 'diluxone-users' ); ?></p>
 		<p class="diluxone-users-login__email"><strong><?php echo esc_html( $args['email'] ); ?></strong></p>
@@ -67,7 +67,7 @@ defined( 'ABSPATH' ) || exit;
 		</p>
 
 		<p class="diluxone-users-note diluxone-users-note--icon">
-			<?php echo diluxone_users_icon( 'info' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- our own markup. ?>
+			<?php echo wp_kses( diluxone_users_icon( 'info' ), diluxone_users_allowed_html() ); ?>
 			<span><?php echo esc_html( diluxone_users_text( 'diluxone_users_sent_note', __( 'Did not arrive? Check your spam or promotions folder.', 'diluxone-users' ) ) ); ?></span>
 		</p>
 

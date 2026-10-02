@@ -71,7 +71,9 @@ add_action( 'diluxone_users_register_panels', 'diluxone_users_proxy_panels' );
 
 /** Saves the header and the proxies. */
 function diluxone_users_proxy_save(): void {
-	// phpcs:disable WordPress.Security.NonceVerification.Missing -- the panel verifies it.
+	check_admin_referer( 'diluxone_users_panel_' . DILUXONE_USERS_SECURITY, 'diluxone_users_panel_nonce' );
+	diluxone_users_panel_allowed();
+
 	$header = strtoupper( sanitize_key( wp_unslash( $_POST['diluxone_users_ip_header'] ?? '' ) ) );
 
 	diluxone_users_save_options(
@@ -80,7 +82,6 @@ function diluxone_users_proxy_save(): void {
 			'diluxone_users_trusted_proxies' => sanitize_textarea_field( wp_unslash( $_POST['diluxone_users_trusted_proxies'] ?? '' ) ),
 		)
 	);
-	// phpcs:enable
 }
 
 /** The header and the proxies. */
@@ -131,15 +132,16 @@ function diluxone_users_screen_proxy(): void {
 
 /** Saves how long a session lasts. */
 function diluxone_users_sessions_save(): void {
-	// phpcs:disable WordPress.Security.NonceVerification.Missing -- the panel verifies it.
+	check_admin_referer( 'diluxone_users_panel_' . DILUXONE_USERS_SECURITY, 'diluxone_users_panel_nonce' );
+	diluxone_users_panel_allowed();
+
 	diluxone_users_save_options(
 		array(
-			'diluxone_users_session_long_days'  => absint( wp_unslash( $_POST['diluxone_users_session_long_days'] ?? 0 ) ),
-			'diluxone_users_session_short_days' => absint( wp_unslash( $_POST['diluxone_users_session_short_days'] ?? 0 ) ),
+			'diluxone_users_session_long_days'  => ( isset( $_POST['diluxone_users_session_long_days'] ) && is_scalar( $_POST['diluxone_users_session_long_days'] ) ? absint( wp_unslash( $_POST['diluxone_users_session_long_days'] ) ) : 0 ),
+			'diluxone_users_session_short_days' => ( isset( $_POST['diluxone_users_session_short_days'] ) && is_scalar( $_POST['diluxone_users_session_short_days'] ) ? absint( wp_unslash( $_POST['diluxone_users_session_short_days'] ) ) : 0 ),
 			'diluxone_users_sessions_show'      => isset( $_POST['diluxone_users_sessions_show'] ) ? 1 : 0,
 		)
 	);
-	// phpcs:enable
 }
 
 /** How long a session lasts, and whether each person can see their own. */

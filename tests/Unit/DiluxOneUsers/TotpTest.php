@@ -10,9 +10,12 @@
 
 namespace Tests\Unit\DiluxOneUsers;
 
+use Tests\Unit\ResetsWpStubs;
 use PHPUnit\Framework\TestCase;
 
 class TotpTest extends TestCase {
+
+	use ResetsWpStubs;
 
 	/** The secret from the RFC vectors: "12345678901234567890" in base32. */
 	private const SECRET = 'GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ';
@@ -59,12 +62,39 @@ class TotpTest extends TestCase {
 
 	public function test_accepts_one_window_of_drift(): void {
 		// A clock thirty seconds out is the commonest thing in the world.
-		$this->assertTrue( diluxone_users_totp_check( self::SECRET, diluxone_users_totp_code( self::SECRET, time() - 30 ) ) );
-		$this->assertTrue( diluxone_users_totp_check( self::SECRET, diluxone_users_totp_code( self::SECRET, time() + 30 ) ) );
+		$now = time();
+
+		$this->assertTrue( diluxone_users_totp_check( self::SECRET, diluxone_users_totp_code( self::SECRET, $now - 30 ), $now ) );
+		$this->assertTrue( diluxone_users_totp_check( self::SECRET, diluxone_users_totp_code( self::SECRET, $now + 30 ), $now ) );
+		$this->assertTrue( diluxone_users_totp_check( self::SECRET, diluxone_users_totp_code( self::SECRET, $now + 29 ), $now ) );
 	}
 
-	public function test_it_rejects_beyond_the_window(): void {
-		$this->assertFalse( diluxone_users_totp_check( self::SECRET, diluxone_users_totp_code( self::SECRET, time() - 300 ) ) );
+	public function test_it_rejects_the_first_step_outside_the_window(): void {
+		$now  = 1700000010; // Ten seconds into a step: no boundary nearby.
+		$edge = 60; // Two steps of thirty seconds: the window is one step either side, and no more.
+
+		foreach ( array( $now - $edge, $now + $edge ) as $when ) {
+			$code = diluxone_users_totp_code( self::SECRET, $when );
+
+			// The same six digits can turn up in a step inside the window by
+			// chance; that step is not this one.
+			if ( diluxone_users_totp_code( self::SECRET, $now ) === $code || diluxone_users_totp_code( self::SECRET, $now - 30 ) === $code || diluxone_users_totp_code( self::SECRET, $now + 30 ) === $code ) {
+				continue;
+			}
+
+			$this->assertFalse( diluxone_users_totp_check( self::SECRET, $code, $now ), 'one step past the drift' );
+		}
+
+		$this->assertFalse( diluxone_users_totp_check( self::SECRET, diluxone_users_totp_code( self::SECRET, $now - 300 ), $now ) );
+	}
+
+	public function test_a_code_typed_with_separators_counts_and_one_of_seven_digits_does_not(): void {
+		$now  = time();
+		$code = diluxone_users_totp_code( self::SECRET, $now );
+
+		$this->assertTrue( diluxone_users_totp_check( self::SECRET, substr( $code, 0, 3 ) . ' ' . substr( $code, 3 ), $now ) );
+		$this->assertTrue( diluxone_users_totp_check( self::SECRET, substr( $code, 0, 3 ) . '-' . substr( $code, 3 ), $now ) );
+		$this->assertFalse( diluxone_users_totp_check( self::SECRET, $code . '1', $now ) );
 	}
 
 	public function test_it_rejects_anything(): void {

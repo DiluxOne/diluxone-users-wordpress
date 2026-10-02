@@ -10,10 +10,13 @@
 
 namespace Tests\Unit\DiluxOneUsers;
 
+use Tests\Unit\ResetsWpStubs;
 use Brain\Monkey;
 use PHPUnit\Framework\TestCase;
 
 class PasskeyTest extends TestCase {
+
+	use ResetsWpStubs;
 
 	protected function setUp(): void {
 		parent::setUp();
@@ -113,7 +116,24 @@ class PasskeyTest extends TestCase {
 			'origin'    => diluxone_users_passkey_origin(),
 		) );
 
-		$this->assertNotNull( diluxone_users_passkey_client_data( $json, 'webauthn.get', 'log' ) );
+		$data = diluxone_users_passkey_client_data( $json, 'webauthn.get', 'log' );
+
+		$this->assertSame( $challenge, $data['challenge'] ?? null );
+		$this->assertNull( diluxone_users_passkey_client_data( $json, 'webauthn.get', 'log' ), 'the same answer twice: the challenge was spent' );
+	}
+
+	/** @return array<string, array{0: string}> */
+	public static function not_client_data(): array {
+		return array(
+			'not JSON'          => array( 'nope' ),
+			'a JSON word'       => array( '"x"' ),
+			'with no challenge' => array( '{"type":"webauthn.get"}' ),
+		);
+	}
+
+	/** @dataProvider not_client_data */
+	public function test_what_is_not_client_data_is_refused( string $json ): void {
+		$this->assertNull( diluxone_users_passkey_client_data( $json, 'webauthn.get', 'log' ) );
 	}
 
 	public function test_it_rejects_another_origin(): void {
@@ -151,7 +171,44 @@ class PasskeyTest extends TestCase {
 		$this->assertNull( diluxone_users_passkey_client_data( $json, 'webauthn.get', 'log' ) );
 	}
 
+	/**
+	 * A real P-256 key and a real signature over what WebAuthn signs.
+	 *
+	 * @return array{0: string, 1: string, 2: string, 3: string} DER public key, authenticator data, client JSON, signature.
+	 */
+	private function signed(): array {
+		$key  = openssl_pkey_new( array( 'private_key_type' => OPENSSL_KEYTYPE_EC, 'curve_name' => 'prime256v1' ) );
+		$pem  = (string) openssl_pkey_get_details( $key )['key'];
+		$der  = (string) base64_decode( (string) preg_replace( '/-----[^-]+-----|\s/', '', $pem ) );
+		$auth = $this->auth_data( 'example.test', 0x05, 7 );
+		$json = '{"type":"webauthn.get","challenge":"abc"}';
+
+		openssl_sign( $auth . hash( 'sha256', $json, true ), $signature, $key, OPENSSL_ALGO_SHA256 );
+
+		return array( $der, $auth, $json, (string) $signature );
+	}
+
+	public function test_a_signature_from_the_key_over_what_was_signed_is_good(): void {
+		[ $der, $auth, $json, $signature ] = $this->signed();
+
+		$this->assertTrue( diluxone_users_passkey_signature_ok( $der, -7, $auth, $json, $signature ) );
+	}
+
+	public function test_a_signature_over_anything_else_is_not(): void {
+		[ $der, $auth, $json, $signature ] = $this->signed();
+
+		$this->assertFalse( diluxone_users_passkey_signature_ok( $der, -7, $auth . 'x', $json, $signature ), 'other data' );
+		$this->assertFalse( diluxone_users_passkey_signature_ok( $der, -7, $auth, $json . ' ', $signature ), 'another client' );
+		$this->assertFalse( diluxone_users_passkey_signature_ok( $der, -7, $auth, $json, substr( $signature, 0, -1 ) . chr( ord( substr( $signature, -1 ) ) ^ 1 ) ), 'a byte changed' );
+		// openssl_verify() answers -1 on an error, which is not a yes.
+		$this->assertFalse( diluxone_users_passkey_signature_ok( $der, -7, $auth, $json, 'not a signature' ), 'not even a signature' );
+	}
+
 	public function test_it_rejects_a_signature_from_an_algorithm_it_does_not_verify(): void {
-		$this->assertFalse( diluxone_users_passkey_signature_ok( 'x', -37, 'a', 'b', 'c' ) );
+		[ $der, $auth, $json, $signature ] = $this->signed();
+
+		// The key and the signature are good: only the algorithm is not one
+		// this verifies, and that alone is a no.
+		$this->assertFalse( diluxone_users_passkey_signature_ok( $der, -37, $auth, $json, $signature ) );
 	}
 }

@@ -26,7 +26,7 @@ function diluxone_users_person( int $user_id ): array {
 		'passkeys'    => count( diluxone_users_passkeys_here( $user_id ) ),
 		'totp'        => diluxone_users_totp_ready( $user_id ),
 		'social'      => diluxone_users_sso_linked( $user_id ),
-		'handle'      => diluxone_users_public_handle( $user_id ),
+		'handle'      => diluxone_users_handle( $user_id ),
 		'second_step' => diluxone_users_2fa_on( $user_id ),
 	);
 }
@@ -343,6 +343,10 @@ add_action( 'edit_user_profile', 'diluxone_users_profile_block' );
  * of them is something the person can add again from their own account.
  */
 function diluxone_users_profile_block_save( int $user_id ): void {
+	// WordPress checks the profile form's nonce before it fires this hook; it
+	// is checked here again, so the save does not depend on how it was reached.
+	check_admin_referer( 'update-user_' . $user_id );
+
 	// `edit_user` and not `edit_users`: the first is asked about this account
 	// and goes through `map_meta_cap()`, which is where a network, a role
 	// another plugin invented, and `DISALLOW_FILE_EDIT`-style constants get
@@ -352,14 +356,12 @@ function diluxone_users_profile_block_save( int $user_id ): void {
 		return;
 	}
 
-	// phpcs:disable WordPress.Security.NonceVerification.Missing -- WordPress verifies the profile nonce before this hook.
 	if ( isset( $_POST['diluxone_users_forget_totp'] ) ) {
 		diluxone_users_totp_forget( $user_id );
 	}
 
 	$forget = array_map( 'sanitize_text_field', (array) wp_unslash( $_POST['diluxone_users_forget_passkey'] ?? array() ) );
 	$unlink = array_map( 'sanitize_key', (array) wp_unslash( $_POST['diluxone_users_unlink'] ?? array() ) );
-	// phpcs:enable
 
 	foreach ( $forget as $id ) {
 		diluxone_users_passkey_forget( $user_id, (string) $id );

@@ -81,6 +81,14 @@ function diluxone_users_field_options_from( string $type, array $input ): array 
  * @param array<string, mixed> $input
  */
 function diluxone_users_field_save( array $input ): string {
+	// One word per box: a box sent as a list is not one — cast as it came,
+	// a name sent as a list saved a field called "Array".
+	foreach ( array( 'key', 'label', 'type', 'edit', 'edit_max', 'help', 'placeholder', 'group' ) as $word ) {
+		if ( isset( $input[ $word ] ) && ! is_scalar( $input[ $word ] ) ) {
+			unset( $input[ $word ] );
+		}
+	}
+
 	$fields = diluxone_users_fields( '', false );
 	$key    = sanitize_key( (string) ( $input['key'] ?? '' ) );
 	$label  = sanitize_text_field( (string) ( $input['label'] ?? '' ) );
@@ -183,7 +191,6 @@ function diluxone_users_fields_actions(): void {
 		exit;
 	}
 
-	// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- whether an action was asked for; check_admin_referer() right below verifies it.
 	if ( ! isset( $_GET['diluxone_users_action'], $_GET['field'] ) ) {
 		return;
 	}
@@ -1006,8 +1013,8 @@ function diluxone_users_screen_fields_usage(): void {
 				<td><?php esc_html_e( 'A form with every field on it, for whoever is signed in to fill in and save. Somebody who is not signed in sees nothing at all in its place.', 'diluxone-users' ); ?></td>
 			</tr>
 			<tr>
-				<td><code>[diluxone_users_fields group="basic"]</code></td>
-				<td><?php esc_html_e( 'The same form with only the basic fields on it. With group="optional" it is the other half, which is how the two end up on two pages, or one under each heading of the same page.', 'diluxone-users' ); ?></td>
+				<td><code>[diluxone_users_fields group="main"]</code></td>
+				<td><?php esc_html_e( 'The same form with only the fields of the main block on it. With group="extra" it is the other block, which is how the two end up on two pages, or one under each heading of the same page.', 'diluxone-users' ); ?></td>
 			</tr>
 			<tr>
 				<td><code>[diluxone_users_login]</code></td>

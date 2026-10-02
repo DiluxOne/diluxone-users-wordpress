@@ -222,12 +222,18 @@ function diluxone_users_sso_test_url( string $id ): string {
 	);
 }
 
-/** The rule that makes /sso/<network>/ possible: on the hub, the only site the round trip reaches. */
+/**
+ * The rule that makes /sso/<network>/ possible, on every site.
+ *
+ * On a network the round trip only ever reaches the hub, whose address is the
+ * one the providers are given. Another site keeps the rule all the same: a
+ * site that ran on its own before it joined the network may still have its
+ * own /sso/<network>/ in a provider's console or a bookmark, and that address
+ * has to reach diluxone_users_sso_handle(), which sends it on to the hub, the
+ * way the same address written with a query parameter already does — not a
+ * 404.
+ */
 function diluxone_users_sso_rule(): void {
-	if ( diluxone_users_off_hub() ) {
-		return;
-	}
-
 	add_rewrite_rule(
 		'^' . preg_quote( diluxone_users_sso_base(), '/' ) . '/([a-z0-9_-]+)/?$',
 		'index.php?diluxone_users_sso=$matches[1]',
@@ -766,10 +772,21 @@ function diluxone_users_sso_role_blocked( int $user_id ): bool {
 		return false;
 	}
 
-	// The same reading as every "only some roles" rule: on a network a role
-	// on any of the person's sites, a super admin counted as an
-	// administrator, and none ticked reaching nobody.
-	return ! diluxone_users_scope_includes( $user_id, 'diluxone_users_sso' );
+	if ( 'all' === diluxone_users_scope( 'diluxone_users_sso' ) ) {
+		return false;
+	}
+
+	// The roles are read as every "only some roles" rule reads them: on a
+	// network every role on any of the person's sites, a super admin counted
+	// as an administrator, none ticked reaching nobody. But this rule keeps
+	// people out rather than bringing them in, so it is asked of every role
+	// the person holds: one role outside the list anywhere — an administrator
+	// of another site who is a subscriber here — keeps them out. Asked of any
+	// role instead, that administrator got in through the subscribers' door.
+	$allowed = (array) diluxone_users_option( 'diluxone_users_sso_roles' );
+	$has     = diluxone_users_scope_roles_of( $user_id, 'diluxone_users_sso' );
+
+	return array() === $has || array() !== array_diff( $has, $allowed );
 }
 
 /**
@@ -794,7 +811,7 @@ function diluxone_users_sso_query( bool $fresh = false ): array {
 		// ever called with these. Copying the request wholesale said nothing
 		// about which of it mattered, to a reader or to a reviewer.
 		foreach ( array( 'diluxone_users_sso', 'diluxone_users_go', 'diluxone_users_nonce', 'diluxone_users_test', 'state', 'code', 'error', 'error_description' ) as $name ) {
-			// phpcs:disable WordPress.Security.NonceVerification.Recommended -- this is the copy; every use below verifies the state transient, the browser cookie and the nonce.
+			// phpcs:disable WordPress.Security.NonceVerification.Recommended -- a copy of the query string, taken before WordPress can clear it; nothing is done with it here, and what acts on it validates the OAuth `state` it carries against the transient it was issued with.
 			if ( ! isset( $_GET[ $name ] ) ) {
 				continue;
 			}
@@ -837,7 +854,6 @@ function diluxone_users_sso_has( string $key ): bool {
  * @param WP|null $wp The object `parse_request` passes, with the route resolved.
  */
 function diluxone_users_sso_handle( $wp = null ): void {
-	// phpcs:disable WordPress.Security.NonceVerification.Recommended -- the `state` plays that part.
 	// The network can come from the route — /sso/google/ — or from the
 	// parameter, which is what stayed registered in the older consoles and on
 	// sites with plain permalinks.
@@ -927,7 +943,6 @@ function diluxone_users_sso_handle( $wp = null ): void {
 	if ( '' === $code || '' === $state ) {
 		return;
 	}
-	// phpcs:enable
 
 	// Read, then spent: only the request that deletes the state goes on, so
 	// one return from the provider cannot be replayed into two sessions.
@@ -981,8 +996,11 @@ function diluxone_users_sso_handle( $wp = null ): void {
 
 	// If they are already in, this is a link from the profile, not a sign-in.
 	if ( is_user_logged_in() ) {
-		$back  = (string) get_transient( 'diluxone_users_sso_back_' . get_current_user_id() );
-		$back  = '' !== $back ? $back : home_url( '/' );
+		$back = (string) get_transient( 'diluxone_users_sso_back_' . get_current_user_id() );
+		// Kept to the site's own hosts here, before the answer is added to it:
+		// left to wp_safe_redirect(), an address elsewhere fell back to the
+		// dashboard and the person was never told the link was made.
+		$back  = wp_validate_redirect( '' !== $back ? $back : home_url( '/' ), home_url( '/' ) );
 		$owner = '' !== $identity['id'] ? diluxone_users_sso_owner( $id, $identity['id'] ) : 0;
 
 		// One identity, one account: the same social account linked to two
@@ -996,12 +1014,14 @@ function diluxone_users_sso_handle( $wp = null ): void {
 		if ( '' !== $identity['id'] ) {
 			update_user_meta( get_current_user_id(), 'diluxone_users_sso_' . $id, $identity['id'] );
 
+			$network = (string) $provider['name'];
+
 			diluxone_users_notify_security(
 				get_current_user_id(),
-				sprintf(
+				static fn (): string => sprintf(
 					/* translators: %s: name of the social network */
 					__( 'The %s account was linked, and it now gets into this account.', 'diluxone-users' ),
-					$provider['name']
+					$network
 				)
 			);
 		}
@@ -1059,12 +1079,14 @@ function diluxone_users_sso_unlink(): void {
 	if ( isset( diluxone_users_sso_providers()[ $id ] ) && is_user_logged_in() ) {
 		delete_user_meta( get_current_user_id(), 'diluxone_users_sso_' . $id );
 
+		$network = (string) ( diluxone_users_sso_providers()[ $id ]['name'] ?? $id );
+
 		diluxone_users_notify_security(
 			get_current_user_id(),
-			sprintf(
-					/* translators: %s: name of the social network */
+			static fn (): string => sprintf(
+				/* translators: %s: name of the social network */
 				__( 'The %s account was unlinked.', 'diluxone-users' ),
-				diluxone_users_sso_providers()[ $id ]['name'] ?? $id
+				$network
 			)
 		);
 	}

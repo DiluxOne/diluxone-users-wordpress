@@ -1,0 +1,234 @@
+# Every phpcs suppression of a security check in this plugin, with why the
+# line is safe in its own terms. Checked by the organisation's
+# `suppression-unlisted` rule (DiluxOne/.github, kinds/wordpress-plugin):
+# a suppression missing here, or a listed line that changed, fails.
+
+suppressions:
+  - file: includes/account-confirm.php
+    sniff: WordPress.Security.NonceVerification.Recommended
+    fingerprint: 78bc86ba1da6
+    reason: "a link sent by e-mail cannot carry a nonce: the single-use confirmation key WordPress issued for this request vouches for it, validated with wp_validate_user_request_key() before anything is done."
+  - file: includes/account-confirm.php
+    sniff: WordPress.Security.NonceVerification.Recommended
+    fingerprint: 707b8529f0ea
+    reason: "a link sent by e-mail cannot carry a nonce: the single-use confirmation key WordPress issued for this request vouches for it, validated with wp_validate_user_request_key() before anything is done."
+  - file: includes/account-export.php
+    sniff: WordPress.WP.AlternativeFunctions.file_system_operations_readfile
+    fingerprint: fd68ab781b39
+    reason: "streaming a file to the browser; WP_Filesystem has no streaming read."
+  - file: includes/account.php
+    sniff: WordPress.Security.NonceVerification.Recommended
+    fingerprint: d1c2bc79019f
+    reason: "it only picks what to draw."
+  - file: includes/admin-account.php
+    sniff: WordPress.Security.NonceVerification.Recommended
+    fingerprint: 850382cf3f1f
+    reason: "which screen this is; the action below checks its nonce before doing anything."
+  - file: includes/admin-account.php
+    sniff: WordPress.Security.NonceVerification.Recommended
+    fingerprint: 123df5c62e32
+    reason: "it only picks the message."
+  - file: includes/admin-account.php
+    sniff: WordPress.Security.NonceVerification.Recommended
+    fingerprint: 9616e128075a
+    reason: "it only picks what to draw."
+  - file: includes/admin-fields.php
+    sniff: WordPress.Security.NonceVerification.Recommended
+    fingerprint: 148d9748e044
+    reason: "which screen this is; every action below checks its own nonce."
+  - file: includes/admin-fields.php
+    sniff: WordPress.Security.NonceVerification.Recommended
+    fingerprint: 18b2c3f72440
+    reason: "which field the screen shows, nothing is changed."
+  - file: includes/admin-fields.php
+    sniff: WordPress.Security.NonceVerification.Recommended
+    fingerprint: c576901974a6
+    reason: "which message to show after the redirect, from a fixed list."
+  - file: includes/admin-fields.php
+    sniff: WordPress.Security.NonceVerification.Recommended
+    fingerprint: 8582a530d835
+    reason: "it only picks what the screen shows."
+  - file: includes/admin-log.php
+    sniff: WordPress.Security.NonceVerification.Recommended
+    fingerprint: df74ca78ff2b
+    reason: "only which notice to show after the redirect."
+  - file: includes/admin-log.php
+    sniff: WordPress.Security.NonceVerification.Recommended
+    fingerprint: 4e9d6a470652
+    reason: "a count shown once after the redirect, cast to a number."
+  - file: includes/admin-log.php
+    sniff: WordPress.Security.NonceVerification.Recommended
+    fingerprint: 406deea5365a
+    reason: "it is a read-only search."
+  - file: includes/admin-membership.php
+    sniff: WordPress.Security.NonceVerification.Recommended
+    fingerprint: fa420635ebe2
+    reason: "which screen this is, to stay quiet on the one that asks."
+  - file: includes/admin-membership.php
+    sniff: WordPress.Security.NonceVerification.Recommended
+    fingerprint: ecdc86415b10
+    reason: "only which notice to show after the redirect."
+  - file: includes/admin-notices.php
+    sniff: WordPress.Security.NonceVerification
+    fingerprint: 322accf6045f
+    reason: "only which language: a locale picked from the site's installed languages, used to choose which texts are drawn or written; this function saves nothing."
+  - file: includes/admin-panels.php
+    sniff: WordPress.Security.NonceVerification.Recommended
+    fingerprint: 902d26558f6c
+    reason: "the key IS the credential: it was made for this administrator and it is only good for a minute."
+  - file: includes/admin-sessions.php
+    sniff: WordPress.Security.NonceVerification.Recommended
+    fingerprint: 7c173b25eb21
+    reason: "it is a read-only search."
+  - file: includes/admin-social.php
+    sniff: WordPress.Security.NonceVerification.Recommended
+    fingerprint: 25b36040d682
+    reason: "which provider the screen shows, nothing is changed."
+  - file: includes/admin-tools.php
+    sniff: WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+    fingerprint: 6e25946b8420
+    reason: "the import checks the path with is_uploaded_file() and validates the content as JSON."
+  - file: includes/admin-tools.php
+    sniff: WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+    fingerprint: 82f54ebbb46c
+    reason: "a local file, the one diluxone_users_tool_import() checked with is_uploaded_file(), never a URL, and its size capped above."
+  - file: includes/admin.php
+    sniff: WordPress.Security.NonceVerification.Recommended
+    fingerprint: 86b6148e469a
+    reason: "which tab the screen shows, nothing is changed."
+  - file: includes/auth.php
+    sniff: WordPress.Security.NonceVerification
+    fingerprint: af4da6df0cee
+    reason: "the person is not signed in yet, so no nonce can belong to them: the single-use pending-attempt key is the credential, validated by diluxone_users_2fa_pending() before anything posted is acted on."
+  - file: includes/auth.php
+    sniff: WordPress.Security.NonceVerification.Missing
+    fingerprint: 683024d95e19
+    reason: "wp-login.php has no nonce; the password WordPress just verified is what vouches for this form: this runs on `wp_login`, which only fires after it."
+  - file: includes/avatar.php
+    sniff: WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+    fingerprint: 801382de0eb1
+    reason: "tmp_name is PHP's own temporary path, never slashed and checked with is_uploaded_file(); the name is sanitised here."
+  - file: includes/fields-forms.php
+    sniff: WordPress.Security.NonceVerification.Missing
+    fingerprint: e84598710bee
+    reason: "presence only: whether this plugin's form sent the request at all, so another plugin's sign-up is not refused; nothing is read, and from here on the form's nonce is required."
+  - file: includes/log.php
+    sniff: WordPress.DB.PreparedSQL.NotPrepared
+    fingerprint: 1a04c64f06bb
+    reason: "the IN list is placeholders only, one per site, and the values come as one array, filled by prepare(); the plugin's own table; a delete is not cached."
+  - file: includes/log.php
+    sniff: WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+    fingerprint: 1a04c64f06bb
+    reason: "the IN list is placeholders only, one per site, and the values come as one array, filled by prepare(); the plugin's own table; a delete is not cached."
+  - file: includes/log.php
+    sniff: WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber
+    fingerprint: 1a04c64f06bb
+    reason: "the IN list is placeholders only, one per site, and the values come as one array, filled by prepare(); the plugin's own table; a delete is not cached."
+  - file: includes/log.php
+    sniff: WordPress.DB.PreparedSQL.NotPrepared
+    fingerprint: 89353989faf9
+    reason: "the IN list is placeholders only, filled by prepare()."
+  - file: includes/log.php
+    sniff: WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+    fingerprint: 89353989faf9
+    reason: "the IN list is placeholders only, filled by prepare()."
+  - file: includes/log.php
+    sniff: WordPress.DB.PreparedSQL.NotPrepared
+    fingerprint: a659bd58b296
+    reason: "the IN list is placeholders only, filled by prepare(); the plugin's own table; a delete is not cached."
+  - file: includes/log.php
+    sniff: WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+    fingerprint: a659bd58b296
+    reason: "the IN list is placeholders only, filled by prepare(); the plugin's own table; a delete is not cached."
+  - file: includes/log.php
+    sniff: WordPress.DB.PreparedSQL.NotPrepared
+    fingerprint: 74bfdab8b3ac
+    reason: "$where is built above out of literals and every value in it is a placeholder filled from $args, all through prepare(); the plugin's own table, read as it is now."
+  - file: includes/log.php
+    sniff: WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+    fingerprint: 74bfdab8b3ac
+    reason: "$where is built above out of literals and every value in it is a placeholder filled from $args, all through prepare(); the plugin's own table, read as it is now."
+  - file: includes/login-messages.php
+    sniff: WordPress.Security.NonceVerification
+    fingerprint: 71365417f8b5
+    reason: "only which language: a locale picked from the site's installed languages, used to choose which texts are drawn or written; this function saves nothing."
+  - file: includes/login.php
+    sniff: WordPress.Security.NonceVerification.Recommended
+    fingerprint: c2d06b25d525
+    reason: "the token IS the credential."
+  - file: includes/membership.php
+    sniff: WordPress.DB.PreparedSQL.NotPrepared
+    fingerprint: ab524b8c3f81
+    reason: "$in is a list of %s placeholders, one per key, filled by prepare() from $args; a cursor no API offers."
+  - file: includes/membership.php
+    sniff: WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+    fingerprint: ab524b8c3f81
+    reason: "$in is a list of %s placeholders, one per key, filled by prepare() from $args; a cursor no API offers."
+  - file: includes/network-gate.php
+    sniff: WordPress.Security.NonceVerification.Recommended
+    fingerprint: b42d84f50628
+    reason: "which screen this is, to decide whether to speak on it."
+  - file: includes/network-hub.php
+    sniff: WordPress.Security.NonceVerification.Recommended
+    fingerprint: db3d5ea3bb8a
+    reason: "reading which screen wp-login.php was asked for, to send it on."
+  - file: includes/network-hub.php
+    sniff: WordPress.Security.NonceVerification.Recommended
+    fingerprint: 0c00148ffe6a
+    reason: "an address to come back to, checked against the network's hosts before it is kept."
+  - file: includes/network-hub.php
+    sniff: WordPress.Security.NonceVerification.Missing
+    fingerprint: d6674bc8f089
+    reason: "wp-login.php's form carries no nonce; what vouches for it is the password WordPress has just verified, since `wp_login` only fires after that. This is where it sends them next, kept to the network's own hosts by diluxone_users_safe_return()."
+  - file: includes/pages.php
+    sniff: WordPress.Security.NonceVerification.Recommended
+    fingerprint: 257a0b492e36
+    reason: "display only."
+  - file: includes/passwordless.php
+    sniff: WordPress.Security.NonceVerification.Recommended
+    fingerprint: e5dd5a368052
+    reason: "the key is the credential and is checked on arrival."
+  - file: includes/passwordless.php
+    sniff: WordPress.Security.NonceVerification.Recommended
+    fingerprint: 463bfcc19b5c
+    reason: "reading which screen wp-login.php was asked for, before anything is done with it."
+  - file: includes/passwordless.php
+    sniff: WordPress.Security.NonceVerification.Missing
+    fingerprint: 463bfcc19b5c
+    reason: "reading which screen wp-login.php was asked for, before anything is done with it."
+  - file: includes/passwordless.php
+    sniff: WordPress.Security.NonceVerification.Recommended
+    fingerprint: fd8b71c5ad9f
+    reason: "it only decides whether a hidden field is printed."
+  - file: includes/reset.php
+    sniff: WordPress.Security.NonceVerification.Recommended
+    fingerprint: c98d4b86fe24
+    reason: "a link from an e-mail, opened by somebody who is not signed in, cannot carry a nonce: the reset key WordPress issued is the credential, and check_password_reset_key() validates it before anything is kept."
+  - file: includes/reset.php
+    sniff: WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+    fingerprint: ba9222298007
+    reason: "a password is not sanitised, it is used as typed."
+  - file: includes/shortcodes.php
+    sniff: WordPress.Security.NonceVerification.Recommended
+    fingerprint: bd55b06ad591
+    reason: "it only picks which message is seen."
+  - file: includes/shortcodes.php
+    sniff: WordPress.Security.NonceVerification.Recommended
+    fingerprint: dc68d5a7eea8
+    reason: "the person is not signed in yet, so no nonce can belong to them: the single-use pending-attempt key is the credential, validated by diluxone_users_2fa_pending() before anything is drawn."
+  - file: includes/sso.php
+    sniff: WordPress.Security.NonceVerification.Recommended
+    fingerprint: fcbea1c4babc
+    reason: "a copy of the query string, taken before WordPress can clear it; nothing is done with it here, and what acts on it validates the OAuth `state` it carries against the transient it was issued with."
+  - file: templates/account/notifications.php
+    sniff: WordPress.Security.NonceVerification.Recommended
+    fingerprint: a62962fa4ef3
+    reason: "it only picks which message to show."
+  - file: templates/account/privacy.php
+    sniff: WordPress.Security.NonceVerification.Recommended
+    fingerprint: 68fc54862a09
+    reason: "it only picks the message."
+  - file: templates/account/security.php
+    sniff: WordPress.Security.NonceVerification.Recommended
+    fingerprint: 749bdcea1c8f
+    reason: "it only picks the message."

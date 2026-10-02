@@ -280,33 +280,31 @@ function diluxone_users_field_key_allowed( string $key ): bool {
 	 * per passkey, per provider, per notice, per field counter, so no exact
 	 * list of them can be written down.
 	 */
-	$taken = array(
-		'session_tokens',
-		'capabilities',
-		'primary_blog',
-		'source_domain',
-		'user_level',
-		'admin_color',
-		'locale',
-		'nickname',
-		'description',
-		'diluxone_users_2fa_on',
-		'diluxone_users_2fa_pending',
-		'diluxone_users_2fa_epoch',
-		'diluxone_users_2fa_email',
-		'diluxone_users_2fa_fails',
-		'diluxone_users_2fa_lock',
-		'diluxone_users_2fa_lock_at',
-		'diluxone_users_totp',
-		'diluxone_users_totp_pending',
-		'diluxone_users_totp_step',
-		'diluxone_users_backup_codes',
-		'diluxone_users_passkeys',
-		'diluxone_users_handle',
-		'diluxone_users_handle_changed',
-		'diluxone_users_avatar',
-		'diluxone_users_avatar_site',
-		'diluxone_users_devices',
+	$taken = array_merge(
+		diluxone_users_core_user_meta(),
+		array(
+			'diluxone_users_2fa_on',
+			'diluxone_users_2fa_pending',
+			'diluxone_users_2fa_epoch',
+			'diluxone_users_2fa_email',
+			'diluxone_users_2fa_fails',
+			'diluxone_users_2fa_lock',
+			'diluxone_users_2fa_lock_at',
+			'diluxone_users_totp',
+			'diluxone_users_totp_pending',
+			'diluxone_users_totp_step',
+			'diluxone_users_backup_codes',
+			'diluxone_users_passkeys',
+			'diluxone_users_handle',
+			'diluxone_users_handle_changed',
+			'diluxone_users_avatar',
+			'diluxone_users_avatar_site',
+			'diluxone_users_devices',
+			// A closed account's flag, which keeps it from signing in, and the
+			// sites an administrator took somebody off, which keeps them off.
+			'diluxone_users_closed',
+			'diluxone_users_removed_from', // DILUXONE_USERS_MEMBERSHIP_REMOVED.
+		)
 	);
 
 	if ( in_array( $key, $taken, true ) ) {
@@ -337,23 +335,29 @@ function diluxone_users_field_key_allowed( string $key ): bool {
 function diluxone_users_normalize_field( array $field ): array {
 	$types = diluxone_users_field_types();
 
+	// A field can arrive from a settings file somebody edited by hand, so any
+	// of its words can be a list. A list is no word: '' and not "Array" — a
+	// key of `array` and a TypeError on a list used as an index, before.
+	$word = static fn( $value ): string => is_scalar( $value ) ? (string) $value : '';
+	$type = $word( $field['type'] ?? '' );
+
 	return array(
-		'key'         => sanitize_key( (string) ( $field['key'] ?? '' ) ),
-		'label'       => sanitize_text_field( (string) ( $field['label'] ?? '' ) ),
-		'type'        => isset( $types[ $field['type'] ?? '' ] ) ? (string) $field['type'] : 'text',
-		'help'        => sanitize_text_field( (string) ( $field['help'] ?? '' ) ),
-		'placeholder' => sanitize_text_field( (string) ( $field['placeholder'] ?? '' ) ),
+		'key'         => sanitize_key( $word( $field['key'] ?? '' ) ),
+		'label'       => sanitize_text_field( $word( $field['label'] ?? '' ) ),
+		'type'        => isset( $types[ $type ] ) ? $type : 'text',
+		'help'        => sanitize_text_field( $word( $field['help'] ?? '' ) ),
+		'placeholder' => sanitize_text_field( $word( $field['placeholder'] ?? '' ) ),
 		'options'     => array_values(
 			array_filter(
 				array_map(
-					static fn( $o ): string => sanitize_text_field( (string) $o ),
+					static fn( $o ): string => sanitize_text_field( $word( $o ) ),
 					(array) ( $field['options'] ?? array() )
 				),
 				static fn( string $o ): bool => '' !== $o
 			)
 		),
 		'required'    => empty( $field['required'] ) ? 0 : 1,
-		'group'       => diluxone_users_normalize_group( (string) ( $field['group'] ?? '' ) ),
+		'group'       => diluxone_users_normalize_group( $word( $field['group'] ?? '' ) ),
 		'active'      => isset( $field['active'] ) && ! $field['active'] ? 0 : 1,
 		// What the person who owns the data can do with this field:
 		// 'always' change it whenever they like, 'limited' a few times,
@@ -361,7 +365,7 @@ function diluxone_users_normalize_field( array $field ): array {
 		'edit'        => in_array( $field['edit'] ?? '', array( 'always', 'limited', 'never' ), true )
 			? (string) $field['edit']
 			: 'always',
-		'edit_max'    => max( 1, (int) ( $field['edit_max'] ?? 1 ) ),
+		'edit_max'    => max( 1, (int) $word( $field['edit_max'] ?? 1 ) ),
 	);
 }
 
@@ -400,7 +404,12 @@ function diluxone_users_fields( string $group = '', bool $only_active = true ): 
 	 * @param array<int, array<string, mixed>> $fields
 	 * @param string                           $group
 	 */
-	return apply_filters( 'diluxone_users_fields', $fields, $group );
+	$fields = (array) apply_filters( 'diluxone_users_fields', $fields, $group );
+
+	// What the filter added is filled in like a stored field: a theme that
+	// adds one with a key and a label is not expected to know every setting
+	// a field has, and nothing downstream should read one that is not there.
+	return array_values( array_map( 'diluxone_users_normalize_field', array_filter( $fields, 'is_array' ) ) );
 }
 
 /**
@@ -584,12 +593,15 @@ function diluxone_users_sanitize( array $field, string $value ): string {
 			return sanitize_textarea_field( $value );
 
 		case 'number':
-			return '' === $value ? '' : (string) floatval( $value );
+			// A number that is not finite — 1e999 is infinity to PHP — is no
+			// number anybody typed, and "INF" is not one to keep.
+			return '' === $value || ! is_finite( floatval( $value ) ) ? '' : (string) floatval( $value );
 
 		case 'date':
 			// Stored as YYYY-MM-DD, which is what the input sends and the only
-			// form that sorts and compares without ambiguity.
-			return preg_match( '/^\d{4}-\d{2}-\d{2}$/', $value ) ? $value : '';
+			// form that sorts and compares without ambiguity — and a day there
+			// is: 2024-13-45 has the shape and is no date.
+			return preg_match( '/^(\d{4})-(\d{2})-(\d{2})$/', $value, $day ) && checkdate( (int) $day[2], (int) $day[3], (int) $day[1] ) ? $value : '';
 
 		case 'phone':
 			// Stored in international format: "+" and digits, nothing else. What
@@ -631,13 +643,24 @@ function diluxone_users_sanitize( array $field, string $value ): string {
  * callee sanitised every value it recognised was true; it was true three
  * calls deep, where nobody reading the call site could see it.
  *
- * @param string $group Only one block of the form, or all of it.
+ * It reads the request, so it checks the request's nonce itself, first,
+ * with the action and the field name of the form its caller drew: a
+ * function that reads `$_POST` verifies it where the reading is, not
+ * somewhere up the call stack. A request without a valid nonce has posted
+ * nothing.
+ *
+ * @param string $nonce_action The action of the form's nonce.
+ * @param string $nonce_name   The field the nonce travels in.
+ * @param string $group        Only one block of the form, or all of it.
  * @return array<string, string>
  */
-function diluxone_users_posted_fields( string $group = '' ): array {
+function diluxone_users_posted_fields( string $nonce_action, string $nonce_name, string $group = '' ): array {
+	if ( ! isset( $_POST[ $nonce_name ] ) || ! is_string( $_POST[ $nonce_name ] ) || ! wp_verify_nonce( sanitize_key( wp_unslash( $_POST[ $nonce_name ] ) ), $nonce_action ) ) {
+		return array();
+	}
+
 	$sent = array();
 
-	// phpcs:disable WordPress.Security.NonceVerification.Missing -- every caller verifies its form's nonce before asking.
 	foreach ( diluxone_users_fields( $group ) as $field ) {
 		foreach ( array( (string) $field['key'], (string) $field['key'] . '_dial' ) as $name ) {
 			// One value per field: a posted `field[]=` is an array, not an answer.
@@ -653,7 +676,6 @@ function diluxone_users_posted_fields( string $group = '' ): array {
 				: sanitize_textarea_field( wp_unslash( (string) $_POST[ $name ] ) );
 		}
 	}
-	// phpcs:enable
 
 	return $sent;
 }
@@ -682,6 +704,14 @@ function diluxone_users_save( int $user_id, array $input, string $group = '' ): 
 		$key = $field['key'];
 
 		if ( ! array_key_exists( $key, $input ) ) {
+			continue;
+		}
+
+		// A field reaches this list from a filter or from an option, and
+		// neither went through the screen that refuses a key WordPress or the
+		// plugin keeps for itself (`wp_capabilities`, a session, a passkey).
+		// The save asks again: a field is never the way to write one.
+		if ( ! diluxone_users_field_key_allowed( (string) $key ) ) {
 			continue;
 		}
 

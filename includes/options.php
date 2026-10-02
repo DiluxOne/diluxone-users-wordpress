@@ -258,7 +258,6 @@ function diluxone_users_option_defaults(): array {
 		'diluxone_users_handle_min'            => 3,
 		'diluxone_users_handle_max'            => 30,
 		// 'strict' = a-z 0-9 . _ - ; 'unicode' accepts accents and ñ.
-		'diluxone_users_handle_charset'        => 'strict',
 		// What to do with spaces: 'dash' turns them into hyphens — an address
 		// cannot contain spaces — or 'reject' refuses them and says so.
 		'diluxone_users_handle_spaces'         => 'dash',
@@ -477,14 +476,28 @@ function diluxone_users_scope_includes( int $user_id, string $prefix ): bool {
 		return false;
 	}
 
+	return array() !== array_intersect( $roles, diluxone_users_scope_roles_of( $user_id, $prefix ) );
+}
+
+/**
+ * The roles a rule about roles asks somebody with.
+ *
+ * On a network, for a rule that is the network's, every role the person holds
+ * on any of its sites; otherwise the roles on this site. A super admin
+ * administers every site of the network, member or not, and counts as an
+ * administrator wherever administrators are asked about.
+ *
+ * @param int    $user_id Who is being checked.
+ * @param string $prefix  Option prefix, e.g. 'diluxone_users_2fa'.
+ * @return array<int, string>
+ */
+function diluxone_users_scope_roles_of( int $user_id, string $prefix ): array {
 	$user = get_userdata( $user_id );
 
 	if ( ! $user instanceof WP_User ) {
-		return false;
+		return array();
 	}
 
-	// A super admin administers every site of the network, member or not, and
-	// is in scope wherever administrators are.
 	$has = diluxone_users_option_scope( $prefix . '_roles' ) === 'network' && is_multisite()
 		? diluxone_users_network_roles( $user_id )
 		: (array) $user->roles;
@@ -493,7 +506,7 @@ function diluxone_users_scope_includes( int $user_id, string $prefix ): bool {
 		$has[] = 'administrator';
 	}
 
-	return array() !== array_intersect( $roles, $has );
+	return array_values( array_unique( array_map( 'strval', $has ) ) );
 }
 
 /**
@@ -596,11 +609,8 @@ function diluxone_users_option_forced_by(): array {
 				continue;
 			}
 
-			try {
-				$file = (string) ( new ReflectionFunction( $fn ) )->getFileName();
-			} catch ( ReflectionException $e ) {
-				continue;
-			}
+			// It exists, checked just above: reflecting it cannot fail.
+			$file = (string) ( new ReflectionFunction( $fn ) )->getFileName();
 
 			$who[] = sprintf(
 				'%s() — %s',
@@ -694,6 +704,13 @@ function diluxone_users_save_options( array $input ): void {
 
 		$default = $defaults[ $key ];
 
+		// One value where one value belongs, or the setting keeps what it
+		// had. Cast as it came, a list was 1 for a number and the word
+		// "Array" for a sentence — the sign-in page's title, say.
+		if ( ! is_array( $default ) && ! is_scalar( $value ) ) {
+			continue;
+		}
+
 		if ( is_int( $default ) ) {
 			diluxone_users_update_option( $key, (int) $value );
 			continue;
@@ -705,6 +722,11 @@ function diluxone_users_save_options( array $input ): void {
 			$clean = array();
 
 			foreach ( (array) $value as $one_key => $one ) {
+				// Each one a word: a list inside the list is nothing.
+				if ( ! is_scalar( $one ) ) {
+					continue;
+				}
+
 				// A map keeps its keys; a list does not have any worth
 				// keeping. Both arrive here and both have to come out
 				// sanitised, which is why the key is looked at rather than
@@ -813,9 +835,12 @@ function diluxone_users_flash_take( int $user_id, string $key ): string {
  * nothing useful on a screen and something it should not say.
  */
 function diluxone_users_file_label( string $file ): string {
-	$relative = plugin_basename( $file );
+	$path     = wp_normalize_path( $file );
+	$relative = wp_normalize_path( plugin_basename( $file ) );
 
-	return 0 === strpos( wp_normalize_path( $relative ), '/' )
-		? basename( dirname( $relative ) ) . '/' . basename( $relative )
+	// plugin_basename() hands a file outside the plugin folders back whole,
+	// only without its leading slash: that is the server's path, not a label.
+	return '' !== $path && ltrim( $path, '/' ) === $relative
+		? basename( dirname( $path ) ) . '/' . basename( $path )
 		: $relative;
 }

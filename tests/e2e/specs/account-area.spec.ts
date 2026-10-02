@@ -1,7 +1,7 @@
 import { Browser, Locator, Page } from '@playwright/test';
 import { test, expect, expectSignedIn, expectSignedOut, stateOf } from '../support/fixtures';
 import { Site, codeIn, freshEmail, linkIn, waitForMail } from '../support/api';
-import { accountSection, askForLink, notice, signInWithPassword } from '../support/ui';
+import { accountSection, askForLink, navigated, notice, signInWithPassword } from '../support/ui';
 import { ADMIN_STATE } from '../../../playwright.config';
 import { avoidWindowEdge, totp } from '../support/totp';
 
@@ -99,7 +99,7 @@ test.describe('The account page itself', () => {
 			const tab = page.locator(`a.diluxone-users-account__tab[href*="/${section}/"]`);
 
 			await expect(tab, `the ${section} tab is in the menu`).toBeVisible();
-			await Promise.all([page.waitForLoadState('domcontentloaded'), tab.click()]);
+			await navigated(page, () => tab.click());
 
 			await expect(page.locator(`a.diluxone-users-account__tab.is-current[href*="/${section}/"]`)).toHaveAttribute(
 				'aria-current',
@@ -238,7 +238,7 @@ test.describe('Your photo', () => {
 			mimeType: 'image/png',
 			buffer: Buffer.from('<?php echo "not a picture";'),
 		});
-		await Promise.all([page.waitForLoadState('domcontentloaded'), form.locator('button[type="submit"]').first().click()]);
+		await navigated(page, () => form.locator('button[type="submit"]').first().click());
 
 		// The reason is on the page, and not in the address: a link cannot
 		// make the account page say anything.
@@ -287,8 +287,14 @@ test.describe('The public name', () => {
 			'the sign-in box is type="email", so the browser refuses a public name'
 		).not.toHaveAttribute('type', 'email');
 
+		const asked = Date.now() / 1000;
+
 		await askForLink(page, pages.login.url, handle);
-		expect((await waitForMail(site, email)).to).toContain(email);
+
+		// The link for this request, to the address behind the name.
+		const mail = await waitForMail(site, email, { after: asked - 1, subject: /./ });
+		expect(mail.to).toContain(email);
+		expect(mail.body).toContain('diluxone_users_token');
 	});
 
 	test('a reserved name is refused and nothing is written', async ({ page, site, pages }) => {
@@ -300,7 +306,7 @@ test.describe('The public name', () => {
 		const form = page.locator('form').filter({ has: page.locator('input[name="action"][value="diluxone_users_handle"]') });
 
 		await form.locator('input[name="diluxone_users_handle"]').fill('admin');
-		await Promise.all([page.waitForLoadState('domcontentloaded'), form.locator('button[type="submit"]').first().click()]);
+		await navigated(page, () => form.locator('button[type="submit"]').first().click());
 
 		await expect(page.locator('.diluxone-users-handle .diluxone-users-notice--error'), 'and the page says why').toBeVisible();
 		expect(page.url()).not.toContain('diluxone_users_handle=');
@@ -369,6 +375,18 @@ test.describe('Notifications', () => {
 		await site.clearMail();
 		await byLink(await device(browser, baseURL!, 'E2E-Device-Three Safari/3'), site, pages.login.url, email);
 		expect(await notices(site, email), 'a third device, and nothing said').toEqual([]);
+
+		// And on again: a choice both ways, kept as it was made.
+		await first.goto(accountSection(pages.account.url, 'notifications'));
+		await reveal(first, 'input[name="diluxone_users_notify_login"]');
+		await expect(box).not.toBeChecked();
+		await box.check();
+		expect(await send(first, form.locator('button[type="submit"]').first())).toBe('saved');
+		expect((await site.user(email, ['diluxone_users_notify_login'])).fields.diluxone_users_notify_login).toBe('1');
+
+		await first.goto(accountSection(pages.account.url, 'notifications'));
+		await reveal(first, 'input[name="diluxone_users_notify_login"]');
+		await expect(box).toBeChecked();
 	});
 
 	test('a new device is announced when it came in with the password, too', async ({ browser, baseURL, site, pages }) => {
@@ -471,7 +489,8 @@ test.describe('Your data', () => {
 			expect(mail.subject).toMatch(kind === 'export' ? /copy of your data/ : /deletion of your account/);
 
 			// And the account lists it, waiting.
-			await expect(page.locator('.diluxone-users-requests').first()).toBeAttached();
+			await expect(page.locator('.diluxone-users-requests'), 'one list of requests').toHaveCount(1);
+			await expect(page.locator('.diluxone-users-requests tbody tr'), 'with this request in it').toHaveCount(1);
 		});
 	}
 
@@ -742,7 +761,7 @@ test.describe('Your data', () => {
 
 		// The export form, turned into the erase form the setting took off
 		// the page. A form is a suggestion; the server is the rule.
-		await postByHand(page, 'erase');
+		expect(await postByHand(page, 'erase'), 'the answer is a refusal').toBe('error');
 
 		expect(await site.mail(email), 'an erasure request was filed on a site that does not offer erasure').toEqual([]);
 	});

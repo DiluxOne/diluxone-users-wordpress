@@ -9,10 +9,13 @@
 
 namespace Tests\Unit\DiluxOneUsers;
 
+use Tests\Unit\ResetsWpStubs;
 use Brain\Monkey;
 use PHPUnit\Framework\TestCase;
 
 class TwoFactorPolicyTest extends TestCase {
+
+	use ResetsWpStubs;
 
 	private const USER_ID = 7;
 
@@ -68,6 +71,10 @@ class TwoFactorPolicyTest extends TestCase {
 	}
 
 	public function test_safe_mode_never_asks(): void {
+		// The link asked always, so that only safe mode can make it a no.
+		$this->settings( array( 'diluxone_users_2fa_link' => 'always' ) );
+		$this->assertTrue( diluxone_users_2fa_required( self::USER_ID, 'link' ), 'the control: asked, without the switch' );
+
 		// DILUXONE_USERS_SAFE_MODE: WordPress's own sign-in and nothing after it.
 		\Brain\Monkey\Functions\when( 'diluxone_users_safe_mode' )->justReturn( true );
 
@@ -173,6 +180,27 @@ class TwoFactorPolicyTest extends TestCase {
 		$this->assertTrue( diluxone_users_backup_use( self::USER_ID, $codes[1] ) );
 		$this->assertSame( 2, diluxone_users_backup_left( self::USER_ID ) );
 		$this->assertFalse( diluxone_users_backup_use( self::USER_ID, $codes[1] ) );
+	}
+
+	/** Typed the way people type it — in capitals, with a dash or a space — it still counts. */
+	public function test_a_backup_code_is_read_the_way_people_type_it(): void {
+		$codes = diluxone_users_backup_generate( self::USER_ID, 3 );
+
+		$this->assertTrue( diluxone_users_backup_use( self::USER_ID, ' ' . strtoupper( substr( $codes[0], 0, 5 ) . '-' . substr( $codes[0], 5 ) ) . ' ' ) );
+		$this->assertTrue( diluxone_users_backup_use( self::USER_ID, substr( $codes[1], 0, 5 ) . ' ' . substr( $codes[1], 5 ) ) );
+		$this->assertSame( 1, diluxone_users_backup_left( self::USER_ID ) );
+	}
+
+	public function test_backup_codes_are_ten_letters_or_digits_and_a_new_set_replaces_the_old(): void {
+		$old = diluxone_users_backup_generate( self::USER_ID, 3 );
+		$new = diluxone_users_backup_generate( self::USER_ID, 3 );
+
+		foreach ( $new as $code ) {
+			$this->assertMatchesRegularExpression( '/^[a-z0-9]{10}$/', $code );
+		}
+
+		$this->assertFalse( diluxone_users_backup_use( self::USER_ID, $old[0] ), 'the old set is gone' );
+		$this->assertTrue( diluxone_users_backup_use( self::USER_ID, $new[0] ) );
 	}
 
 	public function test_a_made_up_backup_code_is_no_good(): void {

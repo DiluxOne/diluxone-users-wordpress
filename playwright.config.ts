@@ -94,16 +94,16 @@ export default defineConfig({
 		{
 			name: 'chromium',
 			use: { ...devices['Desktop Chrome'] },
-			// The pictures are their own project: they need a window of a
+			// The pictures are their own projects: they need a window of a
 			// fixed size, and they are not part of what CI compares.
-			testIgnore: /(admin-snapshots|listing-screenshots)\.spec\.ts/,
+			testIgnore: /(-snapshots|listing-screenshots)\.spec\.ts/,
 			dependencies: ['setup'],
 		},
 		...(PICTURES
 			? [
 					{
 						name: 'visual',
-						testMatch: /admin-snapshots\.spec\.ts/,
+						testMatch: /(admin|front)-snapshots\.spec\.ts/,
 						use: {
 							...devices['Desktop Chrome'],
 							// Pinned, all three: a picture taken in a window of
@@ -116,6 +116,26 @@ export default defineConfig({
 							// The dashboard uses view transitions and this
 							// plugin fades a preview while it reloads. Both are
 							// right, and both are movement in a photograph.
+							reducedMotion: 'reduce' as const,
+						},
+						dependencies: ['setup'],
+					},
+					{
+						// The same public pages on a phone, and the dashboard's
+						// screens whose stylesheet changes below 782px. A width
+						// where the front end's own rules (640, 560, 480) have
+						// all taken over, at a pixel ratio of one so the picture
+						// is the same on every screen. Its pictures carry
+						// `-mobile` in their name, beside the desktop ones.
+						name: 'visual-mobile',
+						testMatch: /(front|admin-mobile)-snapshots\.spec\.ts/,
+						snapshotPathTemplate: 'tests/e2e/snapshots/{arg}-mobile-{platform}{ext}',
+						use: {
+							...devices['Desktop Chrome'],
+							viewport: { width: 390, height: 844 },
+							deviceScaleFactor: 1,
+							isMobile: true,
+							hasTouch: true,
 							reducedMotion: 'reduce' as const,
 						},
 						dependencies: ['setup'],

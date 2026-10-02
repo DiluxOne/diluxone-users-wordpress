@@ -5,8 +5,9 @@
     bootstrap="tests/bootstrap-integration.php"
     colors="true"
     convertErrorsToExceptions="true"
-    convertNoticesToExceptions="false"
-    convertWarningsToExceptions="false"
+    convertNoticesToExceptions="true"
+    convertWarningsToExceptions="true"
+    convertDeprecationsToExceptions="true"
     failOnRisky="true"
     cacheResultFile=".phpunit.result.cache.integration"
     beStrictAboutOutputDuringTests="false"
@@ -20,15 +21,30 @@
     </testsuites>
 
     <!--
-        Integration tests run inside the wp-env tests container. WordPress
-        emits notices/warnings under various conditions that are not
-        defects (e.g. headers already sent in CLI context, deprecated
-        function notices in 3rd-party plugins). Unlike the unit suite, we
-        do NOT convert notices/warnings to exceptions here — strict mode
-        for those would fail tests for reasons unrelated to plugin code.
+        Coverage (`make coverage-integration`) counts what the suite runs and
+        nothing else: a file no test loaded is added by
+        tests/coverage/report.php, at 0%, after the parts are merged. Adding it
+        here as well would add PHP-Parser's idea of its lines to the merge,
+        which is not always PCOV's, and leave lines no driver can ever see as
+        "never run".
+    -->
+    <coverage includeUncoveredFiles="false" processUncoveredFiles="false">
+        <include>
+            <directory suffix=".php">includes</directory>
+            <directory suffix=".php">templates</directory>
+        </include>
+    </coverage>
 
-        beStrictAboutOutputDuringTests is also off because integration
-        tests legitimately exercise wp_send_json and similar functions
-        that produce output as part of their normal flow.
+    <!--
+        Notices, warnings and deprecations are failures here, as in the unit
+        suite: a warning in the plugin's code is a bug a site's debug.log would
+        fill with, and the suite is where it is cheapest to see. What WordPress
+        itself raises because a test skipped part of a real request (a hook
+        that reads the current screen, say) is fixed in the test, by giving it
+        what the request would have had.
+
+        beStrictAboutOutputDuringTests is off because integration tests
+        legitimately exercise wp_send_json and similar functions that produce
+        output as part of their normal flow.
     -->
 </phpunit>

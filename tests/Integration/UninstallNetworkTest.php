@@ -196,7 +196,30 @@ class UninstallNetworkTest extends IntegrationTestCase {
 		$site = $this->network_activated();
 		diluxone_users_update_option( 'diluxone_users_uninstall_wipe', 1 );
 
+		// A photo uploaded on the other site, one whose site is gone, the
+		// network's counts and a cron event on the other site.
+		switch_to_blog( $site );
+		$photo = (int) wp_insert_attachment( array( 'post_title' => 'Photo', 'post_status' => 'inherit', 'post_mime_type' => 'image/png', 'post_author' => $this->user ) );
+		wp_schedule_event( time() + HOUR_IN_SECONDS, 'daily', 'diluxone_users_membership_drain' );
+		restore_current_blog();
+		update_user_meta( $this->user, 'diluxone_users_avatar', $photo );
+		update_user_meta( $this->user, 'diluxone_users_avatar_site', $site );
+		$lost = $this->make_user();
+		update_user_meta( $lost, 'diluxone_users_avatar', 1 );
+		update_user_meta( $lost, 'diluxone_users_avatar_site', 999999 );
+		set_site_transient( 'diluxone_users_burst_register_x', array( 'n' => 1 ), HOUR_IN_SECONDS );
+		update_site_option( 'diluxone_offload_net', 'a sister plugin' );
+
 		$this->uninstall();
+
+		switch_to_blog( $site );
+		$this->assertNull( get_post( $photo ), 'the photo, on the site it was uploaded to' );
+		$this->assertFalse( wp_next_scheduled( 'diluxone_users_membership_drain' ), 'every site’s cron' );
+		restore_current_blog();
+		$this->assertNotNull( get_post( 1 ), 'a photo whose site is gone deletes nothing here' );
+		$this->assertFalse( get_site_transient( 'diluxone_users_burst_register_x' ), 'the network’s counts' );
+		$this->assertSame( 'a sister plugin', get_site_option( 'diluxone_offload_net' ) );
+		delete_site_option( 'diluxone_offload_net' );
 
 		$this->assertFalse( get_site_option( 'diluxone_users_2fa_mode' ), 'The network’s settings' );
 		$this->assertFalse( get_site_option( DILUXONE_USERS_NETWORK_VERSION_OPTION ) );
@@ -206,6 +229,35 @@ class UninstallNetworkTest extends IntegrationTestCase {
 		$this->assertSame( '', get_user_meta( $this->user, 'diluxone_users_2fa_on', true ), 'The second factor' );
 		$this->assertSame( '', get_user_meta( $this->user, 'diluxone_users_phone', true ), 'The network’s field' );
 		$this->assertSame( '', get_user_meta( $this->user, 'diluxone_users_team', true ), 'The field only the site had' );
+	}
+
+	/**
+	 * WordPress's own keys outlive the plugin on a network too: from the
+	 * network's fields and from a field a site kept from before the move.
+	 */
+	public function test_wordpress_own_keys_survive_whatever_the_fields_say(): void {
+		$site = $this->network_activated();
+		diluxone_users_update_option( 'diluxone_users_uninstall_wipe', 1 );
+		update_site_option(
+			'diluxone_users_fields',
+			array(
+				array( 'key' => 'description', 'label' => 'Bio' ),
+				array( 'key' => 'last_name', 'label' => 'Surname' ),
+				array( 'key' => 'phone', 'label' => 'Phone' ),
+			)
+		);
+		$this->site_keeps( $site, 'nickname' );
+		update_user_meta( $this->user, 'description', 'A life' );
+		update_user_meta( $this->user, 'last_name', 'López' );
+		update_user_meta( $this->user, 'nickname', 'ani' );
+		update_user_meta( $this->user, 'phone', '555' );
+
+		$this->uninstall();
+
+		$this->assertSame( 'A life', get_user_meta( $this->user, 'description', true ) );
+		$this->assertSame( 'López', get_user_meta( $this->user, 'last_name', true ) );
+		$this->assertSame( 'ani', get_user_meta( $this->user, 'nickname', true ), 'a site’s old field too' );
+		$this->assertSame( '', get_user_meta( $this->user, 'phone', true ), 'a key the network invented goes' );
 	}
 
 	/** Unticked, nothing goes — and a site's own box from before the move is not the network's. */

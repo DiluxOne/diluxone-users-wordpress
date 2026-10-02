@@ -14,7 +14,25 @@
 
 	var data = window.diluxOneUsersPasskeys || null;
 
-	if ( ! data || ! window.PublicKeyCredential ) {
+	if ( ! data ) {
+		return;
+	}
+
+	// A browser from before passkeys. The server draws the button without
+	// knowing which browser will press it, so here pressing it says why
+	// nothing else will happen instead of doing nothing at all.
+	if ( ! window.PublicKeyCredential ) {
+		document.addEventListener( 'click', function ( event ) {
+			var button = event.target.closest( '[data-diluxone-users-passkey]' );
+
+			if ( ! button ) {
+				return;
+			}
+
+			event.preventDefault();
+			say( document.querySelector( '[data-diluxone-users-passkey-notice]' ), data.texts.old, true );
+		} );
+
 		return;
 	}
 

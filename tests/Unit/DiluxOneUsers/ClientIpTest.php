@@ -14,10 +14,13 @@
 
 namespace Tests\Unit\DiluxOneUsers;
 
+use Tests\Unit\ResetsWpStubs;
 use Brain\Monkey;
 use PHPUnit\Framework\TestCase;
 
 class ClientIpTest extends TestCase {
+
+	use ResetsWpStubs;
 
 	protected function setUp(): void {
 		parent::setUp();
@@ -233,7 +236,47 @@ class ClientIpTest extends TestCase {
 			'ipv6 outside'                => array( '2001:db9::1', '2001:db8::/32', false ),
 			'families do not mix'         => array( '2001:db8::1', '203.0.113.0/24', false ),
 			'junk is outside everything'  => array( '203.0.113.7', 'not-a-range', false ),
+			// A prefix that is not a number is no range: read as /0 it would
+			// trust every address of the family, and anybody could then say
+			// who they are in a forwarded header.
+			'a prefix of letters'         => array( '198.51.100.1', '203.0.113.0/abc', false ),
+			'an empty prefix'             => array( '198.51.100.1', '203.0.113.0/', false ),
+			'a prefix with a sign'        => array( '198.51.100.1', '203.0.113.0/+0', false ),
+			'a prefix past the family'    => array( '203.0.113.7', '203.0.113.0/33', false ),
+			'a negative prefix'           => array( '203.0.113.7', '203.0.113.0/-1', false ),
+			'an ipv6 prefix past 128'     => array( '2001:db8::1', '2001:db8::/129', false ),
+			'an ipv6 prefix of letters'   => array( '2001:db9::1', '2001:db8::/x', false ),
+			// Written down on purpose, /0 is what it says: every address.
+			'a deliberate /0'             => array( '198.51.100.1', '0.0.0.0/0', true ),
+			// An IPv4 address written as IPv6 is another family.
+			'an ipv4-mapped address'      => array( '::ffff:203.0.113.7', '203.0.113.0/24', false ),
 		);
+	}
+
+	public function test_an_ipv6_chain_keeps_the_client(): void {
+		$this->behind_a_proxy();
+		update_option( 'diluxone_users_trusted_proxies', '2001:db8:1::/48' );
+
+		$this->assertSame( '2001:db8:ff::9', diluxone_users_client_ip( array(
+			'REMOTE_ADDR'          => '2001:db8:1::2',
+			'HTTP_X_FORWARDED_FOR' => '2001:db8:ff::9, 2001:db8:1::3',
+		) ) );
+	}
+
+	/** @return array<string, array{0: string, 1: string}> */
+	public static function candidates(): array {
+		return array(
+			'an unclosed bracket'    => array( '[::1', '' ),
+			'a port with nothing'    => array( '1.2.3.4:', '1.2.3.4' ),
+			'a port'                 => array( '1.2.3.4:8080', '1.2.3.4' ),
+			'ipv6 with a port'       => array( '[2001:db8::1]:443', '2001:db8::1' ),
+			'not an address at all'  => array( 'unknown', '' ),
+		);
+	}
+
+	/** @dataProvider candidates */
+	public function test_a_candidate_is_cleaned_to_an_address_or_nothing( string $candidate, string $clean ): void {
+		$this->assertSame( $clean, diluxone_users_ip_clean( $candidate ) );
 	}
 
 	public function test_an_old_session_without_our_ip_uses_the_wordpress_one(): void {

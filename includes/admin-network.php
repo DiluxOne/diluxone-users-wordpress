@@ -228,6 +228,8 @@ function diluxone_users_hub_name(): string {
  * site the log is a tab of Reports, beside the sessions; the network has the
  * log — every site's rows and the settings — and nothing else of Reports, so
  * the screen is named after what it holds.
+ *
+ * No position, as on a site (see diluxone_users_menu()).
  */
 function diluxone_users_network_menu(): void {
 	if ( ! diluxone_users_scoped_storage_active() ) {
@@ -240,8 +242,7 @@ function diluxone_users_network_menu(): void {
 		DILUXONE_USERS_NETWORK_CAP,
 		DILUXONE_USERS_MENU,
 		'diluxone_users_screen_network_home',
-		'dashicons-groups',
-		22
+		'dashicons-groups'
 	);
 
 	$callbacks = diluxone_users_screen_callbacks();
@@ -478,7 +479,7 @@ function diluxone_users_network_conflict_says( array $conflict ): string {
 function diluxone_users_network_conflicts_notice(): void {
 	$conflicts = (array) diluxone_users_raw_get( DILUXONE_USERS_NETWORK_CONFLICTS, array() );
 
-	if ( array() === $conflicts || diluxone_users_raw_get( DILUXONE_USERS_NETWORK_CONFLICTS_SEEN, 0 ) || ! current_user_can( DILUXONE_USERS_NETWORK_CAP ) ) {
+	if ( array() === $conflicts || diluxone_users_raw_get( DILUXONE_USERS_NETWORK_CONFLICTS_SEEN, 0 ) || ! current_user_can( DILUXONE_USERS_NETWORK_CAP ) || ! diluxone_users_notice_here() ) {
 		return;
 	}
 
@@ -508,7 +509,6 @@ add_action( 'network_admin_notices', 'diluxone_users_network_conflicts_notice' )
 
 /** Dismisses that notice, for good. */
 function diluxone_users_network_conflicts_dismiss(): void {
-	// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- only whether to go on; the nonce is checked below.
 	if ( ! isset( $_GET['diluxone_users_conflicts_seen'] ) || ! is_network_admin() || ! current_user_can( DILUXONE_USERS_NETWORK_CAP ) ) {
 		return;
 	}
@@ -526,7 +526,9 @@ add_action( 'admin_init', 'diluxone_users_network_conflicts_dismiss' );
 
 /** Saves whether deleting the plugin takes everything with it. */
 function diluxone_users_network_uninstall_save(): void {
-	// phpcs:ignore WordPress.Security.NonceVerification.Missing -- the panel verifies it.
+	check_admin_referer( 'diluxone_users_panel_' . DILUXONE_USERS_MENU, 'diluxone_users_panel_nonce' );
+	diluxone_users_panel_allowed();
+
 	diluxone_users_save_options( array( 'diluxone_users_uninstall_wipe' => isset( $_POST['diluxone_users_uninstall_wipe'] ) ? 1 : 0 ) );
 }
 

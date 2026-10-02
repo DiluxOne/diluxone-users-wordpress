@@ -182,9 +182,48 @@ class TwoFactorLockoutTest extends IntegrationTestCase {
 
 		$this->burn();
 
-		$rows = diluxone_users_log_search( array( 'event' => '2fa_failed' ) );
+		$rows = diluxone_users_log_search( array( 'event' => '2fa_failed' ), 1, 200 );
+		$mine = array_filter( (array) ( $rows['rows'] ?? array() ), fn( $row ): bool => $this->user === (int) ( (array) $row )['user_id'] );
 
-		$this->assertNotEmpty( $rows['rows'] ?? array() );
+		$this->assertCount( DILUXONE_USERS_2FA_TRIES, $mine, 'one row per refused code, this person’s' );
+	}
+
+	/** The account locked, as five more wrong codes after the limit leave it. */
+	private function locked_now(): void {
+		update_user_meta( $this->user, 'diluxone_users_2fa_fails', DILUXONE_USERS_2FA_LOCK_AFTER );
+		update_user_meta( $this->user, 'diluxone_users_2fa_lock_at', DILUXONE_USERS_2FA_LOCK_AFTER );
+		update_user_meta( $this->user, 'diluxone_users_2fa_lock', time() + 600 );
+	}
+
+	/**
+	 * Locked, the door that turns the second step off refuses even a good
+	 * code: a stolen session guesses at it no faster than the way in.
+	 */
+	public function test_a_locked_account_refuses_a_good_code_at_the_door_that_turns_it_off(): void {
+		update_user_meta( $this->user, 'diluxone_users_2fa_on', 1 );
+		$codes = diluxone_users_backup_generate( $this->user );
+		$this->locked_now();
+
+		$this->assertFalse( diluxone_users_2fa_reauth( $this->user, $codes[0] ) );
+
+		diluxone_users_2fa_forgive( $this->user );
+		$this->assertTrue( diluxone_users_2fa_reauth( $this->user, $codes[0] ), 'the code was not spent while it was refused' );
+	}
+
+	/** Locked, the check itself refuses the right code — not only the screen in front of it. */
+	public function test_a_locked_account_is_refused_by_the_check_itself(): void {
+		[ , $code ] = $this->round();
+		$this->locked_now();
+
+		$this->assertFalse( diluxone_users_2fa_verify( $this->user, 'email', $code ) );
+	}
+
+	/** The wrong code that reaches the limit says "locked", not "wrong code". */
+	public function test_the_code_that_closes_the_door_says_so(): void {
+		update_user_meta( $this->user, 'diluxone_users_2fa_fails', DILUXONE_USERS_2FA_LOCK_AFTER - 1 );
+		[ $key ] = $this->round();
+
+		$this->assertSame( 'locked', $this->redirectState( $this->submit( $key, '000000' ) ) );
 	}
 
 	/**

@@ -56,10 +56,8 @@ function diluxone_users_security_submit(): void {
 
 	$user_id = get_current_user_id();
 	$target  = diluxone_users_account_url( 'security' );
-	// phpcs:disable WordPress.Security.NonceVerification.Missing -- verified above.
-	$action = sanitize_key( wp_unslash( $_POST['diluxone_users_security'] ?? '' ) );
-	$code   = sanitize_text_field( wp_unslash( $_POST['diluxone_users_code'] ?? '' ) );
-	// phpcs:enable
+	$action  = sanitize_key( wp_unslash( $_POST['diluxone_users_security'] ?? '' ) );
+	$code    = sanitize_text_field( wp_unslash( $_POST['diluxone_users_code'] ?? '' ) );
 
 	switch ( $action ) {
 		case 'code':
@@ -86,7 +84,7 @@ function diluxone_users_security_submit(): void {
 			}
 
 			update_user_meta( $user_id, 'diluxone_users_2fa_on', 1 );
-			diluxone_users_notify_security( $user_id, __( 'Two-step verification was turned on.', 'diluxone-users' ) );
+			diluxone_users_notify_security( $user_id, static fn (): string => __( 'Two-step verification was turned on.', 'diluxone-users' ) );
 
 				// The backup codes are generated when it is turned on, not later:
 				// the moment to write them down is before needing them.
@@ -109,7 +107,7 @@ function diluxone_users_security_submit(): void {
 			// The browsers trusted while it was on are forgotten with it: if
 			// it comes back on, they start from the challenge again.
 			diluxone_users_2fa_forget_browsers( $user_id );
-			diluxone_users_notify_security( $user_id, __( 'Two-step verification was turned off.', 'diluxone-users' ) );
+			diluxone_users_notify_security( $user_id, static fn (): string => __( 'Two-step verification was turned off.', 'diluxone-users' ) );
 			wp_safe_redirect( add_query_arg( 'diluxone-users', 'off', $target ) );
 			exit;
 
@@ -125,7 +123,7 @@ function diluxone_users_security_submit(): void {
 			}
 
 			update_user_meta( $user_id, 'diluxone_users_2fa_on', 1 );
-			diluxone_users_notify_security( $user_id, __( 'An authenticator app was set up.', 'diluxone-users' ) );
+			diluxone_users_notify_security( $user_id, static fn (): string => __( 'An authenticator app was set up.', 'diluxone-users' ) );
 
 			if ( 0 === diluxone_users_backup_left( $user_id ) ) {
 				diluxone_users_backup_stash( $user_id, diluxone_users_backup_generate( $user_id ) );
@@ -139,7 +137,7 @@ function diluxone_users_security_submit(): void {
 
 			diluxone_users_totp_forget( $user_id );
 			diluxone_users_2fa_forget_browsers( $user_id );
-			diluxone_users_notify_security( $user_id, __( 'The authenticator app was removed.', 'diluxone-users' ) );
+			diluxone_users_notify_security( $user_id, static fn (): string => __( 'The authenticator app was removed.', 'diluxone-users' ) );
 			wp_safe_redirect( add_query_arg( 'diluxone-users', 'totpoff', $target ) );
 			exit;
 

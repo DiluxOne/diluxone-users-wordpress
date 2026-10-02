@@ -53,26 +53,201 @@ function diluxone_users_template( string $file ): string {
 }
 
 /**
- * Draws a template and returns what it printed.
+ * Draws a template where it is called.
  *
  * What the template is given arrives as `$args`, the way WordPress's own
  * get_template_part() hands it over: one array, each key named in the
  * template's docblock, and nothing else turned into a variable behind the
  * template's back.
  *
+ * This is how a template inside the page is drawn. Each template escapes what
+ * it prints, line by line, so the page never echoes a string somebody else
+ * built: a reviewer reading the line that prints can see that it is safe
+ * without following it anywhere.
+ *
+ * @param array<string, mixed> $data
+ */
+function diluxone_users_template_part( string $file, array $data = array() ): void {
+	$path = diluxone_users_template( $file );
+
+	if ( '' !== $path ) {
+		diluxone_users_template_include( $path, $data );
+	}
+}
+
+/**
+ * Draws a template and returns what it printed.
+ *
+ * For a shortcode, which has to return its markup rather than print it.
+ * Anything that prints goes through diluxone_users_template_part().
+ *
  * @param array<string, mixed> $data
  */
 function diluxone_users_render( string $file, array $data = array() ): string {
-	$path = diluxone_users_template( $file );
-
-	if ( '' === $path ) {
-		return '';
-	}
-
 	ob_start();
-	diluxone_users_template_include( $path, $data );
+	diluxone_users_template_part( $file, $data );
 
 	return (string) ob_get_clean();
+}
+
+/**
+ * The markup the plugin prints, and nothing else.
+ *
+ * Every piece of HTML the plugin built as a string — a state pill, an icon, a
+ * tab of settings drawn into a buffer — is printed through `wp_kses()` with
+ * this list, at the line that prints it. It is what the post editor allows,
+ * plus the form controls, the inline drawings and the disclosure elements the
+ * plugin's screens are made of. No `<script>`, no `<style>`, no `<iframe>`
+ * and no event attributes: those are never part of a string the plugin
+ * builds, so nothing that reached one of those strings by mistake can run.
+ *
+ * @return array<string, array<string, bool>>
+ */
+function diluxone_users_allowed_html(): array {
+	static $allowed = null;
+
+	if ( null !== $allowed ) {
+		return $allowed;
+	}
+
+	$global = array(
+		'id'               => true,
+		'class'            => true,
+		'style'            => true,
+		'title'            => true,
+		'role'             => true,
+		'hidden'           => true,
+		'tabindex'         => true,
+		'lang'             => true,
+		'dir'              => true,
+		'data-*'           => true,
+		'aria-controls'    => true,
+		'aria-current'     => true,
+		'aria-describedby' => true,
+		'aria-expanded'    => true,
+		'aria-hidden'      => true,
+		'aria-label'       => true,
+		'aria-labelledby'  => true,
+		'aria-live'        => true,
+		'aria-selected'    => true,
+		'aria-pressed'     => true,
+		'aria-invalid'     => true,
+		'aria-required'    => true,
+		'aria-modal'       => true,
+		'aria-haspopup'    => true,
+		'aria-disabled'    => true,
+		'aria-busy'        => true,
+	);
+
+	$control = array(
+		'name'           => true,
+		'value'          => true,
+		'type'           => true,
+		'checked'        => true,
+		'selected'       => true,
+		'disabled'       => true,
+		'readonly'       => true,
+		'required'       => true,
+		'multiple'       => true,
+		'min'            => true,
+		'max'            => true,
+		'step'           => true,
+		'rows'           => true,
+		'cols'           => true,
+		'size'           => true,
+		'maxlength'      => true,
+		'minlength'      => true,
+		'pattern'        => true,
+		'placeholder'    => true,
+		'autocomplete'   => true,
+		'autocapitalize' => true,
+		'autofocus'      => true,
+		'spellcheck'     => true,
+		'inputmode'      => true,
+		'list'           => true,
+		'accept'         => true,
+		'capture'        => true,
+		'for'            => true,
+		'form'           => true,
+		'formaction'     => true,
+		'formmethod'     => true,
+		'formtarget'     => true,
+		'formnovalidate' => true,
+		'label'          => true,
+		'open'           => true,
+		'code'           => true,
+	);
+
+	$drawing = array(
+		'xmlns'               => true,
+		'viewbox'             => true,
+		'width'               => true,
+		'height'              => true,
+		'fill'                => true,
+		'fill-rule'           => true,
+		'clip-rule'           => true,
+		'stroke'              => true,
+		'stroke-width'        => true,
+		'stroke-linecap'      => true,
+		'stroke-linejoin'     => true,
+		'focusable'           => true,
+		'd'                   => true,
+		'cx'                  => true,
+		'cy'                  => true,
+		'r'                   => true,
+		'rx'                  => true,
+		'ry'                  => true,
+		'x'                   => true,
+		'y'                   => true,
+		'x1'                  => true,
+		'y1'                  => true,
+		'x2'                  => true,
+		'y2'                  => true,
+		'points'              => true,
+		'transform'           => true,
+		'opacity'             => true,
+		'shape-rendering'     => true,
+		'preserveaspectratio' => true,
+		'font-family'         => true,
+		'font-size'           => true,
+		'font-weight'         => true,
+		'text-anchor'         => true,
+		'dominant-baseline'   => true,
+	);
+
+	$allowed = array();
+
+	foreach ( wp_kses_allowed_html( 'post' ) as $tag => $attributes ) {
+		$allowed[ $tag ] = array_merge( (array) $attributes, $global );
+	}
+
+	foreach ( array( 'form', 'input', 'select', 'option', 'optgroup', 'textarea', 'button', 'label', 'fieldset', 'legend', 'datalist', 'output', 'progress', 'meter', 'details', 'summary', 'dialog' ) as $tag ) {
+		$allowed[ $tag ] = array_merge( $allowed[ $tag ] ?? array(), $global, $control );
+	}
+
+	$allowed['form'] = array_merge( $allowed['form'], array_fill_keys( array( 'action', 'method', 'enctype', 'target', 'novalidate' ), true ) );
+	$allowed['a']    = array_merge( $allowed['a'], array_fill_keys( array( 'href', 'target', 'rel', 'download' ), true ) );
+	$allowed['img']  = array_merge( $allowed['img'], array_fill_keys( array( 'srcset', 'sizes', 'loading', 'decoding', 'fetchpriority' ), true ) );
+
+	foreach ( array( 'svg', 'g', 'path', 'circle', 'rect', 'ellipse', 'line', 'polyline', 'polygon', 'text', 'tspan' ) as $tag ) {
+		$allowed[ $tag ] = array_merge( $global, $drawing );
+	}
+
+	foreach ( array( 'table', 'thead', 'tbody', 'tfoot', 'tr', 'th', 'td' ) as $tag ) {
+		$allowed[ $tag ] = array_merge( $allowed[ $tag ] ?? array(), array_fill_keys( array( 'scope', 'colspan', 'rowspan', 'headers' ), true ) );
+	}
+
+	/**
+	 * Filters the markup the plugin prints from a string it built.
+	 *
+	 * An add-on that draws a tab of settings with an element the plugin never
+	 * uses adds it here, the way it would for `wp_kses_post()`.
+	 *
+	 * @param array<string, array<string, bool>> $allowed Tags and their attributes, as `wp_kses()` takes them.
+	 */
+	$allowed = (array) apply_filters( 'diluxone_users_allowed_html', $allowed );
+
+	return $allowed;
 }
 
 /**
@@ -218,9 +393,12 @@ function diluxone_users_account_css(): string {
 		$rows .= 'padding-inline:var(--diluxone-users-row-pad,' . (int) $pad . 'px);';
 	}
 
-	$css = '' === $rows ? '' : '.diluxone-users-account__header-inner,'
-		. '.diluxone-users-account__nav--row,'
-		. '.diluxone-users-account__body{' . $rows . '}';
+	// Under the area itself, as strong as the stylesheet's own rule for a
+	// contained area and printed after it, so a number typed is the number
+	// drawn: as a bare class it lost to `--contained` and changed nothing.
+	$css = '' === $rows ? '' : '.diluxone-users-account .diluxone-users-account__header-inner,'
+		. '.diluxone-users-account .diluxone-users-account__nav--row,'
+		. '.diluxone-users-account .diluxone-users-account__body{' . $rows . '}';
 
 	/*
 	 * The colour the area sits on, and the same reasoning as the rows: white
@@ -373,7 +551,7 @@ function diluxone_users_page_has_shortcode(): bool {
 		return false;
 	}
 
-	foreach ( array( 'diluxone_users_account', 'diluxone_users_account_nav', 'diluxone_users_login', 'diluxone_users_register', 'diluxone_users_fields', 'diluxone_users_accounts', 'diluxone_users_sessions', 'diluxone_users_handle', 'diluxone_users_avatar', 'diluxone_users_notifications' ) as $shortcode ) {
+	foreach ( array( 'diluxone_users_account', 'diluxone_users_account_nav', 'diluxone_users_login', 'diluxone_users_register', 'diluxone_users_fields', 'diluxone_users_accounts', 'diluxone_users_sessions', 'diluxone_users_handle', 'diluxone_users_avatar', 'diluxone_users_notifications', 'diluxone_users_join' ) as $shortcode ) {
 		if ( has_shortcode( $post->post_content, $shortcode ) ) {
 			return true;
 		}

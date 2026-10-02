@@ -10,10 +10,13 @@
 
 namespace Tests\Unit\DiluxOneUsers;
 
+use Tests\Unit\ResetsWpStubs;
 use Brain\Monkey;
 use PHPUnit\Framework\TestCase;
 
 class NetworkGateTest extends TestCase {
+
+	use ResetsWpStubs;
 
 	protected function setUp(): void {
 		parent::setUp();
@@ -64,6 +67,9 @@ class NetworkGateTest extends TestCase {
 	public function test_asleep_it_only_says_so(): void {
 		Monkey\Actions\expectAdded( 'network_admin_notices' )->once()->with( 'diluxone_users_asleep_notice' );
 		Monkey\Actions\expectAdded( 'admin_notices' )->once()->with( 'diluxone_users_asleep_notice' );
+		Monkey\Actions\expectAdded( 'init' )->never();
+		Monkey\Actions\expectAdded( 'admin_init' )->never();
+		Monkey\Filters\expectAdded( 'authenticate' )->never();
 
 		diluxone_users_sleep();
 

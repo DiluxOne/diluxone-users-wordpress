@@ -1,6 +1,6 @@
 import { test, expect, expectSignedIn, expectSignedOut } from '../support/fixtures';
 import { freshEmail } from '../support/api';
-import { accountSection, openAllPanels, openPanel, signInWithPassword } from '../support/ui';
+import { accountSection, navigated, openAllPanels, openPanel, signInWithPassword } from '../support/ui';
 
 /**
  * Passkeys, with a key that lives in the browser under the test's control.
@@ -171,10 +171,7 @@ test.describe('Signing in with a passkey', () => {
 
 		// The person removes it — a lost phone, say. The browser still holds
 		// the key; the site must no longer accept it.
-		await Promise.all([
-			page.waitForLoadState('domcontentloaded'),
-			page.locator('button[value="delete"]').first().click(),
-		]);
+		await navigated(page, () => page.locator('button[value="delete"]').first().click());
 
 		await page.context().clearCookies();
 		await page.goto(pages.login.url);
@@ -182,6 +179,8 @@ test.describe('Signing in with a passkey', () => {
 
 		// The page says so on the spot instead of navigating anywhere.
 		await expect(page.locator('[data-diluxone-users-passkey-notice]')).toBeVisible({ timeout: 20_000 });
+		await expect(page.locator('[data-diluxone-users-passkey-notice]'), 'said as a refusal').toHaveClass(/diluxone-users-notice--error/);
+		await expect(page.locator('[data-diluxone-users-passkey-notice]')).not.toBeEmpty();
 		await expectSignedOut(page);
 
 		await cdp.send('WebAuthn.removeVirtualAuthenticator', { authenticatorId });

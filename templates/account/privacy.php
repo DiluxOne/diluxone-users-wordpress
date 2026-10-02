@@ -88,7 +88,7 @@ $diluxone_users_losses = static function (): void {
 			<input type="hidden" name="action" value="diluxone_users_confirm_close">
 			<input type="hidden" name="diluxone_users_request_id" value="<?php echo esc_attr( (string) $args['closing'] ); ?>">
 			<input type="hidden" name="diluxone_users_key" value="<?php echo esc_attr( $args['key'] ); ?>">
-			<?php wp_nonce_field( 'diluxone_users_confirm_close_' . $args['closing'] ); ?>
+			<?php wp_nonce_field( 'diluxone_users_confirm_close' ); ?>
 			<button type="submit" class="diluxone-users-button diluxone-users-button--danger"><?php esc_html_e( 'Yes, delete my account', 'diluxone-users' ); ?></button>
 			<a class="diluxone-users-button diluxone-users-button--soft" href="<?php echo esc_url( diluxone_users_account_url( 'privacy' ) ); ?>"><?php esc_html_e( 'No, keep it', 'diluxone-users' ); ?></a>
 		</form>

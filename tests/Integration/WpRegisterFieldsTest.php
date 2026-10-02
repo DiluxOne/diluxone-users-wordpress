@@ -131,6 +131,22 @@ class WpRegisterFieldsTest extends IntegrationTestCase {
 	public function test_a_field_posted_as_a_list_is_not_an_answer(): void {
 		$this->postAs( 0, array( 'test_city' => array( 'a', 'b' ) ) );
 
-		$this->assertArrayNotHasKey( 'test_city', diluxone_users_posted_fields() );
+		$_POST['diluxone_users_wp_register_nonce'] = wp_create_nonce( 'diluxone_users_wp_register' );
+
+		$this->assertArrayNotHasKey( 'test_city', diluxone_users_posted_fields( 'diluxone_users_wp_register', 'diluxone_users_wp_register_nonce' ) );
+	}
+
+	public function test_without_the_forms_nonce_nothing_was_posted(): void {
+		$this->postAs( 0, array( 'test_city' => 'Mendoza' ) );
+
+		$this->assertSame( array(), diluxone_users_posted_fields( 'diluxone_users_wp_register', 'diluxone_users_wp_register_nonce' ), 'No nonce' );
+
+		$_POST['diluxone_users_wp_register_nonce'] = wp_create_nonce( 'diluxone_users_fields_save' );
+
+		$this->assertSame( array(), diluxone_users_posted_fields( 'diluxone_users_wp_register', 'diluxone_users_wp_register_nonce' ), 'Another form\'s nonce' );
+
+		$_POST['diluxone_users_wp_register_nonce'] = wp_create_nonce( 'diluxone_users_wp_register' );
+
+		$this->assertSame( 'Mendoza', diluxone_users_posted_fields( 'diluxone_users_wp_register', 'diluxone_users_wp_register_nonce' )['test_city'] ?? '' );
 	}
 }

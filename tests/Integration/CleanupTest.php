@@ -33,6 +33,12 @@ final class CleanupTest extends IntegrationTestCase {
 		);
 		update_user_meta( $direct, 'diluxone_users_cleanup_probe', 'left behind' );
 
+		// And a super admin a test forgot to take back, which WordPress
+		// refuses to delete as it is.
+		if ( is_multisite() ) {
+			grant_super_admin( $helper );
+		}
+
 		// A post the code under test makes: what an account's export or
 		// closing asks WordPress for. For an address with no account, so
 		// deleting the users does not take it along.
@@ -80,6 +86,7 @@ final class CleanupTest extends IntegrationTestCase {
 
 		if ( is_multisite() ) {
 			$this->assertNull( get_site( $made['site'] ), "Site {$made['site']} was left behind." );
+			$this->assertSame( array( get_userdata( 1 )->user_login ), array_values( get_super_admins() ), 'no super admin left behind but the administrator' );
 		}
 	}
 

@@ -10,10 +10,13 @@
 
 namespace Tests\Unit\DiluxOneUsers;
 
+use Tests\Unit\ResetsWpStubs;
 use Brain\Monkey;
 use PHPUnit\Framework\TestCase;
 
 class TwoFactorChallengeTest extends TestCase {
+
+	use ResetsWpStubs;
 
 	private const USER_ID = 11;
 
@@ -61,7 +64,25 @@ class TwoFactorChallengeTest extends TestCase {
 
 		$this->assertNotSame( array(), diluxone_users_2fa_pending( self::USER_ID, $nonce ) );
 		$this->assertSame( 0, $this->pending()['tries'] );
-		$this->assertNotSame( $nonce, $this->pending()['nonce'], 'The nonce is stored hashed, like every other credential here' );
+		$this->assertSame( wp_hash( $nonce ), $this->pending()['nonce'], 'The nonce is stored hashed, like every other credential here' );
+	}
+
+	/**
+	 * An attempt past its time is no attempt, even with its own nonce: it
+	 * takes no strike and sends nothing again. Without the check the key of
+	 * an attempt lived for ever.
+	 */
+	public function test_an_attempt_past_its_time_is_gone(): void {
+		$nonce = diluxone_users_2fa_pending_start( self::USER_ID, 'password', true, '' );
+
+		$pending            = $this->pending();
+		$pending['expires'] = time() - 1;
+		$pending['sent']    = 0;
+		update_user_meta( self::USER_ID, 'diluxone_users_2fa_pending', $pending );
+
+		$this->assertSame( array(), diluxone_users_2fa_pending( self::USER_ID, $nonce ) );
+		$this->assertFalse( diluxone_users_2fa_strike( self::USER_ID, $nonce ) );
+		$this->assertFalse( diluxone_users_2fa_resend_allowed( self::USER_ID, $nonce ) );
 	}
 
 	public function test_each_wrong_code_costs_a_try_and_the_last_one_costs_the_attempt(): void {
@@ -133,6 +154,13 @@ class TwoFactorChallengeTest extends TestCase {
 		$_COOKIE[ 'diluxone_users_2fa_' . COOKIEHASH ] = $this->trust();
 
 		$this->assertTrue( diluxone_users_2fa_trusted( self::USER_ID ) );
+	}
+
+	/** A cookie past its own expiry is trusted no more, though its signature is good. */
+	public function test_a_cookie_past_its_expiry_is_not_trusted(): void {
+		$_COOKIE[ 'diluxone_users_2fa_' . COOKIEHASH ] = diluxone_users_2fa_trust_value( self::USER_ID, time() - 1 );
+
+		$this->assertFalse( diluxone_users_2fa_trusted( self::USER_ID ) );
 	}
 
 	public function test_the_cookie_is_signed_and_a_changed_expiry_breaks_it(): void {

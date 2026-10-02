@@ -54,18 +54,54 @@ function diluxone_users_2fa_needs_a_surface(): string {
 }
 
 /**
+ * Every method the screen offers, the ones turned off included.
+ *
+ * The registry, diluxone_users_2fa_methods(), only answers with the methods
+ * the site turned on: the ones turned off do not exist for anybody signing
+ * in. The screen and its save are the exception — the box of a method that is
+ * off has to exist to turn it on, and a save that only kept the ones already
+ * on could never turn one back on.
+ *
+ * @return array<string, array<string, mixed>>
+ */
+function diluxone_users_2fa_methods_offered(): array {
+	return (array) apply_filters(
+		'diluxone_users_2fa_methods',
+		array(
+			'email' => array(
+				'label' => __( 'A code by email', 'diluxone-users' ),
+				'help'  => __( 'Six digits to the address on the account. Nothing to install, which is why it is the one people actually turn on.', 'diluxone-users' ),
+			),
+			'totp'  => array(
+				'label' => __( 'An authenticator app', 'diluxone-users' ),
+				'help'  => __( 'Six digits that change every thirty seconds, from Google Authenticator, 1Password or Aegis. The stronger one: the code never travels.', 'diluxone-users' ),
+			),
+		)
+	);
+}
+
+/**
  * Saves it.
  *
  * @return bool False when the second step is on with no way of sending the
  *              code, in which case nothing was written.
  */
 function diluxone_users_2fa_save(): bool {
-	// phpcs:disable WordPress.Security.NonceVerification.Missing -- the panel verifies it.
+	check_admin_referer( 'diluxone_users_panel_' . DILUXONE_USERS_SECURITY, 'diluxone_users_panel_nonce' );
+	diluxone_users_panel_allowed();
+
 	$mode    = sanitize_key( wp_unslash( $_POST['diluxone_users_2fa_mode'] ?? 'optional' ) );
 	$methods = array_map( 'sanitize_key', (array) wp_unslash( $_POST['diluxone_users_2fa_methods'] ?? array() ) );
 	$link    = sanitize_key( wp_unslash( $_POST['diluxone_users_2fa_link'] ?? 'auto' ) );
-	$days    = absint( wp_unslash( $_POST['diluxone_users_2fa_remember_days'] ?? 30 ) );
-	// phpcs:enable
+
+	// Each answer is one of the answers the screen offers. Anything else read
+	// back later as something nobody chose: a mode of `bogus` behaved as
+	// optional while the screen showed no mode at all, and a method nothing
+	// registered was a method the site said it had.
+	$mode    = in_array( $mode, array( 'off', 'optional', 'required' ), true ) ? $mode : 'optional';
+	$link    = in_array( $link, array( 'auto', 'always', 'never' ), true ) ? $link : 'auto';
+	$methods = array_values( array_intersect( $methods, array_keys( diluxone_users_2fa_methods_offered() ) ) );
+	$days    = ( isset( $_POST['diluxone_users_2fa_remember_days'] ) && is_scalar( $_POST['diluxone_users_2fa_remember_days'] ) ? absint( wp_unslash( $_POST['diluxone_users_2fa_remember_days'] ) ) : 30 );
 
 	/*
 	 * Off is the one mode where none of them is an answer: nothing is asked,
@@ -92,7 +128,7 @@ function diluxone_users_2fa_save(): bool {
 
 	diluxone_users_save_options(
 		array_merge(
-			diluxone_users_scope_posted( 'diluxone_users_2fa' ),
+			diluxone_users_scope_posted( 'diluxone_users_2fa', DILUXONE_USERS_SECURITY ),
 			array(
 				'diluxone_users_2fa_mode'          => $mode,
 				'diluxone_users_2fa_methods'       => $methods,
@@ -183,21 +219,7 @@ function diluxone_users_screen_login_2fa(): void {
 
 	diluxone_users_intro( __( 'One more thing after the password or the link: a code that only that person has. Whoever gets hold of an email still does not get in.', 'diluxone-users' ) );
 
-	// All of them are asked for, not only the ones turned on: the checkbox of a
-	// method that is off has to exist in order to turn it on.
-	$all     = (array) apply_filters(
-		'diluxone_users_2fa_methods',
-		array(
-			'email' => array(
-				'label' => __( 'A code by email', 'diluxone-users' ),
-				'help'  => __( 'Six digits to the address on the account. Nothing to install, which is why it is the one people actually turn on.', 'diluxone-users' ),
-			),
-			'totp'  => array(
-				'label' => __( 'An authenticator app', 'diluxone-users' ),
-				'help'  => __( 'Six digits that change every thirty seconds, from Google Authenticator, 1Password or Aegis. The stronger one: the code never travels.', 'diluxone-users' ),
-			),
-		)
-	);
+	$all     = diluxone_users_2fa_methods_offered();
 	$enabled = (array) diluxone_users_option( 'diluxone_users_2fa_methods' );
 	$mode    = (string) diluxone_users_option( 'diluxone_users_2fa_mode' );
 	$today   = diluxone_users_2fa_link_today();

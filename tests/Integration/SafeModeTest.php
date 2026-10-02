@@ -239,8 +239,10 @@ class SafeModeTest extends IntegrationTestCase {
 		$this->assertSame( array(), self::$cookies );
 	}
 
-	public function test_the_dashboard_says_so_on_every_page(): void {
+	public function test_the_dashboard_says_so_where_the_plugin_speaks(): void {
 		wp_set_current_user( 1 );
+		$pagenow            = $GLOBALS['pagenow'] ?? null;
+		$GLOBALS['pagenow'] = 'index.php';
 
 		ob_start();
 		diluxone_users_safe_mode_notice();
@@ -257,10 +259,25 @@ class SafeModeTest extends IntegrationTestCase {
 		$this->assertNotFalse( has_action( 'admin_notices', 'diluxone_users_safe_mode_notice' ) );
 		$this->assertNotFalse( has_action( 'network_admin_notices', 'diluxone_users_safe_mode_notice' ) );
 
+		$GLOBALS['pagenow'] = 'edit.php';
+		ob_start();
+		diluxone_users_safe_mode_notice();
+		$this->assertSame( '', (string) ob_get_clean(), 'Not on every screen of the admin: guideline 11' );
+
+		$GLOBALS['pagenow'] = 'admin.php';
+		$_GET['page']       = 'diluxone-users';
+		ob_start();
+		diluxone_users_safe_mode_notice();
+		$this->assertStringContainsString( 'data-diluxone-users-safe-mode', (string) ob_get_clean(), 'On the plugin\'s own screens' );
+		unset( $_GET['page'] );
+
+		$GLOBALS['pagenow'] = 'index.php';
 		wp_set_current_user( $this->make_user() );
 		ob_start();
 		diluxone_users_safe_mode_notice();
 		$this->assertSame( '', (string) ob_get_clean(), 'Only to whoever manages the site' );
+
+		$GLOBALS['pagenow'] = $pagenow;
 	}
 
 	public function test_on_a_network_every_site_keeps_its_own_wp_login(): void {

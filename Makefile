@@ -230,7 +230,7 @@ test-layout: ## Only the layout measurements: overlap, overflow, air, blank boxe
 .PHONY: test-visual
 test-visual: ## Compare every screen with the picture committed beside the specs.
 	@mkdir -p build
-	DU_SNAPSHOTS=1 npx playwright test --project=visual
+	DU_SNAPSHOTS=1 npx playwright test --project=visual --project=visual-mobile
 
 # The thirteen pictures the wordpress.org listing shows. Not a comparison —
 # it writes .wordpress-org/screenshot-1..13.png, and the captions under
@@ -249,7 +249,7 @@ screenshots: ## Retake the 13 listing screenshots (needs `make env` first).
 .PHONY: test-visual-update
 test-visual-update: ## Take the pictures again and accept them as the new baseline.
 	@mkdir -p build
-	DU_SNAPSHOTS=1 npx playwright test --project=visual --update-snapshots
+	DU_SNAPSHOTS=1 npx playwright test --project=visual --project=visual-mobile --update-snapshots
 	@echo "✔ Pictures rewritten. \`git diff --stat tests/e2e/snapshots\` is the change you are accepting."
 
 # The network's pictures: Network Admin's screens and the places a site of a
@@ -268,6 +268,67 @@ test-visual-network-update: env-multisite ## Take the network's pictures again a
 
 .PHONY: test-all
 test-all: test-unit test-integration test-integration-single test-e2e ## Unit, integration on a network and on a single site, and single-site end-to-end.
+
+# -- Coverage ----------------------------------------------------------
+# How much of includes/ and templates/ the suites run, per file: lines,
+# functions and classes. PCOV measures it. The unit suite runs in a PHP image
+# of its own with PCOV built in; the integration suite in each wp-env's
+# tests-cli, where tests/coverage/pcov.sh installs PCOV switched off, so the
+# ordinary targets stay as fast as before. Every run mounts the checkout at the
+# path the wp-env containers see it under, so the parts merge into one report.
+# The parts are under build/coverage/parts, each report under build/coverage/
+# <layer>/ (report.txt, clover.xml, html/). See docs/testing-and-quality.md.
+COV_DIR    := build/coverage
+COV_PLUGIN  = /var/www/html/wp-content/plugins/$(REPO_DIR)
+COV_IMAGE  ?= diluxone-users-pcov:php8.5
+COV_RUN     = docker run --rm -u $(DOCKER_USER) -v $(CURDIR):$(COV_PLUGIN) -w $(COV_PLUGIN) $(COV_IMAGE)
+COV_PHP     = php -d memory_limit=-1 -d pcov.enabled=1 -d pcov.directory=$(COV_PLUGIN) -d pcov.exclude=~/vendor/~
+COV_INTEG   = $(COV_PHP) ./vendor/bin/phpunit -c phpunit-integration.xml --testsuite integration
+
+# Merge the parts under $(1) into build/coverage/$(2) and print the report.
+define cov_merge
+	@rm -rf $(COV_DIR)/$(2) && mkdir -p $(COV_DIR)/$(2)
+	@$(COV_RUN) php -d memory_limit=-1 ./vendor/bin/phpcov merge --php $(COV_DIR)/$(2)/coverage.cov --clover $(COV_DIR)/$(2)/clover.xml --html $(COV_DIR)/$(2)/html $(1) >/dev/null
+	@$(COV_RUN) php -d memory_limit=-1 tests/coverage/report.php $(COV_DIR)/$(2)/coverage.cov --out=$(COV_DIR)/$(2)/report.txt
+endef
+
+.PHONY: coverage-image
+coverage-image:
+	@docker image inspect $(COV_IMAGE) >/dev/null 2>&1 \
+	  || printf '%s\n' 'FROM php:8.5-cli' 'RUN pecl install pcov && docker-php-ext-enable pcov' | docker build -q -t $(COV_IMAGE) - >/dev/null
+
+.PHONY: coverage-unit
+coverage-unit: coverage-image ## Unit suite with coverage: build/coverage/unit (report.txt, clover.xml, html/).
+	@rm -rf $(COV_DIR)/parts/unit && mkdir -p $(COV_DIR)/parts/unit
+	$(COV_RUN) $(COV_PHP) ./vendor/bin/phpunit --testsuite unit --coverage-php $(COV_DIR)/parts/unit/unit.cov
+	$(call cov_merge,$(COV_DIR)/parts/unit,unit)
+
+.PHONY: coverage-integration
+coverage-integration: coverage-image ## Integration suite with coverage on the network and on a single site, merged: build/coverage/integration.
+	@rm -rf $(COV_DIR)/parts/integration && mkdir -p $(COV_DIR)/parts/integration
+	$(MAKE) env-multisite
+	@tests/coverage/pcov.sh .
+	npx @wordpress/env run tests-cli --env-cwd=wp-content/plugins/$(REPO_DIR) \
+	  env DU_COVERAGE_BOOTSTRAP=$(COV_DIR)/parts/integration/network-load.cov \
+	  $(COV_INTEG) --coverage-php $(COV_DIR)/parts/integration/network.cov
+	$(MAKE) integration-single-env
+	@tests/coverage/pcov.sh "$(INTEG_SINGLE_DIR)"
+	cd "$(INTEG_SINGLE_DIR)" && npx @wordpress/env run tests-cli --env-cwd=wp-content/plugins/$(REPO_DIR) \
+	  env DU_COVERAGE_BOOTSTRAP=$(COV_DIR)/parts/integration/single-load.cov \
+	  $(COV_INTEG) --coverage-php $(COV_DIR)/parts/integration/single.cov
+	$(call cov_merge,$(COV_DIR)/parts/integration,integration)
+
+.PHONY: coverage
+coverage: coverage-unit coverage-integration ## Both suites' coverage merged into one report: build/coverage/all.
+	$(call cov_merge,$(COV_DIR)/parts,all)
+
+# Which of the plugin's doors the browser suites walk. Not measured by a
+# driver: a script lists every admin screen and tab the plugin registers, every
+# shortcode, admin-post and AJAX action, REST route and template, and fails on
+# any that tests/e2e/COVERAGE.md does not map to a spec that exists and names it.
+.PHONY: coverage-e2e-map
+coverage-e2e-map: ## Fail if a screen, tab, shortcode, action, route or template has no row in tests/e2e/COVERAGE.md.
+	node tests/coverage/e2e-map.mjs
 
 # -- Distribution build ------------------------------------------------
 # The repo directory is diluxone-users-wordpress (GitHub), but the plugin

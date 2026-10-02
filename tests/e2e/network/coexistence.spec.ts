@@ -3,7 +3,7 @@ import { test, expect, whoOn, signInFrom, SiteHandle } from './support';
 import { codeIn, freshEmail, linkIn, waitForMail } from '../support/api';
 import { wp } from '../support/cli';
 import { avoidWindowEdge, totp } from '../support/totp';
-import { askForLink, challengeCode, challengeScreen, fillCredentials, saveButton, signInWithPassword, ssoButton } from '../support/ui';
+import { askForLink, challengeCode, challengeScreen, fillCredentials, navigated, saveButton, signInWithPassword, ssoButton } from '../support/ui';
 import { NETWORK_ADMIN_STATE, NETWORK_URL } from '../../../playwright.network.config';
 
 /**
@@ -38,7 +38,7 @@ async function signInOnWpLogin(page: Page, one: SiteHandle, email: string, remem
 		await page.locator('#rememberme').check();
 	}
 
-	await Promise.all([page.waitForLoadState('domcontentloaded'), page.locator('#wp-submit').click()]);
+	await navigated(page, () => page.locator('#wp-submit').click());
 }
 
 async function answerOnWpLogin(page: Page, code: string): Promise<void> {
@@ -89,7 +89,7 @@ test.describe('The second step with no sign-in page on the hub: the hub’s wp-l
 		await avoidWindowEdge();
 		await answerOnWpLogin(page, totp(SECRET));
 
-		expect(await whoOn(page, hub.url)).not.toBeNull();
+		expect(await whoOn(page, hub.url)).toBe(email);
 	});
 
 	test('with a sign-in page on the hub, the second step is on that page', async ({ page, hub, alpha, beta }) => {
@@ -127,7 +127,7 @@ test.describe('With nowhere to answer the second step, in Network Admin', () => 
 			input.disabled = false;
 			input.checked = true;
 		});
-		await Promise.all([page.waitForLoadState('domcontentloaded'), saveButton(page).click()]);
+		await navigated(page, () => saveButton(page).click());
 
 		await expect(page.locator('.notice-error')).toBeVisible();
 		expect((await hub.site.getOptions(['diluxone_users_2fa_mode'])).diluxone_users_2fa_mode).toBe('optional');
@@ -144,7 +144,7 @@ test.describe('The hub’s own doors fire wp_login, once', () => {
 		await askForLink(page, hub.pages.login.url, email);
 		await page.goto(linkIn(await waitForMail(hub.site, email)));
 
-		expect(await whoOn(page, hub.url)).not.toBeNull();
+		expect(await whoOn(page, hub.url)).toBe(email);
 		expect(await hub.site.wpLogins(email)).toBe(1);
 	});
 
@@ -165,7 +165,7 @@ test.describe('The hub’s own doors fire wp_login, once', () => {
 		await ssoButton(page, 'mock').click();
 		await page.waitForLoadState('domcontentloaded');
 
-		expect(await whoOn(page, hub.url)).not.toBeNull();
+		expect(await whoOn(page, hub.url)).toBe(email);
 		expect(await hub.site.wpLogins(email)).toBe(1);
 	});
 
@@ -200,7 +200,7 @@ test.describe('The hub’s own doors fire wp_login, once', () => {
 		await page.locator('[data-diluxone-users-passkey="login"]').click();
 		await page.waitForURL((url) => !url.href.startsWith(hub.pages.login.url), { timeout: 20_000 });
 
-		expect(await whoOn(page, hub.url)).not.toBeNull();
+		expect(await whoOn(page, hub.url)).toBe(email);
 		expect(await hub.site.wpLogins(email)).toBe(1);
 
 		await cdp.send('WebAuthn.removeVirtualAuthenticator', { authenticatorId });
@@ -243,7 +243,7 @@ test.describe('The network’s fields: a name, and the rest suggested', () => {
 
 		await page.goto(networkAdmin('diluxone-users-fields', 'suggested'));
 		await page.locator('input[name="diluxone_users_suggested[]"][value="diluxone_users_phone"]').check({ force: true });
-		await Promise.all([page.waitForLoadState('domcontentloaded'), saveButton(page).click()]);
+		await navigated(page, () => saveButton(page).click());
 
 		await expect(page.locator('.notice-success')).toBeVisible();
 
@@ -263,12 +263,13 @@ test.describe('How long a session lasts, on the network', () => {
 		await page.goto(`${NETWORK_URL}/wp-login.php?diluxone-users-admin=1`);
 		await fillCredentials(page, email, PASSWORD);
 		await page.locator('#rememberme').check();
-		await Promise.all([page.waitForLoadState('domcontentloaded'), page.locator('#wp-submit').click()]);
+		await navigated(page, () => page.locator('#wp-submit').click());
 
 		const cookie = (await page.context().cookies()).find((one) => one.name.startsWith('wordpress_logged_in_'));
 
 		expect(cookie, 'a session').toBeTruthy();
-		expect(Math.round((cookie!.expires - Date.now() / 1000) / 86400)).toBe(14);
+		// WordPress keeps the cookie twelve hours past the session: whole days, rounded down.
+		expect(Math.floor((cookie!.expires - Date.now() / 1000) / 86400)).toBe(14);
 	});
 
 	test.describe('Network Admin', () => {
@@ -326,12 +327,14 @@ test.describe('Membership waits for the network to confirm it', () => {
 
 		await hub.keep(['diluxone_users_membership', 'diluxone_users_membership_confirmed']);
 		await page.locator('input[name="diluxone_users_membership"][value="all"]').check();
-		await Promise.all([page.waitForLoadState('domcontentloaded'), saveButton(page).click()]);
+		await navigated(page, () => saveButton(page).click());
 
 		// On the spot when small, through the queue when not: cron runs it here.
 		for (let run = 0; run < 60 && queued() > 0; run++) {
 			wp(['cron', 'event', 'run', '--due-now']);
 		}
+
+		expect(queued(), 'the queue was drained, not given up on').toBe(0);
 
 		expect((await alpha.site.user(email)).member, 'a member of /alpha/ now').toBe(true);
 		expect((await beta.site.user(email)).member, 'and of /beta/').toBe(true);
@@ -361,10 +364,10 @@ test.describe('Safe mode, on the network', () => {
 		expect(new URL(page.url()).pathname, 'not sent to the hub').toBe('/beta/wp-login.php');
 
 		await fillCredentials(page, email, PASSWORD);
-		await Promise.all([page.waitForLoadState('domcontentloaded'), page.locator('#wp-submit').click()]);
+		await navigated(page, () => page.locator('#wp-submit').click());
 
 		await expect(challengeScreen(page)).toHaveCount(0);
-		expect(await whoOn(page, beta.url)).not.toBeNull();
+		expect(await whoOn(page, beta.url)).toBe(email);
 	});
 
 	test.describe('the dashboards', () => {
@@ -391,5 +394,6 @@ test.describe('The hub’s pages a cache must not keep', () => {
 		const front = await request.get(beta.url);
 
 		expect(front.headers()['cache-control'] ?? '').not.toContain('no-store');
+		expect(front.headers()['x-diluxone-e2e-donotcachepage'], 'and leaves the page cache alone').toBeUndefined();
 	});
 });

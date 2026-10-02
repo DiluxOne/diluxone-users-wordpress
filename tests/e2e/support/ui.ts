@@ -128,11 +128,17 @@ export async function askForLink(page: Page, loginUrl: string, email: string): P
  * the same helper.
  */
 export async function openWay(page: Page, way: string): Promise<void> {
-	const tab = page.locator(`[data-diluxone-users-way-tab="${way}"]`);
-
-	if (!(await tab.isVisible().catch(() => false))) {
+	// No strip on the screen — stacked, where the strip is drawn hidden, or
+	// wp-login.php — is nothing to press. A strip without this way is a page
+	// that does not offer it, and the step that wanted it fails here, saying
+	// so, not a minute later on a field.
+	if ((await page.locator('[data-diluxone-users-way-tab]:visible').count()) === 0) {
 		return;
 	}
+
+	const tab = page.locator(`[data-diluxone-users-way-tab="${way}"]`);
+
+	await expect(tab, `the ${way} tab`).toBeVisible();
 
 	if ((await tab.getAttribute('aria-selected')) === 'true') {
 		return;
@@ -145,8 +151,10 @@ export async function openWay(page: Page, way: string): Promise<void> {
 /** Signs in with a password through whichever form is on the page. */
 export async function signInWithPassword(page: Page, user: string, pass: string): Promise<void> {
 	await openWay(page, 'password');
-	await userField(page).fill(user);
-	await passField(page).fill(pass);
+	// Typed and read back until both are where they were typed: on
+	// wp-login.php the page focuses the username box on a timer of its own,
+	// and a password typed in that moment lands in the wrong box.
+	await fillCredentials(page, user, pass);
 	await passwordForm(page).locator('input[type="submit"], button[type="submit"]').first().click();
 }
 
@@ -233,6 +241,10 @@ export async function openAllPanels(page: Page): Promise<void> {
 			}
 		}
 	}
+
+	// Whatever a person could still open is open: no closed box left on the
+	// screen with its heading in reach.
+	await expect(page.locator('details:not([open]) > summary:visible'), 'a box left closed').toHaveCount(0);
 }
 
 /** The address of one section of the account area. */
@@ -290,14 +302,13 @@ export function needsOne(page: Page, name: string): Locator {
  * the server is the rule.
  */
 export async function submitPanelWithoutScript(page: Page): Promise<void> {
-	await Promise.all([
-		page.waitForLoadState('domcontentloaded'),
+	await navigated(page, () =>
 		saveButton(page).evaluate((button: HTMLButtonElement) => {
 			// The button sits in the column beside the form and reaches it by
 			// its `form` attribute, which `button.form` resolves.
 			HTMLFormElement.prototype.submit.call(button.form as HTMLFormElement);
-		}),
-	]);
+		})
+	);
 }
 
 /**
@@ -327,12 +338,66 @@ export function adminSaved(page: Page): Locator {
 	return page.locator('.notice-success');
 }
 
-/** Presses the button that saves the tab. */
-export async function savePanel(page: Page): Promise<void> {
-	await Promise.all([page.waitForLoadState('domcontentloaded'), saveButton(page).click()]);
+/**
+ * Does something that leaves the page — a form sent, a link followed — and
+ * waits for the page it lands on.
+ *
+ * `Promise.all([page.waitForLoadState('domcontentloaded'), click])` looks like
+ * this and is not: the page already reached that state before the click, so
+ * the wait resolves at once and the next line reads the page being left. What
+ * is waited for here is the next document of the main frame, after any
+ * redirects, and then its DOM.
+ */
+export async function navigated(page: Page, action: () => Promise<unknown>): Promise<void> {
+	await Promise.all([page.waitForEvent('framenavigated', (frame) => frame === page.mainFrame()), action()]);
+	await page.waitForLoadState('domcontentloaded');
+}
 
-	// The screen says "Saved." through the plugin's own notice. Waiting for it
-	// and not only for the page load is what makes the next assertion about the
-	// setting rather than about whether the round trip had finished.
-	await expect(page.locator('.notice, .updated').first()).toBeVisible();
+/**
+ * Does something that has to ask first, answers the question, and returns it.
+ *
+ * `page.once('dialog', …)` alone passes just as well when nothing is asked:
+ * the handler waits for a dialog that never comes and the click goes through
+ * unasked. Here the question is required — it has to come, within ten
+ * seconds, and say something — or the step fails.
+ */
+export async function answeringDialog(page: Page, answer: 'accept' | 'dismiss', action: () => Promise<unknown>): Promise<string> {
+	const asked = new Promise<string>((resolve, reject) => {
+		const timer = setTimeout(() => reject(new Error('Nothing was asked before going ahead.')), 10_000);
+
+		page.once('dialog', async (dialog) => {
+			clearTimeout(timer);
+			const message = dialog.message();
+			await dialog[answer]();
+			resolve(message);
+		});
+	});
+
+	const [, message] = await Promise.all([action(), asked]);
+
+	expect(message, 'the question asked first').not.toBe('');
+
+	return message;
+}
+
+/**
+ * Presses the button that saves the tab, and requires the save to have gone
+ * through.
+ *
+ * The form posts to the screen it is on, which draws itself again with the
+ * outcome. So what is waited for is the answer to that POST — not the load
+ * state, which the page already had before the click and which resolves at
+ * once — and then the success notice, with no error beside it. Any notice
+ * would not do: an error is a notice too, and so is one that was on the
+ * screen before anything was pressed.
+ */
+export async function savePanel(page: Page): Promise<void> {
+	await Promise.all([
+		page.waitForResponse((response) => response.request().method() === 'POST' && response.request().resourceType() === 'document'),
+		saveButton(page).click(),
+	]);
+	await page.waitForLoadState('domcontentloaded');
+
+	await expect(adminSaved(page)).toBeVisible();
+	await expect(adminError(page)).toHaveCount(0);
 }

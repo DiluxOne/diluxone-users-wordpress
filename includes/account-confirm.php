@@ -87,7 +87,7 @@ function diluxone_users_confirm_intercept(): void {
 		return;
 	}
 
-	// phpcs:disable WordPress.Security.NonceVerification.Recommended -- the confirmation key is what vouches for this link, and it is checked below.
+	// phpcs:disable WordPress.Security.NonceVerification.Recommended -- a link sent by e-mail cannot carry a nonce: the single-use confirmation key WordPress issued for this request vouches for it, validated with wp_validate_user_request_key() before anything is done.
 	$request_id = isset( $_GET['request_id'] ) ? absint( $_GET['request_id'] ) : 0;
 	$key        = isset( $_GET['confirm_key'] ) ? sanitize_text_field( wp_unslash( $_GET['confirm_key'] ) ) : '';
 	// phpcs:enable
@@ -139,7 +139,7 @@ add_filter( 'diluxone_users_login_redirect', 'diluxone_users_confirm_after_sign_
  *         when the link is no good any more.
  */
 function diluxone_users_confirm_arrived(): array {
-	// phpcs:disable WordPress.Security.NonceVerification.Recommended -- the confirmation key is what vouches for this link, and it is checked below.
+	// phpcs:disable WordPress.Security.NonceVerification.Recommended -- a link sent by e-mail cannot carry a nonce: the single-use confirmation key WordPress issued for this request vouches for it, validated with wp_validate_user_request_key() before anything is done.
 	$request_id = isset( $_GET['diluxone-users-request'] ) ? absint( $_GET['diluxone-users-request'] ) : 0;
 	$key        = isset( $_GET['diluxone-users-key'] ) ? sanitize_text_field( wp_unslash( $_GET['diluxone-users-key'] ) ) : '';
 	// phpcs:enable
@@ -230,15 +230,19 @@ function diluxone_users_confirm_now( int $request_id ): void {
  * the account signed in is the one that asked. When the account is closed
  * there and then, the session it had is gone with it and the person lands on
  * the sign-in page, told so.
+ *
+ * The form's nonce is checked first, before the request it names is read.
+ * Which request is then the key's business and the account's: the nonce says
+ * the form came from this person's own page, the key that the request is
+ * theirs to confirm.
  */
 function diluxone_users_confirm_close(): void {
+	check_admin_referer( 'diluxone_users_confirm_close' );
+
 	$request_id = isset( $_POST['diluxone_users_request_id'] ) ? absint( $_POST['diluxone_users_request_id'] ) : 0;
-
-	check_admin_referer( 'diluxone_users_confirm_close_' . $request_id );
-
-	$key     = isset( $_POST['diluxone_users_key'] ) ? sanitize_text_field( wp_unslash( $_POST['diluxone_users_key'] ) ) : '';
-	$request = diluxone_users_confirm_request( $request_id );
-	$user    = wp_get_current_user();
+	$key        = isset( $_POST['diluxone_users_key'] ) ? sanitize_text_field( wp_unslash( $_POST['diluxone_users_key'] ) ) : '';
+	$request    = diluxone_users_confirm_request( $request_id );
+	$user       = wp_get_current_user();
 
 	if ( null === $request || 'remove_personal_data' !== $request->action_name || true !== wp_validate_user_request_key( $request_id, $key ) ) {
 		wp_safe_redirect( add_query_arg( 'diluxone-users', 'expired', diluxone_users_account_url( 'privacy' ) ) );

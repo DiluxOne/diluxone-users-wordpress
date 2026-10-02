@@ -1,6 +1,6 @@
 import { test, expect, expectSignedIn, expectSignedOut } from '../support/fixtures';
 import { freshEmail, linkIn, waitForMail } from '../support/api';
-import { notice, resetScreen, signInWithPassword } from '../support/ui';
+import { navigated, notice, resetScreen, signInWithPassword } from '../support/ui';
 
 /**
  * "I forgot my password", and the three places it can end.
@@ -74,7 +74,7 @@ test.describe('Choosing a new password', () => {
 
 		// WordPress answers this one in place rather than with a redirect, so
 		// what says it worked is the form being gone.
-		await Promise.all([page.waitForLoadState('domcontentloaded'), page.locator('#wp-submit').click()]);
+		await navigated(page, () => page.locator('#wp-submit').click());
 		await expect(page.locator('#resetpassform')).toHaveCount(0);
 
 		await page.goto(pages.login.url);

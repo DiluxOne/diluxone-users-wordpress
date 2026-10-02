@@ -27,7 +27,7 @@ defined( 'ABSPATH' ) || exit;
 		<input type="hidden" name="action" value="diluxone_users_handle">
 		<?php wp_nonce_field( 'diluxone_users_handle' ); ?>
 
-		<?php echo diluxone_users_handle_field(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- a template of the plugin's, which escapes its output. ?>
+		<?php echo wp_kses( diluxone_users_handle_field(), diluxone_users_allowed_html() ); ?>
 
 		<?php
 		// When the name cannot change yet, the field itself says until when:

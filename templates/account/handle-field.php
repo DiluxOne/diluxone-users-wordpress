@@ -25,8 +25,8 @@ $diluxone_users_url_actual = diluxone_users_handle_base_url() . $args['handle'] 
 	</p>
 
 	<input type="text" id="diluxone-users-handle" name="diluxone_users_handle" value="<?php echo esc_attr( $args['handle'] ); ?>"
-		minlength="<?php echo esc_attr( (string) diluxone_users_option( 'diluxone_users_handle_min' ) ); ?>"
-		maxlength="<?php echo esc_attr( (string) diluxone_users_option( 'diluxone_users_handle_max' ) ); ?>"
+		minlength="<?php echo esc_attr( (string) diluxone_users_handle_limits()[0] ); ?>"
+		maxlength="<?php echo esc_attr( (string) diluxone_users_handle_limits()[1] ); ?>"
 		autocomplete="off" spellcheck="false"
 		<?php disabled( ! $args['can'] ); ?>>
 

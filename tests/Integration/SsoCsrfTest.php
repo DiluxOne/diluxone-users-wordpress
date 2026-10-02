@@ -146,6 +146,29 @@ class SsoCsrfTest extends IntegrationTestCase {
 
 		$this->assertSame( 'linked', $this->redirectState( $url ) );
 		$this->assertSame( 'attacker-google-id', get_user_meta( $user, 'diluxone_users_sso_mock', true ) );
+		$this->assertStringContainsString( 'The Mock account was linked', (string) $this->lastMail()['message'], 'the owner is told' );
+
+		// Linked again by the same person: still theirs, still "linked".
+		$trip = $this->start( $user );
+		$this->assertSame( 'linked', $this->redirectState( $this->come_back( $user, $trip['state'], $trip['cookie'] ) ) );
+	}
+
+	/**
+	 * An identity that already opens one account is not linked to another:
+	 * the whole trip, made by somebody else signed in, ends in "taken".
+	 */
+	public function test_an_identity_that_opens_another_account_is_not_linked_on_the_way_back(): void {
+		$owner = $this->make_user();
+		$other = $this->make_user();
+		update_user_meta( $owner, 'diluxone_users_sso_mock', 'attacker-google-id' );
+
+		$trip = $this->start( $other );
+		$url  = $this->come_back( $other, $trip['state'], $trip['cookie'] );
+
+		$this->assertSame( 'taken', $this->redirectState( $url ) );
+		$this->assertSame( '', get_user_meta( $other, 'diluxone_users_sso_mock', true ) );
+		$this->assertSame( 'attacker-google-id', get_user_meta( $owner, 'diluxone_users_sso_mock', true ) );
+		$this->assertSame( array(), self::$mail );
 	}
 
 	public function test_linking_needs_the_nonce_from_the_account_screen(): void {
@@ -189,5 +212,47 @@ class SsoCsrfTest extends IntegrationTestCase {
 
 		$this->assertSame( 'social', $this->redirectState( $url ) );
 		$this->assertSame( array(), MockProvider::$requests );
+	}
+
+	/**
+	 * A second provider, configured and tested like the first.
+	 *
+	 * @param array<string, array<string, mixed>> $providers
+	 * @return array<string, array<string, mixed>>
+	 */
+	public function and_another( array $providers ): array {
+		$providers['mock2']         = $providers[ MockProvider::ID ];
+		$providers['mock2']['name'] = 'Mock 2';
+
+		return $providers;
+	}
+
+	/**
+	 * A state issued for one provider is no good on another's way back: the
+	 * code that arrives there is that provider's, and the state vouches for a
+	 * trip somewhere else. It is spent all the same.
+	 */
+	public function test_a_state_from_one_provider_is_refused_on_anothers_return(): void {
+		$this->hook( 'diluxone_users_sso_providers', array( $this, 'and_another' ), 20 );
+		$sso            = (array) diluxone_users_raw_get( 'diluxone_users_sso', array() );
+		$sso['mock2']   = $sso[ MockProvider::ID ];
+		diluxone_users_update_option( 'diluxone_users_sso', $sso );
+
+		$trip = $this->start( 0 );
+
+		$_COOKIE = array( diluxone_users_sso_cookie() => $trip['cookie'] );
+		$_GET    = array(
+			'diluxone_users_sso' => 'mock2',
+			'code'               => 'the-code',
+			'state'              => $trip['state'],
+		);
+		diluxone_users_sso_query_snapshot();
+		$url = $this->expectRedirect( 'diluxone_users_sso_handle' );
+
+		$this->assertSame( 'social', $this->redirectState( $url ) );
+		$this->assertSame( array(), MockProvider::$requests, 'no code was exchanged' );
+		$this->assertSame( 0, get_current_user_id() );
+
+		$this->assertSame( 'social', $this->redirectState( $this->come_back( 0, $trip['state'], $trip['cookie'] ) ), 'and the state is spent' );
 	}
 }
