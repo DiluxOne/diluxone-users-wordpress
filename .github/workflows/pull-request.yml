@@ -69,8 +69,8 @@ jobs:
     with:
       integration-targets: '["single","network"]'
       e2e-suites: >-
-        [{"name":"single","site":"single","run":"npx playwright test"},
-         {"name":"network","site":"network","run":"npx playwright test -c playwright.network.config.ts","results":"build/e2e-network-results"}]
+        [{"name":"single","site":"single","run":"npx playwright test","timeout":90},
+         {"name":"network","site":"network","run":"npx playwright test -c playwright.network.config.ts","results":"build/e2e-network-results","timeout":60}]
 
   review:
     needs: [conventions, checks]

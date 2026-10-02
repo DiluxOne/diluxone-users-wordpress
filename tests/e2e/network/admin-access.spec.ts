@@ -6,6 +6,9 @@ import { wp } from '../support/cli';
 import { PLAIN_FIELDS, card, control, expectPill } from '../support/admin-access';
 import { NETWORK_ADMIN_STATE, NETWORK_URL } from '../../../playwright.network.config';
 
+/** A string matched as itself inside a regular expression: every character that means something to one is escaped. */
+const literal = (text: string): string => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
 /**
  * Access on a network: the hub's screen, driven through its controls, and
  * what the other sites of the network get from it.
@@ -163,7 +166,7 @@ test.describe('The hub’s Access', () => {
 
 			// /beta/'s door leads to the new page.
 			await stranger.goto(beta.pages.login.url);
-			await expect(hubDoor(stranger, 'login').locator('a.diluxone-users-button')).toHaveAttribute('href', new RegExp(`^${other.url.replace(/[.?]/g, '\\$&')}`));
+			await expect(hubDoor(stranger, 'login').locator('a.diluxone-users-button')).toHaveAttribute('href', new RegExp(`^${literal(other.url)}`));
 
 			// "Send everybody to the sign-in page": /beta/wp-login.php lands on it.
 			await stranger.goto(`${beta.url}wp-login.php`);
@@ -226,7 +229,7 @@ test.describe('Create the page, on a network', () => {
 			const stranger = await (await browser.newContext({ storageState: { cookies: [], origins: [] } })).newPage();
 
 			await stranger.goto(beta.pages.register.url);
-			await expect(hubDoor(stranger, 'register').locator('a.diluxone-users-button')).toHaveAttribute('href', new RegExp(`^${made.replace(/[.?]/g, '\\$&')}`));
+			await expect(hubDoor(stranger, 'register').locator('a.diluxone-users-button')).toHaveAttribute('href', new RegExp(`^${literal(made)}`));
 			await stranger.context().close();
 		} finally {
 			await hub.site.forgetPageId(id);
