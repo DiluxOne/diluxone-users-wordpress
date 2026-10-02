@@ -140,6 +140,26 @@ function diluxone_users_panels( string $screen ): array {
 }
 
 /**
+ * Stops a request from somebody who may not change the settings of this screen.
+ *
+ * Every panel's save starts with its screen's nonce — `check_admin_referer()`,
+ * written out in the save itself, where whoever reads the save sees it — and
+ * then this. The screen checks both before it calls a save, and the save
+ * checks them again, first thing: a save is a function anybody can call, and
+ * whether the request it reads from was sent by somebody allowed to send it
+ * should be visible where the reading happens.
+ *
+ * The capability is the screen's own: `manage_options` on a site, the
+ * network's in Network Admin (`diluxone_users_admin_cap()`). Without it the
+ * answer is 403.
+ */
+function diluxone_users_panel_allowed(): void {
+	if ( ! current_user_can( diluxone_users_admin_cap() ) ) {
+		wp_die( esc_html__( 'You are not allowed to do this.', 'diluxone-users' ), '', array( 'response' => 403 ) );
+	}
+}
+
+/**
  * Draws a whole screen out of its panels.
  *
  * Every screen built this way behaves the same: the tabs, the current one,
@@ -233,12 +253,10 @@ function diluxone_users_screen_panels( string $screen, string $title ): void {
 		echo '<div class="diluxone-users-studio"><div class="diluxone-users-studio__fields">';
 	}
 
-	// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- the panel escaped what it printed.
-	echo $drawn;
+	echo wp_kses( $drawn, diluxone_users_allowed_html() );
 
 	if ( $alone ) {
-		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped inside.
-		echo '</div><div class="diluxone-users-studio__aside">' . diluxone_users_ui_save_box() . '</div></div>';
+		echo '</div><div class="diluxone-users-studio__aside">' . wp_kses( diluxone_users_ui_save_box(), diluxone_users_allowed_html() ) . '</div></div>';
 	}
 
 	if ( $preview ) {
@@ -261,8 +279,7 @@ function diluxone_users_screen_panels( string $screen, string $title ): void {
 		}
 
 		echo '>';
-		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped inside.
-		echo diluxone_users_ui_save_box();
+		echo wp_kses( diluxone_users_ui_save_box(), diluxone_users_allowed_html() );
 		diluxone_users_preview_stage( $panel, $screen, $current );
 		echo '</div></div>';
 	}
@@ -573,7 +590,6 @@ function diluxone_users_preview_vars_css( string $html, array $names ): string {
  * browser so that typing in a colour box is not a page render per keystroke.
  */
 function diluxone_users_preview_vars_request(): void {
-	// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- the nonce is checked below, and the answer is the same for everybody who may have it.
 	if ( ! isset( $_GET['diluxone-users-vars'] ) ) {
 		return;
 	}
@@ -584,20 +600,29 @@ function diluxone_users_preview_vars_request(): void {
 		wp_die( '', '', array( 'response' => 403 ) );
 	}
 
-	ob_start();
-	wp_head();
-	$head = (string) ob_get_clean();
+	$body = diluxone_users_preview_vars_body();
 
 	if ( ! headers_sent() ) {
 		header( 'Content-Type: text/css; charset=' . get_bloginfo( 'charset' ) );
 		header( 'Cache-Control: private, max-age=300' );
 	}
 
-	// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- CSS, and every name and value in it was matched against a pattern on the way out of the page.
-	echo diluxone_users_preview_vars_css( $head, diluxone_users_preview_theme_vars() );
+	// A stylesheet, escaped as text all the same: every name and value in it
+	// was matched against a pattern on the way out of the page — a custom
+	// property and a colour — so there is no character in it that this changes.
+	echo esc_html( $body );
 	exit;
 }
 add_action( 'template_redirect', 'diluxone_users_preview_vars_request' );
+
+/** The theme's properties the preview asks about, read from what the page prints in its head. */
+function diluxone_users_preview_vars_body(): string {
+	ob_start();
+	wp_head();
+	$head = (string) ob_get_clean();
+
+	return diluxone_users_preview_vars_css( $head, diluxone_users_preview_theme_vars() );
+}
 
 /**
  * The preview column: a window with the page inside it, to scale.
@@ -779,9 +804,13 @@ function diluxone_users_preview_override( array $values ): callable {
 function diluxone_users_preview_try_url( string $screen, string $id ): string {
 	return add_query_arg(
 		array(
-			'action' => 'diluxone_users_preview_try',
-			'screen' => $screen,
-			'panel'  => $id,
+			'action'                   => 'diluxone_users_preview_try',
+			'screen'                   => $screen,
+			'panel'                    => $id,
+			// Its own nonce, with an action that does not depend on the
+			// screen: the handler checks it before it reads which screen
+			// was asked for.
+			'diluxone_users_try_nonce' => wp_create_nonce( 'diluxone_users_preview_try' ),
 		),
 		admin_url( 'admin-post.php' )
 	);
@@ -861,14 +890,14 @@ function diluxone_users_preview_would_save( array $panel ): array {
  * real page with that key, and the page picks them up on its way through.
  */
 function diluxone_users_preview_try(): void {
-	$screen = isset( $_GET['screen'] ) ? sanitize_key( wp_unslash( $_GET['screen'] ) ) : '';
-	$id     = isset( $_GET['panel'] ) ? sanitize_key( wp_unslash( $_GET['panel'] ) ) : '';
-
-	check_admin_referer( 'diluxone_users_panel_' . $screen, 'diluxone_users_panel_nonce' );
+	check_admin_referer( 'diluxone_users_preview_try', 'diluxone_users_try_nonce' );
 
 	if ( ! current_user_can( 'manage_options' ) ) {
 		wp_die( '', '', array( 'response' => 403 ) );
 	}
+
+	$screen = isset( $_GET['screen'] ) ? sanitize_key( wp_unslash( $_GET['screen'] ) ) : '';
+	$id     = isset( $_GET['panel'] ) ? sanitize_key( wp_unslash( $_GET['panel'] ) ) : '';
 
 	$panels = diluxone_users_panels( $screen );
 	$src    = isset( $panels[ $id ] ) ? (string) $panels[ $id ]['preview_src'] : '';
@@ -995,11 +1024,19 @@ function diluxone_users_preview_request(): void {
 	 * stands for — "where the look comes from" is two options underneath, and
 	 * a list of ways in is an array. Reading the form's fields as if they were
 	 * options got both wrong. A panel with no save shows the fields as sent.
+	 *
+	 * The save checks the panel's nonce before it reads anything, and that
+	 * nonce is one of the form's fields, sent with the rest of them.
+	 * check_admin_referer() looks for it in $_REQUEST, so both stand in for
+	 * the request while the save runs, and both are put back.
 	 */
-	$request = $_POST;
-	$_POST   = wp_slash( $form );
-	$values  = diluxone_users_preview_would_save( $panels[ $id ] );
-	$_POST   = $request;
+	$post     = $_POST;
+	$request  = $_REQUEST;
+	$_POST    = wp_slash( $form );
+	$_REQUEST = $_POST;
+	$values   = diluxone_users_preview_would_save( $panels[ $id ] );
+	$_POST    = $post;
+	$_REQUEST = $request;
 
 	if ( array() === $values ) {
 		$values = diluxone_users_preview_values( $form );

@@ -30,8 +30,34 @@ const DILUXONE_E2E_SSO     = 'diluxone_e2e_sso';
 const DILUXONE_E2E_ID      = 'diluxone_e2e_identity';
 const DILUXONE_E2E_MISSING = '__diluxone_e2e_missing__';
 
+/** The e-mail domain of every account the suite makes. */
+const DILUXONE_E2E_DOMAIN = '@e2e.test';
+
+/** The user meta that marks an account the suite made, whatever its address became. */
+const DILUXONE_E2E_MADE = 'diluxone_e2e_made';
+
 /** The fake provider's endpoints. Only the first one a browser ever sees. */
 const DILUXONE_E2E_OAUTH_BASE = 'https://provider.e2e.test/';
+
+/* ── The suite's accounts ──────────────────────────────────────────── */
+
+/**
+ * Marks every account made with the suite's domain, the moment it is made.
+ *
+ * The teardown deletes the suite's accounts by their domain, and an account
+ * can lose it during a test: closing one that has published something leaves
+ * a shell named `deleted-<id>` with an address of its own and no role on any
+ * site, and a person can change their address on the account area. The mark
+ * stays with the account through both, so the teardown still finds it.
+ */
+function diluxone_e2e_mark( int $user_id ): void {
+	$user = get_userdata( $user_id );
+
+	if ( $user instanceof WP_User && str_ends_with( strtolower( (string) $user->user_email ), DILUXONE_E2E_DOMAIN ) ) {
+		update_user_meta( $user_id, DILUXONE_E2E_MADE, 1 );
+	}
+}
+add_action( 'user_register', 'diluxone_e2e_mark' );
 
 /* ── The mail catcher ──────────────────────────────────────────────── */
 
@@ -234,6 +260,67 @@ function diluxone_e2e_menu_forget(): WP_REST_Response {
 	return new WP_REST_Response( array( 'deleted' => $page instanceof WP_Post ) );
 }
 
+/**
+ * A page of a spec's own, with whatever it is given to draw: `e2e-` and a
+ * name, made once and rewritten when the content changes, so a run leaves one
+ * page per name behind at most — and the spec deletes it when it is done.
+ *
+ * It is how a shortcode a site puts on a page of its own (the pieces of the
+ * account, one by one) is tried where a site would put it.
+ */
+function diluxone_e2e_page( WP_REST_Request $request ): WP_REST_Response {
+	$slug    = 'e2e-' . sanitize_title( (string) $request->get_param( 'slug' ) );
+	$content = (string) $request->get_param( 'content' );
+	$page    = get_page_by_path( $slug );
+
+	if ( $page instanceof WP_Post ) {
+		$id = (int) $page->ID;
+
+		if ( $content !== $page->post_content ) {
+			wp_update_post(
+				array(
+					'ID'           => $id,
+					'post_content' => $content,
+				)
+			);
+		}
+	} else {
+		$id = (int) wp_insert_post(
+			array(
+				'post_title'   => $slug,
+				'post_name'    => $slug,
+				'post_content' => $content,
+				'post_status'  => 'publish',
+				'post_type'    => 'page',
+			)
+		);
+	}
+
+	return new WP_REST_Response(
+		array(
+			'id'  => $id,
+			'url' => (string) get_permalink( $id ),
+		)
+	);
+}
+
+/**
+ * That page, gone for good — or, by `id`, a page a spec had the plugin make
+ * (its "Create the page" button), which has a title of the plugin's and no
+ * `e2e-` in its address.
+ */
+function diluxone_e2e_page_forget( WP_REST_Request $request ): WP_REST_Response {
+	$id   = (int) $request->get_param( 'id' );
+	$page = $id > 0 ? get_post( $id ) : get_page_by_path( 'e2e-' . sanitize_title( (string) $request->get_param( 'slug' ) ) );
+	$page = $page instanceof WP_Post && 'page' === $page->post_type ? $page : null;
+
+	if ( $page instanceof WP_Post ) {
+		wp_delete_post( (int) $page->ID, true );
+	}
+
+	return new WP_REST_Response( array( 'deleted' => $page instanceof WP_Post ) );
+}
+
 /* ── What the browser cannot see: hooks, constants, switches ────────── */
 
 /**
@@ -305,6 +392,71 @@ function diluxone_e2e_register( WP_REST_Request $request ): WP_REST_Response {
 			? array( 'errors' => $user->get_error_codes() )
 			: array( 'id' => (int) $user )
 	);
+}
+
+/* ── The activity log ──────────────────────────────────────────────── */
+
+/** The columns of a row of the plugin's activity log, in the table's order. */
+const DILUXONE_E2E_LOG_COLUMNS = array( 'id', 'site_id', 'user_id', 'event', 'happened', 'ip', 'agent', 'detail' );
+
+/**
+ * This site's rows of the activity log, every column, oldest first.
+ *
+ * For the spec that empties the log from its screen: the log it empties is
+ * the developer's, not the run's, so the spec keeps what was there and puts it
+ * back with the route below when it ends.
+ */
+function diluxone_e2e_log_read(): WP_REST_Response {
+	global $wpdb;
+
+	$table = diluxone_users_log_table();
+
+	if ( $table !== $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table ) ) ) {
+		return new WP_REST_Response( array() );
+	}
+
+	// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- the table name is the plugin's own.
+	$rows = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM {$table} WHERE site_id = %d ORDER BY id", get_current_blog_id() ), ARRAY_A );
+
+	return new WP_REST_Response( is_array( $rows ) ? $rows : array() );
+}
+
+/**
+ * Puts rows read by diluxone_e2e_log_read() back, under their own ids.
+ *
+ * A row whose id is still there is left as it is, so putting back what was
+ * never taken away changes nothing.
+ */
+function diluxone_e2e_log_restore( WP_REST_Request $request ): WP_REST_Response {
+	global $wpdb;
+
+	$table = diluxone_users_log_table();
+	$put   = 0;
+
+	foreach ( (array) $request->get_param( 'rows' ) as $row ) {
+		$row = is_array( $row ) ? $row : array();
+
+		if ( array_diff( DILUXONE_E2E_LOG_COLUMNS, array_keys( $row ) ) ) {
+			continue;
+		}
+
+		$put += (int) $wpdb->query(
+			$wpdb->prepare(
+				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- the table name is the plugin's own.
+				"INSERT IGNORE INTO {$table} (id, site_id, user_id, event, happened, ip, agent, detail) VALUES (%d, %d, %d, %s, %s, %s, %s, %s)",
+				(int) $row['id'],
+				(int) $row['site_id'],
+				(int) $row['user_id'],
+				(string) $row['event'],
+				(string) $row['happened'],
+				(string) $row['ip'],
+				(string) $row['agent'],
+				(string) $row['detail']
+			)
+		);
+	}
+
+	return new WP_REST_Response( array( 'restored' => $put ) );
 }
 
 /* ── The routes ────────────────────────────────────────────────────── */
@@ -413,6 +565,23 @@ function diluxone_e2e_routes(): void {
 
 	register_rest_route(
 		DILUXONE_E2E_NS,
+		'/page',
+		array(
+			array(
+				'methods'             => 'POST',
+				'permission_callback' => $guard,
+				'callback'            => 'diluxone_e2e_page',
+			),
+			array(
+				'methods'             => 'DELETE',
+				'permission_callback' => $guard,
+				'callback'            => 'diluxone_e2e_page_forget',
+			),
+		)
+	);
+
+	register_rest_route(
+		DILUXONE_E2E_NS,
 		'/register',
 		array(
 			'methods'             => 'POST',
@@ -428,6 +597,23 @@ function diluxone_e2e_routes(): void {
 			'methods'             => 'POST',
 			'permission_callback' => $guard,
 			'callback'            => 'diluxone_e2e_expire',
+		)
+	);
+
+	register_rest_route(
+		DILUXONE_E2E_NS,
+		'/log',
+		array(
+			array(
+				'methods'             => 'GET',
+				'permission_callback' => $guard,
+				'callback'            => 'diluxone_e2e_log_read',
+			),
+			array(
+				'methods'             => 'POST',
+				'permission_callback' => $guard,
+				'callback'            => 'diluxone_e2e_log_restore',
+			),
 		)
 	);
 
@@ -711,6 +897,7 @@ function diluxone_e2e_user_read( WP_REST_Request $request ): WP_REST_Response {
 			'id'       => (int) $user->ID,
 			'email'    => $user->user_email,
 			'login'    => $user->user_login,
+			'nicename' => $user->user_nicename,
 			'name'     => $user->display_name,
 			'roles'    => array_values( (array) $user->roles ),
 			'meta'     => array(
@@ -765,12 +952,22 @@ function diluxone_e2e_user_write( WP_REST_Request $request ): WP_REST_Response {
 
 	$user = get_user_by( 'email', $email );
 
+	// An account that is not the suite's — the people the pictures are taken
+	// with — keeps the password its owner gave it when asked to.
+	$keep = (bool) $request->get_param( 'keep_password' );
+
 	if ( $user instanceof WP_User ) {
 		$id = (int) $user->ID;
-		wp_set_password( $pass, $id );
+
+		if ( $keep ) {
+			$pass = '';
+		} else {
+			wp_set_password( $pass, $id );
+		}
+
 		$user->set_role( $role );
 	} else {
-		$id = (int) wp_insert_user(
+		$made = wp_insert_user(
 			array(
 				'user_login'   => $email,
 				'user_email'   => $email,
@@ -779,6 +976,14 @@ function diluxone_e2e_user_write( WP_REST_Request $request ): WP_REST_Response {
 				'role'         => $role,
 			)
 		);
+
+		// A refusal is not account 0: `(int)` of an error is 1, and the meta
+		// below would have been written onto the first account of the site.
+		if ( is_wp_error( $made ) ) {
+			return new WP_REST_Response( array( 'error' => $made->get_error_code() ), 400 );
+		}
+
+		$id = (int) $made;
 	}
 
 	foreach ( (array) $request->get_param( 'meta' ) as $key => $value ) {
@@ -816,7 +1021,58 @@ function diluxone_e2e_user_delete( WP_REST_Request $request ): WP_REST_Response 
 	}
 
 	$delete = static function ( int $id ): void {
+		// What the account wrote goes with it, on every site. WordPress only
+		// deletes posts on the sites somebody is still a member of, and a
+		// closed account kept for its content is a member of none.
+		foreach ( is_multisite() ? get_sites( array( 'fields' => 'ids', 'number' => 0 ) ) : array( get_current_blog_id() ) as $site ) {
+			$switch = is_multisite() && get_current_blog_id() !== (int) $site;
+
+			if ( $switch ) {
+				switch_to_blog( (int) $site );
+			}
+
+			$posts = get_posts(
+				array(
+					'author'      => $id,
+					'post_type'   => 'any',
+					'post_status' => 'any',
+					'numberposts' => -1,
+					'fields'      => 'ids',
+				)
+			);
+
+			foreach ( $posts as $post ) {
+				wp_delete_post( (int) $post, true );
+			}
+
+			if ( $switch ) {
+				restore_current_blog();
+			}
+		}
+
+		// And what the activity log wrote about it: the log is the site's,
+		// and a run that signed a hundred people in and out leaves no trace of
+		// them there either.
+		if ( function_exists( 'diluxone_users_log_table' ) ) {
+			global $wpdb;
+
+			$table = diluxone_users_log_table();
+
+			if ( $table === $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table ) ) ) {
+				$wpdb->delete( $table, array( 'user_id' => $id ), array( '%d' ) );
+			}
+		}
+
 		if ( is_multisite() ) {
+			// A spec may have made the account a super admin (the network's
+			// refusals do, for a victim), and WordPress keeps a super admin
+			// from being deleted. If that spec stopped before taking it back,
+			// the account would outlive every teardown after it.
+			if ( is_super_admin( $id ) ) {
+				require_once ABSPATH . 'wp-admin/includes/ms.php';
+				revoke_super_admin( $id );
+			}
+
 			wpmu_delete_user( $id );
 
 			return;
@@ -839,15 +1095,65 @@ function diluxone_e2e_user_delete( WP_REST_Request $request ): WP_REST_Response 
 	}
 
 	if ( '' !== $domain ) {
+		// Every account of the installation, members of no site included: a
+		// closed account kept for its content has no role anywhere, and a
+		// query by site would not see it.
 		$everyone = array(
 			'fields'  => array( 'ID', 'user_email' ),
-			'blog_id' => is_multisite() ? 0 : get_current_blog_id(),
+			'blog_id' => 0,
 		);
 
 		foreach ( get_users( $everyone ) as $one ) {
-			if ( str_ends_with( strtolower( (string) $one->user_email ), strtolower( $domain ) ) ) {
+			$ours = str_ends_with( strtolower( (string) $one->user_email ), strtolower( $domain ) )
+				|| ( DILUXONE_E2E_DOMAIN === strtolower( $domain ) && get_user_meta( (int) $one->ID, DILUXONE_E2E_MADE, true ) );
+
+			if ( $ours ) {
 				$delete( (int) $one->ID );
 				++$gone;
+			}
+		}
+
+		// The privacy requests made for the domain's addresses, on every
+		// site: a request is a post of its own, titled with the address, and
+		// outlives the account it was for.
+		foreach ( is_multisite() ? get_sites( array( 'fields' => 'ids', 'number' => 0 ) ) : array( get_current_blog_id() ) as $site ) {
+			$switch = is_multisite() && get_current_blog_id() !== (int) $site;
+
+			if ( $switch ) {
+				switch_to_blog( (int) $site );
+			}
+
+			$requests = get_posts(
+				array(
+					'post_type'   => 'user_request',
+					'post_status' => 'any',
+					'numberposts' => -1,
+					'fields'      => 'ids',
+				)
+			);
+
+			foreach ( $requests as $request ) {
+				if ( str_ends_with( strtolower( (string) get_the_title( (int) $request ) ), strtolower( $domain ) ) ) {
+					wp_delete_post( (int) $request, true );
+				}
+			}
+
+			if ( $switch ) {
+				restore_current_blog();
+			}
+		}
+
+		// The attempts that named an address of the domain and matched no
+		// account — a wrong password for somebody who does not exist — are
+		// written with nobody's id: they go by what they tried.
+		if ( function_exists( 'diluxone_users_log_table' ) ) {
+			global $wpdb;
+
+			$table = diluxone_users_log_table();
+
+			if ( $table === $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table ) ) ) {
+				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- the table name is the plugin's own.
+				$wpdb->query( $wpdb->prepare( "DELETE FROM {$table} WHERE user_id = 0 AND detail LIKE %s", '%' . $wpdb->esc_like( strtolower( $domain ) ) . '%' ) );
 			}
 		}
 	}
@@ -943,3 +1249,650 @@ function diluxone_e2e_authorize( WP_REST_Request $request ) {
 	wp_redirect( add_query_arg( $args, $redirect ) ); // phpcs:ignore WordPress.Security.SafeRedirect.wp_redirect_wp_redirect
 	exit;
 }
+
+/* ── admin-access: a setting pinned from code, and a picture in the library ─── */
+
+/**
+ * Pins plugin settings from code the way a site's own code would, while
+ * `diluxone_e2e_admin_access_force` holds them (key => value). A named
+ * function on purpose: the forced-setting notice lists the functions hooked
+ * to the filter, and a closure has no name to list.
+ *
+ * @param mixed  $value Resolved value.
+ * @param string $key   Option name.
+ * @return mixed
+ */
+function diluxone_e2e_admin_access_forced( $value, $key ) {
+	$forced = get_option( 'diluxone_e2e_admin_access_force', array() );
+
+	return is_array( $forced ) && array_key_exists( (string) $key, $forced ) ? $forced[ (string) $key ] : $value;
+}
+add_filter( 'diluxone_users_option', 'diluxone_e2e_admin_access_forced', 10, 2 );
+
+/**
+ * A one-pixel picture in the media library, for the media picker; DELETE
+ * with `?id=` takes it out again.
+ */
+function diluxone_e2e_admin_access_attachment( WP_REST_Request $request ): WP_REST_Response {
+	if ( 'DELETE' === $request->get_method() ) {
+		wp_delete_attachment( (int) $request->get_param( 'id' ), true );
+
+		return new WP_REST_Response( array( 'deleted' => (int) $request->get_param( 'id' ) ) );
+	}
+
+	$upload = wp_upload_bits(
+		'e2e-picture-' . wp_generate_password( 6, false ) . '.png',
+		null,
+		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode -- a fixed one-pixel PNG.
+		(string) base64_decode( 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==' )
+	);
+
+	if ( ! empty( $upload['error'] ) ) {
+		return new WP_REST_Response( array( 'error' => $upload['error'] ), 500 );
+	}
+
+	$id = wp_insert_attachment(
+		array(
+			'post_mime_type' => 'image/png',
+			'post_title'     => 'e2e-picture',
+			'post_status'    => 'inherit',
+		),
+		$upload['file']
+	);
+
+	require_once ABSPATH . 'wp-admin/includes/image.php';
+	wp_update_attachment_metadata( $id, wp_generate_attachment_metadata( $id, $upload['file'] ) );
+
+	return new WP_REST_Response(
+		array(
+			'id'  => $id,
+			'url' => wp_get_attachment_url( $id ),
+		)
+	);
+}
+
+add_action(
+	'rest_api_init',
+	static function (): void {
+		register_rest_route(
+			'diluxone-e2e/v1',
+			'/admin-access/attachment',
+			array(
+				'methods'             => array( 'POST', 'DELETE' ),
+				'callback'            => 'diluxone_e2e_admin_access_attachment',
+				'permission_callback' => 'diluxone_e2e_allowed',
+			)
+		);
+	}
+);
+
+/* ── signin: switches and a meta door for the ways-in specs ─────────── */
+
+/**
+ * Two more switches a site turns on from code, flipped from a spec.
+ *
+ * `diluxone_e2e_login_burst` lowers the per-machine ceiling on sign-in links
+ * and social trips (the `diluxone_users_login_burst` filter) so the burst is
+ * reached in three requests instead of thirty-one. `diluxone_e2e_refuse_accounts`
+ * makes WordPress refuse every new account, the way a site whose own rules
+ * turn a registration down does.
+ */
+function diluxone_e2e_signin_switches(): void {
+	$burst = (int) get_option( 'diluxone_e2e_login_burst', 0 );
+
+	if ( $burst > 0 ) {
+		add_filter( 'diluxone_users_login_burst', static fn(): int => $burst );
+	}
+
+	if ( get_option( 'diluxone_e2e_refuse_accounts' ) ) {
+		add_filter( 'pre_user_login', '__return_empty_string' );
+	}
+}
+add_action( 'plugins_loaded', 'diluxone_e2e_signin_switches' );
+
+/**
+ * Reads or writes a person's meta as it is stored, without touching anything
+ * else of the account (the `/user` write sets the password again).
+ *
+ * GET `?email=&keys=a,b` answers each key's value as stored (arrays as
+ * arrays). POST `{email, set: {key: value|null}, past: [key | "key.field"]}`
+ * writes values (null deletes) and moves each named deadline sixty seconds
+ * into the past: a timestamp meta, or one field of an array meta.
+ */
+function diluxone_e2e_signin_meta( WP_REST_Request $request ): WP_REST_Response {
+	$user = get_user_by( 'email', (string) $request->get_param( 'email' ) );
+
+	if ( ! $user instanceof WP_User ) {
+		return new WP_REST_Response( array( 'error' => 'no-user' ), 404 );
+	}
+
+	$id = (int) $user->ID;
+
+	if ( 'GET' === $request->get_method() ) {
+		$out = array();
+
+		foreach ( array_filter( array_map( 'trim', explode( ',', (string) $request->get_param( 'keys' ) ) ) ) as $key ) {
+			$out[ $key ] = get_user_meta( $id, $key, true );
+		}
+
+		return new WP_REST_Response( $out );
+	}
+
+	foreach ( (array) $request->get_param( 'set' ) as $key => $value ) {
+		if ( null === $value ) {
+			delete_user_meta( $id, (string) $key );
+			continue;
+		}
+
+		update_user_meta( $id, (string) $key, $value );
+	}
+
+	foreach ( (array) $request->get_param( 'past' ) as $name ) {
+		[ $key, $field ] = array_pad( explode( '.', (string) $name, 2 ), 2, '' );
+
+		if ( '' === $field ) {
+			update_user_meta( $id, $key, time() - 60 );
+			continue;
+		}
+
+		$stored = get_user_meta( $id, $key, true );
+
+		if ( is_array( $stored ) ) {
+			$stored[ $field ] = time() - 60;
+			update_user_meta( $id, $key, $stored );
+		}
+	}
+
+	return new WP_REST_Response( array( 'id' => $id ) );
+}
+
+add_action(
+	'rest_api_init',
+	static function (): void {
+		register_rest_route(
+			DILUXONE_E2E_NS,
+			'/signin/meta',
+			array(
+				'methods'             => array( 'GET', 'POST' ),
+				'permission_callback' => 'diluxone_e2e_allowed',
+				'callback'            => 'diluxone_e2e_signin_meta',
+			)
+		);
+	}
+);
+
+/* ── my-account: a session store the account cannot address one by one ─── */
+
+/**
+ * With `diluxone_e2e_session_manager` on, WordPress keeps sessions through a
+ * class of its own instead of WP_User_Meta_Session_Tokens: the same storage,
+ * another name. That is what a site with sessions in Redis looks like to the
+ * plugin, which then cannot close one session by its id and must offer only
+ * "close the others". An option of this file's, set and put back by the spec.
+ */
+class Diluxone_E2E_Session_Tokens extends WP_User_Meta_Session_Tokens {} // phpcs:ignore Generic.Files.OneObjectStructurePerFile.MultipleFound -- the stand-in lives with the switch that uses it.
+
+function diluxone_e2e_my_account_session_manager( string $manager ): string {
+	return get_option( 'diluxone_e2e_session_manager' ) ? 'Diluxone_E2E_Session_Tokens' : $manager;
+}
+add_filter( 'session_token_manager', 'diluxone_e2e_my_account_session_manager' );
+
+/* ── refusals: a nonce for whoever the cookie says, and meta as it is stored ─── */
+
+/**
+ * A nonce made for the person whose session cookie came with the request.
+ *
+ * The refusal specs post a form as somebody without the right to send it, and
+ * the only honest version of that carries a nonce that is valid for THAT
+ * person: then what stops the request is the capability, not the nonce. A REST
+ * call without the REST nonce runs as nobody, so the session is read from the
+ * logged-in cookie here and made current before the nonce is made. Without a
+ * cookie it is a nonce for nobody, which is what a stranger's page carries.
+ */
+function diluxone_e2e_refusals_nonce( WP_REST_Request $request ): WP_REST_Response {
+	$user = (int) wp_validate_auth_cookie( '', 'logged_in' );
+
+	wp_set_current_user( $user );
+
+	return new WP_REST_Response(
+		array(
+			'user'  => $user,
+			'nonce' => wp_create_nonce( (string) $request->get_param( 'action' ) ),
+		)
+	);
+}
+
+/**
+ * User meta as it is stored, arrays included.
+ *
+ * The /user route reads meta as strings, which is right for the fields and
+ * wrong for a list of passkeys: an array read as a string is "Array" whatever
+ * is in it, and a refusal that compares "Array" with "Array" proves nothing.
+ */
+function diluxone_e2e_refusals_meta( WP_REST_Request $request ): WP_REST_Response {
+	$user = get_user_by( 'email', (string) $request->get_param( 'email' ) );
+	$out  = array();
+
+	if ( ! $user instanceof WP_User ) {
+		return new WP_REST_Response( array( 'exists' => false ) );
+	}
+
+	foreach ( array_filter( array_map( 'trim', explode( ',', (string) $request->get_param( 'keys' ) ) ) ) as $key ) {
+		$out[ $key ] = metadata_exists( 'user', (int) $user->ID, $key ) ? get_user_meta( (int) $user->ID, $key, true ) : null;
+	}
+
+	return new WP_REST_Response(
+		array(
+			'exists' => true,
+			'meta'   => $out,
+		)
+	);
+}
+
+add_action(
+	'rest_api_init',
+	static function (): void {
+		register_rest_route(
+			DILUXONE_E2E_NS,
+			'/refusals/nonce',
+			array(
+				'methods'             => 'GET',
+				'permission_callback' => 'diluxone_e2e_allowed',
+				'callback'            => 'diluxone_e2e_refusals_nonce',
+			)
+		);
+
+		register_rest_route(
+			DILUXONE_E2E_NS,
+			'/refusals/meta',
+			array(
+				'methods'             => 'GET',
+				'permission_callback' => 'diluxone_e2e_allowed',
+				'callback'            => 'diluxone_e2e_refusals_meta',
+			)
+		);
+	}
+);
+
+/* ── hub-: how many additions the membership makes on the spot ─── */
+
+/**
+ * The membership adds up to fifty people on the spot and queues the rest for
+ * WP-Cron. A test network has a handful of people, so the queued half — the
+ * progress list, the "queued" notice, the cron that works it — never happens
+ * at the plugin's own threshold. `diluxone_e2e_membership_inline` set to a
+ * number on the main site is that threshold for as long as it is set (0:
+ * everything queued).
+ */
+add_filter(
+	'diluxone_users_membership_inline',
+	static function ( $inline ) {
+		// Written through the main site's side door, like every other switch.
+		$set = is_multisite() ? get_blog_option( get_main_site_id(), 'diluxone_e2e_membership_inline', '' ) : get_option( 'diluxone_e2e_membership_inline', '' );
+
+		return '' === $set || false === $set ? $inline : (int) $set;
+	}
+);
+
+/**
+ * …and `diluxone_e2e_membership_hold` set on the main site keeps WP-Cron from
+ * being handed the queue: a page load can spawn cron here, and a queue worked
+ * the moment it is made leaves nothing on the screen to see. The spec then
+ * finishes it itself, with WP-CLI.
+ */
+add_filter(
+	'schedule_event',
+	static function ( $event ) {
+		if ( ! is_object( $event ) || ! function_exists( 'get_blog_option' ) || 'diluxone_users_membership_drain' !== ( $event->hook ?? '' ) ) {
+			return $event;
+		}
+
+		return get_blog_option( get_main_site_id(), 'diluxone_e2e_membership_hold', '' ) ? false : $event;
+	}
+);
+
+/* ── admin-reports: rows of the activity log, sessions and mail a spec puts back (helper 3: admin-security, admin-social, admin-status, admin-reports, wp-screens) ─── */
+
+/**
+ * How the next message goes, when a spec says so: `diluxone_e2e_mail_outcome`
+ * is `fail` (the mailer refuses and WordPress says why) or `ok` (WordPress
+ * says it went). Unset, nothing changes: the catcher above keeps the message
+ * and WordPress says nothing either way, which is what every other spec sees.
+ *
+ * After the catcher, which keeps the message whatever is decided here.
+ *
+ * @param mixed                $pre  What the catcher answered.
+ * @param array<string, mixed> $atts to / subject / message / headers.
+ * @return mixed
+ */
+function diluxone_e2e_mail_outcome( $pre, array $atts ) {
+	$outcome = (string) get_option( 'diluxone_e2e_mail_outcome', '' );
+
+	if ( 'fail' === $outcome ) {
+		do_action( 'wp_mail_failed', new WP_Error( 'wp_mail_failed', 'The e2e mailer was told to refuse this message.', $atts ) );
+
+		return false;
+	}
+
+	if ( 'ok' === $outcome ) {
+		do_action( 'wp_mail_succeeded', $atts );
+	}
+
+	return $pre;
+}
+add_filter( 'pre_wp_mail', 'diluxone_e2e_mail_outcome', 20, 2 );
+
+/** The copy of the activity log a spec keeps while it empties the real one. */
+function diluxone_e2e_log_keep_table(): string {
+	global $wpdb;
+
+	return $wpdb->base_prefix . 'diluxone_e2e_log_keep';
+}
+
+/**
+ * Keeps a copy of every row of the activity log, ids and all, so a spec can
+ * press "Empty it now" and put back what the site had.
+ */
+function diluxone_e2e_log_keep(): WP_REST_Response {
+	global $wpdb;
+
+	$log  = diluxone_users_log_table();
+	$keep = diluxone_e2e_log_keep_table();
+
+	// phpcs:disable WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- two table names of this install.
+	$wpdb->query( "DROP TABLE IF EXISTS {$keep}" );
+	$wpdb->query( "CREATE TABLE {$keep} LIKE {$log}" );
+	$wpdb->query( "INSERT INTO {$keep} SELECT * FROM {$log}" );
+	$rows = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$keep}" );
+	// phpcs:enable
+
+	return new WP_REST_Response( array( 'kept' => $rows ) );
+}
+
+/** Puts back every row kept above that is no longer there, and drops the copy. */
+function diluxone_e2e_admin_reports_log_restore(): WP_REST_Response {
+	global $wpdb;
+
+	$log  = diluxone_users_log_table();
+	$keep = diluxone_e2e_log_keep_table();
+
+	// phpcs:disable WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- two table names of this install.
+	if ( $keep !== $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $keep ) ) ) {
+		return new WP_REST_Response( array( 'restored' => 0 ) );
+	}
+
+	$back = (int) $wpdb->query( "INSERT IGNORE INTO {$log} SELECT * FROM {$keep}" );
+	$wpdb->query( "DROP TABLE IF EXISTS {$keep}" );
+	// phpcs:enable
+
+	return new WP_REST_Response( array( 'restored' => $back ) );
+}
+
+/**
+ * Rows of the spec's own in the activity log, of this site: `count` of them,
+ * of `event`, for `email`'s account (or nobody), from `ip`, `days` ago, each
+ * carrying `tag` in its detail so the spec finds them, and only them.
+ */
+function diluxone_e2e_log_rows_add( WP_REST_Request $request ): WP_REST_Response {
+	global $wpdb;
+
+	$count = max( 1, min( 200, (int) $request->get_param( 'count' ) ) );
+	$event = sanitize_key( (string) ( $request->get_param( 'event' ) ?: 'sign_in_failed' ) );
+	$tag   = sanitize_text_field( (string) $request->get_param( 'tag' ) );
+	$ip    = sanitize_text_field( (string) ( $request->get_param( 'ip' ) ?: '192.0.2.10' ) );
+	$days  = (int) $request->get_param( 'days' );
+	$user  = get_user_by( 'email', (string) $request->get_param( 'email' ) );
+
+	if ( '' === $tag ) {
+		return new WP_REST_Response( array( 'error' => 'no-tag' ), 400 );
+	}
+
+	for ( $n = 0; $n < $count; $n++ ) {
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery
+		$wpdb->insert(
+			diluxone_users_log_table(),
+			array(
+				'site_id'  => diluxone_users_log_site(),
+				'user_id'  => $user instanceof WP_User ? (int) $user->ID : 0,
+				'event'    => $event,
+				'happened' => gmdate( 'Y-m-d H:i:s', time() - $days * DAY_IN_SECONDS - $n ),
+				'ip'       => $ip,
+				'agent'    => 'diluxone-e2e',
+				'detail'   => (string) wp_json_encode( array( 'tried' => $tag . '-' . $n ) ),
+			)
+		);
+	}
+
+	return new WP_REST_Response( array( 'added' => $count ) );
+}
+
+/** The spec's own rows, by their tag, gone: whatever the site had stays. */
+function diluxone_e2e_log_rows_delete( WP_REST_Request $request ): WP_REST_Response {
+	global $wpdb;
+
+	$tag = sanitize_text_field( (string) $request->get_param( 'tag' ) );
+
+	if ( '' === $tag ) {
+		return new WP_REST_Response( array( 'error' => 'no-tag' ), 400 );
+	}
+
+	$table = diluxone_users_log_table();
+
+	// phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+	$gone = (int) $wpdb->query( $wpdb->prepare( "DELETE FROM {$table} WHERE agent = 'diluxone-e2e' AND detail LIKE %s", '%' . $wpdb->esc_like( $tag ) . '%' ) );
+
+	return new WP_REST_Response( array( 'deleted' => $gone ) );
+}
+
+/**
+ * Keeps every account's sessions, so a spec can press "close every session"
+ * and put back the ones the site had — the administrator session the other
+ * specs share among them.
+ */
+function diluxone_e2e_sessions_keep(): WP_REST_Response {
+	global $wpdb;
+
+	// phpcs:ignore WordPress.DB.DirectDatabaseQuery
+	$rows = $wpdb->get_results( $wpdb->prepare( "SELECT user_id, meta_value FROM {$wpdb->usermeta} WHERE meta_key = %s", 'session_tokens' ), ARRAY_A );
+
+	update_option( 'diluxone_e2e_sessions_kept', $rows, false );
+
+	return new WP_REST_Response( array( 'kept' => count( (array) $rows ) ) );
+}
+
+/** Writes the kept sessions back, beside any opened since. */
+function diluxone_e2e_sessions_restore(): WP_REST_Response {
+	$rows = (array) get_option( 'diluxone_e2e_sessions_kept', array() );
+	$back = 0;
+
+	foreach ( $rows as $row ) {
+		$kept = maybe_unserialize( (string) $row['meta_value'] );
+		$now  = get_user_meta( (int) $row['user_id'], 'session_tokens', true );
+
+		if ( is_array( $kept ) ) {
+			update_user_meta( (int) $row['user_id'], 'session_tokens', array_merge( is_array( $now ) ? $now : array(), $kept ) );
+			++$back;
+		}
+	}
+
+	delete_option( 'diluxone_e2e_sessions_kept' );
+
+	return new WP_REST_Response( array( 'restored' => $back ) );
+}
+
+add_action(
+	'rest_api_init',
+	static function (): void {
+		$guard = 'diluxone_e2e_allowed';
+
+		register_rest_route(
+			DILUXONE_E2E_NS,
+			'/h3/log-keep',
+			array(
+				array(
+					'methods'             => 'POST',
+					'callback'            => 'diluxone_e2e_log_keep',
+					'permission_callback' => $guard,
+				),
+				array(
+					'methods'             => 'DELETE',
+					'callback'            => 'diluxone_e2e_admin_reports_log_restore',
+					'permission_callback' => $guard,
+				),
+			)
+		);
+
+		register_rest_route(
+			DILUXONE_E2E_NS,
+			'/h3/log-rows',
+			array(
+				array(
+					'methods'             => 'POST',
+					'callback'            => 'diluxone_e2e_log_rows_add',
+					'permission_callback' => $guard,
+				),
+				array(
+					'methods'             => 'DELETE',
+					'callback'            => 'diluxone_e2e_log_rows_delete',
+					'permission_callback' => $guard,
+				),
+			)
+		);
+
+		register_rest_route(
+			DILUXONE_E2E_NS,
+			'/h3/sessions-keep',
+			array(
+				array(
+					'methods'             => 'POST',
+					'callback'            => 'diluxone_e2e_sessions_keep',
+					'permission_callback' => $guard,
+				),
+				array(
+					'methods'             => 'DELETE',
+					'callback'            => 'diluxone_e2e_sessions_restore',
+					'permission_callback' => $guard,
+				),
+			)
+		);
+	}
+);
+
+/* ── admin-content: user meta and media for the content screens ─── */
+
+/**
+ * Writes user meta for one account, and nothing else.
+ *
+ * `POST /user` also sets the password, which changes the hash a session
+ * cookie is checked against and signs the person out: a test that moves a
+ * person's clock (when their public name last changed, how many goes of a
+ * field they spent) while they are signed in needs the meta alone.
+ */
+function diluxone_e2e_h4_usermeta( WP_REST_Request $request ): WP_REST_Response {
+	$user = get_user_by( 'email', (string) $request->get_param( 'email' ) );
+
+	if ( ! $user instanceof WP_User ) {
+		return new WP_REST_Response( array( 'error' => 'no-user' ), 404 );
+	}
+
+	foreach ( (array) $request->get_param( 'meta' ) as $key => $value ) {
+		if ( null === $value ) {
+			delete_user_meta( (int) $user->ID, (string) $key );
+			continue;
+		}
+
+		update_user_meta( (int) $user->ID, (string) $key, $value );
+	}
+
+	return new WP_REST_Response( array( 'id' => (int) $user->ID ) );
+}
+
+/**
+ * A small picture in the media library, made once by name and reused.
+ *
+ * For the screens that pick an image (the site logo, a cover, the mark on
+ * wp-login.php): the picker lists what the library holds, and a test needs
+ * one known picture in it. `DELETE` removes it again.
+ */
+function diluxone_e2e_h4_media( WP_REST_Request $request ): WP_REST_Response {
+	$name     = sanitize_file_name( (string) ( $request->get_param( 'name' ) ?: 'e2e-picture' ) );
+	$existing = get_posts(
+		array(
+			'post_type'   => 'attachment',
+			'name'        => $name,
+			'post_status' => 'inherit',
+			'numberposts' => 1,
+		)
+	);
+
+	if ( 'DELETE' === $request->get_method() ) {
+		foreach ( $existing as $post ) {
+			wp_delete_attachment( (int) $post->ID, true );
+		}
+
+		return new WP_REST_Response( array( 'deleted' => count( $existing ) ) );
+	}
+
+	if ( array() !== $existing ) {
+		$id = (int) $existing[0]->ID;
+
+		return new WP_REST_Response(
+			array(
+				'id'  => $id,
+				'url' => (string) wp_get_attachment_url( $id ),
+			)
+		);
+	}
+
+	require_once ABSPATH . 'wp-admin/includes/image.php';
+
+	$upload = wp_upload_bits( $name . '.png', null, (string) base64_decode( 'iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAIAAACQkWg2AAAAFklEQVR4nGNk+M9AEmAiTfmohlENVNMAAIhCASAXpJGtAAAAAElFTkSuQmCC' ) ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode
+
+	if ( ! empty( $upload['error'] ) ) {
+		return new WP_REST_Response( array( 'error' => $upload['error'] ), 500 );
+	}
+
+	$id = (int) wp_insert_attachment(
+		array(
+			'post_title'     => $name,
+			'post_name'      => $name,
+			'post_mime_type' => 'image/png',
+			'post_status'    => 'inherit',
+		),
+		$upload['file']
+	);
+
+	wp_update_attachment_metadata( $id, wp_generate_attachment_metadata( $id, $upload['file'] ) );
+
+	return new WP_REST_Response(
+		array(
+			'id'  => $id,
+			'url' => (string) wp_get_attachment_url( $id ),
+		)
+	);
+}
+
+add_action(
+	'rest_api_init',
+	static function (): void {
+		register_rest_route(
+			DILUXONE_E2E_NS,
+			'/h4/usermeta',
+			array(
+				'methods'             => 'POST',
+				'permission_callback' => 'diluxone_e2e_allowed',
+				'callback'            => 'diluxone_e2e_h4_usermeta',
+			)
+		);
+
+		register_rest_route(
+			DILUXONE_E2E_NS,
+			'/h4/media',
+			array(
+				'methods'             => array( 'POST', 'DELETE' ),
+				'permission_callback' => 'diluxone_e2e_allowed',
+				'callback'            => 'diluxone_e2e_h4_media',
+			)
+		);
+	}
+);

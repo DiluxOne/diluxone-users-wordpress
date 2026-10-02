@@ -43,7 +43,23 @@ add_action( 'diluxone_users_register_panels', function () {
 ```
 
 The screen supplies the form, the nonce, the button that saves it and the
-"Saved." notice. `render` prints the fields and nothing else. The button is
+"Saved." notice. `render` prints the fields and nothing else. `save` checks
+the nonce and the capability itself before it reads anything, in its first
+two lines — the screen checks them too before calling it, and a save is a
+function anybody can call:
+
+```php
+function my_addon_sms_save(): void {
+    check_admin_referer( 'diluxone_users_panel_diluxone-users-security', 'diluxone_users_panel_nonce' );
+    diluxone_users_panel_allowed();
+
+    diluxone_users_save_options(
+        array( 'my_addon_sms_sender' => sanitize_text_field( wp_unslash( $_POST['my_addon_sms_sender'] ?? '' ) ) )
+    );
+}
+```
+
+The button is
 not at the foot of the form: it heads the column beside the fields — the rail,
 the preview, or a rail of its own when the tab has neither — so it stays in
 view while the settings scroll, in the same place on every tab.
@@ -66,6 +82,19 @@ drawn; the button reaches the form through its `form` attribute.
 
 A tab exists because something registered it. Nothing registered means no tab
 — not an empty one.
+
+What a tab prints is drawn into a buffer and printed through `wp_kses()` with
+the plugin's list of allowed markup: the post editor's, plus form controls,
+inline drawings and disclosure elements. No `<script>`, `<style>` or
+`<iframe>`: enqueue them. A tab that prints an element the list lacks adds it
+with `diluxone_users_allowed_html`:
+
+```php
+add_filter( 'diluxone_users_allowed_html', function ( array $allowed ): array {
+    $allowed['meter'] = array_merge( $allowed['meter'] ?? array(), array( 'low' => true, 'high' => true ) );
+    return $allowed;
+} );
+```
 
 ### The shape every screen has
 
@@ -132,8 +161,10 @@ to the site they started from. What an add-on or a theme builds on:
   hub, spent the first time it is asked for a user. A filter at the default
   priority sees it as `$redirect` and may send the person elsewhere.
 - On a site that is not the hub the plugin's shortcodes draw
-  `templates/hub-door.php` (`$args['door']` is `login`, `register` or
-  `account`, `$args['url']` the hub's address, `$args['hub']` its name),
+  `templates/hub-door.php` (`$args['door']` is `login`, `register`,
+  `account`, or `here` on a site on a domain of its own, whose sign-in door
+  is its own wp-login.php; `$args['url']` the address it leads to,
+  `$args['hub']` the hub's name),
   which a theme can replace like any other template.
 - `diluxone_users_off_hub()` says whether the current site is a site of a
   network other than the hub; `diluxone_users_sends_to_hub()` whether it sends
@@ -529,6 +560,32 @@ A template receives what it draws in one array, `$args`, the way WordPress's
 own `get_template_part()` passes it: `$args['state']`, `$args['user']`. Each
 template's docblock names its keys and their types.
 
+A template escapes what it prints, line by line, and a copy in a theme has to
+do the same. To draw one of the plugin's templates from code,
+`diluxone_users_template_part( 'account/home', $args )` prints it where it is
+called; `diluxone_users_render()` returns it instead, for a shortcode. The
+account area and its pieces print with `diluxone_users_account_area()`,
+`diluxone_users_avatar_form()`, `diluxone_users_handle_form()`,
+`diluxone_users_fields_form()`, `diluxone_users_sessions_list()`,
+`diluxone_users_accounts_list()` and `diluxone_users_notifications_form()`;
+their shortcodes return the same markup.
+
+## E-mails
+
+`diluxone_users_mail_templates` filters the e-mails a site can rewrite per
+language on E-mail notices › Templates: an add-on that sends its own mail
+registers it there (label, help, placeholders, the placeholders it cannot be
+sent without, and a callable giving back the shipped subject and body) and gets
+the screen, the per-language rewrite and the way back to its own words.
+`diluxone_users_notification` filters a notice — the new-device and
+security-change e-mails — right before it is sent, with the subject and body,
+the user and the notice's key.
+
+A notice is written in the language of the person it goes to — their own
+language on their profile, or the site's — whoever's request sent it: the
+plugin's words, the site's rewrite for that language and the date are all
+in it, and the request's language is put back afterwards.
+
 ## Options
 
 `diluxone_users_option` filters any setting as it is read. A site that pins
@@ -550,6 +607,14 @@ tab, and a tab that saves network settings answers `network` and is drawn in
 Network Admin instead of on the sites. A save that writes through
 `diluxone_users_save_options()` only writes the settings owned where it is
 drawn, whatever the form sends.
+
+`diluxone_users_options_with_markup` filters the settings whose value may hold
+HTML. A key on the list is stored through `wp_kses_post()`, the tags a post may
+have; any other is stored as plain text. The plugin's own list is
+`diluxone_users_login_legal`, the line under the sign-in and registration
+forms, so it can link the terms and the privacy policy. An add-on whose
+setting needs a link adds its key; a key taken off the list is stored as plain
+text from its next save.
 
 ## The emergency switch
 

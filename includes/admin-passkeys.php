@@ -49,7 +49,9 @@ add_action( 'diluxone_users_register_panels', 'diluxone_users_passkeys_panel' );
  * the rest of them — so there it is this form that carries it.
  */
 function diluxone_users_passkeys_settings_save(): void {
-	// phpcs:disable WordPress.Security.NonceVerification.Missing -- the panel verifies it.
+	check_admin_referer( 'diluxone_users_panel_' . DILUXONE_USERS_SECURITY, 'diluxone_users_panel_nonce' );
+	diluxone_users_panel_allowed();
+
 	$saved = array(
 		'diluxone_users_passkey_where'  => sanitize_key( wp_unslash( $_POST['diluxone_users_passkey_where'] ?? 'any' ) ),
 		'diluxone_users_passkey_verify' => isset( $_POST['diluxone_users_passkey_verify'] ) ? 1 : 0,
@@ -60,7 +62,6 @@ function diluxone_users_passkeys_settings_save(): void {
 	}
 
 	diluxone_users_save_options( $saved );
-	// phpcs:enable
 }
 
 /** Passkeys: whether they are offered, which ones are accepted and what is required. */

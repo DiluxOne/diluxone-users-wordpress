@@ -54,7 +54,7 @@ defined( 'ABSPATH' ) || exit;
 			 */
 			?>
 			<li class="diluxone-users-linked__item <?php echo $diluxone_users_is_linked ? 'is-linked' : ''; ?> <?php echo diluxone_users_sso_icon_is_colored( $diluxone_users_id ) ? 'has-color' : ''; ?>" style="--diluxone-users-brand: <?php echo esc_attr( (string) sanitize_hex_color( (string) $diluxone_users_provider['color'] ) ); ?>">
-				<span class="diluxone-users-linked__logo"><?php echo diluxone_users_sso_icon( $diluxone_users_id ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- the plugin's own SVG, built from its own paths. ?></span>
+				<span class="diluxone-users-linked__logo"><?php echo wp_kses( diluxone_users_sso_icon( $diluxone_users_id ), diluxone_users_allowed_html() ); ?></span>
 
 				<span class="diluxone-users-linked__who">
 					<strong><?php echo esc_html( $diluxone_users_provider['name'] ); ?></strong>

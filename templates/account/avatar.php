@@ -25,7 +25,7 @@ defined( 'ABSPATH' ) || exit;
 		<input type="hidden" name="action" value="diluxone_users_avatar">
 		<?php wp_nonce_field( 'diluxone_users_avatar' ); ?>
 
-		<span class="diluxone-users-avatar__current"><?php echo get_avatar( $args['user']->ID, 88 ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- WordPress markup. ?></span>
+		<span class="diluxone-users-avatar__current"><?php echo wp_kses( (string) get_avatar( $args['user']->ID, 88 ), diluxone_users_avatar_tags(), diluxone_users_avatar_protocols() ); ?></span>
 
 		<div class="diluxone-users-avatar__actions">
 			<label class="diluxone-users-button diluxone-users-button--soft" for="diluxone-users-avatar-file">

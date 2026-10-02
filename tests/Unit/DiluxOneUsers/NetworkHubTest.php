@@ -10,10 +10,13 @@
 
 namespace Tests\Unit\DiluxOneUsers;
 
+use Tests\Unit\ResetsWpStubs;
 use Brain\Monkey;
 use PHPUnit\Framework\TestCase;
 
 class NetworkHubTest extends TestCase {
+
+	use ResetsWpStubs;
 
 	private const HOSTS = array( 'example.test', 'beta.example.test' );
 

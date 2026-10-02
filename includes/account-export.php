@@ -192,15 +192,17 @@ add_filter( 'user_request_action_confirmed_message', 'diluxone_users_exported_me
  * The file's own address works for anybody who has it, so the account never
  * shows it: its Download button comes here, and this checks that the person
  * signed in is the one the request is for before sending a byte.
+ *
+ * The link's nonce is checked before the request it names is read; whose file
+ * it is, is the check after it.
  */
 function diluxone_users_data_download(): void {
+	check_admin_referer( 'diluxone_users_data_download' );
+
 	$request_id = isset( $_GET['request'] ) ? absint( $_GET['request'] ) : 0;
-
-	check_admin_referer( 'diluxone_users_data_download_' . $request_id );
-
-	$request = wp_get_user_request( $request_id );
-	$user    = wp_get_current_user();
-	$post    = get_post( $request_id );
+	$request    = wp_get_user_request( $request_id );
+	$user       = wp_get_current_user();
+	$post       = get_post( $request_id );
 
 	if ( ! $request instanceof WP_User_Request || ! $post instanceof WP_Post || ! $user->exists() || 0 !== strcasecmp( $user->user_email, $request->email ) ) {
 		wp_die( esc_html__( 'This file is not yours to download.', 'diluxone-users' ), '', array( 'response' => 403 ) );

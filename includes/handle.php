@@ -46,9 +46,7 @@ function diluxone_users_handle_reserved(): array {
  * before saving: nobody should have to guess what their typing turns into.
  */
 function diluxone_users_handle_clean( string $handle ): string {
-	return 'unicode' === diluxone_users_option( 'diluxone_users_handle_charset' )
-		? sanitize_title( $handle, '', 'save' )
-		: sanitize_title( remove_accents( $handle ) );
+	return sanitize_title( remove_accents( $handle ) );
 }
 
 /** Somebody's public name. Empty when they never chose one. */
@@ -94,6 +92,23 @@ function diluxone_users_handle_next_change( int $user_id ): int {
 }
 
 /**
+ * The shortest and the longest a public name may be.
+ *
+ * WordPress keeps the address in a column of 50 characters and refuses a
+ * longer one on save: a limit above that was a name the check called free and
+ * the save then turned down. The form's own limits are these too, so the box
+ * does not let anybody type what will be refused.
+ *
+ * @return array{0: int, 1: int} Minimum and maximum.
+ */
+function diluxone_users_handle_limits(): array {
+	$min = min( 50, max( 1, (int) diluxone_users_option( 'diluxone_users_handle_min' ) ) );
+	$max = min( 50, max( $min, (int) diluxone_users_option( 'diluxone_users_handle_max' ) ) );
+
+	return array( $min, $max );
+}
+
+/**
  * Checks a public name.
  *
  * Returns the sanitised name, or a WP_Error with the reason. The reasons are
@@ -103,8 +118,8 @@ function diluxone_users_handle_next_change( int $user_id ): int {
  */
 function diluxone_users_handle_validate( string $handle, int $user_id ) {
 	$handle = trim( $handle );
-	$min    = max( 1, (int) diluxone_users_option( 'diluxone_users_handle_min' ) );
-	$max    = max( $min, (int) diluxone_users_option( 'diluxone_users_handle_max' ) );
+
+	list( $min, $max ) = diluxone_users_handle_limits();
 
 	$clean = diluxone_users_handle_clean( $handle );
 
@@ -237,10 +252,15 @@ function diluxone_users_handle_user( string $handle ): int {
 		return 0;
 	}
 
+	// One answer, always the same one: a public name before a login name.
+	// Two accounts can answer — one whose login is `ana`, another whose public
+	// name is — and without an order the database picked either, so a link
+	// asked for "ana" could go to a different person from one day to the next.
 	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- same again: two columns, and it is the query that decides who a sign-in link goes to.
 	return (int) $wpdb->get_var(
 		$wpdb->prepare(
-			"SELECT ID FROM {$wpdb->users} WHERE user_nicename = %s OR user_login = %s LIMIT 1",
+			"SELECT ID FROM {$wpdb->users} WHERE user_nicename = %s OR user_login = %s ORDER BY ( user_nicename = %s ) DESC, ID ASC LIMIT 1",
+			$clean,
 			$clean,
 			$clean
 		)
@@ -276,16 +296,16 @@ function diluxone_users_handle_field( ?int $user_id = null ): string {
 }
 
 /** The public-name field. Shortcode: [diluxone_users_handle] */
-function diluxone_users_shortcode_handle(): string {
+function diluxone_users_handle_form(): void {
 	if ( ! is_user_logged_in() || ! diluxone_users_option( 'diluxone_users_handle_enabled' ) ) {
-		return '';
+		return;
 	}
 
 	$user = wp_get_current_user();
 
 	diluxone_users_handle_enqueue();
 
-	return diluxone_users_render(
+	diluxone_users_template_part(
 		'account/handle',
 		array(
 			'user'   => $user,
@@ -295,6 +315,14 @@ function diluxone_users_shortcode_handle(): string {
 			'error'  => diluxone_users_flash_take( $user->ID, 'handle' ),
 		)
 	);
+}
+
+/** The same, returned for the shortcode. */
+function diluxone_users_shortcode_handle(): string {
+	ob_start();
+	diluxone_users_handle_form();
+
+	return (string) ob_get_clean();
 }
 add_shortcode( 'diluxone_users_handle', 'diluxone_users_shortcode_handle' );
 
@@ -308,6 +336,14 @@ function diluxone_users_handle_submit(): void {
 	check_admin_referer( 'diluxone_users_handle' );
 
 	$target = diluxone_users_account_url( 'details' );
+
+	// Switched off, the form is not drawn, and the door it posted to is shut
+	// too: a public name sent by hand is not saved.
+	if ( ! diluxone_users_option( 'diluxone_users_handle_enabled' ) ) {
+		wp_safe_redirect( $target );
+		exit;
+	}
+
 	$result = diluxone_users_handle_save( get_current_user_id(), sanitize_text_field( wp_unslash( $_POST['diluxone_users_handle'] ?? '' ) ) );
 
 	if ( is_wp_error( $result ) ) {
@@ -334,11 +370,10 @@ function diluxone_users_handle_check(): void {
 
 	$user_id = get_current_user_id();
 
-	if ( $user_id <= 0 ) {
+	if ( $user_id <= 0 || ! diluxone_users_option( 'diluxone_users_handle_enabled' ) ) {
 		wp_send_json_error();
 	}
 
-	// phpcs:ignore WordPress.Security.NonceVerification.Missing -- verified above.
 	$clean = diluxone_users_handle_validate( sanitize_text_field( wp_unslash( $_POST['handle'] ?? '' ) ), $user_id );
 
 	if ( is_wp_error( $clean ) ) {
@@ -417,7 +452,6 @@ function diluxone_users_handle_enqueue(): void {
 		'diluxOneUsersHandle',
 		array(
 			'base'     => diluxone_users_handle_base_url(),
-			'unicode'  => (bool) ( 'unicode' === diluxone_users_option( 'diluxone_users_handle_charset' ) ),
 			'ajax'     => admin_url( 'admin-ajax.php' ),
 			'nonce'    => wp_create_nonce( 'diluxone_users_handle_check' ),
 			'checking' => __( 'Checking…', 'diluxone-users' ),

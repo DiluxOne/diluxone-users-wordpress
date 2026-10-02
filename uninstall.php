@@ -30,6 +30,9 @@
 
 defined( 'WP_UNINSTALL_PLUGIN' ) || exit;
 
+// WordPress's own user meta keys: the plugin is not loaded when it is deleted.
+require_once __DIR__ . '/includes/core-meta.php';
+
 /**
  * The option keys that are not simply `diluxone_users_*`.
  *
@@ -183,8 +186,9 @@ function diluxone_users_uninstall_photos(): void {
  * plugin's own keys all start with the prefix; the answers to the site's own
  * fields are stored under whatever key the site chose, which can be anything
  * — so those keys are read out of the field definition before it is deleted,
- * and `first_name` and `last_name` are skipped, because those are WordPress's
- * and were only ever borrowed.
+ * and WordPress's own keys (diluxone_users_core_user_meta(), first and last
+ * name among them) are skipped, because those are WordPress's and were only
+ * ever borrowed.
  *
  * @param array<int, string> $field_keys The site's own field keys.
  */
@@ -203,7 +207,10 @@ function diluxone_users_uninstall_people( array $field_keys ): void {
 	);
 
 	foreach ( array_unique( $field_keys ) as $key ) {
-		if ( '' === $key || in_array( $key, array( 'first_name', 'last_name' ), true ) ) {
+		// WordPress's own keys outlive the plugin whatever a field says: a
+		// field keyed `description` deleted would be every biography on the
+		// site, and one under the table prefix somebody's role.
+		if ( '' === $key || in_array( $key, diluxone_users_core_user_meta(), true ) || 0 === strpos( $key, $wpdb->base_prefix ) || 0 === strpos( $key, 'wp_' ) ) {
 			continue;
 		}
 

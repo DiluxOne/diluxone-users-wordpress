@@ -132,7 +132,6 @@ function diluxone_users_option_scopes(): array {
 		'diluxone_users_button_style'           => 'hub',
 		'diluxone_users_color_map'              => 'hub',
 		'diluxone_users_colors'                 => 'hub',
-		'diluxone_users_handle_charset'         => 'hub',
 		'diluxone_users_handle_cooldown'        => 'hub',
 		'diluxone_users_handle_enabled'         => 'hub',
 		'diluxone_users_handle_login'           => 'hub',

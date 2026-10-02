@@ -2,7 +2,7 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { Browser, Page } from '@playwright/test';
 import { test, expect, expectSignedIn } from '../support/fixtures';
 import { Site, codeIn, freshEmail, waitForMail } from '../support/api';
-import { accountSection, adminUrl, saveButton, signInWithPassword } from '../support/ui';
+import { accountSection, adminUrl, navigated, saveButton, signInWithPassword } from '../support/ui';
 import { ADMIN_STATE } from '../../../playwright.config';
 
 /**
@@ -104,6 +104,12 @@ test.describe('Status › Tools', () => {
 		await download.saveAs(path);
 		await options.keep(Object.keys(JSON.parse(readFileSync(path, 'utf8')).settings));
 
+		// Changed after the export, so that only the import can bring them back.
+		await options.set({
+			diluxone_users_account_sections: { privacy: { enabled: 0, label: 'Changed since', slug: 'changed', position: 10 } },
+			diluxone_users_color_map: { accent: 'changed-since' },
+		});
+
 		await tool(page, 'import').locator('input[type="file"]').setInputFiles(path);
 		await run(page, tool(page, 'import'));
 
@@ -169,7 +175,11 @@ test.describe('Status › Tools', () => {
 		const all = await site.mail('');
 
 		expect(all.length, 'one message went out').toBe(1);
-		expect(page.locator('.notice-success')).toContainText(all[0].to);
+		await expect(page.locator('.notice-success')).toContainText(all[0].to);
+
+		// To the administrator who asked: the address on their own profile.
+		await page.goto('/wp-admin/profile.php');
+		expect(all[0].to).toBe(await page.locator('input#email').inputValue());
 	});
 });
 
@@ -190,7 +200,7 @@ test.describe('Reports', () => {
 		await expect(row).toHaveCount(1);
 		await expect(row.locator('.diluxone-users-pill--on')).toBeVisible();
 
-		await Promise.all([page.waitForLoadState('domcontentloaded'), row.locator('button[type="submit"], input[type="submit"]').first().click()]);
+		await navigated(page, () => row.locator('button[type="submit"], input[type="submit"]').first().click());
 
 		expect((await site.user(person.email)).sessions).toBe(0);
 	});
@@ -219,7 +229,12 @@ test.describe('Reports', () => {
 		// Refused: newest first, with what was typed on it.
 		await page.goto(adminUrl('diluxone-users-reports', 'activity', { event: 'sign_in_failed' }));
 		await expect(page.locator('tr[data-diluxone-users-event]:not([data-diluxone-users-event="sign_in_failed"])')).toHaveCount(0);
-		await expect(page.locator('tr[data-diluxone-users-event="sign_in_failed"]').first()).toContainText(email);
+
+		// This person's refused attempt, found by them, and not somebody else's
+		// that happened to be the newest.
+		await page.goto(adminUrl('diluxone-users-reports', 'activity', { s: email, event: 'sign_in_failed' }));
+		await expect(page.locator('tr[data-diluxone-users-event="sign_in_failed"]')).toHaveCount(1);
+		await expect(page.locator('tr[data-diluxone-users-event="sign_in_failed"]')).toContainText(email);
 
 		// Signed in: found by the person.
 		await page.goto(adminUrl('diluxone-users-reports', 'activity', { s: email, event: 'signed_in' }));
@@ -270,7 +285,7 @@ test.describe('WordPress’s own Users screens', () => {
 
 		await page.locator('input[name="diluxone_users_forget_totp"]').check();
 		await page.locator('input[name="diluxone_users_unlink[]"][value="github"]').check();
-		await Promise.all([page.waitForLoadState('domcontentloaded'), page.locator('#submit').click()]);
+		await navigated(page, () => page.locator('#submit').click());
 
 		const after = await site.user(email, ['diluxone_users_sso_github']);
 
@@ -287,7 +302,7 @@ test.describe('WordPress’s own Users screens', () => {
 
 		await expect(form.locator('#user_login').locator('xpath=ancestor::tr[1]'), 'the username row is hidden').toBeHidden();
 		await form.locator('input[name="email"]').fill(email);
-		await Promise.all([page.waitForLoadState('domcontentloaded'), form.locator('#createusersub').click()]);
+		await navigated(page, () => form.locator('#createusersub').click());
 
 		const made = await site.user(email);
 
@@ -321,7 +336,7 @@ test.describe('User fields', () => {
 		// Required, because the registration form asks only for what is
 		// required: everything else is asked for later, on the account.
 		await page.locator('input[type="checkbox"][name="diluxone_users_field[required]"]').setChecked(true, { force: true });
-		await Promise.all([page.waitForLoadState('domcontentloaded'), page.locator('#submit').click()]);
+		await navigated(page, () => page.locator('#submit').click());
 
 		const fields = (await site.getOptions(['diluxone_users_fields'])).diluxone_users_fields as Array<{ key: string; label: string }>;
 		const added = fields.find((one) => one.label === label);
@@ -372,7 +387,7 @@ test.describe('Account area › Sections', () => {
 		await page.goto(adminUrl('diluxone-users-account', 'sections') + '&section=diluxone-users-new');
 		await page.locator('[name="diluxone_users_section_form[label]"]').fill(label);
 		await page.locator('[name="diluxone_users_section_form[intro]"]').fill(intro);
-		await Promise.all([page.waitForLoadState('domcontentloaded'), saveButton(page).click()]);
+		await navigated(page, () => saveButton(page).click());
 
 		const email = freshEmail('sections-own');
 
@@ -386,7 +401,7 @@ test.describe('Account area › Sections', () => {
 		const tab = guest.locator('a.diluxone-users-account__tab', { hasText: label });
 
 		await expect(tab).toHaveCount(1);
-		await Promise.all([guest.waitForLoadState('domcontentloaded'), tab.click()]);
+		await navigated(guest, () => tab.click());
 		await expect(guest.locator('.diluxone-users-account')).toContainText(intro);
 
 		const sections = (await site.getOptions(['diluxone_users_account_sections'])).diluxone_users_account_sections as Record<
@@ -402,7 +417,7 @@ test.describe('Account area › Sections', () => {
 		const remove = page.locator(`a[href*="diluxone_users_action=delete"][href*="section=${id}"]`);
 
 		page.on('dialog', (dialog) => dialog.accept());
-		await Promise.all([page.waitForLoadState('domcontentloaded'), remove.first().click()]);
+		await navigated(page, () => remove.first().click());
 
 		await guest.goto(pages.account.url);
 		await expect(guest.locator('a.diluxone-users-account__tab', { hasText: label })).toHaveCount(0);
@@ -427,7 +442,7 @@ test.describe('Account area › Sections', () => {
 
 		await page.goto(adminUrl('diluxone-users-account', 'sections') + '&section=privacy');
 		await page.locator('input[name="diluxone_users_privacy_export"]').setChecked(true, { force: true });
-		await Promise.all([page.waitForLoadState('domcontentloaded'), page.locator('[data-diluxone-users-save] [form="diluxone-users-privacy-form"]').click()]);
+		await navigated(page, () => page.locator('[data-diluxone-users-save] [form="diluxone-users-privacy-form"]').click());
 
 		await guest.goto(pages.account.url);
 		await expect(guest.locator('a.diluxone-users-account__tab[href*="/privacy/"]')).toBeVisible();
@@ -448,7 +463,7 @@ test.describe('Account area › Sections', () => {
 		await options.set({ diluxone_users_privacy_export: 1, diluxone_users_privacy_delete: 1 });
 
 		const save = async () =>
-			Promise.all([page.waitForLoadState('domcontentloaded'), page.locator('[data-diluxone-users-save] [form="diluxone-users-privacy-form"]').click()]);
+			navigated(page, () => page.locator('[data-diluxone-users-save] [form="diluxone-users-privacy-form"]').click());
 
 		await page.goto(adminUrl('diluxone-users-account', 'sections') + '&section=privacy');
 

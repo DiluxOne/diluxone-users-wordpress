@@ -12,10 +12,13 @@
 
 namespace Tests\Unit\DiluxOneUsers;
 
+use Tests\Unit\ResetsWpStubs;
 use Brain\Monkey;
 use PHPUnit\Framework\TestCase;
 
 class NetworkLogTest extends TestCase {
+
+	use ResetsWpStubs;
 
 	/** @var mixed The database object as the rest of the unit suite has it. */
 	private $wpdb;

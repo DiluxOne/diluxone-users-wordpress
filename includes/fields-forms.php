@@ -29,7 +29,7 @@ function diluxone_users_field_control( array $field, int $user_id ): void {
 	$id = 'diluxone-users-' . $field['key'];
 
 	diluxone_users_ui_field_open( (string) $field['label'], $id );
-	diluxone_users_field_input( $field, diluxone_users_value( $user_id, $field['key'] ), $id );
+	diluxone_users_field_input( $field, diluxone_users_value( $user_id, $field['key'] ), $id, $user_id );
 	diluxone_users_ui_field_close( (string) $field['help'] );
 }
 
@@ -73,8 +73,11 @@ function diluxone_users_fields_block( int $user_id ): void {
  * front-end template, so it is written once and all three use it.
  *
  * @param array<string, mixed> $field
+ * @param string               $value   What is stored.
+ * @param string               $id      The id the label points at; the key when empty.
+ * @param int                  $user_id Whose field it is; the person looking when 0.
  */
-function diluxone_users_field_input( array $field, string $value, string $id = '' ): void {
+function diluxone_users_field_input( array $field, string $value, string $id = '', int $user_id = 0 ): void {
 	$key           = $field['key'];
 	$id            = '' === $id ? $key : $id;
 	$required_attr = $field['required'] ? ' required' : '';
@@ -89,7 +92,10 @@ function diluxone_users_field_input( array $field, string $value, string $id = '
 	// pick from there is no `readonly` and `disabled` has to be used. What
 	// rules either way is the server: this is so it is understood, not to
 	// prevent anything.
-	$editable = diluxone_users_field_editable( $field, get_current_user_id() );
+	// Asked about the owner of the field, not the person looking: an
+	// administrator on somebody else's profile may change what its owner
+	// may not.
+	$editable = diluxone_users_field_editable( $field, $user_id > 0 ? $user_id : get_current_user_id() );
 	$lock     = $editable ? '' : ' readonly';
 	$lock_sel = $editable ? '' : ' disabled';
 
@@ -143,6 +149,15 @@ function diluxone_users_field_input( array $field, string $value, string $id = '
 			return;
 
 		case 'checkbox':
+			// An unticked box sends nothing, and the save leaves alone a key
+			// that did not arrive — a form showing some fields must not empty
+			// the rest. So an empty value goes first under the same name, and
+			// the box, when ticked, comes after it and wins. A locked box is
+			// not saved at all and needs none.
+			if ( '' === $lock_sel ) {
+				printf( '<input type="hidden" name="%s" value="">', esc_attr( $key ) );
+			}
+
 			printf(
 				'<label><input type="checkbox" id="%1$s" name="%2$s" value="1"%3$s%4$s> %5$s</label>',
 				esc_attr( $id ),
@@ -295,14 +310,21 @@ function diluxone_users_profile_fields( $user ): void {
 add_action( 'show_user_profile', 'diluxone_users_profile_fields' );
 add_action( 'edit_user_profile', 'diluxone_users_profile_fields' );
 
-/** Profile save. */
+/**
+ * Profile save.
+ *
+ * WordPress checks the profile form's nonce before it fires these two hooks;
+ * it is checked here again, with the capability, so the save does not depend
+ * on how it was reached.
+ */
 function diluxone_users_profile_save( int $user_id ): void {
+	check_admin_referer( 'update-user_' . $user_id );
+
 	if ( ! current_user_can( 'edit_user', $user_id ) ) {
 		return;
 	}
 
-	// phpcs:ignore WordPress.Security.NonceVerification.Missing -- WordPress already verified the profile nonce before this hook.
-	diluxone_users_save( $user_id, diluxone_users_posted_fields() );
+	diluxone_users_save( $user_id, diluxone_users_posted_fields( 'update-user_' . $user_id, '_wpnonce' ) );
 }
 add_action( 'personal_options_update', 'diluxone_users_profile_save' );
 add_action( 'edit_user_profile_update', 'diluxone_users_profile_save' );
@@ -361,7 +383,7 @@ add_action( 'register_form', 'diluxone_users_register_form_fields' );
 function diluxone_users_register_fields_posted(): bool {
 	foreach ( diluxone_users_fields() as $field ) {
 		foreach ( array( (string) $field['key'], (string) $field['key'] . '_dial' ) as $name ) {
-			// phpcs:ignore WordPress.Security.NonceVerification.Missing -- only whether the name is there; the caller verifies the nonce before reading anything.
+			// phpcs:ignore WordPress.Security.NonceVerification.Missing -- presence only: whether this plugin's form sent the request at all, so another plugin's sign-up is not refused; nothing is read, and from here on the form's nonce is required.
 			if ( isset( $_POST[ $name ] ) ) {
 				return true;
 			}
@@ -408,7 +430,7 @@ function diluxone_users_register_validate( $errors, $login, $email ) {
 		return $errors;
 	}
 
-	$sent = diluxone_users_posted_fields();
+	$sent = diluxone_users_posted_fields( 'diluxone_users_wp_register', 'diluxone_users_wp_register_nonce' );
 
 	foreach ( $fields as $field ) {
 		if ( ! $field['required'] ) {
@@ -448,7 +470,7 @@ function diluxone_users_register_save( int $user_id ): void {
 		return;
 	}
 
-	diluxone_users_save( $user_id, diluxone_users_posted_fields() );
+	diluxone_users_save( $user_id, diluxone_users_posted_fields( 'diluxone_users_wp_register', 'diluxone_users_wp_register_nonce' ) );
 }
 add_action( 'register_new_user', 'diluxone_users_register_save' );
 
@@ -466,7 +488,7 @@ function diluxone_users_new_user_save( int $user_id ): void {
 
 	check_admin_referer( 'create-user', '_wpnonce_create-user' );
 
-	diluxone_users_save( $user_id, diluxone_users_posted_fields() );
+	diluxone_users_save( $user_id, diluxone_users_posted_fields( 'create-user', '_wpnonce_create-user' ) );
 }
 add_action( 'edit_user_created_user', 'diluxone_users_new_user_save' );
 

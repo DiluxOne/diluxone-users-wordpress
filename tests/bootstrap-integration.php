@@ -73,7 +73,34 @@ if (!file_exists($wp_load)) {
     fwrite(STDERR, "Use: npx wp-env run tests-cli ./vendor/bin/phpunit -c phpunit-integration.xml\n");
     exit(1);
 }
+
+// 4a. Coverage of what runs while the plugin loads. PHPUnit measures from the
+//     first test on, so every add_action() and add_filter() at the top of a
+//     file under includes/ — run once, here, when WordPress loads the plugin —
+//     would count as never run. `make coverage-integration` names a file in
+//     DU_COVERAGE_BOOTSTRAP and runs with PCOV switched on; the load is then
+//     measured on its own and written there, and `phpcov merge` adds it to the
+//     suite's report. Without the variable nothing here happens.
+$du_coverage_bootstrap = (string) getenv('DU_COVERAGE_BOOTSTRAP');
+$du_coverage_driver    = null;
+if ($du_coverage_bootstrap !== '' && extension_loaded('pcov') && ini_get('pcov.enabled')) {
+    $du_coverage_filter = new \SebastianBergmann\CodeCoverage\Filter();
+    $du_coverage_filter->includeDirectory($plugin_dir_in_container . '/includes');
+    $du_coverage_filter->includeDirectory($plugin_dir_in_container . '/templates');
+    $du_coverage_driver = new \SebastianBergmann\CodeCoverage\Driver\PcovDriver($du_coverage_filter);
+    $du_coverage_driver->start();
+}
+
 require_once $wp_load;
+
+if ($du_coverage_driver !== null) {
+    $du_coverage = new \SebastianBergmann\CodeCoverage\CodeCoverage($du_coverage_driver, $du_coverage_filter);
+    $du_coverage->excludeUncoveredFiles();
+    $du_coverage->append($du_coverage_driver->stop(), 'bootstrap: WordPress loads the plugin');
+    (new \SebastianBergmann\CodeCoverage\Report\PHP())->process($du_coverage, $du_coverage_bootstrap);
+    unset($du_coverage, $du_coverage_filter);
+}
+unset($du_coverage_bootstrap, $du_coverage_driver);
 
 // 5. Verify we're talking to the test database. wp-env names it
 //    "tests-wordpress" by default. The substring check is the safety net
@@ -115,14 +142,27 @@ if (!defined('DILUXONE_USERS_INTEGRATION_TESTS')) {
 
 // 11. Override wp_die handlers globally so AJAX handlers throw an
 //     exception instead of terminating the PHPUnit process. Tests that
-//     expect wp_die catch WPAjaxDieContinueException.
-class WPAjaxDieContinueException extends \Exception {}
+//     expect wp_die catch WPAjaxDieContinueException, which carries what the
+//     handler was told — the status and the code — and not only the words:
+//     a refusal answered 200 is not a refusal, and a test that cannot tell
+//     the two apart passes on both.
+class WPAjaxDieContinueException extends \Exception {
+
+    /** @var int The HTTP status wp_die() was asked for (500 when it was not). */
+    public int $status = 500;
+
+    /** @var string The error code wp_die() was given ('wp_die' when it was not). */
+    public string $die_code = 'wp_die';
+}
 
 $_diluxone_users_wp_die_test_handler = function ($message, $title = '', $args = []) {
-    if (function_exists('is_wp_error') && is_wp_error($message)) {
-        $message = $message->get_error_message();
-    }
-    throw new WPAjaxDieContinueException((string) $message);
+    [$message, , $args] = _wp_die_process_input($message, $title, $args);
+
+    $e           = new WPAjaxDieContinueException(is_scalar($message) ? (string) $message : '');
+    $e->status   = (int) $args['response'];
+    $e->die_code = (string) $args['code'];
+
+    throw $e;
 };
 
 add_filter('wp_die_ajax_handler', function () use ($_diluxone_users_wp_die_test_handler) {

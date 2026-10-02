@@ -17,7 +17,7 @@ Until both have happened, only [The first submission](#the-first-submission) app
 
 [Semantic Versioning](https://semver.org/) for the plugin's public version: a fix is a patch (1.0.0 → 1.0.1), new functionality a minor (1.0.0 → 1.1.0), a breaking change a major (1.0.0 → 2.0.0). Changes that do not reach users (docs, tests, CI, tooling) release nothing on their own; `.distignore` keeps them out of what ships.
 
-No pull request moves the version markers. Before the approval there is nothing to move them to; after the move the version is computed from labels (below) and stamped by the release job.
+No pull request moves the version markers. Before the approval there is nothing to move them to; after the approval the version is computed from labels (below) and stamped by the release job.
 
 ## The first submission
 
@@ -35,12 +35,12 @@ The first version is not published by a tag. The maintainer uploads a zip, the P
 ### When the approval arrives
 
 - **Check the slug wordpress.org assigned** before anything else. It is proposed from the plugin name, and the code assumes `diluxone-users`: the text domain must equal the slug or translate.wordpress.org's language packs never reach a site, and a slug cannot be changed once published. If it differs, stop and settle that first.
-- **Publish 1.0.0** from the approved commit, with the markers already at `1.0.0`, by a tag `1.0.0` the maintainer pushes. Before the move that runs [`deploy.yml`](../.github/workflows/deploy.yml), which checks the three markers against the tag and commits to SVN with `SLUG: diluxone-users`; after the move it runs the shared release job, which accepts an administrator's tag only as the version it computes. `SVN_USERNAME` and `SVN_PASSWORD` must be in place first (below).
+- **Publish 1.0.0** from the approved commit, with the markers already at `1.0.0`, by a tag `1.0.0` the maintainer pushes, which runs the shared release job ([`release.yml`](../.github/workflows/release.yml)); it accepts an administrator's tag only as the version it computes. The job starts as a rehearsal (`dry-run: true`): the maintainer turns it off, in a pull request of its own, after a rehearsal approved in the environment. The SVN credentials and the release App's key are already in the `wordpress-org` environment.
 - **Open the next changelog entry** in the next change that deserves one, `= X.Y.Z =` with `Unreleased.` as its first line (below).
 
-## After the move and the approval
+## After the approval
 
-From then on the plugin follows the organisation's release flow, the same one [DiluxOne Offload](https://github.com/DiluxOne/diluxone-offload-wordpress/blob/main/docs/release.md) uses. None of it is active until the repository has the shared callers (the `release-wp.yml` template with `slug: diluxone-users`, `main-file: diluxone-users.php` and `version-constant: DILUXONE_USERS_VERSION`, which replaces `deploy.yml`) and the settings the organisation's [adoption guide](https://github.com/DiluxOne/.github#adopt-it-in-a-new-repository) lists.
+From then on the plugin follows the organisation's release flow, the same one [DiluxOne Offload](https://github.com/DiluxOne/diluxone-offload-wordpress/blob/main/docs/release.md) uses: the repository lives in DiluxOne, calls the shared workflows, and has the settings the organisation's [adoption guide](https://github.com/DiluxOne/.github#adopt-it-in-a-new-repository) lists.
 
 ### Who does what
 
@@ -82,7 +82,7 @@ The publication's secrets live in the repository environment `wordpress-org`, ne
 
 ## Release tags are permanent
 
-A tag `X.Y.Z` is the record of what went to every WordPress site. After the move, two rulesets let only an administrator or the release App create one, and nobody delete or move it. So:
+A tag `X.Y.Z` is the record of what went to every WordPress site. Two rulesets let only an administrator or the release App create one, and nobody delete or move it. So:
 
 - **A deploy that failed before SVN** (a secret, a network error): fix the cause and re-run the job.
 - **A tag on the wrong commit, or with misaligned markers**: the tag stays. Fix it in a pull request and release the next patch.

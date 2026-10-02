@@ -289,6 +289,48 @@ function diluxone_users_avatar_markup( string $avatar, $id_or_email, int $size, 
 }
 add_filter( 'get_avatar', 'diluxone_users_avatar_markup', 10, 6 );
 
+/**
+ * What an avatar is printed with: an image, and nothing else.
+ *
+ * The plugin's own templates print `get_avatar()` through `wp_kses()` like
+ * everything else, and for the reason above the drawn avatar would come out
+ * of it with an empty `src`. So an avatar is filtered with a list of one
+ * element, `<img>`, and the protocols in diluxone_users_avatar_protocols().
+ *
+ * @return array<string, array<string, bool>>
+ */
+function diluxone_users_avatar_tags(): array {
+	return array(
+		'img' => array(
+			'src'      => true,
+			'srcset'   => true,
+			'alt'      => true,
+			'class'    => true,
+			'width'    => true,
+			'height'   => true,
+			'loading'  => true,
+			'decoding' => true,
+			'style'    => true,
+		),
+	);
+}
+
+/**
+ * The URL schemes an avatar may be printed with: WordPress's, and `data`.
+ *
+ * Passed to `wp_kses()` for one call at a time, never added to
+ * `wp_allowed_protocols()`. The drawn avatar is the only `data:` URL the plugin
+ * prints; where the markup around it can hold more than an image — the
+ * account section an administrator wrote — what they wrote was already
+ * filtered with WordPress's own protocols before its shortcodes ran, so a
+ * `data:` URL there can only have come from a shortcode's own output.
+ *
+ * @return string[]
+ */
+function diluxone_users_avatar_protocols(): array {
+	return array_merge( wp_allowed_protocols(), array( 'data' ) );
+}
+
 /* ── Uploading and removing ────────────────────────────────────────── */
 
 /** The largest side a profile photo may have, in pixels. */
@@ -318,6 +360,20 @@ function diluxone_users_avatar_upload( int $user_id, array $file ) {
 		return new WP_Error( 'diluxone_users_avatar_none', __( 'No file arrived.', 'diluxone-users' ) );
 	}
 
+	return diluxone_users_avatar_store( $user_id, $file );
+}
+
+/**
+ * Checks a picture that arrived and keeps it as somebody's photo.
+ *
+ * Apart from the upload so what is checked — the weight, the type by its
+ * content, the size in pixels — can be exercised on a file that is not an
+ * upload: diluxone_users_avatar_upload() is what makes sure it is one.
+ *
+ * @param array<string, mixed> $file
+ * @return int|WP_Error The attachment id.
+ */
+function diluxone_users_avatar_store( int $user_id, array $file ) {
 	$max = max( 1, (int) diluxone_users_option( 'diluxone_users_avatar_max_kb' ) ) * KB_IN_BYTES;
 
 	if ( (int) ( $file['size'] ?? 0 ) > $max ) {
@@ -409,14 +465,14 @@ function diluxone_users_avatar_delete( int $user_id ): void {
 }
 
 /** The picture form. Shortcode: [diluxone_users_avatar] */
-function diluxone_users_shortcode_avatar(): string {
+function diluxone_users_avatar_form(): void {
 	if ( ! is_user_logged_in() || ! diluxone_users_option( 'diluxone_users_avatar_upload' ) ) {
-		return '';
+		return;
 	}
 
 	$user = wp_get_current_user();
 
-	return diluxone_users_render(
+	diluxone_users_template_part(
 		'account/avatar',
 		array(
 			'user'  => $user,
@@ -424,6 +480,14 @@ function diluxone_users_shortcode_avatar(): string {
 			'error' => diluxone_users_flash_take( $user->ID, 'avatar' ),
 		)
 	);
+}
+
+/** The same, returned for the shortcode. */
+function diluxone_users_shortcode_avatar(): string {
+	ob_start();
+	diluxone_users_avatar_form();
+
+	return (string) ob_get_clean();
 }
 add_shortcode( 'diluxone_users_avatar', 'diluxone_users_shortcode_avatar' );
 

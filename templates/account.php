@@ -80,7 +80,7 @@ if ( 'cover' === $args['template'] ) {
 		<div class="diluxone-users-account__header">
 			<div class="diluxone-users-account__header-inner">
 				<?php if ( $args['avatar'] ) : ?>
-					<span class="diluxone-users-account__avatar"><?php echo get_avatar( $args['user']->ID, 'cover' === $args['template'] ? 96 : 64 ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- WordPress markup. ?></span>
+					<span class="diluxone-users-account__avatar"><?php echo wp_kses( (string) get_avatar( $args['user']->ID, 'cover' === $args['template'] ? 96 : 64 ), diluxone_users_avatar_tags(), diluxone_users_avatar_protocols() ); ?></span>
 				<?php endif; ?>
 
 				<div class="diluxone-users-account__who">
@@ -117,21 +117,21 @@ if ( 'cover' === $args['template'] ) {
 	?>
 	<?php if ( 'tabs' === $args['layout'] ) : ?>
 		<div class="diluxone-users-account__bar">
-			<?php echo diluxone_users_account_nav( $args['sections'], $args['current'] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- our own markup, already escaped. ?>
+			<?php echo wp_kses( diluxone_users_account_nav( $args['sections'], $args['current'] ), diluxone_users_allowed_html() ); ?>
 		</div>
 	<?php endif; ?>
 
 	<div class="diluxone-users-account__body">
 		<?php if ( 'side' === $args['layout'] ) : ?>
-			<?php echo diluxone_users_account_nav( $args['sections'], $args['current'] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- our own markup, already escaped. ?>
+			<?php echo wp_kses( diluxone_users_account_nav( $args['sections'], $args['current'] ), diluxone_users_allowed_html() ); ?>
 		<?php endif; ?>
 
 		<div class="diluxone-users-account__section">
 			<?php
 			$diluxone_users_section = $args['sections'][ $args['current'] ];
 
-			echo diluxone_users_account_heading_html( $diluxone_users_section, $args['current'], $args['user'] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped inside.
-			echo diluxone_users_account_section_html( $diluxone_users_section, $args['user'] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- sanitised inside.
+			echo wp_kses( diluxone_users_account_heading_html( $diluxone_users_section, $args['current'], $args['user'] ), diluxone_users_allowed_html() );
+			diluxone_users_account_section( $diluxone_users_section, $args['user'] );
 			?>
 		</div>
 	</div>

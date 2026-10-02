@@ -15,10 +15,13 @@
 
 namespace Tests\Unit\DiluxOneUsers;
 
+use Tests\Unit\ResetsWpStubs;
 use Brain\Monkey;
 use PHPUnit\Framework\TestCase;
 
 class ActivityLogTest extends TestCase {
+
+	use ResetsWpStubs;
 
 	protected function setUp(): void {
 		parent::setUp();
@@ -151,8 +154,10 @@ class ActivityLogTest extends TestCase {
 
 		foreach ( array_keys( diluxone_users_log_events() ) as $event ) {
 			$this->assertArrayHasKey( $event, $labels, $event );
-			$this->assertNotSame( $event, diluxone_users_log_label( $event ) );
+			$this->assertSame( $labels[ $event ], diluxone_users_log_label( $event ) );
 		}
+
+		$this->assertSame( 'made_up', diluxone_users_log_label( 'made_up' ), 'one nobody named is its slug' );
 	}
 
 	public function test_every_group_says_what_it_costs(): void {

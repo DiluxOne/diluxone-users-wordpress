@@ -238,8 +238,7 @@ add_filter( 'diluxone_users_account_heading', 'diluxone_users_account_heading_ho
 
 /** Section home. */
 function diluxone_users_section_home( WP_User $user ): void {
-	// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- a template of the plugin's, which escapes its output.
-	echo diluxone_users_render(
+	diluxone_users_template_part(
 		'account/home',
 		array(
 			'user'  => $user,
@@ -252,7 +251,7 @@ function diluxone_users_section_home( WP_User $user ): void {
 
 /** Draws the personal-details section. */
 function diluxone_users_section_details( WP_User $user ): void {
-	echo diluxone_users_render( 'account/details', array( 'user' => $user ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- a template of the plugin's, which escapes its output.
+	diluxone_users_template_part( 'account/details', array( 'user' => $user ) );
 }
 
 /** Summary details. */
@@ -287,7 +286,7 @@ function diluxone_users_summary_details(): array {
 
 /** Draws the linked-accounts section. */
 function diluxone_users_section_accounts( WP_User $user ): void {
-	echo diluxone_users_render( 'account/accounts', array( 'user' => $user ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- a template of the plugin's, which escapes its output.
+	diluxone_users_template_part( 'account/accounts', array( 'user' => $user ) );
 }
 
 /** Summary accounts. */
@@ -312,7 +311,7 @@ function diluxone_users_summary_accounts(): array {
 
 /** Draws the security section. */
 function diluxone_users_section_security( WP_User $user ): void {
-	echo diluxone_users_render( 'account/security', array( 'user' => $user ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- a template of the plugin's, which escapes its output.
+	diluxone_users_template_part( 'account/security', array( 'user' => $user ) );
 }
 
 /** Summary security. */
@@ -387,7 +386,7 @@ function diluxone_users_notification_choices(): array {
 
 /** Section notifications. */
 function diluxone_users_section_notifications( WP_User $user ): void {
-	echo do_shortcode( '[diluxone_users_notifications]' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- the plugin's own shortcode, which escapes its output.
+	diluxone_users_notifications_form();
 }
 
 /**
@@ -397,14 +396,14 @@ function diluxone_users_section_notifications( WP_User $user ): void {
  * plugin; what the site notifies about is registered by whoever has something
  * to notify, with the filter above.
  */
-function diluxone_users_shortcode_notifications(): string {
+function diluxone_users_notifications_form(): void {
 	if ( ! is_user_logged_in() ) {
-		return '';
+		return;
 	}
 
 	diluxone_users_enqueue_styles();
 
-	return diluxone_users_render(
+	diluxone_users_template_part(
 		'account/notifications',
 		array(
 			'user'  => wp_get_current_user(),
@@ -415,6 +414,14 @@ function diluxone_users_shortcode_notifications(): string {
 			'musts' => diluxone_users_notification_musts(),
 		)
 	);
+}
+
+/** The same, returned for the shortcode. */
+function diluxone_users_shortcode_notifications(): string {
+	ob_start();
+	diluxone_users_notifications_form();
+
+	return (string) ob_get_clean();
 }
 add_shortcode( 'diluxone_users_notifications', 'diluxone_users_shortcode_notifications' );
 
@@ -433,7 +440,6 @@ function diluxone_users_notifications_save(): void {
 	// keeps no meta, so the day the rule changes the person starts from the
 	// policy and not from a box they never saw.
 	foreach ( diluxone_users_notification_choices() as $key => $pref ) {
-		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- verified above.
 		update_user_meta( $user_id, $key, isset( $_POST[ $key ] ) ? '1' : '0' );
 	}
 
@@ -499,7 +505,7 @@ function diluxone_users_data_file( WP_Post $request ): string {
 			),
 			admin_url( 'admin-post.php' )
 		),
-		'diluxone_users_data_download_' . $request->ID
+		'diluxone_users_data_download'
 	);
 }
 
@@ -552,8 +558,7 @@ function diluxone_users_section_privacy( WP_User $user ): void {
 		? (int) $arrived['request']->ID
 		: 0;
 
-	// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- template, already escaped.
-	echo diluxone_users_render(
+	diluxone_users_template_part(
 		'account/privacy',
 		array(
 			'user'      => $user,
@@ -589,7 +594,9 @@ function diluxone_users_data_request(): void {
 	// the button posted to: a hand-made request is refused the same way.
 	$allowed = 'remove_personal_data' === $kind ? 'diluxone_users_privacy_delete' : 'diluxone_users_privacy_export';
 
-	if ( ! diluxone_users_option( $allowed ) ) {
+	// So does "Your data" turned off in Sections, or kept from this person's
+	// role: a section they do not have has no form to send.
+	if ( ! diluxone_users_option( $allowed ) || ! isset( diluxone_users_sections()['privacy'] ) ) {
 		wp_safe_redirect( add_query_arg( 'diluxone-users', 'error', diluxone_users_account_url( 'privacy' ) ) );
 		exit;
 	}

@@ -2,7 +2,7 @@ import { Page } from '@playwright/test';
 import { test, expect, expectSignedIn, expectSignedOut } from '../support/fixtures';
 import { codeIn, freshEmail, linkIn, waitForMail } from '../support/api';
 import { avoidWindowEdge, totp } from '../support/totp';
-import { adminUrl, askForLink, challengeCode, challengeScreen, fillCredentials, saveButton, signInWithPassword, ssoButton } from '../support/ui';
+import { adminUrl, askForLink, challengeCode, challengeScreen, fillCredentials, navigated, saveButton, signInWithPassword, ssoButton } from '../support/ui';
 import { ADMIN_STATE } from '../../../playwright.config';
 
 /**
@@ -29,7 +29,7 @@ async function signInOnWpLogin(page: Page, email: string, remember = false): Pro
 		await page.locator('#rememberme').check();
 	}
 
-	await Promise.all([page.waitForLoadState('domcontentloaded'), page.locator('#wp-submit').click()]);
+	await navigated(page, () => page.locator('#wp-submit').click());
 }
 
 /** Answers wp-login.php's second step and waits for the session. */
@@ -137,7 +137,7 @@ test.describe('With nowhere to answer the second step', () => {
 			input.disabled = false;
 			input.checked = true;
 		});
-		await Promise.all([page.waitForLoadState('domcontentloaded'), saveButton(page).click()]);
+		await navigated(page, () => saveButton(page).click());
 
 		await expect(page.locator('.notice-error')).toBeVisible();
 		await expect(page.locator('input[name="diluxone_users_2fa_mode"][value="optional"]')).toBeChecked();
@@ -275,7 +275,7 @@ test.describe('A registration from somewhere else', () => {
 		await page.locator('#user_email').fill(email);
 		await page.locator('[name="e2e_city"]').fill('Mendoza');
 		await page.locator('[name="diluxone_users_wp_register_nonce"]').evaluate((input: HTMLInputElement) => (input.value = 'not-the-nonce'));
-		await Promise.all([page.waitForLoadState('domcontentloaded'), page.locator('#wp-submit').click()]);
+		await navigated(page, () => page.locator('#wp-submit').click());
 
 		await expect(page.locator('#login_error')).toBeVisible();
 		expect((await site.user(email)).exists, 'no account').toBe(false);
@@ -298,7 +298,7 @@ test.describe('A fresh site asks for a name, and the rest is suggested', () => {
 		await page.goto(adminUrl('diluxone-users-fields', 'suggested'));
 		await page.locator('input[name="diluxone_users_suggested[]"][value="diluxone_users_country"]').check({ force: true });
 		await page.locator('input[name="diluxone_users_suggested[]"][value="diluxone_users_birthday"]').check({ force: true });
-		await Promise.all([page.waitForLoadState('domcontentloaded'), saveButton(page).click()]);
+		await navigated(page, () => saveButton(page).click());
 
 		await expect(page.locator('.notice-success')).toBeVisible();
 
@@ -320,7 +320,8 @@ test.describe('How long a session lasts', () => {
 
 		expect(cookie, 'a session cookie').toBeTruthy();
 
-		return cookie!.expires <= 0 ? null : Math.round((cookie!.expires - Date.now() / 1000) / 86400);
+		// WordPress keeps the cookie twelve hours past the session: whole days, rounded down.
+		return cookie!.expires <= 0 ? null : Math.floor((cookie!.expires - Date.now() / 1000) / 86400);
 	}
 
 	test.beforeEach(async ({ options }) => {

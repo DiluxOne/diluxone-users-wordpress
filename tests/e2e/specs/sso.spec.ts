@@ -1,6 +1,6 @@
 import { test, expect, expectSignedIn, expectSignedOut, stateOf } from '../support/fixtures';
 import { freshEmail } from '../support/api';
-import { accountSection, openAllPanels, signInWithPassword, ssoButton } from '../support/ui';
+import { accountSection, navigated, openAllPanels, signInWithPassword, ssoButton } from '../support/ui';
 
 /**
  * Signing in with a social account, against a network that answers from inside
@@ -236,10 +236,7 @@ test.describe('Signing in with a social account', () => {
 
 		// Unlinking sends the person back where they were, with no state in the
 		// address — so what is waited for is the round trip, not a parameter.
-		await Promise.all([
-			page.waitForLoadState('domcontentloaded'),
-			linkedRow.locator('button[type="submit"]').click(),
-		]);
+		await navigated(page, () => linkedRow.locator('button[type="submit"]').click());
 		await expect(page.locator('.diluxone-users-linked__item.is-linked').filter({ hasText: 'Mock' })).toHaveCount(
 			0
 		);

@@ -57,7 +57,7 @@ defined( 'ABSPATH' ) || exit;
 
 	<?php if ( diluxone_users_login_has_link() ) : ?>
 		<p class="diluxone-users-note diluxone-users-note--icon">
-			<?php echo diluxone_users_icon( 'info' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- our own markup. ?>
+			<?php echo wp_kses( diluxone_users_icon( 'info' ), diluxone_users_allowed_html() ); ?>
 			<span><?php esc_html_e( 'You do not have to do this: on this site a link by email gets you in without a password at all.', 'diluxone-users' ); ?></span>
 		</p>
 	<?php endif; ?>

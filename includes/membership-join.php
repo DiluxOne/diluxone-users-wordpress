@@ -97,7 +97,11 @@ function diluxone_users_join_mark_password( $redirect, $requested = '', $user = 
  * @return never
  */
 function diluxone_users_join_request(): void {
-	$back = remove_query_arg( 'diluxone-users', wp_validate_redirect( (string) wp_get_referer(), home_url( '/' ) ) );
+	// wp_get_referer() answers false for a page elsewhere or none at all, and
+	// an empty address is a "valid" redirect: the answer landed on a bare
+	// "?diluxone-users=joined". Back to this site's front page instead.
+	$back = wp_get_referer();
+	$back = remove_query_arg( 'diluxone-users', false !== $back ? $back : home_url( '/' ) );
 
 	if ( ! is_user_logged_in() ) {
 		wp_safe_redirect( diluxone_users_login_url() );
@@ -173,7 +177,15 @@ function diluxone_users_shortcode_join(): string {
 		return '';
 	}
 
-	return diluxone_users_join_box( false );
+	$box = diluxone_users_join_box( false );
+
+	// Said once a page, whichever is drawn first: a block theme renders the
+	// content, shortcode included, before the top of the page opens.
+	if ( '' !== $box ) {
+		diluxone_users_join_drawn( true );
+	}
+
+	return $box;
 }
 add_shortcode( 'diluxone_users_join', 'diluxone_users_shortcode_join' );
 
@@ -192,7 +204,7 @@ add_action( 'wp_enqueue_scripts', 'diluxone_users_join_styles', 20 );
 
 /** The box at the top of the page somebody was sent back to. */
 function diluxone_users_join_notice(): void {
-	if ( ! diluxone_users_join_arriving() ) {
+	if ( ! diluxone_users_join_arriving() || diluxone_users_join_drawn() ) {
 		return;
 	}
 
@@ -204,7 +216,6 @@ function diluxone_users_join_notice(): void {
 
 	diluxone_users_join_drawn( true );
 
-	// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- the template escapes what it prints.
-	echo $box;
+	echo wp_kses( $box, diluxone_users_allowed_html() );
 }
 add_action( 'wp_body_open', 'diluxone_users_join_notice' );

@@ -40,16 +40,30 @@ function diluxone_users_admin_login_is_email(): bool {
  * Before user-new.php handles the form: the username is the e-mail.
  * load-user-new.php runs before the page reads $_POST, which is why it is
  * set here and not later.
+ *
+ * Only for the "Add New User" form actually being sent, which is the one that
+ * carries `_wpnonce_create-user`; its nonce and the capability to create
+ * accounts are checked here, the way user-new.php checks them, before
+ * anything is read.
  */
 function diluxone_users_admin_new_user_login(): void {
-	// phpcs:disable WordPress.Security.NonceVerification.Missing -- user-new.php verifies its own nonce right after this; nothing is saved here.
-	if ( ! diluxone_users_admin_login_is_email() || 'createuser' !== sanitize_key( wp_unslash( $_POST['action'] ?? '' ) ) || empty( $_POST['email'] ) || ! is_string( $_POST['email'] ) ) {
+	if ( ! diluxone_users_admin_login_is_email() || ! isset( $_POST['_wpnonce_create-user'] ) ) {
 		return;
 	}
+
+	check_admin_referer( 'create-user', '_wpnonce_create-user' );
+
+	if ( ! current_user_can( 'create_users' ) ) {
+		return;
+	}
+
+	if ( 'createuser' !== sanitize_key( wp_unslash( $_POST['action'] ?? '' ) ) || empty( $_POST['email'] ) || ! is_string( $_POST['email'] ) ) {
+		return;
+	}
+
 	// $_POST arrives slashed and WordPress unslashes it when it reads it, so
 	// what is put back has to be slashed the same way.
 	$_POST['user_login'] = wp_slash( sanitize_email( wp_unslash( $_POST['email'] ) ) );
-	// phpcs:enable
 }
 add_action( 'load-user-new.php', 'diluxone_users_admin_new_user_login' );
 

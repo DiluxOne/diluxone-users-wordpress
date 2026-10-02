@@ -293,22 +293,28 @@ function diluxone_users_notify_new_device( int $user_id, string $via ): void {
 
 	$device = trim( sprintf( '%s · %s %s', $agent['device'], $agent['browser'], $agent['os'] ) );
 
-	// The wording is not written here any more: it is one of the four
-	// templates a site can rewrite per language, and this only says what goes
-	// in the gaps.
-	$mail = diluxone_users_mail_compose(
-		'new_device',
-		array(
-			'{device}'  => $device,
-			'{via}'     => diluxone_users_via_label( $via ),
-			'{when}'    => (string) wp_date( 'j M Y, H:i' ),
-			'{account}' => diluxone_users_account_url( 'security' ),
-			'{site}'    => diluxone_users_site_name(),
-			'{name}'    => diluxone_users_mail_person( '', $user_id ),
-		)
-	);
+	diluxone_users_in_their_language(
+		$user_id,
+		static function ( string $locale ) use ( $user_id, $device, $via ): void {
+			// The wording is not written here any more: it is one of the four
+			// templates a site can rewrite per language, and this only says
+			// what goes in the gaps.
+			$mail = diluxone_users_mail_compose(
+				'new_device',
+				array(
+					'{device}'  => $device,
+					'{via}'     => diluxone_users_via_label( $via ),
+					'{when}'    => (string) wp_date( 'j M Y, H:i' ),
+					'{account}' => diluxone_users_account_url( 'security' ),
+					'{site}'    => diluxone_users_site_name(),
+					'{name}'    => diluxone_users_mail_person( '', $user_id ),
+				),
+				$locale
+			);
 
-	diluxone_users_notify( $user_id, 'diluxone_users_notify_login', $mail['subject'], $mail['body'] );
+			diluxone_users_notify( $user_id, 'diluxone_users_notify_login', $mail['subject'], $mail['body'] );
+		}
+	);
 }
 add_action( 'diluxone_users_logged_in', 'diluxone_users_notify_new_device', 10, 2 );
 
@@ -333,18 +339,56 @@ function diluxone_users_via_label( string $via ): string {
  * second factor and the linked networks. The value of the notice is precisely
  * that it arrives when it was NOT you: if somebody got in and added a
  * passkey, that is the moment to find out.
+ *
+ * What happened is handed over as a function that says it, not as a sentence
+ * already said: the sentence has to be written in the language of the person
+ * it goes to, and that is only known here.
+ *
+ * @param int                $user_id Whose security changed.
+ * @param callable(): string $event   Says what happened, in the language in force when it is called.
  */
-function diluxone_users_notify_security( int $user_id, string $event ): void {
-	$mail = diluxone_users_mail_compose(
-		'security_changed',
-		array(
-			'{event}'   => $event,
-			'{when}'    => (string) wp_date( 'j M Y, H:i' ),
-			'{account}' => diluxone_users_account_url( 'security' ),
-			'{site}'    => diluxone_users_site_name(),
-			'{name}'    => diluxone_users_mail_person( '', $user_id ),
-		)
-	);
+function diluxone_users_notify_security( int $user_id, callable $event ): void {
+	diluxone_users_in_their_language(
+		$user_id,
+		static function ( string $locale ) use ( $user_id, $event ): void {
+			$mail = diluxone_users_mail_compose(
+				'security_changed',
+				array(
+					'{event}'   => (string) $event(),
+					'{when}'    => (string) wp_date( 'j M Y, H:i' ),
+					'{account}' => diluxone_users_account_url( 'security' ),
+					'{site}'    => diluxone_users_site_name(),
+					'{name}'    => diluxone_users_mail_person( '', $user_id ),
+				),
+				$locale
+			);
 
-	diluxone_users_notify( $user_id, 'diluxone_users_notify_security', $mail['subject'], $mail['body'] );
+			diluxone_users_notify( $user_id, 'diluxone_users_notify_security', $mail['subject'], $mail['body'] );
+		}
+	);
+}
+
+/**
+ * Writes a notice in the language of the person it goes to.
+ *
+ * A notice is not always sent from that person's own request: an
+ * administrator removing an authenticator app, or somebody else's browser
+ * adding a passkey to a stolen session, would otherwise write it in their
+ * own language. So the language is switched to the recipient's for as long as
+ * the notice is being written — the plugin's words, the site's rewrite for
+ * that language, the date — and put back after.
+ *
+ * @param int                    $user_id Who it goes to.
+ * @param callable(string): void $write   Writes and sends it; given the recipient's locale.
+ */
+function diluxone_users_in_their_language( int $user_id, callable $write ): void {
+	$switched = switch_to_user_locale( $user_id );
+
+	try {
+		$write( get_user_locale( $user_id ) );
+	} finally {
+		if ( $switched ) {
+			restore_previous_locale();
+		}
+	}
 }

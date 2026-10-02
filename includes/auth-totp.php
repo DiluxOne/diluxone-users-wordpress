@@ -99,8 +99,8 @@ function diluxone_users_totp_code( string $secret, int $timestamp = 0 ): string 
 }
 
 /** Does this code match this secret, now or a moment ago? */
-function diluxone_users_totp_check( string $secret, string $code ): bool {
-	return null !== diluxone_users_totp_step( $secret, $code );
+function diluxone_users_totp_check( string $secret, string $code, ?int $now = null ): bool {
+	return null !== diluxone_users_totp_step( $secret, $code, $now );
 }
 
 /**
@@ -110,14 +110,16 @@ function diluxone_users_totp_check( string $secret, string $code ): bool {
  * come back in a later step, and a code from the step before the last one
  * used is still inside the drift window for another thirty seconds.
  */
-function diluxone_users_totp_step( string $secret, string $code ): ?int {
+function diluxone_users_totp_step( string $secret, string $code, ?int $now = null ): ?int {
 	$code = preg_replace( '/\D/', '', $code ) ?? '';
 
 	if ( strlen( $code ) !== DILUXONE_USERS_TOTP_DIGITS ) {
 		return null;
 	}
 
-	$now = time();
+	// The moment is a parameter so a test can name it: read twice, time()
+	// can fall on both sides of a thirty-second boundary.
+	$now = $now ?? time();
 
 	for ( $i = -DILUXONE_USERS_TOTP_DRIFT; $i <= DILUXONE_USERS_TOTP_DRIFT; $i++ ) {
 		$timestamp = $now + $i * DILUXONE_USERS_TOTP_STEP;
@@ -224,13 +226,18 @@ function diluxone_users_totp_readable( string $secret ): string {
 /** Activates the app if the code they typed is right. */
 function diluxone_users_totp_activate( int $user_id, string $code ): bool {
 	$secret = (string) get_user_meta( $user_id, 'diluxone_users_totp_pending', true );
+	$step   = '' === $secret ? null : diluxone_users_totp_step( $secret, $code );
 
-	if ( '' === $secret || ! diluxone_users_totp_check( $secret, $code ) ) {
+	if ( null === $step ) {
 		return false;
 	}
 
 	update_user_meta( $user_id, 'diluxone_users_totp', $secret );
 	delete_user_meta( $user_id, 'diluxone_users_totp_pending' );
+
+	// The code that turned the app on is spent like any other: typed again
+	// as the first sign-in code, by whoever watched it typed, it is refused.
+	update_user_meta( $user_id, 'diluxone_users_totp_step', $step );
 
 	return true;
 }

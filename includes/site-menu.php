@@ -130,7 +130,9 @@ function diluxone_users_menu_items( $items, $args ) {
 		$add( diluxone_users_menu_item( 990002, esc_html__( 'Join this site', 'diluxone-users' ), diluxone_users_join_url(), 0, 'diluxone-users-menu--join' ) );
 	}
 
-	$account = diluxone_users_account_url();
+	// Without an account page there is no account to go to: the address of
+	// one falls back to the home page, which is no place for "my account".
+	$account = '' !== diluxone_users_page_url( 'diluxone_users_account_page' ) ? diluxone_users_account_url() : '';
 	$add( diluxone_users_menu_item( 990001, $title, '' !== $account ? $account : admin_url( 'profile.php' ), 0, 'diluxone-users-menu--person' ) );
 
 	if ( 'invite' === $join ) {

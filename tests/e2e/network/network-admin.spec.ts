@@ -2,7 +2,7 @@ import { test, expect, signInFrom, toTheHub } from './support';
 import { freshEmail } from '../support/api';
 import { expectSoundLayout } from '../support/layout';
 import { NETWORK_SCREENS, SITE_SCREENS_ON_A_NETWORK, networkAdminTabs } from '../support/screens';
-import { challengeScreen, fillCredentials, savePanel } from '../support/ui';
+import { challengeScreen, fillCredentials, navigated, savePanel } from '../support/ui';
 import { wp } from '../support/cli';
 import { MAPPED_HOST, NETWORK_ADMIN_STATE, NETWORK_URL } from '../../../playwright.network.config';
 
@@ -54,9 +54,8 @@ test.describe('Network Admin has the network’s screens', () => {
 				all.map((a) => new URLSearchParams((a.getAttribute('href') ?? '').split('?')[1] ?? '').get('tab') ?? '')
 			);
 
-			if (drawn.length > 0) {
-				expect(drawn).toEqual(NETWORK_SCREENS[tab.screen]);
-			}
+			// A screen of one tab draws no strip: one tab is not navigation.
+			expect(drawn).toEqual(NETWORK_SCREENS[tab.screen].length > 1 ? NETWORK_SCREENS[tab.screen] : []);
 
 			await expectSoundLayout(page);
 		});
@@ -184,7 +183,7 @@ test.describe('Every tab that moved saves from Network Admin, for every site', (
 		await page.locator('[name="diluxone_users_field[type]"]').selectOption('text');
 		// Required: the registration form asks only for what is required.
 		await page.locator('input[type="checkbox"][name="diluxone_users_field[required]"]').setChecked(true, { force: true });
-		await Promise.all([page.waitForLoadState('domcontentloaded'), page.locator('#submit').click()]);
+		await navigated(page, () => page.locator('#submit').click());
 
 		const fields = (await beta.site.getOptions(['diluxone_users_fields'])).diluxone_users_fields as Array<{ key: string; label: string }>;
 		const added = fields.find((field) => field.label === label);
@@ -277,7 +276,7 @@ test.describe('A site cannot change the network’s settings', () => {
 	 * nothing of them.
 	 */
 	test('the network’s doors on the main site’s Access are drawn, not saved', async ({ page, hub }) => {
-		await hub.set({ diluxone_users_passkey_enabled: 0, diluxone_users_sso_login: 1 });
+		await hub.set({ diluxone_users_passkey_enabled: 0, diluxone_users_sso_login: 1, diluxone_users_login_method: 'both', diluxone_users_login_expiry: 15 });
 
 		await page.goto(`${hub.url}wp-admin/admin.php?page=diluxone-users-login&tab=ways`);
 
@@ -289,12 +288,16 @@ test.describe('A site cannot change the network’s settings', () => {
 			box.disabled = false;
 			box.checked = true;
 		});
+		// The same form carries a setting that is the hub's: that one saves,
+		// so the save ran and only the network's part was left out.
+		await page.locator('input[name="diluxone_users_login_expiry"]').fill('37');
 		await savePanel(page);
 
-		expect(
-			Number((await hub.site.getOptions(['diluxone_users_passkey_enabled'])).diluxone_users_passkey_enabled),
-			'a box forced on and sent from a site’s screen'
-		).toBe(0);
+		const stored = await hub.site.getOptions(['diluxone_users_passkey_enabled', 'diluxone_users_login_expiry', 'diluxone_users_sso_login']);
+
+		expect(Number(stored.diluxone_users_passkey_enabled), 'a box forced on and sent from a site’s screen').toBe(0);
+		expect(Number(stored.diluxone_users_login_expiry), 'the hub’s own setting, in the same form, saved').toBe(37);
+		expect(Number(stored.diluxone_users_sso_login), 'and the network’s other door left as it was').toBe(1);
 	});
 });
 

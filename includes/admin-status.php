@@ -343,10 +343,6 @@ function diluxone_users_check_ways_in(): array {
 		$ways[] = __( 'social login', 'diluxone-users' );
 	}
 
-	if ( array() === $ways ) {
-		return diluxone_users_check( $label, 'off', __( 'No sign-in method is enabled at all.', 'diluxone-users' ), '', $access );
-	}
-
 	$email_only = array( __( 'e-mail link', 'diluxone-users' ) ) === $ways;
 
 	if ( $email_only && ! diluxone_users_mail_works() ) {

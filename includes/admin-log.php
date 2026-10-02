@@ -70,14 +70,21 @@ add_action( 'diluxone_users_register_panels', 'diluxone_users_log_panels' );
 
 /** Saves the groups and the retention. */
 function diluxone_users_log_settings_save(): void {
-	// phpcs:disable WordPress.Security.NonceVerification.Missing -- the panel verifies it.
+	check_admin_referer( 'diluxone_users_panel_' . DILUXONE_USERS_REPORTS, 'diluxone_users_panel_nonce' );
+	diluxone_users_panel_allowed();
+
 	// Only the ones naming a group this plugin has are kept, below.
 	$sent   = (array) map_deep( wp_unslash( $_POST['diluxone_users_log_levels'] ?? array() ), 'sanitize_key' );
 	$groups = diluxone_users_log_groups();
 	$levels = array();
 
 	foreach ( $sent as $group ) {
-		$group = sanitize_key( (string) $group );
+		// A list inside the list is no group.
+		if ( ! is_string( $group ) ) {
+			continue;
+		}
+
+		$group = sanitize_key( $group );
 
 		if ( isset( $groups[ $group ] ) ) {
 			$levels[] = $group;
@@ -87,10 +94,9 @@ function diluxone_users_log_settings_save(): void {
 	diluxone_users_save_options(
 		array(
 			'diluxone_users_log_levels' => $levels,
-			'diluxone_users_log_days'   => absint( wp_unslash( $_POST['diluxone_users_log_days'] ?? 90 ) ),
+			'diluxone_users_log_days'   => ( isset( $_POST['diluxone_users_log_days'] ) && is_scalar( $_POST['diluxone_users_log_days'] ) ? absint( wp_unslash( $_POST['diluxone_users_log_days'] ) ) : 90 ),
 		)
 	);
-	// phpcs:enable
 }
 
 /** The three tick boxes and the number of days. */
@@ -819,7 +825,7 @@ function diluxone_users_log_moving_notice( bool $network ): void {
  */
 function diluxone_users_log_empty(): void {
 	if ( ! current_user_can( 'manage_options' ) ) {
-		wp_die( esc_html__( 'You are not allowed to do this.', 'diluxone-users' ) );
+		wp_die( esc_html__( 'You are not allowed to do this.', 'diluxone-users' ), '', array( 'response' => 403 ) );
 	}
 
 	check_admin_referer( 'diluxone_users_log_empty' );
@@ -850,7 +856,7 @@ add_action( 'admin_post_diluxone_users_log_empty', 'diluxone_users_log_empty' );
  */
 function diluxone_users_log_empty_network(): void {
 	if ( ! diluxone_users_log_network() || ! current_user_can( DILUXONE_USERS_NETWORK_CAP ) ) {
-		wp_die( esc_html__( 'You are not allowed to do this.', 'diluxone-users' ) );
+		wp_die( esc_html__( 'You are not allowed to do this.', 'diluxone-users' ), '', array( 'response' => 403 ) );
 	}
 
 	check_admin_referer( 'diluxone_users_log_empty_network' );

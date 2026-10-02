@@ -29,11 +29,11 @@ defined( 'ABSPATH' ) || exit;
  * front end.
  */
 function diluxone_users_style_preview(): void {
-	// The shortcode, not a copy of it. It renders for whoever is looking —
-	// the sections they can see, their own name and picture — because an
-	// account area shown with somebody else's data would be a different kind
-	// of lie.
-	echo do_shortcode( '[diluxone_users_account]' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- the shortcode escapes its own output.
+	// What the shortcode draws, not a copy of it. It renders for whoever is
+	// looking — the sections they can see, their own name and picture —
+	// because an account area shown with somebody else's data would be a
+	// different kind of lie.
+	diluxone_users_account_area();
 }
 
 /**
@@ -241,11 +241,7 @@ function diluxone_users_screen_appearance_template(): void {
 
 	diluxone_users_forced_notice( 'diluxone_users_account_layout' );
 
-	$layouts = array(
-		'tabs' => __( 'Tabs across the top', 'diluxone-users' ),
-		'side' => __( 'A menu down the side', 'diluxone-users' ),
-		'none' => __( 'No menu — the site places it with [diluxone_users_account_nav]', 'diluxone-users' ),
-	);
+	$layouts = diluxone_users_account_layouts();
 
 	$where = array();
 
@@ -254,7 +250,7 @@ function diluxone_users_screen_appearance_template(): void {
 			'name'    => 'diluxone_users_account_layout',
 			'value'   => $key,
 			'piece'   => 'layout',
-			'checked' => (string) diluxone_users_option( 'diluxone_users_account_layout' ) === $key,
+			'checked' => diluxone_users_account_layout() === $key,
 			'title'   => $label,
 		);
 	}

@@ -1,23 +1,7 @@
 import type { Locator, Page } from '@playwright/test';
 import { test, expect, expectSignedIn, expectSignedOut } from '../support/fixtures';
 import { freshEmail, linkIn, waitForMail } from '../support/api';
-import {
-	adminError,
-	adminSaved,
-	adminUrl,
-	challengeScreen,
-	linkForm,
-	loginWay,
-	needsOne,
-	openWay,
-	passwordForm,
-	registerScreen,
-	savePanel,
-	saveButton,
-	signInWithPassword,
-	ssoButton,
-	submitPanelWithoutScript,
-} from '../support/ui';
+import { adminError, adminSaved, adminUrl, challengeScreen, linkForm, loginWay, navigated, needsOne, openWay, passwordForm, registerScreen, saveButton, savePanel, signInWithPassword, ssoButton, submitPanelWithoutScript } from '../support/ui';
 import { adminTabs } from '../support/screens';
 import { ADMIN_STATE } from '../../../playwright.config';
 
@@ -162,7 +146,7 @@ test.describe('Saving a tab changes the public page', () => {
 
 		// The screen and the e-mail quote the same setting, and they used to be
 		// able to disagree.
-		await expect(guest.locator('.diluxone-users-note').first()).toContainText('9');
+		await expect(guest.locator('.diluxone-users-note').first()).toContainText(/\b9\b/);
 
 		const mail = await waitForMail(site, email);
 		expect(mail.body).toMatch(/\b9\b/);
@@ -282,7 +266,7 @@ test.describe('Saving a tab changes the public page', () => {
 
 		const toggle = page.locator('a.diluxone-users-toggle.is-on');
 		await expect(toggle).toBeVisible();
-		await Promise.all([page.waitForLoadState('domcontentloaded'), toggle.click()]);
+		await navigated(page, () => toggle.click());
 		await expect(page.locator('a.diluxone-users-toggle.is-on')).toHaveCount(0);
 
 		await guest.goto(pages.account.url);

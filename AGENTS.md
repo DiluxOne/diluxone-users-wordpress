@@ -22,10 +22,8 @@ two it needs ([`docs/development.md`](docs/development.md#the-repository-name-is
 ## How work reaches `main`
 
 Only through a pull request, squash-merged. Nobody pushes to `main`, admins
-included. Once the repository lives in the DiluxOne organisation, CI enforces
-every rule in this section (the shared `conventions` workflow from
-`DiluxOne/.github`) and a PR that breaks one cannot merge; follow them from
-now on.
+included. CI enforces every rule in this section (the shared `conventions`
+workflow from `DiluxOne/.github`) and a PR that breaks one cannot merge.
 
 - **Branch:** `<type>/<kebab-case>`, e.g. `fix/totp-replay-window`.
 - **PR title:** a Conventional Commit header, `type(scope): subject`, at most
@@ -56,6 +54,14 @@ make test-e2e-network    # Playwright, subdirectory network (tests site, 8893)
 make plugin-check        # wordpress.org's Plugin Check on the built dist
 ```
 
+The organisation's rule engine (`checks / Review rules (wordpress-plugin)`)
+fails on what wordpress.org's review flags and Plugin Check misses: an
+`EscapeOutput` suppression, a menu position among WordPress's own, a handler
+that reads the request before its nonce and capability, and any security
+suppression not listed with its reason in
+[`.github/review-suppressions.yml`](.github/review-suppressions.yml). Plugin
+Check runs with `strict`: a warning fails.
+
 A change carries its tests at every layer it touches, in the same pull
 request: unit, integration on a single site and on a network, end-to-end on a
 single site and on a network, and the listing screenshots (`make screenshots`) when a screen
@@ -68,7 +74,7 @@ into [`tests/e2e/COVERAGE.md`](tests/e2e/COVERAGE.md).
 ## How a change becomes a release
 
 The plugin has not been published yet; the first version goes to wordpress.org
-as a zip for review, by the maintainer. After the move and the approval, the
+as a zip for review, by the maintainer. After the approval, the
 organisation's release pipeline takes over. The whole flow, and what applies
 when: [`docs/release.md`](docs/release.md). What you must do, and never do, in
 a change:

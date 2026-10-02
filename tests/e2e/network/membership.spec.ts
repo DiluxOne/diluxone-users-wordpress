@@ -2,7 +2,7 @@ import { Page } from '@playwright/test';
 import { test, expect, whoOn, signInFrom, SiteHandle } from './support';
 import { Site, freshEmail } from '../support/api';
 import { wp } from '../support/cli';
-import { savePanel } from '../support/ui';
+import { navigated, savePanel } from '../support/ui';
 import { NETWORK_ADMIN_STATE, NETWORK_URL } from '../../../playwright.network.config';
 
 /**
@@ -86,7 +86,7 @@ test.describe('Network Admin › Membership', () => {
 		await expect(page.locator('#adminmenu a[href*="page=diluxone-users-membership"]')).toHaveCount(0);
 
 		const refused = await page.goto(alpha.admin('admin.php?page=diluxone-users-membership'));
-		expect(refused?.status(), 'refused by address on a site').not.toBe(200);
+		expect(refused?.status(), 'refused by address on a site, by WordPress, and not by a fatal error').toBe(403);
 	});
 });
 
@@ -106,7 +106,7 @@ test.describe('Every site (the default)', () => {
 			await page.goto(`${NETWORK_URL}/wp-admin/network/user-new.php`);
 			await page.locator('input[name="user[username]"]').fill(email.split('@')[0].replace(/[^a-z0-9]/g, ''));
 			await page.locator('input[name="user[email]"]').fill(email);
-			await Promise.all([page.waitForLoadState('domcontentloaded'), page.locator('#add-user').click()]);
+			await navigated(page, () => page.locator('#add-user').click());
 
 			const onAlpha = await alpha.site.user(email);
 			const onBeta = await beta.site.user(email);
@@ -134,7 +134,7 @@ test.describe('Every site (the default)', () => {
 		await page.locator('input[name="blog[domain]"]').fill(slug);
 		await page.locator('input[name="blog[title]"]').fill('Born with members');
 		await page.locator('input[name="blog[email]"]').fill(email);
-		await Promise.all([page.waitForLoadState('domcontentloaded'), page.locator('#add-site').click()]);
+		await navigated(page, () => page.locator('#add-site').click());
 
 		try {
 			// A network with many people queues the new site; the screen says
@@ -164,8 +164,8 @@ test.describe('Every site (the default)', () => {
 		// /beta/'s administrator removes them, the way WordPress offers it.
 		await page.goto(beta.admin(`users.php?s=${encodeURIComponent(email)}`));
 		await page.locator(`#user-${made.id}`).hover();
-		await Promise.all([page.waitForLoadState('domcontentloaded'), page.locator(`#user-${made.id} .row-actions .remove a`).click()]);
-		await Promise.all([page.waitForLoadState('domcontentloaded'), page.locator('#submit').click()]);
+		await navigated(page, () => page.locator(`#user-${made.id} .row-actions .remove a`).click());
+		await navigated(page, () => page.locator('#submit').click());
 		expect((await beta.site.user(email)).member, 'removed').toBe(false);
 
 		await signInFrom(guest, beta, hub, email, PASSWORD);
@@ -228,7 +228,7 @@ test.describe('Whoever asks', () => {
 			const button = page.locator('[data-diluxone-users-join="click"] button[type="submit"]');
 
 			await expect(button, 'on the page with the shortcode').toBeVisible();
-			await Promise.all([page.waitForLoadState('domcontentloaded'), button.click()]);
+			await navigated(page, () => button.click());
 
 			expect(new URL(page.url()).searchParams.get('diluxone-users')).toBe('joined');
 			expect(await joinBox(page), 'welcomed').toBe('joined');

@@ -15,5 +15,8 @@
     "SCRIPT_DEBUG": true
   },
   "port": 8892,
-  "testsPort": 8893
+  "testsPort": 8893,
+  "lifecycleScripts": {
+    "afterStart": "npx wp-env run cli wp language core install es_AR es_ES --skip-plugins --skip-themes && npx wp-env run tests-cli wp language core install es_AR es_ES --skip-plugins --skip-themes"
+  }
 }

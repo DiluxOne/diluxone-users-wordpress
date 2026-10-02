@@ -99,7 +99,9 @@ function diluxone_users_register_needs_one(): string {
  * So the ones that can edit anything are left out. What is already saved stays
  * on the list even if it is one of them — a site that set it before this, or
  * through the filter below, sees its own setting rather than a drop-down that
- * quietly says something else.
+ * quietly says something else — as long as it is a role an account would
+ * actually be given: one that reaches other people's accounts or content
+ * never is, so it is never on the list either.
  *
  * @return array<string, string> Role slug to its translated name.
  */
@@ -133,11 +135,18 @@ function diluxone_users_register_roles(): array {
 	 * here. It is deliberately not a setting: the screen is where the safe
 	 * answer lives, and the unsafe one is worth a line of code.
 	 *
+	 * A role that reaches other people's accounts or content is still not
+	 * offered: no account would ever be given it (diluxone_users_register_role()),
+	 * and a screen that saved it would be saying one thing while every new
+	 * account got another. Loosening that is `diluxone_users_role_forbidden_caps`.
+	 *
 	 * @since 1.0.0
 	 *
 	 * @param array<string, string> $roles Role slug to its translated name.
 	 */
-	return (array) apply_filters( 'diluxone_users_register_roles', $roles );
+	$roles = (array) apply_filters( 'diluxone_users_register_roles', $roles );
+
+	return array_filter( $roles, 'diluxone_users_role_self_serve', ARRAY_FILTER_USE_KEY );
 }
 
 /**
@@ -147,14 +156,17 @@ function diluxone_users_register_roles(): array {
  *              case nothing was written.
  */
 function diluxone_users_screen_register_save(): bool {
-	// phpcs:disable WordPress.Security.NonceVerification.Missing -- the panel verifies it.
+	check_admin_referer( 'diluxone_users_panel_diluxone-users-login', 'diluxone_users_panel_nonce' );
+	diluxone_users_panel_allowed();
+
 	$open  = 'open' === sanitize_key( wp_unslash( $_POST['diluxone_users_register_open'] ?? '' ) );
 	$doors = array(
 		'diluxone_users_login_register' => isset( $_POST['diluxone_users_login_register'] ) ? 1 : 0,
 		'diluxone_users_sso_register'   => isset( $_POST['diluxone_users_sso_register'] ) ? 1 : 0,
 		'diluxone_users_register_form'  => isset( $_POST['diluxone_users_register_form'] ) ? 1 : 0,
 	);
-	$wp    = isset( $_POST['diluxone_users_wp_register'] ) ? 1 : 0;
+	// On a network that box is the network's answer, shown and not sent.
+	$wp = is_multisite() ? (int) diluxone_users_network_takes_accounts() : ( isset( $_POST['diluxone_users_wp_register'] ) ? 1 : 0 );
 
 	/*
 	 * Open with nothing ticked is refused before anything is written. After
@@ -184,7 +196,7 @@ function diluxone_users_screen_register_save(): bool {
 			// is not is how the site and the screen come to disagree.
 			$open ? $doors : array_fill_keys( array_keys( $doors ), 0 ),
 			array(
-				'diluxone_users_register_page' => absint( wp_unslash( $_POST['diluxone_users_register_page'] ?? 0 ) ),
+				'diluxone_users_register_page' => ( isset( $_POST['diluxone_users_register_page'] ) && is_scalar( $_POST['diluxone_users_register_page'] ) ? absint( wp_unslash( $_POST['diluxone_users_register_page'] ) ) : 0 ),
 				// Only a role the screen was willing to offer. A drop-down is
 				// four keystrokes away in the inspector, and this is the one
 				// setting where that would hand the site to whoever asked.
@@ -203,15 +215,36 @@ function diluxone_users_screen_register_save(): bool {
 	 * it is locked the box is not posted, so an open site writes nothing
 	 * there and the lock keeps saying no on its own.
 	 */
-	if ( ! $open ) {
-		update_option( 'users_can_register', 0 );
-	} elseif ( ! diluxone_users_wp_registration_locked() ) {
-		update_option( 'users_can_register', $wp );
+	// On a network the switch is the network's (Network Admin → Settings →
+	// Allow new registrations): WordPress reads this site's copy of it through
+	// the network's answer, so writing it here would change nothing and say
+	// it had.
+	if ( ! is_multisite() ) {
+		if ( ! $open ) {
+			update_option( 'users_can_register', 0 );
+		} elseif ( ! diluxone_users_wp_registration_locked() ) {
+			update_option( 'users_can_register', $wp );
+		}
 	}
-	// phpcs:enable
 
 	// The page changed, and with it the /register/ rules.
 	diluxone_users_delete_option( 'diluxone_users_rewrite_version' );
+
+	/*
+	 * "Nobody" was saved, and every door of this plugin is shut. WordPress's
+	 * own sign-up form is the network's, though, and while the network takes
+	 * accounts the screen comes back saying registration is open — true, and
+	 * read as the answer having been ignored. So it says both: what was kept,
+	 * and where the other half is decided.
+	 */
+	if ( ! $open && is_multisite() && diluxone_users_network_takes_accounts() ) {
+		printf(
+			'<div class="notice notice-warning is-dismissible" data-diluxone-users-network-registration><p>%1$s <a href="%2$s">%3$s</a></p></div>',
+			esc_html__( 'Saved: every door of this plugin is shut. The network still lets people sign up through WordPress’s own form, so registration stays open until that changes in Network Admin.', 'diluxone-users' ),
+			esc_url( network_admin_url( 'settings.php' ) ),
+			esc_html__( 'Network Admin › Settings →', 'diluxone-users' )
+		);
+	}
 
 	return true;
 }
@@ -273,8 +306,7 @@ function diluxone_users_register_doors( array $social ): array {
 					'option_none_value' => 0,
 				);
 
-				// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- wp_dropdown_pages() escapes its own and prints it.
-				wp_dropdown_pages( $diluxone_users_dropdown );
+				diluxone_users_ui_page_dropdown( $diluxone_users_dropdown );
 				diluxone_users_create_page_link( 'diluxone_users_register_page' );
 
 				if ( $page <= 0 ) {
@@ -284,17 +316,31 @@ function diluxone_users_register_doors( array $social ): array {
 				diluxone_users_ui_field_close( __( 'The form appears on this page, below whatever the page already says. What the form says is on Design → Registration.', 'diluxone-users' ) );
 			},
 		),
-		array(
-			'type'     => 'checkbox',
-			'name'     => 'diluxone_users_wp_register',
-			'value'    => '1',
-			'checked'  => (bool) get_option( 'users_can_register' ),
-			'disabled' => $locked,
-			'title'    => __( 'WordPress’s own form (wp-login.php?action=register)', 'diluxone-users' ),
-			'help'     => __( 'The same switch as Settings → General → “Anyone can register”: changing it here or there changes both.', 'diluxone-users' ),
-			'state'    => $locked ? 'off' : '',
-			'note'     => $locked ? __( 'locked: the e-mail link is the only way in, and that form hands out passwords', 'diluxone-users' ) : '',
-		),
+		is_multisite()
+			// On a network WordPress's own form is the network's to open, and
+			// what it says is read through: shown as it stands, not offered.
+			? array(
+				'type'     => 'checkbox',
+				'name'     => 'diluxone_users_wp_register',
+				'value'    => '1',
+				'checked'  => (bool) get_option( 'users_can_register' ),
+				'disabled' => true,
+				'title'    => __( 'WordPress’s own form (wp-signup.php)', 'diluxone-users' ),
+				'help'     => __( 'On a network it is the network’s: Network Admin → Settings → “Allow new registrations” opens and closes it for every site.', 'diluxone-users' ),
+				'state'    => '',
+				'note'     => __( 'set for the whole network', 'diluxone-users' ),
+			)
+			: array(
+				'type'     => 'checkbox',
+				'name'     => 'diluxone_users_wp_register',
+				'value'    => '1',
+				'checked'  => (bool) get_option( 'users_can_register' ),
+				'disabled' => $locked,
+				'title'    => __( 'WordPress’s own form (wp-login.php?action=register)', 'diluxone-users' ),
+				'help'     => __( 'The same switch as Settings → General → “Anyone can register”: changing it here or there changes both.', 'diluxone-users' ),
+				'state'    => $locked ? 'off' : '',
+				'note'     => $locked ? __( 'locked: the e-mail link is the only way in, and that form hands out passwords', 'diluxone-users' ) : '',
+			),
 	);
 }
 
@@ -413,7 +459,7 @@ function diluxone_users_register_preview(): void {
 	// fields in it, and previewing it bare would preview something else.
 	diluxone_users_login_frame_open();
 
-	echo diluxone_users_render( // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- the template escapes its own output.
+	diluxone_users_template_part(
 		'register.php',
 		array(
 			'state'     => '',

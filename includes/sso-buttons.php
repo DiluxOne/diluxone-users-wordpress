@@ -30,8 +30,9 @@ function diluxone_users_sso_button_skins(): array {
 	);
 }
 
-/** Las formas posibles. */
 /**
+ * The shapes a button can take.
+ *
  * @return array<string, mixed>
  */
 function diluxone_users_sso_button_shapes(): array {

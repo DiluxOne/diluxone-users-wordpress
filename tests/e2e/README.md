@@ -68,6 +68,11 @@ browser back, frame by frame.
 - For the network suite, the tests site on port 8893 as a network
   (`make env-multisite`, which `make test-e2e-network` runs), and WP-CLI
   through `npx wp-env run tests-cli` — the setup makes its sites with it.
+- **Two more languages,** es_AR and es_ES, on both sites: `.wp-env.json`'s
+  `afterStart` installs them every time the environment starts, here and on
+  CI, so the tests of a second language (messages, e-mail notices, a mail
+  written in its recipient's language) never depend on what a machine
+  happened to have.
 - Nothing else. No mail server: the mu-plugin catches the mail. No OAuth
   credentials: the mu-plugin answers as the provider. No HTTPS: `localhost`
   counts as a secure context, which is what passkeys need.
@@ -99,15 +104,19 @@ tests/e2e/
   the settings that change the public page. A person doing something, and
   what the site does about it.
 - **The measurements** (`specs/admin-layout.spec.ts`, with `support/layout.ts`)
-  — every tab of every screen, at 1600, 1280, 960 and 782 pixels: nothing
-  overlapping, nothing past the edge, no two blocks touching, no bordered box
-  with nothing in it, and the rail beside the settings rather than under them.
-  They need no baseline and run with everything else.
-- **The pictures** (`specs/admin-snapshots.spec.ts`) — one photograph per tab,
-  compared with the one in `snapshots/`. Its own Playwright project and its
-  own target, `make test-visual`, because a baseline image belongs to the
-  machine that took it. `make test-visual-update` is how you accept a change
-  you meant to make.
+  — every tab of every screen, at 1600, 1280, 960 and 782 pixels, and the
+  public pages down to 640, 560, 480 and 390: nothing overlapping, nothing
+  past the edge, no two blocks touching, no bordered box with nothing in it,
+  and the rail beside the settings rather than under them. They need no
+  baseline and run with everything else.
+- **The pictures** (`specs/admin-snapshots.spec.ts`, `specs/front-snapshots.spec.ts`,
+  `specs/admin-mobile-snapshots.spec.ts`) — one photograph per tab, per shape
+  of the Design tabs and per public page and state, compared with the one in
+  `snapshots/`, at 1280 and, in the `visual-mobile` project, at 390. Their own
+  Playwright projects and their own target, `make test-visual`, because a
+  baseline image belongs to the machine that took it; what the screens are
+  drawn from is pinned by `support/visual-state.ts`. `make test-visual-update`
+  is how you accept a change you meant to make.
 
 Every one of those three walks the same list of screens,
 `support/screens.ts`. The network suite walks `NETWORK_SCREENS` from the same
@@ -206,8 +215,18 @@ deletes all of them. Nothing else on the site has that domain.
 | `site-menu.spec.ts` | The person in the site's own menu, on the mu-plugin's classic menu: the stranger's sign-in item, the person's sections and sign-out, the three styles, and the tab that saves them. |
 | `admin-effects.spec.ts` | The rest of the dashboard's saves, each checked on the public side: wp-login.php branding, photos, initials, the registration heading, the account menu down the side, the toolbar, profile.php, the sessions list, notice rules, a provider switched off, and what happens to wp-login.php. |
 | `admin-tools.spec.ts` | Status › Tools (export, import, close sessions, fresh code, rebuild, test message), Reports › Sessions and Activity, WordPress's Users screens and Add New User, a field added and deleted, a section of the site's own. |
-| `network/*.spec.ts` | Two sites of one network and its main site, the hub: every site's doors leading to the hub and back (password, e-mail link, social, passkey, second step, registration, wp-login.php, the menu), a site on a domain of its own, membership only by using a link, the network's registration setting, the main site's sign-in settings on every site, the sessions report per site, Add New User, the photo across sites, the second step as the network's, a social identity across sites, a site born after activation, deactivating and activating, WP-CLI; Network Admin's screens (menu, every tab measured, every moved tab saving for every site, a field added there), what a site's menu keeps, a network screen refused on a site, a site's form unable to write the network's settings; and the move of a network's settings (`migration.spec.ts`). `network-snapshots.spec.ts` is the pictures, opt-in. |
+| `network/*.spec.ts` | Two sites of one network and its main site, the hub: every site's doors leading to the hub and back (password, e-mail link, social, passkey, second step, registration, wp-login.php, the menu), a site on a domain of its own, membership only by using a link, the network's registration setting, the main site's sign-in settings on every site, the sessions report per site, Add New User, the photo across sites, the second step as the network's, a social identity across sites, a site born after activation, deactivating and activating, WP-CLI, the account's pieces on another site as doors to the hub (`account-pieces.spec.ts`); Network Admin's screens (menu, every tab measured, every moved tab saving for every site, a field added there), what a site's menu keeps, a network screen refused on a site, a site's form unable to write the network's settings; and the move of a network's settings (`migration.spec.ts`). `network-snapshots.spec.ts` is the pictures, opt-in. |
+| `account-pieces.spec.ts` | The pieces of the account each on a page of their own, as a site puts them: nothing drawn to a stranger, the menu, the fields saved back to that page, the sessions closed one at a time and all the others, the social networks, the public name's availability check, the photo and the notifications. |
+| `create-page.spec.ts` | “Create the page” beside a page the plugin needs: the page made, chosen and announced, drawing its form to a stranger; refused without the nonce. |
 | `login-ways.spec.ts` | The four ways in as one screen: with all of them on, the sign-in card fits a 1366×768 laptop in tabs and does not stacked — both halves, so the measurement cannot pass on the broken arrangement. The passkey staying above the strip. The tab that opens: the site's choice for a stranger, the cookie after that, and the way in that just failed over both. The site's order, in tabs and stacked. Every way in visible with JavaScript off. And the dashboard end: the order saved from the drag list and read back off the public page. |
+| `refusals.spec.ts`, `network/refusals.spec.ts` | Every door that writes — each `admin_post_` and `wp_ajax_` action, every settings panel, the dashboard's forms, the Tools, the preview and its "Try" token, the public forms, the membership sync, "Join this site" — sent with no nonce, a forged one, by a role without the right (carrying a nonce valid for that role), signed out and by another person, each answer asserted and everything it would have written read back unchanged; on a network also from a site administrator, and the hub's doors posted to another site. |
+| `admin-framework*.spec.ts`, `admin-overview.spec.ts`, `admin-access-*.spec.ts` | The dashboard's shared pieces (the save box, dirty state, leave warning, refused saves, dependants, pickers, the stage and the trial page, the field dialog), the Overview's cards, steps and panels, and every control of Access driven, saved, read back and seen on the public page. |
+| `admin-security-*.spec.ts`, `admin-social-*.spec.ts`, `admin-status-*.spec.ts`, `admin-reports-*.spec.ts`, `wp-screens-users.spec.ts` | Security's two-step, passkeys, sessions and proxy controls with their effect; a provider set up through its screen (the secret never printed back), the social rules; each Tool and check; the reports' filters, closes and log settings on rows of their own; WordPress's own Users screens. |
+| `admin-account-*.spec.ts`, `admin-fields-*.spec.ts`, `admin-design-*.spec.ts`, `admin-notices.spec.ts` | The account area's sections, public names and dashboard rules; every field type and edit rule; every Design control and its effect on the page; the notices' rules and templates, the mail they send. |
+| `signin-*.spec.ts` | The ways in off their plain paths: every message state, the link's limits, the second step's lock and replays, passkeys switched off, claimed twice and in a browser without them, wp-login.php under the takeover, a reset with a forged key, social returns tampered with, and the ways in at 390px. |
+| `my-account-*.spec.ts` | The account area as its owner, section by section: every field type, the photo and the public name's rules, notifications, sessions, two-step and passkeys, data requests and their links, closing an account kept for its content, linked accounts, the site menu, WP-CLI, and the area at 390px. |
+| `network/hub-*.spec.ts`, `network/signin-doors.spec.ts`, `network/my-account-hub.spec.ts`, `network/admin-*.spec.ts` | The network's controls saved and read on every site, the membership screen and its sync, the hub's routing (sign-up and activation, a reset, a site on a domain of its own), Network Admin, the hub's account used from another site, and each admin area's network half. |
+| `front-snapshots.spec.ts`, `admin-mobile-snapshots.spec.ts`, `network/network-front-snapshots.spec.ts` | The pictures of the public pages and of the dashboard on a phone (opt-in, `make test-visual` and `make test-visual-network`). |
 
 A test that fails today on a product bug says so in its assertion message and
 is listed as **bug** in [COVERAGE.md](COVERAGE.md). It stays red until the

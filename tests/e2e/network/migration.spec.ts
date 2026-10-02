@@ -1,6 +1,7 @@
 import { test, expect } from './support';
 import { wp } from '../support/cli';
 import { NETWORK_ADMIN_STATE, NETWORK_URL } from '../../../playwright.network.config';
+import { navigated } from '../support/ui';
 
 /**
  * A network whose sites kept their own settings, moved to the network.
@@ -66,7 +67,7 @@ test('the main site’s values become the network’s, the differences are shown
 		await expect(row).toContainText('off');
 
 		await page.goto(`${NETWORK_URL}/wp-admin/network/`);
-		await Promise.all([page.waitForLoadState('domcontentloaded'), notice.getByRole('link', { name: 'Dismiss' }).click()]);
+		await navigated(page, () => notice.getByRole('link', { name: 'Dismiss' }).click());
 		await page.goto(`${NETWORK_URL}/wp-admin/network/`);
 		await expect(notice, 'dismissed is dismissed').toHaveCount(0);
 

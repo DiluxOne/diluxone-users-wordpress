@@ -147,10 +147,6 @@ function diluxone_users_color_swatch( string $role, string $slug ): string {
  * @return array<string, array<string, string>> Keyed by slug.
  */
 function diluxone_users_theme_palette(): array {
-	if ( ! function_exists( 'wp_get_global_settings' ) ) {
-		return array();
-	}
-
 	$settings = wp_get_global_settings( array( 'color' ) );
 	$palette  = array();
 
@@ -185,11 +181,26 @@ function diluxone_users_theme_palette(): array {
 	 * ends up printed into a `:root{}` block, and a filter that returns a
 	 * palette is the one caller that can hand over a value nothing checked.
 	 */
+	$clean = array();
+
 	foreach ( $palette as $slug => $entry ) {
-		$palette[ $slug ] = array_map( 'diluxone_users_color_value', array_map( 'strval', (array) $entry ) );
+		$entry = (array) $entry;
+		$color = is_string( $entry['color'] ?? null ) ? diluxone_users_color_value( $entry['color'] ) : '';
+
+		// A colour that is not one is no entry: printed empty it was
+		// `--diluxone-users-accent:;`, which took the plugin's own accent away
+		// with it. The name is a name, not a colour.
+		if ( '' === $color ) {
+			continue;
+		}
+
+		$clean[ (string) $slug ] = array(
+			'name'  => sanitize_text_field( is_scalar( $entry['name'] ?? null ) ? (string) $entry['name'] : (string) $slug ),
+			'color' => $color,
+		);
 	}
 
-	return $palette;
+	return $clean;
 }
 
 /**

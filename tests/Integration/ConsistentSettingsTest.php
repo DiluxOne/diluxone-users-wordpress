@@ -62,7 +62,7 @@ class ConsistentSettingsTest extends IntegrationTestCase {
 
 	public function test_turning_the_password_off_moves_the_second_door_to_the_third_answer(): void {
 		diluxone_users_update_option( 'diluxone_users_wp_screens', 'wp' );
-		$_POST = array( 'diluxone_users_login_method' => array( 'link' ) );
+		$this->postPanel( 'diluxone-users-login', array( 'diluxone_users_login_method' => array( 'link' ) ) );
 
 		diluxone_users_login_ways_save();
 
@@ -72,7 +72,7 @@ class ConsistentSettingsTest extends IntegrationTestCase {
 
 	public function test_a_password_kept_keeps_the_second_door(): void {
 		diluxone_users_update_option( 'diluxone_users_wp_screens', 'wp' );
-		$_POST = array( 'diluxone_users_login_method' => array( 'link', 'password' ) );
+		$this->postPanel( 'diluxone-users-login', array( 'diluxone_users_login_method' => array( 'link', 'password' ) ) );
 
 		diluxone_users_login_ways_save();
 
@@ -81,7 +81,7 @@ class ConsistentSettingsTest extends IntegrationTestCase {
 
 	public function test_the_second_door_is_refused_on_save_without_a_password(): void {
 		diluxone_users_update_option( 'diluxone_users_login_method', 'link' );
-		$_POST = array( 'diluxone_users_wp_screens' => 'wp' );
+		$this->postPanel( 'diluxone-users-login', array( 'diluxone_users_wp_screens' => 'wp' ) );
 
 		diluxone_users_login_page_save();
 

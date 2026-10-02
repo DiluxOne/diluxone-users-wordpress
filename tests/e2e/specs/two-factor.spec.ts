@@ -1,7 +1,7 @@
 import { test, expect, expectSignedIn, expectSignedOut } from '../support/fixtures';
 import { codeIn, freshEmail, waitForMail } from '../support/api';
 import { avoidWindowEdge, totp, totpPrevious, wrongCode } from '../support/totp';
-import { accountSection, challengeCode, challengeScreen, notice, openPanel, signInWithPassword } from '../support/ui';
+import { accountSection, challengeCode, challengeScreen, navigated, notice, openPanel, signInWithPassword } from '../support/ui';
 
 /**
  * The second step, and the two limits that make it worth having.
@@ -128,8 +128,18 @@ test.describe('The second step by e-mail', () => {
 		await signInWithPassword(page, email, PASSWORD);
 		await expect(challengeScreen(page)).toBeVisible();
 		await challengeCode(page).fill(code);
-		await page.locator('form.diluxone-users-form button[type="submit"]').first().click();
+		await navigated(page, () => page.locator('form.diluxone-users-form button[type="submit"]').first().click());
 		await expectSignedOut(page);
+
+		// Refused for being stale, not because the account is shut: six
+		// wrong codes are under the account's limit, and the code this
+		// attempt mailed gets in.
+		const mails = await site.mail(email);
+		const fresh = codeIn(mails[mails.length - 1]);
+		expect(fresh).not.toBe(code);
+		await challengeCode(page).fill(fresh);
+		await navigated(page, () => page.locator('form.diluxone-users-form button[type="submit"]').first().click());
+		await expectSignedIn(page, email);
 	});
 
 	test('“send it again” is not a mail cannon', async ({ page, site, pages }) => {
@@ -266,8 +276,10 @@ test.describe('The second step with an authenticator app', () => {
 		]);
 		await expect(notice(page, 'error')).toBeVisible();
 
+		// The code that turned the app on is spent: the one of the step after
+		// it — the next the phone shows, inside the window — gets in.
 		await avoidWindowEdge();
-		await challengeCode(page).fill(totp(secret));
+		await challengeCode(page).fill(totp(secret, Date.now() + 30_000));
 		await page.locator('form.diluxone-users-form button[type="submit"]').first().click();
 
 		await expectSignedIn(page, email);

@@ -802,4 +802,170 @@ class ActivityLogTest extends IntegrationTestCase {
 			'Two filters narrow together'
 		);
 	}
+
+	/* ── What no other test asked ─────────────────────────────────── */
+
+	public function test_emptying_it_refuses_a_forged_nonce(): void {
+		wp_set_current_user( $this->make_user( 'administrator' ) );
+		diluxone_users_log_record( 'sessions_closed', 0 );
+		$_REQUEST['_wpnonce'] = 'forged';
+
+		$this->expectDie( 'diluxone_users_log_empty', self::EXPIRED, 403 );
+		$this->assertCount( 1, $this->rows() );
+	}
+
+	/**
+	 * Somebody with more rows than a page gets them all: WordPress asks again
+	 * while a page comes back full, the refused attempts with their name go
+	 * out once, and no row is handed over twice.
+	 */
+	public function test_an_export_longer_than_a_page_is_complete_and_never_repeats(): void {
+		global $wpdb;
+
+		$person = get_userdata( $this->make_user() );
+		$table  = diluxone_users_log_table();
+		$values = array();
+
+		for ( $i = 0; $i < DILUXONE_USERS_LOG_EXPORT_PAGE + 1; $i++ ) {
+			$values[] = $wpdb->prepare( '(%d, %d, %s, %s, %s, %s, %s)', get_current_blog_id(), $person->ID, 'signed_in', gmdate( 'Y-m-d H:i:s', time() - $i ), '203.0.113.9', 'agent', '{}' );
+		}
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.NotPrepared
+		$wpdb->query( "INSERT INTO {$table} (site_id, user_id, event, happened, ip, agent, detail) VALUES " . implode( ',', $values ) );
+		diluxone_users_log_record( 'sign_in_failed', 0, array( 'tried' => $person->user_email ) );
+
+		$first  = diluxone_users_log_export( $person->user_email, 1 );
+		$second = diluxone_users_log_export( $person->user_email, 2 );
+
+		$this->assertFalse( $first['done'], 'a full page: ask again' );
+		$this->assertCount( DILUXONE_USERS_LOG_EXPORT_PAGE + 1, $first['data'], 'a page, and the attempt with their address' );
+		$this->assertTrue( $second['done'] );
+		$this->assertCount( 1, $second['data'], 'the last row, and the attempt not again' );
+
+		$ids = array_merge( array_column( $first['data'], 'item_id' ), array_column( $second['data'], 'item_id' ) );
+		$this->assertSame( $ids, array_values( array_unique( $ids ) ), 'no row twice' );
+	}
+
+	public function test_erasing_somebody_with_nothing_here_says_so(): void {
+		$answer = diluxone_users_log_erase( (string) get_userdata( $this->make_user() )->user_email );
+
+		$this->assertFalse( $answer['items_removed'] );
+		$this->assertFalse( $answer['items_retained'] );
+		$this->assertSame( array(), $answer['messages'] );
+	}
+
+	/** The site can switch on one event of a group it does not record, as well as veto one. */
+	public function test_the_site_can_record_one_event_of_a_group_that_is_off(): void {
+		$this->recording( array() );
+		$this->hook( 'diluxone_users_log_records', static fn( $record, $event ) => '2fa_on' === $event ? true : $record, 10, 2 );
+
+		diluxone_users_log_record( '2fa_on', 0 );
+		diluxone_users_log_record( 'signed_in', 0 );
+
+		$this->assertSame( array( '2fa_on' ), $this->events() );
+	}
+
+	/** A row's address is the client's, behind a proxy the site trusts. */
+	public function test_a_rows_address_is_the_clients_behind_a_trusted_proxy(): void {
+		diluxone_users_update_option( 'diluxone_users_ip_header', 'HTTP_X_FORWARDED_FOR' );
+		$_SERVER['REMOTE_ADDR']          = '10.0.0.1';
+		$_SERVER['HTTP_X_FORWARDED_FOR'] = '198.51.100.7';
+
+		diluxone_users_log_record( 'signed_in', 0 );
+		$this->assertSame( '198.51.100.7', $this->rows()[0]['ip'] );
+
+		$_SERVER['REMOTE_ADDR'] = '198.51.100.20';
+		diluxone_users_log_record( 'signed_out', 0 );
+		$this->assertSame( '198.51.100.20', $this->rows()[0]['ip'], 'not behind a proxy: what the header says is not believed' );
+	}
+
+	public function test_a_negative_user_is_nobody(): void {
+		diluxone_users_log_record( 'signed_in', -5 );
+
+		$this->assertSame( 0, (int) $this->rows()[0]['user_id'] );
+	}
+
+	/** The search is clamped, and an event nobody records is no filter. */
+	public function test_the_search_is_held_to_sense(): void {
+		for ( $i = 0; $i < 3; $i++ ) {
+			diluxone_users_log_record( 'signed_in', 0 );
+		}
+
+		$page = diluxone_users_log_search( array(), 0, 0 );
+		$this->assertCount( 1, $page['rows'], 'page 1, one row' );
+		$this->assertSame( 3, (int) $page['total'] );
+
+		$this->assertCount( 3, $this->rows( array( 'event' => 'nope' ) ) );
+		$this->assertSame( array(), array_filter( $this->logWheresWhile( fn() => $this->rows( array( 'event' => 'nope' ) ) ), static fn( string $where ): bool => false !== strpos( $where, 'l.event' ) ) );
+	}
+
+	/** Dates that are not dates are no filter; a range that ends before it starts finds nothing. */
+	public function test_dates_that_are_not_dates_are_no_filter(): void {
+		diluxone_users_log_record( 'signed_in', 0 );
+
+		$wheres = $this->logWheresWhile( fn() => $this->rows( array( 'from' => '01/02/2024', 'to' => '2024-1-2' ) ) );
+		$this->assertSame( array(), array_filter( $wheres, static fn( string $where ): bool => false !== strpos( $where, 'happened' ) ) );
+
+		$this->assertSame( array(), $this->rows( array( 'from' => gmdate( 'Y-m-d', time() + DAY_IN_SECONDS ), 'to' => gmdate( 'Y-m-d', time() - DAY_IN_SECONDS ) ) ) );
+	}
+
+	/** A search for a name with `_` or `%` in it means those characters, not any. */
+	public function test_searching_for_a_person_means_the_characters_typed(): void {
+		$under = $this->make_user();
+		$plain = $this->make_user();
+		wp_update_user( array( 'ID' => $under, 'display_name' => 'a_b' ) );
+		wp_update_user( array( 'ID' => $plain, 'display_name' => 'axb' ) );
+		diluxone_users_log_record( 'signed_in', $under );
+		diluxone_users_log_record( 'signed_in', $plain );
+
+		$this->assertSame( array( $under ), array_values( array_unique( array_map( 'intval', array_column( $this->rows( array( 'who' => 'a_b' ) ), 'user_id' ) ) ) ) );
+		$this->assertSame( array(), $this->rows( array( 'who' => '%' ) ) );
+	}
+
+	/** Saving the account's fields writes one row naming the fields, and nothing for what is not one. */
+	public function test_saving_the_fields_is_one_row_naming_them(): void {
+		diluxone_users_update_option( 'diluxone_users_fields', array( array( 'key' => 'diluxone_users_phone', 'label' => 'Phone' ) ) );
+		$user = $this->make_user();
+
+		do_action( 'diluxone_users_fields_saved', $user, array( 'diluxone_users_phone' => '1', 'junk' => 'x' ), '' );
+		do_action( 'diluxone_users_fields_saved', $user, array( 'junk' => 'x' ), '' );
+
+		$rows = $this->rows( array( 'event' => 'profile_saved' ) );
+		$this->assertCount( 1, $rows );
+		$this->assertSame( 'diluxone_users_phone', $rows[0]['detail']['fields'] );
+	}
+
+	/** Taking the second step off or the passkeys away by deleting the meta is a row too. */
+	public function test_deleting_the_switch_or_the_passkeys_is_a_row(): void {
+		$user = $this->make_user();
+		update_user_meta( $user, 'diluxone_users_2fa_on', 1 );
+		diluxone_users_passkeys_save( $user, array( array( 'id' => 'a', 'key' => 'k' ), array( 'id' => 'b', 'key' => 'k' ) ) );
+		$this->empty_table();
+
+		delete_user_meta( $user, 'diluxone_users_2fa_on' );
+		delete_user_meta( $user, 'diluxone_users_passkeys' );
+		delete_metadata( 'user', 0, 'diluxone_users_2fa_on', '', true );
+
+		$this->assertSame( array( 'passkey_removed', '2fa_off' ), $this->events() );
+	}
+
+	/** Signing out is not "sessions closed"; closing the others is, once, with how many. */
+	public function test_signing_out_is_not_closing_sessions(): void {
+		$user = $this->make_user();
+		wp_set_current_user( $user );
+		$sessions = \WP_Session_Tokens::get_instance( $user );
+		$mine     = $sessions->create( time() + HOUR_IN_SECONDS );
+		$sessions->create( time() + HOUR_IN_SECONDS );
+		$sessions->create( time() + HOUR_IN_SECONDS );
+
+		// This browser is the one holding $mine.
+		$_COOKIE[ LOGGED_IN_COOKIE ] = wp_generate_auth_cookie( $user, time() + HOUR_IN_SECONDS, 'logged_in', $mine );
+
+		$sessions->destroy_others( $mine );
+		$sessions->destroy( $mine );
+
+		$rows = $this->rows( array( 'event' => 'sessions_closed' ) );
+		$this->assertCount( 1, $rows );
+		$this->assertSame( '2', (string) $rows[0]['detail']['closed'] );
+	}
 }

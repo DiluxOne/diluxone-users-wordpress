@@ -102,7 +102,7 @@ function diluxone_users_create_page_link( string $option ): void {
 			),
 			admin_url( 'admin-post.php' )
 		),
-		'diluxone_users_create_page_' . $option
+		'diluxone_users_create_page'
 	);
 
 	printf(
@@ -112,17 +112,27 @@ function diluxone_users_create_page_link( string $option ): void {
 	);
 }
 
-/** Creates the page, chooses it, and goes back to where the click came from. */
+/**
+ * Creates the page, chooses it, and goes back to where the click came from.
+ *
+ * The link's nonce and the capability are checked before anything is read;
+ * which page it is comes after, and only one of the plugin's own is accepted.
+ */
 function diluxone_users_create_page(): void {
-	$option = sanitize_key( wp_unslash( $_GET['page'] ?? '' ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- verified below, with the option in the action.
-	$roles  = diluxone_users_page_roles();
+	check_admin_referer( 'diluxone_users_create_page' );
 
 	// The pages are the hub's: made anywhere else, the page would be on one
 	// site and the setting pointing at it on another.
-	if ( ! isset( $roles[ $option ] ) || ! diluxone_users_admin_owns( 'hub' ) || ! current_user_can( 'manage_options' ) ) {
-		wp_die( esc_html__( 'You are not allowed to do this.', 'diluxone-users' ), 403 );
+	if ( ! diluxone_users_admin_owns( 'hub' ) || ! current_user_can( 'manage_options' ) ) {
+		wp_die( esc_html__( 'You are not allowed to do this.', 'diluxone-users' ), '', array( 'response' => 403 ) );
 	}
-	check_admin_referer( 'diluxone_users_create_page_' . $option );
+
+	$option = sanitize_key( wp_unslash( $_GET['page'] ?? '' ) );
+	$roles  = diluxone_users_page_roles();
+
+	if ( ! isset( $roles[ $option ] ) ) {
+		wp_die( esc_html__( 'You are not allowed to do this.', 'diluxone-users' ), '', array( 'response' => 403 ) );
+	}
 
 	$back = wp_get_referer() ? wp_get_referer() : diluxone_users_admin_url( $roles[ $option ]['screen'] );
 

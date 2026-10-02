@@ -73,7 +73,7 @@ export default defineConfig({
 		{
 			name: 'network',
 			testMatch: /\.spec\.ts$/,
-			testIgnore: /network-snapshots\.spec\.ts/,
+			testIgnore: /network(-front)?-snapshots\.spec\.ts/,
 			use: {
 				...devices['Desktop Chrome'],
 				launchOptions: { args: [`--host-resolver-rules=MAP ${MAPPED_HOST} 127.0.0.1`] },
@@ -84,7 +84,7 @@ export default defineConfig({
 			? [
 					{
 						name: 'network-visual',
-						testMatch: /network-snapshots\.spec\.ts/,
+						testMatch: /network(-front)?-snapshots\.spec\.ts/,
 						use: {
 							...devices['Desktop Chrome'],
 							viewport: { width: 1280, height: 900 },

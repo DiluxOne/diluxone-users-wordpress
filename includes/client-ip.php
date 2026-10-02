@@ -131,10 +131,17 @@ function diluxone_users_ip_in( string $ip, string $range ): bool {
 		return false;
 	}
 
+	// A prefix is digits and nothing else. Cast as it comes, `/abc` or a bare
+	// `/` would be /0 — every address of the family — and a typo in the list
+	// of proxies would let anybody say who they are in a forwarded header.
+	if ( null !== $bits && ! ctype_digit( $bits ) ) {
+		return false;
+	}
+
 	$size = strlen( $ip_bytes ) * 8;
 	$bits = null === $bits ? $size : (int) $bits;
 
-	if ( $bits < 0 || $bits > $size ) {
+	if ( $bits > $size ) {
 		return false;
 	}
 

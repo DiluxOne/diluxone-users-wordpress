@@ -10,9 +10,12 @@
 
 namespace Tests\Unit\DiluxOneUsers;
 
+use Tests\Unit\ResetsWpStubs;
 use PHPUnit\Framework\TestCase;
 
 class QrTest extends TestCase {
+
+	use ResetsWpStubs;
 
 	protected function setUp(): void {
 		parent::setUp();
@@ -24,6 +27,41 @@ class QrTest extends TestCase {
 		$this->assertCount( 21, diluxone_users_qr_matrix( 'hola' ) );
 		$this->assertCount( 45, diluxone_users_qr_matrix( str_repeat( 'a', 150 ) ) );
 		$this->assertCount( 57, diluxone_users_qr_matrix( str_repeat( 'a', 260 ) ) );
+	}
+
+	/**
+	 * The error correction is the standard's: the worked example of the
+	 * specification ("HELLO WORLD", version 1, level M) gives these ten bytes.
+	 */
+	public function test_the_error_correction_matches_the_standards_example(): void {
+		$this->assertSame(
+			array( 196, 35, 39, 119, 235, 215, 231, 226, 93, 23 ),
+			diluxone_users_qr_ec( array( 32, 91, 11, 120, 209, 114, 220, 77, 67, 64, 236, 17, 236, 17, 236, 17 ), 10 )
+		);
+	}
+
+	/**
+	 * The whole symbol for one `otpauth://` address is the one a real reader
+	 * decoded (see the fixture's header). The structural tests below would
+	 * pass with a wrong mask or a broken error correction; this one would not.
+	 */
+	public function test_the_symbol_is_the_one_a_reader_decoded(): void {
+		$lines   = file( DILUXONE_USERS_DIR . 'tests/Unit/fixtures/qr-otpauth.txt', FILE_IGNORE_NEW_LINES );
+		$address = substr( (string) $lines[1], 2 );
+		$rows    = array_values( array_filter( $lines, static fn( string $line ): bool => '' !== $line && '#' !== $line[0] ) );
+		$drawn   = array_map( static fn( array $row ): string => implode( '', array_map( static fn( bool $dark ): string => $dark ? '1' : '0', $row ) ), (array) diluxone_users_qr_matrix( $address ) );
+
+		$this->assertSame( $rows, $drawn );
+	}
+
+	/** Where one version ends and the next begins, and what is a byte. */
+	public function test_the_version_boundaries_and_multibyte_text(): void {
+		$this->assertCount( 21, diluxone_users_qr_matrix( '' ) );
+		$this->assertCount( 21, diluxone_users_qr_matrix( str_repeat( 'a', 17 ) ) );
+		$this->assertCount( 25, diluxone_users_qr_matrix( str_repeat( 'a', 18 ) ) );
+		$this->assertCount( 57, diluxone_users_qr_matrix( str_repeat( 'a', 271 ) ) );
+		$this->assertNull( diluxone_users_qr_matrix( str_repeat( 'a', 272 ) ) );
+		$this->assertCount( 25, diluxone_users_qr_matrix( str_repeat( 'ñ', 9 ) ), 'eighteen bytes, not nine letters' );
 	}
 
 	public function test_what_does_not_fit_returns_null(): void {

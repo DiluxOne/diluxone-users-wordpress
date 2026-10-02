@@ -52,7 +52,7 @@ if ( array() === $args['fields'] ) {
 					</label>
 				<?php endif; ?>
 
-				<?php diluxone_users_field_input( $diluxone_users_field, diluxone_users_value( $args['user_id'], $diluxone_users_field['key'] ) ); ?>
+				<?php diluxone_users_field_input( $diluxone_users_field, diluxone_users_value( $args['user_id'], $diluxone_users_field['key'] ), '', (int) $args['user_id'] ); ?>
 
 				<?php if ( '' !== $diluxone_users_field['help'] ) : ?>
 					<p class="diluxone-users-field__help"><?php echo esc_html( $diluxone_users_field['help'] ); ?></p>

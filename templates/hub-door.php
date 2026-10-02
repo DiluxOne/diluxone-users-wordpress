@@ -4,7 +4,8 @@
  *
  * What it is given, in `$args`:
  *
- * - `door` 'login', 'register' or 'account'.
+ * - `door` 'login', 'register', 'account', or 'here': signing in on this
+ *          site itself, on a domain of its own.
  * - `url`  Where the button goes: the hub's page, with the way back.
  * - `hub`  The name of the site the network's accounts live on.
  *
@@ -27,6 +28,12 @@ $diluxone_users_words = array(
 		/* translators: %s: the name of the site where the network's accounts live */
 		'text'   => __( 'Accounts are created on %s, for every site of the network. You come back here afterwards.', 'diluxone-users' ),
 		'button' => __( 'Create your account', 'diluxone-users' ),
+	),
+	'here'     => array(
+		'title'  => __( 'Sign in', 'diluxone-users' ),
+		/* translators: %s: the name of the site where the network's accounts live */
+		'text'   => __( 'This site is on a domain of its own, so you sign in here: signing in on %s does not carry over to it.', 'diluxone-users' ),
+		'button' => __( 'Sign in', 'diluxone-users' ),
 	),
 	'account'  => array(
 		'title'  => __( 'This is your account', 'diluxone-users' ),

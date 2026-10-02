@@ -27,6 +27,24 @@ class PasswordlessGateTest extends IntegrationTestCase {
 		return home_url( '/sign-in/' );
 	}
 
+	/**
+	 * wp-login.php is left to do its own work: no redirect, no stop, and the
+	 * request it is about to read is the one that arrived.
+	 */
+	private function passes( string $why = '' ): void {
+		$post = $_POST;
+		$get  = $_GET;
+
+		try {
+			diluxone_users_block_wp_login();
+		} catch ( Support\RedirectException $e ) {
+			$this->fail( 'Sent to ' . $e->url . ( '' !== $why ? ': ' . $why : '' ) );
+		}
+
+		$this->assertSame( $post, $_POST, $why );
+		$this->assertSame( $get, $_GET, $why );
+	}
+
 	/** @param array<string, string> $get */
 	private function request( string $method, array $get = array(), array $post = array() ): void {
 		$_SERVER['REQUEST_METHOD'] = $method;
@@ -38,18 +56,14 @@ class PasswordlessGateTest extends IntegrationTestCase {
 		diluxone_users_update_option( 'diluxone_users_login_method', 'both' );
 		$this->request( 'POST', array(), array( 'log' => 'someone', 'pwd' => 'secret' ) );
 
-		diluxone_users_block_wp_login();
-
-		$this->assertTrue( true, 'The POST went through: no 403, no redirect' );
+		$this->passes( 'The POST went through: no 403, no redirect' );
 	}
 
 	public function test_with_only_the_link_the_post_meets_the_wall(): void {
 		diluxone_users_update_option( 'diluxone_users_login_method', 'link' );
 		$this->request( 'POST', array(), array( 'log' => 'someone', 'pwd' => 'secret' ) );
 
-		$this->expectException( \WPAjaxDieContinueException::class );
-
-		diluxone_users_block_wp_login();
+		$this->expectDie( 'diluxone_users_block_wp_login', 'This site signs you in without a password: with your email or with a social account.', 403 );
 	}
 
 	/**
@@ -66,9 +80,7 @@ class PasswordlessGateTest extends IntegrationTestCase {
 		diluxone_users_update_option( 'diluxone_users_lost_password', 'site' );
 		$this->request( 'POST', array( 'action' => 'lostpassword' ), array( 'user_login' => 'someone' ) );
 
-		diluxone_users_block_wp_login();
-
-		$this->assertTrue( true, 'The form that sends the reset e-mail is still reachable' );
+		$this->passes( 'The form that sends the reset e-mail is still reachable' );
 	}
 
 	public function test_asking_for_a_reset_meets_the_wall_when_there_is_no_password_to_reset(): void {
@@ -76,9 +88,7 @@ class PasswordlessGateTest extends IntegrationTestCase {
 		diluxone_users_update_option( 'diluxone_users_lost_password', 'link' );
 		$this->request( 'POST', array( 'action' => 'lostpassword' ), array( 'user_login' => 'someone' ) );
 
-		$this->expectException( \WPAjaxDieContinueException::class );
-
-		diluxone_users_block_wp_login();
+		$this->expectDie( 'diluxone_users_block_wp_login', 'This site signs you in without a password: with your email or with a social account.', 403 );
 	}
 
 	public function test_opening_wp_login_goes_to_the_site_page(): void {
@@ -92,17 +102,13 @@ class PasswordlessGateTest extends IntegrationTestCase {
 		diluxone_users_update_option( 'diluxone_users_login_method', 'link' );
 		$this->request( 'GET', array( 'diluxone-users-admin' => '1' ) );
 
-		diluxone_users_block_wp_login();
-
-		$this->assertTrue( true );
+		$this->passes();
 	}
 
 	public function test_signing_out_is_left_alone(): void {
 		$this->request( 'GET', array( 'action' => 'logout' ) );
 
-		diluxone_users_block_wp_login();
-
-		$this->assertTrue( true );
+		$this->passes();
 	}
 
 	public function test_with_wordpress_screens_nothing_is_touched(): void {
@@ -110,9 +116,7 @@ class PasswordlessGateTest extends IntegrationTestCase {
 		diluxone_users_update_option( 'diluxone_users_login_method', 'both' );
 		$this->request( 'GET' );
 
-		diluxone_users_block_wp_login();
-
-		$this->assertTrue( true );
+		$this->passes();
 	}
 
 	/**
@@ -128,8 +132,6 @@ class PasswordlessGateTest extends IntegrationTestCase {
 		diluxone_users_update_option( 'diluxone_users_login_method', 'link' );
 		$this->request( 'POST', array(), array( 'log' => 'someone', 'pwd' => 'secret' ) );
 
-		$this->expectException( \WPAjaxDieContinueException::class );
-
-		diluxone_users_block_wp_login();
+		$this->expectDie( 'diluxone_users_block_wp_login', 'This site signs you in without a password: with your email or with a social account.', 403 );
 	}
 }

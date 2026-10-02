@@ -638,7 +638,7 @@ class NetworkHubTest extends IntegrationTestCase {
 
 		unset( $wp_rewrite->extra_rules_top[ $rule ] );
 		diluxone_users_sso_rule();
-		$this->assertArrayNotHasKey( $rule, $wp_rewrite->extra_rules_top, 'no /sso/ route on a site that is not the hub' );
+		$this->assertSame( 'index.php?diluxone_users_sso=$matches[1]', $wp_rewrite->extra_rules_top[ $rule ] ?? null, 'the /sso/ route on a site that is not the hub too, so an old address by path reaches the handler below' );
 
 		// An old address on this site starts nothing here.
 		MockProvider::install();
@@ -692,7 +692,13 @@ class NetworkHubTest extends IntegrationTestCase {
 		$this->assertSame( 'http://' . $hub . ( $port ? ':' . $port : '' ), diluxone_users_passkey_origin() );
 
 		// And its endpoint says where to go instead of answering.
-		$answer = $this->ajax( 'diluxone_users_passkeys_ajax', array( 'step' => 'login-options' ) );
+		$answer = $this->ajax(
+			'diluxone_users_passkeys_ajax',
+			array(
+				'step'  => 'login-options',
+				'nonce' => wp_create_nonce( 'diluxone_users_passkeys' ),
+			)
+		);
 		$this->assertFalse( $answer['success'] ?? true );
 		$this->assertStringStartsWith( $this->hub_login_from_here(), (string) ( $answer['data']['redirect'] ?? '' ) );
 	}
@@ -719,7 +725,8 @@ class NetworkHubTest extends IntegrationTestCase {
 	 * @return array<string, mixed>
 	 */
 	private function ajax( callable $handler, array $post ): array {
-		$_POST = $post;
+		$_POST    = $post;
+		$_REQUEST = $post;
 
 		$die = static function (): callable {
 			return static function (): void {
@@ -734,9 +741,10 @@ class NetworkHubTest extends IntegrationTestCase {
 
 		try {
 			$handler();
-		} catch ( \Exception $e ) {
-			// wp_die() after the answer: the bootstrap's handler, or ours.
-			unset( $e );
+		} catch ( \RuntimeException | \WPAjaxDieContinueException $e ) {
+			// wp_die() after the answer, and nothing else: the bootstrap's
+			// handler, or ours. Any other exception is a failure of its own.
+			$this->assertContains( $e->getMessage(), array( 'wp_die', '', '-1', '0' ), 'the answer ended in wp_die()' );
 		} finally {
 			$out = (string) ob_get_clean();
 			remove_filter( 'wp_doing_ajax', '__return_true' );
@@ -832,6 +840,24 @@ class NetworkHubTest extends IntegrationTestCase {
 		$this->assertSame( '', $this->maybe_redirect( 'diluxone_users_post_to_hub' ) );
 	}
 
+	public function test_signed_out_an_action_that_needs_a_session_is_sent_to_sign_in_here(): void {
+		// The hub on a network, the site itself on its own: the handlers are
+		// this site's, and a stranger has none. The answer is the sign-in page,
+		// not the blank page admin-post.php ends in with nothing to run.
+		$this->postAs( 0, array() );
+
+		foreach ( array( 'diluxone_users_avatar', 'diluxone_users_fields_save', 'diluxone_users_sessions', 'diluxone_users_passkey' ) as $action ) {
+			$url = $this->expectRedirect( fn() => do_action( 'admin_post_nopriv_' . $action ) );
+			$this->assertSame( strtok( diluxone_users_login_url(), '?' ), strtok( $url, '?' ), $action );
+		}
+
+		// The three a stranger may send are left to their own handlers.
+		foreach ( diluxone_users_hub_posts_public() as $action ) {
+			$this->assertSame( 0, has_action( 'admin_post_nopriv_' . $action, 'diluxone_users_post_to_hub' ), $action );
+			$this->assertFalse( has_action( 'admin_post_nopriv_' . $action, 'diluxone_users_post_signed_out' ), $action );
+		}
+	}
+
 	/* ── A site on a domain of its own ──────────────────────────────── */
 
 	public function test_a_site_on_a_domain_of_its_own_is_found_and_told(): void {
@@ -854,7 +880,17 @@ class NetworkHubTest extends IntegrationTestCase {
 		$this->assertSame( '', $this->wp_login( array() ), 'its own wp-login.php, to sign in again' );
 		$this->assertSame( site_url( 'wp-login.php', 'login' ), wp_login_url() );
 
+		// Its sign-in door is its own wp-login.php, coming back to the page:
+		// sent to the hub, the session would never arrive, and the same door
+		// would be drawn again.
+		$here = $this->standing_on( 'a-page/' );
+		$door = $this->shortcode( 'diluxone_users_login' );
+		$this->assertStringContainsString( 'data-diluxone-users-door="here"', $door );
+		$this->assertStringContainsString( esc_url( wp_login_url( $here ) ), $door );
+		$this->assertStringNotContainsString( esc_url( diluxone_users_login_url() ), $door, 'not the hub’s sign-in page' );
+
 		wp_set_current_user( $this->make_user( 'administrator' ) );
+		$this->assertSame( '', $this->shortcode( 'diluxone_users_login' ), 'signed in here, no door at all' );
 		ob_start();
 		diluxone_users_mapped_site_notice();
 		$notice = (string) ob_get_clean();
@@ -899,5 +935,119 @@ class NetworkHubTest extends IntegrationTestCase {
 		ob_start();
 		diluxone_users_mapped_site_notice();
 		$this->assertSame( '', (string) ob_get_clean() );
+	}
+
+	/** A held way back that points outside the network is refused when it is spent. */
+	public function test_a_held_way_back_outside_the_network_is_refused(): void {
+		$this->network_only();
+
+		$user = $this->make_user();
+
+		foreach ( array( 'https://evil.test/', 'javascript:alert(1)', '//evil.test' ) as $held ) {
+			$_COOKIE[ DILUXONE_USERS_RETURN_COOKIE ] = $held;
+
+			$to = (string) apply_filters( 'diluxone_users_login_redirect', home_url( '/' ), $user );
+
+			$this->assertSame( home_url( '/' ), $to, $held );
+			$this->assertSame( '', $this->queryArg( $to, 'diluxone-users' ), 'and nothing is marked' );
+		}
+	}
+
+	/** Where a person is, unless the request cannot say it, and then the site's home. */
+	public function test_where_somebody_is_falls_back_to_the_home_page(): void {
+		$this->network_only();
+
+		switch_to_blog( $this->beta );
+		$page = $this->standing_on( '/x/' );
+		$home = home_url( '/' );
+
+		$this->assertSame( $page, diluxone_users_here(), 'a page of this network is where they are' );
+
+		$_SERVER['HTTP_HOST'] = 'evil.test';
+		$this->assertSame( $home, diluxone_users_here(), 'a host that is not the network\'s' );
+
+		$_SERVER['HTTP_HOST'] = '';
+		$this->assertSame( $home, diluxone_users_here(), 'no host at all' );
+
+		$this->standing_on( '/x/' );
+		$_SERVER['REQUEST_METHOD'] = 'POST';
+		$this->assertSame( $home, diluxone_users_here(), 'a form sent is no page to come back to' );
+		$_SERVER['REQUEST_METHOD'] = 'GET';
+
+		foreach ( array( 'admin-post.php', 'wp-login.php', 'admin-ajax.php' ) as $script ) {
+			$GLOBALS['pagenow'] = $script;
+			$this->assertSame( $home, diluxone_users_here(), $script );
+		}
+
+		$GLOBALS['pagenow'] = 'index.php';
+		$this->assertSame( $page, $this->queryArg( diluxone_users_with_return( 'https://hub.test/' ), 'redirect_to' ), 'and the door carries it' );
+	}
+
+	/** WordPress's own registration and lost-password links, from a site that is not the hub. */
+	public function test_the_register_and_lost_password_links_off_the_hub(): void {
+		$this->network_only();
+
+		switch_to_blog( $this->beta );
+		$page = $this->standing_on( '/x/' );
+
+		$this->assertStringStartsWith( diluxone_users_register_url(), wp_registration_url(), 'the hub\'s registration page while it is open' );
+
+		diluxone_users_update_option( 'diluxone_users_register_form', 0 );
+
+		$closed = wp_registration_url();
+		$this->assertStringStartsWith( $this->hub_wp_login(), $closed, 'WordPress\'s form on the hub otherwise' );
+		$this->assertSame( 'register', $this->queryArg( $closed, 'action' ) );
+		$this->assertSame( $page, $this->queryArg( $closed, 'redirect_to' ) );
+
+		$forgot = home_url( '/forgot/' );
+		$this->hook( 'lostpassword_url', static fn(): string => $forgot );
+
+		$lost = wp_lostpassword_url( home_url( '/back/' ) );
+		$this->assertStringStartsWith( $forgot, $lost, 'a page of the site\'s own keeps its path' );
+		$this->assertSame( home_url( '/back/' ), $this->queryArg( $lost, 'redirect_to' ) );
+
+		$lost = wp_lostpassword_url( 'https://evil.test/' );
+		$this->assertSame( $page, $this->queryArg( $lost, 'redirect_to' ), 'an address elsewhere is where they are instead' );
+	}
+
+	/** The network's domains are read once, and read again when a site changes. */
+	public function test_the_domain_list_is_kept_until_a_site_changes(): void {
+		global $wpdb;
+
+		$this->network_only();
+
+		$site = $this->site( 'cache-' . strtolower( wp_generate_password( 6, false ) ) . '.test', '/' );
+		$was  = (string) get_site( $site )->domain;
+
+		$this->assertContains( $was, diluxone_users_network_domains() );
+
+		// Behind WordPress's back: no hook runs, so the kept list is used.
+		$wpdb->update( $wpdb->blogs, array( 'domain' => 'sneak.test' ), array( 'blog_id' => $site ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+		clean_blog_cache( $site );
+
+		$this->assertContains( $was, diluxone_users_network_domains(), 'the kept list' );
+		$this->assertNotContains( 'sneak.test', diluxone_users_network_domains() );
+
+		wp_update_site( $site, array( 'domain' => 'moved-' . $was ) );
+
+		$this->assertContains( 'moved-' . $was, diluxone_users_network_domains(), 'a site changed through WordPress is read again' );
+		$this->assertNotContains( $was, diluxone_users_network_domains() );
+	}
+
+	/** The hub's name, or its address when it has none. */
+	public function test_the_hub_is_named_by_its_address_when_it_has_no_name(): void {
+		$this->network_only();
+
+		$hub  = diluxone_users_hub_site_id();
+		$name = get_blog_option( $hub, 'blogname' );
+
+		try {
+			$this->assertSame( (string) $name, diluxone_users_hub_name() );
+
+			update_blog_option( $hub, 'blogname', '' );
+			$this->assertSame( get_home_url( $hub ), diluxone_users_hub_name() );
+		} finally {
+			update_blog_option( $hub, 'blogname', $name );
+		}
 	}
 }

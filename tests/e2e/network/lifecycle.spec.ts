@@ -1,7 +1,7 @@
 import { test, expect, whoOn, hubDoor } from './support';
 import { Site, freshEmail, linkIn, waitForMail } from '../support/api';
 import { PLUGIN_DIR, debugLogLines, debugLogSince, wp } from '../support/cli';
-import { askForLink, emailField } from '../support/ui';
+import { askForLink, emailField, navigated } from '../support/ui';
 import { NETWORK_ADMIN_STATE, NETWORK_URL } from '../../../playwright.network.config';
 
 /**
@@ -79,7 +79,7 @@ test.describe('Switching the plugin off and on', () => {
 		try {
 			// Off for the network, from the network's own Plugins screen.
 			await page.goto(`${NETWORK_URL}/wp-admin/network/plugins.php`);
-			await Promise.all([page.waitForLoadState('domcontentloaded'), row(page).locator('.deactivate a').click()]);
+			await navigated(page, () => row(page).locator('.deactivate a').click());
 			await expect(row(page).locator('.activate a'), 'the network’s screen offers Network Activate').toBeVisible();
 
 			// Off, the shortcodes are text and no form or door is drawn anywhere.
@@ -101,7 +101,7 @@ test.describe('Switching the plugin off and on', () => {
 			await expect(hubDoor(guest), 'and no door').toHaveCount(0);
 
 			const screen = await page.goto(alpha.admin('admin.php?page=diluxone-users-login'));
-			expect(screen?.status(), 'no screens on /alpha/').not.toBe(200);
+			expect(screen?.status(), 'no screens on /alpha/: refused, not broken').toBe(403);
 
 			// …but tell whoever runs the network to activate it for all of it.
 			await page.goto(alpha.admin('index.php'));
@@ -121,7 +121,7 @@ test.describe('Switching the plugin off and on', () => {
 			wp(['option', 'update', 'active_plugins', alphaPlugins, '--format=json'], alpha.url);
 
 			await page.goto(`${NETWORK_URL}/wp-admin/network/plugins.php`);
-			await Promise.all([page.waitForLoadState('domcontentloaded'), row(page).locator('.activate a').click()]);
+			await navigated(page, () => row(page).locator('.activate a').click());
 			await expect(row(page).locator('.deactivate a')).toBeVisible();
 
 			for (const one of [alpha, beta]) {

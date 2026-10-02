@@ -1,7 +1,7 @@
 import type { Browser, Page } from '@playwright/test';
 import { test, expect, whoOn, SiteHandle } from './support';
 import { wp } from '../support/cli';
-import { adminUrl, fillCredentials } from '../support/ui';
+import { adminUrl, answeringDialog, fillCredentials, navigated } from '../support/ui';
 import { NETWORK_ADMIN_STATE, NETWORK_URL } from '../../../playwright.network.config';
 
 /**
@@ -55,7 +55,7 @@ async function signInOn(browser: Browser, one: SiteHandle, email: string): Promi
 
 	await person.goto(`${one.url}wp-login.php?diluxone-users-admin=1`);
 	await fillCredentials(person, email, PASSWORD);
-	await Promise.all([person.waitForLoadState('domcontentloaded'), person.locator('#wp-submit').click()]);
+	await navigated(person, () => person.locator('#wp-submit').click());
 	await person.waitForURL((url) => !url.pathname.endsWith('/wp-login.php'));
 	expect(await whoOn(person, one.url)).toBe(email);
 	await context.close();
@@ -130,14 +130,12 @@ test.describe('The network’s activity log', () => {
 		await page.goto(siteReport(alpha, ''));
 		const siteEmpty = page.locator('a[href*="action=diluxone_users_log_empty"]');
 
-		page.once('dialog', (dialog) => dialog.dismiss());
-		await siteEmpty.click();
+		await answeringDialog(page, 'dismiss', () => siteEmpty.click());
 		await page.goto(networkReport(tag));
 		await expect(rows(page), '“No” deletes nothing').toHaveCount(2);
 
 		await page.goto(siteReport(alpha, ''));
-		page.once('dialog', (dialog) => dialog.accept());
-		await Promise.all([page.waitForURL(/diluxone-users-emptied=/), siteEmpty.click()]);
+		await answeringDialog(page, 'accept', () => Promise.all([page.waitForURL(/diluxone-users-emptied=/), siteEmpty.click()]));
 
 		await page.goto(networkReport(tag));
 		await expect(rows(page, alphaId), '/alpha/’s rows went').toHaveCount(0);
@@ -146,13 +144,11 @@ test.describe('The network’s activity log', () => {
 		// In Network Admin, beside every site's rows.
 		const networkEmpty = page.locator('a[href*="action=diluxone_users_log_empty_network"]');
 
-		page.once('dialog', (dialog) => dialog.dismiss());
-		await networkEmpty.click();
+		await answeringDialog(page, 'dismiss', () => networkEmpty.click());
 		await page.goto(networkReport(tag));
 		await expect(rows(page), '“No” deletes nothing').toHaveCount(1);
 
-		page.once('dialog', (dialog) => dialog.accept());
-		await Promise.all([page.waitForURL(/diluxone-users-emptied=/), networkEmpty.click()]);
+		await answeringDialog(page, 'accept', () => Promise.all([page.waitForURL(/diluxone-users-emptied=/), networkEmpty.click()]));
 		expect(page.url(), 'back in Network Admin').toContain('/wp-admin/network/');
 
 		await page.goto(networkReport(''));

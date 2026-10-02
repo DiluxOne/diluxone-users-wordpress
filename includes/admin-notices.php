@@ -299,15 +299,19 @@ function diluxone_users_notices_rules_aside(): void {
  * A word that is not one of the four policies is dropped, not stored.
  */
 function diluxone_users_notices_rules_save(): void {
+	check_admin_referer( 'diluxone_users_panel_' . DILUXONE_USERS_NOTICES, 'diluxone_users_panel_nonce' );
+	diluxone_users_panel_allowed();
+
 	$policies = diluxone_users_notice_policies();
 	$rules    = diluxone_users_notice_rules();
+	$notices  = diluxone_users_notification_prefs();
 
-	// phpcs:ignore WordPress.Security.NonceVerification.Missing -- the panel verifies the nonce.
 	foreach ( (array) map_deep( wp_unslash( $_POST['diluxone_users_notice_rules'] ?? array() ), 'sanitize_key' ) as $key => $policy ) {
-		$key    = sanitize_key( (string) $key );
-		$policy = sanitize_key( (string) $policy );
+		$key = sanitize_key( (string) $key );
 
-		if ( '' === $key || ! isset( $policies[ $policy ] ) ) {
+		// A rule for a notice the screen drew, and one of the answers it
+		// offers. A key nobody registered was kept as a rule for nothing.
+		if ( ! isset( $notices[ $key ] ) || ! is_string( $policy ) || ! isset( $policies[ $policy ] ) ) {
 			continue;
 		}
 
@@ -334,7 +338,7 @@ function diluxone_users_notices_rules_save(): void {
  * a text written for a language nobody can switch to would never be sent.
  */
 function diluxone_users_mail_screen_locale(): string {
-	// phpcs:disable WordPress.Security.NonceVerification -- it only decides which language is drawn; the panel verifies the nonce before anything is written.
+	// phpcs:disable WordPress.Security.NonceVerification -- only which language: a locale picked from the site's installed languages, used to choose which texts are drawn or written; this function saves nothing.
 	$asked = isset( $_GET['lang'] ) ? sanitize_text_field( wp_unslash( $_GET['lang'] ) ) : '';
 
 	if ( '' === $asked && isset( $_POST['diluxone_users_mail_locale'] ) ) {
@@ -546,9 +550,11 @@ function diluxone_users_screen_mail_templates(): void {
  * sign-in e-mail is worse than the one that was working a second ago.
  */
 function diluxone_users_mail_templates_save(): void {
+	check_admin_referer( 'diluxone_users_panel_' . DILUXONE_USERS_NOTICES, 'diluxone_users_panel_nonce' );
+	diluxone_users_panel_allowed();
+
 	$locale = diluxone_users_mail_screen_locale();
 
-	// phpcs:ignore WordPress.Security.NonceVerification.Missing -- the panel verifies the nonce.
 	$sent = (array) map_deep( wp_unslash( $_POST['diluxone_users_mail'] ?? array() ), 'sanitize_textarea_field' );
 
 	foreach ( diluxone_users_mail_templates() as $key => $template ) {

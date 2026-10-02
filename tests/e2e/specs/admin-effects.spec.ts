@@ -1,7 +1,7 @@
 import { Page } from '@playwright/test';
 import { test, expect, expectSignedIn } from '../support/fixtures';
 import { freshEmail } from '../support/api';
-import { accountSection, adminUrl, openWay, passwordForm, savePanel, signInWithPassword, ssoButton } from '../support/ui';
+import { accountSection, adminUrl, answeringDialog, navigated, openWay, passwordForm, savePanel, signInWithPassword, ssoButton } from '../support/ui';
 import { ADMIN_STATE } from '../../../playwright.config';
 
 /**
@@ -55,6 +55,9 @@ test.describe('Design › WordPress’s own screens', () => {
 		const home = new URL('/', guest.url()).toString();
 
 		await expect(guest.locator('#login h1 a')).toHaveAttribute('href', home);
+
+		await page.goto('/wp-admin/options-general.php');
+		await expect(guest.locator('#login h1 a'), 'the site’s own name, not “Powered by WordPress”').toHaveText(await page.locator('#blogname').inputValue());
 		expect(
 			await guest.locator('body').evaluate((body) => getComputedStyle(body).backgroundColor),
 			'the background is the site’s colour, not WordPress’s grey'
@@ -87,7 +90,8 @@ test.describe('Design › Profile photo', () => {
 		options,
 	}) => {
 		await options.keep(['diluxone_users_avatar_gravatar', 'diluxone_users_avatar_initials', 'diluxone_users_avatar_upload']);
-		await options.set({ diluxone_users_avatar_upload: 1 });
+		// From the other way round, so that only the save can change it.
+		await options.set({ diluxone_users_avatar_upload: 1, diluxone_users_avatar_gravatar: 1, diluxone_users_avatar_initials: 0 });
 
 		await page.goto(adminUrl('diluxone-users-design', 'photo'));
 		await tick(page, 'diluxone_users_avatar_gravatar', false);
@@ -169,6 +173,7 @@ test.describe('Account area › The WordPress dashboard', () => {
 		options,
 	}) => {
 		await options.keep(['diluxone_users_wp_profile', 'diluxone_users_wp_profile_scope', 'diluxone_users_wp_profile_roles']);
+		await options.set({ diluxone_users_wp_profile: 'allow' });
 
 		// Signed in first: the helper that says "signed in" asks profile.php,
 		// which is the very screen this setting moves.
@@ -265,13 +270,11 @@ test.describe('Social › Providers', () => {
 		await expect(off).toHaveCount(1);
 
 		// It asks first, and saying no leaves the button where it was.
-		page.once('dialog', (dialog) => dialog.dismiss());
-		await off.click();
+		await answeringDialog(page, 'dismiss', () => off.click());
 		await guest.goto(pages.login.url);
 		await expect(ssoButton(guest, 'mock')).toBeVisible();
 
-		page.once('dialog', (dialog) => dialog.accept());
-		await Promise.all([page.waitForLoadState('domcontentloaded'), off.click()]);
+		await answeringDialog(page, 'accept', () => navigated(page, () => off.click()));
 
 		await guest.goto(pages.login.url);
 		await expect(ssoButton(guest, 'mock')).toHaveCount(0);
@@ -289,8 +292,7 @@ test.describe('Social › Providers', () => {
 
 		await expect(forget).toHaveClass(/button-link-delete/);
 
-		page.once('dialog', (dialog) => dialog.accept());
-		await Promise.all([page.waitForLoadState('domcontentloaded'), forget.click()]);
+		await answeringDialog(page, 'accept', () => navigated(page, () => forget.click()));
 
 		const stored = (await site.getOptions(['diluxone_users_sso'])).diluxone_users_sso as Record<string, unknown>;
 
@@ -304,13 +306,21 @@ test.describe('Access › The sign-in page', () => {
 		guest,
 		pages,
 		options,
+		site,
 	}) => {
 		await options.keep(['diluxone_users_wp_screens']);
-		await options.set({ diluxone_users_login_method: 'both' });
+		// From "mine", which sends wp-login.php to the site's page: only the
+		// save can make it WordPress's again.
+		await options.set({ diluxone_users_login_method: 'both', diluxone_users_wp_screens: 'mine' });
+
+		await guest.goto('/wp-login.php');
+		expect(new URL(guest.url()).pathname, 'taken over before the save').not.toBe('/wp-login.php');
 
 		await page.goto(adminUrl('diluxone-users-login', 'page'));
 		await page.locator('[name="diluxone_users_wp_screens"][value="wp"]').check({ force: true });
 		await savePanel(page);
+
+		expect((await site.getOptions(['diluxone_users_wp_screens'])).diluxone_users_wp_screens).toBe('wp');
 
 		await guest.goto('/wp-login.php');
 		expect(new URL(guest.url()).pathname).toBe('/wp-login.php');

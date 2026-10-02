@@ -39,6 +39,15 @@ import { Page, expect } from '@playwright/test';
  */
 export const WIDTHS = [1600, 1280, 960, 782] as const;
 
+/**
+ * The widths of the public pages: the four above, and the three the plugin's
+ * own stylesheet for the front end changes at — 640, 560 and 480, where the
+ * account's menu, the registration's columns and the social buttons each
+ * restack — and a phone, 390, where every one of them has taken over. The
+ * dashboard has no rules of its own below 782, so it is not measured there.
+ */
+export const FRONT_WIDTHS = [...WIDTHS, 640, 560, 480, 390] as const;
+
 export type LayoutKind = 'overlap' | 'overflow' | 'air' | 'blank' | 'rail' | 'shape' | 'hidden' | 'root';
 
 export interface LayoutFinding {

@@ -52,7 +52,6 @@ class SsoToggleTest extends IntegrationTestCase {
 		$this->in_network_admin();
 
 		$_GET = array(
-			'page'                  => 'diluxone-users-social',
 			'red'                   => 'google',
 			'diluxone_users_action' => $action,
 		);
@@ -82,15 +81,60 @@ class SsoToggleTest extends IntegrationTestCase {
 		}
 
 		$_GET = array(
-			'page'                  => 'diluxone-users-social',
 			'red'                   => 'google',
 			'diluxone_users_action' => 'off',
 		);
 		$_REQUEST['_wpnonce'] = wp_create_nonce( 'diluxone_users_social_toggle' );
 
-		diluxone_users_social_toggle();
-
+		$this->expectDie( 'diluxone_users_social_toggle', 'You are not allowed to do this.', 403 );
 		$this->assertSame( 'enabled', diluxone_users_sso_state( 'google' ) );
+	}
+
+	/**
+	 * In Network Admin, a site's administrator who is not one of the
+	 * network's is refused the switch, with a nonce of their own: what stops
+	 * them is the capability, not where they stand.
+	 */
+	public function test_in_network_admin_a_site_administrator_cannot_switch_a_provider(): void {
+		if ( ! is_multisite() ) {
+			$this->markTestSkipped( 'A network case; on a single site the counterpart is test_on_a_single_site_the_sites_screen_switches_a_provider.' );
+		}
+
+		$this->in_network_admin();
+		wp_set_current_user( $this->make_user( 'administrator' ) );
+
+		$_GET                 = array(
+			'red'                   => 'google',
+			'diluxone_users_action' => 'off',
+		);
+		$_REQUEST['_wpnonce'] = wp_create_nonce( 'diluxone_users_social_toggle' );
+
+		$this->expectDie( 'diluxone_users_social_toggle', 'You are not allowed to do this.', 403 );
+		$this->assertSame( 'enabled', diluxone_users_sso_state( 'google' ) );
+	}
+
+	/** The link is an admin action: without its nonce nothing is read and nothing changes. */
+	public function test_without_the_nonce_nothing_changes(): void {
+		$this->in_network_admin();
+
+		$_GET = array(
+			'red'                   => 'google',
+			'diluxone_users_action' => 'off',
+		);
+
+		$this->expectDie( 'diluxone_users_social_toggle', self::EXPIRED, 403 );
+		$this->assertSame( 'enabled', diluxone_users_sso_state( 'google' ) );
+	}
+
+	public function test_the_link_goes_to_wordpress_admin_action(): void {
+		$this->in_network_admin();
+
+		$url = diluxone_users_sso_toggle_url( 'google', 'enabled' );
+
+		$this->assertStringContainsString( 'admin.php?', $url );
+		$this->assertStringContainsString( 'action=diluxone_users_social_toggle', $url );
+		$this->assertStringContainsString( 'diluxone_users_action=off', $url );
+		$this->assertNotFalse( has_action( 'admin_action_diluxone_users_social_toggle', 'diluxone_users_social_toggle' ) );
 	}
 
 	/** On a single site the site's own screen is where a provider is switched. */
@@ -100,7 +144,6 @@ class SsoToggleTest extends IntegrationTestCase {
 		}
 
 		$_GET = array(
-			'page'                  => 'diluxone-users-social',
 			'red'                   => 'google',
 			'diluxone_users_action' => 'off',
 		);

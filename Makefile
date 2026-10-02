@@ -113,14 +113,17 @@ i18n-mo: ## Compile every languages/*.po into the .mo WordPress actually reads.
 	@echo "✔ $$(ls languages/*.mo | wc -l) .mo files built."
 
 .PHONY: i18n-check
-i18n-check: ## Fail if any shipped .po is malformed, untranslated or fuzzy.
+i18n-check: i18n ## Fail if any shipped .po is malformed, untranslated or fuzzy, against today's code.
 	@# Fuzzy counts as incomplete. A fuzzy entry is msgmerge's guess carried
 	@# over from a string that has since changed, and WordPress does not show
 	@# it at all — so a locale full of them reads as English while the
 	@# statistics line calls it translated. The same three words CI checks.
+	@# Against today's code, as CI does: the .pot is made again first and each
+	@# .po is merged with it in memory, so a string the code gained and the
+	@# files never heard of (a changed plugin header, say) counts as missing.
 	@fail=0; \
 	for po in languages/*.po; do \
-	  out=$$(msgfmt --check --statistics -o /dev/null "$$po" 2>&1) || fail=1; \
+	  out=$$(msgmerge -q "$$po" languages/diluxone-users.pot -o - 2>/dev/null | msgfmt --check --statistics -o /dev/null - 2>&1) || fail=1; \
 	  printf "%-34s %s\n" "$$po" "$$out"; \
 	  case "$$out" in *untranslated*|*fuzzy*) fail=1;; esac; \
 	done; \
@@ -230,7 +233,7 @@ test-layout: ## Only the layout measurements: overlap, overflow, air, blank boxe
 .PHONY: test-visual
 test-visual: ## Compare every screen with the picture committed beside the specs.
 	@mkdir -p build
-	DU_SNAPSHOTS=1 npx playwright test --project=visual
+	DU_SNAPSHOTS=1 npx playwright test --project=visual --project=visual-mobile
 
 # The thirteen pictures the wordpress.org listing shows. Not a comparison —
 # it writes .wordpress-org/screenshot-1..13.png, and the captions under
@@ -249,7 +252,7 @@ screenshots: ## Retake the 13 listing screenshots (needs `make env` first).
 .PHONY: test-visual-update
 test-visual-update: ## Take the pictures again and accept them as the new baseline.
 	@mkdir -p build
-	DU_SNAPSHOTS=1 npx playwright test --project=visual --update-snapshots
+	DU_SNAPSHOTS=1 npx playwright test --project=visual --project=visual-mobile --update-snapshots
 	@echo "✔ Pictures rewritten. \`git diff --stat tests/e2e/snapshots\` is the change you are accepting."
 
 # The network's pictures: Network Admin's screens and the places a site of a
@@ -268,6 +271,67 @@ test-visual-network-update: env-multisite ## Take the network's pictures again a
 
 .PHONY: test-all
 test-all: test-unit test-integration test-integration-single test-e2e ## Unit, integration on a network and on a single site, and single-site end-to-end.
+
+# -- Coverage ----------------------------------------------------------
+# How much of includes/ and templates/ the suites run, per file: lines,
+# functions and classes. PCOV measures it. The unit suite runs in a PHP image
+# of its own with PCOV built in; the integration suite in each wp-env's
+# tests-cli, where tests/coverage/pcov.sh installs PCOV switched off, so the
+# ordinary targets stay as fast as before. Every run mounts the checkout at the
+# path the wp-env containers see it under, so the parts merge into one report.
+# The parts are under build/coverage/parts, each report under build/coverage/
+# <layer>/ (report.txt, clover.xml, html/). See docs/testing-and-quality.md.
+COV_DIR    := build/coverage
+COV_PLUGIN  = /var/www/html/wp-content/plugins/$(REPO_DIR)
+COV_IMAGE  ?= diluxone-users-pcov:php8.5
+COV_RUN     = docker run --rm -u $(DOCKER_USER) -v $(CURDIR):$(COV_PLUGIN) -w $(COV_PLUGIN) $(COV_IMAGE)
+COV_PHP     = php -d memory_limit=-1 -d pcov.enabled=1 -d pcov.directory=$(COV_PLUGIN) -d pcov.exclude=~/vendor/~
+COV_INTEG   = $(COV_PHP) ./vendor/bin/phpunit -c phpunit-integration.xml --testsuite integration
+
+# Merge the parts under $(1) into build/coverage/$(2) and print the report.
+define cov_merge
+	@rm -rf $(COV_DIR)/$(2) && mkdir -p $(COV_DIR)/$(2)
+	@$(COV_RUN) php -d memory_limit=-1 ./vendor/bin/phpcov merge --php $(COV_DIR)/$(2)/coverage.cov --clover $(COV_DIR)/$(2)/clover.xml --html $(COV_DIR)/$(2)/html $(1) >/dev/null
+	@$(COV_RUN) php -d memory_limit=-1 tests/coverage/report.php $(COV_DIR)/$(2)/coverage.cov --out=$(COV_DIR)/$(2)/report.txt
+endef
+
+.PHONY: coverage-image
+coverage-image:
+	@docker image inspect $(COV_IMAGE) >/dev/null 2>&1 \
+	  || printf '%s\n' 'FROM php:8.5-cli' 'RUN pecl install pcov && docker-php-ext-enable pcov' | docker build -q -t $(COV_IMAGE) - >/dev/null
+
+.PHONY: coverage-unit
+coverage-unit: coverage-image ## Unit suite with coverage: build/coverage/unit (report.txt, clover.xml, html/).
+	@rm -rf $(COV_DIR)/parts/unit && mkdir -p $(COV_DIR)/parts/unit
+	$(COV_RUN) $(COV_PHP) ./vendor/bin/phpunit --testsuite unit --coverage-php $(COV_DIR)/parts/unit/unit.cov
+	$(call cov_merge,$(COV_DIR)/parts/unit,unit)
+
+.PHONY: coverage-integration
+coverage-integration: coverage-image ## Integration suite with coverage on the network and on a single site, merged: build/coverage/integration.
+	@rm -rf $(COV_DIR)/parts/integration && mkdir -p $(COV_DIR)/parts/integration
+	$(MAKE) env-multisite
+	@tests/coverage/pcov.sh .
+	npx @wordpress/env run tests-cli --env-cwd=wp-content/plugins/$(REPO_DIR) \
+	  env DU_COVERAGE_BOOTSTRAP=$(COV_DIR)/parts/integration/network-load.cov \
+	  $(COV_INTEG) --coverage-php $(COV_DIR)/parts/integration/network.cov
+	$(MAKE) integration-single-env
+	@tests/coverage/pcov.sh "$(INTEG_SINGLE_DIR)"
+	cd "$(INTEG_SINGLE_DIR)" && npx @wordpress/env run tests-cli --env-cwd=wp-content/plugins/$(REPO_DIR) \
+	  env DU_COVERAGE_BOOTSTRAP=$(COV_DIR)/parts/integration/single-load.cov \
+	  $(COV_INTEG) --coverage-php $(COV_DIR)/parts/integration/single.cov
+	$(call cov_merge,$(COV_DIR)/parts/integration,integration)
+
+.PHONY: coverage
+coverage: coverage-unit coverage-integration ## Both suites' coverage merged into one report: build/coverage/all.
+	$(call cov_merge,$(COV_DIR)/parts,all)
+
+# Which of the plugin's doors the browser suites walk. Not measured by a
+# driver: a script lists every admin screen and tab the plugin registers, every
+# shortcode, admin-post and AJAX action, REST route and template, and fails on
+# any that tests/e2e/COVERAGE.md does not map to a spec that exists and names it.
+.PHONY: coverage-e2e-map
+coverage-e2e-map: ## Fail if a screen, tab, shortcode, action, route or template has no row in tests/e2e/COVERAGE.md.
+	node tests/coverage/e2e-map.mjs
 
 # -- Distribution build ------------------------------------------------
 # The repo directory is diluxone-users-wordpress (GitHub), but the plugin
@@ -328,6 +392,18 @@ pcp-env: dist
 	@cd "$(PCP_DIR)" && npx @wordpress/env start >/dev/null
 	@cd "$(PCP_DIR)" && (npx @wordpress/env run cli wp plugin is-installed plugin-check >/dev/null 2>&1 \
 	  || npx @wordpress/env run cli wp plugin install plugin-check --activate >/dev/null)
+
+# The organisation's review rules, the ones CI runs as `checks / Review rules
+# (wordpress-plugin)`: the engine and the WordPress pack live in DiluxOne/.github,
+# read from a checkout of it (DX_CENTRAL, cloned at DX_CENTRAL_REF when absent),
+# never copied here.
+DX_CENTRAL ?= $(CURDIR)/build/dx-central
+DX_CENTRAL_REF ?= v3
+
+.PHONY: review-rules
+review-rules: ## Run the organisation's review rules (wordpress-plugin pack) on this checkout.
+	@[ -d "$(DX_CENTRAL)/kinds" ] || git clone -q --depth 1 --branch $(DX_CENTRAL_REF) https://github.com/DiluxOne/.github.git "$(DX_CENTRAL)"
+	docker run --rm -u $$(id -u):$$(id -g) -v $(CURDIR):/r -v $(DX_CENTRAL):/c -w /r php:8.3-cli php /c/scripts/review-rules.php --kind wordpress-plugin --repo . --tree .
 
 .PHONY: plugin-check
 plugin-check: pcp-env ## Run wordpress.org's Plugin Check on the built dist.

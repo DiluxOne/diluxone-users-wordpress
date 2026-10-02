@@ -677,6 +677,54 @@ class NetworkLogTest extends IntegrationTestCase {
 		$this->assertFalse( $this->table_exists( $old ) );
 	}
 
+	/**
+	 * A copy refused by the database is rolled back: nothing arrives, the
+	 * note of how far it got does not move, the old table stays, and a run
+	 * from cron tries ten times and stops. The next run copies every row once.
+	 */
+	public function test_a_copy_the_database_refuses_is_rolled_back_and_tried_again(): void {
+		global $wpdb;
+
+		$one = $this->site();
+		$old = $this->old_table( $one, 3 );
+		$this->not_moved();
+
+		$tries = 0;
+		$break = static function ( $sql ) use ( &$tries ) {
+			if ( 0 === stripos( ltrim( (string) $sql ), 'INSERT INTO `' . diluxone_users_log_table() . '`' ) || 0 === stripos( ltrim( (string) $sql ), 'INSERT INTO ' . diluxone_users_log_table() . ' ' ) ) {
+				++$tries;
+
+				return 'INSERT INTO diluxone_users_no_such_table VALUES (1)';
+			}
+
+			return $sql;
+		};
+
+		$suppress = $wpdb->suppress_errors( true );
+		add_filter( 'query', $break );
+
+		try {
+			$this->assertFalse( diluxone_users_log_move( 10 ) );
+			$this->assertSame( array(), $this->per_site(), 'nothing arrived' );
+			$this->assertSame( 0, (int) ( diluxone_users_raw_get( DILUXONE_USERS_LOG_MOVING, array() )['from'] ?? 0 ) );
+			$this->assertTrue( $this->table_exists( $old ) );
+
+			$tries = 0;
+			diluxone_users_log_move_run();
+			$this->assertSame( 10, $tries, 'a cron run tries ten times and stops' );
+			$this->assertNotFalse( wp_next_scheduled( DILUXONE_USERS_LOG_MOVE_EVENT ), 'and the next one is waiting' );
+		} finally {
+			remove_filter( 'query', $break );
+			$wpdb->suppress_errors( $suppress );
+		}
+
+		while ( ! diluxone_users_log_move( 10 ) ) {
+			// The rest, now that the database takes it.
+		}
+
+		$this->assertSame( array( $one => 3 ), $this->per_site(), 'every row once' );
+	}
+
 	/** An old table whose rows did not all arrive stays, and is written down. */
 	public function test_an_old_table_whose_rows_do_not_add_up_is_kept(): void {
 		$one = $this->site();

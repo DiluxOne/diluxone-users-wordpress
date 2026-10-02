@@ -193,15 +193,13 @@ class TwoFactorFlowTest extends IntegrationTestCase {
 	}
 
 	public function test_application_passwords_are_off_for_whoever_is_asked_for_a_second_step(): void {
-		add_filter( 'wp_is_application_passwords_available', '__return_true' );
+		$this->hook( 'wp_is_application_passwords_available', '__return_true' );
 
 		$this->assertFalse( wp_is_application_passwords_available_for_user( get_userdata( $this->user ) ) );
 
 		diluxone_users_update_option( 'diluxone_users_2fa_mode', 'off' );
 
 		$this->assertTrue( wp_is_application_passwords_available_for_user( get_userdata( $this->user ) ) );
-
-		remove_filter( 'wp_is_application_passwords_available', '__return_true' );
 	}
 
 	/**
@@ -223,11 +221,14 @@ class TwoFactorFlowTest extends IntegrationTestCase {
 
 			return $check;
 		};
-		add_filter( 'check_password', $race );
+		$this->hook( 'check_password', $race );
 
 		$this->assertFalse( diluxone_users_backup_use( $this->user, $codes[0] ) );
 
+		// The control: with nobody racing it, a code of a fresh set gets in.
 		remove_filter( 'check_password', $race );
+		$fresh = diluxone_users_backup_generate( $this->user );
+		$this->assertTrue( diluxone_users_backup_use( $this->user, $fresh[0] ) );
 	}
 
 	/** A sign-in link works once, even when two requests found it valid. */
@@ -246,5 +247,145 @@ class TwoFactorFlowTest extends IntegrationTestCase {
 
 		$this->assertTrue( diluxone_users_2fa_email_verify( $this->user, $code ) );
 		$this->assertFalse( diluxone_users_2fa_email_verify( $this->user, $code ) );
+	}
+
+	/**
+	 * "Send it again" on the app sends nothing — the app has nothing to send —
+	 * and so does not say it sent something. "Sent" sent the person to an
+	 * inbox with nothing new in it.
+	 */
+	public function test_sending_the_app_again_says_nothing_was_sent(): void {
+		diluxone_users_update_option( 'diluxone_users_2fa_methods', array( 'totp', 'email' ) );
+		update_user_meta( $this->user, 'diluxone_users_totp', 'JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP' );
+
+		$key = $this->challenge();
+		$this->assertSame( array(), self::$mail, 'the app goes first, and nothing is mailed' );
+		$this->assertSame( 0, (int) diluxone_users_meta_list( $this->user, 'diluxone_users_2fa_pending' )['sent'] );
+
+		$this->postAs(
+			0,
+			array(
+				'diluxone_users_2fa_user'   => (string) $this->user,
+				'diluxone_users_2fa_key'    => $key,
+				'diluxone_users_2fa_method' => 'totp',
+				'diluxone_users_2fa_resend' => '1',
+			)
+		);
+		$url = $this->expectRedirect( 'diluxone_users_2fa_handle' );
+
+		$this->assertSame( array(), self::$mail );
+		$this->assertNotSame( 'sent', $this->redirectState( $url ) );
+		$this->assertSame( 'totp', $this->queryArg( $url, 'diluxone_users_method' ), 'back on the app' );
+	}
+
+	/* ── What no other test asked ─────────────────────────────────── */
+
+	/** The right key and the right code, after the attempt ran out: no. */
+	public function test_the_right_code_after_the_attempt_ran_out_is_refused(): void {
+		$key  = $this->challenge();
+		$code = $this->mailedCode();
+
+		$pending            = diluxone_users_meta_list( $this->user, 'diluxone_users_2fa_pending' );
+		$pending['expires'] = time() - 1;
+		update_user_meta( $this->user, 'diluxone_users_2fa_pending', $pending );
+
+		$this->assertSame( 'expired', $this->redirectState( $this->submit( $key, $code ) ) );
+		$this->assertSame( 0, get_current_user_id() );
+		$this->assertArrayNotHasKey( LOGGED_IN_COOKIE, self::$cookies );
+	}
+
+	/** One person's attempt is no key to another account. */
+	public function test_an_attempt_opens_no_other_account(): void {
+		$key   = $this->challenge();
+		$code  = $this->mailedCode();
+		$other = $this->make_user();
+
+		$this->postAs(
+			0,
+			array(
+				'diluxone_users_2fa_user'   => (string) $other,
+				'diluxone_users_2fa_key'    => $key,
+				'diluxone_users_2fa_method' => 'email',
+				'diluxone_users_2fa_code'   => $code,
+			)
+		);
+
+		$this->assertSame( diluxone_users_2fa_restart_url(), $this->expectRedirect( 'diluxone_users_2fa_handle' ) );
+		$this->assertSame( 0, get_current_user_id() );
+		$this->assertSame( 0, (int) diluxone_users_meta_list( $this->user, 'diluxone_users_2fa_pending' )['tries'], 'the real attempt took no strike' );
+	}
+
+	/** A method the site turned off answers nothing, even with its right code. */
+	public function test_a_method_turned_off_cannot_answer_even_with_its_code(): void {
+		update_user_meta( $this->user, 'diluxone_users_totp', 'JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP' );
+		diluxone_users_update_option( 'diluxone_users_2fa_methods', array( 'totp' ) );
+		update_user_meta( $this->user, 'diluxone_users_2fa_email', array( 'hash' => wp_hash( '123456' ), 'expires' => time() + 600 ) );
+
+		$this->assertFalse( diluxone_users_2fa_verify( $this->user, 'email', '123456' ) );
+		$this->assertSame( 1, (int) get_user_meta( $this->user, 'diluxone_users_2fa_fails', true ), 'counted' );
+		$this->assertNotSame( '', get_user_meta( $this->user, 'diluxone_users_2fa_email', true ), 'and the e-mailed code not spent' );
+	}
+
+	/** A password sign-in's way back cannot leave the site through the second step. */
+	public function test_the_way_back_of_a_password_sign_in_stays_on_the_site(): void {
+		$this->postAs( 0, array( 'redirect_to' => 'https://evil.example/x' ) );
+
+		$url = $this->expectRedirect( fn() => diluxone_users_2fa_after_password( get_userdata( $this->user )->user_login, get_userdata( $this->user ) ) );
+		$key = $this->queryArg( $url, 'diluxone_users_key' );
+
+		$final = $this->submit( $key, $this->mailedCode() );
+
+		$this->assertSame( $this->user, get_current_user_id() );
+		$this->assertSame( wp_parse_url( home_url(), PHP_URL_HOST ), wp_parse_url( $final, PHP_URL_HOST ), 'back on the site, not on evil.example' );
+	}
+
+	/** Sending again replaces the code: the first one mailed stops working. */
+	public function test_sending_again_replaces_the_code(): void {
+		diluxone_users_2fa_email_send( $this->user );
+		preg_match( '/\b(\d{6})\b/', (string) $this->lastMail()['message'], $first );
+		diluxone_users_2fa_email_send( $this->user );
+		$second = $this->mailedCode();
+
+		if ( $first[1] !== $second ) {
+			$this->assertFalse( diluxone_users_2fa_email_verify( $this->user, $first[1] ) );
+		}
+
+		$this->assertTrue( diluxone_users_2fa_email_verify( $this->user, substr( $second, 0, 3 ) . '-' . substr( $second, 3 ) ), 'and is read the way people type it' );
+	}
+
+	/**
+	 * "Remember me" survives the second step: the session the code opens
+	 * lasts as long as the one the password would have.
+	 *
+	 * @return array<int, int> The expiry of the auth cookie each run set.
+	 */
+	public function test_remember_me_survives_the_second_step(): void {
+		$expiries = array();
+		$this->hook(
+			'set_logged_in_cookie',
+			static function ( $cookie, $expire ) use ( &$expiries ): void {
+				$expiries[] = (int) $expire;
+			},
+			10,
+			2
+		);
+
+		foreach ( array( true, false ) as $remember ) {
+			wp_set_current_user( 0 );
+			$url = $this->expectRedirect( fn() => diluxone_users_2fa_challenge( $this->user, 'password', $remember, home_url( '/after/' ) ) );
+			$this->submit( $this->queryArg( $url, 'diluxone_users_key' ), $this->mailedCode() );
+		}
+
+		$this->assertGreaterThan( 0, $expiries[0], 'remembered: a cookie with a date' );
+		$this->assertSame( 0, $expiries[1], 'not remembered: a cookie for the browser session' );
+	}
+
+	/** No "trust this browser" cookie unless the box was ticked. */
+	public function test_no_trust_cookie_unless_the_box_was_ticked(): void {
+		diluxone_users_update_option( 'diluxone_users_2fa_remember_days', 14 );
+
+		$this->submit( $this->challenge(), $this->mailedCode() );
+
+		$this->assertSame( array(), preg_grep( '/^diluxone_users_2fa_/', array_keys( self::$cookies ) ) );
 	}
 }

@@ -823,11 +823,12 @@ function diluxone_users_2fa_resend_allowed( int $user_id, string $nonce ): bool 
 }
 
 /** Fires whatever that method needs in order to start (send the e-mail). */
-function diluxone_users_2fa_send( int $user_id, string $method ): void {
+function diluxone_users_2fa_send( int $user_id, string $method ): bool {
 	$methods = diluxone_users_2fa_available( $user_id );
 
+	// A method that sends nothing — the app — has nothing to send again.
 	if ( ! isset( $methods[ $method ]['send'] ) || ! is_callable( $methods[ $method ]['send'] ) ) {
-		return;
+		return false;
 	}
 
 	call_user_func( $methods[ $method ]['send'], $user_id );
@@ -840,6 +841,8 @@ function diluxone_users_2fa_send( int $user_id, string $method ): void {
 		$pending['sent'] = time();
 		update_user_meta( $user_id, 'diluxone_users_2fa_pending', $pending );
 	}
+
+	return true;
 }
 
 /**
@@ -953,7 +956,7 @@ function diluxone_users_2fa_verify( int $user_id, string $method, string $code )
  * page is a page of the site and not wp-login.php.
  */
 function diluxone_users_2fa_handle(): void {
-	// phpcs:disable WordPress.Security.NonceVerification -- our own nonce IS the credential.
+	// phpcs:disable WordPress.Security.NonceVerification -- the person is not signed in yet, so no nonce can belong to them: the single-use pending-attempt key is the credential, validated by diluxone_users_2fa_pending() before anything posted is acted on.
 	if ( ! isset( $_POST['diluxone_users_2fa_user'], $_POST['diluxone_users_2fa_key'] ) ) {
 		return;
 	}
@@ -983,8 +986,9 @@ function diluxone_users_2fa_handle(): void {
 			exit;
 		}
 
-		diluxone_users_2fa_send( $user_id, $method );
-		wp_safe_redirect( add_query_arg( 'diluxone-users', 'sent', $back ) );
+		// "Sent" only when something went: the app has nothing to send, and
+		// saying otherwise sends the person to an inbox with nothing in it.
+		wp_safe_redirect( diluxone_users_2fa_send( $user_id, $method ) ? add_query_arg( 'diluxone-users', 'sent', $back ) : $back );
 		exit;
 	}
 
@@ -1059,12 +1063,19 @@ function diluxone_users_2fa_after_password( string $login, WP_User $user ): void
 		return;
 	}
 
-	// phpcs:ignore WordPress.Security.NonceVerification.Missing -- WordPress verified it while authenticating.
+	/*
+	 * wp-login.php's form carries no nonce — WordPress's own sign-in has none
+	 * to check. What vouches for this request is the password WordPress has
+	 * just verified for this account: `wp_login` only fires after that. The
+	 * two fields read here are that same form's; the address is cleaned and
+	 * then kept to the site's own hosts by the redirect that uses it.
+	 */
+	// phpcs:disable WordPress.Security.NonceVerification.Missing -- wp-login.php has no nonce; the password WordPress just verified is what vouches for this form: this runs on `wp_login`, which only fires after it.
 	$redirect = isset( $_POST['redirect_to'] ) && is_string( $_POST['redirect_to'] ) ? esc_url_raw( wp_unslash( $_POST['redirect_to'] ) ) : '';
-	$redirect = '' !== $redirect ? diluxone_users_join_mark( $redirect, (int) $user->ID ) : (string) apply_filters( 'diluxone_users_login_redirect', home_url( '/' ), (int) $user->ID );
-
-	// phpcs:ignore WordPress.Security.NonceVerification.Missing -- WordPress verified the sign-in form while authenticating; this reads the box it posted.
 	$remember = ! empty( $_POST['rememberme'] );
+	// phpcs:enable
+
+	$redirect = '' !== $redirect ? diluxone_users_join_mark( $redirect, (int) $user->ID ) : (string) apply_filters( 'diluxone_users_login_redirect', home_url( '/' ), (int) $user->ID );
 
 	diluxone_users_2fa_challenge( (int) $user->ID, 'password', $remember, $redirect );
 }

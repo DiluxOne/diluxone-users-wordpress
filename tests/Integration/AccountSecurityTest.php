@@ -155,4 +155,64 @@ class AccountSecurityTest extends IntegrationTestCase {
 
 		$this->assertFalse( diluxone_users_2fa_offered( $this->make_user( 'subscriber' ) ) );
 	}
+
+	/* ── What no other test asked ─────────────────────────────────── */
+
+	/** New backup codes with a good code replace the old set, and are shown once. */
+	public function test_new_backup_codes_replace_the_old_set(): void {
+		$before = diluxone_users_backup_generate( $this->user, 3 );
+
+		$this->assertSame( 'backup', $this->redirectState( $this->submit( 'backup', $this->totp() ) ) );
+
+		$this->assertFalse( diluxone_users_backup_use( $this->user, $before[1] ), 'the old ones are gone' );
+		$this->assertGreaterThan( 3, diluxone_users_backup_left( $this->user ), 'a full new set' );
+		$this->assertNotSame( array(), diluxone_users_backup_fresh( $this->user ) );
+	}
+
+	/** Removing the app with a wrong code, or none, keeps it — and keeps the trusted browsers trusted. */
+	public function test_removing_the_app_without_a_good_code_keeps_it(): void {
+		$secret = diluxone_users_totp_secret( $this->user );
+		update_user_meta( $this->user, 'diluxone_users_2fa_epoch', 'kept' );
+
+		foreach ( array( '000000', '' ) as $code ) {
+			$this->assertSame( 'reauth', $this->redirectState( $this->submit( 'totp_off', $code ) ) );
+		}
+
+		$this->assertSame( $secret, diluxone_users_totp_secret( $this->user ) );
+		$this->assertSame( 'kept', get_user_meta( $this->user, 'diluxone_users_2fa_epoch', true ) );
+	}
+
+	/** An e-mailed code is spent by the first action it confirms, whichever. */
+	public function test_an_emailed_code_is_spent_by_the_first_action(): void {
+		delete_user_meta( $this->user, 'diluxone_users_totp' );
+		$this->submit( 'code' );
+		preg_match( '/\b(\d{6})\b/', (string) $this->lastMail()['message'], $m );
+
+		$this->assertSame( 'backup', $this->redirectState( $this->submit( 'backup', $m[1] ) ) );
+		$this->assertSame( 'reauth', $this->redirectState( $this->submit( 'off', $m[1] ) ), 'the same code again' );
+		$this->assertSame( '1', get_user_meta( $this->user, 'diluxone_users_2fa_on', true ) );
+	}
+
+	/** "Send me a code" where e-mail is no method sends nothing, and says what it always says. */
+	public function test_asking_for_a_code_where_e_mail_is_no_method_sends_nothing(): void {
+		diluxone_users_update_option( 'diluxone_users_2fa_methods', array( 'totp' ) );
+
+		$this->assertSame( 'codesent', $this->redirectState( $this->submit( 'code' ) ) );
+		$this->assertSame( array(), self::$mail );
+	}
+
+	/** Turning the step off is told to the person — unless the site said never to. */
+	public function test_turning_it_off_is_told_unless_the_site_says_never(): void {
+		$this->submit( 'off', $this->totp() );
+		$this->assertStringContainsString( 'Two-step verification was turned off.', (string) $this->lastMail()['message'] );
+
+		self::$mail = array();
+		update_user_meta( $this->user, 'diluxone_users_2fa_on', 1 );
+		delete_user_meta( $this->user, 'diluxone_users_totp_step' );
+		diluxone_users_update_option( 'diluxone_users_notice_rules', array( 'diluxone_users_notify_security' => 'never' ) );
+
+		$this->submit( 'off', diluxone_users_totp_code( diluxone_users_totp_secret( $this->user ), time() + 30 ) );
+		$this->assertSame( '', get_user_meta( $this->user, 'diluxone_users_2fa_on', true ) );
+		$this->assertSame( array(), self::$mail );
+	}
 }

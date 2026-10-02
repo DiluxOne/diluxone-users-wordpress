@@ -66,8 +66,7 @@ function diluxone_users_edit_profile_url( $url ): string {
 		return (string) $url;
 	}
 
-	$account = diluxone_users_account_url();
-
-	return '' === $account ? (string) $url : $account;
+	// An account address with no account page is the home page: no profile.
+	return '' === diluxone_users_page_url( 'diluxone_users_account_page' ) ? (string) $url : diluxone_users_account_url();
 }
 add_filter( 'edit_profile_url', 'diluxone_users_edit_profile_url' );

@@ -2,9 +2,10 @@ import { test as setup, expect } from '@playwright/test';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { Site } from '../support/api';
 import { BASELINE } from '../support/baseline';
-import { shell, wp } from '../support/cli';
+import { shell, wp, PLUGIN_DIR } from '../support/cli';
 import { NETWORK_ADMIN_STATE, NETWORK_URL } from '../../../playwright.network.config';
 import { NETWORK_BASELINE_FILE, NETWORK_PAGES_FILE, SUBSITES, subsiteUrl } from './support';
+import { fillCredentials } from '../support/ui';
 
 /**
  * Makes the network the specs are written against, and remembers what it was.
@@ -27,8 +28,7 @@ setup('the tests site is a network, with the plugin on for all of it', async () 
 
 	const active = wp(['plugin', 'list', '--status=active-network', '--field=name']);
 
-	expect(active.split('\n').length, 'the plugin is network-activated').toBeGreaterThan(0);
-	expect(active, 'the plugin is network-activated').not.toBe('');
+	expect(active.split('\n').map((line) => line.trim()), 'this checkout is the plugin on for the whole network').toContain(PLUGIN_DIR);
 });
 
 setup('two sites, seeded, and the network settings written down', async () => {
@@ -102,8 +102,9 @@ setup('keep a super admin session, valid on every site of the network', async ({
 	// session is a session on every site of it — which is exactly the fact
 	// the two-step spec in this suite is about.
 	await page.goto(`${NETWORK_URL}/wp-login.php?diluxone-users-admin=1`);
-	await page.locator('input[name="log"]').fill(user);
-	await page.locator('input[name="pwd"]').fill(pass);
+	// Typed and read back, as the single-site setup does: wp-login.php
+	// focuses the username box on a timer of its own.
+	await fillCredentials(page, user, pass);
 	await Promise.all([page.waitForURL(/wp-admin/), page.locator('#wp-submit').click()]);
 
 	await context.storageState({ path: NETWORK_ADMIN_STATE });

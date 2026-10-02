@@ -1,8 +1,9 @@
-import type { Page } from '@playwright/test';
 import { test, expect } from '../support/fixtures';
 import { Site } from '../support/api';
 import { adminTabs } from '../support/screens';
 import { adminUrl } from '../support/ui';
+import { masks, pictureOf, settled } from '../support/pictures';
+import { pinVisualState } from '../support/visual-state';
 import { ADMIN_STATE } from '../../../playwright.config';
 
 /**
@@ -36,61 +37,29 @@ import { ADMIN_STATE } from '../../../playwright.config';
 
 test.use({ storageState: ADMIN_STATE });
 
-/**
- * What is painted over before the picture is taken.
- *
- * A mask keeps the element's box and fills it, so a block that changes SIZE
- * still shows up as a difference — which is the point. It is only the content
- * that is being forgiven, never the geometry. Selectors that match nothing on
- * a given screen cost nothing.
- */
-const MOVES_BY_ITSELF = [
-	// The report of who is signed in: when they signed in, when it expires,
-	// and how many sessions they have open. All three change while you look.
-	'.diluxone-users-list td:nth-child(2)',
-	'.diluxone-users-list td:nth-child(3)',
-	'.diluxone-users-list__num',
-	// The environment table: PHP and WordPress versions, the site's paths.
-	'.diluxone-users-summary td code',
-	// Somebody's photograph, which comes from Gravatar or from the theme.
-	'img.avatar',
-];
-
-/** The picture's name: the slug and the tab, never a translated title. */
-function pictureOf(name: string): string {
-	return `${name.replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '')}.png`;
-}
-
-/**
- * Waits until the screen has stopped becoming itself.
- *
- * Fonts first — a screen photographed before its font arrives is a picture of
- * the fallback — then the frames, because the design tabs draw the real
- * sign-in page in an iframe, and then a pair of animation frames so the last
- * layout pass is over. `toHaveScreenshot` keeps shooting until two shots
- * match, so this is about getting there sooner, not about getting there.
- */
-async function settled(page: Page): Promise<void> {
-	await page.evaluate(() => document.fonts.ready.then(() => undefined));
-
-	await Promise.all(page.frames().map((frame) => frame.waitForLoadState('load').catch(() => undefined)));
-
-	await page.evaluate(() => {
-		window.scrollTo(0, 0);
-
-		return new Promise<void>((done) => requestAnimationFrame(() => requestAnimationFrame(() => done())));
-	});
-}
-
 /*
  * The pictures are of the plugin in English, the language its strings are
  * written in. The development site this runs against is somebody's, in their
  * language: it is said for the length of each test, and the `options`
  * fixture puts it back, as the listing screenshots already do.
  */
-test.beforeEach(async ({ options }) => {
+test.beforeEach(async ({ options, site }) => {
 	await options.set({ WPLANG: '' });
+	await pinVisualState(site, options.set);
 });
+
+/**
+ * What a single screen adds to the masks.
+ *
+ * The activity report's rail says how many rows the table holds, how much it
+ * weighs and when the oldest is from: every run of the suite next door adds
+ * rows, so the sentence is a different sentence every time. Its box is kept;
+ * only the words are forgiven.
+ */
+const MASKED_ON: Record<string, string[]> = {
+	'diluxone-users-reports › activity': ['.diluxone-users-studio__aside .du-state__line'],
+	'diluxone-users-reports › logging': ['.diluxone-users-studio__aside .du-state__line'],
+};
 
 test.describe('Every screen looks like it did', () => {
 	/*
@@ -110,60 +79,10 @@ test.describe('Every screen looks like it did', () => {
 			await settled(page);
 
 			await expect(page.locator('.wrap.diluxone-users-admin')).toHaveScreenshot(pictureOf(tab.name), {
-				mask: MOVES_BY_ITSELF.map((one) => page.locator(one)),
+				mask: masks(page, MASKED_ON[tab.name]),
 			});
 		});
 	}
-});
-
-/**
- * And the one screen that is not in the dashboard at all.
- *
- * It is the only screen of this plugin most people will ever see, it is drawn
- * by the theme rather than by the dashboard's stylesheet, and every setting on
- * the Design tabs claims to change it. A picture of it is the only assertion
- * that has ever been able to tell whether the preview was telling the truth.
- */
-test.describe('The sign-in page looks like it did', () => {
-	test.use({ storageState: { cookies: [], origins: [] } });
-
-	test('signed out', async ({ page, pages }) => {
-		await page.goto(pages.login.url);
-		await settled(page);
-
-		await expect(page.locator('.diluxone-users-login').first()).toHaveScreenshot('front-sign-in.png', {
-			mask: MOVES_BY_ITSELF.map((one) => page.locator(one)),
-		});
-	});
-
-	/**
-	 * And the same screen with every way in switched on, behind tabs.
-	 *
-	 * The picture above is the ordinary case and it says nothing about the
-	 * arrangement that was built for the other one: four doors on a laptop.
-	 * That one has a tab strip in it, a neutral icon per tab, one panel
-	 * showing and three not — none of which a measurement can look at. The
-	 * settings are written here rather than left to the site's, because a
-	 * baseline of a screen whose configuration drifts is a baseline that
-	 * fails for a reason nobody can act on.
-	 */
-	test('signed out, four ways in, in tabs', async ({ page, pages, options }) => {
-		await options.set({
-			diluxone_users_login_method: 'both',
-			diluxone_users_passkey_enabled: 1,
-			diluxone_users_sso_login: 1,
-			diluxone_users_login_layout: 'tabs',
-			diluxone_users_login_order: ['social', 'email', 'password'],
-			diluxone_users_login_open: 'email',
-		});
-
-		await page.goto(pages.login.url);
-		await settled(page);
-
-		await expect(page.locator('.diluxone-users-login').first()).toHaveScreenshot('front-sign-in-tabs.png', {
-			mask: MOVES_BY_ITSELF.map((one) => page.locator(one)),
-		});
-	});
 });
 
 /**
@@ -198,7 +117,7 @@ test.describe('Your brand looks like it did', () => {
 
 			await expect(page.locator('.wrap.diluxone-users-admin')).toHaveScreenshot(
 				`design-brand-${answer}.png`,
-				{ mask: MOVES_BY_ITSELF.map((one) => page.locator(one)) }
+				{ mask: masks(page) }
 			);
 		});
 	}
@@ -218,7 +137,67 @@ test.describe('Your brand looks like it did', () => {
 
 		await expect(page.locator('.wrap.diluxone-users-admin')).toHaveScreenshot(
 			'design-brand-theme-open.png',
-			{ mask: MOVES_BY_ITSELF.map((one) => page.locator(one)) }
+			{ mask: masks(page) }
 		);
 	});
+});
+
+/**
+ * The Design tabs, on each shape they offer.
+ *
+ * The picture of each tab above is the tab on the site's shape, and the
+ * preview inside it draws that one. The other shapes are where the preview
+ * has the most to get right — a panel beside the form, a picture behind it, a
+ * band across the account — and a single picture shows none of them. The
+ * sign-in page itself, on each shape, is in `front-snapshots.spec.ts`.
+ */
+test.describe('Design, on every shape', () => {
+	const LOGIN: Record<string, Record<string, unknown>> = {
+		card: { diluxone_users_login_template: 'card' },
+		'split-left': {
+			diluxone_users_login_template: 'split',
+			diluxone_users_login_side: 'left',
+			diluxone_users_login_panel_title: 'One account.\nNo passwords.',
+			diluxone_users_login_panel_text: 'Everything you do here, in one place.',
+		},
+		'split-right': {
+			diluxone_users_login_template: 'split',
+			diluxone_users_login_side: 'right',
+			diluxone_users_login_panel_title: 'One account.\nNo passwords.',
+			diluxone_users_login_panel_text: 'Everything you do here, in one place.',
+		},
+		backdrop: { diluxone_users_login_template: 'backdrop' },
+	};
+
+	for (const [shape, settings] of Object.entries(LOGIN)) {
+		test(`the sign-in page as ${shape}`, async ({ page, options }) => {
+			await options.set(settings);
+
+			await page.goto(adminUrl('diluxone-users-design', 'login'));
+			await settled(page);
+
+			await expect(page.locator('.wrap.diluxone-users-admin')).toHaveScreenshot(`design-login-${shape}.png`, {
+				mask: masks(page),
+			});
+		});
+	}
+
+	const ACCOUNT: Array<[string, string]> = [
+		['plain', 'side'],
+		['cover', 'tabs'],
+		['cover', 'side'],
+	];
+
+	for (const [shape, layout] of ACCOUNT) {
+		test(`the account as ${shape}, menu ${layout}`, async ({ page, options }) => {
+			await options.set({ diluxone_users_account_template: shape, diluxone_users_account_layout: layout });
+
+			await page.goto(adminUrl('diluxone-users-design', 'account'));
+			await settled(page);
+
+			await expect(page.locator('.wrap.diluxone-users-admin')).toHaveScreenshot(`design-account-${shape}-${layout}.png`, {
+				mask: masks(page),
+			});
+		});
+	}
 });

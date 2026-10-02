@@ -4,12 +4,13 @@ import { adminTabs, SCREENS } from '../support/screens';
 import {
 	ADMIN_RULES,
 	FRONT_RULES,
+	FRONT_WIDTHS,
 	LayoutFinding,
-	WIDTHS,
 	expectSoundLayout,
 	layoutFindings,
 } from '../support/layout';
-import { adminUrl } from '../support/ui';
+import { accountSection, adminUrl, fillCredentials } from '../support/ui';
+import { freshEmail } from '../support/api';
 import { ADMIN_STATE } from '../../../playwright.config';
 
 /**
@@ -112,11 +113,8 @@ test.describe('No tab escapes the suite', () => {
 						.filter((tab) => tab !== '')
 				);
 
-			if (drawn.length === 0) {
-				return;
-			}
-
-			expect(drawn.slice().sort()).toEqual(SCREENS[screen].slice().sort());
+			// A screen of one tab draws no strip: one tab is not navigation.
+			expect(drawn.slice().sort()).toEqual(SCREENS[screen].length > 1 ? SCREENS[screen].slice().sort() : []);
 		});
 	}
 });
@@ -129,14 +127,59 @@ test.describe('No tab escapes the suite', () => {
  * somebody else's decision, and the plugin's own blocks still have to stack
  * without touching and stay inside the page on a phone.
  */
-test.describe('The sign-in page holds together', () => {
+test.describe('The public pages hold together', () => {
 	test.use({ storageState: { cookies: [], origins: [] } });
 
-	test('at every width', async ({ page, pages }) => {
+	test('the sign-in page, at every width', async ({ page, pages }) => {
 		await page.goto(pages.login.url);
 
-		await expectSoundLayout(page, FRONT_RULES, WIDTHS);
+		await expectSoundLayout(page, FRONT_RULES, FRONT_WIDTHS);
 	});
+
+	test('the sign-in page in tabs, at every width', async ({ page, pages, options }) => {
+		await options.set({ diluxone_users_login_layout: 'tabs', diluxone_users_sso_login: 1, diluxone_users_passkey_enabled: 1 });
+		await page.goto(pages.login.url);
+
+		await expectSoundLayout(page, FRONT_RULES, FRONT_WIDTHS);
+	});
+
+	test('the registration form, at every width', async ({ page, pages }) => {
+		await page.goto(pages.register.url);
+
+		await expectSoundLayout(page, FRONT_RULES, FRONT_WIDTHS);
+	});
+
+	test('the account area to a stranger, at every width', async ({ page, pages }) => {
+		await page.goto(pages.account.url);
+
+		await expectSoundLayout(page, FRONT_RULES, FRONT_WIDTHS);
+	});
+
+	/*
+	 * The account itself, on both its menus: the one down the side is the one
+	 * the 640 rule folds back on top, and every section is a different set of
+	 * blocks to stack.
+	 */
+	for (const layout of ['tabs', 'side'] as const) {
+		test(`the account area, menu ${layout}, every section at every width`, async ({ page, pages, site, options }) => {
+			await options.set({ diluxone_users_account_layout: layout, diluxone_users_handle_enabled: 1 });
+
+			const email = freshEmail('layout');
+			const password = 'e2e-Layout-Password-1!';
+
+			await site.makeUser({ email, password, name: 'Layout Person' });
+			await page.goto('/wp-login.php?diluxone-users-admin=1');
+			await fillCredentials(page, email, password);
+			await Promise.all([page.waitForURL((url) => !url.pathname.endsWith('/wp-login.php')), page.locator('#wp-submit').click()]);
+
+			for (const section of ['', 'details', 'accounts', 'security', 'notifications', 'privacy']) {
+				await page.goto(section ? accountSection(pages.account.url, section) : pages.account.url);
+				await expect(page.locator('.diluxone-users-account').first()).toBeVisible();
+
+				await expectSoundLayout(page, FRONT_RULES, FRONT_WIDTHS);
+			}
+		});
+	}
 });
 
 /**
@@ -166,6 +209,25 @@ test.describe('The measuring itself can fail', () => {
 	function kinds(findings: LayoutFinding[]): string[] {
 		return findings.map((one) => one.kind);
 	}
+
+	/*
+	 * The public pages are measured down to a phone, and that is only worth
+	 * something if a page that does not fit a phone is seen not to: a form
+	 * given a width only a laptop has, at 390.
+	 */
+	test('a public page wider than a phone', async ({ browser, pages }) => {
+		const context = await browser.newContext({ storageState: { cookies: [], origins: [] }, viewport: { width: 390, height: 844 } });
+		const phone = await context.newPage();
+
+		try {
+			await phone.goto(pages.login.url);
+			await phone.addStyleTag({ content: '.diluxone-users-login form { min-width: 600px; }' });
+
+			expect(kinds(await layoutFindings(phone, FRONT_RULES))).toContain('overflow');
+		} finally {
+			await context.close();
+		}
+	});
 
 	// The bug that started all this: a block drawn on top of the one above it.
 	test('a block on top of another block', async ({ page }) => {

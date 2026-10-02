@@ -9,7 +9,7 @@
  * secret to a third party — is out of all proportion.
  *
  * The scope is deliberate: byte mode, correction level L, versions 1 to 10
- * and a fixed mask. That fits up to 174 characters, which is plenty for a
+ * and a fixed mask. That fits up to 271 bytes, which is plenty for a
  * TOTP URI, and avoids half the standard. The fixed mask is legal: the
  * standard requires the format information to say which one was used, not
  * that the best one be chosen.

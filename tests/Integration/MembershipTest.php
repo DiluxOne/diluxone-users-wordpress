@@ -223,18 +223,18 @@ class MembershipTest extends IntegrationTestCase {
 		$this->assertFalse( diluxone_users_screen_here( DILUXONE_USERS_MEMBERSHIP_SCREEN, 'site' ), 'not on a site’s menu' );
 
 		// From a site's dashboard, a hand-made post writes nothing.
-		$_POST = array( DILUXONE_USERS_MEMBERSHIP => 'invite' );
+		$this->postPanel( DILUXONE_USERS_MEMBERSHIP_SCREEN, array( DILUXONE_USERS_MEMBERSHIP => 'invite' ) );
 		diluxone_users_membership_save();
 		$this->assertSame( 'all', diluxone_users_membership() );
 
 		$this->in_network_admin();
 
-		$_POST = array( DILUXONE_USERS_MEMBERSHIP => 'click' );
+		$this->postPanel( DILUXONE_USERS_MEMBERSHIP_SCREEN, array( DILUXONE_USERS_MEMBERSHIP => 'click' ) );
 		diluxone_users_membership_save();
 		$this->assertSame( 'click', diluxone_users_membership() );
 
 		ob_start();
-		$_POST = array( DILUXONE_USERS_MEMBERSHIP => 'nobody' );
+		$this->postPanel( DILUXONE_USERS_MEMBERSHIP_SCREEN, array( DILUXONE_USERS_MEMBERSHIP => 'nobody' ) );
 		$this->assertFalse( diluxone_users_membership_save(), 'refused' );
 		ob_end_clean();
 		$this->assertSame( 'click', diluxone_users_membership() );
@@ -361,7 +361,7 @@ class MembershipTest extends IntegrationTestCase {
 		$label = diluxone_users_panels( DILUXONE_USERS_MEMBERSHIP_SCREEN )['policy']['save_label'];
 		$this->assertSame( __( 'Confirm the policy', 'diluxone-users' ), $label(), 'the button says what it does' );
 
-		$_POST = array( DILUXONE_USERS_MEMBERSHIP => 'all' );
+		$this->postPanel( DILUXONE_USERS_MEMBERSHIP_SCREEN, array( DILUXONE_USERS_MEMBERSHIP => 'all' ) );
 		ob_start();
 		diluxone_users_membership_save();
 		ob_end_clean();
@@ -395,7 +395,7 @@ class MembershipTest extends IntegrationTestCase {
 		$this->in_network_admin();
 		wp_set_current_user( $this->super_admin() );
 
-		$_POST = array( DILUXONE_USERS_MEMBERSHIP => 'click' );
+		$this->postPanel( DILUXONE_USERS_MEMBERSHIP_SCREEN, array( DILUXONE_USERS_MEMBERSHIP => 'click' ) );
 		ob_start();
 		diluxone_users_membership_save();
 		ob_end_clean();
@@ -540,6 +540,120 @@ class MembershipTest extends IntegrationTestCase {
 		$this->assertFalse( is_user_member_of_blog( $super, $site ), 'not a super admin' );
 		$this->assertSame( array(), diluxone_users_membership_queue(), 'finished, and forgotten' );
 		$this->assertSame( array( 'site' ), array_values( array_unique( array_column( $this->added, 'how' ) ) ) );
+
+		remove_filter( 'diluxone_users_membership_inline', '__return_zero', 20 );
+	}
+
+	/** "Everybody everywhere" in batches: as many people as fit, each on every live site. */
+	public function test_the_job_for_everybody_goes_a_person_at_a_time_when_a_batch_is_the_sites(): void {
+		$this->network_only();
+
+		$people = array( $this->nobody(), $this->nobody() );
+		$sites  = diluxone_users_membership_sites();
+
+		add_filter( 'diluxone_users_membership_batch', static fn(): int => count( $sites ) );
+		add_filter( 'diluxone_users_membership_inline', '__return_zero', 20 );
+
+		$this->assertFalse( diluxone_users_membership_sync(), 'queued, not made on the spot' );
+
+		$queue             = diluxone_users_membership_queue();
+		$queue[0]['after'] = min( $people ) - 1;
+		diluxone_users_membership_queue_save( $queue );
+
+		$this->assertFalse( diluxone_users_membership_drain( 1 ) );
+
+		foreach ( $sites as $site ) {
+			$this->assertTrue( is_user_member_of_blog( $people[0], $site ), "the first one, on site $site" );
+			$this->assertFalse( is_user_member_of_blog( $people[1], $site ), "not yet the second, on site $site" );
+		}
+
+		$this->assertSame( count( $sites ), diluxone_users_membership_queue()[0]['done'], 'one person times every site' );
+
+		$this->assertTrue( diluxone_users_membership_drain( 0 ) );
+		$this->assertTrue( is_user_member_of_blog( $people[1], $this->alpha ) );
+		$this->assertSame( array(), diluxone_users_membership_queue() );
+
+		remove_filter( 'diluxone_users_membership_inline', '__return_zero', 20 );
+	}
+
+	/** A new site's job ends when the site stops taking people, half-way or not. */
+	public function test_a_new_sites_job_stops_when_the_site_stops_taking_people(): void {
+		$this->network_only();
+
+		$people = array( $this->nobody(), $this->nobody() );
+
+		add_filter( 'diluxone_users_membership_inline', '__return_zero', 20 );
+		add_filter( 'diluxone_users_membership_batch', static fn(): int => 1 );
+
+		$site = $this->site( 'author' );
+
+		$queue             = diluxone_users_membership_queue();
+		$queue[0]['after'] = min( $people ) - 1;
+		diluxone_users_membership_queue_save( $queue );
+
+		$this->assertFalse( diluxone_users_membership_drain( 1 ) );
+		$this->assertTrue( is_user_member_of_blog( $people[0], $site ) );
+
+		update_blog_status( $site, 'archived', '1' );
+
+		$this->assertTrue( diluxone_users_membership_drain( 1 ), 'the job is dropped' );
+		$this->assertSame( array(), diluxone_users_membership_queue() );
+		$this->assertFalse( is_user_member_of_blog( $people[1], $site ), 'and nobody else is added to it' );
+
+		remove_filter( 'diluxone_users_membership_inline', '__return_zero', 20 );
+	}
+
+	/** A lock a dead run left behind runs out, and a run that finds it held looks again in a minute. */
+	public function test_a_lock_runs_out_and_a_run_that_finds_it_held_looks_again_soon(): void {
+		$this->network_only();
+
+		diluxone_users_membership_queue_save(
+			array(
+				array(
+					'kind'  => 'user',
+					'id'    => $this->nobody(),
+					'after' => 0,
+					'done'  => 0,
+					'total' => 1,
+				),
+			)
+		);
+
+		$this->assertTrue( diluxone_users_membership_lock() );
+		$this->assertFalse( diluxone_users_membership_lock(), 'held' );
+
+		$runs_out = (int) get_site_option( '_site_transient_timeout_' . DILUXONE_USERS_MEMBERSHIP_LOCK );
+		$this->assertEqualsWithDelta( time() + 5 * MINUTE_IN_SECONDS, $runs_out, 5, 'held for five minutes, not for ever' );
+
+		diluxone_users_on_hub( static fn() => wp_clear_scheduled_hook( DILUXONE_USERS_MEMBERSHIP_EVENT ) );
+		diluxone_users_membership_cron();
+
+		$next = (int) diluxone_users_on_hub( static fn() => wp_next_scheduled( DILUXONE_USERS_MEMBERSHIP_EVENT ) );
+		$this->assertGreaterThanOrEqual( time() + MINUTE_IN_SECONDS - 10, $next, 'in about a minute, not at once' );
+		$this->assertCount( 1, diluxone_users_membership_queue(), 'nothing done while it is held' );
+
+		// Five minutes later, the run that held it never let it go.
+		update_site_option( '_site_transient_timeout_' . DILUXONE_USERS_MEMBERSHIP_LOCK, time() - 1 );
+		wp_cache_delete( DILUXONE_USERS_MEMBERSHIP_LOCK, 'site-transient' );
+
+		$this->assertTrue( diluxone_users_membership_lock(), 'the lock ran out' );
+
+		diluxone_users_on_hub( static fn() => wp_clear_scheduled_hook( DILUXONE_USERS_MEMBERSHIP_EVENT ) );
+	}
+
+	/** A site deleted while its job waits takes the job with it: no sync "in progress" for a site that is gone. */
+	public function test_a_deleted_site_takes_its_waiting_job_with_it(): void {
+		$this->network_only();
+
+		add_filter( 'diluxone_users_membership_inline', '__return_zero', 20 );
+
+		$gone = $this->site( 'author' );
+		$kept = $this->site( 'author' );
+		$this->assertSame( array( $gone, $kept ), array_column( diluxone_users_membership_queue(), 'id' ) );
+
+		wp_delete_site( $gone );
+
+		$this->assertSame( array( $kept ), array_column( diluxone_users_membership_queue(), 'id' ), 'only the job of the site that is still there' );
 
 		remove_filter( 'diluxone_users_membership_inline', '__return_zero', 20 );
 	}
@@ -996,6 +1110,7 @@ class MembershipTest extends IntegrationTestCase {
 		// A member now: nothing more to press, and a welcome after the press.
 		switch_to_blog( $this->alpha );
 		$this->assertSame( '', diluxone_users_join_state() );
+		diluxone_users_join_drawn( false ); // Another page.
 		$_GET = array( 'diluxone-users' => 'joined' );
 		$this->assertStringContainsString( 'data-diluxone-users-join="joined"', diluxone_users_shortcode_join() );
 		$_GET = array();
@@ -1060,6 +1175,7 @@ class MembershipTest extends IntegrationTestCase {
 		// Arriving from the hub, the notice at the top of the page, once.
 		switch_to_blog( $this->alpha );
 		wp_set_current_user( $user );
+		diluxone_users_join_drawn( false ); // Another page.
 		$_GET = array( 'diluxone-users' => 'join' );
 		ob_start();
 		diluxone_users_join_notice();
@@ -1067,6 +1183,14 @@ class MembershipTest extends IntegrationTestCase {
 		$this->assertStringContainsString( 'diluxone-users-join--notice', $notice );
 		$this->assertStringContainsString( 'data-diluxone-users-join="invite"', $notice );
 		$this->assertSame( '', diluxone_users_shortcode_join(), 'said once on the page' );
+
+		// A block theme draws the content, the shortcode with it, before the
+		// top of the page: the box is where the shortcode is, and only there.
+		diluxone_users_join_drawn( false );
+		$this->assertStringContainsString( 'data-diluxone-users-join="invite"', diluxone_users_shortcode_join() );
+		ob_start();
+		diluxone_users_join_notice();
+		$this->assertSame( '', (string) ob_get_clean(), 'said once on the page, the other way round' );
 		$_GET = array();
 		restore_current_blog();
 	}
@@ -1275,5 +1399,76 @@ class MembershipTest extends IntegrationTestCase {
 		$this->assertStringNotContainsString( '<th>' . esc_html__( 'From', 'diluxone-users' ) . '</th>', $report, 'no From column' );
 		$this->assertNotEmpty( $asked );
 		$this->assertSame( array(), array_filter( $asked, static fn( string $sql ): bool => str_contains( $sql, 'l.detail LIKE' ) ), 'the query is the site’s rows, as it always was' );
+	}
+
+	/* ── What no other test asked ─────────────────────────────────── */
+
+	/** Somebody the network marked as spam or deleted is never added anywhere. */
+	public function test_spam_or_deleted_people_are_never_added(): void {
+		$this->network_only();
+
+		global $wpdb;
+
+		$spam = $this->make_user();
+		$wpdb->update( $wpdb->users, array( 'spam' => 1 ), array( 'ID' => $spam ) );
+		clean_user_cache( $spam );
+		$this->added = array();
+
+		$site = $this->site( 'subscriber' );
+
+		$this->assertFalse( is_user_member_of_blog( $spam, $site ), 'a new site does not take them' );
+		$this->assertSame( array(), array_filter( $this->added, static fn( array $one ): bool => $spam === $one['user'] ) );
+		$this->assertNotContains( $spam, array_map( 'intval', (array) diluxone_users_membership_people( 0, 100000 ) ) );
+	}
+
+	/** "Join this site" goes back where it was pressed, on this site, and never anywhere else. */
+	public function test_joining_goes_back_to_the_page_and_never_off_the_site(): void {
+		$this->network_only();
+
+		diluxone_users_update_option( 'diluxone_users_membership', 'click' );
+		$user = $this->make_user();
+
+		$_SERVER['HTTP_REFERER'] = 'https://evil.test/x';
+		$landed                  = $this->press_join( $this->alpha, $user );
+
+		$this->assertStringStartsWith( get_home_url( $this->alpha, '/' ), $landed );
+		$this->assertSame( 'joined', $this->redirectState( $landed ) );
+
+		$user2                   = $this->make_user();
+		$_SERVER['HTTP_REFERER'] = get_home_url( $this->alpha, '/p/?diluxone-users=join' );
+		$landed                  = $this->press_join( $this->alpha, $user2 );
+
+		$this->assertSame( get_home_url( $this->alpha, '/p/?diluxone-users=joined' ), $landed, 'one answer in the address, the new one' );
+	}
+
+	/**
+	 * A forged "Join this site" does nothing for whoever the policy keeps
+	 * out: somebody an administrator took off it, a super admin, an existing
+	 * member (whose role stays), a closed account.
+	 */
+	public function test_a_forged_join_changes_nothing_for_those_it_does_not_apply_to(): void {
+		$this->network_only();
+
+		diluxone_users_update_option( 'diluxone_users_membership', 'click' );
+
+		$removed = $this->make_user();
+		add_user_to_blog( $this->alpha, $removed, 'subscriber' );
+		remove_user_from_blog( $removed, $this->alpha );
+
+		$super  = $this->super_admin();
+		$editor = $this->make_user();
+		add_user_to_blog( $this->alpha, $editor, 'editor' );
+		$closed = $this->make_user();
+		update_user_meta( $closed, 'diluxone_users_closed', time() );
+		$this->added = array();
+
+		foreach ( array( $removed, $super, $editor, $closed ) as $who ) {
+			$this->assertSame( 'join-refused', $this->redirectState( $this->press_join( $this->alpha, $who ) ), (string) $who );
+		}
+
+		$this->assertFalse( is_user_member_of_blog( $removed, $this->alpha ) );
+		$this->assertSame( 'editor', $this->role_on( $editor, $this->alpha ), 'the member keeps their role' );
+		$this->assertFalse( is_user_member_of_blog( $closed, $this->alpha ) );
+		$this->assertSame( array(), $this->added, 'nobody was added' );
 	}
 }

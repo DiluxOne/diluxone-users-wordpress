@@ -225,7 +225,7 @@ function diluxone_users_login_frame_open(): void {
 	// every layout that has one, and a property can be repointed from a
 	// stylesheet without touching any of this.
 	$style = '' !== $image && in_array( $template, array( 'split', 'backdrop' ), true )
-		? sprintf( ' style="--diluxone-users-login-image: url(%s)"', esc_url( $image ) )
+		? '--diluxone-users-login-image: url(' . esc_url( $image ) . ')'
 		: '';
 
 	/*
@@ -243,7 +243,7 @@ function diluxone_users_login_frame_open(): void {
 		'<div class="diluxone-users-login-frame diluxone-users-login-frame--%1$s diluxone-users-login-frame--%2$s"%3$s>',
 		esc_attr( $template ),
 		esc_attr( $side ),
-		$style // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- built and escaped just above.
+		'' === $style ? '' : ' style="' . esc_attr( $style ) . '"'
 	);
 
 	if ( 'split' === $template ) {
@@ -329,7 +329,7 @@ function diluxone_users_icon( string $name, int $size = 0 ): string {
 		'<svg class="diluxone-users-icon diluxone-users-icon--%1$s" width="%2$d" height="%2$d" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">%3$s</svg>',
 		esc_attr( $name ),
 		$size,
-		$paths[ $name ] // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- literal markup from the table above.
+		$paths[ $name ]
 	);
 }
 
@@ -768,7 +768,8 @@ function diluxone_users_login_request(): void {
 
 	diluxone_users_sent_to( $typed );
 
-	$throttle = 'diluxone_users_throttle_' . md5( $email );
+	// The inbox, not its spelling: `Ana@…` and `ana@…` are one inbox to wait for.
+	$throttle = 'diluxone_users_throttle_' . md5( strtolower( $email ) );
 
 	/*
 	 * The machine first, and the address after.
@@ -834,7 +835,12 @@ function diluxone_users_login_consume(): void {
 	$token   = sanitize_text_field( wp_unslash( $_GET['diluxone_users_token'] ) );
 	// phpcs:enable
 
-	if ( $user_id <= 0 || '' === $token || ! diluxone_users_token_valid( $user_id, $token ) || ! diluxone_users_token_burn( $user_id ) ) {
+	// A link mailed while the e-mail link was a way in is not one once the
+	// site turned it off: what an administrator turns off disappears, links
+	// already in somebody's inbox included. It is not spent here — whoever
+	// opens a link does not get to spend somebody else's — so it works again
+	// if the link is turned back on before it runs out.
+	if ( ! diluxone_users_login_has_link() || $user_id <= 0 || '' === $token || ! diluxone_users_token_valid( $user_id, $token ) || ! diluxone_users_token_burn( $user_id ) ) {
 		wp_safe_redirect( add_query_arg( 'diluxone-users', 'expired', diluxone_users_login_url() ) );
 		exit;
 	}

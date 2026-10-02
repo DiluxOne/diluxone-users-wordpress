@@ -37,9 +37,7 @@ class AccountExportTest extends IntegrationTestCase {
 	}
 
 	public function test_confirming_it_makes_the_file(): void {
-		if ( ! class_exists( 'ZipArchive' ) ) {
-			$this->markTestSkipped( 'WordPress needs ZipArchive to write the file.' );
-		}
+		$this->needs_zip();
 
 		$user = $this->make_user();
 		update_user_meta( $user, 'first_name', 'Ana' );

@@ -46,7 +46,7 @@ async function stage(page: Page): Promise<Frame> {
 	const element = await page.locator('.diluxone-users-studio__preview iframe.diluxone-users-stage__frame').elementHandle();
 	const frame = await element!.contentFrame();
 
-	await frame!.waitForLoadState('load').catch(() => undefined);
+	await frame!.waitForLoadState('load');
 
 	return frame!;
 }
@@ -87,6 +87,10 @@ test.describe('The preview takes the colours the site takes', () => {
 		// leaves the paint transparent rather than wrong-coloured.
 		expect(inThePreview).not.toBe('rgba(0, 0, 0, 0)');
 		expect(inThePreview).toBe(onTheSite);
+
+		// And it is the theme's: both falling back to the plugin's own blue
+		// would be the same colour too.
+		expect(onTheSite, 'the theme’s accent, not the plugin’s #2b59d6').not.toBe('rgb(43, 89, 214)');
 	});
 
 	/** And the ink on top of it, which is the half that went invisible. */
@@ -238,5 +242,34 @@ test.describe('The social buttons are previewed in the preview column', () => {
 		await expect(stageFrame(page).locator('a.diluxone-users-social').first()).toContainText('Zzyzx', {
 			timeout: 15_000,
 		});
+	});
+
+	/**
+	 * What carries it there is the server: the panel's own save run over the
+	 * form without writing, asked of admin-ajax.php with the screen's nonce.
+	 * The answer is checked here, not only its effect, so a frame that caught
+	 * up by some other road cannot pass for it.
+	 */
+	test('asked of the server, which draws it and saves nothing', async ({ page, site, options }) => {
+		await options.set({ diluxone_users_sso_button_text: '' });
+
+		await page.goto(adminUrl('diluxone-users-design', 'social'));
+
+		const [answer] = await Promise.all([
+			page.waitForResponse(
+				(response) =>
+					response.url().includes('admin-ajax.php') &&
+					(response.request().postData() ?? '').includes('action=diluxone_users_preview')
+			),
+			page.locator('input[name="diluxone_users_sso_button_text"]').fill('Qwxyz %s'),
+		]);
+
+		expect(answer.status()).toBe(200);
+
+		const body = await answer.json();
+
+		expect(body.success, 'the preview endpoint answers').toBe(true);
+		expect(JSON.stringify(body.data)).toContain('Qwxyz');
+		expect(String((await site.getOptions(['diluxone_users_sso_button_text'])).diluxone_users_sso_button_text ?? '')).toBe('');
 	});
 });

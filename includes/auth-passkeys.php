@@ -181,11 +181,18 @@ function diluxone_users_passkey_belongs( int $user_id, string $id ): bool {
 }
 
 /** Removes one by its identifier. */
-function diluxone_users_passkey_forget( int $user_id, string $id ): void {
-	diluxone_users_passkeys_save(
-		$user_id,
-		array_filter( diluxone_users_passkeys( $user_id ), static fn( array $k ): bool => $k['id'] !== $id )
-	);
+function diluxone_users_passkey_forget( int $user_id, string $id ): bool {
+	$keys = diluxone_users_passkeys( $user_id );
+	$kept = array_filter( $keys, static fn( array $k ): bool => $k['id'] !== $id );
+
+	// Not one of theirs: nothing is removed, and nothing is said to have been.
+	if ( count( $kept ) === count( $keys ) ) {
+		return false;
+	}
+
+	diluxone_users_passkeys_save( $user_id, $kept );
+
+	return true;
 }
 
 /**
@@ -333,8 +340,8 @@ function diluxone_users_passkey_signature_ok( string $der, int $alg, string $aut
 	}
 
 	// -7 is ECDSA with P-256 and SHA-256; -257 is RSA with SHA-256. Those are
-	// the two real passkeys use.
-	$digest = -257 === $alg ? OPENSSL_ALGO_SHA256 : OPENSSL_ALGO_SHA256;
+	// the two real passkeys use, and both sign a SHA-256 digest.
+	$digest = OPENSSL_ALGO_SHA256;
 
 	if ( ! in_array( $alg, array( -7, -257 ), true ) ) {
 		return false;
@@ -409,12 +416,18 @@ function diluxone_users_passkeys_login_options(): array {
  * the client data included, so it arrives byte for byte: the signature is
  * checked over its hash — and are kept to that alphabet; the algorithm is a
  * number and the label a line of text. The two handlers then decode and
- * verify them; nothing is stored as it arrives and nothing is printed.
+ * verify them; nothing is stored as it arrives and nothing is printed. A
+ * request without the dialogue's nonce sent nothing.
  *
  * @return array<string, string>
  */
 function diluxone_users_passkeys_posted(): array {
-	// phpcs:disable WordPress.Security.NonceVerification.Missing -- the caller checks the nonce for the two steps that can have one; the other two are verified by signature.
+	// The same nonce the dialogue was opened with, checked again here because
+	// this is where the request is read. Without it, nothing was sent.
+	if ( ! check_ajax_referer( 'diluxone_users_passkeys', 'nonce', false ) ) {
+		return array();
+	}
+
 	$sent = array();
 
 	foreach ( array( 'id', 'publicKey', 'clientDataJSON', 'authenticatorData', 'signature' ) as $name ) {
@@ -434,14 +447,27 @@ function diluxone_users_passkeys_posted(): array {
 	if ( isset( $_POST['label'] ) && is_string( $_POST['label'] ) ) {
 		$sent['label'] = sanitize_text_field( wp_unslash( $_POST['label'] ) );
 	}
-	// phpcs:enable
 
 	return $sent;
 }
 
-/** The whole dialogue with the browser goes through here. */
+/**
+ * The whole dialogue with the browser goes through here.
+ *
+ * Every step carries the nonce the script was handed with the page, and it is
+ * checked first, before anything else is read. The sign-in steps have it too:
+ * the page that draws the button hands it over to whoever is looking at it,
+ * signed in or not (diluxone_users_passkeys_enqueue()), and that page is kept
+ * out of every cache. For somebody who is not signed in it is not tied to a
+ * person — there is nobody yet — so what proves the sign-in is the signature:
+ * over a challenge this server issued for that one attempt, used once, made
+ * with a key that is registered to the account.
+ */
 function diluxone_users_passkeys_ajax(): void {
-	// phpcs:disable WordPress.Security.NonceVerification.Missing -- the nonce is verified per step.
+	if ( ! check_ajax_referer( 'diluxone_users_passkeys', 'nonce', false ) ) {
+		wp_send_json_error( array( 'message' => __( 'Session expired. Reload the page.', 'diluxone-users' ) ), 403 );
+	}
+
 	$step = sanitize_key( wp_unslash( $_POST['step'] ?? '' ) );
 
 	// On a network, passkeys are made and used on the hub, whose domain they
@@ -462,12 +488,10 @@ function diluxone_users_passkeys_ajax(): void {
 		wp_send_json_error( array( 'message' => __( 'This site does not use passkeys.', 'diluxone-users' ) ), 400 );
 	}
 
-	// The two registration operations require a session and a nonce; the
-	// sign-in ones cannot require a session, because opening one is the point.
-	if ( in_array( $step, array( 'register-options', 'register' ), true ) ) {
-		if ( ! is_user_logged_in() || ! check_ajax_referer( 'diluxone_users_passkeys', 'nonce', false ) ) {
-			wp_send_json_error( array( 'message' => __( 'Session expired. Reload the page.', 'diluxone-users' ) ), 403 );
-		}
+	// The two registration operations require a session as well; the sign-in
+	// ones cannot require a session, because opening one is the point.
+	if ( in_array( $step, array( 'register-options', 'register' ), true ) && ! is_user_logged_in() ) {
+		wp_send_json_error( array( 'message' => __( 'Session expired. Reload the page.', 'diluxone-users' ) ), 403 );
 	}
 
 	/*
@@ -499,7 +523,6 @@ function diluxone_users_passkeys_ajax(): void {
 		case 'login':
 			wp_send_json( diluxone_users_passkeys_login( diluxone_users_passkeys_posted() ) );
 	}
-	// phpcs:enable
 
 	wp_send_json_error( array( 'message' => __( 'Unknown step.', 'diluxone-users' ) ), 400 );
 }
@@ -571,12 +594,14 @@ function diluxone_users_passkeys_register( array $post ): array {
 
 	diluxone_users_passkeys_save( $user_id, $keys );
 
+	$label = (string) end( $keys )['label'];
+
 	diluxone_users_notify_security(
 		$user_id,
-		sprintf(
-				/* translators: %s: the name given to the passkey */
+		static fn (): string => sprintf(
+			/* translators: %s: the name given to the passkey */
 			__( 'A passkey was added: %s.', 'diluxone-users' ),
-			end( $keys )['label']
+			$label
 		)
 	);
 
@@ -768,20 +793,24 @@ function diluxone_users_passkeys_manage(): void {
 
 	check_admin_referer( 'diluxone_users_passkey' );
 
-	// phpcs:disable WordPress.Security.NonceVerification.Missing -- verified above.
 	$user_id   = get_current_user_id();
 	$id        = sanitize_text_field( wp_unslash( $_POST['diluxone_users_passkey'] ?? '' ) );
 	$operation = sanitize_key( wp_unslash( $_POST['diluxone_users_passkey_do'] ?? '' ) );
 
 	if ( 'delete' === $operation ) {
-		diluxone_users_passkey_forget( $user_id, $id );
-		diluxone_users_notify_security( $user_id, __( 'A passkey was removed.', 'diluxone-users' ) );
+		// A key that is not theirs removes nothing, and a security mail about
+		// a removal that did not happen is a false alarm in their inbox.
+		if ( ! diluxone_users_passkey_forget( $user_id, $id ) ) {
+			wp_safe_redirect( diluxone_users_account_url( 'security' ) );
+			exit;
+		}
+
+		diluxone_users_notify_security( $user_id, static fn (): string => __( 'A passkey was removed.', 'diluxone-users' ) );
 		$notice = 'passkeyoff';
 	} else {
 		diluxone_users_passkey_rename( $user_id, $id, sanitize_text_field( wp_unslash( $_POST['diluxone_users_passkey_label'] ?? '' ) ) );
 		$notice = 'passkeyname';
 	}
-	// phpcs:enable
 
 	wp_safe_redirect( add_query_arg( 'diluxone-users', $notice, diluxone_users_account_url( 'security' ) ) );
 	exit;

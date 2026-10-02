@@ -382,11 +382,14 @@ function diluxone_users_ways_strip( array $tabs ): void {
 	);
 
 	foreach ( $tabs as $id => $tab ) {
-		printf(
-			'<button type="button" class="diluxone-users-ways__tab" id="diluxone-users-way-tab-%1$s" data-diluxone-users-way-tab="%1$s">%2$s<span>%3$s</span></button>',
-			esc_attr( (string) $id ),
-			diluxone_users_icon( (string) $tab['icon'], 18 ), // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- our own markup, drawn from a table of names.
-			esc_html( (string) $tab['label'] )
+		echo wp_kses(
+			sprintf(
+				'<button type="button" class="diluxone-users-ways__tab" id="diluxone-users-way-tab-%1$s" data-diluxone-users-way-tab="%1$s">%2$s<span>%3$s</span></button>',
+				esc_attr( (string) $id ),
+				diluxone_users_icon( (string) $tab['icon'], 18 ),
+				esc_html( (string) $tab['label'] )
+			),
+			diluxone_users_allowed_html()
 		);
 	}
 
@@ -565,13 +568,13 @@ function diluxone_users_way_passkey(): void {
 	diluxone_users_passkeys_enqueue();
 	?>
 	<p class="diluxone-users-notice" data-diluxone-users-passkey-notice hidden></p>
-	<p><button type="button" class="diluxone-users-button diluxone-users-button--wide" data-diluxone-users-passkey="login"><?php echo diluxone_users_button_icon( 'key' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- our own markup. ?><?php esc_html_e( 'Sign in with a passkey', 'diluxone-users' ); ?></button></p>
+	<p><button type="button" class="diluxone-users-button diluxone-users-button--wide" data-diluxone-users-passkey="login"><?php echo wp_kses( diluxone_users_button_icon( 'key' ), diluxone_users_allowed_html() ); ?><?php esc_html_e( 'Sign in with a passkey', 'diluxone-users' ); ?></button></p>
 	<?php
 }
 
 /** The networks the site offers, as the buttons they already are. */
 function diluxone_users_way_social(): void {
-	echo diluxone_users_sso_buttons( diluxone_users_sso_for_login() ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- our own markup, already escaped.
+	echo wp_kses( diluxone_users_sso_buttons( diluxone_users_sso_for_login() ), diluxone_users_allowed_html() );
 }
 
 /** The address, and the link that goes to it. */
@@ -595,11 +598,11 @@ function diluxone_users_way_email(): void {
 			<input type="email" id="diluxone-users-email" name="diluxone_users_email" required autocomplete="email" placeholder="<?php echo esc_attr_x( 'you@example.com', 'placeholder for the e-mail field', 'diluxone-users' ); ?>">
 		<?php endif; ?>
 
-		<button type="submit" class="diluxone-users-button"><?php echo diluxone_users_button_icon( 'mail' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- our own markup. ?><?php esc_html_e( 'Send me the sign-in link', 'diluxone-users' ); ?></button>
+		<button type="submit" class="diluxone-users-button"><?php echo wp_kses( diluxone_users_button_icon( 'mail' ), diluxone_users_allowed_html() ); ?><?php esc_html_e( 'Send me the sign-in link', 'diluxone-users' ); ?></button>
 	</form>
 
 	<p class="diluxone-users-note diluxone-users-note--icon">
-		<?php echo diluxone_users_icon( 'info' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- our own markup. ?>
+		<?php echo wp_kses( diluxone_users_icon( 'info' ), diluxone_users_allowed_html() ); ?>
 		<span><?php esc_html_e( 'You get an email with a link. Click it and you are in: no password to choose or type.', 'diluxone-users' ); ?></span>
 	</p>
 	<?php
