@@ -326,7 +326,7 @@ export function forgetPicture(request: APIRequestContext, name = 'e2e-picture', 
  *
  * @param name The name of the hidden input the field stores the id in.
  */
-export async function pickPicture(page: Page, name: string, picture: { id: number }): Promise<Locator> {
+export async function pickPicture(page: Page, name: string, picture: { id: number; url?: string }): Promise<Locator> {
 	const field = page.locator('[data-diluxone-users-image]').filter({ has: page.locator(`input[name="${name}"]`) });
 
 	await field.locator('[data-diluxone-users-image-pick]').click();
@@ -334,6 +334,17 @@ export async function pickPicture(page: Page, name: string, picture: { id: numbe
 	const modal = page.locator('.media-modal:visible');
 
 	await expect(modal).toBeVisible();
+
+	// The grid shows the newest pictures first, a page at a time: on a site
+	// whose library others have filled, this one may not be on the first.
+	// Searching for it by name is what a person does too.
+	if (picture.url) {
+		const file = decodeURIComponent(new URL(picture.url, page.url()).pathname.split('/').pop() ?? '');
+		const term = file.replace(/\.[^.]+$/, '').replace(/-\d+$/, '');
+
+		await modal.locator('input.search, #media-search-input').first().fill(term);
+	}
+
 	await modal.locator(`li.attachment[data-id="${picture.id}"]`).click();
 	await modal.locator('.media-button-select').click();
 	await expect(modal).toBeHidden();

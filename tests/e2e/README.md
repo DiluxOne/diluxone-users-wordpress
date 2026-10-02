@@ -68,6 +68,11 @@ browser back, frame by frame.
 - For the network suite, the tests site on port 8893 as a network
   (`make env-multisite`, which `make test-e2e-network` runs), and WP-CLI
   through `npx wp-env run tests-cli` — the setup makes its sites with it.
+- **Two more languages,** es_AR and es_ES, on both sites: `.wp-env.json`'s
+  `afterStart` installs them every time the environment starts, here and on
+  CI, so the tests of a second language (messages, e-mail notices, a mail
+  written in its recipient's language) never depend on what a machine
+  happened to have.
 - Nothing else. No mail server: the mu-plugin catches the mail. No OAuth
   credentials: the mu-plugin answers as the provider. No HTTPS: `localhost`
   counts as a secure context, which is what passkeys need.
