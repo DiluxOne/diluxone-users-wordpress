@@ -15,15 +15,15 @@ suppressions:
   - file: includes/account-export.php
     sniff: WordPress.WP.AlternativeFunctions.file_system_operations_readfile
     fingerprint: fd68ab781b39
-    reason: "streaming a file to the browser; WP_Filesystem has no streaming read."
+    reason: "Sends a person's own data export to their browser in pieces, after this same function has verified the link's nonce and that the request is theirs; the file is the one WordPress's own exporter wrote in wp_privacy_exports_dir(), named by the request and checked with validate_file(). WP_Filesystem has no streaming read, and reading the whole file into memory first is what readfile() avoids."
   - file: includes/account.php
     sniff: WordPress.Security.NonceVerification.Recommended
     fingerprint: d1c2bc79019f
-    reason: "A GET parameter that only chooses what this screen draws (which section of the account area is open); it is sanitised with sanitize_key() or cast, compared with the screen's own list, and nothing is written or acted on, so there is no request to forge."
+    reason: "A GET parameter that only chooses what this screen draws (which section of the account area is open); it is sanitised, compared with what the screen offers, and nothing is written or acted on, so there is no request to forge."
   - file: includes/admin-account.php
     sniff: WordPress.Security.NonceVerification.Recommended
     fingerprint: 850382cf3f1f
-    reason: "which screen this is; the action below checks its nonce before doing anything."
+    reason: "A GET parameter that only says which admin screen this is, so the plugin knows whether to look further; the action taken on that screen then verifies its own nonce and capability in the same function before it reads anything else, and nothing is written by this read."
   - file: includes/admin-account.php
     sniff: WordPress.Security.NonceVerification.Recommended
     fingerprint: 123df5c62e32
@@ -31,7 +31,7 @@ suppressions:
   - file: includes/admin-account.php
     sniff: WordPress.Security.NonceVerification.Recommended
     fingerprint: 9616e128075a
-    reason: "A GET parameter that only chooses what this screen draws (which section is being edited); it is sanitised with sanitize_key() or cast, compared with the screen's own list, and nothing is written or acted on, so there is no request to forge."
+    reason: "A GET parameter that only chooses what this screen draws (which section is being edited); it is sanitised, compared with what the screen offers, and nothing is written or acted on, so there is no request to forge."
   - file: includes/admin-fields.php
     sniff: WordPress.Security.NonceVerification.Recommended
     fingerprint: 148d9748e044
@@ -39,7 +39,7 @@ suppressions:
   - file: includes/admin-fields.php
     sniff: WordPress.Security.NonceVerification.Recommended
     fingerprint: 18b2c3f72440
-    reason: "A GET parameter that only chooses what this screen draws (which field is open for editing); it is sanitised with sanitize_key() or cast, compared with the screen's own list, and nothing is written or acted on, so there is no request to forge."
+    reason: "A GET parameter that only chooses what this screen draws (which field is open for editing); it is sanitised, compared with what the screen offers, and nothing is written or acted on, so there is no request to forge."
   - file: includes/admin-fields.php
     sniff: WordPress.Security.NonceVerification.Recommended
     fingerprint: c576901974a6
@@ -47,7 +47,7 @@ suppressions:
   - file: includes/admin-fields.php
     sniff: WordPress.Security.NonceVerification.Recommended
     fingerprint: 8582a530d835
-    reason: "A GET parameter that only chooses what this screen draws (which part of the fields screen is shown); it is sanitised with sanitize_key() or cast, compared with the screen's own list, and nothing is written or acted on, so there is no request to forge."
+    reason: "A GET parameter that only chooses what this screen draws (which part of the fields screen is shown); it is sanitised, compared with what the screen offers, and nothing is written or acted on, so there is no request to forge."
   - file: includes/admin-log.php
     sniff: WordPress.Security.NonceVerification.Recommended
     fingerprint: df74ca78ff2b
@@ -75,7 +75,7 @@ suppressions:
   - file: includes/admin-panels.php
     sniff: WordPress.Security.NonceVerification.Recommended
     fingerprint: 902d26558f6c
-    reason: "the key IS the credential: it was made for this administrator and it is only good for a minute."
+    reason: "A preview link carries no nonce of its own: the random key in it is the credential, made by a request that verified its nonce and capability, stored against this administrator's user id and valid for one minute. It is honoured only for that same signed-in administrator with manage_options, it only changes what this one request draws, and nothing is written."
   - file: includes/admin-sessions.php
     sniff: WordPress.Security.NonceVerification.Recommended
     fingerprint: 7c173b25eb21
@@ -83,11 +83,11 @@ suppressions:
   - file: includes/admin-social.php
     sniff: WordPress.Security.NonceVerification.Recommended
     fingerprint: 25b36040d682
-    reason: "A GET parameter that only chooses what this screen draws (which social provider's settings are shown); it is sanitised with sanitize_key() or cast, compared with the screen's own list, and nothing is written or acted on, so there is no request to forge."
+    reason: "A GET parameter that only chooses what this screen draws (which social provider's settings are shown); it is sanitised, compared with what the screen offers, and nothing is written or acted on, so there is no request to forge."
   - file: includes/admin-tools.php
     sniff: WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
     fingerprint: 6e25946b8420
-    reason: "the import checks the path with is_uploaded_file() and validates the content as JSON."
+    reason: "The temporary path PHP gives an uploaded settings file, read only after this same function has verified the Tools form's nonce and the capability; it is checked with is_uploaded_file(), capped in size, and its content is parsed as JSON and filtered to known settings before anything is written."
   - file: includes/admin-tools.php
     sniff: WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
     fingerprint: 82f54ebbb46c
@@ -95,7 +95,7 @@ suppressions:
   - file: includes/admin.php
     sniff: WordPress.Security.NonceVerification.Recommended
     fingerprint: 86b6148e469a
-    reason: "A GET parameter that only chooses what this screen draws (which tab of the screen is open); it is sanitised with sanitize_key() or cast, compared with the screen's own list, and nothing is written or acted on, so there is no request to forge."
+    reason: "A GET parameter that only chooses what this screen draws (which tab of the screen is open); it is sanitised, compared with what the screen offers, and nothing is written or acted on, so there is no request to forge."
   - file: includes/auth.php
     sniff: WordPress.Security.NonceVerification
     fingerprint: af4da6df0cee
@@ -135,11 +135,11 @@ suppressions:
   - file: includes/log.php
     sniff: WordPress.DB.PreparedSQL.NotPrepared
     fingerprint: a659bd58b296
-    reason: "the IN list is placeholders only, filled by prepare(); the plugin's own table; a delete is not cached."
+    reason: "The interpolated part is an IN list made only of %d placeholders, one per site id, built by the plugin; every value goes through $wpdb->prepare(), the table is the plugin's own under $wpdb->base_prefix, and a delete has no cache to use."
   - file: includes/log.php
     sniff: WordPress.DB.PreparedSQL.InterpolatedNotPrepared
     fingerprint: a659bd58b296
-    reason: "the IN list is placeholders only, filled by prepare(); the plugin's own table; a delete is not cached."
+    reason: "The interpolated part is an IN list made only of %d placeholders, one per site id, built by the plugin; every value goes through $wpdb->prepare(), the table is the plugin's own under $wpdb->base_prefix, and a delete has no cache to use."
   - file: includes/log.php
     sniff: WordPress.DB.PreparedSQL.NotPrepared
     fingerprint: 74bfdab8b3ac
@@ -159,11 +159,11 @@ suppressions:
   - file: includes/membership.php
     sniff: WordPress.DB.PreparedSQL.NotPrepared
     fingerprint: ab524b8c3f81
-    reason: "$in is a list of %s placeholders, one per key, filled by prepare() from $args; a cursor no API offers."
+    reason: "The interpolated part is a list of %s placeholders, one per meta key, built by the plugin; every value goes through $wpdb->prepare(). It is a direct query because it walks users in batches by id, a cursor no WordPress API offers."
   - file: includes/membership.php
     sniff: WordPress.DB.PreparedSQL.InterpolatedNotPrepared
     fingerprint: ab524b8c3f81
-    reason: "$in is a list of %s placeholders, one per key, filled by prepare() from $args; a cursor no API offers."
+    reason: "The interpolated part is a list of %s placeholders, one per meta key, built by the plugin; every value goes through $wpdb->prepare(). It is a direct query because it walks users in batches by id, a cursor no WordPress API offers."
   - file: includes/network-gate.php
     sniff: WordPress.Security.NonceVerification.Recommended
     fingerprint: b42d84f50628
@@ -175,7 +175,7 @@ suppressions:
   - file: includes/network-hub.php
     sniff: WordPress.Security.NonceVerification.Recommended
     fingerprint: 0c00148ffe6a
-    reason: "an address to come back to, checked against the network's hosts before it is kept."
+    reason: "An address to send the person back to after signing in on the hub; it is sanitised as a URL and kept only if its host is one of this network's own sites, and nothing else is written."
   - file: includes/network-hub.php
     sniff: WordPress.Security.NonceVerification.Missing
     fingerprint: d6674bc8f089
@@ -191,11 +191,11 @@ suppressions:
   - file: includes/passwordless.php
     sniff: WordPress.Security.NonceVerification.Recommended
     fingerprint: 463bfcc19b5c
-    reason: "reading which screen wp-login.php was asked for, before anything is done with it."
+    reason: "Reading which wp-login.php action was asked for (login, register, lostpassword, rp), only to decide which screen of the site handles it; the value is sanitised and compared with a fixed list, and nothing is written."
   - file: includes/passwordless.php
     sniff: WordPress.Security.NonceVerification.Missing
     fingerprint: 463bfcc19b5c
-    reason: "reading which screen wp-login.php was asked for, before anything is done with it."
+    reason: "Reading which wp-login.php action was asked for (login, register, lostpassword, rp), only to decide which screen of the site handles it; the value is sanitised and compared with a fixed list, and nothing is written."
   - file: includes/passwordless.php
     sniff: WordPress.Security.NonceVerification.Recommended
     fingerprint: fd8b71c5ad9f

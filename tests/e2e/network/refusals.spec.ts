@@ -765,13 +765,9 @@ const PANEL_FORM = '#diluxone-users-panel-form';
 async function tamperedSave(page: Page, change: Record<string, string>, nonce: string | null): Promise<number> {
 	await formFields(page, PANEL_FORM, change);
 
-	let status = 0;
-
-	page.once('response', (response) => {
-		if (response.request().method() === 'POST' && response.request().resourceType() === 'document') {
-			status = response.status();
-		}
-	});
+	// The form's own answer, not the first response of any kind: a request in
+	// the background can come back first.
+	const answer = page.waitForResponse((response) => response.request().method() === 'POST' && response.request().resourceType() === 'document');
 
 	await navigated(page, () =>
 		page.locator(PANEL_FORM).evaluate((form: HTMLFormElement, nonce: string | null) => {
@@ -787,7 +783,7 @@ async function tamperedSave(page: Page, change: Record<string, string>, nonce: s
 		}, nonce)
 	);
 
-	return status;
+	return (await answer).status();
 }
 
 test.describe('Every network panel refuses a save it should not take', () => {

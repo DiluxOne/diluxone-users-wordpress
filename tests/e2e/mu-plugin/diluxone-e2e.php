@@ -1064,6 +1064,15 @@ function diluxone_e2e_user_delete( WP_REST_Request $request ): WP_REST_Response 
 		}
 
 		if ( is_multisite() ) {
+			// A spec may have made the account a super admin (the network's
+			// refusals do, for a victim), and WordPress keeps a super admin
+			// from being deleted. If that spec stopped before taking it back,
+			// the account would outlive every teardown after it.
+			if ( is_super_admin( $id ) ) {
+				require_once ABSPATH . 'wp-admin/includes/ms.php';
+				revoke_super_admin( $id );
+			}
+
 			wpmu_delete_user( $id );
 
 			return;

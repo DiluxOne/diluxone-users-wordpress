@@ -1026,13 +1026,9 @@ const PANELS: PanelRow[] = [
 async function tamperedSave(page: Page, form: string, change: Record<string, string>, nonce: string | null): Promise<number> {
 	await formFields(page, form, change);
 
-	let status = 0;
-
-	page.once('response', (response) => {
-		if (response.request().method() === 'POST' && response.request().resourceType() === 'document') {
-			status = response.status();
-		}
-	});
+	// The form's own answer, not the first response of any kind: a request in
+	// the background (the live preview, the heartbeat) can come back first.
+	const answer = page.waitForResponse((response) => response.request().method() === 'POST' && response.request().resourceType() === 'document');
 
 	await navigated(page, () =>
 		page
@@ -1051,7 +1047,7 @@ async function tamperedSave(page: Page, form: string, change: Record<string, str
 			}, nonce)
 	);
 
-	return status;
+	return (await answer).status();
 }
 
 test.describe('Every settings panel refuses a save it should not take', () => {
