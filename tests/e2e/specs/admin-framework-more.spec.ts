@@ -232,14 +232,17 @@ test.describe('E-mail notices: the languages and the summary', () => {
 		await expect(page.locator('#diluxone_users_mail_login_link_subject')).toHaveValue(shipped);
 		await expect(page.locator('input[name="diluxone_users_mail[login_link][shipped]"]')).toHaveCount(0);
 
-		await site.clearMail();
-		await options.set({ diluxone_users_login_throttle: 1 });
+		// Somebody else asks: a second link to the same address within a minute
+		// is refused on purpose (the per-address wait).
+		const again = freshEmail('mail-lang-again');
+
+		await site.makeUser({ email: again });
 		await guest.context().clearCookies();
-		await askForLink(guest, pages.login.url, email);
+		await askForLink(guest, pages.login.url, again);
 		// The plugin's subject, with its placeholders filled in.
 		const pattern = new RegExp(`^${shipped.replace(/[.*+?^$()|[\]\\]/g, '\\$&').replace(/\{[a-z_]+\}/g, '.+')}$`);
 
-		expect((await waitForMail(site, email)).subject).toMatch(pattern);
+		expect((await waitForMail(site, again)).subject).toMatch(pattern);
 	});
 
 	test('the summary reads each rule and the state of the mails nobody can turn off', async ({ page, options }) => {

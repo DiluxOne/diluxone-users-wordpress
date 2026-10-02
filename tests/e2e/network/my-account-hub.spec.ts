@@ -234,7 +234,9 @@ test.describe('Closing an account on a network', () => {
 			await onTheHub(page, hub, email);
 			await askAndConfirm(page, hub, email);
 
-			const pressed = Math.floor(Date.now() / 1000);
+			// What arrives from here on is what the button sent (the browser's
+			// clock is not the server's, so not filtered by time).
+			await hub.site.clearMail();
 
 			await Promise.all([page.waitForURL(/diluxone-users=closed/), page.locator('.diluxone-users-closing button[type="submit"]').click()]);
 
@@ -242,9 +244,9 @@ test.describe('Closing an account on a network', () => {
 			expect(wp(['user', 'get', String(person.id), '--field=user_login'])).toBe(`deleted-${person.id}`);
 			expect(wp(['user', 'get', String(person.id), '--field=roles'], beta.url), 'no role left on /beta/').toBe('');
 
-			const told = (await hub.site.mail(email)).filter((mail) => mail.sent >= pressed && !mail.body.includes('confirmaction'));
+			const told = (await hub.site.mail(email)).filter((mail) => !mail.body.includes('confirmaction'));
 
-			expect(told.length, 'the “your account was deleted” mail').toBe(1);
+			expect(told.map((mail) => mail.subject), 'the “your account was deleted” mail, and nothing else').toHaveLength(1);
 		} finally {
 			forget(person.id);
 		}

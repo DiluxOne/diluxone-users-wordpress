@@ -393,7 +393,11 @@ test.describe('Closing an account', () => {
 			expect(await ask(page, pages.account.url, 'erase')).toBe('requested');
 			await page.goto(await confirmationLink(site, email));
 
-			const pressed = Date.now() / 1000;
+			// What arrives from here on is what the button sent. Emptied rather
+			// than filtered by time: the browser's clock and the server's are
+			// not the same clock, and a mail from just before (the new
+			// passkey's notice) could fall on either side of a timestamp.
+			await site.clearMail();
 
 			await Promise.all([page.waitForURL(/diluxone-users=closed/), yesDelete(page).click()]);
 			await expect(page.locator('[data-diluxone-users-message="login_closed"]')).toBeVisible();
@@ -413,9 +417,9 @@ test.describe('Closing an account', () => {
 			expect(keys).toContain('diluxone_users_closed');
 
 			// Told: a message after the button, which is not the confirmation.
-			const told = (await site.mail(email)).filter((mail) => mail.sent >= Math.floor(pressed) && !mail.body.includes('confirmaction'));
+			const told = (await site.mail(email)).filter((mail) => !mail.body.includes('confirmaction'));
 
-			expect(told.length, 'the “your account was deleted” mail').toBe(1);
+			expect(told.map((mail) => mail.subject), 'the “your account was deleted” mail, and nothing else').toHaveLength(1);
 
 			// The old password does not open it.
 			await page.goto(pages.login.url);
