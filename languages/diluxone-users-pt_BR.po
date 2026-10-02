@@ -15,11 +15,6 @@ msgstr ""
 "X-Domain: diluxone-users\n"
 "X-Generator: WP-CLI 2.12.0\n"
 
-#. Plugin URI of the plugin
-#: diluxone-users.php
-msgid "https://github.com/soydiloreto/diluxone-users-wordpress"
-msgstr "https://github.com/soydiloreto/diluxone-users-wordpress"
-
 #. Author of the plugin
 #: diluxone-users.php
 msgid "Pablo Ariel Di Loreto"
@@ -11090,3 +11085,8 @@ msgstr ""
 #: includes/admin-register.php:245
 msgid "Network Admin › Settings →"
 msgstr "Administração da rede › Configurações →"
+
+#. Plugin URI of the plugin
+#: diluxone-users.php
+msgid "https://github.com/DiluxOne/diluxone-users-wordpress"
+msgstr "https://github.com/DiluxOne/diluxone-users-wordpress"

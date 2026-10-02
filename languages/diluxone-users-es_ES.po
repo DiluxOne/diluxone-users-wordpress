@@ -3401,11 +3401,6 @@ msgstr "Esta sesión"
 msgid "Close the others"
 msgstr "Cerrar las demás"
 
-#. Plugin URI of the plugin
-#: diluxone-users.php
-msgid "https://github.com/soydiloreto/diluxone-users-wordpress"
-msgstr "https://github.com/soydiloreto/diluxone-users-wordpress"
-
 #. Author URI of the plugin
 #: diluxone-users.php
 msgid "https://diluxone.com/plugins-wordpress"
@@ -11145,3 +11140,8 @@ msgstr ""
 #: includes/admin-register.php:245
 msgid "Network Admin › Settings →"
 msgstr "Administración de la red › Ajustes →"
+
+#. Plugin URI of the plugin
+#: diluxone-users.php
+msgid "https://github.com/DiluxOne/diluxone-users-wordpress"
+msgstr "https://github.com/DiluxOne/diluxone-users-wordpress"

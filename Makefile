@@ -113,14 +113,17 @@ i18n-mo: ## Compile every languages/*.po into the .mo WordPress actually reads.
 	@echo "✔ $$(ls languages/*.mo | wc -l) .mo files built."
 
 .PHONY: i18n-check
-i18n-check: ## Fail if any shipped .po is malformed, untranslated or fuzzy.
+i18n-check: i18n ## Fail if any shipped .po is malformed, untranslated or fuzzy, against today's code.
 	@# Fuzzy counts as incomplete. A fuzzy entry is msgmerge's guess carried
 	@# over from a string that has since changed, and WordPress does not show
 	@# it at all — so a locale full of them reads as English while the
 	@# statistics line calls it translated. The same three words CI checks.
+	@# Against today's code, as CI does: the .pot is made again first and each
+	@# .po is merged with it in memory, so a string the code gained and the
+	@# files never heard of (a changed plugin header, say) counts as missing.
 	@fail=0; \
 	for po in languages/*.po; do \
-	  out=$$(msgfmt --check --statistics -o /dev/null "$$po" 2>&1) || fail=1; \
+	  out=$$(msgmerge -q "$$po" languages/diluxone-users.pot -o - 2>/dev/null | msgfmt --check --statistics -o /dev/null - 2>&1) || fail=1; \
 	  printf "%-34s %s\n" "$$po" "$$out"; \
 	  case "$$out" in *untranslated*|*fuzzy*) fail=1;; esac; \
 	done; \
