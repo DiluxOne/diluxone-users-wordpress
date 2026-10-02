@@ -41,6 +41,8 @@ if ( ! function_exists( 'diluxone_users_core_user_meta' ) ) {
 			'show_admin_bar_front',
 			'locale',
 			'session_tokens',
+			'_application_passwords',
+			'_new_email',
 			'primary_blog',
 			'source_domain',
 			'capabilities',

@@ -51,6 +51,8 @@ class FieldSaveGuardTest extends IntegrationTestCase {
 		remove_filter( 'diluxone_users_fields', $fields );
 
 		$this->assertFalse( diluxone_users_field_key_allowed( $caps ) );
+		$this->assertFalse( diluxone_users_field_key_allowed( '_application_passwords' ), 'application passwords are not a field' );
+		$this->assertFalse( diluxone_users_field_key_allowed( '_new_email' ), 'a pending address change is not a field' );
 		$this->assertSame( array( 'subscriber' => true ), get_user_meta( $user, $caps, true ), 'The role is untouched' );
 		$this->assertFalse( user_can( $user, 'manage_options' ) );
 		$this->assertSame( 'Rosario', get_user_meta( $user, 'diluxone_test_city', true ), 'An ordinary field still saves' );

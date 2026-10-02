@@ -150,9 +150,13 @@ class UninstallSiteTest extends IntegrationTestCase {
 				array( 'key' => 'description', 'label' => 'Bio' ),
 				array( 'key' => 'first_name', 'label' => 'Name' ),
 				array( 'key' => 'nickname', 'label' => 'Nick' ),
+				array( 'key' => '_application_passwords', 'label' => 'Keys' ),
+				array( 'key' => '_new_email', 'label' => 'Pending address' ),
 				array( 'key' => 'phone', 'label' => 'Phone' ),
 			)
 		);
+		update_user_meta( $this->user, '_application_passwords', array( array( 'uuid' => 'u', 'name' => 'CLI' ) ) );
+		update_user_meta( $this->user, '_new_email', array( 'hash' => 'h', 'newemail' => 'ana@example.test' ) );
 		update_user_meta( $this->user, 'description', 'A life' );
 		update_user_meta( $this->user, 'first_name', 'Ana' );
 		update_user_meta( $this->user, 'nickname', 'ani' );
@@ -163,6 +167,8 @@ class UninstallSiteTest extends IntegrationTestCase {
 		$this->assertSame( 'A life', get_user_meta( $this->user, 'description', true ) );
 		$this->assertSame( 'Ana', get_user_meta( $this->user, 'first_name', true ) );
 		$this->assertSame( 'ani', get_user_meta( $this->user, 'nickname', true ) );
+		$this->assertNotEmpty( get_user_meta( $this->user, '_application_passwords', true ), 'application passwords are WordPress’s' );
+		$this->assertNotEmpty( get_user_meta( $this->user, '_new_email', true ), 'a pending address change is WordPress’s' );
 		$this->assertSame( '', get_user_meta( $this->user, 'phone', true ), 'a key the site invented goes' );
 	}
 
