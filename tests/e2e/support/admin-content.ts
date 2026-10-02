@@ -335,6 +335,15 @@ export async function pickPicture(page: Page, name: string, picture: { id: numbe
 
 	await expect(modal).toBeVisible();
 
+	// WordPress opens on "Upload files" when the library was empty as the page
+	// loaded, which on a fresh site it is: the picture was made after. The
+	// library's own tab is where it is chosen from.
+	const library = modal.locator('#menu-item-browse');
+
+	if (await library.isVisible()) {
+		await library.click();
+	}
+
 	// The grid shows the newest pictures first, a page at a time: on a site
 	// whose library others have filled, this one may not be on the first.
 	// Searching for it by name is what a person does too.

@@ -89,14 +89,15 @@ test.describe('Access › Messages', () => {
 		await ssoButton(guest, 'mock').click();
 		await guest.waitForURL(/diluxone-users=/);
 		expect(stateOf(guest.url())).toBe('social');
-		await expect(guest.locator(`[data-diluxone-users-message="${KEY}"]`)).toHaveText(locale === 'en_US' ? MINE_EN : MINE_ES);
+		// What was typed in the site's own language, whichever language that is.
+		await expect(guest.locator(`[data-diluxone-users-message="${KEY}"]`)).toHaveText(MINE_ES);
 
 		// And on a site in the other language, the other one.
 		await options.set({ WPLANG: otherLocale === 'en_US' ? '' : otherLocale });
 		await guest.goto(pages.login.url);
 		await ssoButton(guest, 'mock').click();
 		await guest.waitForURL(/diluxone-users=/);
-		await expect(guest.locator(`[data-diluxone-users-message="${KEY}"]`)).toHaveText(otherLocale === 'en_US' ? MINE_EN : MINE_ES);
+		await expect(guest.locator(`[data-diluxone-users-message="${KEY}"]`)).toHaveText(MINE_EN);
 	});
 
 	test('moving to another language with something typed asks first, and saves nothing', async ({ page, site }) => {
