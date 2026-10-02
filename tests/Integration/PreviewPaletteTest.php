@@ -187,4 +187,23 @@ class PreviewPaletteTest extends IntegrationTestCase {
 	public function test_a_panel_that_saves_nothing_offers_nothing(): void {
 		$this->assertSame( array(), diluxone_users_preview_would_save( array( 'save' => '' ) ) );
 	}
+
+	/**
+	 * The stylesheet is printed through esc_html(), which is only harmless
+	 * because nothing that esc_html() would change can reach it: a value with
+	 * a quote, an ampersand or an angle bracket is not a colour and is
+	 * dropped, so what is printed is the same before and after escaping.
+	 */
+	public function test_nothing_escaping_would_change_reaches_the_stylesheet(): void {
+		$head = '<style>:root{--a:#123456;--b:"Inter", sans-serif;--c:url(x.png?a=1&b=2);--d:rgb(1, 2, 3);--e:a<b>c;}</style>';
+		$css  = diluxone_users_preview_vars_css( $head, array( '--a', '--b', '--c', '--d', '--e' ) );
+
+		$this->assertStringContainsString( '--a:#123456', $css );
+		$this->assertStringContainsString( '--d:rgb(1, 2, 3)', $css );
+		$this->assertStringNotContainsString( '--b', $css, 'a font is not a colour' );
+		$this->assertStringNotContainsString( '--c', $css, 'an address is not a colour' );
+		$this->assertStringNotContainsString( '--e', $css, 'markup is not a colour' );
+		$this->assertSame( $css, esc_html( $css ), 'escaping changes nothing in what is printed' );
+	}
 }
+

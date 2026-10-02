@@ -19,7 +19,7 @@ suppressions:
   - file: includes/account.php
     sniff: WordPress.Security.NonceVerification.Recommended
     fingerprint: d1c2bc79019f
-    reason: "it only picks what to draw."
+    reason: "A GET parameter that only chooses what this screen draws (which section of the account area is open); it is sanitised with sanitize_key() or cast, compared with the screen's own list, and nothing is written or acted on, so there is no request to forge."
   - file: includes/admin-account.php
     sniff: WordPress.Security.NonceVerification.Recommended
     fingerprint: 850382cf3f1f
@@ -27,47 +27,47 @@ suppressions:
   - file: includes/admin-account.php
     sniff: WordPress.Security.NonceVerification.Recommended
     fingerprint: 123df5c62e32
-    reason: "it only picks the message."
+    reason: "A GET parameter that only chooses which fixed message to show after a redirect; it is sanitised and looked up in the plugin's own list of messages, nothing is written, and an unknown value shows nothing."
   - file: includes/admin-account.php
     sniff: WordPress.Security.NonceVerification.Recommended
     fingerprint: 9616e128075a
-    reason: "it only picks what to draw."
+    reason: "A GET parameter that only chooses what this screen draws (which section is being edited); it is sanitised with sanitize_key() or cast, compared with the screen's own list, and nothing is written or acted on, so there is no request to forge."
   - file: includes/admin-fields.php
     sniff: WordPress.Security.NonceVerification.Recommended
     fingerprint: 148d9748e044
-    reason: "which screen this is; every action below checks its own nonce."
+    reason: "A GET parameter that only says which admin screen this is, so the plugin knows whether to look further; every action taken on that screen then verifies its own nonce and capability in the same function before it reads anything else."
   - file: includes/admin-fields.php
     sniff: WordPress.Security.NonceVerification.Recommended
     fingerprint: 18b2c3f72440
-    reason: "which field the screen shows, nothing is changed."
+    reason: "A GET parameter that only chooses what this screen draws (which field is open for editing); it is sanitised with sanitize_key() or cast, compared with the screen's own list, and nothing is written or acted on, so there is no request to forge."
   - file: includes/admin-fields.php
     sniff: WordPress.Security.NonceVerification.Recommended
     fingerprint: c576901974a6
-    reason: "which message to show after the redirect, from a fixed list."
+    reason: "A GET parameter that only chooses which fixed message to show after a redirect; it is sanitised and looked up in the plugin's own list of messages, nothing is written, and an unknown value shows nothing."
   - file: includes/admin-fields.php
     sniff: WordPress.Security.NonceVerification.Recommended
     fingerprint: 8582a530d835
-    reason: "it only picks what the screen shows."
+    reason: "A GET parameter that only chooses what this screen draws (which part of the fields screen is shown); it is sanitised with sanitize_key() or cast, compared with the screen's own list, and nothing is written or acted on, so there is no request to forge."
   - file: includes/admin-log.php
     sniff: WordPress.Security.NonceVerification.Recommended
     fingerprint: df74ca78ff2b
-    reason: "only which notice to show after the redirect."
+    reason: "A GET parameter that only chooses which fixed message to show after a redirect; it is sanitised and looked up in the plugin's own list of messages, nothing is written, and an unknown value shows nothing."
   - file: includes/admin-log.php
     sniff: WordPress.Security.NonceVerification.Recommended
     fingerprint: 4e9d6a470652
-    reason: "a count shown once after the redirect, cast to a number."
+    reason: "A GET parameter carrying how many rows a completed action affected, shown once after its redirect; it is cast to an integer and printed escaped, and nothing is written."
   - file: includes/admin-log.php
     sniff: WordPress.Security.NonceVerification.Recommended
     fingerprint: 406deea5365a
-    reason: "it is a read-only search."
+    reason: "The filters of a read-only report (person, event, dates, page): each is sanitised and passed to a prepared query that only reads; nothing is written, so a forged link can only show the administrator a different page of their own report."
   - file: includes/admin-membership.php
     sniff: WordPress.Security.NonceVerification.Recommended
     fingerprint: fa420635ebe2
-    reason: "which screen this is, to stay quiet on the one that asks."
+    reason: "A GET parameter that only says which admin screen this is, so the notice is not repeated on the screen that already asks the question; it is sanitised and only compared, and nothing is written."
   - file: includes/admin-membership.php
     sniff: WordPress.Security.NonceVerification.Recommended
     fingerprint: ecdc86415b10
-    reason: "only which notice to show after the redirect."
+    reason: "A GET parameter that only chooses which fixed message to show after a redirect; it is sanitised and looked up in the plugin's own list of messages, nothing is written, and an unknown value shows nothing."
   - file: includes/admin-notices.php
     sniff: WordPress.Security.NonceVerification
     fingerprint: 322accf6045f
@@ -79,11 +79,11 @@ suppressions:
   - file: includes/admin-sessions.php
     sniff: WordPress.Security.NonceVerification.Recommended
     fingerprint: 7c173b25eb21
-    reason: "it is a read-only search."
+    reason: "The filters of a read-only sessions report (person, page): each is sanitised and only used to read; nothing is written or closed from this read."
   - file: includes/admin-social.php
     sniff: WordPress.Security.NonceVerification.Recommended
     fingerprint: 25b36040d682
-    reason: "which provider the screen shows, nothing is changed."
+    reason: "A GET parameter that only chooses what this screen draws (which social provider's settings are shown); it is sanitised with sanitize_key() or cast, compared with the screen's own list, and nothing is written or acted on, so there is no request to forge."
   - file: includes/admin-tools.php
     sniff: WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
     fingerprint: 6e25946b8420
@@ -95,7 +95,7 @@ suppressions:
   - file: includes/admin.php
     sniff: WordPress.Security.NonceVerification.Recommended
     fingerprint: 86b6148e469a
-    reason: "which tab the screen shows, nothing is changed."
+    reason: "A GET parameter that only chooses what this screen draws (which tab of the screen is open); it is sanitised with sanitize_key() or cast, compared with the screen's own list, and nothing is written or acted on, so there is no request to forge."
   - file: includes/auth.php
     sniff: WordPress.Security.NonceVerification
     fingerprint: af4da6df0cee
@@ -127,11 +127,11 @@ suppressions:
   - file: includes/log.php
     sniff: WordPress.DB.PreparedSQL.NotPrepared
     fingerprint: 89353989faf9
-    reason: "the IN list is placeholders only, filled by prepare()."
+    reason: "The interpolated part is an IN list made only of %s/%d placeholders, one per value, built by the plugin; every value goes through $wpdb->prepare(), and the table name is the plugin's own under $wpdb->base_prefix."
   - file: includes/log.php
     sniff: WordPress.DB.PreparedSQL.InterpolatedNotPrepared
     fingerprint: 89353989faf9
-    reason: "the IN list is placeholders only, filled by prepare()."
+    reason: "The interpolated part is an IN list made only of %s/%d placeholders, one per value, built by the plugin; every value goes through $wpdb->prepare(), and the table name is the plugin's own under $wpdb->base_prefix."
   - file: includes/log.php
     sniff: WordPress.DB.PreparedSQL.NotPrepared
     fingerprint: a659bd58b296
@@ -155,7 +155,7 @@ suppressions:
   - file: includes/login.php
     sniff: WordPress.Security.NonceVerification.Recommended
     fingerprint: c2d06b25d525
-    reason: "the token IS the credential."
+    reason: "A sign-in link opened from an e-mail by somebody not yet signed in cannot carry a nonce: the single-use token in it is the credential, hashed at rest, compared in constant time and deleted when used, before anything else is done."
   - file: includes/membership.php
     sniff: WordPress.DB.PreparedSQL.NotPrepared
     fingerprint: ab524b8c3f81
@@ -167,11 +167,11 @@ suppressions:
   - file: includes/network-gate.php
     sniff: WordPress.Security.NonceVerification.Recommended
     fingerprint: b42d84f50628
-    reason: "which screen this is, to decide whether to speak on it."
+    reason: "A GET parameter that only says which admin screen this is, to decide whether a notice belongs on it; it is sanitised and only compared, and nothing is written."
   - file: includes/network-hub.php
     sniff: WordPress.Security.NonceVerification.Recommended
     fingerprint: db3d5ea3bb8a
-    reason: "reading which screen wp-login.php was asked for, to send it on."
+    reason: "Reading which wp-login.php action was asked for (login, register, lostpassword), only to send the visitor to the same screen on the hub; the value is compared with a fixed list and nothing is written."
   - file: includes/network-hub.php
     sniff: WordPress.Security.NonceVerification.Recommended
     fingerprint: 0c00148ffe6a
@@ -183,11 +183,11 @@ suppressions:
   - file: includes/pages.php
     sniff: WordPress.Security.NonceVerification.Recommended
     fingerprint: 257a0b492e36
-    reason: "display only."
+    reason: "A GET parameter naming the page that was just created, used only to show a one-time notice linking to it; it is cast to an integer, the page is looked up, and nothing is written."
   - file: includes/passwordless.php
     sniff: WordPress.Security.NonceVerification.Recommended
     fingerprint: e5dd5a368052
-    reason: "the key is the credential and is checked on arrival."
+    reason: "A password-reset link opened from an e-mail cannot carry a nonce: the reset key WordPress issued is the credential, and check_password_reset_key() validates it before anything is done with the request."
   - file: includes/passwordless.php
     sniff: WordPress.Security.NonceVerification.Recommended
     fingerprint: 463bfcc19b5c
@@ -199,7 +199,7 @@ suppressions:
   - file: includes/passwordless.php
     sniff: WordPress.Security.NonceVerification.Recommended
     fingerprint: fd8b71c5ad9f
-    reason: "it only decides whether a hidden field is printed."
+    reason: "A GET parameter that only decides whether a hidden field is printed in the sign-in form; it is sanitised and compared, and nothing is written."
   - file: includes/reset.php
     sniff: WordPress.Security.NonceVerification.Recommended
     fingerprint: c98d4b86fe24
@@ -207,11 +207,11 @@ suppressions:
   - file: includes/reset.php
     sniff: WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
     fingerprint: ba9222298007
-    reason: "a password is not sanitised, it is used as typed."
+    reason: "A new password is used exactly as typed, as WordPress's own reset does (sanitising would change it); it is unslashed, checked as a string, compared with its confirmation and passed only to wp_set_password(), never printed or stored in the clear. This same function checks the form's nonce and the reset key before it reads the password."
   - file: includes/shortcodes.php
     sniff: WordPress.Security.NonceVerification.Recommended
     fingerprint: bd55b06ad591
-    reason: "it only picks which message is seen."
+    reason: "A GET parameter that only chooses which fixed message to show after a redirect; it is sanitised and looked up in the plugin's own list of messages, nothing is written, and an unknown value shows nothing."
   - file: includes/shortcodes.php
     sniff: WordPress.Security.NonceVerification.Recommended
     fingerprint: dc68d5a7eea8
@@ -223,12 +223,12 @@ suppressions:
   - file: templates/account/notifications.php
     sniff: WordPress.Security.NonceVerification.Recommended
     fingerprint: a62962fa4ef3
-    reason: "it only picks which message to show."
+    reason: "A GET parameter that only chooses which fixed message to show after a redirect; it is sanitised and looked up in the plugin's own list of messages, nothing is written, and an unknown value shows nothing."
   - file: templates/account/privacy.php
     sniff: WordPress.Security.NonceVerification.Recommended
     fingerprint: 68fc54862a09
-    reason: "it only picks the message."
+    reason: "A GET parameter that only chooses which fixed message to show after a redirect; it is sanitised and looked up in the plugin's own list of messages, nothing is written, and an unknown value shows nothing."
   - file: templates/account/security.php
     sniff: WordPress.Security.NonceVerification.Recommended
     fingerprint: 749bdcea1c8f
-    reason: "it only picks the message."
+    reason: "A GET parameter that only chooses which fixed message to show after a redirect; it is sanitised and looked up in the plugin's own list of messages, nothing is written, and an unknown value shows nothing."

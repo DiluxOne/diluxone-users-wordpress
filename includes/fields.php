@@ -427,9 +427,17 @@ function diluxone_users_field( string $key ): ?array {
 	return null;
 }
 
-/** The value a person has in one field. */
+/**
+ * The value a person has in one field.
+ *
+ * A field's key is a meta key the site chose, and something else may keep a
+ * list under the same name: that is not an answer to the field, and casting
+ * it would print "Array" and warn. It reads as empty.
+ */
 function diluxone_users_value( int $user_id, string $key ): string {
-	return (string) get_user_meta( $user_id, $key, true );
+	$value = get_user_meta( $user_id, $key, true );
+
+	return is_scalar( $value ) ? (string) $value : '';
 }
 
 /**

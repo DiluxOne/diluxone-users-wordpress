@@ -107,4 +107,17 @@ class FieldSaveGuardTest extends IntegrationTestCase {
 
 		$this->assertSame( 'Blue', get_user_meta( $user, 'diluxone_test_team', true ) );
 	}
+
+	/** A list kept under a field's key by something else is not its answer: it reads as empty, with no warning. */
+	public function test_a_list_under_a_fields_key_reads_as_empty(): void {
+		$user = $this->make_user();
+
+		update_user_meta( $user, 'diluxone_test_city', array( 'kept', 'by', 'another', 'plugin' ) );
+
+		$this->assertSame( '', diluxone_users_value( $user, 'diluxone_test_city' ) );
+
+		update_user_meta( $user, 'diluxone_test_city', 'Rosario' );
+
+		$this->assertSame( 'Rosario', diluxone_users_value( $user, 'diluxone_test_city' ) );
+	}
 }
