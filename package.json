@@ -5,7 +5,7 @@
   "license": "GPL-2.0-or-later",
   "repository": {
     "type": "git",
-    "url": "https://github.com/soydiloreto/diluxone-users-wordpress.git"
+    "url": "https://github.com/DiluxOne/diluxone-users-wordpress.git"
   },
   "engines": {
     "node": ">=18"

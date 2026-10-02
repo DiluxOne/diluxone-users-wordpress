@@ -93,8 +93,8 @@ from the repository name:
 | `Makefile` (`dist`, `zip`, `plugin-check`) | Builds `build/diluxone-users/`: WordPress and Plugin Check compare the text domain with the folder name. |
 | `Makefile` (`i18n`) | `--slug=diluxone-users --domain=diluxone-users`. |
 | `Makefile` (`deploy-test`) | Copies into `wp-content/plugins/diluxone-users/`, and the `.mo` files into `wp-content/languages/plugins/`. |
-| `.github/workflows/deploy.yml` | `SLUG: diluxone-users`, or the deploy action targets an SVN path that does not exist. After the move, the shared release workflow's `slug:` input. |
-| `.github/workflows/pr-checks.yml` (Plugin Check); after the move, the shared pull-request caller | `slug: diluxone-users` for the plugin checks, which build the shipped tree under that name before Plugin Check and i18n read it. |
+| `.github/workflows/release.yml` | `slug: diluxone-users`, or the release targets an SVN path that does not exist. |
+| `.github/workflows/pull-request.yml` | `slug: diluxone-users` for the plugin checks, which build the shipped tree under that name before Plugin Check and i18n read it. |
 
 Where the **repository name** is correct and must be left alone, because
 `wp-env` mounts the plugin under the checkout's directory name:
@@ -102,7 +102,7 @@ Where the **repository name** is correct and must be left alone, because
 | Where | What |
 |---|---|
 | `Makefile` (`test-integration`, `test-integration-single`, `env-multisite`) | `REPO_DIR`, the checkout's name, in the phpunit path and in `wp plugin activate`. The single-site environment mounts the checkout (`../..` from `build/integration-single/`), so the folder is the repository name there too. |
-| `.github/workflows/tests-integration.yml` | `wp plugin activate diluxone-users-wordpress --network` (network job) and the phpunit path (both jobs). The shared `plugin-tests-wp` workflow does the same after the move. |
+| The shared `plugin-tests-wp` workflow | Activates the plugin and runs phpunit under the checkout's name, the way wp-env mounts it. |
 
 A clone into a folder with another name works for everything except those
 paths; keep the repository name.

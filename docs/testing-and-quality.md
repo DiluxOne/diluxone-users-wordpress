@@ -4,18 +4,19 @@ What every quality gate enforces, why, and how to run each one locally.
 
 ## Quality stack at a glance
 
-Today the checks run from this repository's own workflows in [`.github/workflows/`](../.github/workflows/). After the move to the DiluxOne organisation they run from the shared workflows in [`DiluxOne/.github`](https://github.com/DiluxOne/.github) (conventions, the fast suite, the slow suite on wp-env and the Claude review), called from one `pull-request.yml`; the layers and the Make targets below stay the same.
+The checks run from the shared workflows in [`DiluxOne/.github`](https://github.com/DiluxOne/.github) (conventions, the fast suite, the slow suite on wp-env and the Claude review), called from [`pull-request.yml`](../.github/workflows/pull-request.yml). This repository declares `kind: wordpress-plugin` in [`.github/review-policy.yml`](../.github/review-policy.yml), so the organisation's pack for WordPress plugins decides the rules, the Plugin Check settings and the review profile; nothing of it is written here. Every layer below has a Make target that runs it locally.
 
 | Layer | Tool | Catches | Make target |
 | --- | --- | --- | --- |
-| Conventions (after the move) | shared `conventions` workflow, lychee | Branch name, PR title and commit headers; the description's What changes and Why, and no "Generated with …" footer; broken relative doc links; retired product names. | (runs on PR) |
+| Conventions | shared `conventions` workflow, lychee | Branch name, PR title and commit headers; the description's What changes and Why, and no "Generated with …" footer; broken relative doc links; retired product names. | (runs on PR) |
 | Syntax | `php -l` on PHP 8.0 to 8.5 | Syntax the minimum PHP can't parse. | (runs on PR) |
 | Unit tests | PHPUnit + brain/monkey + mockery, same PHP matrix | Logic regressions in pure-PHP units: TOTP, passkeys, QR, social identity, the two-step policy, the client's address. | `make test`, `make test-unit-min` |
 | Coding style | PHP_CodeSniffer + WordPress Coding Standards + PHPCompatibilityWP | Style, naming, prefixes, escaping, sanitisation, prepared statements, syntax above PHP 8.0. | `make lint` |
 | Static analysis | PHPStan level 8 + szepeviktor/phpstan-wordpress | Type safety, unreachable code, undefined functions, missing return types. **No baseline.** | `make stan` |
 | Security taint analysis | Psalm + humanmade/psalm-plugin-wordpress (taint-only mode) | XSS, SQL injection, command injection, file-system traversal: user input flowing into dangerous sinks. | `make psalm` |
 | i18n | `wp i18n make-pot` + `msgfmt` | Missing translator comments, dynamic text domains, conflicting translator hints, concatenated strings; and whether the eight shipped locales are complete. | `make i18n`, `make i18n-check` |
-| Plugin Check (wp.org) | wordpress/plugin-check | The checks the wp.org plugin team runs at submission and review. | `make plugin-check` |
+| Plugin Check (wp.org) | wordpress/plugin-check, `strict` | The checks the wp.org plugin team runs at submission and review; a warning fails, since nearly every security finding is a warning. | `make plugin-check` |
+| Review rules | the organisation's rule engine, `wordpress-plugin` pack | What the wp.org review flags and Plugin Check misses: `EscapeOutput` suppressions, a menu position among WordPress's own, a handler that reads the request before its nonce or capability, a nonce action built from input, and any security suppression not listed with its reason in [`.github/review-suppressions.yml`](../.github/review-suppressions.yml). | `make review-rules` |
 | Readme and versions | shell | Required readme headers; `Stable tag`, `Version:` and `DILUXONE_USERS_VERSION` in line. | `make release` |
 | Integration tests | PHPUnit + wp-env, **on a multisite network and on a single site** | Behaviour against a real WordPress and database, including what must not leak between the sites of a network, and what a single site does on its own. | `make test-integration-all` (or `make env-multisite && make test-integration`, and `make test-integration-single`) |
 | End-to-end tests | Playwright + wp-env, single site (dev site, 8892) | Whole flows in a real browser: sign-in, registration, 2FA, passkeys, social login, every settings screen and its effect on the public page. | `make test-e2e` |
@@ -24,8 +25,8 @@ Today the checks run from this repository's own workflows in [`.github/workflows
 | Visual regression | Playwright (`toHaveScreenshot`) | Everything else about how a screen looks. | `make test-visual` (local only, see below) |
 | Listing screenshots | Playwright (`listing` project) | Not a check: retakes the pictures wordpress.org shows. | `make screenshots` |
 | Coverage | PCOV + phpcov (unit, integration on both topologies, merged); a script for the browser suites | Lines, functions and classes per file of `includes/` and `templates/` no test runs; a screen, tab, shortcode, action, address, command or template no spec walks. | `make coverage`, `make coverage-e2e-map` |
-| JS supply chain | CodeQL (JS) | Common JS vulnerability patterns. | (runs when JS changes) |
-| Claude review (after the move) | shared `claude-review` workflow | Everything in [`architecture.md`](architecture.md) and the organisation's WordPress review profile; rates risk and complexity. | (runs on PR) |
+| JS supply chain | CodeQL (JS) | Common JS vulnerability patterns in the admin and front-end scripts. | (runs on PR) |
+| Claude review | shared `claude-review` workflow | Everything in [`architecture.md`](architecture.md) and the organisation's WordPress review profile; rates risk and complexity. | (runs on PR) |
 
 ## The rule: tests at every layer a change touches
 
@@ -39,9 +40,9 @@ A change carries its tests **at every layer it touches**, in the same pull reque
 
 A feature that only its integration test has seen is not done. A test that fails on a product bug stays red and says so; it is not loosened.
 
-**Every job that runs on a pull request is a required status check on `main`**, except CodeQL, which runs only when JavaScript changes (path filter) and so cannot be required; its alerts land in the Security tab.
+**Every job that runs on a pull request is a required status check on `main`.** The integration and end-to-end suites are one check per target: `tests / Integration (single site)`, `tests / Integration (network)`, `tests / E2E (single)` and `tests / E2E (network)`. The visual suites stay local: their pictures are taken on the maintainer's machine and fonts differ on the CI image.
 
-**What runs when (after the move).** The shared workflows skip the slow suites (integration, end-to-end) and Plugin Check on a pull request that changes no code, where "code" is the `code` list of the organisation's policy plus whatever [`.github/review-policy.yml`](../.github/review-policy.yml) adds; docs and translations then cost seconds. A push to `main` runs whatever its tree has not already passed, and a weekly run everything. Today every workflow runs on every pull request.
+**What runs when.** The shared workflows skip the slow suites (integration, end-to-end) and Plugin Check on a pull request that changes no code, where "code" is the `code` list of the organisation's policy plus whatever [`.github/review-policy.yml`](../.github/review-policy.yml) adds; docs and translations then cost seconds. A push to `main` runs whatever its tree has not already passed, and a weekly run everything.
 
 ## Unit tests
 
@@ -89,7 +90,7 @@ make test-integration-single-down   # stop the single-site environment when done
 
 Use them for what depends on WordPress core: hooks, options, user meta, the activity log's table, AJAX handlers, REST routes, the sign-in and registration requests.
 
-**CI.** [`.github/workflows/tests-integration.yml`](../.github/workflows/tests-integration.yml) runs the suite as a matrix, `topology: [single, network]`; only the network job converts the tests site. After the move to the DiluxOne organisation the suite runs from the shared `plugin-tests-wp.yml` workflow, which today runs it on a network only: the single-site run has to be carried there (a topology input or matrix of its own) before this repository's workflow is retired, or half of every case stops being tested.
+**CI.** The shared `plugin-tests-wp.yml` workflow runs the suite once per target this repository names (`integration-targets: ["single","network"]`), as two checks; only the network job converts the tests site.
 
 ## PHPCS / WordPress Coding Standards
 

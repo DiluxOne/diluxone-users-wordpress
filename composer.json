@@ -1,12 +1,12 @@
 {
-    "name": "soydiloreto/diluxone-users-wordpress",
+    "name": "diluxone/diluxone-users-wordpress",
     "description": "DiluxOne Users+ WordPress plugin — Composer manifest for development tooling. Not used at runtime.",
     "type": "wordpress-plugin",
     "license": "GPL-2.0-or-later",
-    "homepage": "https://github.com/soydiloreto/diluxone-users-wordpress",
+    "homepage": "https://github.com/DiluxOne/diluxone-users-wordpress",
     "support": {
-        "issues": "https://github.com/soydiloreto/diluxone-users-wordpress/issues",
-        "source": "https://github.com/soydiloreto/diluxone-users-wordpress"
+        "issues": "https://github.com/DiluxOne/diluxone-users-wordpress/issues",
+        "source": "https://github.com/DiluxOne/diluxone-users-wordpress"
     },
     "require": {
         "php": ">=7.4"

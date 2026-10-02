@@ -2,6 +2,10 @@
 # DiluxOne/.github (policy/review-policy.default.yml). Read before the Claude
 # review; the review can raise the risk these rules set, never lower it.
 
+# The kind of project: its rules, review profile and checks are the
+# organisation's pack for it (DiluxOne/.github, kinds/wordpress-plugin/).
+kind: wordpress-plugin
+
 # Code where a mistake lets the wrong person in, locks the right one out,
 # leaks somebody's data or breaks every site: always high risk, always a
 # human merge.

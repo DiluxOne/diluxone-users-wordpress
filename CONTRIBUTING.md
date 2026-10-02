@@ -29,15 +29,15 @@ fix(sso): refuse a link trip that carries no nonce
 
 ### What CI enforces
 
-Once the repository lives in the DiluxOne organisation, the shared [`conventions`](https://github.com/DiluxOne/.github/blob/main/.github/workflows/conventions.yml) workflow fails a pull request when the branch name, the title or a commit breaks the format above, when a commit carries a `Claude-Session:` trailer, when "📝 What changes" or "💡 Why" is empty, when the description ends with a "Generated with …" footer, when a relative link in the docs is broken, or when a retired product name comes back.
+The shared [`conventions`](https://github.com/DiluxOne/.github/blob/main/.github/workflows/conventions.yml) workflow fails a pull request when the branch name, the title or a commit breaks the format above, when a commit carries a `Claude-Session:` trailer, when "📝 What changes" or "💡 Why" is empty, when the description ends with a "Generated with …" footer, when a relative link in the docs is broken, or when a retired product name comes back.
 
-Then the quality gates: syntax and unit tests on PHP 8.0 to 8.5, PHPCS with the WordPress Coding Standards, PHPStan level 8, Psalm taint analysis, i18n extraction and locale completeness, WordPress Plugin Check, readme and version alignment, integration tests on a wp-env single site and network, and Playwright end-to-end tests on a single site and on a network. What each one catches, and how to run it: [`docs/testing-and-quality.md`](docs/testing-and-quality.md).
+Then the quality gates, from the shared workflows in [`DiluxOne/.github`](https://github.com/DiluxOne/.github) and its `wordpress-plugin` pack: syntax and unit tests on PHP 8.0 to 8.5, PHPCS with the WordPress Coding Standards, PHPStan level 8, Psalm taint analysis, i18n extraction and locale completeness, WordPress Plugin Check (strict: a warning fails), the organisation's review rules, CodeQL on the scripts, readme and version alignment, integration tests on a wp-env single site and network, and Playwright end-to-end tests on a single site and on a network. What each one catches, and how to run it: [`docs/testing-and-quality.md`](docs/testing-and-quality.md).
 
-Every job that runs on a pull request is a required check on `main`, except CodeQL, which runs only when JavaScript changes.
+Every one of them is a required check on `main`.
 
 ### The review
 
-After the move, Claude reviews every pull request from a branch of this repository, guided by [`docs/architecture.md`](docs/architecture.md), [`AGENTS.md`](AGENTS.md) and the organisation's WordPress review profile. It comments inline on blockers and majors, lists minor findings in its summary, labels the risk, the complexity and the type of the change (`type:*`, read from the diff; a `type:*` label a person sets wins), and checks that the description matches the code. Fix the code and push, or answer in the thread mentioning `@dilux-bot`; every conversation must be resolved before merging. Changes to sign-in, two-step, passkeys, social login, sessions, privacy, the templates and the other paths in [`.github/review-policy.yml`](.github/review-policy.yml) are always high risk and always merged by a person. Pull requests from forks are not reviewed automatically; the maintainer reviews them. Details: [`docs/ai.md`](docs/ai.md).
+Claude reviews every pull request from a branch of this repository, guided by [`docs/architecture.md`](docs/architecture.md), [`AGENTS.md`](AGENTS.md) and the organisation's WordPress review profile. It comments inline on blockers and majors, lists minor findings in its summary, labels the risk, the complexity and the type of the change (`type:*`, read from the diff; a `type:*` label a person sets wins), and checks that the description matches the code. Fix the code and push, or answer in the thread mentioning `@dilux-bot`; every conversation must be resolved before merging. Changes to sign-in, two-step, passkeys, social login, sessions, privacy, the templates and the other paths in [`.github/review-policy.yml`](.github/review-policy.yml) are always high risk and always merged by a person. Pull requests from forks are not reviewed automatically; the maintainer reviews them. Details: [`docs/ai.md`](docs/ai.md).
 
 ## Coding rules the linters cannot express
 
@@ -53,7 +53,7 @@ The full list, with the architecture and the review priorities, is in [`docs/arc
 
 ## Versions and releases
 
-Versions follow [Semantic Versioning](https://semver.org/) and nobody types them in a pull request. The plugin is at 1.0.0 and not yet published: the first version goes to wordpress.org as a zip for review. After the move and the approval, the next version is computed from the `type:*` labels of merged pull requests, every push to `main` publishes a development build, and the maintainer decides when a version is ready and approves its publication. Never bump the version in your pull request. The whole flow, and what applies when: [`docs/release.md`](docs/release.md).
+Versions follow [Semantic Versioning](https://semver.org/) and nobody types them in a pull request. The plugin is at 1.0.0 and not yet published: the first version goes to wordpress.org as a zip for review. After the approval, the next version is computed from the `type:*` labels of merged pull requests, every push to `main` publishes a development build, and the maintainer decides when a version is ready and approves its publication. Never bump the version in your pull request. The whole flow, and what applies when: [`docs/release.md`](docs/release.md).
 
 ## Code of Conduct and licence
 

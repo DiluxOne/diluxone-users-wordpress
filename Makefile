@@ -390,6 +390,18 @@ pcp-env: dist
 	@cd "$(PCP_DIR)" && (npx @wordpress/env run cli wp plugin is-installed plugin-check >/dev/null 2>&1 \
 	  || npx @wordpress/env run cli wp plugin install plugin-check --activate >/dev/null)
 
+# The organisation's review rules, the ones CI runs as `checks / Review rules
+# (wordpress-plugin)`: the engine and the WordPress pack live in DiluxOne/.github,
+# read from a checkout of it (DX_CENTRAL, cloned at DX_CENTRAL_REF when absent),
+# never copied here.
+DX_CENTRAL ?= $(CURDIR)/build/dx-central
+DX_CENTRAL_REF ?= v3
+
+.PHONY: review-rules
+review-rules: ## Run the organisation's review rules (wordpress-plugin pack) on this checkout.
+	@[ -d "$(DX_CENTRAL)/kinds" ] || git clone -q --depth 1 --branch $(DX_CENTRAL_REF) https://github.com/DiluxOne/.github.git "$(DX_CENTRAL)"
+	docker run --rm -u $$(id -u):$$(id -g) -v $(CURDIR):/r -v $(DX_CENTRAL):/c -w /r php:8.3-cli php /c/scripts/review-rules.php --kind wordpress-plugin --repo . --tree .
+
 .PHONY: plugin-check
 plugin-check: pcp-env ## Run wordpress.org's Plugin Check on the built dist.
 	@cd "$(PCP_DIR)" && npx @wordpress/env run cli wp plugin check diluxone-users --format=table --severity=5
