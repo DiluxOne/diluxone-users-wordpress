@@ -15,7 +15,7 @@ The rule for drawing the line: when in doubt, Pro. Moving something from Pro to 
 | Social login | Google and Microsoft | The other ten providers and any OpenID Connect provider (below) |
 | Two-step verification | A code by e-mail, backup codes | An authenticator app, required per role, remember this device, SMS |
 | Passkeys | — | Everything |
-| Sessions | See them and close them | A limit on open sessions, a warning on a new device |
+| Sessions | See them and close them; an e-mail on a sign-in from a new device | A limit on open sessions, where a new device signed in from |
 | Activity | The log as it is | Longer retention, export, alerts |
 | Fields | The field types of 1.0.0 | Files and images, conditional and repeating fields |
 | Account area | Its own sections: rename, reorder, hide | Sections of the site's own |
