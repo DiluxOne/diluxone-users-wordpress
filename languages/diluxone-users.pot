@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-06T22:39:17+00:00\n"
+"POT-Creation-Date: 2026-10-06T23:31:40+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: diluxone-users\n"
@@ -673,7 +673,7 @@ msgstr ""
 #: includes/admin-log.php:859
 #: includes/admin-membership.php:388
 #: includes/admin-panels.php:158
-#: includes/admin-social.php:1009
+#: includes/admin-social.php:1041
 #: includes/admin-tools.php:106
 #: includes/admin-tools.php:173
 #: includes/admin-tools.php:210
@@ -698,7 +698,7 @@ msgid "Section removed."
 msgstr ""
 
 #: includes/admin-account.php:547
-#: includes/admin-panels.php:237
+#: includes/admin-panels.php:240
 #: templates/account/notifications.php:62
 #: templates/fields.php:34
 msgid "Saved."
@@ -965,7 +965,7 @@ msgid "With plain permalinks the sections go as ?section=…; turn on pretty per
 msgstr ""
 
 #: includes/admin-account.php:1086
-#: includes/admin-social.php:742
+#: includes/admin-social.php:774
 msgid "The account area"
 msgstr ""
 
@@ -1824,7 +1824,7 @@ msgstr ""
 #: includes/admin-login.php:224
 #: includes/admin-login.php:399
 #: includes/admin-login.php:550
-#: includes/admin-social.php:737
+#: includes/admin-social.php:769
 msgid "The sign-in page"
 msgstr ""
 
@@ -1835,7 +1835,7 @@ msgstr ""
 #: includes/admin-design.php:271
 #: includes/admin-login.php:755
 #: includes/admin-register.php:35
-#: includes/admin-social.php:548
+#: includes/admin-social.php:580
 msgid "Registration"
 msgstr ""
 
@@ -1858,7 +1858,7 @@ msgstr ""
 #: includes/admin-home.php:324
 #: includes/admin-login.php:346
 #: includes/admin-login.php:740
-#: includes/admin-social.php:39
+#: includes/admin-social.php:40
 #: includes/admin-status.php:392
 #: includes/admin-status.php:403
 #: includes/admin.php:81
@@ -2129,8 +2129,8 @@ msgid "Cancel"
 msgstr ""
 
 #: includes/admin-fields.php:681
-#: includes/admin-panels.php:777
-#: includes/sso.php:1173
+#: includes/admin-panels.php:780
+#: includes/sso.php:1018
 #: templates/sessions.php:67
 msgid "Close"
 msgstr ""
@@ -2460,7 +2460,7 @@ msgid "Linked a social account"
 msgstr ""
 
 #: includes/admin-home.php:234
-msgid "They can get in with Google, Facebook or whichever provider is enabled, instead of waiting for the e-mail."
+msgid "They can get in with Google, Microsoft or whichever provider is enabled, instead of waiting for the e-mail."
 msgstr ""
 
 #: includes/admin-home.php:238
@@ -4322,30 +4322,30 @@ msgstr ""
 msgid "“%1$s” was left as it was: it cannot go out without %2$s."
 msgstr ""
 
-#: includes/admin-panels.php:693
+#: includes/admin-panels.php:696
 msgctxt "the preview at desktop width"
 msgid "Desktop"
 msgstr ""
 
-#: includes/admin-panels.php:696
+#: includes/admin-panels.php:699
 msgctxt "the preview at phone width"
 msgid "Phone"
 msgstr ""
 
-#: includes/admin-panels.php:705
+#: includes/admin-panels.php:708
 msgid "See it big"
 msgstr ""
 
-#: includes/admin-panels.php:720
-#: includes/admin-panels.php:780
+#: includes/admin-panels.php:723
+#: includes/admin-panels.php:783
 msgid "Preview"
 msgstr ""
 
-#: includes/admin-panels.php:760
+#: includes/admin-panels.php:763
 msgid "Show me what I chose"
 msgstr ""
 
-#: includes/admin-panels.php:1022
+#: includes/admin-panels.php:1025
 msgid "This is what you chose, not what is saved. Save to make it so."
 msgstr ""
 
@@ -4355,7 +4355,7 @@ msgstr ""
 
 #: includes/admin-passkeys.php:82
 #: includes/admin-passkeys.php:156
-#: includes/admin-social.php:464
+#: includes/admin-social.php:496
 msgid "Offered on every site"
 msgstr ""
 
@@ -5076,441 +5076,453 @@ msgstr ""
 msgid "Nothing is set up: the address is the one the connection came from, and it sees %s for you."
 msgstr ""
 
-#: includes/admin-social.php:60
+#: includes/admin-social.php:61
 msgid "Providers"
 msgstr ""
 
-#: includes/admin-social.php:71
+#: includes/admin-social.php:72
 msgid "Rules"
 msgstr ""
 
-#: includes/admin-social.php:126
+#: includes/admin-social.php:127
 msgid "No app created for it yet: it has neither a client ID nor a secret."
 msgstr ""
 
-#: includes/admin-social.php:130
+#: includes/admin-social.php:131
 msgid "It has its credentials and the live test has not been run. Until that round trip works the button cannot go up."
 msgstr ""
 
-#: includes/admin-social.php:134
+#: includes/admin-social.php:135
 msgid "Tested and working, and its button is not on the sign-in page."
 msgstr ""
 
-#: includes/admin-social.php:137
+#: includes/admin-social.php:138
 msgid "Its button is on the sign-in page."
 msgstr ""
 
 #. translators: %s: provider name
-#: includes/admin-social.php:193
+#: includes/admin-social.php:194
 #, php-format
 msgid "The “Continue with %s” button disappears from the sign-in page, and whoever signed in that way will have to use another way in. The app’s details stay saved, and turning it on again brings the button back."
 msgstr ""
 
 #. translators: %s: provider name
-#: includes/admin-social.php:206
+#: includes/admin-social.php:207
 #, php-format
 msgid "The client ID, the secret and the test of %s are deleted and its button disappears. Using it again means pasting them and testing it again. Accounts already linked to it are not touched."
 msgstr ""
 
-#: includes/admin-social.php:250
+#: includes/admin-social.php:251
 msgid "Get started"
 msgstr ""
 
-#: includes/admin-social.php:251
-#: includes/admin-social.php:597
+#: includes/admin-social.php:252
+#: includes/admin-social.php:629
 msgid "Settings"
 msgstr ""
 
-#: includes/admin-social.php:260
-#: includes/admin-social.php:880
+#: includes/admin-social.php:261
+#: includes/admin-social.php:912
 msgctxt "a sign-in provider"
 msgid "Turn it off"
 msgstr ""
 
-#: includes/admin-social.php:261
-#: includes/admin-social.php:884
+#: includes/admin-social.php:262
+#: includes/admin-social.php:916
 msgctxt "a sign-in provider"
 msgid "Turn it on"
 msgstr ""
 
-#: includes/admin-social.php:291
+#: includes/admin-social.php:292
 msgid "One app per network: create it in the provider’s developer console, paste the client ID and the secret, and copy the redirect URL that each one shows. Then run the live test — a provider cannot be enabled until the round trip actually works."
 msgstr ""
 
-#: includes/admin-social.php:294
+#: includes/admin-social.php:295
 msgid "The networks"
 msgstr ""
 
-#: includes/admin-social.php:295
+#: includes/admin-social.php:296
 msgid "Open any of them to create the app, paste what it gives back and test it."
 msgstr ""
 
-#: includes/admin-social.php:309
+#: includes/admin-social.php:320
+msgid "Your Pro choice (inactive): set up while an add-on that is not active now offered it. Nobody signs in with it until the add-on is back, and its settings are kept as they are."
+msgstr ""
+
+#: includes/admin-social.php:332
+msgid "Ten more networks"
+msgstr ""
+
+#: includes/admin-social.php:333
+msgid "Users+ Pro adds LinkedIn, X, Facebook, GitHub, WordPress.com, Yahoo, Twitch, Discord, GitLab and Amazon, each with its guide and its live test."
+msgstr ""
+
+#: includes/admin-social.php:341
 msgid "Not included, on purpose"
 msgstr ""
 
-#: includes/admin-social.php:310
+#: includes/admin-social.php:342
 msgid "Apple signs its client secret with a JWT that has to be regenerated every six months and answers by POST; Steam does not use OAuth 2 at all and never returns an email address. Both need their own flow, so they are not here yet: a button that does not work is worse than no button."
 msgstr ""
 
-#: includes/admin-social.php:361
+#: includes/admin-social.php:393
 msgid "How the buttons look on the sign-in page. It is the same markup and the same stylesheet the site uses, so the preview is the real thing."
 msgstr ""
 
-#: includes/admin-social.php:366
+#: includes/admin-social.php:398
 msgid "Finish"
 msgstr ""
 
-#: includes/admin-social.php:368
+#: includes/admin-social.php:400
 msgid "Google and Microsoft always stay white with their own logo: their brand guidelines ask for it, and a four-colour logo on a coloured background does not read."
 msgstr ""
 
-#: includes/admin-social.php:372
+#: includes/admin-social.php:404
 msgid "Shape"
 msgstr ""
 
-#: includes/admin-social.php:378
+#: includes/admin-social.php:410
 msgid "What it shows"
 msgstr ""
 
-#: includes/admin-social.php:380
+#: includes/admin-social.php:412
 msgid "With logo only, the name is still there for screen readers."
 msgstr ""
 
-#: includes/admin-social.php:384
+#: includes/admin-social.php:416
 msgid "Layout"
 msgstr ""
 
-#: includes/admin-social.php:390
+#: includes/admin-social.php:422
 msgid "The finish"
 msgstr ""
 
-#: includes/admin-social.php:404
+#: includes/admin-social.php:436
 msgid "What they say"
 msgstr ""
 
-#: includes/admin-social.php:408
+#: includes/admin-social.php:440
 #: includes/fields.php:30
 #: includes/theme-colors.php:51
 msgid "Text"
 msgstr ""
 
 #. translators: %s: name of the social network
-#: includes/admin-social.php:410
+#: includes/admin-social.php:442
 #: includes/sso-buttons.php:81
 #, php-format
 msgid "Continue with %s"
 msgstr ""
 
 #. translators: %s: the %s placeholder, literal
-#: includes/admin-social.php:413
+#: includes/admin-social.php:445
 #, php-format
 msgid "Where %s goes, the name of the network goes. Leave it empty to use the default, which is already translated."
 msgstr ""
 
-#: includes/admin-social.php:461
+#: includes/admin-social.php:493
 msgid "These apply to every provider. They decide what happens when someone comes back from a social network."
 msgstr ""
 
-#: includes/admin-social.php:473
+#: includes/admin-social.php:505
 msgid "People can sign in with a social account"
 msgstr ""
 
-#: includes/admin-social.php:474
+#: includes/admin-social.php:506
 msgid "The buttons under the sign-in form of every site, for the providers that are working. Off, they go, and whoever already linked a social account keeps it and can unlink it from their account."
 msgstr ""
 
-#: includes/admin-social.php:481
+#: includes/admin-social.php:513
 msgid "Recognising somebody who is already here"
 msgstr ""
 
-#: includes/admin-social.php:482
+#: includes/admin-social.php:514
 msgid "Turned off, someone whose email is already registered simply cannot get in with a social network. Only turn it off if you do not trust the provider to verify its own users’ email addresses."
 msgstr ""
 
-#: includes/admin-social.php:492
+#: includes/admin-social.php:524
 msgid "If the email already exists, link the network to that account"
 msgstr ""
 
-#: includes/admin-social.php:493
-msgid "This is what makes signing in with Google today and with GitHub tomorrow land on the same account instead of creating two. Each network the person uses gets added to their account, and any of them works from then on."
+#: includes/admin-social.php:525
+msgid "This is what makes signing in with Google today and with Microsoft tomorrow land on the same account instead of creating two. Each network the person uses gets added to their account, and any of them works from then on."
 msgstr ""
 
-#: includes/admin-social.php:500
+#: includes/admin-social.php:532
 msgid "Refuse the sign-in when the provider does not say the email is verified"
 msgstr ""
 
-#: includes/admin-social.php:501
+#: includes/admin-social.php:533
 msgid "Stricter, and a few providers never send that flag: with this on, those stop working."
 msgstr ""
 
-#: includes/admin-social.php:507
+#: includes/admin-social.php:539
 msgid "Who can sign in with a network"
 msgstr ""
 
-#: includes/admin-social.php:508
+#: includes/admin-social.php:540
 msgid "Everybody, or only the roles you pick. Whoever is left out signs in with the email link as always, so nobody is shut out of the site — and it is the account with the most power that is worth thinking about: an administrator who signs in with Google depends on that Google account never being taken over."
 msgstr ""
 
-#: includes/admin-social.php:522
+#: includes/admin-social.php:554
 msgid "Who it reaches"
 msgstr ""
 
-#: includes/admin-social.php:526
+#: includes/admin-social.php:558
 msgid "The roles ticked can use the buttons. Everybody else uses the site’s other ways in."
 msgstr ""
 
-#: includes/admin-social.php:534
+#: includes/admin-social.php:566
 msgid "Creating accounts"
 msgstr ""
 
-#: includes/admin-social.php:536
+#: includes/admin-social.php:568
 msgid "Signing in with a social account creates the account when there is none."
 msgstr ""
 
-#: includes/admin-social.php:537
+#: includes/admin-social.php:569
 msgid "A social account only signs in people who already have one here."
 msgstr ""
 
-#: includes/admin-social.php:542
+#: includes/admin-social.php:574
 msgid "How an account ends up"
 msgstr ""
 
 #. translators: 1: name of the role accounts are created with, 2: name of the screen where it is chosen
-#: includes/admin-social.php:546
+#: includes/admin-social.php:578
 #, php-format
 msgid "There is nothing to choose here, and that is on purpose: a new account gets the email address as its username, no password at all —not even one nobody knows how to use— and the role %1$s, which is set once for the whole site on the %2$s screen. A role per provider would be a quiet way of handing out privileges."
 msgstr ""
 
-#: includes/admin-social.php:550
+#: includes/admin-social.php:582
 msgid "The name comes from the provider, and it only fills in what the person has not written themselves."
 msgstr ""
 
-#: includes/admin-social.php:551
+#: includes/admin-social.php:583
 msgid "Each linked network is stored on the person, so anybody can add a second and a third from their profile and unlink them again, and from then on any of them opens the same account."
 msgstr ""
 
-#: includes/admin-social.php:555
+#: includes/admin-social.php:587
 msgid "Nobody is locked out by the list of roles: the email link is always there."
 msgstr ""
 
-#: includes/admin-social.php:558
-#: includes/admin-social.php:993
+#: includes/admin-social.php:590
+#: includes/admin-social.php:1025
 msgid "Where the rest of this lives"
 msgstr ""
 
-#: includes/admin-social.php:562
+#: includes/admin-social.php:594
 msgid "Whether an account gets created"
 msgstr ""
 
-#: includes/admin-social.php:563
+#: includes/admin-social.php:595
 msgid "Registration answers it once, for the email form and for the networks alike."
 msgstr ""
 
-#: includes/admin-social.php:567
+#: includes/admin-social.php:599
 msgid "What the buttons look like"
 msgstr ""
 
-#: includes/admin-social.php:568
+#: includes/admin-social.php:600
 msgid "Their finish, their shape and what they say, with the rest of what the plugin draws."
 msgstr ""
 
-#: includes/admin-social.php:572
+#: includes/admin-social.php:604
 msgid "The networks themselves"
 msgstr ""
 
-#: includes/admin-social.php:573
+#: includes/admin-social.php:605
 msgid "Each one’s app, its credentials and its live test."
 msgstr ""
 
-#: includes/admin-social.php:596
+#: includes/admin-social.php:628
 msgid "Getting started"
 msgstr ""
 
-#: includes/admin-social.php:598
+#: includes/admin-social.php:630
 #: includes/admin-status.php:508
 msgid "Usage"
 msgstr ""
 
-#: includes/admin-social.php:619
+#: includes/admin-social.php:651
 msgid "Provider saved."
 msgstr ""
 
-#: includes/admin-social.php:628
+#: includes/admin-social.php:660
 msgid "Back to all providers"
 msgstr ""
 
-#: includes/admin-social.php:667
+#: includes/admin-social.php:699
 msgid "What the app gave you"
 msgstr ""
 
-#: includes/admin-social.php:668
+#: includes/admin-social.php:700
 msgid "Both come from the provider’s console, and changing either of them asks for the live test again."
 msgstr ""
 
-#: includes/admin-social.php:673
+#: includes/admin-social.php:705
 msgid "Client ID"
 msgstr ""
 
-#: includes/admin-social.php:689
+#: includes/admin-social.php:721
 msgid "Secret"
 msgstr ""
 
-#: includes/admin-social.php:699
+#: includes/admin-social.php:731
 msgid "A secret is saved. Leave this empty to keep it, or paste a new one to replace it."
 msgstr ""
 
-#: includes/admin-social.php:703
+#: includes/admin-social.php:735
 msgid "The button on the sign-in page"
 msgstr ""
 
-#: includes/admin-social.php:706
+#: includes/admin-social.php:738
 msgid "This provider has not passed the live test, so its button cannot go up yet. What is ticked here applies the day it does."
 msgstr ""
 
-#: includes/admin-social.php:716
+#: includes/admin-social.php:748
 msgid "Show the button"
 msgstr ""
 
-#: includes/admin-social.php:717
+#: includes/admin-social.php:749
 msgid "It goes with the email form, wherever the sign-in page is."
 msgstr ""
 
-#: includes/admin-social.php:732
+#: includes/admin-social.php:764
 msgid "The buttons are drawn by the sign-in shortcode, together with the email form. There is nothing else to place."
 msgstr ""
 
-#: includes/admin-social.php:734
+#: includes/admin-social.php:766
 msgid "The shortcodes that draw them"
 msgstr ""
 
-#: includes/admin-social.php:738
+#: includes/admin-social.php:770
 msgid "The email sign-in form and the social buttons."
 msgstr ""
 
-#: includes/admin-social.php:743
+#: includes/admin-social.php:775
 msgid "Linked providers, to link or unlink."
 msgstr ""
 
 #. translators: %s: provider name
-#: includes/admin-social.php:749
+#: includes/admin-social.php:781
 #, php-format
 msgid "A direct link to sign in with %s, if you want it somewhere else"
 msgstr ""
 
 #. translators: %s: provider name
-#: includes/admin-social.php:768
+#: includes/admin-social.php:800
 #, php-format
 msgid "To let people sign in with their %s account you have to create an app there. Below is the whole thing, click by click."
 msgstr ""
 
-#: includes/admin-social.php:774
+#: includes/admin-social.php:806
 msgid "The URL they are going to ask you for"
 msgstr ""
 
-#: includes/admin-social.php:775
+#: includes/admin-social.php:807
 msgid "Keep it at hand: one of the steps below asks for it, and it has to be pasted exactly as it is."
 msgstr ""
 
-#: includes/admin-social.php:780
+#: includes/admin-social.php:812
 msgid "Redirect URL"
 msgstr ""
 
-#: includes/admin-social.php:785
+#: includes/admin-social.php:817
 msgid "Depending on the provider it is called redirect URI, callback URL, return URL or authorized redirect URL."
 msgstr ""
 
 #. translators: %s: provider name
-#: includes/admin-social.php:792
+#: includes/admin-social.php:824
 #, php-format
 msgid "Step by step in %s"
 msgstr ""
 
-#: includes/admin-social.php:799
+#: includes/admin-social.php:831
 msgid "Open the console"
 msgstr ""
 
-#: includes/admin-social.php:809
+#: includes/admin-social.php:841
 msgid "And then, here"
 msgstr ""
 
-#: includes/admin-social.php:810
+#: includes/admin-social.php:842
 msgid "Paste the client ID and the secret in Settings, run the live test, and turn the button on."
 msgstr ""
 
-#: includes/admin-social.php:823
+#: includes/admin-social.php:855
 msgid "I already created the app"
 msgstr ""
 
-#: includes/admin-social.php:846
+#: includes/admin-social.php:878
 msgid "Run the live test"
 msgstr ""
 
-#: includes/admin-social.php:847
+#: includes/admin-social.php:879
 msgid "Test it again"
 msgstr ""
 
-#: includes/admin-social.php:891
+#: includes/admin-social.php:923
 msgid "Delete its settings"
 msgstr ""
 
-#: includes/admin-social.php:918
+#: includes/admin-social.php:950
 msgid "Create the app, load the redirect URL and paste the client ID and the secret in Settings."
 msgstr ""
 
 #. translators: %s: provider name
-#: includes/admin-social.php:925
+#: includes/admin-social.php:957
 #, php-format
 msgid "A window opens, %s asks you to authorise, and it comes back here. Nobody is signed in and nothing is saved to your account — it only checks that the round trip works. Until it does, the button cannot be enabled."
 msgstr ""
 
-#: includes/admin-social.php:937
+#: includes/admin-social.php:969
 msgid "Watch out:"
 msgstr ""
 
 #. translators: %s: the permissions the app asks for, as code
-#: includes/admin-social.php:945
+#: includes/admin-social.php:977
 #, php-format
 msgid "Permissions requested: %s"
 msgstr ""
 
 #. translators: %s: the authorization URL, as code
-#: includes/admin-social.php:950
+#: includes/admin-social.php:982
 #, php-format
 msgid "People are sent to authorise at %s"
 msgstr ""
 
-#: includes/admin-social.php:956
+#: includes/admin-social.php:988
 msgid "It requires PKCE. The plugin does that part; there is nothing to configure."
 msgstr ""
 
-#: includes/admin-social.php:959
+#: includes/admin-social.php:991
 msgid "What this provider asks for"
 msgstr ""
 
-#: includes/admin-social.php:965
+#: includes/admin-social.php:997
 msgid "What its button looks like"
 msgstr ""
 
-#: includes/admin-social.php:966
+#: includes/admin-social.php:998
 msgid "One finish for all the networks at once, with the rest of what the plugin draws."
 msgstr ""
 
-#: includes/admin-social.php:970
+#: includes/admin-social.php:1002
 msgid "The rules for every network"
 msgstr ""
 
-#: includes/admin-social.php:971
+#: includes/admin-social.php:1003
 msgid "Who gets recognised, who is refused, and which roles may not use a network at all."
 msgstr ""
 
 #. translators: %s: provider name
-#: includes/admin-social.php:982
+#: includes/admin-social.php:1014
 #, php-format
 msgid "%s’s own documentation"
 msgstr ""
 
-#: includes/admin-social.php:985
+#: includes/admin-social.php:1017
 msgid "For the day their console moves a button and the steps here no longer match."
 msgstr ""
 
@@ -7450,320 +7462,48 @@ msgstr ""
 msgid "The openid, email and profile permissions are already there by default — you do not have to add anything under “API permissions”."
 msgstr ""
 
-#: includes/sso-guides.php:75
-msgid "Open the LinkedIn developer portal and press “Create app”."
-msgstr ""
-
-#: includes/sso-guides.php:76
-msgid "LinkedIn asks for a company page: paste the page URL and press “Verify”. It opens a link that an admin of that page has to confirm. Without a verified page the app cannot be created."
-msgstr ""
-
-#: includes/sso-guides.php:77
-msgid "Go to the “Products” tab and request “Sign In with LinkedIn using OpenID Connect”. It is granted automatically, but it takes a minute to show as added."
-msgstr ""
-
-#: includes/sso-guides.php:78
-msgid "Go to the “Auth” tab. Under “OAuth 2.0 settings” → “Authorized redirect URLs for your app” press the pencil, then “Add redirect URL”, and paste the redirect URL from above."
-msgstr ""
-
-#: includes/sso-guides.php:79
-msgid "On that same tab copy the “Client ID” and press “Generate” next to “Primary Client Secret” to reveal it."
-msgstr ""
-
-#: includes/sso-guides.php:81
-msgid "Until the OpenID Connect product shows as added, the sign-in fails with “unauthorized_scope_error”. Check the “Auth” tab: the scopes openid, profile and email have to be listed."
-msgstr ""
-
-#: includes/sso-guides.php:86
-msgid "Open the X developer portal. If you have never used it, it asks you to sign up for the free tier first: answer what you are building and accept the terms."
-msgstr ""
-
-#: includes/sso-guides.php:87
-msgid "Create a project, and inside it an app. The app name has to be unique across all of X."
-msgstr ""
-
-#: includes/sso-guides.php:88
-msgid "In the app, go to “User authentication settings” and press “Set up”."
-msgstr ""
-
-#: includes/sso-guides.php:89
-msgid "App permissions: “Read”. That is enough to sign people in."
-msgstr ""
-
-#: includes/sso-guides.php:90
-msgid "Type of App: “Web App, Automated App or Bot”. This is the one that issues a client secret; the other types do not."
-msgstr ""
-
-#: includes/sso-guides.php:91
-msgid "Under “App info” paste the redirect URL from above into “Callback URI / Redirect URL”, and your site’s address into “Website URL”. Save."
-msgstr ""
-
-#: includes/sso-guides.php:92
-msgid "X shows the “OAuth 2.0 Client ID” and “Client Secret” once — copy both. They are NOT the “API Key” and “API Key Secret”, which belong to the old OAuth 1.1."
-msgstr ""
-
-#: includes/sso-guides.php:94
-msgid "X never gives out the email address. Whoever signs in with X gets an account built from their username, and the site asks for a real address afterwards. If you want the email up front, this is not the network for it."
-msgstr ""
-
-#: includes/sso-guides.php:99
-msgid "Open the Meta developer console and press “Create app”."
-msgstr ""
-
-#: includes/sso-guides.php:100
-msgid "Use case: “Authenticate and request data from users with Facebook Login”. Then pick or create the business portfolio it belongs to."
-msgstr ""
-
-#: includes/sso-guides.php:101
-msgid "In the app, go to “Facebook Login” → “Settings” in the left menu."
-msgstr ""
-
-#: includes/sso-guides.php:102
-msgid "Paste the redirect URL from above into “Valid OAuth Redirect URIs” and save. Leave “Client OAuth login” and “Web OAuth login” on."
-msgstr ""
-
-#: includes/sso-guides.php:103
-msgid "Go to “App settings” → “Basic” and copy the “App ID” and the “App secret” (press “Show”)."
-msgstr ""
-
-#: includes/sso-guides.php:104
-msgid "On that same page fill in the “Privacy Policy URL”: Facebook will not let the app go live without it."
-msgstr ""
-
-#: includes/sso-guides.php:105
-msgid "Switch the toggle at the top from “Development” to “Live”."
-msgstr ""
-
-#: includes/sso-guides.php:107
-msgid "While the app is in “Development”, only people listed in “App roles” can sign in — everyone else gets an error page. The live test below works with your own account before you flip it."
-msgstr ""
-
-#: includes/sso-guides.php:112
-msgid "Open GitHub’s developer settings and go to “OAuth Apps” → “New OAuth App”. (The other list, “GitHub Apps”, is for something else.)"
-msgstr ""
-
-#: includes/sso-guides.php:113
-msgid "Application name: what people see when they authorise. Homepage URL: your site’s address."
-msgstr ""
-
-#: includes/sso-guides.php:114
-msgid "Paste the redirect URL from above into “Authorization callback URL”."
-msgstr ""
-
-#: includes/sso-guides.php:115
-msgid "Press “Register application”. The client ID is on the page."
-msgstr ""
-
-#: includes/sso-guides.php:116
-msgid "Press “Generate a new client secret” and copy it right away — GitHub hides it as soon as you leave the page."
-msgstr ""
-
-#: includes/sso-guides.php:118
-msgid "GitHub hides the email of anyone who turned on “Keep my email address private”. The plugin asks for the user:email scope, which returns the verified address anyway."
-msgstr ""
-
-#: includes/sso-guides.php:123
-msgid "Open the WordPress.com developer console and press “Create New Application”. It signs you in with your WordPress.com account."
-msgstr ""
-
-#: includes/sso-guides.php:124
-msgid "Fill in the name, a short description and the website URL."
-msgstr ""
-
-#: includes/sso-guides.php:125
-msgid "Paste the redirect URL from above into “Redirect URL”."
-msgstr ""
-
-#: includes/sso-guides.php:126
-msgid "Type: “Web Client”."
-msgstr ""
-
-#: includes/sso-guides.php:127
-msgid "Save, then open the app again to copy the “Client ID” and the “Client Secret”."
-msgstr ""
-
-#: includes/sso-guides.php:129
-msgid "The redirect URL has to match character for character. WordPress.com rejects anything that differs, even a trailing slash."
-msgstr ""
-
-#: includes/sso-guides.php:134
-msgid "Open the Yahoo developer console and press “Create an App”, signing in with a Yahoo account."
-msgstr ""
-
-#: includes/sso-guides.php:135
-msgid "Application Name: what people see when they authorise."
-msgstr ""
-
-#: includes/sso-guides.php:136
-msgid "Application Type: “Web Application”."
-msgstr ""
-
-#: includes/sso-guides.php:137
-msgid "Paste the redirect URL from above into “Redirect URI(s)”. Yahoo only takes https, and refuses localhost."
-msgstr ""
-
-#: includes/sso-guides.php:138
-msgid "API Permissions: tick “Profiles (Social Directory)” with “Read Public”, and under “OpenID Connect Permissions” tick “email” and “profile”."
-msgstr ""
-
-#: includes/sso-guides.php:139
-msgid "Press “Create App”. Copy the “Client ID (Consumer Key)” and the “Client Secret (Consumer Secret)”."
-msgstr ""
-
-#: includes/sso-guides.php:141
-msgid "Without the OpenID Connect permissions ticked, Yahoo signs the person in but returns a profile with no email, and the account cannot be created."
-msgstr ""
-
-#: includes/sso-guides.php:146
-msgid "Turn on two-factor authentication on the Twitch account first: the console refuses to register an app without it."
-msgstr ""
-
-#: includes/sso-guides.php:147
-msgid "Open the Twitch developer console and press “Register Your Application”."
-msgstr ""
-
-#: includes/sso-guides.php:148
-msgid "Name: it has to be unique across all of Twitch, so “ConoSurTech Login” beats “Login”."
-msgstr ""
-
-#: includes/sso-guides.php:149
-msgid "Paste the redirect URL from above into “OAuth Redirect URLs” and press “Add”."
-msgstr ""
-
-#: includes/sso-guides.php:150
-msgid "Category: “Website Integration”. Client Type: “Confidential”."
-msgstr ""
-
-#: includes/sso-guides.php:151
-msgid "Press “Create”, then “Manage” on the app you just made."
-msgstr ""
-
-#: includes/sso-guides.php:152
-msgid "The client ID is there. Press “New Secret” and copy the secret — it is shown once."
-msgstr ""
-
-#: includes/sso-guides.php:154
-msgid "Client Type has to be “Confidential”. A “Public” app gets no secret, and the token exchange this plugin does fails."
-msgstr ""
-
-#: includes/sso-guides.php:159
-msgid "Open the Discord developer portal and press “New Application”. Give it a name and accept the terms."
-msgstr ""
-
-#: includes/sso-guides.php:160
-msgid "Go to “OAuth2” in the left menu."
-msgstr ""
-
-#: includes/sso-guides.php:161
-msgid "Under “Redirects” press “Add Redirect”, paste the redirect URL from above, and press “Save Changes” at the bottom."
-msgstr ""
-
-#: includes/sso-guides.php:162
-msgid "On that same page copy the “Client ID”."
-msgstr ""
-
-#: includes/sso-guides.php:163
-msgid "Press “Reset Secret” to reveal the “Client Secret” and copy it."
-msgstr ""
-
-#: includes/sso-guides.php:165
-msgid "Discord only hands over the email when the account has it verified. An unverified account signs in and comes back with no address."
-msgstr ""
-
-#: includes/sso-guides.php:170
-msgid "On GitLab, open your avatar menu → “Edit profile” → “Applications”. (For a whole group, the same screen exists under the group’s Settings.)"
-msgstr ""
-
-#: includes/sso-guides.php:171
-msgid "Press “Add new application” and give it a name."
-msgstr ""
-
-#: includes/sso-guides.php:172
-msgid "Paste the redirect URL from above into “Redirect URI”, one per line."
-msgstr ""
-
-#: includes/sso-guides.php:173
-msgid "Leave “Confidential” ticked."
-msgstr ""
-
-#: includes/sso-guides.php:174
-msgid "Scopes: tick “openid”, “email” and “profile”."
-msgstr ""
-
-#: includes/sso-guides.php:175
-msgid "Press “Save application”. Copy the “Application ID” and the “Secret” — the secret is shown once."
-msgstr ""
-
-#: includes/sso-guides.php:177
-msgid "This is for gitlab.com. A self-hosted GitLab has the same screens but different URLs, and the plugin points at gitlab.com."
-msgstr ""
-
-#: includes/sso-guides.php:182
-msgid "Open the Login with Amazon console and press “Create a New Security Profile”."
-msgstr ""
-
-#: includes/sso-guides.php:183
-msgid "Fill in the name, the description, and a privacy policy URL. All three are required."
-msgstr ""
-
-#: includes/sso-guides.php:184
-msgid "Save. Back on the list, open the gear menu on your profile → “Web Settings” → “Edit”."
-msgstr ""
-
-#: includes/sso-guides.php:185
-msgid "Paste the redirect URL from above into “Allowed Return URLs”. In “Allowed Origins” put just the domain, with no path."
-msgstr ""
-
-#: includes/sso-guides.php:186
-msgid "Save, then copy the “Client ID” and press “Show Secret” to copy the “Client Secret”."
-msgstr ""
-
-#: includes/sso-guides.php:188
-msgid "The return URL lives under “Web Settings”, not on the profile’s main page — that is the step everyone misses."
-msgstr ""
-
-#: includes/sso.php:981
+#: includes/sso.php:826
 msgid "The provider did not hand over an access token. Check the client ID and the secret."
 msgstr ""
 
-#: includes/sso.php:992
+#: includes/sso.php:837
 msgid "The token worked but the profile came back empty. The app is probably missing the permissions this provider needs."
 msgstr ""
 
 #. translators: %s: name of the social network
-#: includes/sso.php:1025
+#: includes/sso.php:870
 #, php-format
 msgid "The %s account was linked, and it now gets into this account."
 msgstr ""
 
 #. translators: %s: name of the social network
-#: includes/sso.php:1090
+#: includes/sso.php:935
 #, php-format
 msgid "The %s account was unlinked."
 msgstr ""
 
-#: includes/sso.php:1131
+#: includes/sso.php:976
 msgid "It works"
 msgstr ""
 
-#: includes/sso.php:1132
+#: includes/sso.php:977
 msgid "It did not work"
 msgstr ""
 
 #. translators: %s: provider name
-#: includes/sso.php:1137
+#: includes/sso.php:982
 #, php-format
 msgid "The round trip with %s finished correctly. You can enable the button now."
 msgstr ""
 
 #. translators: %s: provider name
-#: includes/sso.php:1142
+#: includes/sso.php:987
 #, php-format
 msgid "The round trip with %s failed."
 msgstr ""
 
 #. translators: %s: e-mail address
-#: includes/sso.php:1148
+#: includes/sso.php:993
 #, php-format
 msgid "The provider handed over this email: %s"
 msgstr ""

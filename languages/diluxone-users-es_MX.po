@@ -1071,16 +1071,6 @@ msgstr ""
 msgid "If the email already exists, link the network to that account"
 msgstr "Si el correo ya existe, vincular la red a esa cuenta"
 
-#: includes/admin-social.php:493
-msgid ""
-"This is what makes signing in with Google today and with GitHub tomorrow "
-"land on the same account instead of creating two. Each network the person "
-"uses gets added to their account, and any of them works from then on."
-msgstr ""
-"Esto es lo que hace que entrar con Google hoy y con GitHub mañana caiga en "
-"la misma cuenta y no cree dos. Cada red que la persona usa se le suma a su "
-"cuenta, y de ahí en más cualquiera le sirve."
-
 #: includes/admin-social.php:482
 msgid ""
 "Turned off, someone whose email is already registered simply cannot get in "
@@ -2253,491 +2243,6 @@ msgstr ""
 "Los permisos openid, email y profile ya vienen por defecto: no hace falta "
 "agregar nada en \"Permisos de API\"."
 
-#: includes/sso-guides.php:75
-msgid "Open the LinkedIn developer portal and press “Create app”."
-msgstr ""
-"Entra en el portal de desarrolladores de LinkedIn y haz clic en \"Create "
-"app\"."
-
-#: includes/sso-guides.php:76
-msgid ""
-"LinkedIn asks for a company page: paste the page URL and press “Verify”. It "
-"opens a link that an admin of that page has to confirm. Without a verified "
-"page the app cannot be created."
-msgstr ""
-"LinkedIn pide una página de empresa: pega la URL de la página y haz clic en "
-"\"Verify\". Se abre un enlace que tiene que confirmar un administrador de "
-"esa página. Sin una página verificada no se puede crear la aplicación."
-
-#: includes/sso-guides.php:77
-msgid ""
-"Go to the “Products” tab and request “Sign In with LinkedIn using OpenID "
-"Connect”. It is granted automatically, but it takes a minute to show as "
-"added."
-msgstr ""
-"Ve a la pestaña \"Products\" y solicita \"Sign In with LinkedIn using OpenID "
-"Connect\". Se aprueba solo, pero tarda un minuto en figurar como añadido."
-
-#: includes/sso-guides.php:78
-msgid ""
-"Go to the “Auth” tab. Under “OAuth 2.0 settings” → “Authorized redirect URLs "
-"for your app” press the pencil, then “Add redirect URL”, and paste the "
-"redirect URL from above."
-msgstr ""
-"Ve a la pestaña \"Auth\". En \"OAuth 2.0 settings\" → \"Authorized redirect "
-"URLs for your app\" haz clic en el lápiz, después \"Add redirect URL\", y "
-"pega la URL de retorno de arriba."
-
-#: includes/sso-guides.php:79
-msgid ""
-"On that same tab copy the “Client ID” and press “Generate” next to “Primary "
-"Client Secret” to reveal it."
-msgstr ""
-"En esa misma pestaña copia el \"Client ID\" y haz clic en \"Generate\" al "
-"lado de \"Primary Client Secret\" para verlo."
-
-#: includes/sso-guides.php:81
-msgid ""
-"Until the OpenID Connect product shows as added, the sign-in fails with "
-"“unauthorized_scope_error”. Check the “Auth” tab: the scopes openid, profile "
-"and email have to be listed."
-msgstr ""
-"Hasta que el producto de OpenID Connect no figure como añadido, el acceso "
-"falla con \"unauthorized_scope_error\". Mira en la pestaña \"Auth\": tienen "
-"que estar listados los scopes openid, profile y email."
-
-#: includes/sso-guides.php:86
-msgid ""
-"Open the X developer portal. If you have never used it, it asks you to sign "
-"up for the free tier first: answer what you are building and accept the "
-"terms."
-msgstr ""
-"Entra en el portal de desarrolladores de X. Si nunca lo usaste, primero te "
-"pide darte de alta en el plan gratuito: contesta qué estás construyendo y "
-"acepta los términos."
-
-#: includes/sso-guides.php:87
-msgid ""
-"Create a project, and inside it an app. The app name has to be unique across "
-"all of X."
-msgstr ""
-"Crea un proyecto y dentro una aplicación. El nombre de la aplicación tiene "
-"que ser único en todo X."
-
-#: includes/sso-guides.php:88
-msgid "In the app, go to “User authentication settings” and press “Set up”."
-msgstr ""
-"Dentro de la aplicación, ve a \"User authentication settings\" y haz clic en "
-"\"Set up\"."
-
-#: includes/sso-guides.php:89
-msgid "App permissions: “Read”. That is enough to sign people in."
-msgstr ""
-"App permissions: \"Read\". Con eso alcanza para dejar entrar a la gente."
-
-#: includes/sso-guides.php:90
-msgid ""
-"Type of App: “Web App, Automated App or Bot”. This is the one that issues a "
-"client secret; the other types do not."
-msgstr ""
-"Type of App: \"Web App, Automated App or Bot\". Es el único que entrega un "
-"secreto de cliente; los otros tipos no."
-
-#: includes/sso-guides.php:91
-msgid ""
-"Under “App info” paste the redirect URL from above into “Callback URI / "
-"Redirect URL”, and your site’s address into “Website URL”. Save."
-msgstr ""
-"En \"App info\" pega la URL de retorno de arriba en \"Callback URI / "
-"Redirect URL\", y la dirección de tu sitio en \"Website URL\". Guarda."
-
-#: includes/sso-guides.php:92
-msgid ""
-"X shows the “OAuth 2.0 Client ID” and “Client Secret” once — copy both. They "
-"are NOT the “API Key” and “API Key Secret”, which belong to the old OAuth "
-"1.1."
-msgstr ""
-"X muestra el \"OAuth 2.0 Client ID\" y el \"Client Secret\" una sola vez: "
-"copia los dos. NO son la \"API Key\" ni la \"API Key Secret\", que son del "
-"antiguo OAuth 1.1."
-
-#: includes/sso-guides.php:94
-msgid ""
-"X never gives out the email address. Whoever signs in with X gets an account "
-"built from their username, and the site asks for a real address afterwards. "
-"If you want the email up front, this is not the network for it."
-msgstr ""
-"X nunca entrega el correo. A quien entre con X se le crea la cuenta a partir "
-"de su nombre de usuario, y el sitio le pide una dirección de verdad después. "
-"Si necesitás el correo de entrada, esta no es la red."
-
-#: includes/sso-guides.php:99
-msgid "Open the Meta developer console and press “Create app”."
-msgstr ""
-"Entra en la consola de desarrolladores de Meta y haz clic en \"Crear app\"."
-
-#: includes/sso-guides.php:100
-msgid ""
-"Use case: “Authenticate and request data from users with Facebook Login”. "
-"Then pick or create the business portfolio it belongs to."
-msgstr ""
-"Caso de uso: \"Autenticar y solicitar datos de los usuarios con Facebook "
-"Login\". Después elige o crea el portafolio comercial al que pertenece."
-
-#: includes/sso-guides.php:101
-msgid "In the app, go to “Facebook Login” → “Settings” in the left menu."
-msgstr ""
-"Dentro de la aplicación, ve a \"Inicio de sesión con Facebook\" → "
-"\"Configuración\", en el menú de la izquierda."
-
-#: includes/sso-guides.php:102
-msgid ""
-"Paste the redirect URL from above into “Valid OAuth Redirect URIs” and save. "
-"Leave “Client OAuth login” and “Web OAuth login” on."
-msgstr ""
-"Pega la URL de retorno de arriba en \"URI de redireccionamiento de OAuth "
-"válidos\" y guarda. Deja activados \"Inicio de sesión de OAuth del cliente\" "
-"e \"Inicio de sesión de OAuth web\"."
-
-#: includes/sso-guides.php:103
-msgid ""
-"Go to “App settings” → “Basic” and copy the “App ID” and the “App "
-"secret” (press “Show”)."
-msgstr ""
-"Ve a \"Configuración de la app\" → \"Básica\" y copia el \"Identificador de "
-"la app\" y la \"Clave secreta de la app\" (haz clic en \"Mostrar\")."
-
-#: includes/sso-guides.php:104
-msgid ""
-"On that same page fill in the “Privacy Policy URL”: Facebook will not let "
-"the app go live without it."
-msgstr ""
-"En esa misma página llena la \"URL de la política de privacidad\": Facebook "
-"no deja publicar la aplicación sin eso."
-
-#: includes/sso-guides.php:105
-msgid "Switch the toggle at the top from “Development” to “Live”."
-msgstr "Pasa el interruptor de arriba de \"Desarrollo\" a \"Activo\"."
-
-#: includes/sso-guides.php:107
-msgid ""
-"While the app is in “Development”, only people listed in “App roles” can "
-"sign in — everyone else gets an error page. The live test below works with "
-"your own account before you flip it."
-msgstr ""
-"Mientras la aplicación esté en \"Desarrollo\", solo entra la gente listada "
-"en \"Roles de la app\"; al resto le sale una página de error. La prueba en "
-"vivo de aquí abajo funciona con tu propia cuenta antes de publicarla."
-
-#: includes/sso-guides.php:112
-msgid ""
-"Open GitHub’s developer settings and go to “OAuth Apps” → “New OAuth App”. "
-"(The other list, “GitHub Apps”, is for something else.)"
-msgstr ""
-"Entra en la configuración de desarrollador de GitHub y ve a \"OAuth Apps\" → "
-"\"New OAuth App\". (La otra lista, \"GitHub Apps\", es para otra cosa.)"
-
-#: includes/sso-guides.php:113
-msgid ""
-"Application name: what people see when they authorise. Homepage URL: your "
-"site’s address."
-msgstr ""
-"Application name: lo que ve la gente cuando autoriza. Homepage URL: la "
-"dirección de tu sitio."
-
-#: includes/sso-guides.php:114
-msgid "Paste the redirect URL from above into “Authorization callback URL”."
-msgstr "Pega la URL de retorno de arriba en \"Authorization callback URL\"."
-
-#: includes/sso-guides.php:115
-msgid "Press “Register application”. The client ID is on the page."
-msgstr ""
-"Haz clic en \"Register application\". El ID de cliente queda a la vista en "
-"la página."
-
-#: includes/sso-guides.php:116
-msgid ""
-"Press “Generate a new client secret” and copy it right away — GitHub hides "
-"it as soon as you leave the page."
-msgstr ""
-"Haz clic en \"Generate a new client secret\" y cópialo en el momento: GitHub "
-"lo esconde en cuanto sales de la página."
-
-#: includes/sso-guides.php:118
-msgid ""
-"GitHub hides the email of anyone who turned on “Keep my email address "
-"private”. The plugin asks for the user:email scope, which returns the "
-"verified address anyway."
-msgstr ""
-"GitHub esconde el correo de quien tenga activado \"Keep my email address "
-"private\". El plugin pide el scope user:email, que devuelve igualmente la "
-"dirección verificada."
-
-#: includes/sso-guides.php:123
-msgid ""
-"Open the WordPress.com developer console and press “Create New Application”. "
-"It signs you in with your WordPress.com account."
-msgstr ""
-"Entra en la consola de desarrolladores de WordPress.com y haz clic en "
-"\"Create New Application\". Te hace entrar con tu cuenta de WordPress.com."
-
-#: includes/sso-guides.php:124
-msgid "Fill in the name, a short description and the website URL."
-msgstr "Llena el nombre, una descripción corta y la URL del sitio."
-
-#: includes/sso-guides.php:125
-msgid "Paste the redirect URL from above into “Redirect URL”."
-msgstr "Pega la URL de retorno de arriba en \"Redirect URL\"."
-
-#: includes/sso-guides.php:126
-msgid "Type: “Web Client”."
-msgstr "Type: \"Web Client\"."
-
-#: includes/sso-guides.php:127
-msgid ""
-"Save, then open the app again to copy the “Client ID” and the “Client "
-"Secret”."
-msgstr ""
-"Guarda y vuelve a abrir la aplicación para copiar el \"Client ID\" y el "
-"\"Client Secret\"."
-
-#: includes/sso-guides.php:129
-msgid ""
-"The redirect URL has to match character for character. WordPress.com rejects "
-"anything that differs, even a trailing slash."
-msgstr ""
-"La URL de retorno tiene que coincidir carácter por carácter. WordPress.com "
-"rechaza cualquier diferencia, hasta una barra de más al final."
-
-#: includes/sso-guides.php:134
-msgid ""
-"Open the Yahoo developer console and press “Create an App”, signing in with "
-"a Yahoo account."
-msgstr ""
-"Entra en la consola de desarrolladores de Yahoo y haz clic en \"Create an "
-"App\", con una cuenta de Yahoo."
-
-#: includes/sso-guides.php:135
-msgid "Application Name: what people see when they authorise."
-msgstr "Application Name: lo que ve la gente cuando autoriza."
-
-#: includes/sso-guides.php:136
-msgid "Application Type: “Web Application”."
-msgstr "Application Type: \"Web Application\"."
-
-#: includes/sso-guides.php:137
-msgid ""
-"Paste the redirect URL from above into “Redirect URI(s)”. Yahoo only takes "
-"https, and refuses localhost."
-msgstr ""
-"Pega la URL de retorno de arriba en \"Redirect URI(s)\". Yahoo solo acepta "
-"https, y rechaza localhost."
-
-#: includes/sso-guides.php:138
-msgid ""
-"API Permissions: tick “Profiles (Social Directory)” with “Read Public”, and "
-"under “OpenID Connect Permissions” tick “email” and “profile”."
-msgstr ""
-"API Permissions: marca \"Profiles (Social Directory)\" con \"Read Public\", "
-"y en \"OpenID Connect Permissions\" marca \"email\" y \"profile\"."
-
-#: includes/sso-guides.php:139
-msgid ""
-"Press “Create App”. Copy the “Client ID (Consumer Key)” and the “Client "
-"Secret (Consumer Secret)”."
-msgstr ""
-"Haz clic en \"Create App\". Copia el \"Client ID (Consumer Key)\" y el "
-"\"Client Secret (Consumer Secret)\"."
-
-#: includes/sso-guides.php:141
-msgid ""
-"Without the OpenID Connect permissions ticked, Yahoo signs the person in but "
-"returns a profile with no email, and the account cannot be created."
-msgstr ""
-"Sin los permisos de OpenID Connect marcados, Yahoo deja entrar a la persona "
-"pero devuelve un perfil sin correo, y la cuenta no se puede crear."
-
-#: includes/sso-guides.php:146
-msgid ""
-"Turn on two-factor authentication on the Twitch account first: the console "
-"refuses to register an app without it."
-msgstr ""
-"Primero activa la verificación en dos pasos en la cuenta de Twitch: la "
-"consola no deja registrar una aplicación sin eso."
-
-#: includes/sso-guides.php:147
-msgid ""
-"Open the Twitch developer console and press “Register Your Application”."
-msgstr ""
-"Entra en la consola de desarrolladores de Twitch y haz clic en \"Register "
-"Your Application\"."
-
-#: includes/sso-guides.php:148
-msgid ""
-"Name: it has to be unique across all of Twitch, so “ConoSurTech Login” beats "
-"“Login”."
-msgstr ""
-"Name: tiene que ser único en todo Twitch, así que \"ConoSurTech Login\" anda "
-"mejor que \"Login\"."
-
-#: includes/sso-guides.php:149
-msgid ""
-"Paste the redirect URL from above into “OAuth Redirect URLs” and press “Add”."
-msgstr ""
-"Pega la URL de retorno de arriba en \"OAuth Redirect URLs\" y haz clic en "
-"\"Add\"."
-
-#: includes/sso-guides.php:150
-msgid "Category: “Website Integration”. Client Type: “Confidential”."
-msgstr "Category: \"Website Integration\". Client Type: \"Confidential\"."
-
-#: includes/sso-guides.php:151
-msgid "Press “Create”, then “Manage” on the app you just made."
-msgstr ""
-"Haz clic en \"Create\" y después \"Manage\" en la aplicación que acabas de "
-"crear."
-
-#: includes/sso-guides.php:152
-msgid ""
-"The client ID is there. Press “New Secret” and copy the secret — it is shown "
-"once."
-msgstr ""
-"El ID de cliente está ahí. Haz clic en \"New Secret\" y copia el secreto: se "
-"muestra una sola vez."
-
-#: includes/sso-guides.php:154
-msgid ""
-"Client Type has to be “Confidential”. A “Public” app gets no secret, and the "
-"token exchange this plugin does fails."
-msgstr ""
-"El Client Type tiene que ser \"Confidential\". Una aplicación \"Public\" no "
-"recibe secreto, y el intercambio de token que hace este plugin falla."
-
-#: includes/sso-guides.php:159
-msgid ""
-"Open the Discord developer portal and press “New Application”. Give it a "
-"name and accept the terms."
-msgstr ""
-"Entra en el portal de desarrolladores de Discord y haz clic en \"New "
-"Application\". Ponle un nombre y acepta los términos."
-
-#: includes/sso-guides.php:160
-msgid "Go to “OAuth2” in the left menu."
-msgstr "Ve a \"OAuth2\", en el menú de la izquierda."
-
-#: includes/sso-guides.php:161
-msgid ""
-"Under “Redirects” press “Add Redirect”, paste the redirect URL from above, "
-"and press “Save Changes” at the bottom."
-msgstr ""
-"En \"Redirects\" haz clic en \"Add Redirect\", pega la URL de retorno de "
-"arriba y haz clic en \"Save Changes\" al final."
-
-#: includes/sso-guides.php:162
-msgid "On that same page copy the “Client ID”."
-msgstr "En esa misma página copia el \"Client ID\"."
-
-#: includes/sso-guides.php:163
-msgid "Press “Reset Secret” to reveal the “Client Secret” and copy it."
-msgstr ""
-"Haz clic en \"Reset Secret\" para que aparezca el \"Client Secret\" y "
-"cópialo."
-
-#: includes/sso-guides.php:165
-msgid ""
-"Discord only hands over the email when the account has it verified. An "
-"unverified account signs in and comes back with no address."
-msgstr ""
-"Discord solo entrega el correo cuando la cuenta lo tiene verificado. Una "
-"cuenta sin verificar entra y vuelve sin dirección."
-
-#: includes/sso-guides.php:170
-msgid ""
-"On GitLab, open your avatar menu → “Edit profile” → “Applications”. (For a "
-"whole group, the same screen exists under the group’s Settings.)"
-msgstr ""
-"En GitLab, abre el menú de tu avatar → \"Edit profile\" → \"Applications\". "
-"(Para todo un grupo, la misma pantalla está en la configuración del grupo.)"
-
-#: includes/sso-guides.php:171
-msgid "Press “Add new application” and give it a name."
-msgstr "Haz clic en \"Add new application\" y ponle un nombre."
-
-#: includes/sso-guides.php:172
-msgid "Paste the redirect URL from above into “Redirect URI”, one per line."
-msgstr "Pega la URL de retorno de arriba en \"Redirect URI\", una por línea."
-
-#: includes/sso-guides.php:173
-msgid "Leave “Confidential” ticked."
-msgstr "Deja \"Confidential\" marcado."
-
-#: includes/sso-guides.php:174
-msgid "Scopes: tick “openid”, “email” and “profile”."
-msgstr "Scopes: marca \"openid\", \"email\" y \"profile\"."
-
-#: includes/sso-guides.php:175
-msgid ""
-"Press “Save application”. Copy the “Application ID” and the “Secret” — the "
-"secret is shown once."
-msgstr ""
-"Haz clic en \"Save application\". Copia el \"Application ID\" y el "
-"\"Secret\": el secreto se muestra una sola vez."
-
-#: includes/sso-guides.php:177
-msgid ""
-"This is for gitlab.com. A self-hosted GitLab has the same screens but "
-"different URLs, and the plugin points at gitlab.com."
-msgstr ""
-"Esto es para gitlab.com. Un GitLab propio tiene las mismas pantallas pero "
-"otras URLs, y el plugin apunta a gitlab.com."
-
-#: includes/sso-guides.php:182
-msgid ""
-"Open the Login with Amazon console and press “Create a New Security Profile”."
-msgstr ""
-"Entra en la consola de Login with Amazon y haz clic en \"Create a New "
-"Security Profile\"."
-
-#: includes/sso-guides.php:183
-msgid ""
-"Fill in the name, the description, and a privacy policy URL. All three are "
-"required."
-msgstr ""
-"Llena el nombre, la descripción y una URL de política de privacidad. Los "
-"tres son obligatorios."
-
-#: includes/sso-guides.php:184
-msgid ""
-"Save. Back on the list, open the gear menu on your profile → “Web Settings” "
-"→ “Edit”."
-msgstr ""
-"Guarda. De vuelta en la lista, abre el menú del engranaje de tu perfil → "
-"\"Web Settings\" → \"Edit\"."
-
-#: includes/sso-guides.php:185
-msgid ""
-"Paste the redirect URL from above into “Allowed Return URLs”. In “Allowed "
-"Origins” put just the domain, with no path."
-msgstr ""
-"Pega la URL de retorno de arriba en \"Allowed Return URLs\". En \"Allowed "
-"Origins\" pon solo el dominio, sin ruta."
-
-#: includes/sso-guides.php:186
-msgid ""
-"Save, then copy the “Client ID” and press “Show Secret” to copy the “Client "
-"Secret”."
-msgstr ""
-"Guarda y copia el \"Client ID\"; haz clic en \"Show Secret\" para copiar el "
-"\"Client Secret\"."
-
-#: includes/sso-guides.php:188
-msgid ""
-"The return URL lives under “Web Settings”, not on the profile’s main page — "
-"that is the step everyone misses."
-msgstr ""
-"La URL de retorno vive en \"Web Settings\", no en la página principal del "
-"perfil: ese es el paso que todos se saltean."
-
 #: includes/sso.php:981
 msgid ""
 "The provider did not hand over an access token. Check the client ID and the "
@@ -3782,14 +3287,6 @@ msgstr ""
 #: includes/admin-home.php:233
 msgid "Linked a social account"
 msgstr "Han vinculado una red social"
-
-#: includes/admin-home.php:234
-msgid ""
-"They can get in with Google, Facebook or whichever provider is enabled, "
-"instead of waiting for the e-mail."
-msgstr ""
-"Pueden entrar con Google, Facebook o el proveedor que esté habilitado, en "
-"lugar de esperar el correo."
 
 #: includes/admin-home.php:238
 msgid "Set up an authenticator app"
@@ -11273,3 +10770,43 @@ msgstr "Otros datos que se guardan sobre ti"
 #: includes/privacy.php:124
 msgid "Kept, and not shown here"
 msgstr "Guardado, y no se muestra aquí"
+
+#: includes/admin-social.php:320
+msgid ""
+"Your Pro choice (inactive): set up while an add-on that is not active now "
+"offered it. Nobody signs in with it until the add-on is back, and its "
+"settings are kept as they are."
+msgstr ""
+"Tu elección Pro (inactiva): se configuró mientras la ofrecía un complemento "
+"que ahora no está activo. Nadie entra con ella hasta que el complemento "
+"vuelva, y su configuración se conserva tal cual."
+
+#: includes/admin-social.php:332
+msgid "Ten more networks"
+msgstr "Diez redes más"
+
+#: includes/admin-social.php:333
+msgid ""
+"Users+ Pro adds LinkedIn, X, Facebook, GitHub, WordPress.com, Yahoo, Twitch, "
+"Discord, GitLab and Amazon, each with its guide and its live test."
+msgstr ""
+"Users+ Pro suma LinkedIn, X, Facebook, GitHub, WordPress.com, Yahoo, Twitch, "
+"Discord, GitLab y Amazon, cada una con su guía y su prueba en vivo."
+
+#: includes/admin-home.php:234
+msgid ""
+"They can get in with Google, Microsoft or whichever provider is enabled, "
+"instead of waiting for the e-mail."
+msgstr ""
+"Pueden entrar con Google, Microsoft o el proveedor que esté habilitado, en "
+"lugar de esperar el correo."
+
+#: includes/admin-social.php:525
+msgid ""
+"This is what makes signing in with Google today and with Microsoft tomorrow "
+"land on the same account instead of creating two. Each network the person "
+"uses gets added to their account, and any of them works from then on."
+msgstr ""
+"Esto es lo que hace que entrar con Google hoy y con Microsoft mañana caiga "
+"en la misma cuenta y no cree dos. Cada red que la persona usa se le suma a "
+"su cuenta, y de ahí en más cualquiera le sirve."
