@@ -23,7 +23,7 @@ The rule for drawing the line: when in doubt, Pro. Moving something from Pro to 
 | Multisite | Network activation, the hub, membership "every site" | Membership "with a click" and "by invitation" |
 | Privacy | Everything | — |
 
-In the free plugin a Pro feature shows only as a small badge next to the choice it belongs to, linking to diluxone.com: never a screen of its own, never a notice.
+In the free plugin a Pro feature shows in the place it belongs to and nowhere else: a choice carries a small "Pro" badge, and a part of a screen shows as a blurred, inert preview with the badge and a link to diluxone.com. The preview is a picture of the feature, not the feature: no Pro code ships in it. Only administrators see it, in the plugin's own screens; never a screen of its own, never a notice, and never anything on the front end.
 
 ## Next: sign-in through any OpenID Connect provider (Pro)
 
