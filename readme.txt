@@ -24,8 +24,9 @@ Everything about the people who use your site, in one place.
 * **How people get in**: a link sent to their e-mail with no password, username
   and password, or both, plus control over WordPress's own registration and
   profile screens.
-* **Social login** with twelve providers, a step-by-step guide for each console
-  and a live test before one is turned on.
+* **Social login** with Google and Microsoft, a step-by-step guide for each
+  console and a live test before one is turned on. DiluxOne Users+ Pro, a
+  separate add-on, adds ten more providers.
 * **Two-step verification**: a code by e-mail, an authenticator app with a QR
   code, and backup codes, with a policy per role and a rule of its own for
   sign-ins by e-mail link.
@@ -47,25 +48,15 @@ their account — or an administrator runs its live test. With no provider on,
 it makes no outbound request at all.
 
 What is sent: the client ID and secret you registered with the provider, the
-authorisation code the browser came back with and your site's redirect URL
-(and, for X, a PKCE verifier); then the access token the provider issued, to
-read the person's profile. What comes back: the person's identifier at that
-provider, their name and their e-mail address (X does not provide one).
+authorisation code the browser came back with and your site's redirect URL;
+then the access token the provider issued, to read the person's profile. What
+comes back: the person's identifier at that provider, their name and their
+e-mail address.
 The requests carry WordPress's usual user-agent, which names your site's
 address; nothing else about your site or its visitors is sent.
 
 * **Google** — accounts.google.com, oauth2.googleapis.com, openidconnect.googleapis.com. [Terms](https://policies.google.com/terms), [Privacy](https://policies.google.com/privacy)
 * **Microsoft** — login.microsoftonline.com, graph.microsoft.com. [Terms](https://www.microsoft.com/servicesagreement), [Privacy](https://privacy.microsoft.com/privacystatement)
-* **LinkedIn** — www.linkedin.com, api.linkedin.com. [Terms](https://www.linkedin.com/legal/user-agreement), [Privacy](https://www.linkedin.com/legal/privacy-policy)
-* **X (Twitter)** — twitter.com, api.twitter.com. [Terms](https://x.com/en/tos), [Privacy](https://x.com/en/privacy)
-* **Facebook** — www.facebook.com, graph.facebook.com. [Terms](https://www.facebook.com/terms.php), [Privacy](https://www.facebook.com/privacy/policy)
-* **GitHub** — github.com, api.github.com. [Terms](https://docs.github.com/en/site-policy/github-terms/github-terms-of-service), [Privacy](https://docs.github.com/en/site-policy/privacy-policies/github-privacy-statement)
-* **WordPress.com** — public-api.wordpress.com. [Terms](https://wordpress.com/tos/), [Privacy](https://automattic.com/privacy/)
-* **Yahoo** — api.login.yahoo.com. [Terms](https://legal.yahoo.com/us/en/yahoo/terms/otos/index.html), [Privacy](https://legal.yahoo.com/us/en/yahoo/privacy/index.html)
-* **Twitch** — id.twitch.tv. [Terms](https://www.twitch.tv/p/legal/terms-of-service/), [Privacy](https://www.twitch.tv/p/legal/privacy-notice/)
-* **Discord** — discord.com. [Terms](https://discord.com/terms), [Privacy](https://discord.com/privacy)
-* **GitLab** — gitlab.com. [Terms](https://handbook.gitlab.com/handbook/legal/subscription-agreement/), [Privacy](https://handbook.gitlab.com/handbook/legal/privacy/)
-* **Amazon** — www.amazon.com, api.amazon.com. [Terms](https://www.amazon.com/gp/help/customer/display.html?nodeId=508088), [Privacy](https://www.amazon.com/gp/help/customer/display.html?nodeId=468496)
 
 The settings screens link to each provider's console and docs (links, not requests).
 
@@ -142,9 +133,7 @@ ticked it takes everything, on every site. The pages it created for you
 The social buttons show each network's logo as inline SVG
 (`includes/sso-icons.php`). The logos are trademarks of their owners, shown
 only to identify the button that signs in with that service, as their brand
-guidelines allow; the GitLab drawing comes from Simple Icons
-(https://simpleicons.org/, CC0 1.0). Everything else is original work under
-GPLv2 or later; no
+guidelines allow. Everything else is original work under GPLv2 or later; no
 third-party library is bundled (the QR encoder, TOTP and WebAuthn verification
 are written for this plugin).
 
@@ -249,7 +238,7 @@ can write.
 5. Overview: how many accounts, how they get in, and the first steps until there are none left.
 6. Every way into the site in one table, read from the settings the other tabs write.
 7. Two-step verification: when it is asked for, with what, and to whom.
-8. Social login: twelve networks, each with its own credentials and a live test.
+8. Social login: each network with its own credentials and a live test.
 9. User fields: what is asked of a person, where it shows and who can change it.
 10. How the account area looks, with a live preview of the real markup.
 11. Open sessions across the site, with the button to close them.

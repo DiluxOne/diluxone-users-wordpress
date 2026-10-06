@@ -13,7 +13,7 @@ Sites where people have accounts: memberships, courses, communities, client area
 - **User fields** defined from the dashboard: name, type, whether it is required, where it goes, and who can change it and how many times. The ones WordPress already has (first and last name) are in the same list and follow the same rules.
 - **An account area on the front end**: Home, Your details, Linked accounts, Security, Privacy and Notifications, with tabs on top or a menu down the side. Sections can be renamed, reordered, turned off and added; one of your own is a name, an address and a shortcode.
 - **How people get in**: a link sent to their e-mail with no password at all, username and password, or both, with control over what happens to WordPress's own registration and profile screens.
-- **Social login** with twelve providers, a step-by-step guide for each console, buttons with the real brand marks, and a live test before you turn one on.
+- **Social login** with Google and Microsoft, a step-by-step guide for each console, buttons with the real brand marks, and a live test before you turn one on. Any other OAuth 2 provider is one filter away ([`docs/extending.md`](docs/extending.md#social-login-providers)); DiluxOne Users+ Pro adds ten more.
 - **Two-step verification**: a code by e-mail, an authenticator app with a QR code, and backup codes, with a policy per role and per way in.
 - **Passkeys** (WebAuthn), each one with a name of its own.
 - **Sessions**: how long they last, where they are open and how to close them.
