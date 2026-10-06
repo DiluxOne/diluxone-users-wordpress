@@ -269,9 +269,9 @@ product is fixed, not to be loosened.
 | E-mail notices › Rules: never, off by default, always, the security rule, forged policy | `admin-notices` › the rules |
 | E-mail notices › Summary: rows, failed delivery | `admin-notices` › the summary |
 | E-mail notices › E-mails: missing `{link}`/`{code}` refused, back to the plugin's words, emptied boxes, unchanged save, second-step / new-device / security templates, another language | `admin-notices` › the e-mails |
-| A save writes only what its screen drew (an unticked box counts when it was drawn); a list or a map keeps the entries it does not know (a second factor, a provider's row, a section of the site's own) | not in a browser yet: every screen still draws all it saves. Integration: `SavesKeepUnknownTest`, `CoverSettingsDesignTest` |
+| A save writes only what its screen drew (an unticked box counts when it was drawn); a list or a map keeps the entries it does not know (a second factor, a provider's row, a section of the site's own) | a provider's row: `admin-social-providers` › The grid: a network nothing registers…; the rest not in a browser yet. Integration: `SavesKeepUnknownTest`, `CoverSettingsDesignTest`, `CoverSettingsSocialTest` |
 | A stored sign-in or account shape, or a second factor, nothing offers today: the closest free one on the page, an inactive Pro choice on the screen, kept on save | not in a browser yet: nothing stores one until Users+ Pro exists. Integration: `UnknownChoiceTest` |
-| A Users+ Pro placeholder (picture or card): only in the admin, for its administrators, while the setting is on and `diluxone_users_upsell` allows; inert, nothing posted, escaped link with the screen as its medium | not in a browser yet: placed on no screen. Integration: `ProPreviewTest` |
+| A Users+ Pro placeholder (picture or card): only in the admin, for its administrators, while the setting is on and `diluxone_users_upsell` allows; inert, nothing posted, escaped link with the screen as its medium | the card after the networks on Social › Providers (`social/providers/more`), with a network nothing registers kept and shown inactive before it: `admin-social-providers` › The grid. Integration: `ProPreviewTest`, `CoverSettingsSocialTest` |
 | Maintenance › Tools › Users+ Pro on these screens (single site); Network Admin › Users+ Pro (network) | the tab is in `support/screens.ts`, so `admin-layout` and the network layout spec draw it. Integration: `ProPreviewTest` |
 | A field's key is made in `diluxone_users_field_`; any other key under the prefix is refused unless a field already had it | Unit: `FieldKeyTest`. Integration: `FieldNamespaceTest`, `CoverAdminFieldsTest` |
 | Export and erasure account for the whole `diluxone_users_` namespace by prefix | not in a browser: the data an add-on would keep does not exist yet. Integration: `PrivacyNamespaceTest` |
@@ -655,7 +655,7 @@ its row, and its spec, in the same pull request.
 - **The e-mail actually leaving the server**: the mu-plugin catches every
   message on `pre_wp_mail`, which is the point — the suite reads the message
   the site composed, not a mail server's delivery.
-- **Real OAuth providers** (the twelve networks): the suite uses the mu-plugin's
+- **Real OAuth providers** (Google and Microsoft): the suite uses the mu-plugin's
   `mock` provider, which exercises the same code path through
   `pre_http_request`; a real provider needs credentials and a consent screen.
 - **The passkey "not on HTTPS" note** on Access › Ways in: it needs a non-`local` environment type, and the e2e mu-plugin only loads on `local`.

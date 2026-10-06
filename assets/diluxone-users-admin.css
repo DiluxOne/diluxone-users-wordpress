@@ -675,7 +675,7 @@
 
 /* ── A grid of cards ──────────────────────────────────────────────────
    One thing per card, in a row that wraps: the four numbers the overview
-   opens with, and the twelve networks on the sign-in providers screen. It is
+   opens with, and the networks on the sign-in providers screen. It is
    one grid and not two — it was two, and the second copy of it was the
    providers', which is why a card had a different amount of room around it
    depending on which screen it was on.
@@ -1723,4 +1723,6 @@ span.diluxone-users-state {
 	border: 1px dashed var(--du-line); border-radius: var(--du-radius);
 	background: var(--du-ground-alt);
 }
+/* In a grid it is one more cell: the grid's gap is its room. */
+.diluxone-users-cards > .du-pro-card { margin: 0; }
 .du-pro-card .du-pro__says { max-width: none; font-weight: 400; color: var(--du-muted); }

@@ -273,23 +273,30 @@ everything comes from a table. Adding one is a filter and nothing else.
 
 ```php
 add_filter( 'diluxone_users_sso_providers', function ( array $providers ): array {
-    $providers['twitch'] = array(
-        'name'      => 'Twitch',
-        'color'     => '#9146FF',                                // its brand colour, for the card and the button
-        'authorize' => 'https://id.twitch.tv/oauth2/authorize',  // where the person is sent
-        'token'     => 'https://id.twitch.tv/oauth2/token',      // where the code becomes a token
-        'profile'   => 'https://id.twitch.tv/oauth2/userinfo',   // where the profile is read
-        'scope'     => 'openid user:read:email',
-        'extra'     => array(),                                  // optional: odd parameters the provider wants
-        'pkce'      => false,                                    // optional: true when it requires PKCE
-        'map'       => 'diluxone_users_sso_map_oidc',            // optional: reads the profile (below)
-        'console'   => 'https://dev.twitch.tv/console/apps',     // optional: where the application is made
-        'guide'     => 'https://dev.twitch.tv/docs/authentication/getting-tokens-oidc/', // optional: its documentation
+    $providers['acme'] = array(
+        'name'       => 'Acme ID',
+        'color'      => '#0B5FFF',                                // its brand colour, for the card and the button
+        'authorize'  => 'https://id.acme.example/oauth2/authorize', // where the person is sent
+        'token'      => 'https://id.acme.example/oauth2/token',     // where the code becomes a token
+        'profile'    => 'https://id.acme.example/oauth2/userinfo',  // where the profile is read
+        'scope'      => 'openid email profile',
+        'extra'      => array(),                                  // optional: odd parameters the provider wants
+        'pkce'       => false,                                    // optional: true when it requires PKCE
+        'token_auth' => 'post',                                   // optional: 'basic' when it wants the secret in a Basic header
+        'map'        => 'diluxone_users_sso_map_oidc',            // optional: reads the profile (below)
+        'console'    => 'https://id.acme.example/developers',     // optional: where the application is made
+        'guide'      => 'https://id.acme.example/docs/oidc',      // optional: its documentation
     );
 
     return $providers;
 } );
 ```
+
+Google and Microsoft are the plugin's own rows; every other provider is an
+add-on's (DiluxOne Users+ Pro registers ten this way). `token_auth` says how
+the code is exchanged: `post` (the default) sends the client ID and the secret
+in the body, `basic` sends them in an HTTP Basic `Authorization` header and
+leaves the secret out of the body, for a provider that accepts only that.
 
 `map` is a callable that receives the profile (decoded JSON) and the access
 token and returns `id`, `email`, `name` (the first name), `last_name` and
@@ -311,7 +318,12 @@ rebuilt after (Maintenance › Tools).
 
 A provider's stored row (`diluxone_users_sso`, keyed by provider id) keeps
 whatever else is in it when the plugin saves the credentials, and a row of a
-provider nothing registers today is left alone.
+provider nothing registers today is left alone: nobody signs in with it, the
+Social login screen shows it as an inactive Pro choice after the real
+networks, and it works again the day its add-on is back. The same holds for
+the accounts linked to it (`diluxone_users_sso_{id}` user meta): kept,
+exported with their value withheld and erased with everything else of the
+person, like any other key under the prefix.
 
 ## Account area sections
 
@@ -779,6 +791,10 @@ them all off.
 where `$where` names the placeholder (`<screen>/<tab>/<feature>`). Users+ Pro
 answers false for every feature it draws for real; a site that wants none of
 them answers false for all.
+
+| `$where` | What it is |
+| --- | --- |
+| `social/providers/more` | A card after the networks on Social login › Providers: the ten networks Users+ Pro adds. |
 
 ## The emergency switch
 

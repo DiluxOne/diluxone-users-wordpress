@@ -9,7 +9,7 @@ import { ADMIN_STATE } from '../../../playwright.config';
  * Social login › a provider, set up through its own screen.
  *
  * The fake network the mu-plugin answers as (`mock`) is a provider like the
- * twelve real ones: the same grid card, the same three tabs, the same live
+ * plugin's own two and any an add-on registers: the same grid card, the same three tabs, the same live
  * test. So everything an administrator does to bring one up is done here
  * through the screen — the client ID and the secret pasted and saved, the
  * secret never printed back, an empty box keeping it, changed credentials
@@ -52,6 +52,49 @@ test.describe('Social login › a provider’s own screen', () => {
 			diluxone_users_sso_login: 1,
 			diluxone_users_2fa_mode: 'off',
 		});
+	});
+
+	test('The grid: a network nothing registers is kept and shown inactive, and one card after them says what Users+ Pro adds', async ({
+		page,
+		site,
+		options,
+	}) => {
+		const gone = { active: 1, id: 'gone-id', secret: 'gone-secret', tested: 1 };
+
+		await options.keep(['diluxone_users_pro_previews']);
+		await options.set({ diluxone_users_sso: { gone }, diluxone_users_pro_previews: 1 });
+		await page.goto(`/wp-admin/admin.php?page=${SOCIAL}`);
+
+		const grid = page.locator('.diluxone-users-cards');
+		const pro = grid.locator('[data-diluxone-users-pro="social/providers/more"]');
+
+		await expect(pro, 'one card, not one per network').toHaveCount(1);
+		await expect(grid.locator(':scope > *').last(), 'after every real network').toHaveAttribute('data-diluxone-users-pro', 'social/providers/more');
+		await expect(pro).toContainText('Ten more networks');
+		await expect(pro.locator('a')).toHaveAttribute('href', /diluxone\.com\/users-pro\/.*utm_medium=social/);
+		await expect(pro.locator('input, select, textarea, button'), 'nothing in it is a control').toHaveCount(0);
+
+		const kept = grid.locator('.diluxone-users-card').filter({ has: page.locator('h3', { hasText: /^gone$/ }) });
+
+		await expect(kept).toContainText('Your Pro choice (inactive)');
+		await expect(kept.locator('a'), 'nothing here opens it').toHaveCount(0);
+		await expect(page.locator('body')).not.toContainText('gone-secret');
+
+		// Another network's credentials, saved: the kept row is as it was.
+		await page.goto(providerUrl('settings'));
+		await page.locator('input[name="diluxone_users_client_id"]').fill(ID);
+		await page.locator('input[name="diluxone_users_client_secret"]').fill(SECRET);
+		await savePanel(page);
+
+		const all = (await site.getOptions(['diluxone_users_sso'])).diluxone_users_sso as Record<string, Stored>;
+		expect(all.gone).toEqual(gone);
+		expect(all.mock).toMatchObject({ id: ID, tested: 0 });
+
+		// And the site that turns the previews off sees the networks and no card.
+		await options.set({ diluxone_users_pro_previews: 0 });
+		await page.goto(`/wp-admin/admin.php?page=${SOCIAL}`);
+		await expect(page.locator('[data-diluxone-users-pro]')).toHaveCount(0);
+		await expect(card(page)).toHaveCount(1);
 	});
 
 	test('Getting started: the redirect URL to paste, the console, the steps, and the way on to Settings', async ({ page, baseURL }) => {
