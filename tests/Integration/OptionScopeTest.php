@@ -81,9 +81,9 @@ class OptionScopeTest extends IntegrationTestCase {
 		$this->assertSame( is_multisite(), diluxone_users_scoped_storage_active(), 'Routed on a network with the plugin on for every site, and only there' );
 		$this->assertNull( diluxone_users_raw_get( 'diluxone_users_sso', null ) );
 
-		$this->assertTrue( diluxone_users_update_option( 'diluxone_users_sso', array( 'github' => array( 'enabled' => 1 ) ), false ) );
-		$this->assertSame( array( 'github' => array( 'enabled' => 1 ) ), diluxone_users_raw_get( 'diluxone_users_sso' ) );
-		$this->assertSame( array( 'github' => array( 'enabled' => 1 ) ), is_multisite() ? get_site_option( 'diluxone_users_sso' ) : get_option( 'diluxone_users_sso' ) );
+		$this->assertTrue( diluxone_users_update_option( 'diluxone_users_sso', array( 'elsewhere' => array( 'enabled' => 1 ) ), false ) );
+		$this->assertSame( array( 'elsewhere' => array( 'enabled' => 1 ) ), diluxone_users_raw_get( 'diluxone_users_sso' ) );
+		$this->assertSame( array( 'elsewhere' => array( 'enabled' => 1 ) ), is_multisite() ? get_site_option( 'diluxone_users_sso' ) : get_option( 'diluxone_users_sso' ) );
 
 		$this->assertTrue( diluxone_users_delete_option( 'diluxone_users_sso' ) );
 		$this->assertNull( diluxone_users_raw_get( 'diluxone_users_sso', null ) );

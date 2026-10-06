@@ -133,7 +133,9 @@ class CoverAdminPeopleTest extends IntegrationTestCase {
 
 	public function test_what_is_ticked_is_taken_off_and_nothing_else(): void {
 		$user = $this->equipped();
-		update_user_meta( $user, 'diluxone_users_sso_github', 'gh-1' );
+		update_user_meta( $user, 'diluxone_users_sso_microsoft', 'ms-1' );
+		// A network nothing registers today (its add-on is off): not offered, not touched.
+		update_user_meta( $user, 'diluxone_users_sso_elsewhere', 'el-1' );
 		$admin = $this->the_admin();
 
 		$this->postAs(
@@ -142,7 +144,7 @@ class CoverAdminPeopleTest extends IntegrationTestCase {
 				'_wpnonce'                      => wp_create_nonce( 'update-user_' . $user ),
 				'diluxone_users_forget_totp'    => '1',
 				'diluxone_users_forget_passkey' => array( 'key-one' ),
-				'diluxone_users_unlink'         => array( 'google', 'not-a-provider', 'session_tokens' ),
+				'diluxone_users_unlink'         => array( 'google', 'not-a-provider', 'session_tokens', 'elsewhere' ),
 			)
 		);
 
@@ -151,7 +153,8 @@ class CoverAdminPeopleTest extends IntegrationTestCase {
 		$this->assertFalse( diluxone_users_totp_ready( $user ) );
 		$this->assertSame( array( 'key-two' ), array_column( diluxone_users_passkeys( $user ), 'id' ) );
 		$this->assertSame( '', get_user_meta( $user, 'diluxone_users_sso_google', true ) );
-		$this->assertSame( 'gh-1', get_user_meta( $user, 'diluxone_users_sso_github', true ), 'what was not ticked stays' );
+		$this->assertSame( 'ms-1', get_user_meta( $user, 'diluxone_users_sso_microsoft', true ), 'what was not ticked stays' );
+		$this->assertSame( 'el-1', get_user_meta( $user, 'diluxone_users_sso_elsewhere', true ), 'and a network nothing registers is not one this block takes off' );
 		$this->assertNotEmpty( get_user_meta( $user, 'session_tokens', true ), 'only providers are unlinked: a name that is not one deletes nothing' );
 	}
 

@@ -274,12 +274,12 @@ class CoverAdminStatusTest extends IntegrationTestCase {
 			'diluxone_users_sso',
 			array(
 				'google' => array( 'active' => 1, 'id' => 'gid', 'secret' => 'gsecret', 'tested' => 1 ),
-				'github' => array( 'active' => 0, 'id' => 'hid', 'secret' => 'hsecret', 'tested' => 1 ),
+				'microsoft' => array( 'active' => 0, 'id' => 'mid', 'secret' => 'msecret', 'tested' => 1 ),
 			)
 		);
 		$check = diluxone_users_check_social();
 		$this->assertSame( 'pending', $check['state'] );
-		$this->assertStringContainsString( 'GitHub', $check['detail'] );
+		$this->assertStringContainsString( 'Microsoft', $check['detail'] );
 		$this->assertStringContainsString( 'page=diluxone-users-social', $check['url'] );
 		$this->assertSame( $check, $this->row( 'Social login' ), 'and it is on the tab' );
 	}

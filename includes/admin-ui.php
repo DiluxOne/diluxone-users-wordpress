@@ -422,7 +422,7 @@ function diluxone_users_ui_wide_close(): void {
  * A grid of cards, one thing per card.
  *
  * The overview opens with four of them — a number each — and the sign-in
- * providers screen is twelve, a network each. It was the same grid drawn from
+ * providers screen is one per network. It was the same grid drawn from
  * two places: the overview had a helper and the providers screen printed the
  * same `<div>`s by hand because the helper escaped its icon as a class name
  * and its value as text, and a network needs a logo and a pill. So the two
@@ -455,7 +455,7 @@ function diluxone_users_ui_cards_close(): void {
  *
  * The ways out are text on the overview, where every card offers exactly one
  * and the card itself is the thing being read. A card that offers a choice is
- * a different matter: the twelve networks each lead somewhere to be set up,
+ * a different matter: the networks each lead somewhere to be set up,
  * somewhere to be switched off, and the two read as the same suggestion while
  * they were two links in a row. So a link can say what kind of action it is —
  * `primary` for the one thing that card is for, `secondary` for the other one,

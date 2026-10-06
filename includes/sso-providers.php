@@ -6,7 +6,8 @@
  * with a code, exchange it for a token, ask for the profile. The only thing
  * each provider has of its own is four URLs, a scope and how the profile it
  * returns is read. That is a table, not a class per provider: adding a new one
- * is adding a row here.
+ * is adding a row, here or through `diluxone_users_sso_providers` from an
+ * add-on, with no branch in the engine for any of them.
  *
  * Only the ones that work with this flow get in. Deliberately left out:
  *
@@ -24,7 +25,8 @@
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Every provider the plugin knows how to handle.
+ * Every provider the plugin knows how to handle: Google and Microsoft, and
+ * whatever an add-on registers through the filter below.
  *
  * Fields of each one:
  *   name       What it is called for people.
@@ -34,7 +36,10 @@ defined( 'ABSPATH' ) || exit;
  *   profile    URL the profile is read from.
  *   scope      The permissions asked for.
  *   extra      Odd parameters that provider requires.
- *   pkce       Whether it requires PKCE (X does; the rest do not mind).
+ *   pkce       Whether it requires PKCE.
+ *   token_auth How the client proves itself on the token exchange: `post`
+ *              (the ID and the secret in the body, the default) or `basic`
+ *              (the two in an HTTP Basic header, and not in the body).
  *   map        The function that reads its answer.
  *   console    Where the application is created.
  *   guide      The provider documentation.
@@ -68,140 +73,6 @@ function diluxone_users_sso_providers(): array {
 			'map'       => 'diluxone_users_sso_map_oidc',
 			'console'   => 'https://entra.microsoft.com/',
 			'guide'     => 'https://learn.microsoft.com/entra/identity-platform/v2-protocols-oidc',
-		),
-		'linkedin'  => array(
-			'name'      => 'LinkedIn',
-			'color'     => '#0A66C2',
-			'authorize' => 'https://www.linkedin.com/oauth/v2/authorization',
-			'token'     => 'https://www.linkedin.com/oauth/v2/accessToken',
-			'profile'   => 'https://api.linkedin.com/v2/userinfo',
-			'scope'     => 'openid profile email',
-			'extra'     => array(),
-			'pkce'      => false,
-			'map'       => 'diluxone_users_sso_map_oidc',
-			'console'   => 'https://www.linkedin.com/developers/apps',
-			'guide'     => 'https://learn.microsoft.com/linkedin/consumer/integrations/self-serve/sign-in-with-linkedin-v2',
-		),
-		'twitter'   => array(
-			'name'      => 'X (Twitter)',
-			'color'     => '#0F1419',
-			'authorize' => 'https://twitter.com/i/oauth2/authorize',
-			'token'     => 'https://api.twitter.com/2/oauth2/token',
-			'profile'   => 'https://api.twitter.com/2/users/me?user.fields=name,username',
-			'scope'     => 'tweet.read users.read',
-			'extra'     => array(),
-			// X requires PKCE and returns no e-mail: the account is created with
-			// an e-mail derived from the username, or linked from the profile.
-			'pkce'      => true,
-			'map'       => 'diluxone_users_sso_map_twitter',
-			'console'   => 'https://developer.twitter.com/en/portal/dashboard',
-			'guide'     => 'https://docs.x.com/resources/fundamentals/authentication/oauth-2-0/authorization-code',
-		),
-		'facebook'  => array(
-			'name'      => 'Facebook',
-			'color'     => '#1877F2',
-			'authorize' => 'https://www.facebook.com/v19.0/dialog/oauth',
-			'token'     => 'https://graph.facebook.com/v19.0/oauth/access_token',
-			'profile'   => 'https://graph.facebook.com/me?fields=id,email,first_name,last_name',
-			'scope'     => 'email',
-			'extra'     => array(),
-			'pkce'      => false,
-			'map'       => 'diluxone_users_sso_map_facebook',
-			'console'   => 'https://developers.facebook.com/apps/',
-			'guide'     => 'https://developers.facebook.com/docs/facebook-login/guides/advanced/manual-flow',
-		),
-		'github'    => array(
-			'name'      => 'GitHub',
-			'color'     => '#24292F',
-			'authorize' => 'https://github.com/login/oauth/authorize',
-			'token'     => 'https://github.com/login/oauth/access_token',
-			'profile'   => 'https://api.github.com/user',
-			'scope'     => 'read:user user:email',
-			'extra'     => array(),
-			'pkce'      => false,
-			'map'       => 'diluxone_users_sso_map_github',
-			'console'   => 'https://github.com/settings/developers',
-			'guide'     => 'https://docs.github.com/apps/oauth-apps/building-oauth-apps/authorizing-oauth-apps',
-		),
-		'wordpress' => array(
-			'name'      => 'WordPress.com',
-			'color'     => '#117AC9',
-			'authorize' => 'https://public-api.wordpress.com/oauth2/authorize',
-			'token'     => 'https://public-api.wordpress.com/oauth2/token',
-			'profile'   => 'https://public-api.wordpress.com/rest/v1/me',
-			'scope'     => 'auth',
-			'extra'     => array(),
-			'pkce'      => false,
-			'map'       => 'diluxone_users_sso_map_wordpress',
-			'console'   => 'https://developer.wordpress.com/apps/',
-			'guide'     => 'https://developer.wordpress.com/docs/oauth2/',
-		),
-		'yahoo'     => array(
-			'name'      => 'Yahoo',
-			'color'     => '#6001D2',
-			'authorize' => 'https://api.login.yahoo.com/oauth2/request_auth',
-			'token'     => 'https://api.login.yahoo.com/oauth2/get_token',
-			'profile'   => 'https://api.login.yahoo.com/openid/v1/userinfo',
-			'scope'     => 'openid email profile',
-			'extra'     => array(),
-			'pkce'      => false,
-			'map'       => 'diluxone_users_sso_map_oidc',
-			'console'   => 'https://developer.yahoo.com/apps/',
-			'guide'     => 'https://developer.yahoo.com/oauth2/guide/openid_connect/',
-		),
-		'twitch'    => array(
-			'name'      => 'Twitch',
-			'color'     => '#9146FF',
-			'authorize' => 'https://id.twitch.tv/oauth2/authorize',
-			'token'     => 'https://id.twitch.tv/oauth2/token',
-			// The OIDC endpoint and not /helix/users: this one works with the
-			// Bearer alone, the other also wants the Client-Id header.
-			'profile'   => 'https://id.twitch.tv/oauth2/userinfo',
-			'scope'     => 'openid user:read:email',
-			'extra'     => array( 'claims' => '{"userinfo":{"email":null,"preferred_username":null}}' ),
-			'pkce'      => false,
-			'map'       => 'diluxone_users_sso_map_oidc',
-			'console'   => 'https://dev.twitch.tv/console/apps',
-			'guide'     => 'https://dev.twitch.tv/docs/authentication/getting-tokens-oidc/',
-		),
-		'discord'   => array(
-			'name'      => 'Discord',
-			'color'     => '#5865F2',
-			'authorize' => 'https://discord.com/oauth2/authorize',
-			'token'     => 'https://discord.com/api/oauth2/token',
-			'profile'   => 'https://discord.com/api/users/@me',
-			'scope'     => 'identify email',
-			'extra'     => array(),
-			'pkce'      => false,
-			'map'       => 'diluxone_users_sso_map_discord',
-			'console'   => 'https://discord.com/developers/applications',
-			'guide'     => 'https://discord.com/developers/docs/topics/oauth2',
-		),
-		'gitlab'    => array(
-			'name'      => 'GitLab',
-			'color'     => '#FC6D26',
-			'authorize' => 'https://gitlab.com/oauth/authorize',
-			'token'     => 'https://gitlab.com/oauth/token',
-			'profile'   => 'https://gitlab.com/oauth/userinfo',
-			'scope'     => 'openid email profile',
-			'extra'     => array(),
-			'pkce'      => false,
-			'map'       => 'diluxone_users_sso_map_oidc',
-			'console'   => 'https://gitlab.com/-/profile/applications',
-			'guide'     => 'https://docs.gitlab.com/ee/integration/openid_connect_provider.html',
-		),
-		'amazon'    => array(
-			'name'      => 'Amazon',
-			'color'     => '#FF9900',
-			'authorize' => 'https://www.amazon.com/ap/oa',
-			'token'     => 'https://api.amazon.com/auth/o2/token',
-			'profile'   => 'https://api.amazon.com/user/profile',
-			'scope'     => 'profile',
-			'extra'     => array(),
-			'pkce'      => false,
-			'map'       => 'diluxone_users_sso_map_amazon',
-			'console'   => 'https://developer.amazon.com/loginwithamazon/console/site/lwa/overview.html',
-			'guide'     => 'https://developer.amazon.com/docs/login-with-amazon/web-docs.html',
 		),
 	);
 
@@ -245,17 +116,18 @@ function diluxone_users_sso_provider_row( string $id, array $row ): array {
 	$row = wp_parse_args(
 		$row,
 		array(
-			'name'      => $id,
-			'color'     => '',
-			'authorize' => '',
-			'token'     => '',
-			'profile'   => '',
-			'scope'     => '',
-			'extra'     => array(),
-			'pkce'      => false,
-			'map'       => 'diluxone_users_sso_map_oidc',
-			'console'   => '',
-			'guide'     => '',
+			'name'       => $id,
+			'color'      => '',
+			'authorize'  => '',
+			'token'      => '',
+			'profile'    => '',
+			'scope'      => '',
+			'extra'      => array(),
+			'pkce'       => false,
+			'token_auth' => 'post',
+			'map'        => 'diluxone_users_sso_map_oidc',
+			'console'    => '',
+			'guide'      => '',
 		)
 	);
 
@@ -268,6 +140,10 @@ function diluxone_users_sso_provider_row( string $id, array $row ): array {
 	$row['extra'] = is_array( $row['extra'] ) ? $row['extra'] : array();
 	$row['pkce']  = (bool) $row['pkce'];
 	$row['map']   = is_callable( $row['map'] ) ? $row['map'] : 'diluxone_users_sso_map_oidc';
+
+	// Two ways to send the secret, and the body is the one OAuth 2 asks every
+	// provider to accept: anything else said here is read as that.
+	$row['token_auth'] = 'basic' === $row['token_auth'] ? 'basic' : 'post';
 
 	return $row;
 }

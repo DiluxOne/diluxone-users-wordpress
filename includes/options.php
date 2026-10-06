@@ -91,7 +91,7 @@ function diluxone_users_option_defaults_own(): array {
 		// ── Social login ──────────────────────────────────────────────
 		// If the e-mail the network returns already exists on the site, that
 		// account belongs to the same person and they are linked. It is what
-		// makes signing in with Google today and GitHub tomorrow one account.
+		// makes signing in with Google today and Microsoft tomorrow one account.
 		'diluxone_users_sso_link_by_email'     => 1,
 		// Create a new account when the e-mail does not exist.
 		// The page holding the [diluxone_users_register] shortcode.

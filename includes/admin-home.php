@@ -231,7 +231,7 @@ function diluxone_users_panel_usage(): void {
 		),
 		array(
 			'label'  => __( 'Linked a social account', 'diluxone-users' ),
-			'detail' => __( 'They can get in with Google, Facebook or whichever provider is enabled, instead of waiting for the e-mail.', 'diluxone-users' ),
+			'detail' => __( 'They can get in with Google, Microsoft or whichever provider is enabled, instead of waiting for the e-mail.', 'diluxone-users' ),
 			'value'  => (int) $stats['social'],
 		),
 		array(

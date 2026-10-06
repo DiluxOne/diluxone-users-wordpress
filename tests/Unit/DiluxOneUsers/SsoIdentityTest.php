@@ -1,18 +1,18 @@
 <?php
 /**
- * What each social network says about the e-mail it hands over (H-01).
+ * What a social network says about the e-mail it hands over (H-01).
  *
  * The mappers are where the provider's answer becomes one of three: yes,
  * no, nothing. And diluxone_users_sso_email_trusted() is where those three
  * become "may this e-mail open an existing account" — never on a no, never
- * on silence — and "may it start a new one".
+ * on silence — and "may it start a new one". The mappers of the networks
+ * Users+ Pro brings are tested there.
  */
 
 namespace Tests\Unit\DiluxOneUsers;
 
 use Tests\Unit\ResetsWpStubs;
 use Brain\Monkey;
-use Brain\Monkey\Functions;
 use PHPUnit\Framework\TestCase;
 
 class SsoIdentityTest extends TestCase {
@@ -39,12 +39,6 @@ class SsoIdentityTest extends TestCase {
 		parent::tearDown();
 	}
 
-	/** GitHub's second endpoint answers with this list of e-mails. */
-	private function githubEmails( array $rows ): void {
-		Functions\when( 'wp_remote_get' )->justReturn( array( 'body' => json_encode( $rows ) ) );
-		Functions\when( 'wp_remote_retrieve_body' )->alias( static fn( array $r ): string => (string) $r['body'] );
-	}
-
 	public function test_google_says_yes(): void {
 		$identity = diluxone_users_sso_map_oidc( array( 'sub' => '1', 'email' => 'a@example.test', 'email_verified' => true ), 't' );
 
@@ -60,46 +54,6 @@ class SsoIdentityTest extends TestCase {
 		// Its userinfo has no email_verified claim. Silence must not become a yes.
 		$identity = diluxone_users_sso_map_oidc( array( 'sub' => '1', 'email' => 'a@example.test' ), 't' );
 
-		$this->assertNull( $identity['verified'] );
-	}
-
-	public function test_discord_says_no_when_the_person_never_confirmed(): void {
-		$identity = diluxone_users_sso_map_discord( array( 'id' => '1', 'email' => 'a@example.test', 'verified' => false ), 't' );
-
-		$this->assertFalse( $identity['verified'] );
-	}
-
-	public function test_github_yes_comes_only_from_the_verified_primary_email(): void {
-		$this->githubEmails( array(
-			array( 'email' => 'public@example.test', 'primary' => false, 'verified' => false ),
-			array( 'email' => 'real@example.test', 'primary' => true, 'verified' => true ),
-		) );
-
-		$identity = diluxone_users_sso_map_github( array( 'id' => '1', 'email' => 'public@example.test' ), 't' );
-
-		$this->assertSame( 'real@example.test', $identity['email'] );
-		$this->assertTrue( $identity['verified'] );
-	}
-
-	public function test_github_public_email_alone_vouches_for_nothing(): void {
-		// The profile's e-mail is the public one, which anybody can type in.
-		$this->githubEmails( array() );
-
-		$identity = diluxone_users_sso_map_github( array( 'id' => '1', 'email' => 'public@example.test' ), 't' );
-
-		$this->assertSame( 'public@example.test', $identity['email'] );
-		$this->assertNull( $identity['verified'] );
-	}
-
-	public function test_facebook_only_hands_over_confirmed_emails(): void {
-		$this->assertTrue( diluxone_users_sso_map_facebook( array( 'id' => '1', 'email' => 'a@example.test' ), 't' )['verified'] );
-		$this->assertNull( diluxone_users_sso_map_facebook( array( 'id' => '1' ), 't' )['verified'] );
-	}
-
-	public function test_x_hands_over_no_email_at_all(): void {
-		$identity = diluxone_users_sso_map_twitter( array( 'data' => array( 'id' => '1', 'name' => 'Ada' ) ), 't' );
-
-		$this->assertSame( '', $identity['email'] );
 		$this->assertNull( $identity['verified'] );
 	}
 

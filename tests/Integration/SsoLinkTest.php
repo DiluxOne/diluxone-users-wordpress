@@ -124,8 +124,8 @@ class SsoLinkTest extends IntegrationTestCase {
 	}
 
 	public function test_an_unverified_email_never_links_an_existing_account(): void {
-		// Discord hands over the e-mail with verified=false. Anybody can put
-		// somebody else's address on a Discord account.
+		// A provider that hands over the e-mail with verified=false: anybody
+		// can put somebody else's address on an account there.
 		$victim = $this->make_user();
 		$email  = get_userdata( $victim )->user_email;
 

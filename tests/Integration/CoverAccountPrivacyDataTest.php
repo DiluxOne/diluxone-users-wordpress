@@ -239,7 +239,7 @@ class CoverAccountPrivacyDataTest extends IntegrationTestCase {
 			'diluxone_users_2fa_on'                   => '1',
 			'diluxone_users_totp'                     => 'SECRET',
 			'diluxone_users_backup_codes'             => array( 'x' ),
-			'diluxone_users_sso_github'               => '42',
+			'diluxone_users_sso_elsewhere'            => '42',
 			'diluxone_users_notify_login'             => '1',
 		);
 

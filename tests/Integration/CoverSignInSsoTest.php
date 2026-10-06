@@ -7,8 +7,8 @@
  * nobody behind the identity, an identity taken), then the administrator's
  * live test with its result page.
  *
- * The round trip runs against MockProvider; the requests to real providers'
- * addresses (GitHub's list of e-mails, X's token endpoint) are answered by
+ * The round trip runs against MockProvider; the requests to any other address
+ * a test names (a profile's second endpoint, a token endpoint) are answered by
  * this class's own `pre_http_request` filter, so nothing leaves the machine.
  */
 
@@ -259,11 +259,11 @@ class CoverSignInSsoTest extends IntegrationTestCase {
 	}
 
 	public function test_saving_one_provider_leaves_the_others_alone(): void {
-		diluxone_users_sso_save_credentials( 'github', array( 'id' => 'gh', 'secret' => 'shh' ) );
+		diluxone_users_sso_save_credentials( 'elsewhere', array( 'id' => 'el', 'secret' => 'shh' ) );
 
 		$this->assertSame( 'enabled', diluxone_users_sso_state( MockProvider::ID ) );
-		$this->assertSame( 'not-tested', diluxone_users_sso_state( 'github' ) );
-		$this->assertSame( 'not-configured', diluxone_users_sso_state( 'discord' ) );
+		$this->assertSame( 'not-tested', diluxone_users_sso_state( 'elsewhere' ) );
+		$this->assertSame( 'not-configured', diluxone_users_sso_state( 'nowhere' ) );
 	}
 
 	public function test_the_tested_mark_can_be_set_and_taken_away(): void {
@@ -276,9 +276,9 @@ class CoverSignInSsoTest extends IntegrationTestCase {
 		$this->assertFalse( diluxone_users_sso_tested( MockProvider::ID ) );
 
 		// A provider with no entry at all gets one holding only the mark.
-		diluxone_users_sso_set_tested( 'amazon', true );
-		$this->assertTrue( diluxone_users_sso_tested( 'amazon' ) );
-		$this->assertSame( 'not-configured', diluxone_users_sso_state( 'amazon' ) );
+		diluxone_users_sso_set_tested( 'elsewhere', true );
+		$this->assertTrue( diluxone_users_sso_tested( 'elsewhere' ) );
+		$this->assertSame( 'not-configured', diluxone_users_sso_state( 'elsewhere' ) );
 	}
 
 	/* ── Addresses ───────────────────────────────────────────────────── */
@@ -308,92 +308,60 @@ class CoverSignInSsoTest extends IntegrationTestCase {
 		$this->assertSame( '1', $this->queryArg( $url, 'diluxone_users_go' ) );
 		$this->assertSame( '1', $this->queryArg( $url, 'diluxone_users_test' ) );
 		$this->assertSame( 1, wp_verify_nonce( $this->queryArg( $url, 'diluxone_users_nonce' ), 'diluxone_users_sso_test_google' ) );
-		$this->assertFalse( wp_verify_nonce( $this->queryArg( $url, 'diluxone_users_nonce' ), 'diluxone_users_sso_test_github' ) );
+		$this->assertFalse( wp_verify_nonce( $this->queryArg( $url, 'diluxone_users_nonce' ), 'diluxone_users_sso_test_microsoft' ) );
 	}
 
 	public function test_the_route_s_value_is_kept_by_wordpress(): void {
 		$this->assertSame( array( 'p', 'diluxone_users_sso' ), diluxone_users_sso_query_var( array( 'p' ) ) );
 	}
 
-	/* ── Each provider's profile ─────────────────────────────────────── */
+	/* ── Reading a profile ───────────────────────────────────────────── */
 
-	public function test_wordpress_com_s_profile_is_read_with_its_own_keys(): void {
-		$this->assertSame(
-			array(
-				'name'      => 'Ada',
-				'last_name' => 'King Lovelace',
-				'id'        => '42',
-				'email'     => 'ada@example.test',
-				'verified'  => false,
-			),
-			diluxone_users_sso_map_wordpress(
-				array(
-					'display_name'   => ' Ada  King Lovelace ',
-					'ID'             => 42,
-					'email'          => 'ada@example.test',
-					'email_verified' => 'false',
-				),
-				'token'
-			)
-		);
-	}
+	public function test_a_profile_request_carries_the_token_and_a_user_agent(): void {
+		$this->answers['https://api.example.test/more'] = array( 'more' => 'yes' );
 
-	public function test_amazon_vouches_for_the_address_it_hands_over_and_only_then(): void {
-		$with = diluxone_users_sso_map_amazon( array( 'name' => 'Ada Lovelace', 'email' => 'a@example.test', 'user_id' => 'amzn1' ), 't' );
-		$none = diluxone_users_sso_map_amazon( array( 'name' => 'Ada', 'user_id' => 'amzn2' ), 't' );
-
-		$this->assertSame( array( 'name' => 'Ada', 'last_name' => 'Lovelace', 'id' => 'amzn1', 'email' => 'a@example.test', 'verified' => true ), $with );
-		$this->assertSame( '', $none['email'] );
-		$this->assertNull( $none['verified'] );
-	}
-
-	public function test_github_takes_the_verified_primary_address_over_the_public_one(): void {
-		$this->answers['https://api.github.com/user/emails'] = array(
-			array( 'email' => 'secondary@example.test', 'primary' => false, 'verified' => true ),
-			array( 'email' => 'primary@example.test', 'primary' => true, 'verified' => true ),
-		);
-
-		$identity = diluxone_users_sso_map_github( array( 'id' => 7, 'name' => 'Ada Lovelace', 'email' => 'public@example.test' ), 'gh-token' );
-
-		$this->assertSame( 'primary@example.test', $identity['email'] );
-		$this->assertTrue( $identity['verified'] );
-		$this->assertSame( '7', $identity['id'] );
-		$this->assertSame( 'Bearer gh-token', $this->requests[0]['args']['headers']['Authorization'] );
+		$this->assertSame( array( 'more' => 'yes' ), diluxone_users_sso_get( 'https://api.example.test/more', 'the-token' ) );
+		$this->assertSame( 'Bearer the-token', $this->requests[0]['args']['headers']['Authorization'] );
 		$this->assertSame( 'diluxone-users', $this->requests[0]['args']['headers']['User-Agent'] );
 	}
 
-	public function test_github_with_no_verified_primary_falls_back_to_the_public_address_unvouched(): void {
-		$this->answers['https://api.github.com/user/emails'] = array(
-			array( 'email' => 'primary@example.test', 'primary' => true, 'verified' => false ),
-		);
-
-		$identity = diluxone_users_sso_map_github( array( 'id' => 7, 'name' => 'Ada', 'email' => 'public@example.test' ), 't' );
-
-		$this->assertSame( 'public@example.test', $identity['email'] );
-		$this->assertNull( $identity['verified'] );
-		// And that address, which anybody can type, links nobody's account.
-		$this->assertFalse( diluxone_users_sso_email_trusted( $identity, true ) );
-	}
-
 	public function test_a_profile_request_that_fails_reads_as_nothing(): void {
-		$this->answers['https://api.github.com/user/emails'] = new \WP_Error( 'http_request_failed', 'down' );
+		$this->answers['https://api.example.test/more'] = new \WP_Error( 'http_request_failed', 'down' );
 
-		$this->assertSame( array(), diluxone_users_sso_get( 'https://api.github.com/user/emails', 't' ) );
+		$this->assertSame( array(), diluxone_users_sso_get( 'https://api.example.test/more', 't' ) );
 	}
 
 	/* ── The exchange ────────────────────────────────────────────────── */
 
-	public function test_x_gets_its_secret_in_basic_auth_and_the_verifier_in_the_body(): void {
-		diluxone_users_sso_save_credentials( 'twitter', array( 'id' => 'x-id', 'secret' => 'x-secret' ) );
-		$this->answers['https://x.test/token'] = array( 'access_token' => 'x-token' );
+	public function test_a_provider_that_asks_for_basic_auth_gets_the_secret_in_the_header_and_the_verifier_in_the_body(): void {
+		diluxone_users_sso_save_credentials( 'elsewhere', array( 'id' => 'el-id', 'secret' => 'el-secret' ) );
+		$this->answers['https://x.test/token'] = array( 'access_token' => 'el-token' );
 
-		$token = diluxone_users_sso_token( 'twitter', array( 'token' => 'https://x.test/token' ), 'the-code', 'the-verifier' );
+		$row   = diluxone_users_sso_provider_row( 'elsewhere', array( 'token' => 'https://x.test/token', 'token_auth' => 'basic' ) );
+		$token = diluxone_users_sso_token( 'elsewhere', $row, 'the-code', 'the-verifier' );
 
-		$this->assertSame( 'x-token', $token );
+		$this->assertSame( 'el-token', $token );
 		$sent = $this->requests[0]['args'];
-		$this->assertSame( 'Basic ' . base64_encode( 'x-id:x-secret' ), $sent['headers']['Authorization'] );
+		$this->assertSame( 'Basic ' . base64_encode( 'el-id:el-secret' ), $sent['headers']['Authorization'] );
 		$this->assertArrayNotHasKey( 'client_secret', $sent['body'] );
+		$this->assertSame( 'el-id', $sent['body']['client_id'] );
 		$this->assertSame( 'the-verifier', $sent['body']['code_verifier'] );
+	}
+
+	public function test_by_default_the_secret_goes_in_the_body_and_no_header_carries_it(): void {
+		diluxone_users_sso_save_credentials( 'elsewhere', array( 'id' => 'el-id', 'secret' => 'el-secret' ) );
+		$this->answers['https://x.test/token'] = array( 'access_token' => 'el-token' );
+
+		// Whatever a row says that is not `basic` is read as the body.
+		foreach ( array( array(), array( 'token_auth' => 'post' ), array( 'token_auth' => 'header' ) ) as $i => $extra ) {
+			$row = diluxone_users_sso_provider_row( 'elsewhere', array( 'token' => 'https://x.test/token' ) + $extra );
+
+			$this->assertSame( 'el-token', diluxone_users_sso_token( 'elsewhere', $row, 'the-code' ) );
+			$sent = $this->requests[ $i ]['args'];
+			$this->assertSame( 'el-secret', $sent['body']['client_secret'] );
+			$this->assertArrayNotHasKey( 'Authorization', $sent['headers'] );
+			$this->assertArrayNotHasKey( 'code_verifier', $sent['body'] );
+		}
 	}
 
 	public function test_an_exchange_that_fails_hands_over_no_token(): void {
@@ -513,12 +481,16 @@ class CoverSignInSsoTest extends IntegrationTestCase {
 	public function test_the_networks_linked_are_listed(): void {
 		$user = $this->make_user();
 		update_user_meta( $user, 'diluxone_users_sso_mock', $this->sub );
-		update_user_meta( $user, 'diluxone_users_sso_github', 'gh-1' );
+		update_user_meta( $user, 'diluxone_users_sso_microsoft', 'ms-1' );
+		// A network an add-on registered, and the add-on is not running: the
+		// link is kept, and it is not offered as one of the person's networks.
+		update_user_meta( $user, 'diluxone_users_sso_elsewhere', 'el-1' );
 
 		$linked = diluxone_users_sso_linked( $user );
 		sort( $linked );
 
-		$this->assertSame( array( 'github', MockProvider::ID ), $linked );
+		$this->assertSame( array( 'microsoft', MockProvider::ID ), $linked );
+		$this->assertSame( 'el-1', get_user_meta( $user, 'diluxone_users_sso_elsewhere', true ) );
 		$this->assertSame( array(), diluxone_users_sso_linked( $this->make_user() ) );
 	}
 
