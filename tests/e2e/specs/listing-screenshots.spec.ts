@@ -304,7 +304,7 @@ test.describe('The dashboard', () => {
 			n: 8,
 			screen: 'diluxone-users-social',
 			tab: 'providers',
-			caption: 'social login: twelve networks, each with its own credentials and a live test',
+			caption: 'social login: each network with its own credentials and a live test',
 		},
 		{
 			n: 9,
