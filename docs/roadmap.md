@@ -18,8 +18,8 @@ The rule for drawing the line: when in doubt, Pro. Moving something from Pro to 
 | Sessions | See them and close them; an e-mail on a sign-in from a new device | A limit on open sessions, where a new device signed in from |
 | Activity | The log as it is | Longer retention, export, alerts |
 | Fields | The field types of 1.0.0 | Files and images, conditional and repeating fields |
-| Account area | Its own sections: rename, reorder, hide | Sections of the site's own |
-| Design | Two sign-in layouts (in the page, a card), the simple account area, a short palette and the theme's colours, or no stylesheet at all | The split and full-background layouts, the account area with a cover, any colour and the fine tuning |
+| Account area | Its own sections: rename, reorder, hide, and the site's own words before, after or instead of one | Sections of the site's own |
+| Design | Two sign-in layouts (in the page, a card), the simple account area, a short palette and the theme's colours, the sizes and spacing, or no stylesheet at all | The split and full-background layouts, the account area with a cover, any colour and the fine tuning of which colour does what |
 | Multisite | Network activation, the hub, membership "every site" | Membership "with a click" and "by invitation" |
 | Privacy | Everything | — |
 
