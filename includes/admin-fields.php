@@ -6,7 +6,7 @@
  * it is not an accordion of stacked forms: the list is taken in at a glance
  * and you go in to edit one alone. It is how any other WordPress list works.
  *
- * The key (`diluxone_users_something`) proposes itself from the name and
+ * The key (`diluxone_users_field_something`) proposes itself from the name and
  * afterwards cannot be changed: it is the name the value was stored under on
  * every person, and renaming it would mean losing what is already there.
  *
@@ -22,15 +22,15 @@ defined( 'ABSPATH' ) || exit;
  */
 function diluxone_users_key_from( string $label, array $used ): string {
 	$base = sanitize_key( remove_accents( $label ) );
-	$base = 'diluxone_users_' . ( '' === $base ? 'field' : $base );
+	$base = DILUXONE_USERS_FIELD_PREFIX . ( '' === $base ? 'field' : $base );
 
 	$key = $base;
 	$n   = 2;
 
 	// Taken, or reserved: both mean the same thing here, which is that this
-	// name is not free. A field called "Avatar" would otherwise be handed the
-	// key the avatar itself is stored under and refused a moment later, with
-	// nothing on screen to say why.
+	// name is not free. In the fields' own corner of the namespace nothing
+	// but another field can have it; the check stays because the corner is a
+	// rule and this is where a broken rule would show.
 	//
 	// The bound is not decoration. This walks until it finds a free name, so
 	// it is only a loop that ends because every name it tries is a different

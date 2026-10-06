@@ -107,9 +107,95 @@ function diluxone_users_privacy_export( string $email, int $page = 1 ): array {
 		);
 	}
 
+	// What the plugin's namespace holds about them that nothing above put
+	// into words: kept by an add-on that is not running now, say. Named, so
+	// the person knows it is there; never quoted, because nothing here knows
+	// whether it is a fact about them or the key to their account.
+	$others = diluxone_users_privacy_unknown_keys( $user_id );
+
+	if ( array() !== $others ) {
+		$items[] = array(
+			'group_id'    => 'diluxone-users-other',
+			'group_label' => __( 'Other data kept about you', 'diluxone-users' ),
+			'item_id'     => 'diluxone-users-other',
+			'data'        => array_map(
+				static fn( string $key ): array => array(
+					'name'  => $key,
+					'value' => __( 'Kept, and not shown here', 'diluxone-users' ),
+				),
+				$others
+			),
+		);
+	}
+
+	/**
+	 * Filters what the account's export holds.
+	 *
+	 * An add-on that keeps something about a person adds its own rows here,
+	 * in the shape WordPress's exporters return (group_id, group_label,
+	 * item_id, data), and names the keys it explains with
+	 * `diluxone_users_privacy_keys` so they are not listed again as data
+	 * nobody explained.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param array<int, array<string, mixed>> $items
+	 * @param int                              $user_id
+	 */
+	$items = (array) apply_filters( 'diluxone_users_privacy_export_items', $items, $user_id );
+
 	return array(
-		'data' => $items,
+		'data' => array_values( $items ),
 		'done' => true,
+	);
+}
+
+/**
+ * Every key of the plugin's namespace this person has.
+ *
+ * Read from the person and not from a list: the namespace is the plugin's,
+ * and what an add-on of it keeps there is the plugin's to account for too.
+ *
+ * @return array<int, string>
+ */
+function diluxone_users_privacy_meta_keys( int $user_id ): array {
+	$keys = array_keys( (array) get_user_meta( $user_id ) );
+
+	return array_values(
+		array_filter(
+			array_map( 'strval', $keys ),
+			static fn( string $key ): bool => 0 === strpos( $key, 'diluxone_users_' ) || 0 === strpos( $key, '_diluxone_users_' )
+		)
+	);
+}
+
+/**
+ * The keys of the plugin's namespace erasure leaves on the person.
+ *
+ * The sites an administrator removed them from keep the plugin from adding
+ * them back; a closed account's flag keeps it closed. Neither is kept for
+ * what it says about them, and the export lists the first.
+ *
+ * @return array<int, string>
+ */
+function diluxone_users_privacy_retained(): array {
+	return array( DILUXONE_USERS_MEMBERSHIP_REMOVED, 'diluxone_users_closed' );
+}
+
+/**
+ * The keys of the namespace this person has that nothing explains.
+ *
+ * @return array<int, string>
+ */
+function diluxone_users_privacy_unknown_keys( int $user_id ): array {
+	$known = array_merge( diluxone_users_privacy_keys( $user_id ), diluxone_users_privacy_retained(), array( 'diluxone_users_passkeys' ) );
+
+	return array_values(
+		array_filter(
+			diluxone_users_privacy_meta_keys( $user_id ),
+			// A passkey's index row is the list's shadow, explained with it.
+			static fn( string $key ): bool => ! in_array( $key, $known, true ) && 0 !== strpos( $key, 'diluxone_users_pk_' )
+		)
 	);
 }
 
@@ -317,7 +403,15 @@ function diluxone_users_privacy_erase( string $email, int $page = 1 ): array {
 		$removed = true;
 	}
 
-	foreach ( diluxone_users_privacy_keys( $user_id ) as $key ) {
+	// The keys the plugin names, and every other key of its namespace the
+	// person has: what an add-on kept there is erased with the rest, whether
+	// or not the add-on is running to say what it is.
+	$keys = array_diff(
+		array_unique( array_merge( diluxone_users_privacy_keys( $user_id ), diluxone_users_privacy_meta_keys( $user_id ) ) ),
+		diluxone_users_privacy_retained()
+	);
+
+	foreach ( $keys as $key ) {
 		// Not cast to a string: the devices and the backup codes are lists.
 		if ( '' === get_user_meta( $user_id, $key, true ) ) {
 			continue;
@@ -391,6 +485,36 @@ function diluxone_users_privacy_keys( int $user_id ): array {
 	foreach ( array_keys( diluxone_users_notification_prefs() ) as $key ) {
 		$keys[] = (string) $key;
 	}
+
+	/**
+	 * Filters the meta keys the plugin erases and accounts for in the export.
+	 *
+	 * Every key of the plugin's namespace a person has is erased anyway; a key
+	 * on this list is one somebody explained, so the export does not list it
+	 * again as data nobody explained. An add-on that adds rows of its own with
+	 * `diluxone_users_privacy_export_items` names the keys they come from
+	 * here. A key outside the namespace that an add-on keeps about a person
+	 * is erased only when it is on this list.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param array<int, string> $keys
+	 * @param int                $user_id
+	 */
+	$keys = array_map( 'strval', (array) apply_filters( 'diluxone_users_privacy_keys', $keys, $user_id ) );
+
+	// WordPress's own keys are never the plugin's to erase, whatever a filter
+	// says: an erasure that takes `wp_capabilities` with it is an account
+	// with no role.
+	global $wpdb;
+
+	$keys = array_filter(
+		$keys,
+		static fn( string $key ): bool => '' !== $key
+			&& ! in_array( $key, diluxone_users_core_user_meta(), true )
+			&& 0 !== strpos( $key, $wpdb->base_prefix )
+			&& 0 !== strpos( $key, 'wp_' )
+	);
 
 	return array_values( array_unique( $keys ) );
 }

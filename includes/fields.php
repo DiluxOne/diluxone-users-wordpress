@@ -13,6 +13,14 @@
 defined( 'ABSPATH' ) || exit;
 
 /**
+ * The corner of the plugin's namespace a new field's key is made in.
+ *
+ * Everything else under `diluxone_users_` is what the plugin, or an add-on of
+ * it, keeps about a person: see diluxone_users_field_key_allowed().
+ */
+const DILUXONE_USERS_FIELD_PREFIX = 'diluxone_users_field_';
+
+/**
  * The field types the plugin understands.
  *
  * @return array<string, string> type => name to display.
@@ -322,7 +330,43 @@ function diluxone_users_field_key_allowed( string $key ): bool {
 		}
 	}
 
+	/*
+	 * The plugin's namespace is the plugin's, and an add-on of it writes there
+	 * too: what it keeps about a person is under `diluxone_users_` like
+	 * everything else, and a list of its names cannot be written here — the
+	 * add-on is not here to ask, and its data may be, waiting for it. So a
+	 * field takes a key under the prefix only from the corner the fields
+	 * have to themselves, `diluxone_users_field_`, where the screen makes
+	 * every new key; or one a field already had before that corner existed,
+	 * or a suggested field's, which are the fields' by definition. Every other
+	 * name under the prefix is somebody's data.
+	 */
+	if ( 0 === strpos( $key, 'diluxone_users_' ) ) {
+		return diluxone_users_field_key_ours( $key );
+	}
+
 	return true;
+}
+
+/**
+ * Is a key under the plugin's prefix one the fields may use?
+ *
+ * The fields' own corner of the namespace, a suggested field's key, or the
+ * key of a field already on the list: a field made before the corner existed
+ * keeps the key everybody's answer is stored under.
+ */
+function diluxone_users_field_key_ours( string $key ): bool {
+	if ( 0 === strpos( $key, DILUXONE_USERS_FIELD_PREFIX ) && strlen( $key ) > strlen( DILUXONE_USERS_FIELD_PREFIX ) ) {
+		return true;
+	}
+
+	$stored = (array) diluxone_users_raw_get( 'diluxone_users_fields', array() );
+	$keys   = array_merge(
+		array_column( diluxone_users_suggested_fields(), 'key' ),
+		array_column( array_filter( $stored, 'is_array' ), 'key' )
+	);
+
+	return in_array( $key, array_map( 'strval', $keys ), true );
 }
 
 /**
