@@ -85,7 +85,7 @@ function diluxone_users_design_login_save(): void {
 	// anything else: a word nobody offered was stored as it came and the page
 	// quietly fell back to plain while the setting said otherwise.
 	$template = sanitize_key( wp_unslash( $_POST['diluxone_users_login_template'] ?? 'plain' ) );
-	$template = isset( diluxone_users_login_templates()[ $template ] ) ? $template : 'plain';
+	$template = diluxone_users_choice_kept( 'diluxone_users_login_template', $template, array_keys( diluxone_users_login_templates() ), 'plain' );
 
 	diluxone_users_save_options(
 		diluxone_users_panel_drawn(
@@ -132,7 +132,7 @@ function diluxone_users_design_account_save(): void {
 	// `diluxone_users_account_templates` filter is for — and the simple one
 	// for anything else.
 	$template = sanitize_key( wp_unslash( $_POST['diluxone_users_account_template'] ?? '' ) );
-	$template = isset( diluxone_users_account_templates()[ $template ] ) ? $template : 'plain';
+	$template = diluxone_users_choice_kept( 'diluxone_users_account_template', $template, array_keys( diluxone_users_account_templates() ), 'plain' );
 	$layout   = sanitize_key( wp_unslash( $_POST['diluxone_users_account_layout'] ?? 'tabs' ) );
 	// The menu's look, where it sits and what the cover is: each one of the
 	// answers the screen offers, the first one for anything else.

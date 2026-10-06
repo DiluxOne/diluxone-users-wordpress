@@ -1253,6 +1253,8 @@
 	display: block; height: 72px; margin-bottom: 10px; border-radius: 3px;
 	border: 1px solid #dcdcde; background: #fff;
 }
+/* A shape an add-on offered and is not here to draw: chosen, and no picture. */
+.diluxone-users-templates__art--kept { border-style: dashed; background: #f6f7f7; }
 .diluxone-users-templates__art--plain {
 	background:
 		linear-gradient(#f0f0f1 0 18px, transparent 18px 20px),

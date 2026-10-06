@@ -640,6 +640,73 @@ function diluxone_users_ui_choice( array $choice ): void {
 }
 
 /**
+ * A stored choice nothing offers today, as one more answer beside the real ones.
+ *
+ * An add-on offered it, the site chose it, and the add-on is not running now.
+ * The choice is not thrown away — on the front end the plugin uses the
+ * closest answer of its own in its place — and the screen does not pretend it
+ * is one of its own either: it shows it as what it is, chosen and doing
+ * nothing, after the answers that work. A radio stays chosen, and is sent as
+ * it is, until somebody picks another answer
+ * (diluxone_users_choice_kept() keeps it on the way in). A tick box is a list
+ * entry the save keeps by itself, so it is drawn ticked and switched off.
+ *
+ * @param string $name    The control's name, as the real answers have it.
+ * @param string $value   What is stored.
+ * @param string $instead What the site gets in its place today, in a few words.
+ * @param string $type    'radio' or 'checkbox'.
+ * @return array<string, mixed> A choice for diluxone_users_ui_choices().
+ */
+function diluxone_users_ui_kept( string $name, string $value, string $instead, string $type = 'radio' ): array {
+	return array(
+		'type'     => 'checkbox' === $type ? 'checkbox' : 'radio',
+		'name'     => $name,
+		'value'    => $value,
+		'checked'  => true,
+		'disabled' => 'checkbox' === $type,
+		'title'    => __( 'Your Pro choice (inactive)', 'diluxone-users' ),
+		'help'     => diluxone_users_ui_kept_says( $value, $instead ),
+	);
+}
+
+/**
+ * What that choice says about itself.
+ *
+ * @param string $value   What is stored.
+ * @param string $instead What the site gets in its place today.
+ */
+function diluxone_users_ui_kept_says( string $value, string $instead ): string {
+	return sprintf(
+		/* translators: 1: the stored choice, as a word in code, 2: what the site gets in its place today */
+		__( 'Chosen while an add-on that is not active now offered it (%1$s). Until it is back, this site gets %2$s instead. It stays chosen until you pick another answer.', 'diluxone-users' ),
+		'<code>' . esc_html( $value ) . '</code>',
+		esc_html( $instead )
+	);
+}
+
+/**
+ * The same, as one more card of a grid of shapes.
+ *
+ * The sign-in page and the account area are chosen from pictures, not from
+ * a list, so the choice nothing offers today takes a card of its own at the
+ * end of the grid: chosen, with no picture, saying what the site gets.
+ *
+ * @param string $name    The radio's name.
+ * @param string $value   What is stored.
+ * @param string $instead What the site gets in its place today.
+ */
+function diluxone_users_ui_kept_card( string $name, string $value, string $instead ): void {
+	?>
+	<label class="diluxone-users-templates__one is-chosen">
+		<input type="radio" name="<?php echo esc_attr( $name ); ?>" value="<?php echo esc_attr( $value ); ?>" checked>
+		<span class="diluxone-users-templates__art diluxone-users-templates__art--kept" aria-hidden="true"></span>
+		<span class="diluxone-users-templates__name"><?php esc_html_e( 'Your Pro choice (inactive)', 'diluxone-users' ); ?></span>
+		<span class="diluxone-users-templates__help"><?php echo wp_kses( diluxone_users_ui_kept_says( $value, $instead ), array( 'code' => array() ) ); ?></span>
+	</label>
+	<?php
+}
+
+/**
  * A group of them, and whatever hangs off the one that is chosen.
  *
  * A choice carries its own `children`: a callable printed inside that card

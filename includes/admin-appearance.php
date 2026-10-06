@@ -97,7 +97,8 @@ function diluxone_users_account_templates(): array {
 
 /** The shape of the account area, and the pieces that shape is made of. */
 function diluxone_users_screen_appearance_template(): void {
-	$template = diluxone_users_account_template();
+	$kept     = diluxone_users_unknown_choice( 'diluxone_users_account_template', array_keys( diluxone_users_account_templates() ) );
+	$template = '' !== $kept ? $kept : diluxone_users_account_template();
 
 	diluxone_users_intro( __( 'What the account area is shaped like, and what it is made of. The shape is a starting point: press one and the pieces underneath fill in, and from there each of them is yours.', 'diluxone-users' ) );
 
@@ -123,6 +124,11 @@ function diluxone_users_screen_appearance_template(): void {
 				<span class="diluxone-users-templates__help"><?php echo esc_html( $preset['help'] ); ?></span>
 			</label>
 		<?php endforeach; ?>
+		<?php
+		if ( '' !== $kept ) {
+			diluxone_users_ui_kept_card( 'diluxone_users_account_template', $kept, (string) ( diluxone_users_account_templates()['plain']['label'] ?? __( 'Simple', 'diluxone-users' ) ) );
+		}
+		?>
 	</div>
 	<?php
 	diluxone_users_ui_wide_close();

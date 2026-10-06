@@ -295,6 +295,11 @@ function diluxone_users_screen_login_2fa(): void {
 		);
 	}
 
+	// Kept by the save, so shown: ticked, switched off, after the real ones.
+	foreach ( diluxone_users_unknown_entries( (array) diluxone_users_raw_get( 'diluxone_users_2fa_methods', array() ), array_keys( $all ) ) as $key ) {
+		$cards[] = diluxone_users_ui_kept( 'diluxone_users_2fa_methods[]', $key, __( 'no code from it', 'diluxone-users' ), 'checkbox' );
+	}
+
 	/*
 	 * Asked of the browser only while the step is on, and "on" is whichever
 	 * of the three above is picked at the moment of the press — not the one

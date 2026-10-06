@@ -60,7 +60,15 @@ function diluxone_users_login_template(): string {
 		? array_keys( diluxone_users_login_templates() )
 		: array( 'plain', 'card', 'split', 'backdrop' );
 
-	return in_array( $template, $known, true ) && 'plain' !== $template ? $template : 'plain';
+	if ( in_array( $template, $known, true ) ) {
+		return $template;
+	}
+
+	// A shape something offered and nothing draws today — an add-on that is
+	// not running — took the page over: the card is the shape of the plugin's
+	// own that still does, rather than dropping the form into a page that was
+	// never designed to hold it. Nothing stored is the page as it is.
+	return '' === $template ? 'plain' : 'card';
 }
 
 /**
