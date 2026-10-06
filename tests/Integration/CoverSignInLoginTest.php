@@ -337,10 +337,10 @@ class CoverSignInLoginTest extends IntegrationTestCase {
 	public function test_the_plain_shape_draws_no_frame(): void {
 		$this->assertSame( 'FORM', $this->frame() );
 
-		// And a shape nobody knows is read as plain.
+		// A shape nobody offers today is read as the card, the shape of the
+		// plugin's own that still takes the page over (see UnknownChoiceTest).
 		$this->set( array( 'diluxone_users_login_template' => 'mystery' ) );
-		$this->assertSame( 'plain', diluxone_users_login_template() );
-		$this->assertSame( 'FORM', $this->frame() );
+		$this->assertSame( 'card', diluxone_users_login_template() );
 	}
 
 	public function test_a_card_is_a_box_with_no_picture_whatever_is_chosen(): void {

@@ -134,15 +134,16 @@ test.describe('User fields › editing a field', () => {
 		});
 	}
 
-	test('a name whose key is taken by the plugin is given a free one instead', async ({ page, site }) => {
-		// "Avatar" would be diluxone_users_avatar, where the photo is stored.
+	test('a name whose key the plugin keeps is made in the fields’ own corner instead', async ({ page, site }) => {
+		// "Avatar" would be diluxone_users_avatar, where the photo is stored:
+		// a new field's key is made in diluxone_users_field_, out of its reach.
 		await page.goto(adminUrl('diluxone-users-fields') + '&diluxone_users_new=1');
 		await fieldForm(page).locator('[name="diluxone_users_field[label]"]').fill('Avatar');
 		expect(await submitField(page)).toBe('saved');
 
 		const stored = (await storedFields(site)).find((one) => one.label === 'Avatar');
 
-		expect(stored?.key).toBe('diluxone_users_avatar_2');
+		expect(stored?.key).toBe('diluxone_users_field_avatar');
 	});
 
 	test('a field that does not exist is said so, with no form to fill', async ({ page }) => {

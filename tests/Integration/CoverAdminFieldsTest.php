@@ -125,7 +125,7 @@ class CoverAdminFieldsTest extends IntegrationTestCase {
 		$this->assertSame( 'redirect', $ended[0] );
 		$this->assertSame( 'saved', $this->queryArg( $ended[1], 'diluxone_users_done' ) );
 
-		$field = diluxone_users_field( 'diluxone_users_shoesize' );
+		$field = diluxone_users_field( 'diluxone_users_field_shoesize' );
 
 		$this->assertNotNull( $field, 'the key is made from the name, spaces and all taken out' );
 		$this->assertSame( 'Shoe size', $field['label'], 'no markup kept in the name' );
@@ -135,7 +135,7 @@ class CoverAdminFieldsTest extends IntegrationTestCase {
 		$this->assertSame( 'limited', $field['edit'] );
 		$this->assertSame( 3, $field['edit_max'] );
 		$this->assertSame( 1, $field['required'] );
-		$this->assertSame( array( 'first_name', 'last_name', 'diluxone_users_team', 'diluxone_users_shoesize' ), $this->keys(), 'added at the end' );
+		$this->assertSame( array( 'first_name', 'last_name', 'diluxone_users_team', 'diluxone_users_field_shoesize' ), $this->keys(), 'added at the end' );
 	}
 
 	public function test_a_field_without_a_name_is_not_saved_and_the_screen_says_so(): void {

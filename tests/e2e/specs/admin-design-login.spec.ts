@@ -89,6 +89,26 @@ test.describe('Design › The sign-in page', () => {
 		expect.soft((await site.getOptions(['diluxone_users_login_template'])).diluxone_users_login_template, 'bug: the sign-in shape keeps a value from outside its list (admin-design.php diluxone_users_design_login_save stores sanitize_key() of whatever was posted)').not.toBe('e2e-forged');
 	});
 
+	test('a shape stored while an add-on offered it: a card on the page, an inactive Pro choice on the tab, kept by its save', async ({ page, guest, site, pages, options }) => {
+		await options.set({ diluxone_users_login_template: 'e2e_addon_shape' });
+
+		await guest.goto(pages.login.url);
+		await expect(frame(guest), 'the closest shape of the plugin’s own that still takes the page over').toHaveClass(/diluxone-users-login-frame--card/);
+
+		await page.goto(LOGIN_TAB);
+		await expect(template(page, 'e2e_addon_shape')).toBeChecked();
+		await expect(page.locator('.diluxone-users-templates__one.is-chosen')).toContainText('Your Pro choice (inactive)');
+		await expect(template(page, 'card'), 'the card it is drawn as is not what is chosen').not.toBeChecked();
+
+		await savePanel(page);
+		expect((await site.getOptions(['diluxone_users_login_template'])).diluxone_users_login_template).toBe('e2e_addon_shape');
+
+		await template(page, 'plain').check({ force: true });
+		await savePanel(page);
+		expect((await site.getOptions(['diluxone_users_login_template'])).diluxone_users_login_template, 'replaced once another is picked').toBe('plain');
+		await expect(page.locator('input[name="diluxone_users_login_template"][value="e2e_addon_shape"]')).toHaveCount(0);
+	});
+
 	test('“split” with a picture on the right: the picture is the one picked, beside the form on the side chosen', async ({ page, guest, site, pages }) => {
 		const picture = await mediaPicture(page.request, 'e2e-login-picture');
 

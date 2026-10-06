@@ -162,6 +162,27 @@ test.describe('Status › Tools', () => {
 		await expect(box(page)).not.toBeChecked();
 	});
 
+	test('Users+ Pro on these screens: the box saves off and on, and says which', async ({ page, site, options }) => {
+		await options.keep(['diluxone_users_pro_previews']);
+		await options.set({ diluxone_users_pro_previews: 1 });
+
+		const box = (p: Page) => tool(p, 'previews').locator('input[name="previews"]');
+
+		await page.goto(TOOLS);
+		await expect(box(page), 'on out of the box').toBeChecked();
+
+		await box(page).uncheck();
+		await run(page, tool(page, 'previews'));
+		await expect(page.locator('.notice-success')).toContainText('nothing of Users+ Pro');
+		expect(Number((await site.getOptions(['diluxone_users_pro_previews'])).diluxone_users_pro_previews)).toBe(0);
+		await expect(box(page)).not.toBeChecked();
+
+		await box(page).check();
+		await run(page, tool(page, 'previews'));
+		await expect(page.locator('.notice-success')).toContainText('where a Users+ Pro feature would go');
+		expect(Number((await site.getOptions(['diluxone_users_pro_previews'])).diluxone_users_pro_previews)).toBe(1);
+	});
+
 	test('the exported file is this version’s, carries the site’s own settings and fields, and no credential or uninstall switch', async ({
 		page,
 		options,
@@ -253,7 +274,7 @@ test.describe('Status › Tools', () => {
 					diluxone_users_login_expiry: 33,
 					diluxone_users_fields: [
 						{ key: 'first_name', label: 'First name', type: 'text', required: 0, active: 1, group: 'main', edit: 'always' },
-						{ key: 'diluxone_users_e2e_imported', label: 'Imported', type: 'text', required: 0, active: 1, group: 'extra', edit: 'always' },
+						{ key: 'diluxone_users_field_e2e_imported', label: 'Imported', type: 'text', required: 0, active: 1, group: 'extra', edit: 'always' },
 						{ key: 'billing_phone', label: 'Another plugin’s key', type: 'text', required: 0, active: 1, group: 'extra', edit: 'always' },
 					],
 				},
@@ -268,7 +289,7 @@ test.describe('Status › Tools', () => {
 		const keys = (after.diluxone_users_fields as Array<{ key: string }>).map((one) => one.key);
 
 		expect(Number(after.diluxone_users_login_expiry)).toBe(33);
-		expect(keys).toContain('diluxone_users_e2e_imported');
+		expect(keys).toContain('diluxone_users_field_e2e_imported');
 		expect(keys, 'a key another plugin writes is not a field').not.toContain('billing_phone');
 		expect((after.diluxone_users_sso as Record<string, { id: string }>).mock.id, 'credentials are not imported').toBe('kept-id');
 		expect(Number(after.diluxone_users_uninstall_wipe), 'nor the uninstall switch').toBe(0);
