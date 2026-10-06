@@ -14,7 +14,7 @@ import { accountSection, navigated, openAllPanels, signInWithPassword, ssoButton
  *
  * The case worth having is H-01: a provider that says the e-mail is NOT
  * verified must not be able to hand over an account that already exists with
- * that address. Discord does return unverified addresses, so "create an
+ * that address. Some providers do return unverified addresses, so "create an
  * account with the victim's e-mail, sign in as them" was a real path and this
  * is the test that keeps it closed.
  *

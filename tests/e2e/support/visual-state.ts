@@ -105,7 +105,7 @@ export const VISUAL_OPTIONS: Record<string, unknown> = {
 	diluxone_users_session_long_days: "30",
 	diluxone_users_session_short_days: "2",
 	diluxone_users_sessions_show: "1",
-	diluxone_users_sso: {"google": {"active": 1, "id": "e2e-google-id", "secret": "e2e-google-secret", "tested": 1}, "microsoft": {"active": 1, "id": "e2e-microsoft-id", "secret": "e2e-microsoft-secret", "tested": 1}, "facebook": {"active": 1, "id": "e2e-facebook-id", "secret": "e2e-facebook-secret", "tested": 1}},
+	diluxone_users_sso: {"google": {"active": 1, "id": "e2e-google-id", "secret": "e2e-google-secret", "tested": 1}, "microsoft": {"active": 1, "id": "e2e-microsoft-id", "secret": "e2e-microsoft-secret", "tested": 1}},
 	diluxone_users_sso_blocked_roles: [],
 	diluxone_users_sso_button_columns: null,
 	diluxone_users_sso_button_shape: null,
@@ -224,7 +224,7 @@ export const CAST: Person[] = [
 		meta: {
 			first_name: 'Sofía',
 			last_name: 'Molina',
-			diluxone_users_sso_facebook: 'facebook|771204',
+			diluxone_users_sso_microsoft: 'microsoft|771204',
 			diluxone_users_2fa_on: '1',
 			diluxone_users_handle: 'sofi',
 		},
@@ -244,7 +244,7 @@ export const CAST: Person[] = [
 		meta: {
 			first_name: 'Valentina',
 			last_name: 'Díaz',
-			diluxone_users_sso_linkedin: 'linkedin|Rk82nQ',
+			diluxone_users_sso_google: 'google|Rk82nQ',
 			diluxone_users_totp: 'MFRGGZDFMZTWQ2LK',
 		},
 	},

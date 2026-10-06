@@ -54,7 +54,7 @@ test.describe('Users › All users: the Access column', () => {
 		await site.makeUser({ email: plain });
 		await site.makeUser({ email: twoStep, meta: { diluxone_users_2fa_on: 1, diluxone_users_totp: SECRET } });
 		await site.makeUser({ email: keys, meta: { diluxone_users_passkeys: [passkey('one'), passkey('two')] } });
-		await site.makeUser({ email: social, meta: { diluxone_users_sso_github: 'github|e2e-column' } });
+		await site.makeUser({ email: social, meta: { diluxone_users_sso_microsoft: 'microsoft|e2e-column' } });
 
 		await page.goto(`/wp-admin/users.php?s=${encodeURIComponent(tag)}`);
 
@@ -67,7 +67,7 @@ test.describe('Users › All users: the Access column', () => {
 		await expect(accessCell(page, keys).locator('.diluxone-users-pill--on')).toHaveCount(1);
 		await expect(accessCell(page, keys).locator('.diluxone-users-pill--on')).toContainText('2');
 
-		await expect(accessCell(page, social).locator('.diluxone-users-pill--blank')).toHaveText('GitHub');
+		await expect(accessCell(page, social).locator('.diluxone-users-pill--blank')).toHaveText('Microsoft');
 	});
 });
 
@@ -86,7 +86,7 @@ test.describe('Users › somebody’s profile: the plugin’s block', () => {
 				diluxone_users_2fa_on: 1,
 				diluxone_users_totp: SECRET,
 				diluxone_users_passkeys: [passkey('Laptop')],
-				diluxone_users_sso_github: 'github|e2e-profile',
+				diluxone_users_sso_microsoft: 'microsoft|e2e-profile',
 			},
 		});
 
@@ -99,7 +99,7 @@ test.describe('Users › somebody’s profile: the plugin’s block', () => {
 
 		expect(states, 'public name, last seen, second step, passkeys, networks').toEqual(['active', 'active', 'active', 'active', 'active']);
 		await expect(summary.locator('code').filter({ hasText: handle })).toHaveCount(1);
-		await expect(summary).toContainText('GitHub');
+		await expect(summary).toContainText('Microsoft');
 
 		// Every one of their sessions, on the report.
 		const every = summary.locator(`a[href*="page=diluxone-users-reports"][href*="tab=sessions"]`);

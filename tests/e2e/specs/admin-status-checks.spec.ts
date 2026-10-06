@@ -215,7 +215,7 @@ test.describe('Status › Status: the checks', () => {
 			meta: {
 				diluxone_users_totp: 'JBSWY3DPEHPK3PXP',
 				diluxone_users_passkeys: [{ id: `e2e-status-${Date.now()}`, label: 'e2e', created: 1, rp: '' }],
-				diluxone_users_sso_github: 'github|e2e-status',
+				diluxone_users_sso_microsoft: 'microsoft|e2e-status',
 			},
 		});
 

@@ -277,20 +277,20 @@ test.describe('WordPress’s own Users screens', () => {
 			meta: {
 				diluxone_users_totp: 'JBSWY3DPEHPK3PXP',
 				diluxone_users_2fa_on: 1,
-				diluxone_users_sso_github: 'github|e2e',
+				diluxone_users_sso_microsoft: 'microsoft|e2e',
 			},
 		});
 
 		await page.goto(`/wp-admin/user-edit.php?user_id=${person.id}`);
 
 		await page.locator('input[name="diluxone_users_forget_totp"]').check();
-		await page.locator('input[name="diluxone_users_unlink[]"][value="github"]').check();
+		await page.locator('input[name="diluxone_users_unlink[]"][value="microsoft"]').check();
 		await navigated(page, () => page.locator('#submit').click());
 
-		const after = await site.user(email, ['diluxone_users_sso_github']);
+		const after = await site.user(email, ['diluxone_users_sso_microsoft']);
 
 		expect(after.meta.diluxone_users_totp, 'the app is forgotten').toBe('');
-		expect(after.fields.diluxone_users_sso_github, 'the network is unlinked').toBe('');
+		expect(after.fields.diluxone_users_sso_microsoft, 'the network is unlinked').toBe('');
 	});
 
 	test('Add New User: the e-mail is the username', async ({ page, site }) => {

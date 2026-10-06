@@ -47,7 +47,7 @@ test.describe('Users on a site of the network', () => {
 
 	test('on /alpha/, somebody’s profile carries the block with what the network’s account has', async ({ page, alpha }) => {
 		const email = freshEmail('nprofile');
-		const person = await alpha.site.makeUser({ email, meta: { diluxone_users_2fa_on: 1, diluxone_users_totp: SECRET, diluxone_users_sso_github: 'github|e2e-net' } });
+		const person = await alpha.site.makeUser({ email, meta: { diluxone_users_2fa_on: 1, diluxone_users_totp: SECRET, diluxone_users_sso_microsoft: 'microsoft|e2e-net' } });
 
 		await page.goto(`${alpha.url}wp-admin/user-edit.php?user_id=${person.id}`);
 
@@ -69,7 +69,7 @@ test.describe('Network Admin › Users › somebody’s profile', () => {
 		const gone = passkey('Lost');
 		const person = await alpha.site.makeUser({
 			email,
-			meta: { diluxone_users_2fa_on: 1, diluxone_users_totp: SECRET, diluxone_users_passkeys: [gone], diluxone_users_sso_github: 'github|e2e-netedit' },
+			meta: { diluxone_users_2fa_on: 1, diluxone_users_totp: SECRET, diluxone_users_passkeys: [gone], diluxone_users_sso_microsoft: 'microsoft|e2e-netedit' },
 		});
 
 		await page.goto(networkAdmin(NETWORK_URL, `user-edit.php?user_id=${person.id}`));
@@ -77,14 +77,14 @@ test.describe('Network Admin › Users › somebody’s profile', () => {
 
 		await page.locator('input[name="diluxone_users_forget_totp"]').check();
 		await page.locator(`input[name="diluxone_users_forget_passkey[]"][value="${gone.id}"]`).check();
-		await page.locator('input[name="diluxone_users_unlink[]"][value="github"]').check();
+		await page.locator('input[name="diluxone_users_unlink[]"][value="microsoft"]').check();
 		await navigated(page, () => page.locator('#submit').click());
 
 		for (const one of [alpha, beta]) {
-			const after = await one.site.user(email, ['diluxone_users_sso_github']);
+			const after = await one.site.user(email, ['diluxone_users_sso_microsoft']);
 
 			expect(after.meta.diluxone_users_totp, `/${one.slug}/: the app`).toBe('');
-			expect(after.fields.diluxone_users_sso_github, `/${one.slug}/: the network`).toBe('');
+			expect(after.fields.diluxone_users_sso_microsoft, `/${one.slug}/: the network`).toBe('');
 		}
 
 		// Nothing left to take off: the passkey is no longer on the account.

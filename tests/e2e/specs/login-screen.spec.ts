@@ -178,7 +178,7 @@ test.describe('The sign-in page, split down the middle', () => {
 	 * A form that is genuinely longer than the window scrolls; the panel does
 	 * not go with it.
 	 *
-	 * Twelve networks, a passkey, an address and a password is a real screen
+	 * A row of networks, a passkey, an address and a password is a real screen
 	 * and it is longer than a laptop. What must not happen is the panel — and
 	 * with it the only sentence explaining what this page is — being carried
 	 * off the top of the window by the form beside it.
