@@ -23,7 +23,12 @@ The rule for drawing the line: when in doubt, Pro. Moving something from Pro to 
 | Multisite | Network activation, the hub, membership "every site" | Membership "with a click" and "by invitation" |
 | Privacy | Everything | — |
 
-In the free plugin a Pro feature shows in the place it belongs to and nowhere else: a choice carries a small "Pro" badge, and a part of a screen shows as a blurred, inert preview with the badge and a link to diluxone.com. The preview is a picture of the feature, not the feature: no Pro code ships in it. Only administrators see it, in the plugin's own screens; never a screen of its own, never a notice, and never anything on the front end.
+How Pro shows in the free plugin:
+
+- **Where it belongs, and nowhere else.** A part of a screen shows as a blurred, inert preview with a "Pro" badge and a link to diluxone.com. A Pro option sits as its own card after the real ones, never as a padlocked choice inside a working control. Only administrators see it, in the plugin's own screens: never a screen of its own, never a notice, never anything on the front end. One setting turns every preview off.
+- **A picture of the feature, not the feature.** The preview holds no Pro code and no Pro value, and the free plugin names none of Pro's settings: it owns the whole `diluxone_users_*` namespace (scopes, reserved field names, export, erasure and uninstall work by the prefix), and Pro adds its own through the same hooks an add-on uses.
+- **Buying happens outside.** The free plugin links out and stops there; it never downloads or installs anything. Buying from inside the admin belongs to the DiluxOne plugin, which installs and updates Pro.
+- **Turning Pro off loses nothing.** A stored choice the free plugin does not know (a Pro layout, a provider, a method, a section of the site's own) is kept as it is: shown as an inactive Pro choice on its screen, kept when the screen is saved, and replaced on the front end by the closest free one (a card for a Pro layout, the simple account area for the cover, the default colour when a Pro colour does not read). A network whose membership is a Pro rule adds people to the hub only, until the rule is chosen again.
 
 ## Next: sign-in through any OpenID Connect provider (Pro)
 
