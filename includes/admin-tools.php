@@ -113,6 +113,7 @@ function diluxone_users_tools_action(): void {
 	$close_email = isset( $_POST['close_email'] ) && is_string( $_POST['close_email'] ) ? sanitize_email( wp_unslash( $_POST['close_email'] ) ) : '';
 	$scope       = isset( $_POST['scope'] ) ? sanitize_key( wp_unslash( $_POST['scope'] ) ) : 'one';
 	$wipe        = isset( $_POST['wipe'] );
+	$previews    = isset( $_POST['previews'] );
 
 	// PHP's own temporary path: never slashed, so not unslashed either — that
 	// would strip the backslashes of a Windows path — and only a string.
@@ -124,12 +125,13 @@ function diluxone_users_tools_action(): void {
 	// execution, so a `break` behind each one would be dead code and a
 	// fall-through comment would be a lie. Each tool, with what it is given.
 	$tools = array(
-		'flush'  => array( 'diluxone_users_tool_flush', array() ),
-		'code'   => array( 'diluxone_users_tool_send_code', array( $email ) ),
-		'close'  => array( 'diluxone_users_tool_close_sessions', array( $scope, $close_email ) ),
-		'export' => array( 'diluxone_users_tool_export', array() ),
-		'import' => array( 'diluxone_users_tool_import', array( $uploaded, $problem ) ),
-		'wipe'   => array( 'diluxone_users_tool_wipe', array( $wipe ) ),
+		'flush'    => array( 'diluxone_users_tool_flush', array() ),
+		'code'     => array( 'diluxone_users_tool_send_code', array( $email ) ),
+		'close'    => array( 'diluxone_users_tool_close_sessions', array( $scope, $close_email ) ),
+		'export'   => array( 'diluxone_users_tool_export', array() ),
+		'import'   => array( 'diluxone_users_tool_import', array( $uploaded, $problem ) ),
+		'wipe'     => array( 'diluxone_users_tool_wipe', array( $wipe ) ),
+		'previews' => array( 'diluxone_users_tool_previews', array( $previews ) ),
 	);
 
 	if ( ! isset( $tools[ $tool ] ) ) {
@@ -648,6 +650,15 @@ function diluxone_users_screen_tools_boxes(): void {
 		true
 	);
 
+	// The network's, on a network: it is on Network Admin's own page there.
+	if ( diluxone_users_option_editable_here( 'diluxone_users_pro_previews' ) ) {
+		diluxone_users_tool_box(
+			__( 'Users+ Pro on these screens', 'diluxone-users' ),
+			__( 'Where a feature of Users+ Pro would go, these screens show a blurred picture of it with a link to learn about it. Only administrators see it, and only here. Untick it and there is no trace of it.', 'diluxone-users' ),
+			'diluxone_users_tool_previews_form'
+		);
+	}
+
 	// On a network it is one decision for the whole network, taken in
 	// Network Admin: the data it is about is everybody's.
 	if ( ! diluxone_users_option_editable_here( 'diluxone_users_uninstall_wipe' ) ) {
@@ -730,5 +741,33 @@ function diluxone_users_tool_wipe( bool $wipe ): void {
 		diluxone_users_option( 'diluxone_users_uninstall_wipe' )
 			? __( 'Deleting the plugin will now remove everything it wrote.', 'diluxone-users' )
 			: __( 'Deleting the plugin will leave the data where it is.', 'diluxone-users' )
+	);
+}
+
+/** The box that turns the Pro previews on and off. */
+function diluxone_users_tool_previews_form(): void {
+	echo '<input type="hidden" name="tool" value="previews">';
+	echo '<p><label><input type="checkbox" name="previews" value="1"';
+	checked( (bool) diluxone_users_option( 'diluxone_users_pro_previews' ) );
+	echo '> ';
+	esc_html_e( 'Show where a Users+ Pro feature would go', 'diluxone-users' );
+	echo '</label></p>';
+
+	submit_button( __( 'Save', 'diluxone-users' ), 'secondary', 'submit', false );
+}
+
+/**
+ * Remembers whether the screens show where Users+ Pro would go.
+ *
+ * @param bool $show Whether the box was ticked.
+ * @return never
+ */
+function diluxone_users_tool_previews( bool $show ): void {
+	diluxone_users_save_options( array( 'diluxone_users_pro_previews' => $show ? 1 : 0 ) );
+
+	diluxone_users_tool_done(
+		diluxone_users_option( 'diluxone_users_pro_previews' )
+			? __( 'These screens show where a Users+ Pro feature would go.', 'diluxone-users' )
+			: __( 'These screens show nothing of Users+ Pro.', 'diluxone-users' )
 	);
 }

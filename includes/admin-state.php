@@ -31,6 +31,9 @@ function diluxone_users_states(): array {
 		'pending' => __( 'Pending', 'diluxone-users' ),
 		'off'     => __( 'Off', 'diluxone-users' ),
 		'unknown' => __( 'Cannot tell', 'diluxone-users' ),
+		// Not how something here is doing: what it would take. A feature of
+		// Users+ Pro, drawn where it belongs (diluxone_users_ui_pro()).
+		'pro'     => __( 'Pro', 'diluxone-users' ),
 	);
 }
 
@@ -46,7 +49,7 @@ function diluxone_users_states(): array {
  * three states stay the one vocabulary every screen speaks, and the word says
  * what the thing beside it actually does.
  *
- * @param string $state One of active|pending|off|unknown.
+ * @param string $state One of active|pending|off|unknown|pro.
  * @param string $why   The reason, for a pending one: it is never shown bare.
  * @param string $word  The verb of the thing, when the state's own word would
  *                      name a switch that is not there.

@@ -479,6 +479,12 @@ function diluxone_users_option_defaults_own(): array {
 		// deleted to be reinstalled, must not be the thing that loses
 		// them. Whoever really wants it all gone ticks this first.
 		'diluxone_users_uninstall_wipe'        => 0,
+
+		// ── Users+ Pro in the admin ───────────────────────────────────
+		// Whether the plugin's screens show where a Pro feature would go: a
+		// blurred picture of it, a badge and a link out. Only to whoever
+		// administers, only on these screens. Off, there is no trace of it.
+		'diluxone_users_pro_previews'          => 1,
 	);
 }
 

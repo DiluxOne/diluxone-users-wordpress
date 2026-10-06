@@ -76,6 +76,7 @@ function diluxone_users_panel_scopes(): array {
 		// everybody's data when the plugin is deleted.
 		DILUXONE_USERS_MENU      => array(
 			'network'   => 'network',
+			'previews'  => 'network',
 			'uninstall' => 'network',
 		),
 		// Each site has its own theme and its own dashboard: where the
@@ -279,6 +280,17 @@ function diluxone_users_network_panels(): void {
 			'position' => 10,
 			'render'   => 'diluxone_users_screen_network_overview',
 			'form'     => false,
+		)
+	);
+
+	diluxone_users_register_panel(
+		DILUXONE_USERS_MENU,
+		'previews',
+		array(
+			'label'    => __( 'Users+ Pro', 'diluxone-users' ),
+			'position' => 80,
+			'render'   => 'diluxone_users_screen_network_previews',
+			'save'     => 'diluxone_users_network_previews_save',
 		)
 	);
 
@@ -521,6 +533,40 @@ function diluxone_users_network_conflicts_dismiss(): void {
 	exit;
 }
 add_action( 'admin_init', 'diluxone_users_network_conflicts_dismiss' );
+
+/* ── Users+ Pro on these screens ───────────────────────────────────── */
+
+/** Saves whether the screens show where Users+ Pro would go. */
+function diluxone_users_network_previews_save(): void {
+	check_admin_referer( 'diluxone_users_panel_' . DILUXONE_USERS_MENU, 'diluxone_users_panel_nonce' );
+	diluxone_users_panel_allowed();
+
+	diluxone_users_save_options( array( 'diluxone_users_pro_previews' => isset( $_POST['diluxone_users_pro_previews'] ) ? 1 : 0 ) );
+}
+
+/**
+ * Whether the screens show where Users+ Pro would go, for the whole network.
+ *
+ * One answer for every site's screens and the network's: the people who see
+ * them are the same administrators, and a picture turned off on one screen
+ * coming back on the next is the same question asked twice.
+ */
+function diluxone_users_screen_network_previews(): void {
+	diluxone_users_intro( __( 'Where a feature of Users+ Pro would go, the plugin’s screens show a blurred picture of it with a link to learn about it. Only administrators see it, and only on these screens: never on the site, never as a notice.', 'diluxone-users' ) );
+
+	diluxone_users_ui_choices(
+		array(
+			array(
+				'type'    => 'checkbox',
+				'name'    => 'diluxone_users_pro_previews',
+				'value'   => '1',
+				'checked' => (bool) diluxone_users_option( 'diluxone_users_pro_previews' ),
+				'title'   => __( 'Show where a Users+ Pro feature would go', 'diluxone-users' ),
+				'help'    => __( 'On every site’s screens and on the network’s. Untick it and there is no trace of it.', 'diluxone-users' ),
+			),
+		)
+	);
+}
 
 /* ── Deleting the plugin ───────────────────────────────────────────── */
 
