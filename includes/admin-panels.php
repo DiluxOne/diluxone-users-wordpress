@@ -183,15 +183,18 @@ function diluxone_users_panel_drawn( string $screen, array $values, array $from 
 	check_admin_referer( 'diluxone_users_panel_' . $screen, 'diluxone_users_panel_nonce' );
 	diluxone_users_panel_allowed();
 
-	$sent  = array_map( 'sanitize_key', array_keys( wp_unslash( $_POST ) ) );
 	$drawn = array_map( 'sanitize_key', (array) wp_unslash( $_POST['diluxone_users_panel_drawn'] ?? array() ) );
-	$there = array_merge( $sent, $drawn );
+	$kept  = array();
 
-	return array_filter(
-		$values,
-		static fn( string $key ): bool => in_array( $from[ $key ] ?? $key, $there, true ),
-		ARRAY_FILTER_USE_KEY
-	);
+	foreach ( $values as $key => $value ) {
+		$control = $from[ $key ] ?? $key;
+
+		if ( isset( $_POST[ $control ] ) || in_array( $control, $drawn, true ) ) {
+			$kept[ $key ] = $value;
+		}
+	}
+
+	return $kept;
 }
 
 /**
