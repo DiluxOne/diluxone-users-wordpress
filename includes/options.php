@@ -13,9 +13,49 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Default values. The key is the option name, with its prefix.
  *
+ * The plugin's own, and an add-on's beside them: a key that is here is a
+ * setting like any other — read with its default, saved by
+ * diluxone_users_save_options(), carried by the settings file and stored
+ * where its scope says. Not kept between calls: an add-on that hooks the
+ * filter late in a request is still heard, and reading it costs a filter.
+ *
  * @return array<string, mixed>
  */
 function diluxone_users_option_defaults(): array {
+	$defaults = diluxone_users_option_defaults_own();
+
+	/**
+	 * Filters the settings the plugin knows, with their defaults.
+	 *
+	 * An add-on that stores settings through the plugin's helpers adds its
+	 * keys here, and gives each a scope with `diluxone_users_option_scope`.
+	 * What it can add is a key of the plugin's namespace (`diluxone_users_`)
+	 * that the plugin does not have: anything else would let a settings
+	 * screen, or a settings file, write an option that is not the plugin's,
+	 * and a default of the plugin's own changed from outside would change
+	 * the type its readers count on. Both are left as they were.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param array<string, mixed> $defaults Option name => default.
+	 */
+	$filtered = (array) apply_filters( 'diluxone_users_option_defaults', $defaults );
+
+	foreach ( $filtered as $key => $value ) {
+		if ( is_string( $key ) && 0 === strpos( $key, 'diluxone_users_' ) && ! array_key_exists( $key, $defaults ) ) {
+			$defaults[ $key ] = $value;
+		}
+	}
+
+	return $defaults;
+}
+
+/**
+ * The plugin's own defaults, with nobody else's.
+ *
+ * @return array<string, mixed>
+ */
+function diluxone_users_option_defaults_own(): array {
 	return array(
 		// ── Passwordless sign-in ──────────────────────────────────────
 		// How people get into this site:

@@ -857,7 +857,11 @@ function diluxone_users_preview_would_save( array $panel ): array {
 
 	// On a network the network's settings go to its own options, which have
 	// no filter for every write, only one per name: so each is caught by name.
-	$network        = array_keys( array_filter( diluxone_users_option_scopes(), static fn( string $scope ): bool => 'network' === $scope ) );
+	// Every setting there is — an add-on's included, with the scope it gave it.
+	$network        = array_filter(
+		array_unique( array_merge( array_keys( diluxone_users_option_scopes() ), array_keys( diluxone_users_option_defaults() ) ) ),
+		static fn( string $key ): bool => 'network' === diluxone_users_option_scope( $key )
+	);
 	$refuse_network = static function ( $value, $old, string $option ) use ( &$caught ) {
 		$caught[ $option ] = $value;
 
