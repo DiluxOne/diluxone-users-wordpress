@@ -54,7 +54,9 @@ function diluxone_users_sso_save_credentials( string $id, array $values ): void 
 		$new['active'] = 0;
 	}
 
-	$all[ $id ] = $new;
+	// Over what the row held, not instead of it: whatever else something
+	// keeps for this provider is not this form's to drop.
+	$all[ $id ] = array_merge( (array) ( $all[ $id ] ?? array() ), $new );
 
 	// Not autoloaded: the secrets are read on the few requests that talk to a
 	// provider, and have no business in memory on every other page.

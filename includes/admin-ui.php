@@ -598,6 +598,19 @@ function diluxone_users_ui_choice( array $choice ): void {
 	if ( $disabled ) {
 		$classes[] = 'is-locked';
 	}
+
+	/*
+	 * An unticked box sends nothing, which a save cannot tell from a box that
+	 * was never drawn. So a box says it was there, and a save that writes only
+	 * what its screen drew (diluxone_users_panel_drawn()) reads the absence
+	 * of a tick as "unticked" only when the box was on the screen.
+	 */
+	if ( 'checkbox' === $type ) {
+		printf(
+			'<input type="hidden" name="diluxone_users_panel_drawn[]" value="%s">',
+			esc_attr( (string) strtok( (string) $choice['name'], '[' ) )
+		);
+	}
 	?>
 	<label class="<?php echo esc_attr( implode( ' ', $classes ) ); ?>">
 		<input

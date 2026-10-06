@@ -15,6 +15,17 @@ use Tests\Integration\Support\CoverSettingsSupport;
 
 class CoverSettingsDesignTest extends IntegrationTestCase {
 
+	/** The tick boxes the account area's tab draws. */
+	private const ACCOUNT_BOXES = array(
+		'diluxone_users_account_header',
+		'diluxone_users_account_avatar',
+		'diluxone_users_account_since',
+		'diluxone_users_account_action',
+		'diluxone_users_account_cover_own',
+		'diluxone_users_account_ground_own',
+	);
+
+
 	use CoverSettingsSupport;
 
 	/** @var array<int, mixed> What WordPress's login stylesheet carried after it before the test. */
@@ -199,6 +210,9 @@ class CoverSettingsDesignTest extends IntegrationTestCase {
 				'diluxone_users_account_nav_small'   => 'wrap',
 				'diluxone_users_account_row_w'       => '960px<b>',
 				'diluxone_users_account_bar_gap'     => '12px',
+				// The tick boxes the tab draws, as it draws them: an unticked
+				// one is off because the screen said it was there.
+				'diluxone_users_panel_drawn'         => self::ACCOUNT_BOXES,
 			)
 		);
 		diluxone_users_design_account_save();
@@ -231,6 +245,7 @@ class CoverSettingsDesignTest extends IntegrationTestCase {
 				'diluxone_users_account_nav_style' => 'neon',
 				'diluxone_users_account_nav_align' => 'justify',
 				'diluxone_users_account_cover_kind' => 'video',
+				'diluxone_users_panel_drawn'       => self::ACCOUNT_BOXES,
 			)
 		);
 		diluxone_users_design_account_save();

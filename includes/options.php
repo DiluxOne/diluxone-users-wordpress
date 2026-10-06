@@ -482,6 +482,78 @@ function diluxone_users_option_defaults_own(): array {
 	);
 }
 
+/* ── What the plugin does not know ─────────────────────────────────── */
+
+/**
+ * The entries of a stored list that are not among the ones there are now.
+ *
+ * A list of ids — the second factors offered, say — can hold one that
+ * something else put there: an add-on that registered it and is not running
+ * today. The plugin does not draw it and does not use it, and it does not
+ * throw it away either: a screen saved without it would lose the choice for
+ * the day the add-on comes back.
+ *
+ * @param array<mixed>      $stored What the setting holds.
+ * @param array<int|string> $known  The ids there are now.
+ * @return array<int, string>
+ */
+function diluxone_users_unknown_entries( array $stored, array $known ): array {
+	$known = array_map( 'strval', $known );
+
+	return array_values(
+		array_filter(
+			array_map( 'sanitize_key', array_filter( $stored, 'is_string' ) ),
+			static fn( string $id ): bool => '' !== $id && ! in_array( $id, $known, true )
+		)
+	);
+}
+
+/**
+ * A stored choice that is not one of the choices there are now, or ''.
+ *
+ * The same thing for one answer: a layout, a policy, a way of doing something
+ * that an add-on offered and saved. Read on the front end, the plugin uses
+ * the closest answer of its own in its place; on its screen it shows the
+ * choice as inactive and keeps it until somebody picks another one
+ * (diluxone_users_choice_kept()).
+ *
+ * @param string            $key   Option name, with its prefix.
+ * @param array<int|string> $known The answers there are now.
+ */
+function diluxone_users_unknown_choice( string $key, array $known ): string {
+	$stored = diluxone_users_raw_get( $key, null );
+
+	if ( ! is_string( $stored ) || '' === $stored || sanitize_key( $stored ) !== $stored ) {
+		return '';
+	}
+
+	return in_array( $stored, array_map( 'strval', $known ), true ) ? '' : $stored;
+}
+
+/**
+ * The answer a screen's save keeps: one of the answers there are, or the one
+ * the setting already held and the screen showed as inactive.
+ *
+ * Anything else — a word nobody offered, sent by hand — is the fallback, as
+ * it always was. What it never does is turn the stored choice into the
+ * fallback because the screen could not offer it: the screen showed it and
+ * nobody picked another.
+ *
+ * @param string            $key      Option name, with its prefix.
+ * @param string            $posted   What arrived, sanitised.
+ * @param array<int|string> $known    The answers there are now.
+ * @param string            $fallback What anything else is.
+ */
+function diluxone_users_choice_kept( string $key, string $posted, array $known, string $fallback ): string {
+	if ( in_array( $posted, array_map( 'strval', $known ), true ) ) {
+		return $posted;
+	}
+
+	$kept = diluxone_users_unknown_choice( $key, $known );
+
+	return '' !== $kept && $kept === $posted ? $kept : $fallback;
+}
+
 /**
  * Whether a setting applies to everybody or only to some roles.
  *
