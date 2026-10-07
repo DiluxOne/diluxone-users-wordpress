@@ -270,7 +270,7 @@ test.describe('WordPress’s own Users screens', () => {
 		await expect(page.locator('th#diluxone_users, th.column-diluxone_users').first()).toBeVisible();
 	});
 
-	test('on somebody’s profile: forgetting their authenticator app and unlinking a network', async ({ page, site }) => {
+	test('on somebody’s profile: unlinking a network, and no box for Users+ Pro’s app', async ({ page, site }) => {
 		const email = freshEmail('people');
 		const person = await site.makeUser({
 			email,
@@ -284,13 +284,12 @@ test.describe('WordPress’s own Users screens', () => {
 
 		await page.goto(`/wp-admin/user-edit.php?user_id=${person.id}`);
 
-		await page.locator('input[name="diluxone_users_forget_totp"]').check();
+		await expect(page.locator('input[name="diluxone_users_forget_totp"]'), 'the app is Users+ Pro’s to take off').toHaveCount(0);
 		await page.locator('input[name="diluxone_users_unlink[]"][value="microsoft"]').check();
 		await navigated(page, () => page.locator('#submit').click());
 
 		const after = await site.user(email, ['diluxone_users_sso_microsoft']);
 
-		expect(after.meta.diluxone_users_totp, 'the app is forgotten').toBe('');
 		expect(after.fields.diluxone_users_sso_microsoft, 'the network is unlinked').toBe('');
 	});
 

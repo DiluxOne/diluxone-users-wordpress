@@ -2,7 +2,6 @@ import { Page } from '@playwright/test';
 import { test, expect, whoOn, signInFrom, SiteHandle } from './support';
 import { codeIn, freshEmail, linkIn, waitForMail } from '../support/api';
 import { wp } from '../support/cli';
-import { avoidWindowEdge, totp } from '../support/totp';
 import { askForLink, challengeCode, challengeScreen, fillCredentials, navigated, saveButton, ssoButton } from '../support/ui';
 import { NETWORK_ADMIN_STATE, NETWORK_URL } from '../../../playwright.network.config';
 
@@ -20,7 +19,6 @@ import { NETWORK_ADMIN_STATE, NETWORK_URL } from '../../../playwright.network.co
  */
 
 const PASSWORD = 'e2e-Network-Coexist-1!';
-const SECRET = 'JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP';
 const MOCK = { mock: { active: 1, id: 'e2e-client-id', secret: 'e2e-client-secret', tested: 1 } };
 const MEMBERSHIP = `${NETWORK_URL}/wp-admin/network/admin.php?page=diluxone-users-membership`;
 
@@ -56,9 +54,7 @@ test.describe('The second step with no sign-in page on the hub: the hub’s wp-l
 			diluxone_users_login_method: 'both',
 			diluxone_users_wp_screens: 'auto',
 			diluxone_users_2fa_mode: 'required',
-			diluxone_users_2fa_methods: ['totp', 'email'],
-			diluxone_users_2fa_scope: 'all',
-			diluxone_users_2fa_remember_days: 0,
+			diluxone_users_2fa_methods: ['email'],
 		});
 	});
 
@@ -77,19 +73,6 @@ test.describe('The second step with no sign-in page on the hub: the hub’s wp-l
 
 		expect(new URL(page.url()).pathname, 'back on /beta/').toMatch(/^\/beta\//);
 		expect(await whoOn(page, beta.url)).toBe(email);
-	});
-
-	test('a password and the authenticator app, on the hub’s wp-login.php', async ({ page, hub, alpha }) => {
-		const email = freshEmail('net-wplogin-app');
-		await alpha.site.makeUser({ email, password: PASSWORD, meta: { diluxone_users_totp: SECRET, diluxone_users_2fa_on: 1 } });
-
-		await signInOnWpLogin(page, hub, email);
-		await expect(challengeScreen(page)).toBeVisible();
-
-		await avoidWindowEdge();
-		await answerOnWpLogin(page, totp(SECRET));
-
-		expect(await whoOn(page, hub.url)).toBe(email);
 	});
 
 	test('with a sign-in page on the hub, the second step is on that page', async ({ page, hub, alpha, beta }) => {

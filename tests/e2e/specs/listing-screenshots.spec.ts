@@ -252,7 +252,7 @@ test.describe('The account area', () => {
 			...SHOP_WINDOW,
 			diluxone_users_login_method: 'both',
 			diluxone_users_2fa_mode: 'optional',
-			diluxone_users_2fa_methods: ['totp', 'email'],
+			diluxone_users_2fa_methods: ['email'],
 		});
 
 		const account = await asMember(page, site, pages);

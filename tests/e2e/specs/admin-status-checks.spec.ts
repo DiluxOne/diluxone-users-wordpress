@@ -197,19 +197,17 @@ test.describe('Status › Status: the checks', () => {
 
 		await page.goto(STATUS);
 
-		// The rows: accounts, then the Overview's own — public name, social
-		// account, authenticator app — and nothing else without an add-on.
-		await expect(usage(0).locator('xpath=ancestor::tbody/tr')).toHaveCount(4);
+		// The rows: accounts, then the Overview's own — public name and social
+		// account — and nothing else without an add-on.
+		await expect(usage(0).locator('xpath=ancestor::tbody/tr')).toHaveCount(3);
 
 		const accounts = await read(0);
 		const handle = await read(1);
 		const social = await read(2);
-		const app = await read(3);
 
 		await site.makeUser({
 			email: freshEmail('status-usage'),
 			meta: {
-				diluxone_users_totp: 'JBSWY3DPEHPK3PXP',
 				diluxone_users_sso_microsoft: 'microsoft|e2e-status',
 			},
 		});
@@ -218,7 +216,6 @@ test.describe('Status › Status: the checks', () => {
 		expect(await read(0), 'accounts').toBe(accounts + 1);
 		expect(await read(1), 'with a public name').toBe(handle);
 		expect(await read(2), 'with a social account').toBe(social + 1);
-		expect(await read(3), 'with an app').toBe(app + 1);
 
 		const environment = page.locator('table.diluxone-users-summary').nth(2);
 

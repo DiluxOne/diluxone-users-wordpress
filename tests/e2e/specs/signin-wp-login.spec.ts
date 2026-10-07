@@ -2,7 +2,7 @@ import { Page } from '@playwright/test';
 import { test, expect, expectSignedIn, expectSignedOut, stateOf } from '../support/fixtures';
 import { codeIn, freshEmail, linkIn, waitForMail } from '../support/api';
 import { askForLink, challengeCode, challengeScreen, fillCredentials, navigated, signInWithPassword } from '../support/ui';
-import { MOCK_ON, Meta, dropSession, uploadImage } from '../support/signin';
+import { MOCK_ON, Meta, uploadImage } from '../support/signin';
 import { ADMIN_STATE } from '../../../playwright.config';
 
 /**
@@ -10,8 +10,9 @@ import { ADMIN_STATE } from '../../../playwright.config';
  *
  * With no sign-in page it draws the second step itself (`auth-wp-login.php`),
  * and these walk what `coexistence.spec.ts` leaves out there: "send it again",
- * the lock, the trust box, "Or use:", an attempt that ran out, a link that was
- * spent and a challenge address with no attempt behind it. With a sign-in page
+ * the lock, an attempt that ran out, a link that was spent and a challenge
+ * address with no attempt behind it (the trust box and the app are Users+
+ * Pro's). With a sign-in page
  * and the takeover on (`passwordless.php`), they walk every action WordPress
  * keeps or hands over: registration, the lost password, a protected post, the
  * dashboard's session-expired modal, a site with no page chosen, WordPress's
@@ -21,7 +22,6 @@ import { ADMIN_STATE } from '../../../playwright.config';
  */
 
 const PASSWORD = 'e2e-WpLogin-Ways-1!';
-const SECRET = 'JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP';
 
 /** Signs in on wp-login.php's own form and waits for where it lands. */
 async function onWpLogin(page: Page, email: string, query = ''): Promise<void> {
@@ -42,8 +42,7 @@ test.describe('wp-login.php’s own second step, past the plain code', () => {
 			diluxone_users_login_method: 'both',
 			diluxone_users_wp_screens: 'auto',
 			diluxone_users_2fa_mode: 'required',
-			diluxone_users_2fa_methods: ['totp', 'email'],
-			diluxone_users_2fa_remember_days: 0,
+			diluxone_users_2fa_methods: ['email'],
 		});
 	});
 
@@ -91,48 +90,6 @@ test.describe('wp-login.php’s own second step, past the plain code', () => {
 		await expect(page.locator('#login_error')).toBeVisible();
 		await expect(challengeScreen(page)).toBeVisible();
 		await expectSignedOut(page);
-	});
-
-	test('the trust box on wp-login.php keeps this browser from being asked again', async ({ page, site, options }) => {
-		await options.set({ diluxone_users_2fa_remember_days: 7 });
-
-		const email = freshEmail('wpl-trust');
-		await site.makeUser({ email, password: PASSWORD });
-
-		await onWpLogin(page, email);
-		await expect(challengeScreen(page)).toBeVisible();
-
-		await challengeCode(page).fill(codeIn(await waitForMail(site, email)));
-		await page.locator('#diluxone-users-2fa-trust').check();
-		await pressOnChallenge(page, 'input[type="submit"]');
-		await expectSignedIn(page, email);
-
-		await dropSession(page.context());
-		await expectSignedOut(page);
-
-		await onWpLogin(page, email);
-		await expect(challengeScreen(page)).toHaveCount(0);
-		await expectSignedIn(page, email);
-	});
-
-	test('“Or use:” on wp-login.php switches from the app to the e-mail code', async ({ page, site }) => {
-		const email = freshEmail('wpl-switch');
-		await site.makeUser({ email, password: PASSWORD, meta: { diluxone_users_totp: SECRET, diluxone_users_2fa_on: 1 } });
-
-		await onWpLogin(page, email);
-		await expect(challengeScreen(page)).toBeVisible();
-		expect(new URL(page.url()).searchParams.get('diluxone_users_method')).toBe('totp');
-
-		await navigated(page, () => challengeScreen(page).locator('a[href*="diluxone_users_method=email"]').click());
-		expect(new URL(page.url()).searchParams.get('diluxone_users_method')).toBe('email');
-		expect(new URL(page.url()).searchParams.get('action')).toBe('diluxone_users_2fa');
-
-		await pressOnChallenge(page, 'button[name="diluxone_users_2fa_resend"]');
-		expect(stateOf(page.url())).toBe('sent');
-
-		await challengeCode(page).fill(codeIn(await waitForMail(site, email)));
-		await pressOnChallenge(page, 'input[type="submit"]');
-		await expectSignedIn(page, email);
 	});
 
 	test('an attempt that ran out lands on wp-login.php’s “retry”, said in its error box', async ({ page, site }) => {

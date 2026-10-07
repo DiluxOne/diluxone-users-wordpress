@@ -125,7 +125,7 @@ test.describe('Overview › what your people use', () => {
 
 		const rows = page.locator('.diluxone-users-usage__row');
 
-		await expect(rows).toHaveCount(3);
+		await expect(rows).toHaveCount(2);
 
 		const read = async () =>
 			Promise.all(
@@ -139,18 +139,18 @@ test.describe('Overview › what your people use', () => {
 
 		const before = await read();
 
-		// One with a public name and an authenticator, one with neither.
-		await site.makeUser({ email: freshEmail('use-a'), meta: { diluxone_users_handle: 'e2e-use', diluxone_users_totp: 'JBSWY3DPEHPK3PXP' } });
+		// One with a public name, one with neither.
+		await site.makeUser({ email: freshEmail('use-a'), meta: { diluxone_users_handle: 'e2e-use' } });
 		await site.makeUser({ email: freshEmail('use-b') });
 
 		await page.reload();
 
 		const after = await read();
 
-		// The rows: public name, social, authenticator.
+		// The rows: public name and social, and no row for Users+ Pro's app.
+		expect(after).toHaveLength(2);
 		expect(after[0].count).toBe(before[0].count + 1);
 		expect(after[1].count).toBe(before[1].count);
-		expect(after[2].count).toBe(before[2].count + 1);
 
 		for (const row of after) {
 			expect(row.total).toBe(before[0].total + 2);

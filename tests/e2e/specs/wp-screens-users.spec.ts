@@ -34,7 +34,7 @@ function accessCell(page: Page, email: string) {
 }
 
 test.describe('Users › All users: the Access column', () => {
-	test('each person’s ways in, as pills: only the link, the second step and the app, a network by name', async ({
+	test('each person’s ways in, as pills: only the link, the second step, a network by name — and no pill for what Users+ Pro kept', async ({
 		page,
 		site,
 	}) => {
@@ -46,6 +46,7 @@ test.describe('Users › All users: the Access column', () => {
 		const social = freshEmail(`${tag}-social`);
 
 		await site.makeUser({ email: plain });
+		// The app is Users+ Pro's: kept on the account, no pill without it.
 		await site.makeUser({ email: twoStep, meta: { diluxone_users_2fa_on: 1, diluxone_users_totp: SECRET } });
 		await site.makeUser({ email: social, meta: { diluxone_users_sso_microsoft: 'microsoft|e2e-column' } });
 
@@ -54,7 +55,8 @@ test.describe('Users › All users: the Access column', () => {
 		await expect(accessCell(page, plain).locator('.diluxone-users-pill')).toHaveCount(1);
 		await expect(accessCell(page, plain).locator('.diluxone-users-pill--off')).toHaveCount(1);
 
-		await expect(accessCell(page, twoStep).locator('.diluxone-users-pill--on')).toHaveCount(2);
+		await expect(accessCell(page, twoStep).locator('.diluxone-users-pill--on')).toHaveCount(1);
+		await expect(accessCell(page, twoStep)).not.toContainText('App');
 		await expect(accessCell(page, twoStep).locator('.diluxone-users-pill--off')).toHaveCount(0);
 
 		await expect(accessCell(page, social).locator('.diluxone-users-pill--blank')).toHaveText('Microsoft');
@@ -74,7 +76,6 @@ test.describe('Users › somebody’s profile: the plugin’s block', () => {
 				diluxone_users_handle: handle,
 				session_tokens: session(),
 				diluxone_users_2fa_on: 1,
-				diluxone_users_totp: SECRET,
 				diluxone_users_sso_microsoft: 'microsoft|e2e-profile',
 			},
 		});

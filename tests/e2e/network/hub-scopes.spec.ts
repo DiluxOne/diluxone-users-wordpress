@@ -38,12 +38,6 @@ const CONTROLS: Array<{
 }> = [
 	{
 		tab: 'diluxone-users-security&tab=2fa',
-		keys: { diluxone_users_2fa_remember_days: 30 },
-		act: (page) => page.locator('input[name="diluxone_users_2fa_remember_days"]').fill('7'),
-		after: { diluxone_users_2fa_remember_days: 7 },
-	},
-	{
-		tab: 'diluxone-users-security&tab=2fa',
 		keys: { diluxone_users_2fa_link: 'auto' },
 		act: (page) => page.locator('input[name="diluxone_users_2fa_link"][value="never"]').check(),
 		after: { diluxone_users_2fa_link: 'never' },
@@ -110,23 +104,20 @@ test.describe('The network’s settings, saved through their controls, are every
 		});
 	}
 
-	test('the second step for chosen roles, saved there: an editor of /beta/ is asked, a subscriber of /beta/ is not', async ({
+	test('the second step required, saved there: an editor and a subscriber of /beta/ are both asked', async ({
 		page,
 		guest,
 		hub,
 		alpha,
 		beta,
 	}) => {
-		await hub.set({ diluxone_users_2fa_mode: 'optional', diluxone_users_2fa_methods: ['totp', 'email'], diluxone_users_2fa_scope: 'all', diluxone_users_2fa_roles: [] });
+		await hub.set({ diluxone_users_2fa_mode: 'optional', diluxone_users_2fa_methods: ['email'] });
 
 		await page.goto(network('admin.php?page=diluxone-users-security&tab=2fa'));
 		await page.locator('input[name="diluxone_users_2fa_mode"][value="required"]').check();
-		await page.locator('input[name="diluxone_users_2fa_scope"][value="some"]').check();
-		await page.locator('input[name="diluxone_users_2fa_roles[]"][value="editor"]').check();
 		await savePanel(page);
 
-		await everySiteReads([hub, alpha, beta], 'diluxone_users_2fa_scope', 'some');
-		await everySiteReads([hub, alpha, beta], 'diluxone_users_2fa_roles', ['editor']);
+		await everySiteReads([hub, alpha, beta], 'diluxone_users_2fa_mode', 'required');
 
 		const editor = freshEmail('hub-2fa-editor');
 		const subscriber = freshEmail('hub-2fa-sub');
@@ -139,8 +130,7 @@ test.describe('The network’s settings, saved through their controls, are every
 
 		await signOut(guest);
 		await signInFrom(guest, beta, hub, subscriber, PASSWORD);
-		await expect(challengeScreen(guest), 'a subscriber is not').toHaveCount(0);
-		expect(new URL(guest.url()).href.startsWith(beta.url), 'and is back on /beta/').toBe(true);
+		await expect(challengeScreen(guest), 'and so is a subscriber').toBeVisible();
 	});
 
 	test('the log’s groups, saved there: a group unticked records nothing on any site', async ({ page, guest, hub, alpha }) => {

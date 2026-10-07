@@ -211,7 +211,7 @@ test.describe('E-mail notices › the summary', () => {
 			diluxone_users_mail_last: { ok: 1, time: Math.floor(Date.now() / 1000), error: '' },
 			diluxone_users_notice_rules: { diluxone_users_notify_login: 'never', diluxone_users_notify_security: 'always' },
 			diluxone_users_login_method: 'password',
-			diluxone_users_2fa_methods: ['totp'],
+			diluxone_users_2fa_methods: [],
 			diluxone_users_privacy_export: 0,
 			diluxone_users_privacy_delete: 0,
 		});
@@ -228,7 +228,7 @@ test.describe('E-mail notices › the summary', () => {
 		await expect(rows.nth((await rows.count()) - 3).locator('.diluxone-users-summary__change a'), 'the link row goes to the ways in').toHaveAttribute('href', /page=diluxone-users-login&tab=ways/);
 		await expect(rows.nth((await rows.count()) - 2).locator('.diluxone-users-summary__change a'), 'the code row goes to the second step').toHaveAttribute('href', /tab=2fa/);
 
-		await options.set({ diluxone_users_login_method: 'both', diluxone_users_2fa_methods: ['totp', 'email'], diluxone_users_privacy_export: 1 });
+		await options.set({ diluxone_users_login_method: 'both', diluxone_users_2fa_methods: ['email'], diluxone_users_privacy_export: 1 });
 		await page.reload();
 
 		const after = await rows.locator('.diluxone-users-summary__state .diluxone-users-state').evaluateAll((all) => all.map((one) => one.className.replace(/.*diluxone-users-state--(\w+).*/, '$1')));
@@ -240,7 +240,7 @@ test.describe('E-mail notices › the summary', () => {
 		await options.set({
 			diluxone_users_mail_last: { ok: 0, time: Math.floor(Date.now() / 1000), error: 'e2e: the mailer said no' },
 			diluxone_users_login_method: 'both',
-			diluxone_users_2fa_methods: ['totp', 'email'],
+			diluxone_users_2fa_methods: ['email'],
 		});
 
 		await page.goto(adminUrl('diluxone-users-notices', 'summary'));

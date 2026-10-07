@@ -1,8 +1,7 @@
 import { Page } from '@playwright/test';
 import { test, expect, whoOn, signInFrom } from './support';
-import { freshEmail } from '../support/api';
+import { codeIn, freshEmail, waitForMail } from '../support/api';
 import { accountSection, challengeCode, challengeScreen, openAllPanels } from '../support/ui';
-import { avoidWindowEdge, totp } from '../support/totp';
 
 /**
  * The account lives on the hub: what a person of /alpha/ or /beta/ does there
@@ -30,10 +29,10 @@ function formFor(page: Page, action: string) {
 }
 
 test.describe('The account on the hub, used by a person of another site', () => {
-	test('the app set up on the hub’s security section is asked for when they sign in from /beta/', async ({ page, hub, alpha, beta }) => {
-		await hub.set({ diluxone_users_2fa_mode: 'optional', diluxone_users_2fa_methods: ['totp', 'email'], diluxone_users_2fa_scope: 'all' });
+	test('the second step turned on in the hub’s security section is asked for when they sign in from /beta/', async ({ page, hub, alpha, beta }) => {
+		await hub.set({ diluxone_users_2fa_mode: 'optional', diluxone_users_2fa_methods: ['email'] });
 
-		const email = freshEmail('hub-acct-totp');
+		const email = freshEmail('hub-acct-2fa');
 
 		await alpha.site.makeUser({ email, password: PASSWORD });
 		await signInFrom(page, alpha, hub, email, PASSWORD);
@@ -41,29 +40,21 @@ test.describe('The account on the hub, used by a person of another site', () => 
 		await page.goto(accountSection(hub.pages.account.url, 'security'));
 		await openAllPanels(page);
 
-		const secret = (await page.locator('.diluxone-users-totp__key').innerText()).replace(/\s+/g, '');
+		const on = page.locator('form').filter({ has: page.locator('button[name="diluxone_users_security"][value="on"]') });
 
-		expect(secret, 'a base32 secret').toMatch(/^[A-Z2-7]{16,}$/);
-		await avoidWindowEdge();
+		await Promise.all([page.waitForURL(/diluxone-users=on/), on.locator('button[name="diluxone_users_security"][value="on"]').click()]);
 
-		const setup = page.locator('form').filter({ has: page.locator('input[name="diluxone_users_security"][value="totp"]') });
+		expect((await beta.site.user(email)).meta.diluxone_users_2fa_on, '/beta/ sees it on: it is the account’s').toBe('1');
 
-		await setup.locator('input[name="diluxone_users_code"]').fill(totp(secret));
-		await send(page, setup);
-
-		const saved = await beta.site.user(email);
-
-		expect(saved.meta.diluxone_users_totp, '/beta/ sees the app registered: it is the account’s').not.toBe('');
-		expect(saved.meta.diluxone_users_2fa_on).toBe('1');
-
-		// Out, and in again from /beta/: the app is asked for.
+		// Out, and in again from /beta/: the code is asked for.
 		await page.context().clearCookies();
-		await signInFrom(page, beta, hub, email, PASSWORD);
-		await expect(challengeScreen(page), 'asked for the app’s code').toBeVisible();
 
-		// The activation code is spent: wait for the next window.
-		await avoidWindowEdge();
-		await challengeCode(page).fill(totp(secret, Date.now() + 30_000));
+		const asked = Date.now() / 1000;
+
+		await signInFrom(page, beta, hub, email, PASSWORD);
+		await expect(challengeScreen(page), 'asked for the code').toBeVisible();
+
+		await challengeCode(page).fill(codeIn(await waitForMail(hub.site, email, { after: asked - 1 })));
 		await Promise.all([
 			page.waitForURL((url) => url.href.startsWith(beta.url), { waitUntil: 'domcontentloaded' }),
 			challengeScreen(page).locator('button[type="submit"]').first().click(),

@@ -251,8 +251,6 @@ test.describe('The second step after a social sign-in, on a network', () => {
 			diluxone_users_sso_login: 1,
 			diluxone_users_2fa_mode: 'required',
 			diluxone_users_2fa_methods: ['email'],
-			diluxone_users_2fa_scope: 'all',
-			diluxone_users_2fa_remember_days: 0,
 		});
 
 		const email = freshEmail('net-sso-2fa');

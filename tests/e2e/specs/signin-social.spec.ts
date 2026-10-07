@@ -330,7 +330,6 @@ test.describe('What a social sign-in sets off', () => {
 		await options.set({
 			diluxone_users_2fa_mode: 'required',
 			diluxone_users_2fa_methods: ['email'],
-			diluxone_users_2fa_remember_days: 0,
 		});
 
 		const email = freshEmail('sso-2fa');

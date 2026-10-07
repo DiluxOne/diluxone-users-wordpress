@@ -1,7 +1,6 @@
 import { Page } from '@playwright/test';
 import { test, expect, expectSignedIn, expectSignedOut } from '../support/fixtures';
 import { codeIn, freshEmail, linkIn, waitForMail } from '../support/api';
-import { avoidWindowEdge, totp } from '../support/totp';
 import { adminUrl, askForLink, challengeCode, challengeScreen, fillCredentials, navigated, saveButton, signInWithPassword, ssoButton } from '../support/ui';
 import { ADMIN_STATE } from '../../../playwright.config';
 
@@ -18,7 +17,6 @@ import { ADMIN_STATE } from '../../../playwright.config';
  */
 
 const PASSWORD = 'e2e-Coexist-1!';
-const SECRET = 'JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP';
 
 /** Signs in on WordPress's own wp-login.php, the way somebody with no sign-in page does. */
 async function signInOnWpLogin(page: Page, email: string, remember = false): Promise<void> {
@@ -48,8 +46,7 @@ test.describe('The second step with no sign-in page: wp-login.php draws it', () 
 			diluxone_users_login_method: 'both',
 			diluxone_users_wp_screens: 'auto',
 			diluxone_users_2fa_mode: 'required',
-			diluxone_users_2fa_methods: ['totp', 'email'],
-			diluxone_users_2fa_remember_days: 0,
+			diluxone_users_2fa_methods: ['email'],
 		});
 	});
 
@@ -83,20 +80,6 @@ test.describe('The second step with no sign-in page: wp-login.php draws it', () 
 		await expect(challengeScreen(page)).toBeVisible();
 		await expect(page.locator('#login_error')).toBeVisible();
 		await expectSignedOut(page);
-	});
-
-	test('a password and the authenticator app finish signing in, on wp-login.php', async ({ page, site }) => {
-		const email = freshEmail('wplogin-app');
-		await site.makeUser({ email, password: PASSWORD, meta: { diluxone_users_totp: SECRET, diluxone_users_2fa_on: 1 } });
-
-		await signInOnWpLogin(page, email);
-		await expect(challengeScreen(page)).toBeVisible();
-		expect(new URL(page.url()).searchParams.get('diluxone_users_method'), 'the app first').toBe('totp');
-
-		await avoidWindowEdge();
-		await answerOnWpLogin(page, totp(SECRET));
-
-		await expectSignedIn(page, email);
 	});
 
 	test('with a sign-in page the second step is on the page, not on wp-login.php', async ({ page, site, pages, options }) => {
@@ -183,7 +166,6 @@ test.describe('The plugin’s own doors fire wp_login, once', () => {
 			diluxone_users_2fa_mode: 'required',
 			diluxone_users_2fa_methods: ['email'],
 			diluxone_users_2fa_link: 'always',
-			diluxone_users_2fa_remember_days: 0,
 			diluxone_e2e_wp_login: null,
 		});
 

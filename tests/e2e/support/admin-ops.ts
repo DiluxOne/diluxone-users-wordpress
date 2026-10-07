@@ -170,11 +170,6 @@ export function freshTag(prefix: string): string {
 	return `${prefix}${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}`;
 }
 
-/** The address of a cookie's expiry, in days from now. */
-export function daysUntil(expires: number): number {
-	return (expires * 1000 - Date.now()) / 86_400_000;
-}
-
 /**
  * `savePanel()`, with the reason the save must not be refused said in the
  * failure: for a save a product bug refuses today (`bug: …`).

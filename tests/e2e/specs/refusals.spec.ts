@@ -53,7 +53,6 @@ import { ADMIN_STATE } from '../../../playwright.config';
 test.use({ storageState: ADMIN_STATE });
 
 const PASSWORD = 'e2e-Refusals-1!';
-const TOTP = 'JBSWY3DPEHPK3PXP';
 
 /** The fields the details form saves, pinned so the site's own list decides nothing here. */
 const FIELDS = [
@@ -108,7 +107,7 @@ test.beforeAll(async ({ browser }, info) => {
 		role: 'administrator',
 		meta: {
 			session_tokens: { ...token(VICTIM_TOKEN), ...token('e2e2'.repeat(16)) },
-			diluxone_users_totp: TOTP,
+			diluxone_users_sso_google: 'g-victim',
 		},
 	});
 
@@ -194,7 +193,7 @@ async function subscriberState(w: World): Promise<unknown> {
 
 async function victimState(w: World): Promise<unknown> {
 	return {
-		meta: await metaOf(w.door, w.victim.email, ['diluxone_users_totp']),
+		meta: await metaOf(w.door, w.victim.email, ['diluxone_users_sso_google']),
 		sessions: (await w.site.user(w.victim.email)).sessions,
 		mail: await mails(w, w.victim.email),
 	};
@@ -715,7 +714,7 @@ const ROWS: Row[] = [
 		leaks: (answer) => expect(answer.body, 'the stored secret is never printed').not.toContain('e2e-secret'),
 	},
 	{
-		id: 'Users › Edit user: the plugin’s block, a second factor removed (user-edit.php)',
+		id: 'Users › Edit user: the plugin’s block, a network unlinked (user-edit.php)',
 		method: 'POST',
 		url: () => '/wp-admin/user-edit.php',
 		fields: (w) => ({
@@ -723,7 +722,7 @@ const ROWS: Row[] = [
 			user_id: String(w.victim.id),
 			email: w.victim.email,
 			nickname: 'victim',
-			diluxone_users_forget_totp: '1',
+			'diluxone_users_unlink[]': 'google',
 		}),
 		nonce: { field: '_wpnonce', action: (w) => `update-user_${w.victim.id}` },
 		actor: 'admin',

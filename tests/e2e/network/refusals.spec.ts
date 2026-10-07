@@ -49,7 +49,6 @@ import { NETWORK_ADMIN_STATE, NETWORK_URL } from '../../../playwright.network.co
 test.use({ storageState: NETWORK_ADMIN_STATE });
 
 const PASSWORD = 'e2e-NetRefusals-1!';
-const TOTP = 'JBSWY3DPEHPK3PXP';
 
 const VICTIM_TOKEN = 'e2e3'.repeat(16);
 
@@ -101,7 +100,7 @@ test.beforeAll(async ({ browser }) => {
 		email: victim,
 		password: PASSWORD,
 		role: 'administrator',
-		meta: { session_tokens: { ...token(VICTIM_TOKEN), ...token('e2e4'.repeat(16)) }, diluxone_users_totp: TOTP },
+		meta: { session_tokens: { ...token(VICTIM_TOKEN), ...token('e2e4'.repeat(16)) }, diluxone_users_sso_google: 'g-victim' },
 	});
 
 	wp(['super-admin', 'add', victim]);
@@ -164,7 +163,7 @@ async function mails(site: Site, email: string): Promise<number> {
 
 async function victimState(w: World): Promise<unknown> {
 	return {
-		meta: await metaOf(w.door, w.victim.email, ['diluxone_users_totp']),
+		meta: await metaOf(w.door, w.victim.email, ['diluxone_users_sso_google']),
 		sessions: (await w.hubSite.user(w.victim.email)).sessions,
 		mail: await mails(w.hubSite, w.victim.email),
 	};
@@ -508,10 +507,10 @@ const ROWS: Row[] = [
 		probe: victimState,
 	},
 	{
-		id: 'Users › a super admin’s second factor removed on /alpha/’s Edit user (user-edit.php)',
+		id: 'Users › a super admin’s network unlinked on /alpha/’s Edit user (user-edit.php)',
 		method: 'POST',
 		url: () => ON('alpha', 'user-edit.php'),
-		fields: (w) => ({ action: 'update', user_id: String(w.victim.id), email: w.victim.email, nickname: 'victim', diluxone_users_forget_totp: '1' }),
+		fields: (w) => ({ action: 'update', user_id: String(w.victim.id), email: w.victim.email, nickname: 'victim', 'diluxone_users_unlink[]': 'google' }),
 		nonce: { field: '_wpnonce', action: (w) => `update-user_${w.victim.id}` },
 		actor: 'super',
 		lacking: 'siteAdmin',

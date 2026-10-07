@@ -119,7 +119,7 @@ test.describe('The other screens of the ways in on a phone', () => {
 	});
 
 	test('the second step fits and holds together, and its code gets in', async ({ page, site, pages, options }) => {
-		await options.set({ diluxone_users_2fa_mode: 'required', diluxone_users_2fa_methods: ['email'], diluxone_users_2fa_remember_days: 30 });
+		await options.set({ diluxone_users_2fa_mode: 'required', diluxone_users_2fa_methods: ['email'] });
 
 		const email = freshEmail('phone-2fa');
 		await site.makeUser({ email, password: PASSWORD });

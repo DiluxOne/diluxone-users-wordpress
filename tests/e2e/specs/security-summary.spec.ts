@@ -91,22 +91,19 @@ test.describe('Security › Summary', () => {
 		await options.set({
 			diluxone_users_2fa_mode: 'required',
 			diluxone_users_2fa_methods: ['email'],
-			diluxone_users_2fa_scope: 'all',
 		});
 
 		await page.goto(adminUrl(SECURITY, 'summary'));
 		await expect(pill(row(page, '2fa', 0))).toHaveClass(/diluxone-users-state--active/);
 
-		// And the state in between, which is the one worth having a summary
-		// for: required of a list of roles that was never filled in reaches
-		// nobody, and the screen it is set on cannot see that.
+		// Roles Users+ Pro left behind are not read without it: still everybody.
 		await options.set({
 			diluxone_users_2fa_scope: 'some',
 			diluxone_users_2fa_roles: [],
 		});
 
 		await page.goto(adminUrl(SECURITY, 'summary'));
-		await expect(pill(row(page, '2fa', 0))).toHaveClass(/diluxone-users-state--pending/);
+		await expect(pill(row(page, '2fa', 0))).toHaveClass(/diluxone-users-state--active/);
 	});
 
 	/*

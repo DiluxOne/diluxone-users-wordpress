@@ -23,7 +23,6 @@ import { Site } from './api';
  * value too: the plugin's default.
  */
 export const VISUAL_OPTIONS: Record<string, unknown> = {
-	diluxone_users_2fa_roles: [],
 	diluxone_users_account_action: "0",
 	diluxone_users_account_avatar: "1",
 	diluxone_users_account_bar_gap: "",
@@ -147,7 +146,6 @@ export const CAST: Person[] = [
 		meta: {
 			first_name: 'Ana',
 			last_name: 'Figueroa',
-			diluxone_users_totp: 'JBSWY3DPEHPK3PXP',
 			diluxone_users_2fa_on: '1',
 			diluxone_users_2fa_pending: null,
 			diluxone_users_sso_google: 'google|10947362514',
@@ -172,7 +170,6 @@ export const CAST: Person[] = [
 		meta: {
 			first_name: 'Lucía',
 			last_name: 'Pereyra',
-			diluxone_users_totp: 'KRSXG5CTMVRXEZLU',
 			diluxone_users_2fa_on: '1',
 			diluxone_users_sso_microsoft: 'microsoft|8f3c2a',
 			diluxone_users_handle: 'lu',
@@ -187,7 +184,6 @@ export const CAST: Person[] = [
 			first_name: 'Tomás',
 			last_name: 'Vega',
 			diluxone_users_handle: 'tomi',
-			diluxone_users_totp_pending: 'WLXUN2BSDI6Y6NNQDSBU434AFKUDNXTQ',
 		},
 	},
 	{
@@ -219,7 +215,6 @@ export const CAST: Person[] = [
 			first_name: 'Valentina',
 			last_name: 'Díaz',
 			diluxone_users_sso_google: 'google|Rk82nQ',
-			diluxone_users_totp: 'MFRGGZDFMZTWQ2LK',
 		},
 	},
 	{

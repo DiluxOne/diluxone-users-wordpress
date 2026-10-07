@@ -87,7 +87,7 @@ tests/e2e/
   global.teardown.ts   puts those settings back and deletes every account the
                        run made
   mu-plugin/           the three things a browser cannot do on its own
-  support/             the REST side door, the locators, a TOTP app, the
+  support/             the REST side door, the locators, the
                        registry of screens, the layout measurements, the
                        baseline settings and WP-CLI for the network suite
   specs/               the flows, and the two suites that look at the screens
@@ -207,7 +207,7 @@ deletes all of them. Nothing else on the site has that domain.
 | `password-login.spec.ts` | The three answers to "how do people get in" — `both`, `password`, `link` — plus **H-05**: with the screens taken over and a password still a way in, the POST to `wp-login.php` has to go through. The escape hatch, and signing out. |
 | `register.spec.ts` | The site's own form with a required field, the link, the answers already saved; an address already taken; registration closed; the six-an-hour burst. |
 | `password-reset.spec.ts` | The three answers to "where is the new password typed" — `wp`, `site`, `link`. For `site`, the whole chain: WordPress's link, the hand-off, the key into a cookie and out of the address, the mismatch, the change, the new password working. |
-| `two-factor.spec.ts` | The code by e-mail and the authenticator app. The five-try limit, the sixty-second resend wait, the expired attempt, "do not ask again on this browser", the backup codes, and the e-mail link *not* asking for a code that goes to the same inbox. |
+| `two-factor.spec.ts` | The code by e-mail. The five-try limit, the sixty-second resend wait, the expired attempt, the backup codes, and the e-mail link *not* asking for a code that goes to the same inbox. |
 | `sso.spec.ts` | A new social account, one that matches an existing address, and **H-01**: an unverified address must not be handed an existing account. Silence treated as silence. "Verified only". Cancelling at the provider. Linking and unlinking. **H-02**: a link trip with no nonce. A forged `state`. |
 | `admin-settings.spec.ts` | Every tab of every settings screen renders with no PHP notice and no footer riding up into the layout; and eight settings changed by pressing Save, each checked on the public page afterwards — including **M-10**, the legal line keeping its link. |
 | `account-area.spec.ts` | The account area as its owner: the guest screen, the menu, the sections that exist only while offered, details and a required field, the photo and its attachment, the public name, the new-device notice and its switch, export and erasure requests, two-step on and off, the app removed with a backup code, new backup codes, closing browsers. |
@@ -236,7 +236,10 @@ product is fixed; it is not loosened and not marked `fixme`.
 - Nothing about passkeys runs here: they are Users+ Pro's, and its own
   repository has their specs (against Chrome's virtual authenticator). This
   suite only asserts that the free plugin offers and names none, and where it
-  draws the Users+ Pro placeholders instead.
+  draws the Users+ Pro placeholders instead. The same goes for the
+  authenticator app, the second step for some roles only and "do not ask
+  again on this browser": here, what Pro left behind is shown to ask the step
+  of everybody, with the code by e-mail, and to skip it for nobody.
 
 ### What this suite already changed
 

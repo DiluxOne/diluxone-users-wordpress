@@ -42,7 +42,6 @@ async function person(site: Site, meta: Record<string, unknown> = {}): Promise<v
 			session_tokens: null,
 			diluxone_users_devices: null,
 			diluxone_users_2fa_on: null,
-			diluxone_users_totp: null,
 			...meta,
 		},
 	});
@@ -172,7 +171,7 @@ test.describe('The sign-in page looks like it did', () => {
 test.describe('The screens after the sign-in look like they did', () => {
 	test('the second step, a code by e-mail', async ({ page, pages, site, options }) => {
 		await options.set({ diluxone_users_2fa_mode: 'optional', diluxone_users_2fa_methods: ['email'] });
-		await person(site, { diluxone_users_2fa_on: '1', diluxone_users_totp: null });
+		await person(site, { diluxone_users_2fa_on: '1' });
 
 		await page.goto(pages.login.url);
 		await signInWithPassword(page, PERSON.email, PERSON.password);
@@ -180,18 +179,6 @@ test.describe('The screens after the sign-in look like they did', () => {
 		await settled(page);
 
 		await expect(challengeScreen(page)).toHaveScreenshot('front-two-step-email.png', { mask: masks(page) });
-	});
-
-	test('the second step, the authenticator app', async ({ page, pages, site, options }) => {
-		await options.set({ diluxone_users_2fa_mode: 'optional', diluxone_users_2fa_methods: ['totp', 'email'] });
-		await person(site, { diluxone_users_2fa_on: '1', diluxone_users_totp: 'JBSWY3DPEHPK3PXP' });
-
-		await page.goto(pages.login.url);
-		await signInWithPassword(page, PERSON.email, PERSON.password);
-		await expect(challengeScreen(page)).toBeVisible();
-		await settled(page);
-
-		await expect(challengeScreen(page)).toHaveScreenshot('front-two-step-app.png', { mask: masks(page) });
 	});
 
 	test('choosing a new password on the site’s page', async ({ page, pages, site, options }) => {

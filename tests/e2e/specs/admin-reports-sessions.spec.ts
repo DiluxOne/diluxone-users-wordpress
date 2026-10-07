@@ -1,6 +1,6 @@
 import { randomBytes } from 'node:crypto';
 import type { Page } from '@playwright/test';
-import { test, expect, expectSignedIn } from '../support/fixtures';
+import { test, expect, expectSignedIn, expectSignedOut } from '../support/fixtures';
 import { codeIn, freshEmail, Site, waitForMail } from '../support/api';
 import { adminUrl, challengeCode, challengeScreen, navigated, signInWithPassword } from '../support/ui';
 import { freshTag, rail } from '../support/admin-ops';
@@ -127,7 +127,7 @@ test.describe('Reports › Open sessions', () => {
 		expect(new URL(page.url()).searchParams.get('user_id')).toBe(String(id));
 	});
 
-	test('closing somebody’s sessions comes back saying so, signs them out and makes the browsers they trusted ask again', async ({
+	test('closing somebody’s sessions comes back saying so and signs them out', async ({
 		page,
 		browser,
 		baseURL,
@@ -139,11 +139,9 @@ test.describe('Reports › Open sessions', () => {
 			diluxone_users_login_method: 'both',
 			diluxone_users_2fa_mode: 'optional',
 			diluxone_users_2fa_methods: ['email'],
-			diluxone_users_2fa_scope: 'all',
-			diluxone_users_2fa_remember_days: 30,
 		});
 
-		const email = freshEmail('rs-trusted');
+		const email = freshEmail('rs-closed');
 
 		await site.makeUser({ email, password: PASSWORD, meta: { diluxone_users_2fa_on: 1 } });
 
@@ -158,20 +156,13 @@ test.describe('Reports › Open sessions', () => {
 		};
 
 		try {
-			// The second step passed once, with "do not ask again on this browser".
+			// In, with the second step.
 			const before = Date.now() / 1000;
 
 			await signIn();
 			await expect(challengeScreen(person)).toBeVisible();
-			await person.locator('input[name="diluxone_users_2fa_trust"]').check();
 			await challengeCode(person).fill(codeIn(await waitForMail(site, email, { after: before })));
 			await navigated(person, () => person.locator('form.diluxone-users-form button[type="submit"]').first().click());
-			await expectSignedIn(person, email);
-
-			// Signed out on their own, then in again: the browser is trusted.
-			await context.clearCookies({ name: /^wordpress/ });
-			await signIn();
-			await expect(challengeScreen(person)).toHaveCount(0);
 			await expectSignedIn(person, email);
 
 			// The administrator closes their sessions from the report.
@@ -182,10 +173,8 @@ test.describe('Reports › Open sessions', () => {
 			await expect(page.locator('.notice-success')).toHaveCount(1);
 			expect((await site.user(email)).sessions).toBe(0);
 
-			// The browser still has its cookie, and it no longer counts.
-			await context.clearCookies({ name: /^wordpress/ });
-			await signIn();
-			await expect(challengeScreen(person), 'closing the sessions forgets the trusted browsers').toBeVisible();
+			// Their browser's cookie no longer opens anything.
+			await expectSignedOut(person);
 		} finally {
 			await context.close();
 		}

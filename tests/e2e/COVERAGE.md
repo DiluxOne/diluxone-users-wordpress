@@ -15,6 +15,9 @@ the account area with a cover, any colour and the map of the theme's colours:
 here a Pro choice stored is drawn as the closest free one and kept on its screen.
 And for making and removing a section of the site's own: here one stored is
 not drawn, and is listed and kept.
+And for the authenticator app, the second step for some roles only and "do
+not ask again on this browser": here what Pro left behind asks the step of
+everybody, with the code by e-mail, and skips it for nobody.
 
 ## Signing in
 
@@ -32,7 +35,7 @@ not drawn, and is listed and kept.
 | Sign in with the public name (handle login) | `account-area` › The public name |
 | Reset: `wp`, `site` (whole chain, reused key), `link` | `password-reset` |
 | Second step by e-mail: code, reuse, five tries, resend wait, timeout, link skip | `two-factor` › by e-mail |
-| Authenticator app: set up from the account, sign in, trusted browser, backup codes | `two-factor` › with an authenticator app |
+| Backup codes: handed over when the step is turned on, one gets in once, another still works | `two-factor` › Backup codes |
 | Social: new account, known verified address, H-01, silence, verified-only, social registration off, cancel, roles, link/unlink, H-02, forged state, buttons off | `sso` |
 | WP-CLI `wp diluxone-users login` link | `network/lifecycle` › WP-CLI |
 | Nobody's form for somebody signed in; `title="yes"`; the site's heading, intro, small print, logo; a Pro layout stored is the card | `signin-page` › What the sign-in page draws, and for whom |
@@ -41,10 +44,10 @@ not drawn, and is listed and kept.
 | Layout `auto`, the arrow keys on the tabs (remembered), the "or" hidden between tabs | `signin-page` › The arrangement of the ways in |
 | Link request: password-only site answers `error`; per-inbox wait ignores capitals; per-machine burst; registration burst; role fallback; unknown public name | `signin-page` › The link request, from the outside |
 | Second step: account lock (`locked`, the wait doubling, cleared by a right code), e-mail code expiry, forged attempt key | `signin-second-step` › The account's own lock, across attempts |
-| App codes: replay refused, activation code spent, "Or use:", app the only method | `signin-second-step` › The authenticator app's codes |
-| Link rule `never` / `auto` with the app, 2FA off, chosen roles, trust box with no days, rewritten code mail | `signin-second-step` › Who is asked, and on which door |
+| A site whose only method was Users+ Pro's app, Pro off: the e-mail code is asked in its place, and somebody with only the app gets in | `signin-second-step` › The app, with Users+ Pro off |
+| Link rule `never`, 2FA off, roles Pro left behind not read (the subscriber is asked), no box to tick whatever days Pro left, rewritten code mail | `signin-second-step` › Who is asked, and on which door |
 | Application passwords and XML-RPC refused once 2FA applies | `signin-second-step` › The doors with no screen… |
-| wp-login.php's second step: resend + `sent`, `locked`, trust box, "Or use:", `retry`, no attempt, a spent link with no page | `signin-wp-login` › wp-login.php's own second step, past the plain code |
+| wp-login.php's second step: resend + `sent`, `locked`, `retry`, no attempt, a spent link with no page | `signin-wp-login` › wp-login.php's own second step, past the plain code |
 | Takeover: `action=register`, `lostpassword` per setting, interim-login, password-protected page, no page chosen, WordPress registration shut on link-only, profile guard `block` and roles, the "I forgot" target, the hatch on a reset | `signin-wp-login` › wp-login.php under the takeover |
 | Safe mode closes the social trip, the site reset and the profile guard | `signin-wp-login` › The emergency switch closes the rest |
 | wp-login.php brand colour, radius, logo; no-cache on a loose shortcode page | `signin-wp-login` › wp-login.php in the site's colours… |
@@ -94,7 +97,7 @@ not drawn, and is listed and kept.
 | Erasure switched off refused by the server | `account-area` › erasure switched off… |
 | Administrator cannot request own erasure, even by hand (`admin`) | `account-area` › an administrator cannot… |
 | Security: two-step by e-mail on/off with a code | `account-area` › Security |
-| Security: authenticator app removed with a backup code; new backup codes | `account-area` › Security |
+| Security: new backup codes | `account-area` › Security |
 | Security: browsers list, close one, close the others | `account-area` › Security |
 | Linked accounts: link and unlink | `sso` › linking from the account area |
 | The pieces on a page of their own (menu, fields, sessions, social networks, photo, public name and its availability check, notifications): nothing to a stranger, each one working | `account-pieces` |
@@ -133,8 +136,8 @@ not drawn, and is listed and kept.
 | Public name: site's reserved list, taken by another account, min/max (box and server, capped 50), spaces dash/reject with the note, e-mail and empty refused, cooldown (locked, no Save, POST refused), switched off (POST writes nothing), handle login off sends no link, `[diluxone_users_handle]` lands on details | `my-account-details` › Public name |
 | Public name box: preview of the address, check link asks at once, own-name and too-short reasons, back to the saved value asks nothing, "could not check" | `my-account-details` › Public name: the box as it is typed in |
 | Notifications: `default_off` (unticked, quiet until ticked, then announced with the device and the account link), security notices off, locked "Always sent" rows, nothing to choose → no form | `my-account-security` › Notifications |
-| Sessions: another account's session cannot be closed with a good nonce; row names browser and system; a store that cannot address one session has no per-row Close; "close the others" forgets trusted browsers | `my-account-security` › Sessions |
-| Two-step: "How you get in" without a password; wrong app code (`badcode`); app removed with a live code; one distinct mail per change; backup codes shown once and counted; required (no off, POST `required`); not offered — off or role left out — (`notoffered`); `nomethod`; off forgets trusted browsers; the link notice | `my-account-security` › Two-step verification |
+| Sessions: another account's session cannot be closed with a good nonce; row names browser and system; a store that cannot address one session has no per-row Close | `my-account-security` › Sessions |
+| Two-step: "How you get in" without a password; on, renewed and off with an e-mailed code, one distinct mail per change, backup codes shown once and counted, no app; required (no off, POST `required`); not offered (`notoffered`); only Users+ Pro's app stored, Pro off: `on` works with the e-mail code; the link notice | `my-account-security` › Two-step verification |
 | Security section without an add-on: the second step right after “How you get in” (the add-on panel place empty), no passkey form, button or word | `my-account-security` › Without an add-on |
 | Your data: dialog closes on backdrop and Esc; duplicate request `error`; copies off refused by hand; section off refused by hand; button label and pills (pending → ok); no-mail warning for administrators only | `my-account-data` › Asking |
 | Confirm links: copy link with no session → `ready`; tampered key (mail and account address) and reused key → `expired`; last step with a wrong key `expired`, by another account `other`; a Tools request keeps WordPress's flow; a tampered held cookie is ignored | `my-account-data` › The links in the e-mails |
@@ -153,7 +156,7 @@ not drawn, and is listed and kept.
 | Account area › In the site menu tab saves location and style | `site-menu` › Account area › In the site menu |
 | wp-login.php branding (Design › WordPress's screens) | `admin-effects` › Design › WordPress's own screens |
 | Toolbar hidden, profile.php sent to the account area | `admin-effects` › Account area › The WordPress dashboard |
-| Users list Access column; forget authenticator; unlink a network | `admin-tools` › WordPress's own Users screens |
+| Users list Access column; unlink a network, no box for Users+ Pro's app | `admin-tools` › WordPress's own Users screens |
 | Add New User takes the e-mail as username | `admin-tools` › Add New User; `network/isolation` › Add New User |
 | Users list Access column pills | `wp-screens-users` › each person’s ways in, as pills |
 | Profile block reads handle, last seen, 2FA, networks, and says nothing of passkeys; Every session → report | `wp-screens-users` › it reads the public name… |
@@ -223,10 +226,9 @@ not drawn, and is listed and kept.
 | Access › Arrangement: `tabs`, `auto` threshold, first tab, junk posted by hand, real drag saves on drop, live preview | `admin-access-arrangement` |
 | Access › Registration: nobody registers with every door unticked (all doors shut, public effects); social door through the tab; WordPress's own form ↔ `users_can_register`; locked while link-only (Settings › General notice); door notes and rail; the at-least-one sentence | `admin-access-register` |
 | Access › Messages: one wording per language, leaving with an edit asks, an emptied box is the plugin's words, the rail count | `admin-access-messages` |
-| Security › 2FA “to whom”: some roles ticked, saved, an administrator asked and a subscriber not | `admin-security-twostep` › to whom: “only some roles” |
-| Security › 2FA methods ticked on the screen are the account's boxes; off with none saved — (a method that is off cannot be ticked back on) | `admin-security-twostep` › with what |
+| Security › 2FA the e-mail method ticked on the screen is the account's, the app is the Users+ Pro card; off with none saved — (a method that is off cannot be ticked back on) | `admin-security-twostep` › with what |
 | Security › 2FA link rule always / never / auto through its radios, rail and summary agree | `admin-security-twostep` › somebody who came by link |
-| Security › 2FA remember days 0 (no trust box, asked again) and 7 (cookie of seven days) | `admin-security-twostep` › remembering a browser |
+| Security › 2FA: the three Users+ Pro cards (roles, app, remember), nothing in them posts, no scope or days control | `admin-security-twostep` › Users+ Pro’s three cards |
 | Security › 2FA not-now lines; rail links; Summary rail links | `admin-security-twostep` › “not now”, the rail’s links, the Summary’s rail |
 | Security › Sessions “without it” days → session expiry | `admin-security-sessions` › “without it” |
 | Security › Sessions summary rows (their own sessions, signed in now); rail links | `admin-security-sessions` › “each person sees…”, the rail leads |
@@ -241,13 +243,13 @@ not drawn, and is listed and kept.
 | Social › Rules pressed on the screen: link by e-mail, verified only, some roles; rail follows registration | `admin-social-rules` › (all) |
 | Status › page checks (none, gone, draft, right; a page without the shortcode draws its form) | `admin-status-checks` › the account page |
 | Status › mail unknown / going out / failing; ways in off with link only and mail failing; headline | `admin-status-checks` › outgoing mail…, mail failing… |
-| Status › rewrite rules heal; social saved but off; HTTPS a warning that names no passkey; usage counts (accounts, public name, social, app) and version | `admin-status-checks` › rewrite rules…, a social provider…, HTTPS…, the usage counts |
+| Status › rewrite rules heal; social saved but off; HTTPS a warning that names no passkey; usage counts (accounts, public name, social; no app without Users+ Pro) and version | `admin-status-checks` › rewrite rules…, a social provider…, HTTPS…, the usage counts |
 | Status › lockout: WP-CLI line works; emergency door is this site's | `admin-status-checks` › the WP-CLI line…, the emergency address… |
 | Tools › close every session (the admin too), sessions put back | `admin-status-tools` › “close every session” |
 | Tools › unknown address, code not sent, notice once, unknown tool, uninstall box | `admin-status-tools` › an address nobody has…, a fresh code that cannot be sent…, the result is said once…, a tool nobody has…, what deleting the plugin takes |
 | Tools › export content; import refusals (not an export, too big, none); foreign keys filtered | `admin-status-tools` › the exported file…, a file that is not an export…, a file that carries more… |
 | Reports › Open sessions: search typed, Clear, Refresh, per page, pages, nobody matches, expired, name → profile | `admin-reports-sessions` › (first three) |
-| Reports › closing sessions: done notice, signed out, trusted 2FA browsers asked again | `admin-reports-sessions` › closing somebody’s sessions |
+| Reports › closing sessions: done notice, signed out | `admin-reports-sessions` › closing somebody’s sessions |
 | Reports › Activity: event list, dates, Clear, per page and pages, person cell | `admin-reports-activity` › (Activity describe) |
 | Reports › Log settings: days, forged group dropped, account and security groups record only while ticked | `admin-reports-activity` › the days kept…, a group that is not one…, “changes to the account”… |
 | Reports › Delete every row asks with the number and says how many (log kept and put back) | `admin-reports-activity` › “Delete every row” |
@@ -271,7 +273,7 @@ not drawn, and is listed and kept.
 | E-mail notices › E-mails: missing `{link}`/`{code}` refused, back to the plugin's words, emptied boxes, unchanged save, second-step / new-device / security templates, another language | `admin-notices` › the e-mails |
 | A save writes only what its screen drew (an unticked box counts when it was drawn); a list or a map keeps the entries it does not know (a second factor, a provider's row, a section of the site's own) | a provider's row: `admin-social-providers` › The grid: a network nothing registers…; the rest not in a browser yet. Integration: `SavesKeepUnknownTest`, `CoverSettingsDesignTest`, `CoverSettingsSocialTest` |
 | A stored sign-in or account shape, or a second factor, nothing offers today: the closest free one on the page, an inactive Pro choice on the screen, kept on save | the Pro layouts and the cover: `admin-design-login`, `admin-design-account`, `signin-page`, `my-account-sections`; a Pro colour: `admin-design-brand`, `design-brand`. Integration: `UnknownChoiceTest`, `DesignSeamsTest` |
-| A Users+ Pro placeholder (picture or card): only in the admin, for its administrators, while the setting is on and `diluxone_users_upsell` allows; inert, nothing posted, escaped link with the screen as its medium | the card after the networks on Social › Providers (`social/providers/more`), with a network nothing registers kept and shown inactive before it: `admin-social-providers` › The grid; the card after the ways in on Access › Ways in (`login/ways/more`): `admin-access-ways` › after the real ways in…, and on the hub `network/admin-access` › Ways in on the hub…; the picture of passkeys under Security › Summary (`security/summary/more`): `security-summary` › under the table…, and in Network Admin `network/admin-security-network` › Network Admin › Security › Summary. the four on Design (`design/login/shapes`, `design/account/shapes`, `design/brand/any-color`, `design/brand/color-map`): `admin-design-login`, `admin-design-account`, `admin-design-brand`. The card under the sections on Account › Sections (`account/sections/more`): `admin-account-sections` › where Users+ Pro’s sections would be. The card after the answers on Network Admin › Membership (`network/membership/rules`): `membership` › saves every site… Integration: `ProPreviewTest`, `CoverSettingsSocialTest`, `DesignSeamsTest` |
+| A Users+ Pro placeholder (picture or card): only in the admin, for its administrators, while the setting is on and `diluxone_users_upsell` allows; inert, nothing posted, escaped link with the screen as its medium | the card after the networks on Social › Providers (`social/providers/more`), with a network nothing registers kept and shown inactive before it: `admin-social-providers` › The grid; the card after the ways in on Access › Ways in (`login/ways/more`): `admin-access-ways` › after the real ways in…, and on the hub `network/admin-access` › Ways in on the hub…; the picture of passkeys under Security › Summary (`security/summary/more`): `security-summary` › under the table…, and in Network Admin `network/admin-security-network` › Network Admin › Security › Summary. the four on Design (`design/login/shapes`, `design/account/shapes`, `design/brand/any-color`, `design/brand/color-map`): `admin-design-login`, `admin-design-account`, `admin-design-brand`. The card under the sections on Account › Sections (`account/sections/more`): `admin-account-sections` › where Users+ Pro’s sections would be. The card after the answers on Network Admin › Membership (`network/membership/rules`): `membership` › saves every site… The three on Security › Two-step verification (`security/2fa/roles`, `security/2fa/app`, `security/2fa/remember`): `admin-security-twostep` › Users+ Pro’s three cards, and in Network Admin `network/admin-security-network` › “required” saved in Network Admin… Integration: `ProPreviewTest`, `CoverSettingsSocialTest`, `DesignSeamsTest` |
 | Maintenance › Tools › Users+ Pro on these screens (single site); Network Admin › Users+ Pro (network) | the tab is in `support/screens.ts`, so `admin-layout` and the network layout spec draw it. Integration: `ProPreviewTest` |
 | A field's key is made in `diluxone_users_field_`; any other key under the prefix is refused unless a field already had it | Unit: `FieldKeyTest`. Integration: `FieldNamespaceTest`, `CoverAdminFieldsTest` |
 | Export and erasure account for the whole `diluxone_users_` namespace by prefix | not in a browser: the data an add-on would keep does not exist yet. Integration: `PrivacyNamespaceTest` |
@@ -359,7 +361,7 @@ In the browser, case by case:
 | /beta/'s toolbar account item is the hub's account; the hub's menu Sign in has no way back elsewhere | `hub-routing` › The admin bar and the menu |
 | wp-signup.php → wp-activate.php: member everywhere under "every site", no removal | `hub-routing` › WordPress’s own sign-up of a network |
 | A domain-mapped site: door to its own wp-login.php, session there | `hub-routing` › A site on a domain of its own, from the front |
-| The hub's account used by a person of another site: TOTP set up then asked from /beta/; details and public name read from /beta/; other sessions closed | `hub-account` › The account on the hub, used by a person of another site |
+| The hub's account used by a person of another site: the second step turned on on the hub, asked from /beta/; details and public name read from /beta/; other sessions closed | `hub-account` › The account on the hub, used by a person of another site |
 | Spent link and failed social trip said on the hub's sign-in page | `signin-doors` › Answers said on the hub's page |
 | Plugin forms and unlink asked of /beta/ go to the hub and change nothing; /beta/ register and lostpassword are the hub's | `signin-doors` › The hub's doors asked of another site |
 | Old /beta/sso/ address: by parameter; by path | `signin-doors` › an old social address on /beta/… |
@@ -446,8 +448,8 @@ In the browser, case by case:
 | The hub's doors sent to /alpha/ (Create page, sections, privacy, fields, social switch, provider form, network and hub panels) refused even to a super admin | `refusals` › Every network door that writes refuses what it should |
 | People tools (close, code, sessions_admin, user-edit block) refused to a site administrator against a super admin | `refusals` › Tools › … from /alpha/ |
 | The hub's Access › Ways: social sign-in forced off is not saved | `refusals` › social sign-in forced off and sent from the hub’s screen stays on |
-| 2FA remember/link, short sessions/show, IP header, social rules saved through their controls and read on every site | `hub-scopes` › The network’s settings, saved through their controls, are every site’s |
-| 2FA for chosen roles saved in Network Admin: an editor of /beta/ asked, a subscriber not | `hub-scopes` › the second step for chosen roles |
+| 2FA link, short sessions/show, IP header, social rules saved through their controls and read on every site | `hub-scopes` › The network’s settings, saved through their controls, are every site’s |
+| 2FA required saved in Network Admin: an editor and a subscriber of /beta/ both asked | `hub-scopes` › the second step required |
 | Log groups saved in Network Admin: an unticked group records nothing | `hub-scopes` › the log’s groups, saved there |
 | A field edited and moved in Network Admin is read by every site and asked by the registration | `hub-scopes` › a field edited and moved there |
 | A provider set up in Network Admin: secret never printed, empty box keeps it, live test, switched on for every site | `hub-scopes` › A provider set up in Network Admin |
@@ -463,8 +465,7 @@ In the browser, case by case:
 | Migration: the wipe is not carried; credentials/field differences recorded by kind with no secret printed; the move on a plain page load | `hub-admin` › The move from per-site settings |
 | A site born leaves the hub's registration doors alone; network deactivation leaves no cron event | `hub-admin` › A site born, and the plugin switched off |
 | Network Admin › Users › Delete; network Edit user saves the plugin's field | `hub-admin` › The network’s Users screens |
-| Network Admin 2FA some roles, needs-one guard, link rule, remember 0, summary | `admin-security-network` › (Two-step describe) |
-| Network Admin 2FA app ticked — | `admin-security-network` › the app ticked in Network Admin |
+| Network Admin 2FA required asked from /alpha/ and /beta/ with the Users+ Pro cards, needs-one guard, link rule, summary | `admin-security-network` › (Two-step describe) |
 | Network Admin session length, sessions box on the hub, proxy header and trusted range on /beta/, rail | `admin-security-network` › (Sessions and the proxy describe) |
 | Network Admin social provider: redirect, credentials, live test via hub, turn on/off, forget | `admin-social-network` › (a provider describe) |
 | Network Admin social rules: link by e-mail, verified only; some roles — | `admin-social-network` › (Rules describe) |
@@ -540,7 +541,6 @@ on wp-login.php, `wp_login`, the seeded fields, the membership confirmation
 | Case | Unit | Integration | E2E single site | E2E network |
 |---|---|---|---|---|
 | No sign-in page: the second step is drawn on wp-login.php (`?action=diluxone_users_2fa`), with a password and the code by e-mail | — | both: `TwoFactorSurfaceTest` › with no page the challenge is drawn by wp-login | `coexistence` › a password and the code by e-mail finish signing in, on wp-login.php | `coexistence` › from /beta/: a password and the code by e-mail on the hub's wp-login.php, back on /beta/ |
-| …with the authenticator app | — | both: `TwoFactorSurfaceTest` (the same screen, any method) | `coexistence` › a password and the authenticator app… | `coexistence` › a password and the authenticator app, on the hub's wp-login.php |
 | …a wrong code comes back to wp-login.php; an attempt that ran out restarts there and says so (`retry`) | — | both: `TwoFactorSurfaceTest` › a wrong code on wp-login…; an attempt that ran out… | `coexistence` › a wrong code comes back to wp-login.php and says so | (the same handler) |
 | A chosen page that is a draft, private, in the bin or behind a password is no page | — | both: `TwoFactorSurfaceTest` › a page nobody can open is no page | — | — |
 | With a sign-in page, the second step is on the page | — | both: `TwoFactorSurfaceTest` › with a page the challenge is drawn by the page; `TwoFactorFlowTest` | `coexistence` › with a sign-in page…; `two-factor` | `coexistence` › with a sign-in page on the hub…; `doors` › the second step… |

@@ -67,7 +67,7 @@ test.describe('The hub’s own pages look like they did', () => {
 
 	test('the second step, after coming from a site', async ({ page, alpha, hub }) => {
 		await hub.set({ diluxone_users_2fa_mode: 'optional', diluxone_users_2fa_methods: ['email'] });
-		await hub.site.makeUser({ email: PERSON.email, password: PERSON.password, name: 'Alex Rivera', meta: { diluxone_users_2fa_on: '1', diluxone_users_totp: null } });
+		await hub.site.makeUser({ email: PERSON.email, password: PERSON.password, name: 'Alex Rivera', meta: { diluxone_users_2fa_on: '1' } });
 
 		await signInFrom(page, alpha, hub, PERSON.email, PERSON.password);
 		await expect(challengeScreen(page)).toBeVisible();

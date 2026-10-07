@@ -1,6 +1,5 @@
 import { test, expect, expectSignedIn, expectSignedOut } from '../support/fixtures';
 import { codeIn, freshEmail, waitForMail } from '../support/api';
-import { avoidWindowEdge, totp, totpPrevious, wrongCode } from '../support/totp';
 import { accountSection, challengeCode, challengeScreen, navigated, notice, openPanel, signInWithPassword } from '../support/ui';
 
 /**
@@ -12,19 +11,13 @@ import { accountSection, challengeCode, challengeScreen, navigated, notice, open
  * that the "send it again" button is not a mail cannon aimed at somebody
  * else's inbox (sixty seconds, DILUXONE_USERS_2FA_RESEND_WAIT).
  *
- * The authenticator app is tested by being one: the secret is read off the
- * screen where a person would point their phone and the six digits are worked
- * out in Node. See tests/e2e/support/totp.ts.
+ * The authenticator app, and "do not ask again on this browser", are Users+
+ * Pro's: its own repository drives them.
  *
  * Covers T-2FA-04, and the halves of T-2FA-02 that a browser can reach.
  */
 
 const PASSWORD = 'e2e-Second-Step-1!';
-
-/** Signs somebody out without touching the cookie that remembers this browser. */
-async function signOutKeepingTrust(page: any): Promise<void> {
-	await page.context().clearCookies({ name: /^wordpress/ });
-}
 
 test.describe('The second step by e-mail', () => {
 	test.beforeEach(async ({ options }) => {
@@ -32,7 +25,6 @@ test.describe('The second step by e-mail', () => {
 			diluxone_users_login_method: 'both',
 			diluxone_users_2fa_mode: 'required',
 			diluxone_users_2fa_methods: ['email'],
-			diluxone_users_2fa_remember_days: 30,
 		});
 	});
 
@@ -72,7 +64,6 @@ test.describe('The second step by e-mail', () => {
 		await expectSignedIn(page, email);
 
 		// Start again and offer the code that already worked once.
-		await signOutKeepingTrust(page);
 		await page.context().clearCookies();
 		await page.goto(pages.login.url);
 		await signInWithPassword(page, email, PASSWORD);
@@ -218,117 +209,22 @@ test.describe('The second step by e-mail', () => {
 	});
 });
 
-test.describe('The second step with an authenticator app', () => {
+test.describe('Backup codes', () => {
 	test.beforeEach(async ({ options }) => {
 		await options.set({
 			diluxone_users_login_method: 'both',
 			diluxone_users_2fa_mode: 'optional',
-			diluxone_users_2fa_methods: ['totp', 'email'],
-			diluxone_users_2fa_remember_days: 30,
+			diluxone_users_2fa_methods: ['email'],
 		});
-	});
-
-	test('set the app up from the account screen, then sign in with it', async ({ page, site, pages }) => {
-		const email = freshEmail('totp');
-		await site.makeUser({ email, password: PASSWORD });
-
-		await page.goto(pages.login.url);
-		await signInWithPassword(page, email, PASSWORD);
-		await expectSignedIn(page, email);
-
-		// The screen where a person points their phone at a QR code. The test
-		// is the phone: it reads the same secret out of the box beside it.
-		await page.goto(accountSection(pages.account.url, 'security'));
-		await openPanel(page, '.diluxone-users-totp__key');
-
-		const secret = (await page.locator('.diluxone-users-totp__key').innerText()).replace(/\s+/g, '');
-		expect(secret, 'a base32 secret').toMatch(/^[A-Z2-7]{16,}$/);
-
-		await avoidWindowEdge();
-
-		const setup = page.locator('form').filter({
-			has: page.locator('input[name="diluxone_users_security"][value="totp"]'),
-		});
-
-		await setup.locator('input[name="diluxone_users_code"]').fill(totp(secret));
-		await Promise.all([
-			page.waitForURL(/diluxone-users=/),
-			setup.locator('button[type="submit"]').click(),
-		]);
-
-		const saved = await site.user(email);
-		expect(saved.meta.diluxone_users_totp, 'the app is registered').not.toBe('');
-		expect(saved.meta.diluxone_users_2fa_on, 'and the second step came on with it').toBe('1');
-
-		// Out, and back in: the password alone is no longer enough.
-		await page.context().clearCookies();
-		await page.goto(pages.login.url);
-		await signInWithPassword(page, email, PASSWORD);
-
-		await expect(challengeScreen(page)).toBeVisible();
-		await expectSignedOut(page);
-
-		// A wrong code is refused before a right one is accepted.
-		await challengeCode(page).fill(wrongCode(secret));
-		await Promise.all([
-			page.waitForURL(/diluxone-users=code/),
-			page.locator('form.diluxone-users-form button[type="submit"]').first().click(),
-		]);
-		await expect(notice(page, 'error')).toBeVisible();
-
-		// The code that turned the app on is spent: the one of the step after
-		// it — the next the phone shows, inside the window — gets in.
-		await avoidWindowEdge();
-		await challengeCode(page).fill(totp(secret, Date.now() + 30_000));
-		await page.locator('form.diluxone-users-form button[type="submit"]').first().click();
-
-		await expectSignedIn(page, email);
-	});
-
-	test('“do not ask again on this browser” means this browser is not asked again', async ({
-		page,
-		site,
-		pages,
-	}) => {
-		const email = freshEmail('trust');
-		const secret = 'JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP';
-
-		await site.makeUser({
-			email,
-			password: PASSWORD,
-			meta: { diluxone_users_totp: secret, diluxone_users_2fa_on: 1 },
-		});
-
-		await page.goto(pages.login.url);
-		await signInWithPassword(page, email, PASSWORD);
-		await expect(challengeScreen(page)).toBeVisible();
-
-		await avoidWindowEdge();
-		await challengeCode(page).fill(totp(secret));
-		await page.locator('input[name="diluxone_users_2fa_trust"]').check();
-		await page.locator('form.diluxone-users-form button[type="submit"]').first().click();
-		await expectSignedIn(page, email);
-
-		// Out, but the browser keeps the cookie that says it already proved it.
-		await signOutKeepingTrust(page);
-		await expectSignedOut(page);
-
-		await page.goto(pages.login.url);
-		await signInWithPassword(page, email, PASSWORD);
-
-		// Straight in: no second screen.
-		await expect(challengeScreen(page)).toHaveCount(0);
-		await expectSignedIn(page, email);
 	});
 
 	test('a backup code gets somebody in, and only once', async ({ page, site, pages }) => {
 		const email = freshEmail('backup');
-		const secret = 'KRSXG5CTMVRXEZLUKRSXG5CTMVRXEZLU';
 
-		// The app is there but the second step is NOT on yet: turning it on is
-		// what makes the backup codes, and they are shown exactly once, which
-		// is why they have to be read from the screen that makes them.
-		await site.makeUser({ email, password: PASSWORD, meta: { diluxone_users_totp: secret } });
+		// The second step is NOT on yet: turning it on is what makes the
+		// backup codes, and they are shown exactly once, which is why they
+		// have to be read from the screen that makes them.
+		await site.makeUser({ email, password: PASSWORD });
 
 		await page.goto(pages.login.url);
 		await signInWithPassword(page, email, PASSWORD);
@@ -354,8 +250,8 @@ test.describe('The second step with an authenticator app', () => {
 		await signInWithPassword(page, email, PASSWORD);
 		await expect(challengeScreen(page)).toBeVisible();
 
-		// It goes in the same box as the app's code: that is the whole point of
-		// a backup code — it is for when the app is not at hand.
+		// It goes in the same box as the e-mailed code: that is the whole point
+		// of a backup code — it is for when the inbox is not at hand.
 		await challengeCode(page).fill(backup[0]);
 		await page.locator('form.diluxone-users-form button[type="submit"]').first().click();
 		await expectSignedIn(page, email);

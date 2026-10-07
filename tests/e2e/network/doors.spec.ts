@@ -181,8 +181,6 @@ test.describe('A site of the network has no sign-in of its own: its doors are th
 		await hub.set({
 			diluxone_users_2fa_mode: 'required',
 			diluxone_users_2fa_methods: ['email'],
-			diluxone_users_2fa_scope: 'all',
-			diluxone_users_2fa_remember_days: 0,
 			diluxone_users_login_method: 'both',
 		});
 

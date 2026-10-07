@@ -904,7 +904,6 @@ function diluxone_e2e_user_read( WP_REST_Request $request ): WP_REST_Response {
 				'first_name'          => (string) get_user_meta( $user->ID, 'first_name', true ),
 				'last_name'           => (string) get_user_meta( $user->ID, 'last_name', true ),
 				'diluxone_users_2fa_on' => (string) get_user_meta( $user->ID, 'diluxone_users_2fa_on', true ),
-				'diluxone_users_totp' => (string) get_user_meta( $user->ID, 'diluxone_users_totp', true ),
 				'diluxone_users_sso_mock' => (string) get_user_meta( $user->ID, 'diluxone_users_sso_mock', true ),
 			),
 			'fields'   => diluxone_e2e_user_fields( (int) $user->ID, (string) $request->get_param( 'fields' ) ),
@@ -1000,7 +999,6 @@ function diluxone_e2e_user_write( WP_REST_Request $request ): WP_REST_Response {
 			'id'       => $id,
 			'email'    => $email,
 			'password' => $pass,
-			'totp'     => (string) get_user_meta( $id, 'diluxone_users_totp', true ),
 		)
 	);
 }

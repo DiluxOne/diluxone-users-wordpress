@@ -162,7 +162,7 @@ export class Site {
 		meta?: Record<string, unknown>;
 		/** An account that already exists keeps its password; `password` in the answer is then ''. */
 		keep_password?: boolean;
-	}): Promise<{ id: number; email: string; password: string; totp: string }> {
+	}): Promise<{ id: number; email: string; password: string }> {
 		return this.call('post', '/user', user);
 	}
 

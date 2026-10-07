@@ -65,7 +65,7 @@ test.describe('Network Admin has the network’s screens', () => {
 test.describe('What is saved in Network Admin is every site’s', () => {
 	test('the second step required there is asked of whoever signs in from /alpha/ or /beta/', async ({ page, guest, hub, alpha, beta }) => {
 		// Written down first, so the fixture puts back what was there.
-		await hub.set({ diluxone_users_2fa_mode: 'optional', diluxone_users_2fa_methods: ['totp', 'email'], diluxone_users_2fa_scope: 'all' });
+		await hub.set({ diluxone_users_2fa_mode: 'optional', diluxone_users_2fa_methods: ['email'] });
 
 		await page.goto(network('admin.php?page=diluxone-users-security&tab=2fa'));
 		await page.locator('input[name="diluxone_users_2fa_mode"][value="required"]').check();
