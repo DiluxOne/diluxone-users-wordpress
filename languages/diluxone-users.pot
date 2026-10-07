@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-07T04:55:43+00:00\n"
+"POT-Creation-Date: 2026-10-07T06:01:03+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: diluxone-users\n"
@@ -666,7 +666,7 @@ msgstr ""
 #: includes/admin-account.php:520
 #: includes/admin-log.php:843
 #: includes/admin-log.php:874
-#: includes/admin-membership.php:388
+#: includes/admin-membership.php:403
 #: includes/admin-panels.php:158
 #: includes/admin-social.php:1041
 #: includes/admin-tools.php:106
@@ -3580,96 +3580,74 @@ msgstr ""
 msgid "Every account is a member of every live site of the network."
 msgstr ""
 
-#: includes/admin-membership.php:137
-msgid "Whoever asks"
-msgstr ""
-
-#. translators: %s: the name of the site where the network's accounts live
-#: includes/admin-membership.php:140
-#, php-format
-msgid "An account is a member of %s, where it lives. On any other site, somebody signed in who is not a member is offered “Join this site”, and joins with that site’s New User Default Role."
-msgstr ""
-
-#. translators: %s: the name of the site where the network's accounts live
-#: includes/admin-membership.php:145
-#, php-format
-msgid "Accounts are members of %s, and join any other site with a click."
-msgstr ""
-
-#: includes/admin-membership.php:150
-msgid "By invitation"
-msgstr ""
-
-#. translators: %s: the name of the site where the network's accounts live
-#: includes/admin-membership.php:153
-#, php-format
-msgid "An account is a member of %s, where it lives. Only a site’s administrators add people to it; somebody signed in who is not a member is told the site is by invitation."
-msgstr ""
-
-#. translators: %s: the name of the site where the network's accounts live
-#: includes/admin-membership.php:158
-#, php-format
-msgid "Accounts are members of %s; administrators add them to any other site."
-msgstr ""
-
 #. translators: %s: the e-mail address of a new account
-#: includes/admin-membership.php:177
+#: includes/admin-membership.php:179
 #, php-format
 msgid "A new account, %s, on every site"
 msgstr ""
 
 #. translators: %s: the name of a new site
-#: includes/admin-membership.php:183
+#: includes/admin-membership.php:185
 #, php-format
 msgid "Every account on a new site, %s"
 msgstr ""
 
-#: includes/admin-membership.php:187
+#: includes/admin-membership.php:189
 msgid "Everybody on every site"
 msgstr ""
 
 #. translators: %s: the name of the site where the network's accounts live
-#: includes/admin-membership.php:204
+#: includes/admin-membership.php:206
 #, php-format
 msgid "The policy chosen is not active: accounts are members of %s only, and nobody is added to any other site until a policy is chosen again."
 msgstr ""
 
-#: includes/admin-membership.php:213
+#: includes/admin-membership.php:215
 msgid "Everybody is a member of every live site now."
 msgstr ""
 
-#: includes/admin-membership.php:215
+#: includes/admin-membership.php:217
 msgid "Adding everybody to every site has started. It goes on in the background, a batch at a time; its progress is below."
 msgstr ""
 
-#: includes/admin-membership.php:220
+#: includes/admin-membership.php:222
 msgid "An account belongs to the whole network; being a member of a site — having a role on it — is each site’s. This decides which sites an account is a member of, for every site of the network."
 msgstr ""
 
-#: includes/admin-membership.php:222
+#: includes/admin-membership.php:224
 msgid "Who is a member of which site"
 msgstr ""
 
 #. translators: %s: the name of the site where the network's accounts live
-#: includes/admin-membership.php:243
+#: includes/admin-membership.php:245
 #, php-format
 msgid "accounts that are members of %s only"
 msgstr ""
 
-#: includes/admin-membership.php:254
+#: includes/admin-membership.php:257
+msgid "Whoever asks, or by invitation"
+msgstr ""
+
+#. translators: %s: the name of the site where the network's accounts live
+#: includes/admin-membership.php:260
+#, php-format
+msgid "Users+ Pro adds two more answers: accounts are members of %s, and join any other site with a click on “Join this site” — or only its administrators add them."
+msgstr ""
+
+#: includes/admin-membership.php:269
 msgid "Not confirmed yet: until it is, none of this happens and WordPress’s own memberships stand. The button beside confirms the answer that is ticked; under “Every site”, confirming it adds every account to every live site."
 msgstr ""
 
-#: includes/admin-membership.php:263
+#: includes/admin-membership.php:278
 msgid "The policy is waiting to be confirmed: nobody is added to any site by it yet."
 msgstr ""
 
-#: includes/admin-membership.php:265
+#: includes/admin-membership.php:280
 msgid "not confirmed"
 msgstr ""
 
 #. translators: %s: number of sites
-#: includes/admin-membership.php:275
+#: includes/admin-membership.php:290
 #, php-format
 msgid "%s live site."
 msgid_plural "%s live sites."
@@ -3677,66 +3655,66 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %s: number of jobs
-#: includes/admin-membership.php:285
+#: includes/admin-membership.php:300
 #, php-format
 msgid "%s job is adding people in the background."
 msgid_plural "%s jobs are adding people in the background."
 msgstr[0] ""
 msgstr[1] ""
 
-#: includes/admin-membership.php:296
+#: includes/admin-membership.php:311
 msgid "A removal is a decision"
 msgstr ""
 
-#: includes/admin-membership.php:298
-msgid "Somebody an administrator removes from a site is not added back to it by any of this — not by the policy, not by signing in, not by “Join this site” — until an administrator adds them again."
-msgstr ""
-
-#: includes/admin-membership.php:299
-msgid "Super admins reach every site already and are never added. Archived, spam and deleted sites get nobody."
-msgstr ""
-
-#: includes/admin-membership.php:304
-msgid "Where the members are"
-msgstr ""
-
-#: includes/admin-membership.php:308
-msgid "Network Admin › Users"
-msgstr ""
-
-#: includes/admin-membership.php:309
-msgid "Every account, and the sites each one is a member of."
-msgstr ""
-
 #: includes/admin-membership.php:313
-msgid "Network Admin › Sites"
+msgid "Somebody an administrator removes from a site is not added back to it by any of this — not by the policy, not by signing in, not by asking — until an administrator adds them again."
 msgstr ""
 
 #: includes/admin-membership.php:314
+msgid "Super admins reach every site already and are never added. Archived, spam and deleted sites get nobody."
+msgstr ""
+
+#: includes/admin-membership.php:319
+msgid "Where the members are"
+msgstr ""
+
+#: includes/admin-membership.php:323
+msgid "Network Admin › Users"
+msgstr ""
+
+#: includes/admin-membership.php:324
+msgid "Every account, and the sites each one is a member of."
+msgstr ""
+
+#: includes/admin-membership.php:328
+msgid "Network Admin › Sites"
+msgstr ""
+
+#: includes/admin-membership.php:329
 msgid "Each site’s own users, and its New User Default Role under Settings."
 msgstr ""
 
-#: includes/admin-membership.php:338
+#: includes/admin-membership.php:353
 msgid "The accounts and sites already there"
 msgstr ""
 
-#: includes/admin-membership.php:339
+#: includes/admin-membership.php:354
 msgid "New accounts and new sites follow the policy on their own. What existed before it is added with this. Removals made by an administrator stay."
 msgstr ""
 
 #. translators: 1: percentage done, 2: additions looked at, 3: additions in all
-#: includes/admin-membership.php:353
+#: includes/admin-membership.php:368
 #, php-format
 msgid "%1$s%% (%2$s of %3$s)"
 msgstr ""
 
 #. translators: 1: number of accounts, 2: number of sites
-#: includes/admin-membership.php:371
+#: includes/admin-membership.php:386
 #, php-format
 msgid "Every one of the %1$s accounts becomes a member of every one of the %2$s live sites it is not a member of yet, except where an administrator removed it. Go ahead?"
 msgstr ""
 
-#: includes/admin-membership.php:376
+#: includes/admin-membership.php:391
 msgid "Sync everyone now"
 msgstr ""
 
@@ -6934,22 +6912,16 @@ msgstr ""
 msgid "Name only"
 msgstr ""
 
-#: includes/site-menu.php:130
-#: templates/join.php:25
-#: templates/join.php:49
-msgid "Join this site"
-msgstr ""
-
-#: includes/site-menu.php:139
-#: templates/join.php:30
+#: includes/site-menu.php:157
+#: templates/join.php:26
 msgid "This site is by invitation"
 msgstr ""
 
-#: includes/site-menu.php:149
+#: includes/site-menu.php:167
 msgid "Go to the WordPress dashboard"
 msgstr ""
 
-#: includes/site-menu.php:151
+#: includes/site-menu.php:169
 msgid "Sign out"
 msgstr ""
 
@@ -7607,23 +7579,17 @@ msgid "Open your account"
 msgstr ""
 
 #. translators: 1: the name of this site, 2: the name of the site where the network's accounts live
-#: templates/join.php:27
-#, php-format
-msgid "You are signed in with your account from %2$s, and you are not a member of %1$s yet. Join it to take part here."
-msgstr ""
-
-#. translators: 1: the name of this site, 2: the name of the site where the network's accounts live
-#: templates/join.php:32
+#: templates/join.php:28
 #, php-format
 msgid "You are signed in with your account from %2$s, and you are not a member of %1$s. Only its administrators add people to it."
 msgstr ""
 
-#: templates/join.php:35
+#: templates/join.php:31
 msgid "Welcome"
 msgstr ""
 
 #. translators: 1: the name of this site, 2: the name of the site where the network's accounts live
-#: templates/join.php:37
+#: templates/join.php:33
 #, php-format
 msgid "You are a member of %1$s now, with your account from %2$s."
 msgstr ""

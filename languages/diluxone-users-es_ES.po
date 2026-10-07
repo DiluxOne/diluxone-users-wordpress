@@ -9182,53 +9182,6 @@ msgstr ""
 msgid "Every account is a member of every live site of the network."
 msgstr "Cada cuenta es miembro de todos los sitios activos de la red."
 
-#: includes/admin-membership.php:137
-msgid "Whoever asks"
-msgstr "Quien lo pida"
-
-#. translators: %s: the name of the site where the network's accounts live
-#: includes/admin-membership.php:140
-#, php-format
-msgid ""
-"An account is a member of %s, where it lives. On any other site, somebody "
-"signed in who is not a member is offered “Join this site”, and joins with "
-"that site’s New User Default Role."
-msgstr ""
-"Una cuenta es miembro de %s, donde vive. En cualquier otro sitio, a quien "
-"haya iniciado sesión sin ser miembro se le ofrece «Unirse a este sitio», y "
-"se une con el perfil predeterminado para usuarios nuevos de ese sitio."
-
-#. translators: %s: the name of the site where the network's accounts live
-#: includes/admin-membership.php:145
-#, php-format
-msgid "Accounts are members of %s, and join any other site with a click."
-msgstr ""
-"Las cuentas son miembros de %s y se unen a cualquier otro sitio con un clic."
-
-#: includes/admin-membership.php:150
-msgid "By invitation"
-msgstr "Por invitación"
-
-#. translators: %s: the name of the site where the network's accounts live
-#: includes/admin-membership.php:153
-#, php-format
-msgid ""
-"An account is a member of %s, where it lives. Only a site’s administrators "
-"add people to it; somebody signed in who is not a member is told the site is"
-" by invitation."
-msgstr ""
-"Una cuenta es miembro de %s, donde vive. Solo los administradores de un "
-"sitio añaden gente a él; a quien haya iniciado sesión sin ser miembro se le "
-"dice que el sitio es por invitación."
-
-#. translators: %s: the name of the site where the network's accounts live
-#: includes/admin-membership.php:158
-#, php-format
-msgid "Accounts are members of %s; administrators add them to any other site."
-msgstr ""
-"Las cuentas son miembros de %s; los administradores las añaden a cualquier "
-"otro sitio."
-
 #. translators: %s: the e-mail address of a new account
 #: includes/admin-membership.php:177
 #, php-format
@@ -9291,15 +9244,9 @@ msgstr[1] "%s tareas están añadiendo gente en segundo plano."
 msgid "A removal is a decision"
 msgstr "Una baja es una decisión"
 
-#: includes/admin-membership.php:298
-msgid ""
-"Somebody an administrator removes from a site is not added back to it by any"
-" of this — not by the policy, not by signing in, not by “Join this site” — "
-"until an administrator adds them again."
-msgstr ""
-"A quien un administrador quita de un sitio, nada de esto lo vuelve a añadir "
-"—ni la política, ni iniciar sesión, ni «Unirse a este sitio»— hasta que un "
-"administrador lo añada de nuevo."
+#: includes/admin-membership.php:313
+msgid "Somebody an administrator removes from a site is not added back to it by any of this — not by the policy, not by signing in, not by asking — until an administrator adds them again."
+msgstr "A quien un administrador quita de un sitio, nada de esto lo vuelve a añadir —ni la política, ni iniciar sesión, ni pedirlo— hasta que un administrador lo añada de nuevo."
 
 #: includes/admin-membership.php:299
 msgid ""
@@ -9358,24 +9305,9 @@ msgstr ""
 msgid "Sync everyone now"
 msgstr "Sincronizar a todos ahora"
 
-#: includes/site-menu.php:130 templates/join.php:25 templates/join.php:49
-msgid "Join this site"
-msgstr "Unirse a este sitio"
-
 #: includes/site-menu.php:139 templates/join.php:30
 msgid "This site is by invitation"
 msgstr "Este sitio es por invitación"
-
-#. translators: 1: the name of this site, 2: the name of the site where the
-#. network's accounts live
-#: templates/join.php:27
-#, php-format
-msgid ""
-"You are signed in with your account from %2$s, and you are not a member of "
-"%1$s yet. Join it to take part here."
-msgstr ""
-"Has iniciado sesión con tu cuenta de %2$s y todavía no eres miembro de %1$s."
-" Únete para participar aquí."
 
 #. translators: 1: the name of this site, 2: the name of the site where the
 #. network's accounts live
@@ -10260,3 +10192,13 @@ msgid ""
 "name, address and who sees it."
 msgstr ""
 "Users+ Pro añade secciones propias del sitio al área de cuenta: tu texto, o el shortcode de un curso, una membresía o un servicio de soporte, cada una con su nombre, su dirección y quién la ve."
+
+#: includes/admin-membership.php:257
+msgid "Whoever asks, or by invitation"
+msgstr "Quien lo pida, o por invitación"
+
+#. translators: %s: the name of the site where the network's accounts live
+#: includes/admin-membership.php:260
+#, php-format
+msgid "Users+ Pro adds two more answers: accounts are members of %s, and join any other site with a click on “Join this site” — or only its administrators add them."
+msgstr "Users+ Pro añade dos respuestas más: las cuentas son miembros de %s y se unen a cualquier otro sitio con un clic en «Unirse a este sitio», o solo sus administradores las añaden."
