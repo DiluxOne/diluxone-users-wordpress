@@ -91,11 +91,11 @@ function diluxone_users_cookie_set( string $name, string $value, int $expires ):
 /* ── The second factors available ──────────────────────────────────── */
 
 /*
- * * A passkey is not on this list, and that is not an oversight: it is not a
- * * second factor but a way in that already carries both inside — something
- * * you have, the device, and something you are or know, the fingerprint or
- * * the PIN. Putting it here would mean asking three things of someone who
- * * already gave two.
+ * * A way in that already carries both factors inside — something you have
+ * * and something you are or know — is not on this list, and that is not an
+ * * oversight: it is not a second factor, and asking for one on top of it
+ * * would be asking three things of someone who already gave two. Such a way
+ * * registers with `strong` (diluxone_users_way_strong()).
  */
 
 /**
@@ -349,9 +349,8 @@ function diluxone_users_2fa_worth_it_on_link( int $user_id ): bool {
  * belongs to the e-mail link alone, because there the second code would go to
  * the same inbox the person just opened.
  *
- * Passkeys are not on the list because they do not come through here: a
- * passkey is already two factors in one step, and that is accounted for in
- * its own box.
+ * A way in registered as `strong` is not on the list because it does not come
+ * through here: it is already two factors in one step.
  *
  * @return array<string, array{label: string, asked: bool}>
  */
@@ -479,21 +478,22 @@ function diluxone_users_2fa_trust( int $user_id ): void {
  * factor.
  *
  * @param int    $user_id  Who is coming in.
- * @param string $via      Through which door: 'password', 'link' or 'sso'.
+ * @param string $via      Through which door: 'password', 'link', 'sso', or the
+ *                         id of an add-on's way in.
  * @param bool   $remember Long session.
  * @param string $redirect Where they go afterwards.
  */
 function diluxone_users_complete_login( int $user_id, string $via, bool $remember = true, string $redirect = '' ): void {
 	// Every door ends here once the person has proved who they are — the link
-	// clicked, the provider answered, the passkey signed — and on a network
+	// clicked, the provider answered, an add-on's key signed — and on a network
 	// that is the moment they become a member of this site, if it takes
 	// members. Not before: asking for a link proves nothing.
 	diluxone_users_join_site( $user_id );
 
 	$redirect = '' !== $redirect ? $redirect : (string) apply_filters( 'diluxone_users_login_redirect', home_url( '/' ), $user_id );
 
-	// A passkey goes straight in: it already proved both things.
-	if ( 'passkey' === $via || ! diluxone_users_2fa_required( $user_id, $via ) || diluxone_users_2fa_trusted( $user_id ) ) {
+	// A door that already proved both things goes straight in.
+	if ( diluxone_users_way_strong( $via ) || ! diluxone_users_2fa_required( $user_id, $via ) || diluxone_users_2fa_trusted( $user_id ) ) {
 		diluxone_users_open_session( $user_id, $via, $remember );
 
 		wp_safe_redirect( $redirect );
@@ -510,14 +510,14 @@ function diluxone_users_complete_login( int $user_id, string $via, bool $remembe
  * WordPress announces every sign-in with `wp_login`, and half the plugins a
  * site runs hang off it: a security plugin counting sign-ins, a membership
  * plugin starting a trial, an analytics tag. A sign-in through one of this
- * plugin's own doors — the e-mail link, a social account, a passkey, the end
+ * plugin's own doors — the e-mail link, a social account, an add-on's, the end
  * of the second step — never went through wp_signon(), so none of them heard
  * it. Now each door fires it, with the login name and the account like core,
  * once the session really is open.
  *
  * @param int    $user_id  Who came in.
- * @param string $via      Through which door: 'link', 'sso', 'passkey', or the
- *                         door the second step was asked on.
+ * @param string $via      Through which door: 'link', 'sso', an add-on's way
+ *                         in, or the door the second step was asked on.
  * @param bool   $remember Long session.
  */
 function diluxone_users_open_session( int $user_id, string $via, bool $remember ): void {

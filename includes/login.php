@@ -31,18 +31,6 @@
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Does this install have passkeys at all?
- *
- * Passkeys is one feature in two files. Everything outside those two asks
- * this instead of calling into them, so an install without them gets a screen
- * with one row fewer rather than a fatal error. It is also the shape every
- * optional feature will take.
- */
-function diluxone_users_has_passkeys(): bool {
-	return function_exists( 'diluxone_users_passkeys_enabled' ) && diluxone_users_passkeys_enabled();
-}
-
-/**
  * The shape of the sign-in page.
  *
  * Four answers and only one of them leaves the page alone. A site with a
@@ -309,8 +297,8 @@ function diluxone_users_icon( string $name, int $size = 0 ): string {
 	$paths = array(
 		'mail'    => '<rect x="2.5" y="4.5" width="19" height="15" rx="2"></rect><path d="m3 6 9 6.5L21 6"></path>',
 		'info'    => '<circle cx="12" cy="12" r="9"></circle><path d="M12 16v-5M12 8h.01"></path>',
-		// The passkey: a key, because that is what everybody's operating
-		// system draws on the prompt this button opens.
+		// A key, for a way in that is a key: that is what everybody's
+		// operating system draws on the prompt such a button opens.
 		'key'     => '<circle cx="8" cy="12" r="4"></circle><path d="M12 12h9M18 12v4M15.5 12v3"></path>',
 
 		/*

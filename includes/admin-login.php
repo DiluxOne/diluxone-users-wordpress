@@ -28,8 +28,9 @@ function diluxone_users_screen_login(): void {
 /**
  * Its tabs. Registration registers its own from its own file, onto this
  * screen; two-step verification lives on Security and is shown here only as
- * state. Passkeys are switched on here, with the other ways in, and set up on
- * Security: turning a door on is a question about doors.
+ * state. An add-on's way in is switched on here, with the other ways in
+ * (`diluxone_users_way_switches`), and set up where the feature lives:
+ * turning a door on is a question about doors.
  */
 function diluxone_users_login_panels(): void {
 	diluxone_users_register_panel(
@@ -117,6 +118,58 @@ function diluxone_users_login_page_save(): void {
 }
 
 /**
+ * The boxes an add-on's way in puts on Access › Ways in.
+ *
+ * Keyed by the setting each one writes — 1 ticked, 0 not — which the add-on
+ * has added through `diluxone_users_option_defaults` and given a scope. A key
+ * the plugin does not know as a setting is left out: the box would save
+ * nothing.
+ *
+ * @return array<string, array{title: string, help: string, state: string, note: string, settings: array<string, string>}>
+ */
+function diluxone_users_way_switches(): array {
+	/**
+	 * Filters the boxes of the ways in an add-on brings.
+	 *
+	 * Each one under the key of its setting: `title` and `help` (what the box
+	 * says), optionally `state` (`pending`) and `note` (why), and `settings`
+	 * (`url`, `label`, `help`: where the rest of the feature is set up, listed
+	 * beside the boxes).
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param array<string, array<string, mixed>> $switches Nothing, from the plugin.
+	 */
+	$switches = (array) apply_filters( 'diluxone_users_way_switches', array() );
+	$known    = diluxone_users_option_defaults();
+	$clean    = array();
+
+	foreach ( $switches as $key => $switch ) {
+		if ( ! is_string( $key ) || ! array_key_exists( $key, $known ) || ! is_array( $switch ) || ! isset( $switch['title'] ) ) {
+			continue;
+		}
+
+		$settings = (array) ( $switch['settings'] ?? array() );
+
+		$clean[ $key ] = array(
+			'title'    => (string) $switch['title'],
+			'help'     => (string) ( $switch['help'] ?? '' ),
+			'state'    => (string) ( $switch['state'] ?? '' ),
+			'note'     => (string) ( $switch['note'] ?? '' ),
+			'settings' => isset( $settings['url'], $settings['label'] )
+				? array(
+					'url'   => (string) $settings['url'],
+					'label' => (string) $settings['label'],
+					'help'  => (string) ( $settings['help'] ?? '' ),
+				)
+				: array(),
+		);
+	}
+
+	return $clean;
+}
+
+/**
  * What a site with no way into it is told.
  *
  * One sentence in one place, said twice: beside the boxes while the form is
@@ -167,14 +220,13 @@ function diluxone_users_login_ways_save(): bool {
 	);
 
 	/*
-	 * Passkeys are switched on here, with the other ways in, and set up on
-	 * Security, where the feature lives. Only when the feature is installed:
-	 * an install without it never draws the box, and writing a 0 for a box
-	 * nobody drew is how a setting gets turned off by somebody who came to
-	 * change something else.
+	 * An add-on's way in is switched on here, with the other ways in, and set
+	 * up where its feature lives. Only the boxes that are drawn: an add-on
+	 * that is off draws none, and writing a 0 for a box nobody drew is how a
+	 * setting gets turned off by somebody who came to change something else.
 	 */
-	if ( function_exists( 'diluxone_users_passkeys_enabled' ) ) {
-		$saved['diluxone_users_passkey_enabled'] = isset( $_POST['diluxone_users_passkey_enabled'] ) ? 1 : 0;
+	foreach ( array_keys( diluxone_users_way_switches() ) as $key ) {
+		$saved[ $key ] = isset( $_POST[ $key ] ) ? 1 : 0;
 	}
 
 	/*
@@ -264,14 +316,18 @@ function diluxone_users_doors(): array {
 		'url'    => diluxone_users_admin_url( 'diluxone-users-social' ),
 	);
 
-	$rows[] = array(
-		'label'  => __( 'A passkey', 'diluxone-users' ),
-		'state'  => diluxone_users_has_passkeys() ? 'active' : 'off',
-		'detail' => diluxone_users_has_passkeys()
-			? esc_html__( 'For whoever added one. It counts as both steps at once.', 'diluxone-users' )
-			: esc_html__( 'Not offered.', 'diluxone-users' ),
-		'url'    => $tab( 'ways' ),
-	);
+	/**
+	 * Filters the ways in on Access › Summary, before how an account is made.
+	 *
+	 * An add-on's way in says here whether it is open, in the shape of a
+	 * summary row (label, state, and optionally why, word, detail, url and
+	 * change), read from the settings it writes.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param array<int, array<string, string>> $rows The page and the plugin's own ways in.
+	 */
+	$rows = array_values( (array) apply_filters( 'diluxone_users_doors', $rows ) );
 
 	// The same reading the registration tab does, and the same one it calls
 	// open or closed: this row is that answer said in a line.
@@ -349,7 +405,7 @@ function diluxone_users_screen_login_summary(): void {
 					array(
 						'url'   => diluxone_users_admin_url( 'diluxone-users-security' ),
 						'label' => __( 'Security', 'diluxone-users' ),
-						'help'  => __( 'The second step asked for after the door, and what a passkey has to prove.', 'diluxone-users' ),
+						'help'  => __( 'Whether a second step is asked for after the door.', 'diluxone-users' ),
 					),
 					array(
 						'url'   => diluxone_users_admin_url( DILUXONE_USERS_NOTICES, array( 'tab' => 'templates' ) ),
@@ -572,7 +628,7 @@ function diluxone_users_screen_login_ways(): void {
 
 	$social   = diluxone_users_sso_working_names();
 	$handles  = (bool) diluxone_users_option( 'diluxone_users_handle_enabled' );
-	$passkeys = function_exists( 'diluxone_users_passkeys_enabled' );
+	$switches = diluxone_users_way_switches();
 
 	diluxone_users_intro( __( 'With what somebody who already has an account gets in. Every way in is a box: tick the ones this site offers. What each one does once it is on is set where that feature lives, and who gets an account at all is the Registration tab.', 'diluxone-users' ) );
 
@@ -660,10 +716,10 @@ function diluxone_users_screen_login_ways(): void {
 
 	/*
 	 * Switching a way in on belongs with the other ways in; what it does once
-	 * it is on belongs where the feature lives. So both boxes are here and
-	 * both cards carry the way to the rest of their settings — the passkeys
-	 * box used to be on Security, which is why nobody found it from the one
-	 * screen that lists the doors.
+	 * it is on belongs where the feature lives. So every box is here, an
+	 * add-on's too, and the rail carries the way to the rest of their
+	 * settings — a box that lived with its feature was a box nobody found
+	 * from the one screen that lists the doors.
 	 */
 	diluxone_users_ui_section( __( 'Other ways in', 'diluxone-users' ), __( 'Switched on here, one by one, and none of them is needed: they are buttons under the form above, not a replacement for it.', 'diluxone-users' ) );
 
@@ -690,35 +746,49 @@ function diluxone_users_screen_login_ways(): void {
 		),
 	);
 
-	if ( $passkeys ) {
-		$diluxone_users_insecure = ! is_ssl() && 'local' !== wp_get_environment_type();
-
+	foreach ( $switches as $key => $switch ) {
 		$diluxone_users_ways[] = array(
 			'type'    => 'checkbox',
-			'name'    => 'diluxone_users_passkey_enabled',
+			'name'    => $key,
 			'value'   => '1',
-			'checked' => (bool) diluxone_users_option( 'diluxone_users_passkey_enabled' ),
-			'title'   => __( 'A passkey', 'diluxone-users' ),
-			'help'    => __( 'A key that stays on the person’s device or keychain: nothing to type, nothing to phish, and it counts as both steps at once.', 'diluxone-users' ),
-			'state'   => $diluxone_users_insecure ? 'pending' : '',
-			'note'    => $diluxone_users_insecure ? __( 'this site is not on HTTPS, and browsers refuse passkeys until it is', 'diluxone-users' ) : '',
+			'checked' => (bool) diluxone_users_option( $key ),
+			'title'   => $switch['title'],
+			'help'    => $switch['help'],
+			'state'   => $switch['state'],
+			'note'    => $switch['note'],
 		);
 	}
 
 	/*
-	 * On a network these two are the network's: they decide how people get
-	 * into every site, so they are switched in Network Admin and drawn here
-	 * as they stand, not as boxes this site could untick.
+	 * On a network these are the network's: they decide how people get into
+	 * every site, so they are switched in Network Admin and drawn here as
+	 * they stand, not as boxes this site could untick.
 	 */
-	if ( ! diluxone_users_option_editable_here( 'diluxone_users_sso_login' ) ) {
-		foreach ( $diluxone_users_ways as $i => $way ) {
-			$diluxone_users_ways[ $i ]['disabled'] = true;
-		}
+	$diluxone_users_fixed = false;
 
-		diluxone_users_ui_notice( esc_html__( 'On this network these are switched on or off for every site at once, in Network Admin: social accounts under Social login › Rules, passkeys under Security › Passkeys.', 'diluxone-users' ) );
+	foreach ( $diluxone_users_ways as $i => $way ) {
+		if ( ! diluxone_users_option_editable_here( (string) $way['name'] ) ) {
+			$diluxone_users_ways[ $i ]['disabled'] = true;
+			$diluxone_users_fixed                  = true;
+		}
+	}
+
+	if ( $diluxone_users_fixed ) {
+		diluxone_users_ui_notice( esc_html__( 'On this network these are switched on or off for every site at once, in Network Admin, where each feature lives: social accounts under Social login › Rules.', 'diluxone-users' ) );
 	}
 
 	diluxone_users_ui_choices( $diluxone_users_ways );
+
+	// After the real ways in, a card of its own and not one more box that
+	// cannot be ticked. Users+ Pro answers false to it once it brings them.
+	diluxone_users_ui_pro_card(
+		array(
+			'where'  => 'login/ways/more',
+			'screen' => 'login',
+			'title'  => __( 'Sign in with a passkey', 'diluxone-users' ),
+			'text'   => __( 'Users+ Pro adds passkeys: the fingerprint, the face or the PIN of the person’s own device, nothing to type and nothing to phish, and it counts as both steps at once.', 'diluxone-users' ),
+		)
+	);
 
 	/*
 	 * The way to the rest of each feature used to hang off the end of that
@@ -728,10 +798,10 @@ function diluxone_users_screen_login_ways(): void {
 	 * have finished ticking.
 	 */
 	diluxone_users_ui_aside_close(
-		static function () use ( $passkeys ): void {
+		static function () use ( $switches ): void {
 			diluxone_users_ui_note(
 				__( 'What this tab does not decide', 'diluxone-users' ),
-				__( 'A way in is switched on here, with the other ways in. What it does once it is on — which providers the buttons offer, what a passkey has to prove — is set where that feature lives.', 'diluxone-users' )
+				__( 'A way in is switched on here, with the other ways in. What it does once it is on — which providers the buttons offer, for one — is set where that feature lives.', 'diluxone-users' )
 			);
 
 			$links = array(
@@ -742,12 +812,10 @@ function diluxone_users_screen_login_ways(): void {
 				),
 			);
 
-			if ( $passkeys ) {
-				$links[] = array(
-					'url'   => diluxone_users_admin_url( 'diluxone-users-security', array( 'tab' => 'passkeys' ) ),
-					'label' => __( 'Passkeys', 'diluxone-users' ),
-					'help'  => __( 'Which passkeys are accepted, and whether a fingerprint, a face or a PIN is required.', 'diluxone-users' ),
-				);
+			foreach ( $switches as $switch ) {
+				if ( array() !== $switch['settings'] ) {
+					$links[] = $switch['settings'];
+				}
 			}
 
 			$links[] = array(
