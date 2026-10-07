@@ -4,7 +4,7 @@
  *
  * The tab touches nothing; what it has to get right is the verdict. A page
  * that is missing, a draft or without its shortcode; mail that failed, went
- * out, or was never tried; HTTPS with and without passkeys on; plain
+ * out, or was never tried; HTTPS or not; plain
  * permalinks; rewrite rules from another version; the e-mail link as the
  * only door while mail fails; providers filled in and left off. Each is drawn
  * here and its state read back.
@@ -185,18 +185,20 @@ class CoverAdminStatusTest extends IntegrationTestCase {
 
 	/* ── HTTPS, permalinks, rewrite rules ──────────────────────────── */
 
-	public function test_https_with_and_without_passkeys(): void {
+	public function test_https_waits_on_the_site_and_is_active_once_it_is_served_so(): void {
 		$this->the_admin();
 
 		$http = static fn( string $url ): string => set_url_scheme( $url, 'http' );
 		$this->filter( 'home_url', $http, 99 );
 		$this->filter( 'site_url', $http, 99 );
 
-		diluxone_users_update_option( 'diluxone_users_passkey_enabled', 0 );
 		$this->assertSame( 'pending', $this->row( 'HTTPS' )['state'] );
 
-		diluxone_users_update_option( 'diluxone_users_passkey_enabled', 1 );
-		$this->assertSame( 'off', $this->row( 'HTTPS' )['state'], 'a door nobody can open' );
+		// What Users+ Pro stores when it offers passkeys, with Pro off: it
+		// changes nothing here, because nothing the free plugin offers needs it.
+		update_option( 'diluxone_users_passkey_enabled', 1 );
+		$this->assertSame( 'pending', $this->row( 'HTTPS' )['state'] );
+		delete_option( 'diluxone_users_passkey_enabled' );
 
 		remove_filter( 'home_url', $http, 99 );
 		remove_filter( 'site_url', $http, 99 );
@@ -299,7 +301,7 @@ class CoverAdminStatusTest extends IntegrationTestCase {
 		$html = $this->draw( 'diluxone_users_screen_status_checks' );
 
 		$this->assertMatchesRegularExpression( '/notice-error[^>]*><p>\d+ things need attention\./', $html );
-		$this->assertStringContainsString( 'With an authenticator app', $html );
+		$this->assertStringContainsString( 'Set up an authenticator app', $html );
 		$this->assertStringContainsString( 'wp-content/themes/' . get_stylesheet() . '/diluxone-users/', $html );
 		$this->assertStringContainsString( '<code>' . DILUXONE_USERS_VERSION . '</code>', $html );
 

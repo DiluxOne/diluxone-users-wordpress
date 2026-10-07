@@ -191,7 +191,8 @@ class CoverSettingsAccessTest extends IntegrationTestCase {
 		$this->the_admin();
 		diluxone_users_update_option( 'diluxone_users_handle_login', 1 );
 		diluxone_users_update_option( 'diluxone_users_sso_login', 1 );
-		diluxone_users_update_option( 'diluxone_users_passkey_enabled', 1 );
+		// What Users+ Pro stores when passkeys are a way in, with Pro off.
+		update_option( 'diluxone_users_passkey_enabled', 1 );
 
 		$this->send_panel(
 			'diluxone-users-login',
@@ -212,7 +213,8 @@ class CoverSettingsAccessTest extends IntegrationTestCase {
 		// in Network Admin: the hub's form leaves them as they stand.
 		$network = is_multisite() ? 1 : 0;
 		$this->assertSame( $network, (int) diluxone_users_raw_get( 'diluxone_users_sso_login' ) );
-		$this->assertSame( $network, (int) diluxone_users_raw_get( 'diluxone_users_passkey_enabled' ), 'passkeys are installed, so their box was drawn' );
+		$this->assertSame( 1, (int) get_option( 'diluxone_users_passkey_enabled' ), 'an add-on’s box nobody drew is not turned off' );
+		delete_option( 'diluxone_users_passkey_enabled' );
 
 		$this->send_panel(
 			'diluxone-users-login',
@@ -276,7 +278,7 @@ class CoverSettingsAccessTest extends IntegrationTestCase {
 		diluxone_users_login_arrangement_save();
 
 		$this->assertSame( 'auto', diluxone_users_option( 'diluxone_users_login_layout' ) );
-		$this->assertSame( '', diluxone_users_option( 'diluxone_users_login_open' ), 'the passkey is never inside a tab' );
+		$this->assertSame( '', diluxone_users_option( 'diluxone_users_login_open' ), 'a way nothing registers is not opened' );
 		$this->assertSame( array(), diluxone_users_option( 'diluxone_users_login_order' ) );
 	}
 
@@ -624,19 +626,17 @@ class CoverSettingsAccessTest extends IntegrationTestCase {
 
 	/* ── The tabs that read it back ────────────────────────────────── */
 
-	public function test_the_summary_with_a_page_a_network_and_passkeys(): void {
+	public function test_the_summary_with_a_page_and_a_network(): void {
 		$this->the_admin();
 
 		$page = $this->page( 'Cover sign in' );
 		diluxone_users_update_option( 'diluxone_users_login_page', $page );
-		diluxone_users_update_option( 'diluxone_users_passkey_enabled', 1 );
 		$this->google_works();
 
 		$html = $this->screen( 'summary' );
 
 		$this->assertStringContainsString( 'Cover sign in</a>', $html );
 		$this->assertStringContainsString( 'Google', $html );
-		$this->assertStringContainsString( 'For whoever added one. It counts as both steps at once.', $html );
 		$this->assertStringNotContainsString( 'None: wp-login.php does the job.', $html );
 	}
 
@@ -646,7 +646,7 @@ class CoverSettingsAccessTest extends IntegrationTestCase {
 		$html = $this->screen( 'summary' );
 
 		$this->assertStringContainsString( 'None: wp-login.php does the job.', $html );
-		$this->assertStringContainsString( 'Not offered.', $html );
+		$this->assertStringNotContainsStringIgnoringCase( 'passkey', $html, 'a door the plugin does not have is not a row' );
 		$this->assertStringContainsString( 'no provider is working yet', $html, 'the buttons are on and have nothing to show' );
 	}
 

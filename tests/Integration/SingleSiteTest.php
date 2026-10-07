@@ -289,20 +289,16 @@ class SingleSiteTest extends IntegrationTestCase {
 	}
 
 	/**
-	 * Passkeys and social sign-in are switched on Access › Ways in: their own
-	 * tabs do not carry the switch, so saving them does not flip it.
+	 * Social sign-in is switched on Access › Ways in: its own tab does not
+	 * carry the switch, so saving it does not flip it.
 	 */
 	public function test_the_doors_are_switched_on_access_and_not_on_their_own_tabs(): void {
-		diluxone_users_update_option( 'diluxone_users_passkey_enabled', 0 );
 		diluxone_users_update_option( 'diluxone_users_sso_login', 1 );
 
-		$this->postPanel( DILUXONE_USERS_SECURITY, array( 'diluxone_users_passkey_enabled' => '1' ) );
-		diluxone_users_passkeys_settings_save();
 		$this->postPanel( 'diluxone-users-social', array() );
 		diluxone_users_social_rules_save();
 		$_POST = array();
 
-		$this->assertSame( 0, (int) diluxone_users_raw_get( 'diluxone_users_passkey_enabled' ) );
 		$this->assertSame( 1, (int) diluxone_users_raw_get( 'diluxone_users_sso_login' ) );
 	}
 

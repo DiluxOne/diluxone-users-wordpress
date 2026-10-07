@@ -89,7 +89,7 @@ class NoticeLanguageTest extends IntegrationTestCase {
 		diluxone_users_notify_new_device( $user, 'link' );
 
 		$_SERVER['HTTP_USER_AGENT'] = 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) Version/17.0 Mobile/15E148 Safari/604.1';
-		diluxone_users_notify_new_device( $user, 'passkey' );
+		diluxone_users_notify_new_device( $user, 'sso' );
 
 		$this->assertCount( 1, self::$mail );
 		$this->assertSame( 'Idioma de la persona: un dispositivo', $this->lastMail()['subject'] );

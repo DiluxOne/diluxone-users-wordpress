@@ -328,49 +328,6 @@ class PanelNonceTest extends IntegrationTestCase {
 		$this->assertSame( '', (string) diluxone_users_raw_get( 'diluxone_users_wp_login_bg', '' ), 'and nothing was saved' );
 	}
 
-	/* ── Passkeys ──────────────────────────────────────────────────── */
-
-	/**
-	 * Runs the passkeys endpoint and returns what it answered.
-	 *
-	 * @return array<string, mixed>
-	 */
-	private function passkeys( string $step, string $nonce ): array {
-		$this->postAs(
-			get_current_user_id(),
-			array(
-				'step'  => $step,
-				'nonce' => $nonce,
-			)
-		);
-
-		ob_start();
-		$this->died( 'diluxone_users_passkeys_ajax' );
-
-		return (array) json_decode( (string) ob_get_clean(), true );
-	}
-
-	/** Every step, the sign-in ones included, checks the page's nonce before anything else. */
-	public function test_every_passkey_step_checks_the_nonce_first(): void {
-		diluxone_users_update_option( 'diluxone_users_passkey_enabled', 1 );
-
-		foreach ( array( 'register-options', 'register', 'login-options', 'login', 'no-such-step' ) as $step ) {
-			$answer = $this->passkeys( $step, 'not-a-nonce' );
-
-			$this->assertFalse( $answer['success'] ?? true, $step );
-			$this->assertSame( __( 'Session expired. Reload the page.', 'diluxone-users' ), $answer['data']['message'] ?? null, $step );
-		}
-
-		// The page hands the same nonce to somebody not signed in, and with it
-		// the sign-in step answers with a challenge.
-		$answer = $this->passkeys( 'login-options', wp_create_nonce( 'diluxone_users_passkeys' ) );
-
-		$this->assertTrue( $answer['success'] ?? false );
-		$this->assertNotSame( '', (string) ( $answer['data']['challenge'] ?? '' ) );
-
-		self::forget_transients();
-	}
-
 	/* ── The reset link ────────────────────────────────────────────── */
 
 	public function test_a_reset_key_nobody_issued_keeps_no_cookie(): void {

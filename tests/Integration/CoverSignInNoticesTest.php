@@ -141,15 +141,15 @@ class CoverSignInNoticesTest extends IntegrationTestCase {
 		diluxone_users_notify_new_device( $user, 'link' );
 
 		$_SERVER['HTTP_USER_AGENT'] = 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) Version/17.0 Mobile/15E148 Safari/604.1';
-		diluxone_users_notify_new_device( $user, 'passkey' );
+		diluxone_users_notify_new_device( $user, 'sso' );
 
 		$this->assertCount( 1, self::$mail );
 		$this->assertSame( get_userdata( $user )->user_email, $this->lastMail()['to'] );
-		$this->assertStringContainsString( 'a passkey', (string) $this->lastMail()['message'] );
+		$this->assertStringContainsString( 'a social account', (string) $this->lastMail()['message'] );
 		$this->assertStringContainsString( 'Phone · Safari iOS', (string) $this->lastMail()['message'] );
 
 		// The same device again is not news.
-		diluxone_users_notify_new_device( $user, 'passkey' );
+		diluxone_users_notify_new_device( $user, 'sso' );
 		$this->assertCount( 1, self::$mail );
 		$this->assertCount( 2, get_user_meta( $user, 'diluxone_users_devices', true ) );
 	}
@@ -172,7 +172,6 @@ class CoverSignInNoticesTest extends IntegrationTestCase {
 		$this->assertSame( 'a link sent to your email', diluxone_users_via_label( 'link' ) );
 		$this->assertSame( 'your password', diluxone_users_via_label( 'password' ) );
 		$this->assertSame( 'a social account', diluxone_users_via_label( 'sso' ) );
-		$this->assertSame( 'a passkey', diluxone_users_via_label( 'passkey' ) );
 		$this->assertSame( 'magic', diluxone_users_via_label( 'magic' ) );
 	}
 }

@@ -215,30 +215,6 @@ class MultisiteTest extends IntegrationTestCase {
 		$this->assertFalse( wp_next_scheduled( DILUXONE_USERS_NETWORK_MIGRATE_EVENT ), 'nor the move of the old logs' );
 	}
 
-	/** A passkey belongs to a person, whichever site they are a member of. */
-	public function test_a_passkey_is_found_for_somebody_who_is_not_a_member_here(): void {
-		$user = $this->make_user();
-		$id   = 'ms-key-' . wp_generate_password( 12, false );
-
-		diluxone_users_passkeys_save(
-			$user,
-			array(
-				array(
-					'id'      => $id,
-					'public'  => 'x',
-					'counter' => 0,
-					'name'    => 'Test',
-					'created' => time(),
-					'used'    => 0,
-				),
-			)
-		);
-
-		switch_to_blog( $this->site );
-
-		$this->assertSame( $user, diluxone_users_passkey_owner( $id ) );
-	}
-
 	/**
 	 * The session a sign-in opens is valid on every site of the network, so
 	 * the second step is one rule for all of them: set once, asked wherever

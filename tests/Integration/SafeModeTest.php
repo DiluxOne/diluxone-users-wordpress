@@ -3,8 +3,8 @@
  * The emergency switch: `DILUXONE_USERS_SAFE_MODE` in wp-config.php.
  *
  * While it is on, the plugin steps aside at every door it put up — nothing
- * redirects, nobody is asked for the second step, passkeys and social
- * sign-in are shut — and WordPress's own wp-login.php works as it does
+ * redirects, nobody is asked for the second step, social sign-in is shut —
+ * and WordPress's own wp-login.php works as it does
  * without the plugin. The dashboard says so on every page.
  *
  * The constant cannot be taken back inside one process, so the cases turn
@@ -199,8 +199,7 @@ class SafeModeTest extends IntegrationTestCase {
 		$this->assertSame( '', (string) get_user_meta( $user, 'diluxone_users_2fa_pending', true ) );
 	}
 
-	public function test_passkeys_and_social_sign_in_are_shut_and_their_settings_kept(): void {
-		diluxone_users_update_option( 'diluxone_users_passkey_enabled', 1 );
+	public function test_social_sign_in_is_shut_and_its_settings_kept(): void {
 		diluxone_users_update_option(
 			'diluxone_users_sso',
 			array(
@@ -214,7 +213,6 @@ class SafeModeTest extends IntegrationTestCase {
 			false
 		);
 
-		$this->assertTrue( diluxone_users_passkeys_enabled() );
 		$this->assertArrayHasKey( 'google', diluxone_users_sso_available() );
 
 		// The round trip, heading out to the provider.
@@ -228,10 +226,7 @@ class SafeModeTest extends IntegrationTestCase {
 
 		$this->safe_mode();
 
-		$this->assertFalse( diluxone_users_passkeys_enabled(), 'No passkey door' );
-		$this->assertFalse( diluxone_users_has_passkeys() );
 		$this->assertSame( array(), diluxone_users_sso_available(), 'No social buttons' );
-		$this->assertSame( 1, (int) diluxone_users_option( 'diluxone_users_passkey_enabled' ), 'The setting is kept' );
 		$this->assertSame( 'enabled', diluxone_users_sso_state( 'google' ), 'The provider is kept' );
 
 		// The round trip's route is nothing: no state cookie, no redirect.

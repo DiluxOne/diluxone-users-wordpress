@@ -5,7 +5,7 @@
  * Every case is played on both topologies. On a network, from a second site
  * of it: each door's address, what WordPress's own wp-login.php does there,
  * the return address carried through every way in and spent once, social
- * sign-in and passkeys belonging to the hub, and a site on a domain of its
+ * sign-in belonging to the hub, and a site on a domain of its
  * own. On a single site, the same calls, and the answer that nothing is sent
  * anywhere: the site is its own hub.
  */
@@ -620,7 +620,7 @@ class NetworkHubTest extends IntegrationTestCase {
 		$this->assertSame( home_url( '/' ), $this->open_link( $this->make_user() ) );
 	}
 
-	/* ── Social sign-in and passkeys are the hub's ──────────────────── */
+	/* ── Social sign-in is the hub's ──────────────────────────────── */
 
 	public function test_social_sign_in_and_its_route_are_the_hubs(): void {
 		$this->network_only();
@@ -675,35 +675,7 @@ class NetworkHubTest extends IntegrationTestCase {
 		$this->assertCount( $before, $wp_rewrite->extra_rules_top, 'no account route on a site that is not the hub' );
 	}
 
-	public function test_passkeys_belong_to_the_hubs_domain(): void {
-		$this->network_only();
-
-		$hub  = (string) wp_parse_url( home_url(), PHP_URL_HOST );
-		$port = wp_parse_url( home_url(), PHP_URL_PORT );
-
-		$this->assertSame( $hub, diluxone_users_passkey_rp_id() );
-
-		// A site on a subdomain of the network: another host, the same keys.
-		$sub = $this->site( 'hub-sub-' . strtolower( wp_generate_password( 6, false ) ) . '.' . get_network()->domain, '/' );
-		switch_to_blog( $sub );
-
-		$this->assertNotSame( $hub, wp_parse_url( home_url(), PHP_URL_HOST ) );
-		$this->assertSame( $hub, diluxone_users_passkey_rp_id(), 'the hub’s domain, from every site' );
-		$this->assertSame( 'http://' . $hub . ( $port ? ':' . $port : '' ), diluxone_users_passkey_origin() );
-
-		// And its endpoint says where to go instead of answering.
-		$answer = $this->ajax(
-			'diluxone_users_passkeys_ajax',
-			array(
-				'step'  => 'login-options',
-				'nonce' => wp_create_nonce( 'diluxone_users_passkeys' ),
-			)
-		);
-		$this->assertFalse( $answer['success'] ?? true );
-		$this->assertStringStartsWith( $this->hub_login_from_here(), (string) ( $answer['data']['redirect'] ?? '' ) );
-	}
-
-	public function test_on_a_single_site_social_and_passkeys_are_the_sites_own(): void {
+	public function test_on_a_single_site_social_sign_in_is_the_sites_own(): void {
 		$this->single_only();
 
 		global $wp_rewrite;
@@ -714,8 +686,6 @@ class NetworkHubTest extends IntegrationTestCase {
 		unset( $wp_rewrite->extra_rules_top[ $rule ] );
 		diluxone_users_sso_rule();
 		$this->assertArrayHasKey( $rule, $wp_rewrite->extra_rules_top );
-
-		$this->assertSame( wp_parse_url( home_url(), PHP_URL_HOST ), diluxone_users_passkey_rp_id() );
 	}
 
 	/**
@@ -846,7 +816,7 @@ class NetworkHubTest extends IntegrationTestCase {
 		// not the blank page admin-post.php ends in with nothing to run.
 		$this->postAs( 0, array() );
 
-		foreach ( array( 'diluxone_users_avatar', 'diluxone_users_fields_save', 'diluxone_users_sessions', 'diluxone_users_passkey' ) as $action ) {
+		foreach ( array( 'diluxone_users_avatar', 'diluxone_users_fields_save', 'diluxone_users_sessions', 'diluxone_users_security' ) as $action ) {
 			$url = $this->expectRedirect( fn() => do_action( 'admin_post_nopriv_' . $action ) );
 			$this->assertSame( strtok( diluxone_users_login_url(), '?' ), strtok( $url, '?' ), $action );
 		}

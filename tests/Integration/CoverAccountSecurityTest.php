@@ -233,39 +233,6 @@ class CoverAccountSecurityTest extends IntegrationTestCase {
 		$this->assertStringNotContainsString( 'AAAA-1111', $this->screen(), 'A reload shows them no more' );
 	}
 
-	public function test_the_screen_lists_the_passkeys_with_their_forms(): void {
-		diluxone_users_update_option( 'diluxone_users_passkey_enabled', 1 );
-		diluxone_users_passkeys_save(
-			$this->user,
-			array(
-				array(
-					'id'      => 'cred-<one>',
-					'label'   => 'Work <laptop>',
-					'created' => time() - WEEK_IN_SECONDS,
-					'used'    => time() - HOUR_IN_SECONDS,
-				),
-				array(
-					'id'      => 'cred-two',
-					'label'   => 'Phone',
-					'created' => time() - DAY_IN_SECONDS,
-					'used'    => 0,
-				),
-			)
-		);
-
-		$html = $this->screen( array( 'diluxone-users' => 'passkeyname' ) );
-
-		$this->assertStringContainsString( 'The passkey has a new name.', $html );
-		$this->assertSame( 2, substr_count( $html, '<details class="diluxone-users-key">' ) );
-		$this->assertStringContainsString( '<strong>Work &lt;laptop&gt;</strong>', $html, 'The name is escaped' );
-		$this->assertStringContainsString( 'value="cred-&lt;one&gt;"', $html );
-		$this->assertStringContainsString( 'used 1 hour ago', $html );
-		$this->assertSame( 1, preg_match_all( '/used [^<]+ ago/', $html ), 'A key never used says nothing about it' );
-		$this->assertSame( 2, substr_count( $html, 'value="delete"' ) );
-		$this->assertSame( 2, substr_count( $html, 'value="rename"' ) );
-		$this->assertStringContainsString( 'data-diluxone-users-passkey="register"', $html );
-	}
-
 	public function test_the_screen_draws_no_second_step_where_the_site_has_none(): void {
 		diluxone_users_update_option( 'diluxone_users_2fa_mode', 'off' );
 		diluxone_users_update_option( 'diluxone_users_sessions_show', 0 );
@@ -276,5 +243,19 @@ class CoverAccountSecurityTest extends IntegrationTestCase {
 		$this->assertStringNotContainsString( 'Authenticator app', $html );
 		$this->assertStringNotContainsString( 'Where you are signed in', $html, 'What the administrator turns off disappears' );
 		$this->assertStringContainsString( 'How you get in', $html );
+	}
+
+	public function test_keys_an_addon_kept_draw_nothing_while_it_is_off(): void {
+		// What Users+ Pro stores, with Pro off: the switch and one person's keys.
+		update_option( 'diluxone_users_passkey_enabled', 1 );
+		update_user_meta( $this->user, 'diluxone_users_passkeys', array( array( 'id' => 'kept', 'label' => 'Laptop' ) ) );
+
+		$html = $this->screen( array( 'diluxone-users' => 'passkeyname' ) );
+
+		$this->assertStringNotContainsStringIgnoringCase( 'passkey', $html, 'without the add-on the section says nothing about them' );
+		$this->assertStringNotContainsString( 'Laptop', $html );
+		$this->assertSame( array( array( 'id' => 'kept', 'label' => 'Laptop' ) ), get_user_meta( $this->user, 'diluxone_users_passkeys', true ), 'and loses nothing' );
+
+		delete_option( 'diluxone_users_passkey_enabled' );
 	}
 }
