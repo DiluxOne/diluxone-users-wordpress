@@ -1,6 +1,6 @@
 # DiluxOne Users+
 
-WordPress plugin for everything about the people who use a site: custom fields, a front-end account area, passwordless sign-in, social login, two-step verification, passkeys and session control, in one plugin that depends on no other.
+WordPress plugin for everything about the people who use a site: custom fields, a front-end account area, passwordless sign-in, social login, two-step verification and session control, in one plugin that depends on no other.
 
 [![License: GPL v2+](https://img.shields.io/badge/license-GPL--2.0--or--later-blue.svg)](LICENSE)
 
@@ -15,7 +15,6 @@ Sites where people have accounts: memberships, courses, communities, client area
 - **How people get in**: a link sent to their e-mail with no password at all, username and password, or both, with control over what happens to WordPress's own registration and profile screens.
 - **Social login** with Google and Microsoft, a step-by-step guide for each console, buttons with the real brand marks, and a live test before you turn one on. Any other OAuth 2 provider is one filter away ([`docs/extending.md`](docs/extending.md#social-login-providers)); DiluxOne Users+ Pro adds ten more.
 - **Two-step verification**: a code by e-mail, an authenticator app with a QR code, and backup codes, with a policy per role and per way in.
-- **Passkeys** (WebAuthn), each one with a name of its own.
 - **Sessions**: how long they last, where they are open and how to close them.
 - **Privacy**: the export and erasure requests WordPress already knows how to handle, put where people look for them.
 

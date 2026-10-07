@@ -1,6 +1,6 @@
 === DiluxOne Users+ ===
 Contributors: pablodiloreto
-Tags: users, login, passwordless, two-factor, passkeys
+Tags: users, login, passwordless, two-factor, account
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 8.0
@@ -8,7 +8,7 @@ Stable tag: 1.0.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Custom user fields, a front-end account area, passwordless sign-in, social login, 2FA, passkeys and session control.
+Custom user fields, a front-end account area, passwordless sign-in, social login, 2FA and session control.
 
 == Description ==
 
@@ -30,7 +30,6 @@ Everything about the people who use your site, in one place.
 * **Two-step verification**: a code by e-mail, an authenticator app with a QR
   code, and backup codes, with a policy per role and a rule of its own for
   sign-ins by e-mail link.
-* **Passkeys** (WebAuthn), each one with a name of its own.
 * **Sessions**: how long they last (WordPress's length until you choose one), where they are open, and how to close them. A new password closes every one of them.
 * **An activity log** of its own: who signed in, who was refused and what
   changed. It records IP addresses; see Privacy below.
@@ -82,8 +81,8 @@ network's setting); change it on **Access → Registration**.
 = What it stores =
 
 In each person's profile: the answers to your fields, their public name and
-picture, which social accounts are linked, their passkeys, whether two-step
-verification is on, a hash of each browser they signed in from (so "a new
+picture, which social accounts are linked, whether two-step verification is
+on, a hash of each browser they signed in from (so "a new
 device signed in" is said once), their notification choices and, on a
 network, the sites an administrator removed them from.
 
@@ -105,8 +104,9 @@ The plugin itself sends nothing anywhere: no telemetry, no licence check.
 = Export and erasure =
 
 **Tools → Export / Erase Personal Data** answer for all of the above. The
-export leaves out credentials (authenticator secret, backup-code hashes,
-passkey keys); the erasure removes them. Refused sign-ins that typed a name are
+export leaves out credentials (authenticator secret, backup-code hashes, an
+add-on's keys); the erasure removes them, and everything an add-on kept under
+the plugin's prefix with them. Refused sign-ins that typed a name are
 exported, and kept on erasure as security evidence until the log removes them.
 On a network, the sites an administrator removed somebody from are exported
 and kept on erasure: that list is what keeps them from being added back.
@@ -156,7 +156,7 @@ single site.
 = Does it work on multisite? =
 
 Yes. Activated for the whole network, the plugin applies one set of rules to
-every site: the second step, passkeys, sessions, the proxy, the social sign-in
+every site: the second step, sessions, the proxy, the social sign-in
 apps and their rules, the user fields and what the activity log keeps are set
 once, in **Network Admin → DiluxOne Users+**, and a site administrator cannot
 change them for their own site. "Only some roles" means a role on any of the
@@ -173,12 +173,12 @@ migrate`), and each old table is dropped once all its rows are in.
 People sign in, register and keep their account on the main site. On every
 other site the doors lead there — the "Sign in" in its menu, the plugin's
 shortcodes, its wp-login.php, WordPress's own sign-in links — and, whichever
-way the person gets in (e-mail link, password, social account, passkey,
-second step), they are sent back to the page they started from. The way back
+way the person gets in (e-mail link, password, social account, second
+step), they are sent back to the page they started from. The way back
 is only ever an address on a site of the network, kept for twenty minutes in
 a cookie of the main site and used once; a sign-in link opened on another
-device lands on the main site, signed in. Social sign-in and passkeys work on
-the main site only: register one redirect address per network in the
+device lands on the main site, signed in. Social sign-in works on the main
+site only: register one redirect address per network in the
 providers' consoles. Whether new accounts may be created at all is the
 network's **Allow new registrations**. Which sites an account is a member of
 is one decision for the network, on **Network Admin → DiluxOne Users+ →
@@ -212,7 +212,7 @@ the whole network.
 Add `define( 'DILUXONE_USERS_SAFE_MODE', true );` to `wp-config.php`. While it
 is there the plugin steps aside: nothing redirects, wp-login.php signs people
 in the way WordPress does on every site, nobody is asked for the second step, and
-passkeys and social sign-in are off, so your username and password get you in.
+social sign-in and every add-on's door are off, so your username and password get you in.
 Every dashboard page says safe mode is on; fix the cause and remove the line.
 With no sign-in page chosen, the second step is asked on wp-login.php itself.
 
@@ -231,9 +231,9 @@ can write.
 
 == Screenshots ==
 
-1. The sign-in page: a passkey, a social account, a link by email, or the WordPress password — whichever ones the site turned on.
+1. The sign-in page: a social account, a link by email, or the WordPress password — whichever ones the site turned on.
 2. The account area on the front end, in the site's own theme.
-3. Security: passkeys, two-step verification and every browser that is signed in.
+3. Security: two-step verification and every browser that is signed in.
 4. The second step at sign-in, for whoever turned it on.
 5. Overview: how many accounts, how they get in, and the first steps until there are none left.
 6. Every way into the site in one table, read from the settings the other tabs write.
