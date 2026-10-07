@@ -124,15 +124,60 @@ class CoverSettingsAccountTest extends IntegrationTestCase {
 
 	/* ── One section, saved from its detail ────────────────────────── */
 
-	public function test_a_new_section_is_saved_cleaned_and_opened(): void {
+	/**
+	 * A section of the site's own, as an add-on (Users+ Pro) makes one: stored
+	 * with `custom`, and registered from what is stored.
+	 *
+	 * @param array<string, mixed> $config What is stored for it.
+	 */
+	private function addon_section( string $id, array $config = array() ): void {
+		$all        = (array) diluxone_users_option( 'diluxone_users_account_sections' );
+		$all[ $id ] = $config + array(
+			'label'  => ucfirst( $id ),
+			'slug'   => $id,
+			'custom' => true,
+		);
+		diluxone_users_update_option( 'diluxone_users_account_sections', $all );
+
+		$this->hook(
+			'diluxone_users_register_sections',
+			static function () use ( $id ): void {
+				$config = diluxone_users_section_config( $id );
+
+				if ( array() !== $config ) {
+					diluxone_users_register_section(
+						$id,
+						array(
+							'label'   => (string) $config['label'],
+							'custom'  => true,
+							'content' => (string) ( $config['content'] ?? '' ),
+						)
+					);
+				}
+			},
+			20,
+			0
+		);
+	}
+
+	/* ── One section, saved from its detail ────────────────────────── */
+
+	public function test_an_add_ons_section_is_saved_cleaned_and_opened(): void {
 		$this->the_admin();
+		$this->addon_section(
+			'my-courses',
+			array(
+				'enabled'  => 1,
+				'position' => 900,
+			)
+		);
 
 		$this->send_sections_form(
 			'diluxone_users_section_form_nonce',
 			'diluxone_users_section_form',
 			array(
 				'diluxone_users_section_form' => array(
-					'id'         => '',
+					'id'         => 'my-courses',
 					'label'      => 'My <b>courses</b>',
 					'slug'       => '',
 					'intro'      => 'What I am <em>taking</em>',
@@ -149,7 +194,7 @@ class CoverSettingsAccountTest extends IntegrationTestCase {
 		$this->assertSame( 'redirect', $how );
 		$this->assertSame( 'saved', $this->queryArg( $to, 'diluxone_users_msg' ) );
 		$this->assertSame( 'sections', $this->queryArg( $to, 'tab' ) );
-		$this->assertSame( 'my-courses', $this->queryArg( $to, 'section' ), 'it opens the section just made' );
+		$this->assertSame( 'my-courses', $this->queryArg( $to, 'section' ), 'it opens the section just saved' );
 
 		$config = $this->config( 'my-courses' );
 
@@ -161,51 +206,58 @@ class CoverSettingsAccountTest extends IntegrationTestCase {
 		$this->assertSame( 'after', $config['placement'], 'a placement that is not one is the usual one' );
 		$this->assertSame( array( 'subscriber' ), $config['roles'] );
 		$this->assertSame( 'some', $config['visibility'] );
-		$this->assertTrue( $config['custom'] );
-		$this->assertSame( 1, $config['enabled'] );
-		$this->assertSame( 900, $config['position'], 'a new one goes to the end' );
-		$this->assertArrayHasKey( 'my-courses', diluxone_users_sections( true ) );
+		$this->assertTrue( $config['custom'], 'still the add-on\'s' );
+		$this->assertSame( 900, $config['position'], 'editing does not move it' );
 	}
 
-	public function test_a_section_without_a_name_or_on_a_taken_address_is_refused(): void {
+	/** The free plugin edits a section there is, and makes none. */
+	public function test_a_section_without_a_name_on_a_taken_address_or_that_nothing_registers_is_refused(): void {
 		$this->the_admin();
 
 		foreach ( array(
-			'no name'                        => array(
+			'no name'                       => array(
+				'id'    => 'details',
 				'label' => '   ',
 				'slug'  => 'whatever',
 			),
-			'the address of a code section'  => array(
+			'the address of a code section' => array(
+				'id'    => 'details',
 				'label' => 'Security',
+				'slug'  => 'security',
+			),
+			'no section at all'             => array(
+				'id'    => '',
+				'label' => 'Mine',
 				'slug'  => '',
 			),
-			'a name that makes no address'   => array(
-				'label' => '%%%',
+			'a section nothing registers'   => array(
+				'id'    => 'whatever',
+				'label' => 'Whatever',
 				'slug'  => '',
 			),
 		) as $case => $form ) {
-			$this->send_sections_form( 'diluxone_users_section_form_nonce', 'diluxone_users_section_form', array( 'diluxone_users_section_form' => $form ), array( 'section' => 'diluxone-users-new' ) );
+			$this->send_sections_form( 'diluxone_users_section_form_nonce', 'diluxone_users_section_form', array( 'diluxone_users_section_form' => $form ), array( 'section' => 'details' ) );
 
 			list( $how, $to ) = $this->ended( 'diluxone_users_account_post' );
 
 			$this->assertSame( 'redirect', $how, $case );
 			$this->assertSame( 'error', $this->queryArg( $to, 'diluxone_users_msg' ), $case );
-			$this->assertSame( 'diluxone-users-new', $this->queryArg( $to, 'section' ), $case . ': back to the form it came from' );
+			$this->assertSame( 'details', $this->queryArg( $to, 'section' ), $case . ': back to the form it came from' );
 		}
 
-		$this->assertArrayNotHasKey( 'custom', $this->config( 'security' ), 'the code section was not taken over' );
+		$this->assertArrayNotHasKey( 'slug', $this->config( 'details' ), 'the code section was not moved' );
 		$this->assertSame( array(), $this->config( 'whatever' ) );
+		$this->assertSame( array(), $this->config( 'mine' ) );
 	}
 
 	/**
-	 * Editing a section cannot move it onto another's address: only a new
-	 * one was checked, and `details` moved onto `security` left one of the
-	 * two sections that could never be opened.
+	 * Editing a section cannot move it onto another's address, nor onto the
+	 * address of a section kept from an add-on that is gone: it comes back on
+	 * that address.
 	 */
 	public function test_a_section_cannot_be_moved_onto_another_sections_address(): void {
 		$this->the_admin();
-
-		$this->assertSame( 'mine', diluxone_users_section_save( array( 'label' => 'Mine', 'slug' => 'mine' ) ) );
+		$this->addon_section( 'mine' );
 
 		$this->assertSame( '', diluxone_users_section_save( array( 'id' => 'mine', 'label' => 'Mine', 'slug' => 'security' ) ) );
 		$this->assertSame( 'mine', $this->config( 'mine' )['slug'], 'its own address kept' );
@@ -215,15 +267,29 @@ class CoverSettingsAccountTest extends IntegrationTestCase {
 
 		// Its own address, again, is its own.
 		$this->assertSame( 'mine', diluxone_users_section_save( array( 'id' => 'mine', 'label' => 'Still mine', 'slug' => 'mine' ) ) );
+
+		diluxone_users_section_config_save(
+			'kept',
+			array(
+				'label'  => 'Kept',
+				'slug'   => 'kept-here',
+				'custom' => true,
+			)
+		);
+
+		$this->assertFalse( diluxone_users_section_slug_free( 'kept-here' ), 'a kept section holds its address' );
+		$this->assertSame( '', diluxone_users_section_save( array( 'id' => 'details', 'label' => 'About you', 'slug' => 'kept-here' ) ) );
+		$this->assertTrue( diluxone_users_section_slug_free( 'mine', 'mine' ), 'a section asking for its own address' );
+		$this->assertFalse( diluxone_users_section_slug_free( '' ), 'no address is not a free one' );
 	}
 
 	/** A section's name sent as a list is no name: nothing is saved, and no section is called "Array". */
 	public function test_a_sections_name_sent_as_a_list_saves_nothing(): void {
 		$this->the_admin();
 
-		$this->assertSame( '', diluxone_users_section_save( array( 'label' => array( 'x' ), 'slug' => 'lists' ) ) );
-		$this->assertSame( 'listed', diluxone_users_section_save( array( 'label' => 'Listed', 'slug' => 'listed', 'intro' => array( 'x' ) ) ) );
-		$this->assertSame( '', $this->config( 'listed' )['intro'] );
+		$this->assertSame( '', diluxone_users_section_save( array( 'id' => 'details', 'label' => array( 'x' ), 'slug' => 'lists' ) ) );
+		$this->assertSame( 'details', diluxone_users_section_save( array( 'id' => 'details', 'label' => 'Listed', 'slug' => 'listed', 'intro' => array( 'x' ) ) ) );
+		$this->assertSame( '', $this->config( 'details' )['intro'] );
 	}
 
 	/** On and off for a section there is not write nothing down. */
@@ -383,6 +449,7 @@ class CoverSettingsAccountTest extends IntegrationTestCase {
 				'diluxone_users_section_form',
 				array(
 					'diluxone_users_section_form' => array(
+						'id'    => 'details',
 						'label' => 'Sneaky',
 						'slug'  => 'sneaky',
 					),
@@ -467,23 +534,16 @@ class CoverSettingsAccountTest extends IntegrationTestCase {
 		$this->assertSame( 1, $this->config( 'details' )['enabled'] );
 	}
 
-	public function test_only_the_sites_own_sections_can_be_deleted(): void {
+	/** Removing a section is the add-on's that made it: here a press for it removes nothing. */
+	public function test_the_free_plugin_removes_no_section(): void {
 		$this->the_admin();
+		$this->addon_section( 'mine' );
 
-		$id = diluxone_users_section_save( array( 'label' => 'Mine' ) );
-		$this->assertSame( 'mine', $id );
-
-		diluxone_users_section_config_save( 'details', array( 'label' => 'Kept' ) );
-
-		list( $how, $to ) = $this->press( 'mine', 'delete' );
+		list( $how ) = $this->press( 'mine', 'delete' );
 
 		$this->assertSame( 'redirect', $how );
-		$this->assertSame( 'deleted', $this->queryArg( $to, 'diluxone_users_msg' ) );
-		$this->assertSame( '', $this->queryArg( $to, 'section' ), 'the section is gone, so it is not opened' );
-		$this->assertSame( array(), $this->config( 'mine' ) );
-
-		$this->press( 'details', 'delete' );
-		$this->assertSame( 'Kept', $this->config( 'details' )['label'], 'a section from code stays' );
+		$this->assertSame( 'Mine', $this->config( 'mine' )['label'], 'still there' );
+		$this->assertFalse( function_exists( 'diluxone_users_section_delete' ) );
 	}
 
 	public function test_a_press_with_a_bad_nonce_stops(): void {
@@ -815,38 +875,121 @@ class CoverSettingsAccountTest extends IntegrationTestCase {
 		$this->assertStringNotContainsString( 'name="diluxone_users_section_form[cards][]"', $html );
 	}
 
-	public function test_a_new_section_is_an_empty_form_with_no_switches(): void {
+	/** With nothing drawing it, the new section's address opens the first section, and an add-on's detail draws there when there is one. */
+	public function test_an_add_ons_detail_is_drawn_where_a_section_would_be(): void {
 		$this->the_admin();
 
 		$html = $this->screen( 'sections', array( 'section' => 'diluxone-users-new' ) );
 
-		$this->assertStringContainsString( '<h3>New section</h3>', $html );
-		$this->assertStringContainsString( 'name="diluxone_users_section_form[id]" value=""', $html );
-		$this->assertStringContainsString( 'value="replace"', $html, 'with no code, the content is the whole section' );
-		$this->assertStringNotContainsString( 'diluxone_users_action=', $html, 'nothing to switch or remove yet' );
+		$this->assertStringContainsString( '<h3>Home</h3>', $html, 'nothing makes sections, so the first one opens' );
+		$this->assertStringNotContainsString( 'New section', $html );
+		$this->assertStringNotContainsString( 'Add section', $html );
+
+		$this->hook(
+			'diluxone_users_account_details',
+			static function ( array $details ): array {
+				$details['diluxone-users-new'] = static function ( int $page ): void {
+					echo '<p id="addon-new" data-page="' . esc_attr( (string) $page ) . '">new</p>';
+				};
+				$details['broken']             = 'not_a_function_anybody_has';
+
+				return $details;
+			}
+		);
+		$this->hook(
+			'diluxone_users_account_sections_head',
+			static function (): void {
+				echo '<a id="addon-add">Add</a>';
+			}
+		);
+
+		$html = $this->screen( 'sections', array( 'section' => 'diluxone-users-new' ) );
+
+		$this->assertStringContainsString( '<p id="addon-new" data-page="0">new</p>', $html );
+		$this->assertStringContainsString( '<a id="addon-add">Add</a>', $html, 'beside the heading of the list' );
+		$this->assertStringNotContainsString( 'name="diluxone_users_section_form_nonce"', $html, 'no section form beside it' );
+		$this->assertStringContainsString( '<h3>Home</h3>', $this->screen( 'sections', array( 'section' => 'broken' ) ), 'a detail nothing can draw is not one' );
 	}
 
-	public function test_the_sites_own_section_can_be_removed_and_says_where_it_lives(): void {
+	/** An add-on's section is edited like any, its head carries what the add-on adds, and nothing says it comes from code. */
+	public function test_an_add_ons_section_is_edited_here_and_its_head_is_the_add_ons(): void {
 		$this->the_admin();
 
 		$page = $this->page( 'Cover account page' );
 		diluxone_users_update_option( 'diluxone_users_account_page', $page );
-		$id = diluxone_users_section_save(
-			array(
-				'label'   => 'Cover yours',
-				'content' => '<p>Mine</p>',
-			)
+		$this->addon_section( 'cover-yours', array( 'label' => 'Cover yours', 'content' => '<p>Mine</p>' ) );
+		$this->hook(
+			'diluxone_users_account_section_head',
+			static function ( string $id, array $section ): void {
+				echo '<a id="addon-remove" data-section="' . esc_attr( $id ) . '" data-custom="' . ( empty( $section['custom'] ) ? '0' : '1' ) . '">Remove</a>';
+			},
+			10,
+			2
 		);
 
-		$html = $this->screen( 'sections', array( 'section' => $id ) );
+		$html = $this->screen( 'sections', array( 'section' => 'cover-yours' ) );
 
 		$this->assertStringContainsString( '<h3>Cover yours</h3>', $html );
-		$this->assertStringContainsString( 'diluxone_users_action=delete', $html );
+		$this->assertStringContainsString( '<a id="addon-remove" data-section="cover-yours" data-custom="1">Remove</a>', $html );
+		$this->assertStringNotContainsString( 'diluxone_users_action=delete', $html );
 		$this->assertStringContainsString( 'diluxone_users_action=off', $html );
 		$this->assertStringContainsString( 'Showing', $html );
+		$this->assertStringContainsString( 'value="replace"', $html, 'with no code, the content is the whole section' );
 		$this->assertStringContainsString( 'target="_blank" rel="noopener"', $html, 'its address, as a link' );
 		$this->assertStringNotContainsString( 'There is no account page yet', $html );
 		$this->assertStringNotContainsString( 'It comes from code', $html );
+	}
+
+	/**
+	 * A section of the site's own kept after the add-on that made it went:
+	 * not drawn, listed with the badge and nothing to open, out of the order,
+	 * and kept by every save.
+	 */
+	public function test_a_section_kept_from_an_add_on_is_listed_and_kept(): void {
+		$this->the_admin();
+		diluxone_users_section_config_save(
+			'staff',
+			array(
+				'label'   => 'Staff <b>room</b>',
+				'slug'    => 'staff',
+				'custom'  => true,
+				'content' => '<p>For staff</p>',
+			)
+		);
+
+		$this->assertArrayNotHasKey( 'staff', diluxone_users_sections( true ), 'nothing draws it' );
+		$this->assertSame( array( 'staff' => array( 'label' => 'Staff room', 'slug' => 'staff' ) ), diluxone_users_sections_kept() );
+
+		$html = $this->screen( 'sections', array( 'section' => 'staff' ) );
+
+		$this->assertMatchesRegularExpression( '/<li class="diluxone-users-endpoint is-off is-kept">\s*<span class="diluxone-users-endpoint__name">Staff room<\/span>/', $html );
+		$this->assertStringNotContainsString( 'name="diluxone_users_order_form[]" value="staff"', $html, 'out of the order' );
+		$this->assertStringNotContainsString( 'section=staff', $html, 'nothing to open' );
+		$this->assertStringContainsString( '<h3>Home</h3>', $html, 'asked for, it opens the first one instead' );
+
+		diluxone_users_section_reorder( array( 'staff', 'security', 'home' ) );
+		diluxone_users_section_save( array( 'id' => 'details', 'label' => 'About you' ) );
+
+		$this->assertSame( '<p>For staff</p>', $this->config( 'staff' )['content'], 'every save keeps it' );
+		$this->assertArrayNotHasKey( 'position', $this->config( 'staff' ) );
+
+		$this->addon_section( 'staff' );
+		$this->assertArrayHasKey( 'staff', diluxone_users_sections( true ), 'back as it was with the add-on' );
+		$this->assertSame( array(), diluxone_users_sections_kept() );
+	}
+
+	/** The card about sections of the site's own, under the list, and gone when an add-on says so. */
+	public function test_the_pro_card_sits_under_the_list(): void {
+		$this->the_admin();
+
+		$html = $this->screen( 'sections' );
+
+		$this->assertStringContainsString( 'data-diluxone-users-pro="account/sections/more"', $html );
+		$this->assertStringContainsString( 'Sections of your own', $html );
+
+		$this->hook( 'diluxone_users_upsell', static fn( bool $show, string $where ): bool => 'account/sections/more' !== $where && $show, 10, 2 );
+
+		$this->assertStringNotContainsString( 'data-diluxone-users-pro="account/sections/more"', $this->screen( 'sections' ) );
 	}
 
 	public function test_a_section_that_is_on_and_cannot_show_says_why(): void {
@@ -890,7 +1033,6 @@ class CoverSettingsAccountTest extends IntegrationTestCase {
 		return array(
 			'order'   => array( 'order', 'New order saved.' ),
 			'saved'   => array( 'saved', 'Section saved.' ),
-			'deleted' => array( 'deleted', 'Section removed.' ),
 			'privacy' => array( 'privacy', 'Saved.' ),
 			'error'   => array( 'error', 'That section needs a name, and an address that is not taken.' ),
 		);
@@ -901,6 +1043,25 @@ class CoverSettingsAccountTest extends IntegrationTestCase {
 		$_GET = array( 'diluxone_users_msg' => $msg );
 
 		$this->assertStringContainsString( $says, $this->draw( 'diluxone_users_account_notice' ) );
+	}
+
+	/** An add-on comes back to the tab with a word of its own. */
+	public function test_an_add_on_adds_its_own_notice(): void {
+		$this->hook(
+			'diluxone_users_account_notices',
+			static function ( array $notices ): array {
+				$notices['added'] = array( 'success', 'Section added.' );
+
+				return $notices;
+			}
+		);
+		$_GET = array( 'diluxone_users_msg' => 'added' );
+
+		$this->assertStringContainsString( 'Section added.', $this->draw( 'diluxone_users_account_notice' ) );
+
+		$_GET = array( 'diluxone_users_msg' => 'deleted' );
+
+		$this->assertSame( '', $this->draw( 'diluxone_users_account_notice' ), 'the free plugin removes nothing, so it says nothing about it' );
 	}
 
 	public function test_no_notice_for_a_message_that_is_not_one(): void {

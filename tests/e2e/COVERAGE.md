@@ -13,6 +13,8 @@ add-on, offers none and names none, and draws its Users+ Pro placeholders where
 they would be. The same goes for the split and full-background sign-in layouts,
 the account area with a cover, any colour and the map of the theme's colours:
 here a Pro choice stored is drawn as the closest free one and kept on its screen.
+And for making and removing a section of the site's own: here one stored is
+not drawn, and is listed and kept.
 
 ## Signing in
 
@@ -96,13 +98,13 @@ here a Pro choice stored is drawn as the closest free one and kept on its screen
 | Security: browsers list, close one, close the others | `account-area` › Security |
 | Linked accounts: link and unlink | `sso` › linking from the account area |
 | The pieces on a page of their own (menu, fields, sessions, social networks, photo, public name and its availability check, notifications): nothing to a stranger, each one working | `account-pieces` |
-| Sections: turned off, custom section added and deleted | `admin-settings` › a section turned off; `admin-tools` › Account area › Sections |
-| Sections: own content with a shortcode is the section (placement `replace`) | `admin-account-sections` › its own content is the section |
-| Sections: rename keeps id and address | `admin-account-sections` › renamed, it keeps its id |
-| Sections: own address served; a taken address, a plugin section's address and no name refused (`error`) | `admin-account-sections` › its address is the one written |
+| Sections: turned off | `admin-settings` › a section turned off |
+| Sections: rename keeps id and address, and the section the plugin's | `admin-account-sections` › renamed, it keeps its id |
+| Sections: own address served; another section's address and no name refused (`error`) | `admin-account-sections` › its address is the one written |
 | Sections: only some roles (editor sees, subscriber not, roles kept on “everybody”) | `admin-account-sections` › “only some roles” |
 | Sections: content before / after / instead of a code section | `admin-account-sections` › content “before”… |
-| Sections: a code section has no Remove; a hand-built delete removes nothing | `admin-account-sections` › a section from code has no Remove |
+| Sections: no Remove on any section; a hand-built delete removes nothing | `admin-account-sections` › a section has no Remove here |
+| Sections: no “Add section”, the Users+ Pro card under the list (`account/sections/more`), the new section's address opens the first; a section of the site's own kept from Pro listed with the badge, nothing to open, out of the order, not on the account, kept by a section's save and the order's | `admin-account-sections` › where Users+ Pro’s sections would be |
 | Sections: toggle off and back on | `admin-account-sections` › switched off and on again |
 | Sections: “on but not showing” warning | `admin-account-sections` › on, but with nothing to show |
 | Front page cards: one off, all off (`cards_shown`), kept by another section's save | `admin-account-sections` › Account area › the front page’s cards |
@@ -120,7 +122,7 @@ here a Pro choice stored is drawn as the closest free one and kept on its screen
 | Section by `?section=`; unknown slug opens the first; a section off or role-limited is not drawn at its own address; every section off draws nothing; Notifications absent when nothing is sent or offered | `my-account-sections` › Which section opens |
 | Home: "Hello, <first name>", cards (details x/y, sessions, networks linked) linking to their sections, a card hidden by the site, every card hidden | `my-account-sections` › Home |
 | Header pieces (photo, member since, Edit profile, no header `--bare`), a cover stored is the simple area, width, nav style and alignment (unknown value → default), nav shortcode `--column` | `my-account-sections` › The header and the look |
-| Site-written section content before/after/replace with shortcodes; custom section for some roles (none ticked → nobody); section renamed, moved first, own slug | `my-account-sections` › What the site writes into a section |
+| Site-written section content before/after/replace with shortcodes; a section for some roles (none ticked → nobody); section renamed, moved first, own slug | `my-account-sections` › What the site writes into a section |
 | Every field type drawn, cleaned and drawn back (textarea, email, phone dial+number, country, url, number, date, select, datalist, checkbox) | `my-account-details` › every type is drawn… |
 | Forged closed-list, country, address, impossible date and infinite number not stored | `my-account-details` › a value off a closed list… |
 | A ticked tick box cannot be unticked from the account | `my-account-details` › a tick box ticked can be unticked… |
@@ -269,7 +271,7 @@ here a Pro choice stored is drawn as the closest free one and kept on its screen
 | E-mail notices › E-mails: missing `{link}`/`{code}` refused, back to the plugin's words, emptied boxes, unchanged save, second-step / new-device / security templates, another language | `admin-notices` › the e-mails |
 | A save writes only what its screen drew (an unticked box counts when it was drawn); a list or a map keeps the entries it does not know (a second factor, a provider's row, a section of the site's own) | a provider's row: `admin-social-providers` › The grid: a network nothing registers…; the rest not in a browser yet. Integration: `SavesKeepUnknownTest`, `CoverSettingsDesignTest`, `CoverSettingsSocialTest` |
 | A stored sign-in or account shape, or a second factor, nothing offers today: the closest free one on the page, an inactive Pro choice on the screen, kept on save | the Pro layouts and the cover: `admin-design-login`, `admin-design-account`, `signin-page`, `my-account-sections`; a Pro colour: `admin-design-brand`, `design-brand`. Integration: `UnknownChoiceTest`, `DesignSeamsTest` |
-| A Users+ Pro placeholder (picture or card): only in the admin, for its administrators, while the setting is on and `diluxone_users_upsell` allows; inert, nothing posted, escaped link with the screen as its medium | the card after the networks on Social › Providers (`social/providers/more`), with a network nothing registers kept and shown inactive before it: `admin-social-providers` › The grid; the card after the ways in on Access › Ways in (`login/ways/more`): `admin-access-ways` › after the real ways in…, and on the hub `network/admin-access` › Ways in on the hub…; the picture of passkeys under Security › Summary (`security/summary/more`): `security-summary` › under the table…, and in Network Admin `network/admin-security-network` › Network Admin › Security › Summary. the four on Design (`design/login/shapes`, `design/account/shapes`, `design/brand/any-color`, `design/brand/color-map`): `admin-design-login`, `admin-design-account`, `admin-design-brand`. Integration: `ProPreviewTest`, `CoverSettingsSocialTest`, `DesignSeamsTest` |
+| A Users+ Pro placeholder (picture or card): only in the admin, for its administrators, while the setting is on and `diluxone_users_upsell` allows; inert, nothing posted, escaped link with the screen as its medium | the card after the networks on Social › Providers (`social/providers/more`), with a network nothing registers kept and shown inactive before it: `admin-social-providers` › The grid; the card after the ways in on Access › Ways in (`login/ways/more`): `admin-access-ways` › after the real ways in…, and on the hub `network/admin-access` › Ways in on the hub…; the picture of passkeys under Security › Summary (`security/summary/more`): `security-summary` › under the table…, and in Network Admin `network/admin-security-network` › Network Admin › Security › Summary. the four on Design (`design/login/shapes`, `design/account/shapes`, `design/brand/any-color`, `design/brand/color-map`): `admin-design-login`, `admin-design-account`, `admin-design-brand`. The card under the sections on Account › Sections (`account/sections/more`): `admin-account-sections` › where Users+ Pro’s sections would be. Integration: `ProPreviewTest`, `CoverSettingsSocialTest`, `DesignSeamsTest` |
 | Maintenance › Tools › Users+ Pro on these screens (single site); Network Admin › Users+ Pro (network) | the tab is in `support/screens.ts`, so `admin-layout` and the network layout spec draw it. Integration: `ProPreviewTest` |
 | A field's key is made in `diluxone_users_field_`; any other key under the prefix is refused unless a field already had it | Unit: `FieldKeyTest`. Integration: `FieldNamespaceTest`, `CoverAdminFieldsTest` |
 | Export and erasure account for the whole `diluxone_users_` namespace by prefix | not in a browser: the data an add-on would keep does not exist yet. Integration: `PrivacyNamespaceTest` |

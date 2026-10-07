@@ -548,41 +548,52 @@ class CoverFieldsAccountTest extends IntegrationTestCase {
 	}
 
 	/** A section of the site's own that was deleted is gone at once, not at the next request. */
-	public function test_a_deleted_section_of_the_sites_own_is_gone_in_the_same_request(): void {
-		diluxone_users_update_option(
-			'diluxone_users_account_sections',
-			array(
-				'gone-soon' => array(
-					'label'  => 'Gone soon',
-					'custom' => true,
-				),
-			)
-		);
-		$this->assertArrayHasKey( 'gone-soon', diluxone_users_sections( true ) );
-
-		diluxone_users_update_option( 'diluxone_users_account_sections', array() );
-
-		$this->assertArrayNotHasKey( 'gone-soon', diluxone_users_sections( true ) );
-	}
-
-	/** What the site writes in a section of its own keeps its links and loses its scripts and handlers. */
-	public function test_a_sections_own_words_keep_links_and_lose_scripts(): void {
+	/** A section of the site's own stored, with nothing registering it, is not drawn: making and drawing them is an add-on's. */
+	public function test_a_section_of_the_sites_own_stored_is_not_drawn_without_its_add_on(): void {
 		$this->signed_in();
 		diluxone_users_update_option(
 			'diluxone_users_account_sections',
 			array(
-				'mine' => array(
-					'label'   => 'Mine',
+				'kept' => array(
+					'label'   => 'Kept',
 					'custom'  => true,
-					'slug'    => 'mine',
-					'content' => '<p>x</p><script>alert(1)</script><a onclick="x" href="javascript:y">l</a><a href="https://example.test/">ok</a>',
+					'content' => '<p>kept</p>',
 				),
 			)
 		);
 
-		ob_start();
-		diluxone_users_account_section_own( diluxone_users_sections()['mine'] );
-		$html = (string) ob_get_clean();
+		$this->assertArrayNotHasKey( 'kept', diluxone_users_sections( true ) );
+		$this->assertArrayNotHasKey( 'kept', diluxone_users_sections() );
+	}
+
+	/** What a section of the site's own carries keeps its links and loses its scripts and handlers. */
+	public function test_a_sections_own_words_keep_links_and_lose_scripts(): void {
+		$this->signed_in();
+		$this->hook(
+			'diluxone_users_register_sections',
+			static function (): void {
+				diluxone_users_register_section(
+					'mine',
+					array(
+						'label'   => 'Mine',
+						'custom'  => true,
+						'content' => '<p>x</p><script>alert(1)</script><a onclick="x" href="javascript:y">l</a><a href="https://example.test/">ok</a>',
+					)
+				);
+			},
+			10,
+			0
+		);
+
+		$registry = $GLOBALS['diluxone_users_sections'] ?? null;
+
+		try {
+			ob_start();
+			diluxone_users_account_section_own( diluxone_users_sections()['mine'] );
+			$html = (string) ob_get_clean();
+		} finally {
+			$GLOBALS['diluxone_users_sections'] = $registry;
+		}
 
 		$this->assertStringContainsString( '<p>x</p>', $html );
 		$this->assertStringContainsString( 'href="https://example.test/"', $html );

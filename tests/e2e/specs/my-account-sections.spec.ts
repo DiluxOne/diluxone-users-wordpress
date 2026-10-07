@@ -333,7 +333,7 @@ test.describe('What the site writes into a section', () => {
 		await expect(page.locator('input[name="action"][value="diluxone_users_fields_save"]'), 'the fields are replaced').toHaveCount(0);
 	});
 
-	test('a section of the site’s own for some roles: an editor has it, a subscriber does not, and with no role ticked nobody does', async ({
+	test('a section for some roles: an editor has it, a subscriber does not, and with no role ticked nobody does', async ({
 		page,
 		browser,
 		baseURL,
@@ -341,14 +341,14 @@ test.describe('What the site writes into a section', () => {
 		pages,
 		options,
 	}) => {
-		const mine = { custom: 1, label: 'Staff room', content: '<p id="e2e-staff">For staff</p>', position: 80 };
+		const mine = { label: 'Staff room', content: '<p id="e2e-staff">For staff</p>', placement: 'replace' };
 
-		await options.set({ diluxone_users_account_sections: { staff: { ...mine, visibility: 'some', roles: ['editor'] } } });
+		await options.set({ diluxone_users_account_sections: { security: { ...mine, visibility: 'some', roles: ['editor'] } } });
 
 		await signedIn(page, site, pages.login.url, 'own-role-sub');
 		await page.goto(pages.account.url);
-		await expect(page.locator('a.diluxone-users-account__tab[href*="/staff/"]')).toHaveCount(0);
-		await page.goto(accountSection(pages.account.url, 'staff'));
+		await expect(page.locator('a.diluxone-users-account__tab[href*="/security/"]')).toHaveCount(0);
+		await page.goto(accountSection(pages.account.url, 'security'));
 		await expect(page.locator('#e2e-staff')).toHaveCount(0);
 
 		const editor = await browser.newContext({ baseURL, storageState: undefined });
@@ -357,15 +357,15 @@ test.describe('What the site writes into a section', () => {
 		await signedIn(other, site, pages.login.url, 'own-role-ed', { role: 'editor' });
 		await other.goto(pages.account.url);
 
-		const tab = other.locator('a.diluxone-users-account__tab[href*="/staff/"]');
+		const tab = other.locator('a.diluxone-users-account__tab[href*="/security/"]');
 
 		await expect(tab).toHaveText('Staff room');
 		await navigated(other, () => tab.click());
 		await expect(other.locator('#e2e-staff')).toBeVisible();
 
-		await options.set({ diluxone_users_account_sections: { staff: { ...mine, visibility: 'some', roles: [] } } });
+		await options.set({ diluxone_users_account_sections: { security: { ...mine, visibility: 'some', roles: [] } } });
 		await other.goto(pages.account.url);
-		await expect(other.locator('a.diluxone-users-account__tab[href*="/staff/"]'), 'some roles, none ticked: nobody').toHaveCount(0);
+		await expect(other.locator('a.diluxone-users-account__tab[href*="/security/"]'), 'some roles, none ticked: nobody').toHaveCount(0);
 		await editor.close();
 	});
 

@@ -8,11 +8,12 @@ import { ADMIN_STATE } from '../../../playwright.config';
 /**
  * Account area › Sections, driven from the screen and proven on the account.
  *
- * A section of the site's own with its words, its content, its address and
- * the roles that see it; the plugin's own sections with content before or
- * instead of what they draw; the cards of the front page; the switches; the
- * order by dragging and by the button that works without a script; and the
- * refusals a person can run into on the screen itself.
+ * The plugin's own sections with their words, their address and the roles
+ * that see them, and content before or instead of what they draw; the cards
+ * of the front page; the switches; the order by dragging and by the button
+ * that works without a script; the refusals a person can run into on the
+ * screen itself; and where Users+ Pro's sections of the site's own would be —
+ * making them is Pro's, and its own repository drives it.
  */
 
 test.use({ storageState: ADMIN_STATE });
@@ -60,56 +61,15 @@ async function saveSection(page: Page): Promise<{ msg: string; section: string }
 	return { msg: url.searchParams.get('diluxone_users_msg') ?? '', section: url.searchParams.get('section') ?? '' };
 }
 
-/** A new section of the site's own, through the form. */
-async function newSection(page: Page, fields: { label: string; slug?: string; intro?: string; content?: string }): Promise<string> {
-	await page.goto(sectionUrl('diluxone-users-new'));
-	await box(page, 'label').fill(fields.label);
-
-	if (fields.slug !== undefined) {
-		await box(page, 'slug').fill(fields.slug);
-	}
-
-	if (fields.intro !== undefined) {
-		await box(page, 'intro').fill(fields.intro);
-	}
-
-	if (fields.content !== undefined) {
-		await writeContent(page, fields.content);
-	}
-
-	const saved = await saveSection(page);
-
-	expect(saved.msg, `the section “${fields.label}” is saved`).toBe('saved');
-
-	return saved.section;
-}
-
 const tab = (page: Page, slug: string) => page.locator(`a.diluxone-users-account__tab[href*="/${slug}/"]`);
 
 test.beforeEach(async ({ options }) => {
 	await options.keep(['diluxone_users_account_sections', 'diluxone_users_home_cards_off']);
 });
 
-test.describe('Account area › a section of the site’s own', () => {
-	test('its own content is the section, shortcodes run, and the hidden placement is “replace”', async ({ page, guest, site, pages }) => {
-		const label = unique('E2E Mis cursos');
-		const id = await newSection(page, { label, content: '<p class="e2e-own">Hola</p>[diluxone_users_sessions]' });
-
-		expect((await sections(site))[id]).toMatchObject({ label, placement: 'replace', custom: true });
-
-		await signInMember(guest, site, pages.login.url, 'own-content');
-		await guest.goto(accountSection(pages.account.url, (await sections(site))[id].slug!));
-
-		const body = guest.locator('.diluxone-users-account__section');
-
-		await expect(body.locator('p.e2e-own')).toHaveText('Hola');
-		await expect(body.locator('.diluxone-users-sessions'), 'the shortcode inside it ran').toHaveCount(1);
-	});
-
+test.describe('Account area › a section’s words, address and who sees it', () => {
 	test('renamed, it keeps its id and its address; the menu shows the new name only', async ({ page, guest, site, pages }) => {
-		const label = unique('E2E Antes');
-		const id = await newSection(page, { label, intro: 'e2e-old-intro' });
-		const slug = (await sections(site))[id].slug!;
+		const id = 'details';
 		const renamed = unique('E2E Despues');
 
 		await page.goto(sectionUrl(id));
@@ -123,53 +83,45 @@ test.describe('Account area › a section of the site’s own', () => {
 		await expect(adminSaved(page)).toBeVisible();
 
 		const stored = await sections(site);
+		const slug = stored[id].slug!;
 
-		expect(stored[id]).toMatchObject({ label: renamed, slug, intro: 'e2e-new-intro' });
-		expect(Object.values(stored).filter((one) => one.label === label), 'no second section under the old name').toHaveLength(0);
+		expect(stored[id]).toMatchObject({ label: renamed, intro: 'e2e-new-intro' });
+		expect(stored[id].custom, 'still the plugin’s').toBeUndefined();
 
 		await signInMember(guest, site, pages.login.url, 'rename-section');
 		await guest.goto(pages.account.url);
 		await expect(tab(guest, slug)).toHaveText(renamed);
-		await expect(guest.locator('a.diluxone-users-account__tab', { hasText: label })).toHaveCount(0);
 
 		await guest.goto(accountSection(pages.account.url, slug));
 		await expect(guest.locator('.diluxone-users-account__section')).toContainText('e2e-new-intro');
 	});
 
-	test('its address is the one written: served there, shown under the box, and refused for a second section', async ({ page, guest, site, pages }) => {
-		const slug = `e2e-cursos-${Date.now().toString(36)}`;
-		const label = unique('E2E Cursos');
-		const id = await newSection(page, { label, slug });
+	test('its address is the one written: served there, shown under the box, and refused when another holds it', async ({ page, guest, site, pages }) => {
+		const slug = `e2e-datos-${Date.now().toString(36)}`;
 
-		expect((await sections(site))[id].slug).toBe(slug);
+		await page.goto(sectionUrl('details'));
+		await box(page, 'slug').fill(slug);
+		expect((await saveSection(page)).msg).toBe('saved');
+		expect((await sections(site)).details.slug).toBe(slug);
 
-		// The help under the address is a link to it, once the section exists.
+		// The help under the address is a link to it.
 		await expect(page.locator(`a[href*="/${slug}/"][target="_blank"]`)).toHaveCount(1);
 
 		await signInMember(guest, site, pages.login.url, 'address');
 		await guest.goto(accountSection(pages.account.url, slug));
 		await expect(tab(guest, slug)).toHaveClass(/is-current/);
-		await expect(guest.locator('.diluxone-users-account__section')).toContainText(label);
 
-		// A second section on the same address is one that could never be opened.
+		// Two sections on one address is one that could never be opened.
 		const before = await sections(site);
 
-		await page.goto(sectionUrl('diluxone-users-new'));
-		await box(page, 'label').fill(unique('E2E Otro'));
-		await box(page, 'slug').fill(slug);
+		await page.goto(sectionUrl('details'));
+		await box(page, 'slug').fill('security');
 		expect((await saveSection(page)).msg).toBe('error');
 		await expect(adminError(page)).toBeVisible();
 		expect(await sections(site)).toEqual(before);
 
-		// Nor the address of one of the plugin's own.
-		await page.goto(sectionUrl('diluxone-users-new'));
-		await box(page, 'label').fill(unique('E2E Seguridad'));
-		await box(page, 'slug').fill('security');
-		expect((await saveSection(page)).msg).toBe('error');
-		expect(await sections(site)).toEqual(before);
-
 		// Nor a section with no name.
-		await page.goto(sectionUrl('diluxone-users-new'));
+		await page.goto(sectionUrl('details'));
 		await box(page, 'label').evaluate((input: HTMLInputElement) => input.removeAttribute('required'));
 		await box(page, 'label').fill('');
 		expect((await saveSection(page)).msg).toBe('error');
@@ -177,15 +129,16 @@ test.describe('Account area › a section of the site’s own', () => {
 	});
 
 	test('“only some roles”: an editor sees it, a subscriber has no tab and its address opens another section', async ({ page, guest, site, pages, browser, baseURL }) => {
-		const label = unique('E2E Editores');
-		const id = await newSection(page, { label, intro: 'e2e-editors-only' });
-		const slug = (await sections(site))[id].slug!;
+		const id = 'details';
 
 		await page.goto(sectionUrl(id));
+		await box(page, 'intro').fill('e2e-editors-only');
 		await page.locator('input[name="diluxone_users_section_form[visibility]"][value="some"]').check({ force: true });
 		await page.locator('input[name="diluxone_users_section_form[roles][]"][value="editor"]').setChecked(true, { force: true });
 		expect((await saveSection(page)).msg).toBe('saved');
 		expect((await sections(site))[id]).toMatchObject({ visibility: 'some', roles: ['editor'] });
+
+		const slug = (await sections(site))[id].slug!;
 
 		await signInMember(guest, site, pages.login.url, 'roles-sub');
 		await guest.goto(pages.account.url);
@@ -211,6 +164,55 @@ test.describe('Account area › a section of the site’s own', () => {
 
 		await guest.goto(pages.account.url);
 		await expect(tab(guest, slug)).toHaveCount(1);
+	});
+});
+
+test.describe('Account area › where Users+ Pro’s sections would be', () => {
+	test('there is no “Add section”: the card under the list says what Pro adds, and the new section’s address opens the first one', async ({ page }) => {
+		await page.goto(adminUrl('diluxone-users-account', 'sections'));
+
+		await expect(page.locator('.diluxone-users-endpoints__head a.button', { hasText: 'Add section' })).toHaveCount(0);
+
+		const card = page.locator('[data-diluxone-users-pro="account/sections/more"]');
+
+		await expect(card).toBeVisible();
+		await expect(card).toContainText('Sections of your own');
+		await expect(card.locator('input, select, textarea, button'), 'nothing in it posts').toHaveCount(0);
+
+		await page.goto(sectionUrl('diluxone-users-new'));
+		await expect(page.locator('.diluxone-users-endpoint-form__head h3')).toHaveText(/./);
+		await expect(page.locator('input[name="diluxone_users_section_form[id]"]')).not.toHaveValue('');
+	});
+
+	test('a section of the site’s own kept from Pro: listed with the badge, nothing to open, not on the account, and every save keeps it', async ({ page, guest, site, pages, options }) => {
+		const kept = { label: 'E2E Sala de profes', slug: 'e2e-sala', custom: true, enabled: 1, position: 15, placement: 'replace', content: '<p class="e2e-kept">Profes</p>' };
+
+		await options.set({ diluxone_users_account_sections: { ...(await sections(site)), 'e2e-sala': kept } });
+
+		await page.goto(adminUrl('diluxone-users-account', 'sections'));
+
+		const row = page.locator('li.diluxone-users-endpoint.is-kept', { hasText: kept.label });
+
+		await expect(row).toHaveCount(1);
+		await expect(row).toContainText('Pro');
+		await expect(row.locator('a'), 'nothing to open').toHaveCount(0);
+		await expect(page.locator('input[name="diluxone_users_order_form[]"][value="e2e-sala"]'), 'out of the order').toHaveCount(0);
+
+		await signInMember(guest, site, pages.login.url, 'kept-section');
+		await guest.goto(pages.account.url);
+		await expect(tab(guest, 'e2e-sala')).toHaveCount(0);
+		await guest.goto(accountSection(pages.account.url, 'e2e-sala'));
+		await expect(guest.locator('.e2e-kept')).toHaveCount(0);
+
+		// Another section saved, and the order saved: it is still there, as it was.
+		await page.goto(sectionUrl('details'));
+		await box(page, 'intro').fill('e2e-kept-save');
+		expect((await saveSection(page)).msg).toBe('saved');
+
+		await page.goto(adminUrl('diluxone-users-account', 'sections'));
+		await navigated(page, () => page.getByRole('button', { name: 'Save the order' }).click());
+
+		expect((await sections(site))['e2e-sala']).toEqual(kept);
 	});
 });
 
@@ -260,7 +262,7 @@ test.describe('Account area › the plugin’s own sections', () => {
 		await expect(body.locator('.diluxone-users-sessions'), 'replaced: the plugin draws nothing').toHaveCount(0);
 	});
 
-	test('a section from code has no Remove, and a delete built by hand with a good nonce removes nothing', async ({ page, guest, site, pages }) => {
+	test('a section has no Remove here, and a delete built by hand with a good nonce removes nothing', async ({ page, guest, site, pages }) => {
 		await page.goto(sectionUrl('security'));
 
 		await expect(page.locator('a[href*="diluxone_users_action=delete"]')).toHaveCount(0);

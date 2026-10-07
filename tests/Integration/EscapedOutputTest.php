@@ -161,7 +161,8 @@ class EscapedOutputTest extends IntegrationTestCase {
 		diluxone_users_update_option(
 			'diluxone_users_account_sections',
 			array(
-				'details' => array( 'label' => self::HOSTILE, 'intro' => self::HOSTILE ),
+				'details' => array( 'label' => self::HOSTILE, 'intro' => self::HOSTILE, 'content' => '<p>[du_hostile]</p>' ),
+				// Kept from an add-on: drawn nowhere on the front, listed on the Sections tab.
 				'mine'    => array( 'label' => self::HOSTILE, 'custom' => true, 'content' => '<p>[du_hostile]</p>', 'slug' => 'mine' ),
 			)
 		);
