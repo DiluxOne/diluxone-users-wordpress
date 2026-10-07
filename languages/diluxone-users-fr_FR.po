@@ -868,32 +868,6 @@ msgstr "Ses données"
 msgid "They can ask for a copy of everything and download it"
 msgstr "Elle peut demander une copie de tout et la télécharger"
 
-#: includes/admin-passkeys.php:75
-msgid ""
-"A passkey is a private key that lives on the person’s device or keychain and "
-"never leaves it. There is nothing on this side worth stealing, nothing to "
-"reuse on another site, and it cannot be phished: the browser refuses to sign "
-"for a domain that is not the one it was made for."
-msgstr ""
-"Une passkey est une clé privée qui vit sur l’appareil ou dans le trousseau "
-"de la personne et n’en sort jamais. Il n’y a rien à voler de ce côté-ci, "
-"rien à réutiliser sur un autre site, et cela ne peut pas être hameçonné : le "
-"navigateur refuse de signer pour un domaine qui n’est pas celui pour lequel "
-"elle a été créée."
-
-#: includes/admin-passkeys.php:117
-msgid "Any: the device being used, a USB key, or another phone"
-msgstr ""
-"N’importe laquelle : l’appareil utilisé, une clé USB, ou un autre téléphone"
-
-#: includes/admin-passkeys.php:124
-msgid "Only the device being used"
-msgstr "Seulement l’appareil utilisé"
-
-#: includes/admin-passkeys.php:139
-msgid "Require the fingerprint, the face or the PIN"
-msgstr "Exiger l’empreinte, le visage ou le code PIN"
-
 #: includes/admin-home.php:544 includes/admin-sessions.php:40
 msgid "Open sessions"
 msgstr "Sessions ouvertes"
@@ -1269,14 +1243,6 @@ msgstr "Dernier message envoyé il y a %s."
 msgid "The site is served over HTTPS."
 msgstr "Le site est servi en HTTPS."
 
-#: includes/admin-status.php:270
-msgid ""
-"Passkeys are on, but WebAuthn does not work outside HTTPS: nobody can "
-"register or use one."
-msgstr ""
-"Les passkeys sont activées, mais WebAuthn ne fonctionne pas hors HTTPS : "
-"personne ne peut en enregistrer ni en utiliser une."
-
 #: includes/admin-status.php:286 includes/admin-status.php:292
 msgid "Permalinks"
 msgstr "Permaliens"
@@ -1388,22 +1354,6 @@ msgstr[1] "%d choses demandent votre attention."
 #: includes/admin-home.php:529 includes/admin-status.php:512
 msgid "Accounts"
 msgstr "Comptes"
-
-#: includes/admin-status.php:513
-msgid "With an authenticator app"
-msgstr "Avec une application d’authentification"
-
-#: includes/admin-status.php:514
-msgid "With a passkey"
-msgstr "Avec une passkey"
-
-#: includes/admin-status.php:515
-msgid "With a social account linked"
-msgstr "Avec un compte social lié"
-
-#: includes/admin-status.php:516
-msgid "With a public name"
-msgstr "Avec un nom public"
 
 #: includes/admin-status.php:530
 msgid "Environment"
@@ -1640,61 +1590,6 @@ msgstr ""
 "\n"
 "Il est valable %2$d minutes. Si vous ne l’avez pas demandé, ignorez ce "
 "message : sans le code, personne n’entre."
-
-#: includes/auth-passkeys.php:488
-msgid "This site does not use passkeys."
-msgstr "Ce site n’utilise pas les passkeys."
-
-#: includes/auth-passkeys.php:468 includes/auth-passkeys.php:494
-msgid "Session expired. Reload the page."
-msgstr "Session expirée. Rechargez la page."
-
-#: includes/auth-passkeys.php:527
-msgid "Unknown step."
-msgstr "Étape inconnue."
-
-#: includes/auth-passkeys.php:548
-msgid "That did not check out. Try again."
-msgstr "Cela n’a pas été vérifié. Réessayez."
-
-#: includes/auth-passkeys.php:555
-msgid "That key is of a kind this site cannot verify."
-msgstr "Cette clé est d’un type que ce site ne sait pas vérifier."
-
-#: includes/auth-passkeys.php:565
-msgid "That one was already here."
-msgstr "Celle-là était déjà là."
-
-#. translators: %s: the name given to the passkey
-#: includes/auth-passkeys.php:603
-#, php-format
-msgid "A passkey was added: %s."
-msgstr "Une passkey a été ajoutée : %s."
-
-#: includes/auth-passkeys.php:610
-msgid "Passkey saved."
-msgstr "Passkey enregistrée."
-
-#: includes/admin-log.php:387 includes/admin-people.php:253
-#: includes/auth-passkeys.php:663 includes/login-ways.php:516
-msgid "Passkey"
-msgstr "Passkey"
-
-#: includes/auth-passkeys.php:680
-msgid "That passkey did not check out."
-msgstr "Cette passkey n’a pas été vérifiée."
-
-#: includes/auth-passkeys.php:775
-msgid "That did not work. Try again."
-msgstr "Cela n’a pas fonctionné. Réessayez."
-
-#: includes/auth-passkeys.php:776
-msgid "This browser is too old for passkeys."
-msgstr "Ce navigateur est trop ancien pour les passkeys."
-
-#: includes/auth-passkeys.php:808
-msgid "A passkey was removed."
-msgstr "Une passkey a été retirée."
 
 #: includes/auth.php:125
 msgid ""
@@ -1995,14 +1890,6 @@ msgstr ""
 msgid "When something in my security changes"
 msgstr "Quand quelque chose change dans ma sécurité"
 
-#: includes/notify.php:42
-msgid ""
-"A passkey added or removed, two-step verification turned on or off, a social "
-"account linked or unlinked."
-msgstr ""
-"Une passkey ajoutée ou retirée, la vérification en deux étapes activée ou "
-"désactivée, un compte social lié ou délié."
-
 #. translators: %s: site name
 #: includes/mail-templates.php:143
 #, php-format
@@ -2037,10 +1924,6 @@ msgstr ""
 #: includes/notify.php:324
 msgid "a link sent to your email"
 msgstr "un lien envoyé à votre e-mail"
-
-#: includes/notify.php:327
-msgid "a passkey"
-msgstr "une passkey"
 
 #. translators: %s: site name
 #: includes/mail-templates.php:173
@@ -2584,14 +2467,6 @@ msgstr ""
 "Ce site exige la vérification en deux étapes : elle ne peut pas être "
 "désactivée."
 
-#: templates/account/security.php:44
-msgid "The passkey was removed."
-msgstr "La passkey a été retirée."
-
-#: templates/account/security.php:45
-msgid "The passkey has a new name."
-msgstr "La passkey a un nouveau nom."
-
 #: templates/account/security.php:57
 msgid "How you get in"
 msgstr "Comment vous entrez"
@@ -2616,60 +2491,6 @@ msgid ""
 msgstr ""
 "Vous n’en avez pas. Vous entrez avec un lien envoyé à votre e-mail, ou avec "
 "un compte social."
-
-#: templates/account/security.php:81
-msgid ""
-"The way in with no password and nothing to type: the fingerprint, the face "
-"or the PIN of your own device. The key never leaves it, there is nothing on "
-"our side worth stealing, and it cannot be used on a fake site pretending to "
-"be this one."
-msgstr ""
-"La façon d’entrer sans mot de passe et sans rien taper : l’empreinte, le "
-"visage ou le code PIN de votre propre appareil. La clé n’en sort jamais, il "
-"n’y a rien à voler de notre côté, et elle ne peut pas servir sur un faux "
-"site qui se ferait passer pour celui-ci."
-
-#: templates/account/security.php:83
-msgid ""
-"When you get in with a passkey we do not ask for a second step: the passkey "
-"already is two of them in one — the device you have, and the fingerprint, "
-"face or PIN that unlocks it."
-msgstr ""
-"Quand vous entrez avec une passkey, nous ne demandons pas de deuxième "
-"étape : la passkey en est déjà deux en une — l’appareil que vous avez, et "
-"l’empreinte, le visage ou le code PIN qui le déverrouille."
-
-#. translators: %s: date it was added
-#: templates/account/security.php:115
-#, php-format
-msgid "Added on %s"
-msgstr "Ajoutée le %s"
-
-#. translators: %s: how long ago it was used
-#: templates/account/security.php:124
-#, php-format
-msgid "used %s ago"
-msgstr "utilisée il y a %s"
-
-#: templates/account/security.php:141
-msgid "Name of this passkey"
-msgstr "Nom de cette passkey"
-
-#: templates/account/security.php:145
-msgid "Save name"
-msgstr "Enregistrer le nom"
-
-#: templates/account/security.php:146
-msgid "Remove this passkey"
-msgstr "Retirer cette passkey"
-
-#: templates/account/security.php:164
-msgid "Name it, so you recognise it later"
-msgstr "Donnez-lui un nom, pour la reconnaître plus tard"
-
-#: templates/account/security.php:167
-msgid "Add a passkey"
-msgstr "Ajouter une passkey"
 
 #: templates/account/security.php:175
 msgid "Write these down now"
@@ -3087,10 +2908,6 @@ msgstr "Identifiant et mot de passe"
 msgid "A social account"
 msgstr "Un compte social"
 
-#: includes/admin-login.php:268 includes/admin-login.php:701
-msgid "A passkey"
-msgstr "Une passkey"
-
 #: includes/admin-login.php:281 includes/login-messages.php:70
 msgid "Creating an account"
 msgstr "Créer un compte"
@@ -3108,14 +2925,6 @@ msgstr "2FA"
 #: includes/admin-people.php:67
 msgid "App"
 msgstr "App"
-
-#. translators: %d: how many passkeys
-#: includes/admin-people.php:75
-#, php-format
-msgid "%d passkey"
-msgid_plural "%d passkeys"
-msgstr[0] "%d passkey"
-msgstr[1] "%d passkeys"
 
 #: includes/admin-people.php:91
 msgid "Only the e-mail link"
@@ -3146,12 +2955,6 @@ msgstr "Pas d’application d’authentification."
 #: includes/admin-people.php:218 includes/admin-people.php:228
 msgid "None."
 msgstr "Aucune."
-
-#. translators: 1: the name given to the passkey, 2: date it was added
-#: includes/admin-people.php:252
-#, php-format
-msgid "Remove “%1$s”, added on %2$s"
-msgstr "Retirer « %1$s », ajoutée le %2$s"
 
 #. translators: %s: name of the social network
 #: includes/admin-people.php:267
@@ -3331,18 +3134,6 @@ msgid "The six-digit code as a second step, from an app on their phone."
 msgstr ""
 "Le code à six chiffres comme deuxième étape, depuis une application sur leur "
 "téléphone."
-
-#: includes/admin-home.php:243
-msgid "Registered a passkey"
-msgstr "Ont enregistré une passkey"
-
-#: includes/admin-home.php:244
-msgid ""
-"Their fingerprint or their face instead of a password. It is the only way in "
-"that cannot be phished."
-msgstr ""
-"Leur empreinte ou leur visage au lieu d'un mot de passe. C'est la seule "
-"façon d'entrer qui ne peut pas être volée par tromperie."
 
 #. translators: %s: number of accounts on the site
 #: includes/admin-home.php:252
@@ -4047,13 +3838,6 @@ msgstr ""
 "L’accent atténué derrière le texte. Plus discret que le plein et plus stable "
 "qu’un contour."
 
-#: includes/admin-appearance.php:747
-msgid ""
-"An icon inside the two doors: an envelope on the link, a key on the passkey"
-msgstr ""
-"Une icône dans les deux portes : une enveloppe sur le lien, une clé sur la "
-"passkey"
-
 #: includes/admin-appearance.php:755
 msgid "Controls"
 msgstr "Contrôles"
@@ -4457,15 +4241,6 @@ msgstr "aucun fournisseur ne fonctionne encore"
 msgid "The buttons are switched on but there is nothing to show."
 msgstr "Les boutons sont activés mais il n’y a rien à montrer."
 
-#: includes/admin-login.php:271
-msgid "For whoever added one. It counts as both steps at once."
-msgstr ""
-"Pour quiconque en a ajouté une. Elle compte comme les deux étapes à la fois."
-
-#: includes/admin-login.php:272
-msgid "Not offered."
-msgstr "Non proposée."
-
 #: includes/admin-register.php:59
 msgid "the e-mail link"
 msgstr "le lien par e-mail"
@@ -4754,10 +4529,6 @@ msgstr "Envoyer un test →"
 msgid "Nothing sent yet. A test is the only way to know."
 msgstr "Rien d’envoyé encore. Un test est la seule façon de savoir."
 
-#: includes/admin-status.php:276
-msgid "Passkeys will not work if you turn them on."
-msgstr "Les passkeys ne fonctionneront pas si vous les activez."
-
 #: includes/admin-status.php:277
 msgid "The site is not served over HTTPS."
 msgstr "Le site n’est pas servi en HTTPS."
@@ -4908,10 +4679,6 @@ msgstr "Aucun pour l’instant."
 #: includes/admin-login.php:1180
 msgid "It is set on Your brand →"
 msgstr "Il se règle dans Votre marque →"
-
-#: includes/auth-passkeys.php:578
-msgid "That passkey is already registered to another account."
-msgstr "Cette passkey est déjà enregistrée sur un autre compte."
 
 #: includes/auth.php:1190
 msgid ""
@@ -5421,83 +5188,9 @@ msgstr ""
 "En service en ce moment : %s. Désactivés, les boutons disparaissent, et qui "
 "a déjà lié un compte social le garde."
 
-#: includes/admin-login.php:702 includes/admin-passkeys.php:92
-msgid ""
-"A key that stays on the person’s device or keychain: nothing to type, "
-"nothing to phish, and it counts as both steps at once."
-msgstr ""
-"Une clé qui reste sur l’appareil ou dans le trousseau de la personne : rien "
-"à saisir, rien à hameçonner, et elle vaut les deux étapes à la fois."
-
-#: includes/admin-login.php:704
-msgid "this site is not on HTTPS, and browsers refuse passkeys until it is"
-msgstr ""
-"ce site n’est pas en HTTPS, et les navigateurs refusent les passkeys tant "
-"qu’il ne l’est pas"
-
-#: includes/admin-passkeys.php:156
-msgid "Offered on this site"
-msgstr "Proposées sur ce site"
-
-#. translators: %s: the domain the passkeys end up tied to
-#: includes/admin-passkeys.php:160
-#, php-format
-msgid ""
-"People can add passkeys and sign in with them. They are tied to %s: if the "
-"site moves to another domain they stop working and have to be added again, "
-"which is exactly what makes them unphishable."
-msgstr ""
-"Les gens peuvent ajouter des passkeys et se connecter avec. Elles sont liées "
-"à %s : si le site déménage sur un autre domaine, elles cessent de "
-"fonctionner et doivent être ajoutées à nouveau, ce qui est exactement ce qui "
-"les rend inhameçonnables."
-
-#: includes/admin-passkeys.php:107
-msgid "Turn them on → Access › Ways in"
-msgstr "Activez-les → Accès › Façons d’entrer"
-
 #: includes/admin-passkeys.php:98 includes/admin-passkeys.php:270
 msgid "Which passkeys are accepted"
 msgstr "Quelles passkeys sont acceptées"
-
-#: includes/admin-passkeys.php:105
-msgid ""
-"Passkeys are not one of the ways in yet, so nothing below is in use. What is "
-"chosen here applies the day they are."
-msgstr ""
-"Les passkeys ne font pas encore partie des façons d’entrer, rien de ce qui "
-"suit n’est donc utilisé. Ce qui est choisi ici s’appliquera le jour où elles "
-"en feront partie."
-
-#: includes/admin-passkeys.php:118
-msgid ""
-"Somebody at a laptop can register using their phone, and a hardware key "
-"works. It is what most people expect."
-msgstr ""
-"Quelqu’un sur un portable peut s’enregistrer avec son téléphone, et une clé "
-"matérielle fonctionne. C’est ce à quoi la plupart des gens s’attendent."
-
-#: includes/admin-passkeys.php:125
-msgid ""
-"Everything stays on the machine in front of them. Some organisations require "
-"it; everybody else finds it annoying."
-msgstr ""
-"Tout reste sur la machine qu’ils ont devant eux. Certaines organisations "
-"l’exigent ; tous les autres trouvent cela pénible."
-
-#: includes/admin-passkeys.php:130
-msgid "Proof that it is them holding the device"
-msgstr "La preuve que c’est bien la personne qui tient l’appareil"
-
-#: includes/admin-passkeys.php:140
-msgid ""
-"This is what makes a passkey count as two things at once: something they "
-"have and something they are. Unticked, whoever is holding an unlocked device "
-"gets in, and the passkey is worth one factor."
-msgstr ""
-"C’est ce qui fait qu’une passkey compte pour deux choses à la fois : quelque "
-"chose qu’elle a et quelque chose qu’elle est. Décoché, quiconque tient un "
-"appareil déverrouillé entre, et la passkey ne vaut qu’un facteur."
 
 #: includes/admin-register.php:270
 msgid ""
@@ -6058,14 +5751,6 @@ msgstr "Aucun choisi. Le compte est connu par son adresse e-mail."
 msgid "Every session →"
 msgstr "Toutes les sessions →"
 
-#. translators: %d: how many passkeys
-#: includes/admin-people.php:214
-#, php-format
-msgid "%d passkey on this account."
-msgid_plural "%d passkeys on this account."
-msgstr[0] "%d passkey sur ce compte."
-msgstr[1] "%d passkeys sur ce compte."
-
 #: includes/admin-people.php:240
 msgid "Remove the authenticator app"
 msgstr "Retirer l’application d’authentification"
@@ -6077,14 +5762,6 @@ msgid ""
 msgstr ""
 "Pour quelqu’un qui a perdu le téléphone où elle vivait. La personne en "
 "configure une nouvelle depuis son propre compte."
-
-#: includes/admin-people.php:256
-msgid ""
-"The device keeps its half and it stops opening this account. They can add it "
-"again."
-msgstr ""
-"L’appareil garde sa moitié et cesse d’ouvrir ce compte. Elle peut être "
-"ajoutée de nouveau."
 
 #: includes/admin-people.php:281
 msgid "Take a way in off this account"
@@ -6319,23 +5996,9 @@ msgstr ""
 msgid "the device, the browser and the system, in one line"
 msgstr "l’appareil, le navigateur et le système, sur une ligne"
 
-#: includes/mail-templates.php:132
-msgid "how they got in: a link, a password, a social account, a passkey"
-msgstr ""
-"comment la personne est entrée : un lien, un mot de passe, un compte social, "
-"une passkey"
-
 #: includes/mail-templates.php:159
 msgid "A change in their security"
 msgstr "Un changement dans sa sécurité"
-
-#: includes/mail-templates.php:160
-msgid ""
-"Sent when a passkey, the second step or a linked social account changes. "
-"Whether it goes out at all is decided on the Notices tab."
-msgstr ""
-"Envoyé quand une passkey, la deuxième étape ou un compte social lié change. "
-"S’il part ou non se décide dans l’onglet Avis."
 
 #: includes/mail-templates.php:162
 msgid "what changed, in one line"
@@ -6549,14 +6212,6 @@ msgstr ""
 "Personne ne lie un compte que le site ne propose pas : c’est ici que sont "
 "les fournisseurs."
 
-#: includes/admin-home.php:330
-msgid ""
-"Which ways in exist at all, passkeys among them, and who may create an "
-"account."
-msgstr ""
-"Quelles façons d’entrer existent, les passkeys parmi elles, et qui peut "
-"créer un compte."
-
 #: includes/admin-home.php:335
 msgid ""
 "The same four things, one account at a time, in the column WordPress’s own "
@@ -6650,12 +6305,6 @@ msgstr ""
 "Quels fournisseurs les boutons proposent, et les clés dont chacun a besoin "
 "avant de marcher."
 
-#: includes/admin-login.php:352
-msgid ""
-"The second step asked for after the door, and what a passkey has to prove."
-msgstr ""
-"La deuxième étape demandée après la porte, et ce qu’une passkey doit prouver."
-
 #: includes/admin-login.php:356
 msgid "The e-mail that carries the link"
 msgstr "L’e-mail qui porte le lien"
@@ -6710,24 +6359,6 @@ msgstr ""
 #: includes/admin-login.php:733
 msgid "What this tab does not decide"
 msgstr "Ce que cet onglet ne décide pas"
-
-#: includes/admin-login.php:734
-msgid ""
-"A way in is switched on here, with the other ways in. What it does once it "
-"is on — which providers the buttons offer, what a passkey has to prove — is "
-"set where that feature lives."
-msgstr ""
-"Une façon d’entrer s’active ici, avec les autres. Ce qu’elle fait une fois "
-"activée — quels fournisseurs les boutons proposent, ce qu’une passkey doit "
-"prouver — se règle là où vit cette fonctionnalité."
-
-#: includes/admin-login.php:749
-msgid ""
-"Which passkeys are accepted, and whether a fingerprint, a face or a PIN is "
-"required."
-msgstr ""
-"Quelles passkeys sont acceptées, et si une empreinte, un visage ou un code "
-"PIN est exigé."
 
 #: includes/admin-login.php:756
 msgid ""
@@ -6826,32 +6457,6 @@ msgstr ""
 "Des mots que personne ne reçoit restent des mots que personne ne reçoit. "
 "Voici comment le savoir."
 
-#: includes/admin-passkeys.php:163
-msgid "Nobody can add one or sign in with one, whatever is chosen beside this."
-msgstr ""
-"Personne ne peut en ajouter une ni se connecter avec, quoi que l’on "
-"choisisse à côté."
-
-#: includes/admin-passkeys.php:171
-msgid ""
-"This site is not on HTTPS. Browsers refuse passkeys until it is, whatever is "
-"chosen here."
-msgstr ""
-"Ce site n’est pas en HTTPS. Les navigateurs refusent les passkeys tant qu’il "
-"ne l’est pas, quoi que l’on choisisse ici."
-
-#: includes/admin-passkeys.php:182
-msgid "Decided elsewhere"
-msgstr "Décidé ailleurs"
-
-#: includes/admin-passkeys.php:187
-msgid ""
-"Whether passkeys are offered at all is a question about doors, and it is "
-"answered there, beside the password and the e-mail link."
-msgstr ""
-"Savoir si les passkeys sont proposées est une question de portes, et on y "
-"répond là-bas, à côté du mot de passe et du lien par e-mail."
-
 #: includes/admin-people.php:282
 msgid "Ticked here, it goes when the profile is saved."
 msgstr "Cochée ici, elle s’en va à l’enregistrement du profil."
@@ -6881,14 +6486,6 @@ msgid ""
 msgstr ""
 "Quelles façons d’entrer le site propose. Rien de ce qui précède ne peut en "
 "donner une à ce compte que le site n’a pas."
-
-#: includes/admin-people.php:317
-msgid ""
-"Whether a second step is asked for after the door, and what a passkey has to "
-"prove."
-msgstr ""
-"Si une deuxième étape est demandée après la porte, et ce qu’une passkey doit "
-"prouver."
 
 #: includes/admin-people.php:327
 msgid "Every session this account has open"
@@ -7354,12 +6951,6 @@ msgstr "Lien par e-mail"
 msgid "Social account"
 msgstr "Compte social"
 
-#. translators: %s: how many passkeys the account has left.
-#: includes/admin-log.php:450
-#, php-format
-msgid "%s on the account now"
-msgstr "%s sur le compte maintenant"
-
 #. translators: %s: how many sessions were closed at once.
 #: includes/admin-log.php:457
 #, php-format
@@ -7438,10 +7029,6 @@ msgstr ""
 "Lequel des trois groupes est consigné, et combien de jours une ligne est "
 "conservée avant de s’en aller toute seule."
 
-#: includes/admin-passkeys.php:251
-msgid "browsers refuse them until this site is on HTTPS"
-msgstr "les navigateurs les refusent tant que ce site n’est pas en HTTPS"
-
 #. translators: %s: the domain the passkeys are tied to
 #: includes/admin-passkeys.php:255
 #, php-format
@@ -7450,22 +7037,6 @@ msgid ""
 msgstr ""
 "Proposées, et liées à %s : une passkey créée ici fonctionne ici et nulle "
 "part ailleurs."
-
-#: includes/admin-passkeys.php:258
-msgid "Nobody can add one or sign in with one."
-msgstr "Personne ne peut en ajouter une ni s’en servir pour se connecter."
-
-#: includes/admin-passkeys.php:260
-msgid "Access › Ways in →"
-msgstr "Accès › Façons d’entrer →"
-
-#: includes/admin-passkeys.php:272 includes/admin-passkeys.php:284
-msgid "while passkeys are not offered"
-msgstr "tant que les passkeys ne sont pas proposées"
-
-#: includes/admin-passkeys.php:274
-msgid "Only the device in front of them: no phone, no hardware key."
-msgstr "Uniquement l’appareil devant eux : ni téléphone, ni clé matérielle."
 
 #: includes/admin-passkeys.php:275
 msgid "Any: the device being used, a USB key, or another phone."
@@ -7481,39 +7052,6 @@ msgid "Required, which is what makes a passkey count as two things at once."
 msgstr ""
 "Exigé, et c’est ce qui fait qu’une passkey compte pour deux choses à la fois."
 
-#: includes/admin-passkeys.php:287
-msgid ""
-"Not required: whoever holds an unlocked device gets in, and the passkey is "
-"worth one factor."
-msgstr ""
-"Non exigé : quiconque tient un appareil déverrouillé entre, et la passkey ne "
-"vaut qu’un seul facteur."
-
-#: includes/admin-passkeys.php:292
-msgid "Registered on this site"
-msgstr "Enregistrées sur ce site"
-
-#: includes/admin-passkeys.php:297
-msgid "nobody has added one yet"
-msgstr "personne n’en a encore ajouté"
-
-#. translators: %s: how many accounts have at least one passkey
-#: includes/admin-passkeys.php:300
-#, php-format
-msgid "%s account has one."
-msgid_plural "%s accounts have one."
-msgstr[0] "%s compte en a une."
-msgstr[1] "%s comptes en ont une."
-
-#: includes/admin-passkeys.php:302
-msgid "None of them opens anything while passkeys are off."
-msgstr ""
-"Aucune n’ouvre quoi que ce soit tant que les passkeys sont désactivées."
-
-#: includes/admin-passkeys.php:304
-msgid "Overview › Usage →"
-msgstr "Vue d’ensemble › Utilisation →"
-
 #: includes/admin-security.php:118
 msgid ""
 "What is being asked of somebody who already reached the sign-in form, and "
@@ -7527,26 +7065,6 @@ msgstr ""
 #: includes/admin-security.php:131
 msgid "What none of this decides"
 msgstr "Ce que rien de tout cela ne décide"
-
-#: includes/admin-security.php:132
-msgid ""
-"Everything above happens to somebody who is already at the sign-in form. "
-"Which forms there are at all — the password, the e-mail link, the social "
-"buttons, the passkey — is a question about doors, and it is answered on "
-"Access."
-msgstr ""
-"Tout ce qui précède arrive à une personne déjà devant le formulaire de "
-"connexion. Quels formulaires existent — le mot de passe, le lien par e-mail, "
-"les boutons sociaux, la passkey — est une question de portes, et la réponse "
-"est dans Accès."
-
-#: includes/admin-security.php:141
-msgid ""
-"What the sign-in form takes, passkeys among them: turning a door on is a "
-"question about doors."
-msgstr ""
-"Ce que le formulaire de connexion accepte, les passkeys comprises : activer "
-"une porte est une question de portes."
 
 #: includes/admin-security.php:145
 msgid "Access › Summary"
@@ -7672,14 +7190,6 @@ msgstr ""
 msgid "Changes to the security"
 msgstr "Modifications de la sécurité"
 
-#: includes/log.php:482
-msgid ""
-"Two-step verification turned on or off, a passkey added or removed, sessions "
-"closed."
-msgstr ""
-"Vérification en deux étapes activée ou désactivée, passkey ajoutée ou "
-"retirée, sessions fermées."
-
 #: includes/log.php:483
 msgid ""
 "Almost nothing, and it is the group worth having when an account is taken "
@@ -7723,14 +7233,6 @@ msgstr "Vérification en deux étapes activée"
 #: includes/log.php:537
 msgid "Two-step verification turned off"
 msgstr "Vérification en deux étapes désactivée"
-
-#: includes/log.php:538
-msgid "Passkey added"
-msgstr "Passkey ajoutée"
-
-#: includes/log.php:539
-msgid "Passkey removed"
-msgstr "Passkey retirée"
 
 #: includes/log.php:540
 msgid "Sessions closed"
@@ -8286,16 +7788,6 @@ msgstr ""
 "Un formulaire avec tous les champs, que la personne connectée remplit et "
 "enregistre. Qui n’est pas connecté ne voit absolument rien à sa place."
 
-#: includes/admin-fields.php:1021
-msgid ""
-"The way in: the box that asks for an e-mail address, and under it whichever "
-"buttons are switched on — the social networks, the password, the passkey. "
-"Somebody already signed in is told so instead."
-msgstr ""
-"L’entrée : le champ qui demande une adresse e-mail et, dessous, les boutons "
-"activés — les réseaux sociaux, le mot de passe, la clé d’accès. À qui est "
-"déjà connecté, on le dit à la place."
-
 #: includes/admin-fields.php:1025
 msgid ""
 "The same box with a “Sign in” heading above it, for a page whose own title "
@@ -8633,16 +8125,6 @@ msgctxt "the public name of one account"
 msgid "None"
 msgstr "Aucun"
 
-#: includes/admin-people.php:208
-msgctxt "the passkeys on one account"
-msgid "In use"
-msgstr "En usage"
-
-#: includes/admin-people.php:209
-msgctxt "the passkeys on one account"
-msgid "None"
-msgstr "Aucune"
-
 #: includes/admin-people.php:224
 msgctxt "the social networks on one account"
 msgid "Linked"
@@ -8662,16 +8144,6 @@ msgstr "Quelqu’un l’est"
 msgctxt "how many people have a session open"
 msgid "Nobody is"
 msgstr "Personne ne l’est"
-
-#. Description of the plugin
-#: diluxone-users.php
-msgid ""
-"Custom user fields, a front-end account area, passwordless sign-in, social "
-"login, two-step verification, passkeys and session control."
-msgstr ""
-"Des champs personnalisés, un espace compte côté site, la connexion sans mot "
-"de passe, la connexion sociale, la vérification en deux étapes, les passkeys "
-"et le contrôle des sessions."
 
 #: includes/admin-sessions.php:99
 msgid ""
@@ -8702,25 +8174,6 @@ msgstr "Ce fichier est trop volumineux pour être un export de réglages."
 msgid "What happens when the plugin is deleted"
 msgstr "Ce qui se passe à la suppression de l’extension"
 
-#: includes/admin-tools.php:678
-msgid ""
-"By default, nothing. The settings stay, the activity log stays, and so does "
-"everything in people’s profiles — their details, their public names, their "
-"passkeys and their second factors. That is on purpose: a plugin deleted by "
-"accident, or deleted to be installed again, should not be what loses "
-"somebody their account. Tick this only when the plugin is going for good and "
-"the data is meant to go with it. It cannot be undone, and it runs on delete, "
-"not on deactivate."
-msgstr ""
-"Par défaut, rien. Les réglages restent, le journal d’activité reste, et tout "
-"ce qui se trouve dans les profils reste aussi : les informations de chacun, "
-"leur nom public, leurs passkeys et leurs seconds facteurs. C’est voulu : une "
-"extension supprimée par erreur, ou supprimée pour être réinstallée, ne doit "
-"pas être ce qui fait perdre son compte à quelqu’un. Ne cochez ceci que si "
-"l’extension part pour de bon et que les données doivent partir avec elle. "
-"C’est irréversible, et cela s’exécute à la suppression, pas à la "
-"désactivation."
-
 #: includes/admin-network.php:600 includes/admin-tools.php:684
 msgid "Remove everything this plugin wrote when it is deleted"
 msgstr "Supprimer tout ce que cette extension a écrit lors de sa suppression"
@@ -8732,10 +8185,6 @@ msgstr "Désormais, supprimer l’extension supprimera tout ce qu’elle a écri
 #: includes/admin-tools.php:743
 msgid "Deleting the plugin will leave the data where it is."
 msgstr "Supprimer l’extension laissera les données en place."
-
-#: includes/auth-passkeys.php:507
-msgid "Too many attempts. Wait a moment and try again."
-msgstr "Trop de tentatives. Patientez un instant et réessayez."
 
 #: includes/client-ip.php:36
 msgid "None — read the connection"
@@ -8769,14 +8218,6 @@ msgstr "Informations du compte et moyens de connexion"
 msgid "How you sign in"
 msgstr "Comment vous vous connectez"
 
-#: includes/privacy.php:99
-msgid "Added"
-msgstr "Ajoutée"
-
-#: includes/privacy.php:103
-msgid "Last used"
-msgstr "Dernière utilisation"
-
 #: includes/privacy.php:266
 msgid "Profile picture"
 msgstr "Photo de profil"
@@ -8806,19 +8247,6 @@ msgstr ""
 #: includes/privacy.php:535
 msgid "What is stored in your profile"
 msgstr "Ce qui est conservé dans votre profil"
-
-#: includes/privacy.php:536
-msgid ""
-"the answers to the fields this site asks for, your public name, your profile "
-"picture, which social accounts you have linked, your passkeys, whether two-"
-"step verification is on, and a hash of each browser you have signed in from "
-"so that a new one can be announced once."
-msgstr ""
-"les réponses aux champs demandés par ce site, votre nom public, votre photo "
-"de profil, les comptes sociaux que vous avez liés, vos passkeys, l’état de "
-"la vérification en deux étapes, et une empreinte de chaque navigateur depuis "
-"lequel vous vous êtes connecté, afin qu’un nouveau ne soit signalé qu’une "
-"fois."
 
 #: includes/privacy.php:537
 msgid "What is stored in the activity log"
@@ -9744,16 +9172,6 @@ msgstr "Rien n’est enregistré sur aucun site du réseau."
 msgid "Network Admin › Activity log"
 msgstr "Administration du réseau › Journal d’activité"
 
-#: includes/admin-login.php:718
-msgid ""
-"On this network these are switched on or off for every site at once, in "
-"Network Admin: social accounts under Social login › Rules, passkeys under "
-"Security › Passkeys."
-msgstr ""
-"Sur ce réseau, ces options sont activées ou désactivées pour tous les sites "
-"à la fois, dans l’administration du réseau : les comptes sociaux dans "
-"Connexion sociale › Règles, les passkeys dans Sécurité › Passkeys."
-
 #: includes/admin-network.php:279
 msgid "The network"
 msgstr "Le réseau"
@@ -9830,18 +9248,6 @@ msgstr ""
 #: includes/admin-network.php:399
 msgid "What a site can no longer change"
 msgstr "Ce qu’un site ne peut plus changer"
-
-#: includes/admin-network.php:401
-msgid ""
-"The second step, passkeys, how long a session lasts, the proxy, the social "
-"sign-in apps and their rules, the fields a person has and what the log "
-"keeps. A site administrator does not see these screens, and nothing sent to "
-"their own site writes them."
-msgstr ""
-"La deuxième étape, les passkeys, la durée d’une session, le proxy, les "
-"applications de connexion sociale et leurs règles, les champs de chaque "
-"personne et ce que conserve le journal. Un administrateur de site ne voit "
-"pas ces écrans, et rien de ce qui est envoyé à son propre site ne les écrit."
 
 #: includes/admin-network.php:402
 msgid ""
@@ -9926,21 +9332,6 @@ msgstr "Voir ce qui était différent"
 msgid "Dismiss"
 msgstr "Ignorer"
 
-#: includes/admin-network.php:591
-msgid ""
-"By default, deleting the plugin removes nothing. The settings stay, every "
-"site’s activity log stays, and so does everything in people’s profiles — "
-"their details, their public names, their passkeys and their second factors. "
-"A plugin deleted by accident, or deleted to be installed again, should not "
-"be what loses somebody their account."
-msgstr ""
-"Par défaut, supprimer l’extension ne supprime rien. Les réglages restent, le "
-"journal d’activité de chaque site reste, et tout ce qui se trouve dans les "
-"profils reste aussi — les informations de chacun, leur nom public, leurs "
-"passkeys et leurs seconds facteurs. Une extension supprimée par erreur, ou "
-"supprimée pour être réinstallée, ne doit pas être ce qui fait perdre son "
-"compte à quelqu’un."
-
 #: includes/admin-network.php:601
 msgid ""
 "The network’s settings, every site’s settings and activity log, and what the "
@@ -10004,10 +9395,6 @@ msgstr "Réglé sur %s, le site où les gens se connectent et gèrent leur compt
 #: includes/admin-social.php:464
 msgid "Offered on every site"
 msgstr "Proposé sur tous les sites"
-
-#: includes/admin-passkeys.php:91
-msgid "People can add a passkey and sign in with it"
-msgstr "Les gens peuvent ajouter une passkey et se connecter avec"
 
 #: includes/admin-social.php:473
 msgid "People can sign in with a social account"
@@ -10148,12 +9535,6 @@ msgstr ""
 #: includes/network-gate.php:113
 msgid "Activate DiluxOne Users+ for the whole network"
 msgstr "Activer DiluxOne Users+ pour tout le réseau"
-
-#. translators: %s: the name of the site where the network's accounts live
-#: includes/auth-passkeys.php:480
-#, php-format
-msgid "Passkeys are used on %s, where your account is."
-msgstr "Les clés d’accès s’utilisent sur %s, où se trouve votre compte."
 
 #. translators: 1: this site's domain, 2: the name of the site where the
 #. network's accounts live
@@ -10689,19 +10070,6 @@ msgstr ""
 msgid "DiluxOne Users+ is in safe mode."
 msgstr "DiluxOne Users+ est en mode sans échec."
 
-#. translators: %s: the line in wp-config.php that turns safe mode on
-#: includes/safe-mode.php:68
-#, php-format
-msgid ""
-"Nothing redirects, nobody is asked for the second step, and passkeys and "
-"social sign-in are off: WordPress’s own wp-login.php is the way in. Once you "
-"are back in and the cause is fixed, remove %s from wp-config.php."
-msgstr ""
-"Rien ne redirige, la deuxième étape n’est demandée à personne, et les clés "
-"d’accès et la connexion par réseau social sont désactivées : on entre par le "
-"wp-login.php de WordPress lui-même. Une fois de retour et la cause réglée, "
-"retirez %s de wp-config.php."
-
 #: templates/account/security.php:40
 msgid "Two-step verification is not available on this site right now."
 msgstr ""
@@ -10941,3 +10309,199 @@ msgstr ""
 "demain arrive sur le même compte au lieu d’en créer deux. Chaque réseau "
 "utilisé s’ajoute au compte de la personne, et n’importe lequel fonctionne "
 "ensuite."
+
+
+#. Description of the plugin
+#: diluxone-users.php
+msgid ""
+"Custom user fields, a front-end account area, passwordless sign-in, social "
+"login, two-step verification and session control."
+msgstr ""
+"Des champs personnalisés, un espace compte côté site, la connexion sans mot "
+"de passe, la connexion sociale, la vérification en deux étapes et le contrôle"
+" des sessions."
+
+#: includes/admin-appearance.php:747
+msgid "An icon inside the buttons of the doors: an envelope on the link"
+msgstr "Une icône dans les boutons des portes : une enveloppe sur le lien"
+
+#: includes/admin-fields.php:1021
+msgid ""
+"The way in: the box that asks for an e-mail address, and under it whichever "
+"buttons are switched on — the social networks, the password. Somebody already"
+" signed in is told so instead."
+msgstr ""
+"L’entrée : le champ qui demande une adresse e-mail et, dessous, les boutons "
+"activés — les réseaux sociaux, le mot de passe. À qui est déjà connecté, on "
+"le dit à la place."
+
+#: includes/admin-home.php:310
+msgid "Which ways in exist at all, and who may create an account."
+msgstr "Quelles façons d’entrer existent, et qui peut créer un compte."
+
+#: includes/admin-login.php:408 includes/admin-people.php:319
+msgid "Whether a second step is asked for after the door."
+msgstr "Si une deuxième étape est demandée après la porte."
+
+#: includes/admin-login.php:777
+msgid ""
+"On this network these are switched on or off for every site at once, in "
+"Network Admin, where each feature lives: social accounts under Social login ›"
+" Rules."
+msgstr ""
+"Sur ce réseau, ces options sont activées ou désactivées pour tous les sites à"
+" la fois, dans l’administration du réseau, là où vit chaque fonctionnalité : "
+"les comptes sociaux dans Connexion sociale › Règles."
+
+#: includes/admin-login.php:789
+msgid ""
+"Users+ Pro adds passkeys: the fingerprint, the face or the PIN of the "
+"person’s own device, nothing to type and nothing to phish, and it counts as "
+"both steps at once."
+msgstr ""
+"Users+ Pro ajoute les passkeys : l’empreinte, le visage ou le code PIN de "
+"l’appareil de la personne, rien à taper ni à hameçonner, et cela compte pour "
+"les deux étapes à la fois."
+
+#: includes/admin-login.php:804
+msgid ""
+"A way in is switched on here, with the other ways in. What it does once it is"
+" on — which providers the buttons offer, for one — is set where that feature "
+"lives."
+msgstr ""
+"Une façon d’entrer s’active ici, avec les autres. Ce qu’elle fait une fois "
+"activée — quels fournisseurs les boutons proposent, par exemple — se règle là"
+" où vit cette fonctionnalité."
+
+#: includes/admin-network.php:401
+msgid ""
+"The second step, how long a session lasts, the proxy, the social sign-in apps"
+" and their rules, the fields a person has and what the log keeps. A site "
+"administrator does not see these screens, and nothing sent to their own site "
+"writes them."
+msgstr ""
+"La deuxième étape, la durée d’une session, le proxy, les applications de "
+"connexion sociale et leurs règles, les champs de chaque personne et ce que "
+"conserve le journal. Un administrateur de site ne voit pas ces écrans, et "
+"rien de ce qui est envoyé à son propre site ne les écrit."
+
+#: includes/admin-network.php:591
+msgid ""
+"By default, deleting the plugin removes nothing. The settings stay, every "
+"site’s activity log stays, and so does everything in people’s profiles — "
+"their details, their public names, the ways in they set up and their second "
+"factors. A plugin deleted by accident, or deleted to be installed again, "
+"should not be what loses somebody their account."
+msgstr ""
+"Par défaut, supprimer l’extension ne supprime rien. Les réglages restent, le "
+"journal d’activité de chaque site reste, et tout ce qui se trouve dans les "
+"profils reste aussi — les informations de chacun, leur nom public, les façons"
+" d’entrer qu’ils ont configurées et leurs seconds facteurs. Une extension "
+"supprimée par erreur, ou supprimée pour être réinstallée, ne doit pas être ce"
+" qui fait perdre son compte à quelqu’un."
+
+#: includes/admin-security.php:133
+msgid ""
+"Users+ Pro adds passkeys: which ones are accepted, whether the fingerprint, "
+"the face or the PIN is required, and who has one."
+msgstr ""
+"Users+ Pro ajoute les passkeys : lesquelles sont acceptées, si l’empreinte, "
+"le visage ou le code PIN est exigé, et qui en a une."
+
+#: includes/admin-security.php:148
+msgid ""
+"Everything above happens to somebody who is already at the sign-in form. "
+"Which forms there are at all — the password, the e-mail link, the social "
+"buttons — is a question about doors, and it is answered on Access."
+msgstr ""
+"Tout ce qui précède arrive à une personne déjà devant le formulaire de "
+"connexion. Quels formulaires existent — le mot de passe, le lien par e-mail, "
+"les boutons sociaux — est une question de portes, et la réponse est dans "
+"Accès."
+
+#: includes/admin-security.php:157
+msgid ""
+"What the sign-in form takes: turning a door on is a question about doors."
+msgstr ""
+"Ce que le formulaire de connexion accepte : activer une porte est une "
+"question de portes."
+
+#: includes/admin-status.php:267
+msgid ""
+"Sign-in links, session cookies and codes travel in the clear until it is."
+msgstr ""
+"Les liens de connexion, les cookies de session et les codes circulent en "
+"clair tant que ce n’est pas le cas."
+
+#: includes/admin-tools.php:678
+msgid ""
+"By default, nothing. The settings stay, the activity log stays, and so does "
+"everything in people’s profiles — their details, their public names, the ways"
+" in they set up and their second factors. That is on purpose: a plugin "
+"deleted by accident, or deleted to be installed again, should not be what "
+"loses somebody their account. Tick this only when the plugin is going for "
+"good and the data is meant to go with it. It cannot be undone, and it runs on"
+" delete, not on deactivate."
+msgstr ""
+"Par défaut, rien. Les réglages restent, le journal d’activité reste, et tout "
+"ce qui se trouve dans les profils reste aussi : les informations de chacun, "
+"leur nom public, les façons d’entrer qu’ils ont configurées et leurs seconds "
+"facteurs. C’est voulu : une extension supprimée par erreur, ou supprimée pour"
+" être réinstallée, ne doit pas être ce qui fait perdre son compte à "
+"quelqu’un. Ne cochez ceci que si l’extension part pour de bon et que les "
+"données doivent partir avec elle. C’est irréversible, et cela s’exécute à la "
+"suppression, pas à la désactivation."
+
+#: includes/log.php:482
+msgid ""
+"Two-step verification turned on or off, a way in added or removed, sessions "
+"closed."
+msgstr ""
+"Vérification en deux étapes activée ou désactivée, façon d’entrer ajoutée ou "
+"retirée, sessions fermées."
+
+#: includes/mail-templates.php:132
+msgid "how they got in: a link, a password, a social account"
+msgstr ""
+"comment la personne est entrée : un lien, un mot de passe, un compte social"
+
+#: includes/mail-templates.php:160
+msgid ""
+"Sent when the second step, a linked social account or another way in changes."
+" Whether it goes out at all is decided on the Notices tab."
+msgstr ""
+"Envoyé quand la deuxième étape, un compte social lié ou une autre façon "
+"d’entrer change. S’il part ou non se décide dans l’onglet Avis."
+
+#: includes/notify.php:42
+msgid ""
+"Two-step verification turned on or off, a social account linked or unlinked, "
+"or another way in added or removed."
+msgstr ""
+"La vérification en deux étapes activée ou désactivée, un compte social lié ou"
+" délié, ou une autre façon d’entrer ajoutée ou retirée."
+
+#: includes/privacy.php:509
+msgid ""
+"the answers to the fields this site asks for, your public name, your profile "
+"picture, which social accounts you have linked, whether two-step verification"
+" is on, and a hash of each browser you have signed in from so that a new one "
+"can be announced once."
+msgstr ""
+"les réponses aux champs demandés par ce site, votre nom public, votre photo "
+"de profil, les comptes sociaux que vous avez liés, l’état de la vérification "
+"en deux étapes, et une empreinte de chaque navigateur depuis lequel vous vous"
+" êtes connecté, afin qu’un nouveau ne soit signalé qu’une fois."
+
+#. translators: %s: the line in wp-config.php that turns safe mode on
+#: includes/safe-mode.php:69
+msgid ""
+"Nothing redirects, nobody is asked for the second step, and social sign-in "
+"and every other door of the plugin and its add-ons are shut: WordPress’s own "
+"wp-login.php is the way in. Once you are back in and the cause is fixed, "
+"remove %s from wp-config.php."
+msgstr ""
+"Rien ne redirige, la deuxième étape n’est demandée à personne, et la "
+"connexion par réseau social et toute autre porte de l’extension et de ses "
+"modules sont fermées : on entre par le wp-login.php de WordPress lui-même. "
+"Une fois de retour et la cause réglée, retirez %s de wp-config.php."
