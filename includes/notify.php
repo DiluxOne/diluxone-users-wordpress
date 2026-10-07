@@ -57,8 +57,10 @@ function diluxone_users_default_notifications(): array {
  * what reaches them if a code can reach them.
  */
 function diluxone_users_notice_2fa_email(): bool {
+	// The registry and not the stored list: a site whose only ticked method
+	// is gone gets the e-mail code in its place (diluxone_users_2fa_methods()).
 	return 'off' !== (string) diluxone_users_option( 'diluxone_users_2fa_mode' )
-		&& in_array( 'email', (array) diluxone_users_option( 'diluxone_users_2fa_methods' ), true );
+		&& isset( diluxone_users_2fa_methods()['email'] );
 }
 
 /**
