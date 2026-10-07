@@ -20,7 +20,8 @@ Everything about the people who use your site, in one place.
   gender and a phone are suggested, one tick away.
 * **An account area on the front end**: Home, Your details, Linked accounts,
   Security, Notifications and Your data, as tabs or a side menu. Sections can
-  be renamed, reordered, turned off and added.
+  be renamed, reordered and turned off, and take the site's own words or
+  another plugin's shortcode before, after or instead of what they show.
 * **How people get in**: a link sent to their e-mail with no password, username
   and password, or both, plus control over WordPress's own registration and
   profile screens.

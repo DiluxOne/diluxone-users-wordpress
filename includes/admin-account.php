@@ -3,14 +3,16 @@
  * The account-area screen: which tabs exist and how they are ordered.
  *
  * Everything seen in "my account" is administered from here: the ones the
- * plugin ships, the ones other plugins add (LifterLMS and company) and the
- * ones the site adds with its own text or another plugin's shortcode. They
+ * plugin ships and the ones other plugins add (LifterLMS and company). They
  * are turned on, turned off, renamed and reordered without touching a line of
- * code.
+ * code, and the site writes its own words before, after or instead of any of
+ * them.
  *
- * The ones from code can be turned off but not deleted: the code that draws
- * them is still there, and deleting them from the option would bring them
- * back on the next request.
+ * A section of the site's own — its own text or another plugin's shortcode,
+ * made here — is an add-on's (Users+ Pro): it registers them, draws the way to
+ * add one and the way to remove one, and this screen edits them like any
+ * other. One stored while the add-on was on and kept after it went is listed
+ * as a Pro choice nothing draws, and every save here keeps it.
  *
  * @package DiluxOneUsers
  */
@@ -26,19 +28,6 @@ function diluxone_users_section_config_save( string $id, array $config ): void {
 	$all = (array) diluxone_users_option( 'diluxone_users_account_sections' );
 
 	$all[ $id ] = array_merge( (array) ( $all[ $id ] ?? array() ), $config );
-
-	diluxone_users_update_option( 'diluxone_users_account_sections', $all );
-}
-
-/** Removes one of the site's own sections. The ones from code are left alone. */
-function diluxone_users_section_delete( string $id ): void {
-	$all = (array) diluxone_users_option( 'diluxone_users_account_sections' );
-
-	if ( empty( $all[ $id ]['custom'] ) ) {
-		return;
-	}
-
-	unset( $all[ $id ] );
 
 	diluxone_users_update_option( 'diluxone_users_account_sections', $all );
 }
@@ -68,11 +57,61 @@ function diluxone_users_section_reorder( array $ids ): void {
 }
 
 /**
+ * Is this address free for the section `$id`?
+ *
+ * No section may take another's: two sections on one address is one of them
+ * that can never be opened. That counts the sections there are and the ones a
+ * site kept from an add-on that is gone, which come back on their address. It
+ * is public so the add-on that makes sections asks the same question.
+ *
+ * @param string $slug The address asked for.
+ * @param string $id   The section asking, or '' for one not made yet.
+ */
+function diluxone_users_section_slug_free( string $slug, string $id = '' ): bool {
+	if ( '' === $slug ) {
+		return false;
+	}
+
+	$taken = diluxone_users_sections( true ) + diluxone_users_sections_kept();
+
+	foreach ( $taken as $other => $section ) {
+		if ( (string) $other !== $id && $slug === (string) ( $section['slug'] ?? $other ) ) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
+/**
+ * The sections of the site's own stored, that nothing registers today.
+ *
+ * Made while Users+ Pro was on, and kept as they were after it went: listed on
+ * the Sections tab as a Pro choice, and kept by every save.
+ *
+ * @return array<string, array<string, mixed>>
+ */
+function diluxone_users_sections_kept(): array {
+	$known = diluxone_users_sections( true );
+	$kept  = array();
+
+	foreach ( (array) diluxone_users_option( 'diluxone_users_account_sections' ) as $id => $config ) {
+		if ( is_array( $config ) && ! empty( $config['custom'] ) && ! isset( $known[ (string) $id ] ) ) {
+			$kept[ (string) $id ] = array(
+				'label' => sanitize_text_field( (string) ( $config['label'] ?? $id ) ),
+				'slug'  => sanitize_title( (string) ( $config['slug'] ?? $id ) ),
+			);
+		}
+	}
+
+	return $kept;
+}
+
+/**
  * Saves a section from the detail form.
  *
- * It serves both purposes — creating and editing — because they are the same
- * one: a section is a name, an address and something to show. It returns the
- * identifier, or '' when it could not be done.
+ * Only a section there is: making one is an add-on's, which registers it
+ * first. It returns the identifier, or '' when it could not be done.
  *
  * @param array<string, mixed> $input
  */
@@ -87,32 +126,17 @@ function diluxone_users_section_save( array $input ): string {
 
 	$id     = sanitize_key( (string) ( $input['id'] ?? '' ) );
 	$exists = diluxone_users_sections( true );
-	$fresh  = '' === $id || ! isset( $exists[ $id ] );
 	$label  = sanitize_text_field( (string) ( $input['label'] ?? '' ) );
 
-	if ( '' === $label ) {
+	if ( ! isset( $exists[ $id ] ) || '' === $label ) {
 		return '';
 	}
 
 	$slug = sanitize_title( (string) ( $input['slug'] ?? '' ) );
 	$slug = '' === $slug ? sanitize_title( $label ) : $slug;
 
-	if ( $fresh ) {
-		$id = '' === $id ? $slug : $id;
-
-		// One of the site's own sections cannot tread on one from code: there
-		// would be two with the same address and either could win.
-		if ( '' === $id || isset( $exists[ $id ] ) ) {
-			return '';
-		}
-	}
-
-	// Nor can any section, new or edited, take another's address: two
-	// sections on one address is one of them that can never be opened.
-	foreach ( $exists as $other => $section ) {
-		if ( (string) $other !== $id && $slug === (string) ( $section['slug'] ?? $other ) ) {
-			return '';
-		}
+	if ( ! diluxone_users_section_slug_free( $slug, $id ) ) {
+		return '';
 	}
 
 	$config = array(
@@ -128,12 +152,6 @@ function diluxone_users_section_save( array $input ): string {
 		// and back should not throw away what was ticked.
 		'visibility' => 'some' === ( $input['visibility'] ?? '' ) ? 'some' : 'all',
 	);
-
-	if ( $fresh ) {
-		$config['custom']   = true;
-		$config['enabled']  = 1;
-		$config['position'] = 900;
-	}
 
 	diluxone_users_section_config_save( $id, $config );
 
@@ -160,7 +178,7 @@ function diluxone_users_section_save( array $input ): string {
 }
 
 /**
- * Turning a section on, off, moving it or deleting it.
+ * Turning a section on or off.
  *
  * It goes on admin_init and not inside the screen: by the time WordPress
  * calls the callback of an admin page it has already printed the headers, and
@@ -192,13 +210,7 @@ function diluxone_users_account_actions(): void {
 		'section' => $id,
 	);
 
-	if ( 'delete' === $action ) {
-		diluxone_users_section_delete( $id );
-		$back = array(
-			'tab'                => 'sections',
-			'diluxone_users_msg' => 'deleted',
-		);
-	} elseif ( ( 'on' === $action || 'off' === $action ) && isset( diluxone_users_sections( true )[ $id ] ) ) {
+	if ( ( 'on' === $action || 'off' === $action ) && isset( diluxone_users_sections( true )[ $id ] ) ) {
 		// Only a section there is: a made-up id was written down as a
 		// section with nothing but a switch.
 		diluxone_users_section_config_save( $id, array( 'enabled' => 'on' === $action ? 1 : 0 ) );
@@ -543,16 +555,28 @@ function diluxone_users_account_notice(): void {
 	$notices = array(
 		'order'   => array( 'success', __( 'New order saved.', 'diluxone-users' ) ),
 		'saved'   => array( 'success', __( 'Section saved.', 'diluxone-users' ) ),
-		'deleted' => array( 'success', __( 'Section removed.', 'diluxone-users' ) ),
 		'privacy' => array( 'success', __( 'Saved.', 'diluxone-users' ) ),
 		'error'   => array( 'error', __( 'That section needs a name, and an address that is not taken.', 'diluxone-users' ) ),
 	);
+
+	/**
+	 * Filters the notices of the account screen's Sections tab, by the
+	 * `diluxone_users_msg` they answer to.
+	 *
+	 * For an add-on that acts on the tab and comes back to it with a word of
+	 * its own: Users+ Pro's "Section added" and "Section removed".
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param array<string, array{0: string, 1: string}> $notices Message => [type, text].
+	 */
+	$notices = (array) apply_filters( 'diluxone_users_account_notices', $notices );
 
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- it only picks the message.
 	$msg = isset( $_GET['diluxone_users_msg'] ) ? sanitize_key( wp_unslash( $_GET['diluxone_users_msg'] ) ) : '';
 
 	if ( isset( $notices[ $msg ] ) ) {
-		diluxone_users_notice( $notices[ $msg ][1], $notices[ $msg ][0] );
+		diluxone_users_notice( (string) $notices[ $msg ][1], (string) $notices[ $msg ][0] );
 	}
 }
 
@@ -589,19 +613,17 @@ function diluxone_users_screen_account_sections(): void {
 	<div class="diluxone-users-endpoints">
 		<div class="diluxone-users-endpoints__head">
 			<h2><?php esc_html_e( 'The sections of “my account”', 'diluxone-users' ); ?></h2>
-			<a class="button button-primary" href="
 			<?php
-			echo esc_url(
-				diluxone_users_admin_url(
-					'diluxone-users-account',
-					array(
-						'tab'     => 'sections',
-						'section' => 'diluxone-users-new',
-					)
-				)
-			);
+			/**
+			 * Fires beside the heading of the list of sections.
+			 *
+			 * Where an add-on that makes sections draws the way to add one:
+			 * Users+ Pro's "Add section".
+			 *
+			 * @since 1.0.0
+			 */
+			do_action( 'diluxone_users_account_sections_head' );
 			?>
-			"><?php esc_html_e( 'Add section', 'diluxone-users' ); ?></a>
 		</div>
 
 		<div class="diluxone-users-endpoints__body">
@@ -628,6 +650,20 @@ function diluxone_users_screen_account_sections(): void {
 							<span class="diluxone-users-endpoint__grip" aria-hidden="true"></span>
 						</li>
 					<?php endforeach; ?>
+
+					<?php
+					/*
+					 * Kept from Users+ Pro: listed so nobody thinks it was lost,
+					 * out of the order (nothing draws it, so it has no place to
+					 * move to) and with nothing to open.
+					 */
+					foreach ( diluxone_users_sections_kept() as $section ) :
+						?>
+						<li class="diluxone-users-endpoint is-off is-kept">
+							<span class="diluxone-users-endpoint__name"><?php echo esc_html( (string) $section['label'] ); ?></span>
+							<?php echo wp_kses( diluxone_users_state_pill( 'pro' ), diluxone_users_allowed_html() ); ?>
+						</li>
+					<?php endforeach; ?>
 				</ul>
 
 				<?php
@@ -640,6 +676,17 @@ function diluxone_users_screen_account_sections(): void {
 				<p class="diluxone-users-endpoints__save-order">
 					<button type="submit" class="button"><?php esc_html_e( 'Save the order', 'diluxone-users' ); ?></button>
 				</p>
+
+				<?php
+				diluxone_users_ui_pro_card(
+					array(
+						'where'  => 'account/sections/more',
+						'screen' => 'account-sections',
+						'title'  => __( 'Sections of your own', 'diluxone-users' ),
+						'text'   => __( 'Users+ Pro adds sections of the site’s own to the account area: your text, or the shortcode of a course, a membership or a support desk, each with its name, address and who sees it.', 'diluxone-users' ),
+					)
+				);
+				?>
 			</form>
 
 			<div class="diluxone-users-endpoints__detail">
@@ -656,7 +703,13 @@ function diluxone_users_screen_account_sections(): void {
 					diluxone_users_screen_account_privacy();
 				}
 
-				diluxone_users_screen_account_section( $actual, $sections, $page );
+				$details = diluxone_users_account_details();
+
+				if ( isset( $details[ $actual ] ) ) {
+					call_user_func( $details[ $actual ], $page );
+				} elseif ( isset( $sections[ $actual ] ) ) {
+					diluxone_users_screen_account_section( $actual, $sections, $page );
+				}
 				?>
 			</div>
 		</div>
@@ -685,7 +738,7 @@ function diluxone_users_screen_account_sections(): void {
 }
 
 /**
- * Which section is being looked at.
+ * Which section is being looked at, or which detail of an add-on's.
  *
  * With nothing asked for, the first one: a two-panel screen with a blank
  * right-hand side looks broken.
@@ -696,11 +749,33 @@ function diluxone_users_screen_account_current( array $sections ): string {
 	// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- it only picks what to draw.
 	$requested = isset( $_GET['section'] ) ? sanitize_key( wp_unslash( $_GET['section'] ) ) : '';
 
-	if ( 'diluxone-users-new' === $requested || isset( $sections[ $requested ] ) ) {
+	if ( isset( $sections[ $requested ] ) || isset( diluxone_users_account_details()[ $requested ] ) ) {
 		return $requested;
 	}
 
-	return (string) ( array_key_first( $sections ) ?? 'diluxone-users-new' );
+	return (string) array_key_first( $sections );
+}
+
+/**
+ * The details of the Sections tab that are not a section.
+ *
+ * @return array<string, callable>
+ */
+function diluxone_users_account_details(): array {
+	/**
+	 * Filters the details the Sections tab can draw beside the list besides a
+	 * section, by the `section` the address asks for.
+	 *
+	 * For an add-on whose form sits where a section's would: Users+ Pro's new
+	 * section (`diluxone-users-new`). The callable prints it.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param array<string, callable> $details Id => what prints it.
+	 */
+	$details = (array) apply_filters( 'diluxone_users_account_details', array() );
+
+	return array_filter( $details, 'is_callable' );
 }
 
 /**
@@ -709,36 +784,19 @@ function diluxone_users_screen_account_current( array $sections ): string {
  * @param array<string, array<string, mixed>> $sections
  */
 function diluxone_users_screen_account_section( string $id, array $sections, int $page ): void {
-	$fresh   = ! isset( $sections[ $id ] );
-	$section = $fresh
-		? array(
-			'label'     => '',
-			'slug'      => '',
-			'content'   => '',
-			'placement' => 'after',
-			'roles'     => array(),
-			'source'    => '',
-			'custom'    => true,
-			'enabled'   => true,
-			'render'    => '',
-			'available' => '',
-			'why'       => '',
-		)
-		: $sections[ $id ];
-
-	$with_code = ! $fresh && diluxone_users_section_has_code( $section );
+	$section   = $sections[ $id ];
+	$with_code = diluxone_users_section_has_code( $section );
 	?>
 	<form method="post" class="diluxone-users-endpoint-form" id="diluxone-users-section-form">
 		<?php
 		wp_nonce_field( 'diluxone_users_section_form', 'diluxone_users_section_form_nonce' );
-		diluxone_users_ui_save( 'diluxone-users-section-form', $fresh ? __( 'Add section', 'diluxone-users' ) : __( 'Save section', 'diluxone-users' ) );
+		diluxone_users_ui_save( 'diluxone-users-section-form', __( 'Save section', 'diluxone-users' ) );
 		?>
-		<input type="hidden" name="diluxone_users_section_form[id]" value="<?php echo esc_attr( $fresh ? '' : $id ); ?>">
+		<input type="hidden" name="diluxone_users_section_form[id]" value="<?php echo esc_attr( $id ); ?>">
 
 		<div class="diluxone-users-endpoint-form__head">
-			<h3><?php echo esc_html( $fresh ? __( 'New section', 'diluxone-users' ) : $section['label'] ); ?></h3>
+			<h3><?php echo esc_html( $section['label'] ); ?></h3>
 
-			<?php if ( ! $fresh ) : ?>
 				<a class="diluxone-users-toggle <?php echo $section['enabled'] ? 'is-on' : ''; ?>"
 					href="
 					<?php
@@ -760,33 +818,24 @@ function diluxone_users_screen_account_section( string $id, array $sections, int
 					<?php echo $section['enabled'] ? esc_html__( 'Showing', 'diluxone-users' ) : esc_html__( 'Hidden', 'diluxone-users' ); ?>
 				</a>
 
-				<?php if ( ! empty( $section['custom'] ) ) : ?>
-					<a class="button diluxone-users-danger"
-						href="
-						<?php
-						echo esc_url(
-							wp_nonce_url(
-								diluxone_users_admin_url(
-									'diluxone-users-account',
-									array(
-										'section' => $id,
-										'diluxone_users_action' => 'delete',
-									)
-								),
-								'diluxone_users_section_action'
-							)
-						);
-						?>
-								"
-						data-diluxone-users-confirm="<?php esc_attr_e( 'Delete this section?', 'diluxone-users' ); ?>">
-						<?php esc_html_e( 'Remove', 'diluxone-users' ); ?>
-					</a>
-				<?php endif; ?>
-			<?php endif; ?>
+				<?php
+				/**
+				 * Fires in the head of a section's detail, after its switch.
+				 *
+				 * Where an add-on that makes sections draws the way to remove
+				 * one of them: Users+ Pro's "Remove".
+				 *
+				 * @since 1.0.0
+				 *
+				 * @param string               $id      The section.
+				 * @param array<string, mixed> $section The section, as the list has it.
+				 */
+				do_action( 'diluxone_users_account_section_head', $id, $section );
+				?>
 		</div>
 
 		<?php
-		if ( ! $fresh && $section['enabled'] && ! diluxone_users_section_available( $section ) ) {
+		if ( $section['enabled'] && ! diluxone_users_section_available( $section ) ) {
 			diluxone_users_ui_notice(
 				'<strong>' . esc_html__( 'It is on, but it is not showing', 'diluxone-users' ) . '</strong> '
 				. esc_html( (string) $section['why'] ),
@@ -813,7 +862,7 @@ function diluxone_users_screen_account_section( string $id, array $sections, int
 				'value'       => (string) ( $section['slug'] ?? '' ),
 				'placeholder' => __( 'made from the name', 'diluxone-users' ),
 				'code'        => true,
-				'help'        => ! $fresh && $page > 0
+				'help'        => $page > 0
 					? sprintf(
 						'<a href="%1$s" target="_blank" rel="noopener">%2$s</a>',
 						esc_url( diluxone_users_account_url( $id ) ),
@@ -921,7 +970,7 @@ function diluxone_users_screen_account_section( string $id, array $sections, int
 				: __( 'Text, HTML, or the shortcode of another plugin — a course plugin, a membership, a support desk. This is the whole section.', 'diluxone-users' )
 		);
 
-		if ( ! $fresh && '' !== (string) $section['source'] ) {
+		if ( '' !== (string) $section['source'] ) {
 			diluxone_users_ui_note(
 				__( 'Comes from', 'diluxone-users' ),
 				esc_html( (string) $section['source'] ) . ' <code>' . esc_html( $id ) . '</code>'

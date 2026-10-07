@@ -8,10 +8,11 @@
  * LifterLMS adds its own, the site adds its own, and neither has to edit this
  * file.
  *
- * What decides what is seen and in what order is the sum of three things:
- *   1. what each party registers with diluxone_users_register_section(),
- *   2. what whoever administers turned on, turned off, renamed or reordered,
- *   3. the site's own sections, added from the admin.
+ * What decides what is seen and in what order is the sum of two things:
+ *   1. what each party registers with diluxone_users_register_section() —
+ *      the plugin, another plugin, or an add-on registering the sections a
+ *      site makes of its own from the admin (Users+ Pro's),
+ *   2. what whoever administers turned on, turned off, renamed or reordered.
  *
  * @package DiluxOneUsers
  */
@@ -54,7 +55,8 @@ function diluxone_users_section_shape( string $id, array $args ): array {
 			'capability' => '',
 			// Where it came from, so the admin screen can say so.
 			'source'     => __( 'System', 'diluxone-users' ),
-			// The site's own can be deleted; the ones from code cannot.
+			// A section of the site's own, made from the admin by an add-on
+			// and deleted there; one from code cannot be.
 			'custom'     => false,
 			// Content written from the admin. In a section of the site's own it is
 			// all there is; in a system one it adds to what the code draws.
@@ -107,23 +109,6 @@ function diluxone_users_sections( bool $all = false ): array {
 	do_action( 'diluxone_users_register_sections' );
 
 	$sections = is_array( $diluxone_users_sections ) ? $diluxone_users_sections : array();
-
-	// The site's own sections are in no code: they live in the option, and
-	// are read from it on every call. Kept in the registry, one deleted
-	// earlier in the request would still be listed, and its address taken.
-	foreach ( (array) diluxone_users_option( 'diluxone_users_account_sections' ) as $id => $config ) {
-		if ( ! isset( $sections[ $id ] ) && ! empty( $config['custom'] ) ) {
-			$sections[ (string) $id ] = diluxone_users_section_shape(
-				(string) $id,
-				array(
-					'label'   => (string) ( $config['label'] ?? $id ),
-					'source'  => __( 'Yours', 'diluxone-users' ),
-					'custom'  => true,
-					'content' => (string) ( $config['content'] ?? '' ),
-				)
-			);
-		}
-	}
 
 	foreach ( $sections as $id => $section ) {
 		$config = diluxone_users_section_config( $id );

@@ -436,6 +436,37 @@ and give each card an `id`: that is the key the admin remembers when somebody
 turns one off. Without one, the plugin makes it from the label, and the label
 changes.
 
+### Sections of the site's own
+
+A section the site makes from the admin — its own text, or another plugin's
+shortcode — is an add-on's (DiluxOne Users+ Pro's). The add-on registers each
+one like any other section, with `'custom' => true`, no `render` and its words
+as `content`; the plugin draws that content as the whole section, and the
+Sections tab edits its name, address, intro, who sees it and its content like
+any other. What the add-on brings is the making and the removing, through
+these:
+
+- `diluxone_users_account_sections_head` (action) fires beside the heading of
+  the list of sections: where the way to add one goes.
+- `diluxone_users_account_details` (filter) receives `array( string $id => callable )`:
+  a detail the tab draws beside the list instead of a section, when the
+  address asks for `section=<id>`. The callable gets the account page's id.
+  Users+ Pro's new-section form is `diluxone-users-new`.
+- `diluxone_users_account_section_head` (action) fires in the head of a
+  section's detail, after its switch, with `( string $id, array $section )`:
+  where the way to remove one goes.
+- `diluxone_users_account_notices` (filter) receives the tab's notices,
+  `array( string $msg => array( string $type, string $text ) )`, by the
+  `diluxone_users_msg` they answer to.
+- `diluxone_users_section_slug_free( string $slug, string $id = '' )` answers
+  whether an address is free for a section, counting the ones kept.
+
+They live in `diluxone_users_account_sections`, keyed by their id, with
+`custom` set. Without the add-on that registered them they are not drawn on the
+front end, and the Sections tab lists them after the others with the "Pro"
+badge, out of the order and with nothing to open; every save keeps them, and
+they come back as they were when the add-on does.
+
 ## The account's Security section
 
 The section people manage their own security on (`templates/account/security.php`)
@@ -995,6 +1026,7 @@ them answers false for all.
 | `design/login/shapes` | A card after the shapes on Design › The sign-in page: the split and full-background layouts. |
 | `design/account/shapes` | A card after the shapes on Design › Account area: the account area with a cover. |
 | `design/brand/any-color` | A card after the accent's swatches on Design › Your brand: any colour. |
+| `account/sections/more` | A card under the list on Account › Sections: sections of the site's own. |
 | `design/brand/color-map` | A picture under "From your theme" on Design › Your brand: which colour of the theme's palette does what. |
 
 ## The emergency switch
