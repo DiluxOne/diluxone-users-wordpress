@@ -1039,28 +1039,6 @@ details.diluxone-users-panel[open] > .diluxone-users-panel__head .diluxone-users
 	cursor: pointer;
 }
 
-/* ── Segundo factor ─────────────────────────────────────────────────── */
-
-.diluxone-users-totp { display: flex; gap: 24px; flex-wrap: wrap; align-items: flex-start; }
-.diluxone-users-totp__qr {
-	flex: 0 0 auto;
-	padding: 10px;
-	background: #fff;
-	border: 1px solid var(--diluxone-users-border);
-	border-radius: var(--diluxone-users-radius-sm);
-	line-height: 0;
-}
-.diluxone-users-totp__manual { flex: 1 1 260px; min-width: 0; }
-.diluxone-users-totp__key {
-	display: inline-block;
-	padding: 8px 12px;
-	background: var(--diluxone-users-surface-alt);
-	border-radius: var(--diluxone-users-radius-sm);
-	font-size: 1.05em;
-	letter-spacing: .08em;
-	word-break: break-all;
-}
-
 /* Backup codes are shown only once: they are seen as what they are,
    something to copy or print, not as running text. */
 .diluxone-users-backup__list {

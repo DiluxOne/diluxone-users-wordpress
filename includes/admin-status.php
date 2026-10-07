@@ -467,7 +467,6 @@ function diluxone_users_stats(): array {
 
 	$stats = array(
 		'users'   => (int) count_users()['total_users'],
-		'totp'    => $count_meta( 'diluxone_users_totp' ),
 		'social'  => $count_prefix( 'diluxone_users_sso_' ),
 		'handles' => $count_meta( 'diluxone_users_handle' ),
 	);
@@ -482,7 +481,7 @@ function diluxone_users_stats(): array {
 	 *
 	 * @since 1.0.0
 	 *
-	 * @param array<string, int> $stats users, totp, social and handles.
+	 * @param array<string, int> $stats users, social and handles.
 	 */
 	$more = (array) apply_filters( 'diluxone_users_stats', $stats );
 
@@ -509,11 +508,6 @@ function diluxone_users_usage_rows( array $stats ): array {
 			'label'  => __( 'Linked a social account', 'diluxone-users' ),
 			'detail' => __( 'They can get in with Google, Microsoft or whichever provider is enabled, instead of waiting for the e-mail.', 'diluxone-users' ),
 			'value'  => (int) ( $stats['social'] ?? 0 ),
-		),
-		array(
-			'label'  => __( 'Set up an authenticator app', 'diluxone-users' ),
-			'detail' => __( 'The six-digit code as a second step, from an app on their phone.', 'diluxone-users' ),
-			'value'  => (int) ( $stats['totp'] ?? 0 ),
 		),
 	);
 

@@ -44,22 +44,23 @@ $diluxone_users_actual = $args['methods'][ $args['method'] ] ?? array(
 		<input type="text" id="diluxone-users-2fa-code" name="diluxone_users_2fa_code" inputmode="numeric" autocomplete="one-time-code"
 			maxlength="20" autofocus required>
 
-		<?php if ( (int) diluxone_users_option( 'diluxone_users_2fa_remember_days' ) > 0 ) : ?>
-			<label class="diluxone-users-check">
-				<input type="checkbox" name="diluxone_users_2fa_trust" value="1">
-				<span>
-					<?php
-					echo esc_html(
-						sprintf(
-							/* translators: %d: days */
-							__( 'Do not ask again on this browser for %d days', 'diluxone-users' ),
-							(int) diluxone_users_option( 'diluxone_users_2fa_remember_days' )
-						)
-					);
-					?>
-				</span>
-			</label>
-		<?php endif; ?>
+		<?php
+		/**
+		 * Fires inside the second step's form, after the code box.
+		 *
+		 * An add-on draws a field of its own here, named
+		 * `diluxone_users_2fa_extra[...]`, and reads it on
+		 * `diluxone_users_2fa_passed` once the code is right: Users+ Pro's
+		 * "do not ask again on this browser". The same action fires on
+		 * wp-login.php's second step, with `wp-login` as the screen.
+		 *
+		 * @since 1.0.0
+		 *
+		 * @param int    $user_id Who is answering it.
+		 * @param string $screen  'page' here, 'wp-login' on wp-login.php.
+		 */
+		do_action( 'diluxone_users_2fa_form', (int) $args['user_id'], 'page' );
+		?>
 
 		<button type="submit" class="diluxone-users-button"><?php esc_html_e( 'Confirm', 'diluxone-users' ); ?></button>
 

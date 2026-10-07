@@ -7,9 +7,10 @@
  * add-on brings in front of the second step (`diluxone_users_account_security`)
  * — a way in that already proves two things is the better answer to the same
  * problem, so it goes before the step it makes unnecessary; then the second
- * factor, which is what is added to the ways in that do need it; and last the
- * authenticator app, which is a detail of that second factor and makes no
- * sense before turning it on.
+ * factor, which is what is added to the ways in that do need it; and last
+ * whatever an add-on adds to that second factor
+ * (`diluxone_users_account_security_2fa`), which makes no sense before
+ * turning it on.
  *
  * What it is given, in `$args`:
  *
@@ -34,14 +35,11 @@ $diluxone_users_notice = isset( $_GET['diluxone-users'] ) ? sanitize_key( wp_uns
 $diluxone_users_notices = array(
 	'on'         => array( 'ok', __( 'Two-step verification is on.', 'diluxone-users' ) ),
 	'off'        => array( 'ok', __( 'Two-step verification is off.', 'diluxone-users' ) ),
-	'totp'       => array( 'ok', __( 'Your authenticator app is set up.', 'diluxone-users' ) ),
-	'totpoff'    => array( 'ok', __( 'The authenticator app was removed.', 'diluxone-users' ) ),
 	'backup'     => array( 'ok', __( 'New backup codes. The old ones no longer work.', 'diluxone-users' ) ),
-	'badcode'    => array( 'error', __( 'That code is not right. Check the app and try again — they change every thirty seconds.', 'diluxone-users' ) ),
 	'nomethod'   => array( 'error', __( 'First set up a way to receive the second step.', 'diluxone-users' ) ),
 	'notoffered' => array( 'error', __( 'Two-step verification is not available on this site right now.', 'diluxone-users' ) ),
 	'required'   => array( 'error', __( 'This site requires two-step verification: it cannot be turned off.', 'diluxone-users' ) ),
-	'reauth'     => array( 'error', __( 'That needs a current code — from your app, one of your backup codes, or one we email you — and it was missing or not right.', 'diluxone-users' ) ),
+	'reauth'     => array( 'error', __( 'That needs a current code — one of your backup codes, or one we email you — and it was missing or not right.', 'diluxone-users' ) ),
 	'codesent'   => array( 'ok', __( 'We emailed you a code. Type it in below and try again.', 'diluxone-users' ) ),
 );
 
@@ -136,9 +134,17 @@ do_action( 'diluxone_users_account_security', $args['user'] );
 					?>
 				<?php endif; ?>
 
-				<?php if ( ! diluxone_users_totp_ready( $diluxone_users_id ) ) : ?>
-					<?php esc_html_e( 'Set up the authenticator app below and it starts being asked with the link too.', 'diluxone-users' ); ?>
-				<?php endif; ?>
+				<?php
+				// A method the site offers that does not arrive by e-mail, and
+				// that this person has not set up yet: the way to be asked on
+				// the link too.
+				foreach ( diluxone_users_2fa_methods() as $diluxone_users_method_id => $diluxone_users_method ) {
+					if ( 'email' !== ( $diluxone_users_method['channel'] ?? 'email' ) && ! isset( $diluxone_users_ready[ $diluxone_users_method_id ] ) ) {
+						esc_html_e( 'Set up a way of getting the code that is not an email, below, and it starts being asked with the link too.', 'diluxone-users' );
+						break;
+					}
+				}
+				?>
 			</p>
 		<?php endif; ?>
 
@@ -183,7 +189,7 @@ do_action( 'diluxone_users_account_security', $args['user'] );
 				?>
 				<label for="diluxone-users-reauth-code"><?php esc_html_e( 'A current code, to confirm it is you', 'diluxone-users' ); ?></label>
 				<input type="text" id="diluxone-users-reauth-code" name="diluxone_users_code" inputmode="numeric" autocomplete="one-time-code" maxlength="20">
-				<p class="diluxone-users-note"><?php esc_html_e( 'From your app, one of your backup codes, or the one we email you.', 'diluxone-users' ); ?></p>
+				<p class="diluxone-users-note"><?php esc_html_e( 'Any code you can get for the second step: one of your backup codes, or the one we email you.', 'diluxone-users' ); ?></p>
 				<?php if ( isset( $diluxone_users_ready['email'] ) ) : ?>
 					<button type="submit" name="diluxone_users_security" value="code" class="diluxone-users-button diluxone-users-button--soft"><?php esc_html_e( 'Email me a code', 'diluxone-users' ); ?></button>
 				<?php endif; ?>
@@ -211,47 +217,23 @@ do_action( 'diluxone_users_account_security', $args['user'] );
 		</form>
 	<?php diluxone_users_panel_close(); ?>
 
-	<?php if ( isset( diluxone_users_2fa_methods()['totp'] ) ) : ?>
-		<?php diluxone_users_panel_open( __( 'Authenticator app', 'diluxone-users' ) ); ?>
-
-			<?php if ( diluxone_users_totp_ready( $diluxone_users_id ) ) : ?>
-				<p><?php esc_html_e( 'Set up. When you sign in, we ask for the six-digit code from the app.', 'diluxone-users' ); ?></p>
-				<form class="diluxone-users-form" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
-					<input type="hidden" name="action" value="diluxone_users_security">
-					<?php wp_nonce_field( 'diluxone_users_security' ); ?>
-					<label for="diluxone-users-totp-off-code"><?php esc_html_e( 'The code from the app, to confirm it is you', 'diluxone-users' ); ?></label>
-					<input type="text" id="diluxone-users-totp-off-code" name="diluxone_users_code" inputmode="numeric" autocomplete="one-time-code" maxlength="20" required>
-					<button type="submit" name="diluxone_users_security" value="totp_off" class="diluxone-users-button diluxone-users-button--soft"><?php esc_html_e( 'Remove it', 'diluxone-users' ); ?></button>
-				</form>
-				<?php
-			else :
-				$diluxone_users_secret = diluxone_users_totp_pending( $diluxone_users_id );
-				$diluxone_users_uri    = diluxone_users_totp_uri( $diluxone_users_id, $diluxone_users_secret );
-				?>
-				<p><?php esc_html_e( 'Scan this with Google Authenticator, 1Password, Aegis or whichever app you use, and then write down the code it shows to confirm it.', 'diluxone-users' ); ?></p>
-
-				<div class="diluxone-users-totp">
-					<div class="diluxone-users-totp__qr"><?php echo wp_kses( diluxone_users_qr_svg( $diluxone_users_uri, 190 ), diluxone_users_allowed_html() ); ?></div>
-
-					<div class="diluxone-users-totp__manual">
-						<p class="diluxone-users-note"><?php esc_html_e( 'Cannot scan it? Type this key into the app:', 'diluxone-users' ); ?></p>
-						<p><code class="diluxone-users-totp__key"><?php echo esc_html( diluxone_users_totp_readable( $diluxone_users_secret ) ); ?></code></p>
-
-						<form class="diluxone-users-form" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
-							<input type="hidden" name="action" value="diluxone_users_security">
-							<input type="hidden" name="diluxone_users_security" value="totp">
-							<?php wp_nonce_field( 'diluxone_users_security' ); ?>
-
-							<label for="diluxone-users-totp-code"><?php esc_html_e( 'The code from the app', 'diluxone-users' ); ?></label>
-							<input type="text" id="diluxone-users-totp-code" name="diluxone_users_code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]*" maxlength="6" required>
-
-							<button type="submit" class="diluxone-users-button"><?php esc_html_e( 'Confirm', 'diluxone-users' ); ?></button>
-						</form>
-					</div>
-				</div>
-			<?php endif; ?>
-		<?php diluxone_users_panel_close(); ?>
-	<?php endif; ?>
+	<?php
+	/**
+	 * Fires after the second step's panel, while the site offers the second
+	 * step to this person.
+	 *
+	 * Where an add-on draws what it adds to the second step, in a panel of
+	 * its own: Users+ Pro's authenticator app. Its forms post to
+	 * `diluxone_users_security` with a word of its own
+	 * (`diluxone_users_security_action`), and its notices are added through
+	 * `diluxone_users_security_notices`.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param WP_User $user Whose account it is.
+	 */
+	do_action( 'diluxone_users_account_security_2fa', $args['user'] );
+	?>
 
 <?php endif; ?>
 

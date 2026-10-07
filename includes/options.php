@@ -355,19 +355,14 @@ function diluxone_users_option_defaults_own(): array {
 		// 'required' of everybody who can use it.
 		'diluxone_users_2fa_mode'              => 'optional',
 		// The methods this site offers. Empty is equivalent to off.
-		'diluxone_users_2fa_methods'           => array( 'totp', 'email' ),
-		// Roles it is asked of. Empty = everybody.
-		'diluxone_users_2fa_scope'             => 'all',
-		'diluxone_users_2fa_roles'             => array(),
+		'diluxone_users_2fa_methods'           => array( 'email' ),
 		// What to do when somebody comes in by e-mail link:
 		// 'auto'   ask only if the second step is NOT another e-mail. A code
 		// to the same inbox that was just opened proves nothing
-		// new; an authenticator app does.
+		// new; a method that does not arrive by e-mail does.
 		// 'always' always ask.
 		// 'never'  never ask.
 		'diluxone_users_2fa_link'              => 'auto',
-		// Days a browser that already passed the challenge is remembered. 0 = never.
-		'diluxone_users_2fa_remember_days'     => 30,
 
 		// ── Privacy ─────────────────────────────────────────────────
 		// What somebody can do with their own data without asking anyone.

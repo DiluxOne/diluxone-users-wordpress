@@ -19,11 +19,10 @@ defined( 'ABSPATH' ) || exit;
 /**
  * What this person has, in short.
  *
- * @return array{totp: bool, social: array<int, string>, handle: string, second_step: bool}
+ * @return array{social: array<int, string>, handle: string, second_step: bool}
  */
 function diluxone_users_person( int $user_id ): array {
 	return array(
-		'totp'        => diluxone_users_totp_ready( $user_id ),
 		'social'      => diluxone_users_sso_linked( $user_id ),
 		'handle'      => diluxone_users_handle( $user_id ),
 		'second_step' => diluxone_users_2fa_on( $user_id ),
@@ -60,10 +59,6 @@ function diluxone_users_users_column_row( string $out, string $column, int $user
 
 	if ( $person['second_step'] ) {
 		$chips[] = array( 'on', __( '2FA', 'diluxone-users' ) );
-	}
-
-	if ( $person['totp'] ) {
-		$chips[] = array( 'on', __( 'App', 'diluxone-users' ) );
 	}
 
 	foreach ( $person['social'] as $id ) {
@@ -203,9 +198,9 @@ function diluxone_users_profile_block( WP_User $user ): void {
 		array(
 			'label'  => __( 'Two-step verification', 'diluxone-users' ),
 			'state'  => $person['second_step'] ? 'active' : 'off',
-			'detail' => $person['totp']
-				? esc_html__( 'An authenticator app is set up.', 'diluxone-users' )
-				: esc_html__( 'No authenticator app.', 'diluxone-users' ),
+			'detail' => $person['second_step']
+				? esc_html__( 'Asked when they sign in.', 'diluxone-users' )
+				: esc_html__( 'Not asked when they sign in.', 'diluxone-users' ),
 		),
 		array(
 			'label'  => __( 'Linked accounts', 'diluxone-users' ),
@@ -234,16 +229,6 @@ function diluxone_users_profile_block( WP_User $user ): void {
 	diluxone_users_summary_table( (array) apply_filters( 'diluxone_users_person_rows', $diluxone_users_rows, $user ) );
 
 	$diluxone_users_off = array();
-
-	if ( $person['totp'] ) {
-		$diluxone_users_off[] = array(
-			'type'  => 'checkbox',
-			'name'  => 'diluxone_users_forget_totp',
-			'value' => '1',
-			'title' => __( 'Remove the authenticator app', 'diluxone-users' ),
-			'help'  => __( 'For somebody who lost the phone it lived on. They set a new one up from their own account.', 'diluxone-users' ),
-		);
-	}
 
 	foreach ( $networks as $diluxone_users_id => $diluxone_users_name ) {
 		$diluxone_users_off[] = array(
@@ -356,10 +341,6 @@ function diluxone_users_profile_block_save( int $user_id ): void {
 	// second factor is about to be removed.
 	if ( ! current_user_can( 'edit_user', $user_id ) ) {
 		return;
-	}
-
-	if ( isset( $_POST['diluxone_users_forget_totp'] ) ) {
-		diluxone_users_totp_forget( $user_id );
 	}
 
 	$unlink = array_map( 'sanitize_key', (array) wp_unslash( $_POST['diluxone_users_unlink'] ?? array() ) );

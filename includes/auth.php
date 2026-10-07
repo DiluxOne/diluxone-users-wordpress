@@ -128,14 +128,6 @@ function diluxone_users_2fa_methods(): array {
 			'verify'   => 'diluxone_users_2fa_email_verify',
 			'position' => 20,
 		),
-		'totp'  => array(
-			'channel'  => 'device',
-			'label'    => __( 'An authenticator app', 'diluxone-users' ),
-			'help'     => __( 'The six-digit code that changes every thirty seconds, from Google Authenticator, 1Password, Aegis or whichever one you use.', 'diluxone-users' ),
-			'ready'    => 'diluxone_users_totp_ready',
-			'verify'   => 'diluxone_users_totp_verify',
-			'position' => 10,
-		),
 	);
 
 	/**
@@ -147,6 +139,18 @@ function diluxone_users_2fa_methods(): array {
 
 	// The ones the site turned off do not exist for anybody.
 	$enabled = (array) diluxone_users_option( 'diluxone_users_2fa_methods' );
+
+	/*
+	 * A site whose every ticked method is one nothing registers today — an
+	 * add-on's, the add-on gone — would have no method at all, and a second
+	 * step with no method is not asked of anybody: everybody it protected
+	 * would sign in with the password alone. The e-mail code stands in for
+	 * them until the site chooses again, so the step that was asked is still
+	 * asked, and anybody who had only the add-on's method still gets in.
+	 */
+	if ( array() !== $enabled && array() === array_intersect( $enabled, array_keys( $methods ) ) && isset( $methods['email'] ) ) {
+		$enabled = array( 'email' );
+	}
 
 	$methods = array_filter(
 		$methods,
@@ -297,7 +301,7 @@ function diluxone_users_2fa_required( int $user_id, string $via ): bool {
 		return false;
 	}
 
-	if ( ! diluxone_users_scope_includes( $user_id, 'diluxone_users_2fa' ) ) {
+	if ( ! diluxone_users_2fa_in_scope( $user_id ) ) {
 		return false;
 	}
 
@@ -396,79 +400,63 @@ function diluxone_users_2fa_ways_asked( int $user_id ): array {
 }
 
 /**
- * Has this browser passed the second factor recently?
+ * Is this person one the second step is for?
  *
- * The cookie grants no access: it only avoids repeating the challenge in the
- * same browser for as many days as the setting says. It is signed with the
- * site salts, so it cannot be forged, and it carries the id of whoever asked
- * for it.
+ * The plugin asks it of everybody with an account. An add-on that narrows it
+ * — Users+ Pro's "only some roles" — answers through
+ * `diluxone_users_2fa_in_scope`, and the sign-in, the account's Security
+ * section and the summaries all ask this one question, so they agree.
  */
-function diluxone_users_2fa_trusted( int $user_id ): bool {
-	$days = (int) diluxone_users_option( 'diluxone_users_2fa_remember_days' );
-
-	if ( $days <= 0 ) {
-		return false;
-	}
-
-	$cookie = isset( $_COOKIE[ 'diluxone_users_2fa_' . COOKIEHASH ] ) ? sanitize_text_field( wp_unslash( $_COOKIE[ 'diluxone_users_2fa_' . COOKIEHASH ] ) ) : '';
-
-	if ( '' === $cookie ) {
-		return false;
-	}
-
-	[ $stored_id, $expires, $hash ] = array_pad( explode( '|', $cookie, 3 ), 3, '' );
-
-	if ( (int) $stored_id !== $user_id || (int) $expires < time() ) {
-		return false;
-	}
-
-	return hash_equals( diluxone_users_2fa_trust_hash( $user_id, (int) $expires ), $hash );
+function diluxone_users_2fa_in_scope( int $user_id ): bool {
+	/**
+	 * Filters whether the second step is for this person at all.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param bool $in      True: the plugin asks it of everybody.
+	 * @param int  $user_id Who.
+	 */
+	return (bool) apply_filters( 'diluxone_users_2fa_in_scope', true, $user_id );
 }
 
 /**
- * The signature inside the trust cookie.
+ * May this sign-in skip the second step it would be asked?
  *
- * It covers the epoch as well as the id and the expiry: that is what makes
- * the cookie revocable. Everything else in it is fixed for the life of the
- * account, so a cookie that only signed those could not be taken back short
- * of changing the site salts — and turning the second step off and on again,
- * or closing every session, has to take it back.
+ * Never, as far as the plugin goes: every sign-in that needs it is asked. An
+ * add-on that remembers a browser which passed it — Users+ Pro's "do not ask
+ * again on this browser" — answers true through `diluxone_users_2fa_skip`.
+ * Without it, nothing remembered lets anybody past.
  */
-function diluxone_users_2fa_trust_hash( int $user_id, int $expires ): string {
-	$epoch = (string) get_user_meta( $user_id, 'diluxone_users_2fa_epoch', true );
-
-	return wp_hash( $user_id . '|' . $expires . '|' . $epoch, 'secure_auth' );
+function diluxone_users_2fa_skip( int $user_id, string $via ): bool {
+	/**
+	 * Filters whether a sign-in that needs the second step may skip it.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param bool   $skip    False.
+	 * @param int    $user_id Who is signing in.
+	 * @param string $via     Through which door.
+	 */
+	return (bool) apply_filters( 'diluxone_users_2fa_skip', false, $user_id, $via );
 }
 
 /**
- * Forgets every browser this person marked as trusted.
+ * Takes back whatever was remembered about this person's second step.
  *
- * The cookies are not reachable — they live in other browsers — so what
- * changes is the epoch they were signed with, and every one of them stops
- * verifying at once. It is called when the second step is turned off or
- * changed, and when the person closes their other sessions: a session that
- * was closed should not come back in without the second step.
+ * Called when the second step is turned off or a method removed, and when the
+ * person closes their other sessions: a session that was closed should not
+ * come back in without the second step. The plugin remembers nothing; an
+ * add-on that does forgets it on `diluxone_users_2fa_forget`.
  */
 function diluxone_users_2fa_forget_browsers( int $user_id ): void {
-	update_user_meta( $user_id, 'diluxone_users_2fa_epoch', time() . '.' . wp_generate_password( 8, false, false ) );
-}
-
-/** What the trust cookie holds: who, until when, and the signature over both. */
-function diluxone_users_2fa_trust_value( int $user_id, int $expires ): string {
-	return $user_id . '|' . $expires . '|' . diluxone_users_2fa_trust_hash( $user_id, $expires );
-}
-
-/** Marks this browser so it is not asked again for a few days. */
-function diluxone_users_2fa_trust( int $user_id ): void {
-	$days = (int) diluxone_users_option( 'diluxone_users_2fa_remember_days' );
-
-	if ( $days <= 0 ) {
-		return;
-	}
-
-	$expires = time() + $days * DAY_IN_SECONDS;
-
-	diluxone_users_cookie_set( 'diluxone_users_2fa_' . COOKIEHASH, diluxone_users_2fa_trust_value( $user_id, $expires ), $expires );
+	/**
+	 * Fires when what was remembered about somebody's second step has to go.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param int $user_id Whose.
+	 */
+	do_action( 'diluxone_users_2fa_forget', $user_id );
 }
 
 /* ── The single way in ─────────────────────────────────────────────── */
@@ -493,7 +481,7 @@ function diluxone_users_complete_login( int $user_id, string $via, bool $remembe
 	$redirect = '' !== $redirect ? $redirect : (string) apply_filters( 'diluxone_users_login_redirect', home_url( '/' ), $user_id );
 
 	// A door that already proved both things goes straight in.
-	if ( diluxone_users_way_strong( $via ) || ! diluxone_users_2fa_required( $user_id, $via ) || diluxone_users_2fa_trusted( $user_id ) ) {
+	if ( diluxone_users_way_strong( $via ) || ! diluxone_users_2fa_required( $user_id, $via ) || diluxone_users_2fa_skip( $user_id, $via ) ) {
 		diluxone_users_open_session( $user_id, $via, $remember );
 
 		wp_safe_redirect( $redirect );
@@ -965,8 +953,12 @@ function diluxone_users_2fa_handle(): void {
 	$key     = sanitize_text_field( wp_unslash( $_POST['diluxone_users_2fa_key'] ) );
 	$method  = sanitize_key( wp_unslash( $_POST['diluxone_users_2fa_method'] ?? '' ) );
 	$code    = sanitize_text_field( wp_unslash( $_POST['diluxone_users_2fa_code'] ?? '' ) );
-	$trust   = isset( $_POST['diluxone_users_2fa_trust'] );
 	$resend  = isset( $_POST['diluxone_users_2fa_resend'] );
+	// What an add-on drew on the form (diluxone_users_2fa_form), handed to it
+	// once the code is right (diluxone_users_2fa_passed).
+	$extra = isset( $_POST['diluxone_users_2fa_extra'] ) && is_array( $_POST['diluxone_users_2fa_extra'] )
+		? map_deep( wp_unslash( $_POST['diluxone_users_2fa_extra'] ), 'sanitize_text_field' )
+		: array();
 	// phpcs:enable
 
 	$pending = diluxone_users_2fa_pending( $user_id, $key );
@@ -1021,9 +1013,23 @@ function diluxone_users_2fa_handle(): void {
 		exit;
 	}
 
-	if ( $trust ) {
-		diluxone_users_2fa_trust( $user_id );
-	}
+	/**
+	 * Fires when somebody answered the second step right, before the session
+	 * opens.
+	 *
+	 * The single-use attempt behind the form is already spent, which is what
+	 * makes the answer the account owner's. An add-on that drew fields on the
+	 * form (`diluxone_users_2fa_form`, named `diluxone_users_2fa_extra[...]`)
+	 * gets what they sent, cleaned as text: Users+ Pro's "do not ask again on
+	 * this browser" marks the browser here.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param int                  $user_id Who passed it.
+	 * @param array<string, mixed> $extra   What the add-on's fields sent.
+	 * @param string               $via     The door the sign-in came through.
+	 */
+	do_action( 'diluxone_users_2fa_passed', $user_id, $extra, (string) $pending['via'] );
 
 	// On a network, the site this sign-in on the hub was for.
 	diluxone_users_sign_in_from_url( (string) $pending['redirect'] );
@@ -1059,7 +1065,7 @@ function diluxone_users_2fa_after_password( string $login, WP_User $user ): void
 		return;
 	}
 
-	if ( ! diluxone_users_2fa_required( (int) $user->ID, 'password' ) || diluxone_users_2fa_trusted( (int) $user->ID ) ) {
+	if ( ! diluxone_users_2fa_required( (int) $user->ID, 'password' ) || diluxone_users_2fa_skip( (int) $user->ID, 'password' ) ) {
 		return;
 	}
 

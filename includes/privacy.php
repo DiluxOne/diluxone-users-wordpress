@@ -289,13 +289,6 @@ function diluxone_users_privacy_access( int $user_id ): array {
 			: __( 'Off', 'diluxone-users' ),
 	);
 
-	if ( get_user_meta( $user_id, 'diluxone_users_totp', true ) ) {
-		$rows[] = array(
-			'name'  => __( 'Authenticator app', 'diluxone-users' ),
-			'value' => __( 'Set up', 'diluxone-users' ),
-		);
-	}
-
 	// On a network: the sites an administrator took them off, which the
 	// plugin keeps so that nothing adds them back on its own.
 	$removed = array();
@@ -430,15 +423,11 @@ function diluxone_users_privacy_keys( int $user_id ): array {
 		'diluxone_users_avatar_site',
 		'diluxone_users_devices',
 		'diluxone_users_2fa_on',
-		'diluxone_users_2fa_epoch',
 		'diluxone_users_2fa_email',
 		'diluxone_users_2fa_pending',
 		'diluxone_users_2fa_fails',
 		'diluxone_users_2fa_lock',
 		'diluxone_users_2fa_lock_at',
-		'diluxone_users_totp',
-		'diluxone_users_totp_pending',
-		'diluxone_users_totp_step',
 		'diluxone_users_backup_codes',
 		'_diluxone_users_link_hash',
 		'_diluxone_users_link_expires',

@@ -31,7 +31,6 @@ class TwoFactorChallengeTest extends TestCase {
 		require_once DILUXONE_USERS_DIR . 'includes/options.php';
 		require_once DILUXONE_USERS_DIR . 'includes/safe-mode.php';
 		require_once DILUXONE_USERS_DIR . 'includes/options-scope.php';
-		require_once DILUXONE_USERS_DIR . 'includes/auth-totp.php';
 		require_once DILUXONE_USERS_DIR . 'includes/auth-email.php';
 		require_once DILUXONE_USERS_DIR . 'includes/auth.php';
 		require_once DILUXONE_USERS_DIR . 'includes/login.php';
@@ -148,44 +147,6 @@ class TwoFactorChallengeTest extends TestCase {
 	 */
 	private function trust(): string {
 		return diluxone_users_2fa_trust_value( self::USER_ID, time() + 30 * DAY_IN_SECONDS );
-	}
-
-	public function test_the_cookie_it_sets_is_the_cookie_it_trusts(): void {
-		$_COOKIE[ 'diluxone_users_2fa_' . COOKIEHASH ] = $this->trust();
-
-		$this->assertTrue( diluxone_users_2fa_trusted( self::USER_ID ) );
-	}
-
-	/** A cookie past its own expiry is trusted no more, though its signature is good. */
-	public function test_a_cookie_past_its_expiry_is_not_trusted(): void {
-		$_COOKIE[ 'diluxone_users_2fa_' . COOKIEHASH ] = diluxone_users_2fa_trust_value( self::USER_ID, time() - 1 );
-
-		$this->assertFalse( diluxone_users_2fa_trusted( self::USER_ID ) );
-	}
-
-	public function test_the_cookie_is_signed_and_a_changed_expiry_breaks_it(): void {
-		[ $id, $expires, $hash ] = explode( '|', $this->trust() );
-
-		$_COOKIE[ 'diluxone_users_2fa_' . COOKIEHASH ] = $id . '|' . ( (int) $expires + 86400 ) . '|' . $hash;
-
-		$this->assertFalse( diluxone_users_2fa_trusted( self::USER_ID ) );
-	}
-
-	public function test_forgetting_the_browsers_breaks_every_cookie_signed_before(): void {
-		$_COOKIE[ 'diluxone_users_2fa_' . COOKIEHASH ] = $this->trust();
-		$this->assertTrue( diluxone_users_2fa_trusted( self::USER_ID ) );
-
-		diluxone_users_2fa_forget_browsers( self::USER_ID );
-
-		$this->assertFalse( diluxone_users_2fa_trusted( self::USER_ID ) );
-	}
-
-	public function test_a_cookie_made_after_forgetting_is_trusted_again(): void {
-		diluxone_users_2fa_forget_browsers( self::USER_ID );
-
-		$_COOKIE[ 'diluxone_users_2fa_' . COOKIEHASH ] = $this->trust();
-
-		$this->assertTrue( diluxone_users_2fa_trusted( self::USER_ID ) );
 	}
 
 	/* ── The doors with no screen ──────────────────────────────────── */

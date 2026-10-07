@@ -46,7 +46,6 @@ function diluxone_users_2fa_wp_login(): void {
 	$method  = (string) $challenge['method'];
 	$methods = (array) $challenge['methods'];
 	$actual  = (array) ( $methods[ $method ] ?? array() );
-	$days    = (int) diluxone_users_option( 'diluxone_users_2fa_remember_days' );
 
 	// The three states the page shows, in the words the site may have
 	// rewritten on Access › Messages: one list of sentences for both screens.
@@ -103,22 +102,10 @@ function diluxone_users_2fa_wp_login(): void {
 
 			<p class="description"><?php esc_html_e( 'Lost the phone and the email? Use one of your backup codes: they go in the same box.', 'diluxone-users' ); ?></p>
 
-			<?php if ( $days > 0 ) : ?>
-				<p class="forgetmenot">
-					<input type="checkbox" id="diluxone-users-2fa-trust" name="diluxone_users_2fa_trust" value="1">
-					<label for="diluxone-users-2fa-trust">
-						<?php
-						echo esc_html(
-							sprintf(
-								/* translators: %d: days */
-								__( 'Do not ask again on this browser for %d days', 'diluxone-users' ),
-								$days
-							)
-						);
-						?>
-					</label>
-				</p>
-			<?php endif; ?>
+			<?php
+			/** This action is documented in templates/login-2fa.php */
+			do_action( 'diluxone_users_2fa_form', $user_id, 'wp-login' );
+			?>
 
 			<p class="submit">
 				<input type="submit" class="button button-primary button-large" value="<?php esc_attr_e( 'Confirm', 'diluxone-users' ); ?>">
