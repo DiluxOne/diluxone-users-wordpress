@@ -54,6 +54,13 @@ const SHOP_WINDOW = {
 	// The account area's sections as the plugin names them: a development
 	// site keeps whatever labels somebody typed into it, in their language.
 	diluxone_users_account_sections: {},
+	// The two networks the free plugin has, set up: a development site keeps
+	// whichever ones somebody configured, and a network only Users+ Pro
+	// registers draws no button here.
+	diluxone_users_sso: {
+		google: { active: 1, id: 'listing-google-id', secret: 'listing-google-secret', tested: 1 },
+		microsoft: { active: 1, id: 'listing-microsoft-id', secret: 'listing-microsoft-secret', tested: 1 },
+	},
 };
 
 /** The member the front-end pictures are of: an address, not a test id. */
