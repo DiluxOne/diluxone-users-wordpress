@@ -187,13 +187,13 @@ class SettingsFileTest extends IntegrationTestCase {
 
 	/** A setting the site never set travels as nothing, and stays a default. */
 	public function test_a_default_is_not_written_back_as_a_setting(): void {
-		diluxone_users_delete_option( 'diluxone_users_color_map' );
+		diluxone_users_delete_option( 'diluxone_users_notice_rules' );
 
 		$file = diluxone_users_tool_settings();
-		$this->assertArrayNotHasKey( 'diluxone_users_color_map', $file );
+		$this->assertArrayNotHasKey( 'diluxone_users_notice_rules', $file );
 
 		diluxone_users_tool_restore( $file );
-		$this->assertNull( diluxone_users_raw_get( 'diluxone_users_color_map', null ) );
+		$this->assertNull( diluxone_users_raw_get( 'diluxone_users_notice_rules', null ) );
 	}
 
 	/* ── What no other test asked ─────────────────────────────────── */
@@ -285,7 +285,7 @@ class SettingsFileTest extends IntegrationTestCase {
 			'the account shape'   => array( 'diluxone_users_account_template', 'diluxone_users_account_template', 'plain' ),
 			'the menu style'      => array( 'diluxone_users_account_nav_style', 'diluxone_users_account_nav_style', 'pills' ),
 			'the menu alignment'  => array( 'diluxone_users_account_nav_align', 'diluxone_users_account_nav_align', 'start' ),
-			'the cover'           => array( 'diluxone_users_account_cover_kind', 'diluxone_users_account_cover_kind', 'color' ),
+			'the accent'          => array( 'diluxone_users_style_accent', 'diluxone_users_style_accent', '#2b59d6' ),
 		);
 	}
 

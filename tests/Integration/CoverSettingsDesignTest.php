@@ -21,8 +21,6 @@ class CoverSettingsDesignTest extends IntegrationTestCase {
 		'diluxone_users_account_avatar',
 		'diluxone_users_account_since',
 		'diluxone_users_account_action',
-		'diluxone_users_account_cover_own',
-		'diluxone_users_account_ground_own',
 	);
 
 
@@ -130,43 +128,30 @@ class CoverSettingsDesignTest extends IntegrationTestCase {
 		$this->send_panel(
 			DILUXONE_USERS_DESIGN,
 			array(
-				'diluxone_users_login_template'     => 'Split<b>',
-				'diluxone_users_login_side'         => 'RIGHT',
-				'diluxone_users_login_image'        => '12px',
-				'diluxone_users_login_panel_title'  => "First line\nSecond <i>line</i>",
-				'diluxone_users_login_panel_points' => "One\nTwo",
-				'diluxone_users_login_panel_foot'   => "A foot\nwith no line",
-				'diluxone_users_login_title'        => 'Welcome <script>x</script>',
-				'diluxone_users_login_legal'        => 'Read the <a href="https://example.test/terms">terms</a><script>alert(1)</script>',
-				'diluxone_users_sent_icon'          => 'circle',
+				'diluxone_users_login_template' => 'Card<b>',
+				'diluxone_users_login_title'    => 'Welcome <script>x</script>',
+				'diluxone_users_login_legal'    => 'Read the <a href="https://example.test/terms">terms</a><script>alert(1)</script>',
+				'diluxone_users_sent_icon'      => 'circle',
 			)
 		);
 		diluxone_users_design_login_save();
 
 		$this->assertSame( 'plain', diluxone_users_option( 'diluxone_users_login_template' ), 'a shape there is not: the plain one' );
-		$this->assertSame( 'right', diluxone_users_option( 'diluxone_users_login_side' ) );
-		$this->assertSame( 12, (int) diluxone_users_option( 'diluxone_users_login_image' ) );
-		$this->assertSame( "First line\nSecond line", diluxone_users_option( 'diluxone_users_login_panel_title' ), 'its lines kept, its tags not' );
-		$this->assertSame( "One\nTwo", diluxone_users_option( 'diluxone_users_login_panel_points' ) );
-		$this->assertSame( 'A foot with no line', diluxone_users_option( 'diluxone_users_login_panel_foot' ) );
 		$this->assertSame( 'Welcome', diluxone_users_option( 'diluxone_users_login_title' ) );
 		$this->assertStringContainsString( '<a href="https://example.test/terms">terms</a>', diluxone_users_option( 'diluxone_users_login_legal' ) );
 		$this->assertStringNotContainsString( '<script', diluxone_users_option( 'diluxone_users_login_legal' ) );
 		$this->assertSame( 'circle', diluxone_users_option( 'diluxone_users_sent_icon' ) );
 
-		// A side that is not one, a legal line that is not a string, an icon
-		// nobody drew.
+		// A legal line that is not a string, an icon nobody drew.
 		$this->send_panel(
 			DILUXONE_USERS_DESIGN,
 			array(
-				'diluxone_users_login_side'  => 'up',
 				'diluxone_users_login_legal' => array( '<a>terms</a>' ),
 				'diluxone_users_sent_icon'   => 'skull',
 			)
 		);
 		diluxone_users_design_login_save();
 
-		$this->assertSame( 'left', diluxone_users_option( 'diluxone_users_login_side' ) );
 		$this->assertSame( '', diluxone_users_option( 'diluxone_users_login_legal' ) );
 		$this->assertSame( 'plain', diluxone_users_option( 'diluxone_users_sent_icon' ) );
 		$this->assertSame( 'plain', diluxone_users_option( 'diluxone_users_login_template' ), 'nothing sent is the plain page' );
@@ -190,26 +175,21 @@ class CoverSettingsDesignTest extends IntegrationTestCase {
 		$this->assertSame( 'Done', diluxone_users_option( 'diluxone_users_register_done' ) );
 	}
 
-	public function test_the_account_area_takes_a_colour_only_when_its_box_is_ticked_and_it_is_a_colour(): void {
+	public function test_the_account_area_takes_a_ground_of_its_palette_and_only_the_answers_offered(): void {
 		$this->the_admin();
 
 		$this->send_panel(
 			DILUXONE_USERS_DESIGN,
 			array(
-				'diluxone_users_account_template'    => 'cover',
-				'diluxone_users_account_layout'      => 'Side',
-				'diluxone_users_account_width'       => 'full',
-				'diluxone_users_account_header'      => '1',
-				'diluxone_users_account_since'       => '1',
-				'diluxone_users_account_cover_own'   => '1',
-				'diluxone_users_account_cover'       => '#AbC123',
-				'diluxone_users_account_ground_own'  => '1',
-				'diluxone_users_account_ground'      => 'red;}body{display:none',
-				'diluxone_users_account_cover_kind'  => 'image',
-				'diluxone_users_account_cover_image' => '33',
-				'diluxone_users_account_nav_small'   => 'wrap',
-				'diluxone_users_account_row_w'       => '960px<b>',
-				'diluxone_users_account_bar_gap'     => '12px',
+				'diluxone_users_account_template'  => 'plain',
+				'diluxone_users_account_layout'    => 'Side',
+				'diluxone_users_account_width'     => 'full',
+				'diluxone_users_account_header'    => '1',
+				'diluxone_users_account_since'     => '1',
+				'diluxone_users_account_ground'    => '#EEF3FB',
+				'diluxone_users_account_nav_small' => 'wrap',
+				'diluxone_users_account_row_w'     => '960px<b>',
+				'diluxone_users_account_bar_gap'   => '12px',
 				// The tick boxes the tab draws, as it draws them: an unticked
 				// one is off because the screen said it was there.
 				'diluxone_users_panel_drawn'         => self::ACCOUNT_BOXES,
@@ -217,34 +197,28 @@ class CoverSettingsDesignTest extends IntegrationTestCase {
 		);
 		diluxone_users_design_account_save();
 
-		$this->assertSame( 'cover', diluxone_users_option( 'diluxone_users_account_template' ) );
+		$this->assertSame( 'plain', diluxone_users_option( 'diluxone_users_account_template' ) );
 		$this->assertSame( 'side', diluxone_users_option( 'diluxone_users_account_layout' ) );
 		$this->assertSame( 'full', diluxone_users_option( 'diluxone_users_account_width' ) );
 		$this->assertSame( 1, (int) diluxone_users_option( 'diluxone_users_account_header' ) );
 		$this->assertSame( 0, (int) diluxone_users_option( 'diluxone_users_account_avatar' ), 'unticked' );
 		$this->assertSame( 1, (int) diluxone_users_option( 'diluxone_users_account_since' ) );
-		$this->assertSame( '#AbC123', diluxone_users_option( 'diluxone_users_account_cover' ) );
-		$this->assertSame( '', diluxone_users_option( 'diluxone_users_account_ground' ), 'not a colour: none' );
-		$this->assertSame( 'image', diluxone_users_option( 'diluxone_users_account_cover_kind' ) );
-		$this->assertSame( 33, (int) diluxone_users_option( 'diluxone_users_account_cover_image' ) );
+		$this->assertSame( '#eef3fb', diluxone_users_option( 'diluxone_users_account_ground' ), 'a shade of the palette' );
 		$this->assertSame( 'wrap', diluxone_users_option( 'diluxone_users_account_nav_small' ) );
 		$this->assertSame( '960px', diluxone_users_option( 'diluxone_users_account_row_w' ) );
 		$this->assertSame( '12px', diluxone_users_option( 'diluxone_users_account_bar_gap' ) );
 
-		// The pickers sent without their boxes ticked, or not as text.
+		// Answers nobody offered, or not as text.
 		$this->send_panel(
 			DILUXONE_USERS_DESIGN,
 			array(
 				'diluxone_users_account_template'  => 'fancy',
 				'diluxone_users_account_layout'    => 'sidebar',
 				'diluxone_users_account_width'     => 'huge',
-				'diluxone_users_account_cover'     => '#000000',
-				'diluxone_users_account_ground_own' => '1',
 				'diluxone_users_account_ground'    => array( '#000000' ),
 				'diluxone_users_account_nav_small' => 'shrink',
 				'diluxone_users_account_nav_style' => 'neon',
 				'diluxone_users_account_nav_align' => 'justify',
-				'diluxone_users_account_cover_kind' => 'video',
 				'diluxone_users_panel_drawn'       => self::ACCOUNT_BOXES,
 			)
 		);
@@ -252,13 +226,11 @@ class CoverSettingsDesignTest extends IntegrationTestCase {
 
 		$this->assertSame( 'pills', diluxone_users_option( 'diluxone_users_account_nav_style' ), 'a look there is not: the first one' );
 		$this->assertSame( 'start', diluxone_users_option( 'diluxone_users_account_nav_align' ) );
-		$this->assertSame( 'color', diluxone_users_option( 'diluxone_users_account_cover_kind' ) );
 
 		$this->assertSame( 'plain', diluxone_users_option( 'diluxone_users_account_template' ) );
 		$this->assertSame( 'tabs', diluxone_users_option( 'diluxone_users_account_layout' ), 'a place there is not: the tabs' );
 		$this->assertSame( 'contained', diluxone_users_option( 'diluxone_users_account_width' ) );
-		$this->assertSame( '', diluxone_users_option( 'diluxone_users_account_cover' ), 'the box decides, not the picker' );
-		$this->assertSame( '', diluxone_users_option( 'diluxone_users_account_ground' ) );
+		$this->assertSame( '', diluxone_users_option( 'diluxone_users_account_ground' ), 'not a colour: the page’s own' );
 		$this->assertSame( 'scroll', diluxone_users_option( 'diluxone_users_account_nav_small' ) );
 	}
 
@@ -301,7 +273,6 @@ class CoverSettingsDesignTest extends IntegrationTestCase {
 			)
 		);
 		diluxone_users_update_option( 'diluxone_users_colors', 'theme' );
-		diluxone_users_update_option( 'diluxone_users_color_map', array( 'accent' => 'bad' ) );
 
 		$palette = diluxone_users_theme_palette();
 
@@ -311,19 +282,12 @@ class CoverSettingsDesignTest extends IntegrationTestCase {
 		$this->assertContains( 'accent', diluxone_users_color_measured_roles(), 'the accent is measured instead' );
 	}
 
-	public function test_a_part_mapped_to_a_colour_the_theme_no_longer_has_is_measured_instead(): void {
+	public function test_a_part_the_palette_does_not_name_is_measured_instead(): void {
 		$this->hook(
 			'diluxone_users_theme_palette',
-			static fn(): array => array( 'ink' => array( 'name' => 'Ink', 'color' => '#111111' ) )
+			static fn(): array => array( 'contrast' => array( 'name' => 'Ink', 'color' => '#111111' ) )
 		);
 		diluxone_users_update_option( 'diluxone_users_colors', 'theme' );
-		diluxone_users_update_option(
-			'diluxone_users_color_map',
-			array(
-				'accent' => 'gone',
-				'text'   => 'ink',
-			)
-		);
 
 		$this->assertSame( ':root{--diluxone-users-text:#111111;}', diluxone_users_theme_colors_css() );
 		$this->assertContains( 'accent', diluxone_users_color_measured_roles() );
@@ -403,21 +367,21 @@ class CoverSettingsDesignTest extends IntegrationTestCase {
 	public function test_branded_wp_login_with_its_own_colour_and_logo(): void {
 		add_filter( 'wp_get_attachment_image_src', array( $this, 'a_logo' ), 10, 2 );
 		diluxone_users_update_option( 'diluxone_users_wp_login_brand', 1 );
-		diluxone_users_update_option( 'diluxone_users_wp_login_bg', '#102030' );
+		diluxone_users_update_option( 'diluxone_users_wp_login_bg', '#0f766e' );
 		diluxone_users_update_option( 'diluxone_users_wp_login_logo', 4242 );
 
 		diluxone_users_wp_login_styles();
 		$css = $this->login_css();
 
-		$this->assertStringContainsString( 'body.login{background:#102030}', $css );
+		$this->assertStringContainsString( 'body.login{background:#0f766e}', $css );
 		$this->assertStringContainsString( 'background-image:url(https://example.test/cover-logo.png)', $css );
 		$this->assertStringContainsString( 'border-radius:4px', $css, 'the usual radius when none is set' );
 	}
 
-	public function test_a_colour_that_is_not_one_prints_nothing(): void {
+	public function test_a_colour_that_is_not_one_is_the_accent(): void {
 		diluxone_users_update_option( 'diluxone_users_wp_login_bg', 'red;}' );
 
-		$this->assertSame( '', diluxone_users_wp_login_bg() );
+		$this->assertSame( diluxone_users_style_accent(), diluxone_users_wp_login_bg() );
 	}
 
 	public function test_i_forgot_my_password_goes_to_the_sign_in_page_only_when_it_can(): void {
@@ -464,37 +428,31 @@ class CoverSettingsDesignTest extends IntegrationTestCase {
 		$this->assertSame( '', diluxone_users_color_value( 'var(--x);}' ) );
 	}
 
-	public function test_a_swatch_follows_the_theme_live_with_the_plugins_own_colour_behind(): void {
+	public function test_a_palette_value_nothing_checked_is_dropped(): void {
 		$this->palette = array(
-			'brand' => array(
-				'name'  => 'Brand',
-				'color' => 'var(--ast-global-color-0)',
-			),
-			'ink'   => array(
+			'ink' => array(
 				'name'  => 'Ink',
 				'color' => '#111111',
 			),
-			'bad'   => array(
+			'bad' => array(
 				'name'  => 'Bad',
 				'color' => 'url(javascript:alert(1))',
 			),
 		);
 		add_filter( 'diluxone_users_theme_palette', array( $this, 'the_palette' ) );
 
-		$this->assertSame( 'var(--ast-global-color-0, #2b59d6)', diluxone_users_color_swatch( 'accent', 'brand' ) );
-		$this->assertSame( '#111111', diluxone_users_color_swatch( 'text', 'ink' ) );
-		$this->assertSame( '#16181d', diluxone_users_color_swatch( 'text', '' ), 'nothing chosen: the plugin’s own' );
+		$this->assertArrayHasKey( 'ink', diluxone_users_theme_palette() );
 		$this->assertArrayNotHasKey( 'bad', diluxone_users_theme_palette(), 'a filter cannot hand over a value nothing checked' );
 	}
 
-	public function test_the_map_keeps_the_sites_answers_over_the_guess_and_measures_the_rest(): void {
+	public function test_the_map_is_guessed_from_the_names_and_the_rest_is_measured(): void {
 		$this->palette = array(
-			'primary'  => array(
+			'primary' => array(
 				'name'  => 'Primary',
 				'color' => '#ff0000',
 			),
-			'contrast' => array(
-				'name'  => 'Contrast',
+			'brand'   => array(
+				'name'  => 'Brand',
 				'color' => '#000000',
 			),
 		);
@@ -503,15 +461,8 @@ class CoverSettingsDesignTest extends IntegrationTestCase {
 		$this->assertSame( array(), diluxone_users_color_measured_roles(), 'nothing is measured while the colours are the plugin’s' );
 
 		diluxone_users_update_option( 'diluxone_users_colors', 'theme' );
-		diluxone_users_update_option(
-			'diluxone_users_color_map',
-			array(
-				'text'       => '',
-				'not-a-role' => 'primary',
-			)
-		);
 
-		$this->assertSame( array( 'accent' => 'primary' ), diluxone_users_color_map(), 'an empty answer beats the guess; a role that is not one is ignored' );
+		$this->assertSame( array( 'accent' => 'primary' ), diluxone_users_color_map(), 'a name that says so; a numbered or unknown one is not guessed at' );
 
 		$measured = diluxone_users_color_measured_roles();
 

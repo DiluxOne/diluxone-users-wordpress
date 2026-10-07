@@ -232,7 +232,7 @@ class CoverAdminPanelsTest extends IntegrationTestCase {
 
 	public function test_the_preview_document_carries_the_scripts_and_the_theme_properties_asked_for(): void {
 		$palette = static fn(): array => array(
-			'brand' => array(
+			'primary' => array(
 				'name'  => 'Brand',
 				'color' => 'var(--site-brand)',
 			),
@@ -240,7 +240,6 @@ class CoverAdminPanelsTest extends IntegrationTestCase {
 		add_filter( 'diluxone_users_theme_palette', $palette );
 
 		diluxone_users_update_option( 'diluxone_users_colors', 'theme' );
-		diluxone_users_update_option( 'diluxone_users_color_map', array( 'accent' => 'brand' ) );
 		diluxone_users_update_option( 'diluxone_users_account_row_w', 640 );
 
 		diluxone_users_preview_scripts( 'diluxone-users-ways' );
@@ -273,7 +272,7 @@ class CoverAdminPanelsTest extends IntegrationTestCase {
 
 	public function test_the_theme_properties_answer_holds_only_what_the_preview_asked_about(): void {
 		$palette = static fn(): array => array(
-			'brand' => array(
+			'primary' => array(
 				'name'  => 'Brand',
 				'color' => 'var(--x)',
 			),
@@ -287,7 +286,6 @@ class CoverAdminPanelsTest extends IntegrationTestCase {
 		);
 
 		diluxone_users_update_option( 'diluxone_users_colors', 'theme' );
-		diluxone_users_update_option( 'diluxone_users_color_map', array( 'accent' => 'brand' ) );
 
 		$body = diluxone_users_preview_vars_body();
 

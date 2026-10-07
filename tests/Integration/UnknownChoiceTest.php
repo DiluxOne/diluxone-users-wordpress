@@ -25,8 +25,8 @@ class UnknownChoiceTest extends IntegrationTestCase {
 
 		$this->assertSame( 'card', diluxone_users_login_template(), 'the shape of the plugin’s own that still takes the page over' );
 
-		diluxone_users_update_option( 'diluxone_users_login_template', 'split' );
-		$this->assertSame( 'split', diluxone_users_login_template(), 'a shape there is stays itself' );
+		diluxone_users_update_option( 'diluxone_users_login_template', 'card' );
+		$this->assertSame( 'card', diluxone_users_login_template(), 'a shape there is stays itself' );
 
 		diluxone_users_update_option( 'diluxone_users_login_template', '' );
 		$this->assertSame( 'plain', diluxone_users_login_template(), 'nothing is the page as it is' );

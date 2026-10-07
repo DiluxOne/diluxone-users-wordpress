@@ -335,49 +335,37 @@ class CoverFieldsAccountTest extends IntegrationTestCase {
 		$this->assertStringContainsString( 'Edit profile', $html );
 		$this->assertStringContainsString( 'diluxone-users-account__bar', $html );
 		$this->assertStringContainsString( 'Hello, Ana', $html );
-		$this->assertStringNotContainsString( 'style="', substr( $html, 0, (int) strpos( $html, '>' ) ), 'A plain area carries no cover' );
+		$this->assertStringNotContainsString( 'style="', substr( $html, 0, (int) strpos( $html, '>' ) ), 'A plain area carries no properties of its own' );
 
 		$this->assertStringContainsString( 'diluxone-users-account__nav', diluxone_users_shortcode_account_nav() );
 	}
 
-	public function test_the_cover_without_a_header_and_with_the_menu_down_the_side(): void {
+	public function test_without_a_header_and_with_the_menu_down_the_side(): void {
 		$this->signed_in();
-		$picture = (int) wp_insert_attachment(
-			array(
-				'post_title'     => 'band',
-				'post_mime_type' => 'image/jpeg',
-				'post_status'    => 'inherit',
-			),
-			'2026/10/band.jpg'
-		);
 
-		diluxone_users_update_option( 'diluxone_users_account_template', 'cover' );
 		diluxone_users_update_option( 'diluxone_users_account_layout', 'side' );
 		diluxone_users_update_option( 'diluxone_users_account_header', 0 );
 		diluxone_users_update_option( 'diluxone_users_account_width', 'full' );
-		diluxone_users_update_option( 'diluxone_users_account_cover', '#123abc' );
-		diluxone_users_update_option( 'diluxone_users_account_cover_kind', 'dim' );
-
-		// A picture asked for and none chosen is the colour.
-		$this->assertSame( 'color', diluxone_users_account_cover_kind() );
-
-		diluxone_users_update_option( 'diluxone_users_account_cover_image', $picture );
-		$this->assertSame( 'dim', diluxone_users_account_cover_kind() );
 
 		$html = $this->area();
 
-		$this->assertStringContainsString( 'diluxone-users-account--side diluxone-users-account--cover diluxone-users-account--full', $html );
+		$this->assertStringContainsString( 'diluxone-users-account--side diluxone-users-account--plain diluxone-users-account--full', $html );
 		$this->assertStringContainsString( 'diluxone-users-account--bare', $html );
-		$this->assertStringContainsString( 'diluxone-users-account--cover-dim', $html );
-		$this->assertStringContainsString( '--diluxone-users-cover:#123abc;', $html );
-		$this->assertStringContainsString( '--diluxone-users-cover-image:url(', $html );
-		$this->assertStringContainsString( '2026/10/band.jpg', $html );
 		$this->assertStringNotContainsString( 'diluxone-users-account__header', $html );
 		$this->assertStringNotContainsString( 'diluxone-users-account__bar', $html );
 		$this->assertStringContainsString( 'diluxone-users-account__nav--column', $html, 'The menu sits in the body, down the side' );
 
-		diluxone_users_update_option( 'diluxone_users_account_cover_kind', 'image' );
-		$this->assertStringContainsString( 'diluxone-users-account--cover-image', $this->area() );
+		// A cover stored while Users+ Pro offered it is the simple area, with
+		// nothing of the cover on it.
+		diluxone_users_update_option( 'diluxone_users_account_template', 'cover' );
+		update_option( 'diluxone_users_account_cover', '#123abc' );
+
+		$html = $this->area();
+
+		$this->assertStringContainsString( 'diluxone-users-account--plain', $html );
+		$this->assertStringNotContainsString( 'diluxone-users-account--cover', $html );
+		$this->assertStringNotContainsString( '--diluxone-users-cover', $html );
+		delete_option( 'diluxone_users_account_cover' );
 	}
 
 	/* ── Notifications ───────────────────────────────────────────────── */

@@ -392,11 +392,11 @@ class CoverAdminChromeTest extends IntegrationTestCase {
 	public function test_colours_from_a_theme_with_no_palette_keep_the_accent_and_say_what_is_measured(): void {
 		$this->the_admin();
 		diluxone_users_update_option( 'diluxone_users_colors', 'theme' );
-		diluxone_users_update_option( 'diluxone_users_style_accent', '#123456' );
+		diluxone_users_update_option( 'diluxone_users_style_accent', '#15803d' );
 		$this->filter( 'diluxone_users_theme_palette', '__return_empty_array', 99 );
 
 		$own = $this->draw( 'diluxone_users_brand_own_colour' );
-		$this->assertStringContainsString( '<input type="hidden" name="diluxone_users_style_accent" value="#123456">', $own, 'the colour picked is kept while the picker is off' );
+		$this->assertMatchesRegularExpression( '#name="diluxone_users_style_accent" value="\#15803d"\s+checked#', $own, 'the colour picked goes with the form while the answer is the theme’s' );
 
 		$html = $this->draw( 'diluxone_users_screen_design_brand' );
 		$this->assertStringContainsString( 'Your theme publishes no palette', $html );

@@ -281,7 +281,7 @@ class PanelNonceTest extends IntegrationTestCase {
 			$this->postAs(
 				1,
 				array(
-					'diluxone_users_wp_login_bg' => '#123456',
+					'diluxone_users_wp_login_bg' => '#6d28d9',
 					'diluxone_users_panel_nonce' => wp_create_nonce( 'diluxone_users_panel_' . DILUXONE_USERS_DESIGN ),
 				),
 				array(
@@ -309,7 +309,7 @@ class PanelNonceTest extends IntegrationTestCase {
 		$this->postAs(
 			1,
 			array(
-				'diluxone_users_wp_login_bg' => '#123456',
+				'diluxone_users_wp_login_bg' => '#6d28d9',
 				'diluxone_users_panel_nonce' => wp_create_nonce( 'diluxone_users_panel_' . DILUXONE_USERS_DESIGN ),
 			),
 			array(
@@ -324,7 +324,7 @@ class PanelNonceTest extends IntegrationTestCase {
 		$kept  = get_transient( DILUXONE_USERS_PREVIEW_TRY . $token );
 
 		$this->assertNotSame( '', $token );
-		$this->assertSame( '#123456', $kept['values']['diluxone_users_wp_login_bg'] ?? null );
+		$this->assertSame( '#6d28d9', $kept['values']['diluxone_users_wp_login_bg'] ?? null );
 		$this->assertSame( '', (string) diluxone_users_raw_get( 'diluxone_users_wp_login_bg', '' ), 'and nothing was saved' );
 	}
 

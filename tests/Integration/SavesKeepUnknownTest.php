@@ -21,67 +21,60 @@ class SavesKeepUnknownTest extends IntegrationTestCase {
 	/* ── Only what the screen drew ─────────────────────────────────── */
 
 	public function test_the_sign_in_design_keeps_what_it_did_not_draw(): void {
-		diluxone_users_update_option( 'diluxone_users_login_panel_title', 'Welcome back' );
-		diluxone_users_update_option( 'diluxone_users_login_side', 'right' );
-		diluxone_users_update_option( 'diluxone_users_login_image', 42 );
+		diluxone_users_update_option( 'diluxone_users_login_title', 'Welcome back' );
+		diluxone_users_update_option( 'diluxone_users_sent_icon', 'circle' );
 
 		$this->postPanel( DILUXONE_USERS_DESIGN, array( 'diluxone_users_login_template' => 'card' ) );
 		diluxone_users_design_login_save();
 
 		$this->assertSame( 'card', diluxone_users_raw_get( 'diluxone_users_login_template' ) );
-		$this->assertSame( 'Welcome back', diluxone_users_raw_get( 'diluxone_users_login_panel_title' ), 'a box that was not on the screen is not emptied' );
-		$this->assertSame( 'right', diluxone_users_raw_get( 'diluxone_users_login_side' ) );
-		$this->assertSame( 42, (int) diluxone_users_raw_get( 'diluxone_users_login_image' ) );
+		$this->assertSame( 'Welcome back', diluxone_users_raw_get( 'diluxone_users_login_title' ), 'a box that was not on the screen is not emptied' );
+		$this->assertSame( 'circle', diluxone_users_raw_get( 'diluxone_users_sent_icon' ) );
 	}
 
 	public function test_the_sign_in_design_still_empties_a_box_it_drew(): void {
-		diluxone_users_update_option( 'diluxone_users_login_panel_title', 'Welcome back' );
+		diluxone_users_update_option( 'diluxone_users_login_title', 'Welcome back' );
 
 		$this->postPanel(
 			DILUXONE_USERS_DESIGN,
 			array(
-				'diluxone_users_login_template'    => 'card',
-				'diluxone_users_login_panel_title' => '',
+				'diluxone_users_login_template' => 'card',
+				'diluxone_users_login_title'    => '',
 			)
 		);
 		diluxone_users_design_login_save();
 
-		$this->assertSame( '', diluxone_users_raw_get( 'diluxone_users_login_panel_title' ) );
+		$this->assertSame( '', diluxone_users_raw_get( 'diluxone_users_login_title' ) );
 	}
 
-	public function test_the_account_design_keeps_a_cover_it_did_not_draw(): void {
-		diluxone_users_update_option( 'diluxone_users_account_cover', '#123456' );
-		diluxone_users_update_option( 'diluxone_users_account_cover_kind', 'image' );
+	public function test_the_account_design_keeps_a_ground_it_did_not_draw(): void {
+		diluxone_users_update_option( 'diluxone_users_account_ground', '#eef3fb' );
 		diluxone_users_update_option( 'diluxone_users_account_header', 1 );
 
 		$this->postPanel( DILUXONE_USERS_DESIGN, array( 'diluxone_users_account_template' => 'plain' ) );
 		diluxone_users_design_account_save();
 
-		$this->assertSame( '#123456', diluxone_users_raw_get( 'diluxone_users_account_cover' ), 'no box for its own colour on the screen, no answer about it' );
-		$this->assertSame( 'image', diluxone_users_raw_get( 'diluxone_users_account_cover_kind' ) );
+		$this->assertSame( '#eef3fb', diluxone_users_raw_get( 'diluxone_users_account_ground' ), 'no swatches on the screen, no answer about them' );
 		$this->assertSame( 1, (int) diluxone_users_raw_get( 'diluxone_users_account_header' ), 'a tick box that was not drawn is not unticked' );
 	}
 
 	public function test_a_tick_box_that_was_drawn_and_left_unticked_is_off(): void {
-		diluxone_users_update_option( 'diluxone_users_account_cover', '#123456' );
 		diluxone_users_update_option( 'diluxone_users_account_header', 1 );
 
 		$this->postPanel(
 			DILUXONE_USERS_DESIGN,
 			array(
 				'diluxone_users_account_template' => 'plain',
-				'diluxone_users_panel_drawn'      => array( 'diluxone_users_account_cover_own', 'diluxone_users_account_header' ),
+				'diluxone_users_panel_drawn'      => array( 'diluxone_users_account_header' ),
 			)
 		);
 		diluxone_users_design_account_save();
 
-		$this->assertSame( '', diluxone_users_raw_get( 'diluxone_users_account_cover' ) );
 		$this->assertSame( 0, (int) diluxone_users_raw_get( 'diluxone_users_account_header' ) );
 	}
 
 	public function test_the_brand_keeps_the_colours_it_did_not_draw(): void {
 		diluxone_users_update_option( 'diluxone_users_style_accent', '#aa0000' );
-		diluxone_users_update_option( 'diluxone_users_color_map', array( 'button' => 'accent' ) );
 		diluxone_users_update_option( 'diluxone_users_button_icons', 1 );
 
 		$this->postPanel( DILUXONE_USERS_DESIGN, array( 'diluxone_users_login_logo' => '7' ) );
@@ -89,7 +82,6 @@ class SavesKeepUnknownTest extends IntegrationTestCase {
 
 		$this->assertSame( 7, (int) diluxone_users_raw_get( 'diluxone_users_login_logo' ) );
 		$this->assertSame( '#aa0000', diluxone_users_raw_get( 'diluxone_users_style_accent' ) );
-		$this->assertSame( array( 'button' => 'accent' ), diluxone_users_raw_get( 'diluxone_users_color_map' ) );
 		$this->assertSame( 1, (int) diluxone_users_raw_get( 'diluxone_users_button_icons' ) );
 	}
 

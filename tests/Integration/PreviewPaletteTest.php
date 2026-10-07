@@ -33,11 +33,14 @@ class PreviewPaletteTest extends IntegrationTestCase {
 			'diluxone_users_theme_palette',
 			static function (): array {
 				return array(
-					'brand' => array(
+					// Named the way WordPress suggests, so the plugin maps them
+					// without anybody being asked: the brand plays the accent,
+					// the base the ink on it.
+					'primary' => array(
 						'name'  => 'Brand',
 						'color' => 'var(--site-brand)',
 					),
-					'paper' => array(
+					'base'    => array(
 						'name'  => 'Paper',
 						'color' => 'var(--site-ink)',
 					),
@@ -46,13 +49,6 @@ class PreviewPaletteTest extends IntegrationTestCase {
 		);
 
 		diluxone_users_update_option( 'diluxone_users_colors', 'theme' );
-		diluxone_users_update_option(
-			'diluxone_users_color_map',
-			array(
-				'accent'     => 'brand',
-				'accent-ink' => 'paper',
-			)
-		);
 	}
 
 	/** The properties the plugin's own colours are standing on are asked for. */
@@ -79,7 +75,7 @@ class PreviewPaletteTest extends IntegrationTestCase {
 			'diluxone_users_theme_palette',
 			static function (): array {
 				return array(
-					'brand' => array(
+					'primary' => array(
 						'name'  => 'Brand',
 						'color' => '#046bd2',
 					),
@@ -88,7 +84,6 @@ class PreviewPaletteTest extends IntegrationTestCase {
 		);
 
 		diluxone_users_update_option( 'diluxone_users_colors', 'theme' );
-		diluxone_users_update_option( 'diluxone_users_color_map', array( 'accent' => 'brand' ) );
 
 		$this->assertSame( array(), diluxone_users_preview_theme_vars() );
 		$this->assertSame( '', diluxone_users_preview_theme_url() );
@@ -153,14 +148,14 @@ class PreviewPaletteTest extends IntegrationTestCase {
 	public function test_a_trial_run_sees_an_unticked_box_and_writes_nothing(): void {
 		diluxone_users_update_option( 'diluxone_users_wp_login_brand', 1 );
 
-		$this->postPanel( DILUXONE_USERS_DESIGN, array( 'diluxone_users_wp_login_bg' => '#123456' ) );
+		$this->postPanel( DILUXONE_USERS_DESIGN, array( 'diluxone_users_wp_login_bg' => '#0f766e' ) );
 
 		$would = diluxone_users_preview_would_save(
 			array( 'save' => 'diluxone_users_design_wp_save' )
 		);
 
 		$this->assertSame( 0, $would['diluxone_users_wp_login_brand'] );
-		$this->assertSame( '#123456', $would['diluxone_users_wp_login_bg'] );
+		$this->assertSame( '#0f766e', $would['diluxone_users_wp_login_bg'] );
 
 		// And the site is exactly as it was.
 		$this->assertSame( 1, (int) diluxone_users_raw_get( 'diluxone_users_wp_login_brand' ) );
