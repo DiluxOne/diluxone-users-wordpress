@@ -147,6 +147,25 @@ function diluxone_users_security_submit(): void {
 			diluxone_users_backup_stash( $user_id, diluxone_users_backup_generate( $user_id ) );
 			wp_safe_redirect( add_query_arg( 'diluxone-users', 'backup', $target ) );
 			exit;
+
+		default:
+			/**
+			 * Fires for a word of the Security section the plugin does not
+			 * know.
+			 *
+			 * The nonce and the session are already checked. An add-on whose
+			 * panel posts here with a word of its own reads the rest of the
+			 * request, does what it does and redirects (with a word of
+			 * `diluxone_users_security_notices`, if it has one); one that does
+			 * not redirect sends the person back to the section.
+			 *
+			 * @since 1.0.0
+			 *
+			 * @param string $action  The word that was posted.
+			 * @param int    $user_id Whose account it is.
+			 * @param string $target  The Security section's address.
+			 */
+			do_action( 'diluxone_users_security_action', $action, $user_id, $target );
 	}
 
 	wp_safe_redirect( $target );

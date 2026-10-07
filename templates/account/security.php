@@ -1,13 +1,15 @@
 <?php
 /**
- * Security: how they get in, the passkeys, the second factor and where their
- * sessions are open.
+ * Security: how they get in, the second factor and where their sessions are
+ * open.
  *
- * The order is not accidental. First how they get in today; then the
- * passkeys, which are the safest way and the one that asks for no extra step;
- * then the second factor, which is what is added to the ways in that do need
- * it; and last the authenticator app, which is a detail of that second factor
- * and makes no sense before turning it on.
+ * The order is not accidental. First how they get in today; then whatever an
+ * add-on brings in front of the second step (`diluxone_users_account_security`)
+ * — a way in that already proves two things is the better answer to the same
+ * problem, so it goes before the step it makes unnecessary; then the second
+ * factor, which is what is added to the ways in that do need it; and last the
+ * authenticator app, which is a detail of that second factor and makes no
+ * sense before turning it on.
  *
  * What it is given, in `$args`:
  *
@@ -30,27 +32,35 @@ $diluxone_users_piden   = diluxone_users_2fa_ways_asked( $diluxone_users_id );
 $diluxone_users_notice = isset( $_GET['diluxone-users'] ) ? sanitize_key( wp_unslash( $_GET['diluxone-users'] ) ) : '';
 
 $diluxone_users_notices = array(
-	'on'          => array( 'ok', __( 'Two-step verification is on.', 'diluxone-users' ) ),
-	'off'         => array( 'ok', __( 'Two-step verification is off.', 'diluxone-users' ) ),
-	'totp'        => array( 'ok', __( 'Your authenticator app is set up.', 'diluxone-users' ) ),
-	'totpoff'     => array( 'ok', __( 'The authenticator app was removed.', 'diluxone-users' ) ),
-	'backup'      => array( 'ok', __( 'New backup codes. The old ones no longer work.', 'diluxone-users' ) ),
-	'badcode'     => array( 'error', __( 'That code is not right. Check the app and try again — they change every thirty seconds.', 'diluxone-users' ) ),
-	'nomethod'    => array( 'error', __( 'First set up a way to receive the second step.', 'diluxone-users' ) ),
-	'notoffered'  => array( 'error', __( 'Two-step verification is not available on this site right now.', 'diluxone-users' ) ),
-	'required'    => array( 'error', __( 'This site requires two-step verification: it cannot be turned off.', 'diluxone-users' ) ),
-	'reauth'      => array( 'error', __( 'That needs a current code — from your app, one of your backup codes, or one we email you — and it was missing or not right.', 'diluxone-users' ) ),
-	'codesent'    => array( 'ok', __( 'We emailed you a code. Type it in below and try again.', 'diluxone-users' ) ),
-	'passkeyoff'  => array( 'ok', __( 'The passkey was removed.', 'diluxone-users' ) ),
-	'passkeyname' => array( 'ok', __( 'The passkey has a new name.', 'diluxone-users' ) ),
+	'on'         => array( 'ok', __( 'Two-step verification is on.', 'diluxone-users' ) ),
+	'off'        => array( 'ok', __( 'Two-step verification is off.', 'diluxone-users' ) ),
+	'totp'       => array( 'ok', __( 'Your authenticator app is set up.', 'diluxone-users' ) ),
+	'totpoff'    => array( 'ok', __( 'The authenticator app was removed.', 'diluxone-users' ) ),
+	'backup'     => array( 'ok', __( 'New backup codes. The old ones no longer work.', 'diluxone-users' ) ),
+	'badcode'    => array( 'error', __( 'That code is not right. Check the app and try again — they change every thirty seconds.', 'diluxone-users' ) ),
+	'nomethod'   => array( 'error', __( 'First set up a way to receive the second step.', 'diluxone-users' ) ),
+	'notoffered' => array( 'error', __( 'Two-step verification is not available on this site right now.', 'diluxone-users' ) ),
+	'required'   => array( 'error', __( 'This site requires two-step verification: it cannot be turned off.', 'diluxone-users' ) ),
+	'reauth'     => array( 'error', __( 'That needs a current code — from your app, one of your backup codes, or one we email you — and it was missing or not right.', 'diluxone-users' ) ),
+	'codesent'   => array( 'ok', __( 'We emailed you a code. Type it in below and try again.', 'diluxone-users' ) ),
 );
 
-if ( diluxone_users_has_passkeys() ) {
-	diluxone_users_passkeys_enqueue();
-}
+/**
+ * Filters the notices the Security section can show after an action.
+ *
+ * The key is the `diluxone-users=` word the action redirects back with; the
+ * value is the kind (`ok` or `error`) and the sentence. An add-on whose panel
+ * on this section has an action of its own adds its words here.
+ *
+ * @since 1.0.0
+ *
+ * @param array<string, array{0: string, 1: string}> $notices The plugin's own.
+ * @param WP_User                                    $user    Whose account it is.
+ */
+$diluxone_users_notices = (array) apply_filters( 'diluxone_users_security_notices', $diluxone_users_notices, $args['user'] );
 ?>
 
-<?php if ( isset( $diluxone_users_notices[ $diluxone_users_notice ] ) ) : ?>
+<?php if ( isset( $diluxone_users_notices[ $diluxone_users_notice ][0], $diluxone_users_notices[ $diluxone_users_notice ][1] ) ) : ?>
 	<p class="diluxone-users-notice diluxone-users-notice--<?php echo esc_attr( $diluxone_users_notices[ $diluxone_users_notice ][0] ); ?>"><?php echo esc_html( $diluxone_users_notices[ $diluxone_users_notice ][1] ); ?></p>
 <?php endif; ?>
 
@@ -70,104 +80,23 @@ if ( diluxone_users_has_passkeys() ) {
 <?php diluxone_users_panel_close(); ?>
 
 <?php
-/*
- * The passkeys go before the second factor because they are the better
- * answer to the same problem, not an accessory to the previous answer:
- * whoever can use them needs nothing of what comes below.
+/**
+ * Fires between how somebody gets in and the second step.
+ *
+ * Where an add-on draws a panel of its own on the account's Security
+ * section, with `diluxone_users_panel_open()` and `diluxone_users_panel_close()`
+ * like the plugin's. A way in that already proves two things belongs here:
+ * it is the better answer to the problem the second step solves, not an
+ * accessory to it. Its forms post to an action of its own, or to
+ * `diluxone_users_security` with a word of its own
+ * (`diluxone_users_security_action`).
+ *
+ * @since 1.0.0
+ *
+ * @param WP_User $user Whose account it is.
  */
+do_action( 'diluxone_users_account_security', $args['user'] );
 ?>
-<?php if ( diluxone_users_has_passkeys() ) : ?>
-	<?php diluxone_users_panel_open( __( 'Passkeys', 'diluxone-users' ) ); ?>
-		<p><?php esc_html_e( 'The way in with no password and nothing to type: the fingerprint, the face or the PIN of your own device. The key never leaves it, there is nothing on our side worth stealing, and it cannot be used on a fake site pretending to be this one.', 'diluxone-users' ); ?></p>
-
-		<p class="diluxone-users-note"><?php esc_html_e( 'When you get in with a passkey we do not ask for a second step: the passkey already is two of them in one — the device you have, and the fingerprint, face or PIN that unlocks it.', 'diluxone-users' ); ?></p>
-
-		<p class="diluxone-users-notice" data-diluxone-users-passkey-notice hidden></p>
-
-		<?php $diluxone_users_keys = diluxone_users_passkeys_here( $diluxone_users_id ); ?>
-
-		<?php if ( array() !== $diluxone_users_keys ) : ?>
-			<ul class="diluxone-users-keys">
-				<?php foreach ( $diluxone_users_keys as $diluxone_users_n => $diluxone_users_key ) : ?>
-					<li>
-						<?php
-						/*
-						 * The name is read, not edited: a row with a text
-						 * field always open looks like a half-filled form.
-						 * It opens when asked for, and inside it lives the
-						 * removal too, which is what is best not kept one
-						 * click away.
-						 */
-						?>
-						<details class="diluxone-users-key">
-							<summary class="diluxone-users-key__row">
-								<span class="diluxone-users-key__logo" aria-hidden="true">
-									<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M14 2a8 8 0 0 0-7.7 10.2L2 16.5V22h5.5v-2.5H10V17h2.5l1.3-1.3A8 8 0 1 0 14 2m3 6.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3"/></svg>
-								</span>
-
-								<span class="diluxone-users-key__who">
-									<strong><?php echo esc_html( (string) $diluxone_users_key['label'] ); ?></strong>
-									<span>
-										<?php
-										echo esc_html(
-											sprintf(
-												/* translators: %s: date it was added */
-												__( 'Added on %s', 'diluxone-users' ),
-												wp_date( 'j M Y', (int) $diluxone_users_key['created'] )
-											)
-										);
-
-										if ( (int) $diluxone_users_key['used'] > 0 ) {
-											echo ' · ' . esc_html(
-												sprintf(
-													/* translators: %s: how long ago it was used */
-													__( 'used %s ago', 'diluxone-users' ),
-													human_time_diff( (int) $diluxone_users_key['used'] )
-												)
-											);
-										}
-										?>
-									</span>
-								</span>
-
-								<span class="diluxone-users-key__arrow" aria-hidden="true"></span>
-							</summary>
-
-							<form class="diluxone-users-key__edit" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
-								<input type="hidden" name="action" value="diluxone_users_passkey">
-								<input type="hidden" name="diluxone_users_passkey" value="<?php echo esc_attr( (string) $diluxone_users_key['id'] ); ?>">
-								<?php wp_nonce_field( 'diluxone_users_passkey' ); ?>
-
-								<label for="diluxone-users-key-<?php echo esc_attr( (string) $diluxone_users_n ); ?>"><?php esc_html_e( 'Name of this passkey', 'diluxone-users' ); ?></label>
-								<input type="text" id="diluxone-users-key-<?php echo esc_attr( (string) $diluxone_users_n ); ?>" name="diluxone_users_passkey_label" value="<?php echo esc_attr( (string) $diluxone_users_key['label'] ); ?>" maxlength="60">
-
-								<span class="diluxone-users-key__actions">
-									<button type="submit" name="diluxone_users_passkey_do" value="rename" class="diluxone-users-button"><?php esc_html_e( 'Save name', 'diluxone-users' ); ?></button>
-									<button type="submit" name="diluxone_users_passkey_do" value="delete" class="diluxone-users-button diluxone-users-button--soft"><?php esc_html_e( 'Remove this passkey', 'diluxone-users' ); ?></button>
-								</span>
-							</form>
-						</details>
-					</li>
-				<?php endforeach; ?>
-			</ul>
-		<?php endif; ?>
-
-		<?php
-		/*
-		 * The name is asked for when registering and not afterwards: with two
-		 * or three keys, "Passkey, Passkey, Passkey" tells nobody which one to
-		 * remove when they lose the phone.
-		 */
-		?>
-		<p class="diluxone-users-key-add">
-			<span class="diluxone-users-key__field">
-				<label for="diluxone-users-key-new"><?php esc_html_e( 'Name it, so you recognise it later', 'diluxone-users' ); ?></label>
-				<input type="text" id="diluxone-users-key-new" data-diluxone-users-passkey-label maxlength="60" placeholder="<?php echo esc_attr( diluxone_users_passkey_label() ); ?>">
-			</span>
-			<button type="button" class="diluxone-users-button" data-diluxone-users-passkey="register"><?php esc_html_e( 'Add a passkey', 'diluxone-users' ); ?></button>
-		</p>
-	<?php diluxone_users_panel_close(); ?>
-<?php endif; ?>
 
 <?php if ( $diluxone_users_offers ) : ?>
 
