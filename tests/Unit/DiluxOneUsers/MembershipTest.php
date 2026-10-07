@@ -40,15 +40,16 @@ class MembershipTest extends TestCase {
 	 * @dataProvider storedPolicies
 	 * @param mixed $stored
 	 */
-	public function test_a_stored_policy_is_one_of_three_and_the_hub_only_otherwise( $stored, string $policy ): void {
+	public function test_a_stored_policy_is_one_there_is_and_the_hub_only_otherwise( $stored, string $policy ): void {
 		$this->assertSame( $policy, diluxone_users_membership_policy( $stored ) );
 	}
 
 	public static function storedPolicies(): array {
 		return array(
 			'every site'           => array( 'all', 'all' ),
-			'whoever asks'         => array( 'click', 'click' ),
-			'by invitation'        => array( 'invite', 'invite' ),
+			// Users+ Pro's, with nothing offering them: the hub only.
+			'whoever asks'         => array( 'click', 'hub' ),
+			'by invitation'        => array( 'invite', 'hub' ),
 			'never written'        => array( null, 'all' ),
 			// Anything else — a policy an add-on offered and is not running to
 			// apply, a value nobody chose — is the hub only: never every site,
@@ -61,8 +62,8 @@ class MembershipTest extends TestCase {
 		);
 	}
 
-	public function test_the_three_policies_in_the_order_the_screen_offers_them(): void {
-		$this->assertSame( array( 'all', 'click', 'invite' ), diluxone_users_membership_policies() );
+	public function test_the_plugins_policy_is_every_site(): void {
+		$this->assertSame( array( 'all' ), diluxone_users_membership_policies() );
 	}
 
 	public function test_on_a_single_site_the_policy_is_every_site_without_asking(): void {
@@ -74,9 +75,9 @@ class MembershipTest extends TestCase {
 
 	public function test_on_a_network_the_policy_is_the_stored_one(): void {
 		$GLOBALS['_test_multisite'] = true;
-		Functions\when( 'diluxone_users_option' )->justReturn( 'invite' );
+		Functions\when( 'diluxone_users_option' )->justReturn( 'all' );
 
-		$this->assertSame( 'invite', diluxone_users_membership() );
+		$this->assertSame( 'all', diluxone_users_membership() );
 	}
 
 	public function test_on_a_single_site_there_is_nothing_to_confirm(): void {
