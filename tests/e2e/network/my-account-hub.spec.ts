@@ -347,6 +347,7 @@ test.describe('WP-CLI on the network', () => {
 		const other = wpFails('tests-cli', ['diluxone-users', 'network', 'membership', 'sync']);
 
 		expect(other.failed).toBe(true);
-		expect(other.out).toContain('invite');
+		// Users+ Pro's answer, stored without Pro, is read as the hub only.
+		expect(other.out).toContain('hub');
 	});
 });

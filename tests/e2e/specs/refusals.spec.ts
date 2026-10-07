@@ -396,7 +396,7 @@ const ROWS: Row[] = [
 		probe: subscriberState,
 	},
 	{
-		id: '"Join this site" on a single site (admin_post_diluxone_users_join is a network’s only)',
+		id: '"Join this site" on a single site (admin_post_diluxone_users_join is Users+ Pro’s, and a network’s only)',
 		method: 'POST',
 		url: () => ADMIN_POST,
 		fields: () => ({ action: 'diluxone_users_join' }),

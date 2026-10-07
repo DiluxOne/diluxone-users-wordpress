@@ -40,8 +40,7 @@ import { NETWORK_ADMIN_STATE, NETWORK_URL } from '../../../playwright.network.co
  *     refused to a site's administrator against a super admin;
  *   - the account forms posted to /beta/ instead of the hub: sent to the hub,
  *     nothing written on the way;
- *   - "Join this site" forged: without a nonce, by invitation, by somebody
- *     the site's administrator removed, and by somebody signed out.
+ *   - "Join this site", Users+ Pro's, posted without Pro: nothing answers it.
  *
  * Every test asserts the answer AND that nothing changed, read back through
  * the side door of the site the setting or the person lives on.
@@ -642,84 +641,28 @@ test.describe('A form that needs a session, posted signed out to the hub, is ref
 	}
 });
 
-/* ── "Join this site", forged ──────────────────────────────────────── */
+/* ── "Join this site" without Users+ Pro ───────────────────────────── */
 
-test.describe('"Join this site" refuses what it should', () => {
-	/** Somebody of the hub alone: under "whoever asks" a member of nothing else. */
-	async function joiner(hub: SiteHandle, policy: 'click' | 'invite', meta: Record<string, unknown> = {}): Promise<string> {
-		await hub.set({ diluxone_users_membership: policy, diluxone_users_membership_confirmed: 1 });
+test.describe('"Join this site" is Users+ Pro’s: without it, nothing answers it', () => {
+	test('a valid form under a Pro answer stored without Pro: WordPress’s 400, and not a member', async ({ browser, hub }) => {
+		await hub.set({ diluxone_users_membership: 'click', diluxone_users_membership_confirmed: 1 });
 
 		const email = freshEmail('net-refused-join');
 
-		await world.hubSite.makeUser({ email, password: PASSWORD, meta });
+		await world.hubSite.makeUser({ email, password: PASSWORD });
 
-		return email;
-	}
-
-	async function join(api: APIRequestContext, nonce: string | null): Promise<Answer> {
-		return send(api, 'POST', ON('beta', 'admin-post.php'), { action: 'diluxone_users_join', ...(nonce === null ? {} : { _wpnonce: nonce }) });
-	}
-
-	test('without a nonce, and with one WordPress never made: 403, and not a member', async ({ browser, hub }) => {
-		const email = await joiner(hub, 'click');
 		const context = await signedInContext(browser, NETWORK_URL, email, PASSWORD);
 
 		try {
-			expectRefused(await join(context.request, null), 'nonce', 'join without a nonce');
-			expectRefused(await join(context.request, FORGED), 'nonce', 'join with a forged nonce');
-			expect((await world.betaSite.user(email)).member, 'not a member of /beta/').toBe(false);
+			const nonce = (await nonceFor(context.request, 'diluxone_users_join')).nonce;
+			const answer = await send(context.request, 'POST', ON('beta', 'admin-post.php'), { action: 'diluxone_users_join', _wpnonce: nonce });
 
-			// The same person, the same form, with their own nonce: the
-			// policy lets them, so it goes through — the refusals above were
-			// the nonce's.
-			const answer = await join(context.request, (await nonceFor(context.request, 'diluxone_users_join')).nonce);
-
-			expectRefused(answer, { state: 'joined' }, 'join with a valid nonce');
-			expect((await world.betaSite.user(email)).member, 'a member now').toBe(true);
-		} finally {
-			await context.close();
-			await world.hubSite.deleteUser(email);
-		}
-	});
-
-	test('by invitation, a valid form is answered join-refused and makes nobody a member', async ({ browser, hub }) => {
-		const email = await joiner(hub, 'invite');
-		const context = await signedInContext(browser, NETWORK_URL, email, PASSWORD);
-
-		try {
-			const answer = await join(context.request, (await nonceFor(context.request, 'diluxone_users_join')).nonce);
-
-			expectRefused(answer, { state: 'join-refused' }, 'join by invitation');
+			expectRefused(answer, 'bad', 'join with no handler');
 			expect((await world.betaSite.user(email)).member, 'not a member of /beta/').toBe(false);
 		} finally {
 			await context.close();
 			await world.hubSite.deleteUser(email);
 		}
-	});
-
-	test('somebody /beta/’s administrator removed cannot join back by themselves, even under “whoever asks”', async ({ browser, hub }) => {
-		const email = await joiner(hub, 'click', { diluxone_users_removed_from: [world.ids.beta] });
-		const context = await signedInContext(browser, NETWORK_URL, email, PASSWORD);
-
-		try {
-			const answer = await join(context.request, (await nonceFor(context.request, 'diluxone_users_join')).nonce);
-
-			expectRefused(answer, { state: 'join-refused' }, 'join after a removal');
-			expect((await world.betaSite.user(email)).member, 'not a member of /beta/').toBe(false);
-			expect((await metaOf(world.door, email, ['diluxone_users_removed_from'])).diluxone_users_removed_from, 'the removal still written').toEqual([world.ids.beta]);
-		} finally {
-			await context.close();
-			await world.hubSite.deleteUser(email);
-		}
-	});
-
-	test('signed out, the form is sent to the hub’s sign-in page and joins nobody', async ({ hub }) => {
-		await hub.set({ diluxone_users_membership: 'click', diluxone_users_membership_confirmed: 1 });
-
-		const answer = await join(world.guest, (await nonceFor(world.guest, 'diluxone_users_join')).nonce);
-
-		expectRefused(answer, 'to-login', 'join signed out');
-		expect(answer.location, 'the hub’s sign-in page').toContain(hub.pages.login.url.replace(/\/$/, ''));
 	});
 });
 
@@ -734,7 +677,7 @@ interface PanelRow {
 
 const PANELS: PanelRow[] = [
 	{ screen: 'diluxone-users', tab: 'uninstall', change: { diluxone_users_uninstall_wipe: '1' }, options: ['diluxone_users_uninstall_wipe'] },
-	{ screen: 'diluxone-users-membership', tab: 'policy', change: { diluxone_users_membership: 'invite' }, options: ['diluxone_users_membership', 'diluxone_users_membership_confirmed'] },
+	{ screen: 'diluxone-users-membership', tab: 'policy', change: { diluxone_users_membership: 'all' }, options: ['diluxone_users_membership', 'diluxone_users_membership_confirmed'] },
 	{ screen: 'diluxone-users-security', tab: '2fa', change: { diluxone_users_2fa_mode: 'off' }, options: ['diluxone_users_2fa_mode', 'diluxone_users_2fa_methods'] },
 	{ screen: 'diluxone-users-security', tab: 'sessions', change: { diluxone_users_session_long_days: '99' }, options: ['diluxone_users_session_long_days', 'diluxone_users_sessions_show'] },
 	{ screen: 'diluxone-users-security', tab: 'proxy', change: { diluxone_users_trusted_proxies: '10.9.9.9' }, options: ['diluxone_users_trusted_proxies', 'diluxone_users_ip_header'] },

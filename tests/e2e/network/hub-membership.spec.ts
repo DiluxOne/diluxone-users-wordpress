@@ -22,8 +22,8 @@ import {
 /**
  * The membership policy beyond its happy paths: the button that adds
  * everybody, pressed — and not pressed — with its question; the queue it
- * starts on a network too big to do it at once; an answer that is not one of
- * the three; the role a site's default would give and the policy will not;
+ * starts on a network too big to do it at once; an answer that is not one
+ * there is; a Pro answer stored without Users+ Pro, which is the hub only; the role a site's default would give and the policy will not;
  * the sites and the people the policy leaves alone; and a removal, which only
  * an administrator undoes.
  */
@@ -125,11 +125,11 @@ test.describe('Network Admin › Membership › “Sync everyone now”', () => 
 test.describe('Network Admin › Membership › the policy', () => {
 	test.use({ storageState: NETWORK_ADMIN_STATE });
 
-	test('an answer that is not one of the three is refused, and nothing is saved', async ({ page, hub }) => {
+	test('an answer that is not one there is is refused, and nothing is saved', async ({ page, hub }) => {
 		await hub.set({ diluxone_users_membership: 'click', diluxone_users_membership_confirmed: 1 });
 
 		await page.goto(MEMBERSHIP);
-		await policy(page, 'invite').evaluate((radio: HTMLInputElement) => {
+		await policy(page, 'all').evaluate((radio: HTMLInputElement) => {
 			radio.value = 'everyone';
 			radio.checked = true;
 		});
@@ -201,7 +201,7 @@ test.describe('What the policy gives, and to whom', () => {
 		}
 	});
 
-	test('a new site under “whoever asks” gets nobody, and queues nothing', async ({ hub }) => {
+	test('a new site under a Pro answer stored without Pro gets nobody, and queues nothing', async ({ hub }) => {
 		await hub.set({ diluxone_users_membership: 'click', diluxone_users_membership_confirmed: 1 });
 
 		const email = freshEmail('hub-newsite-click');
@@ -254,8 +254,8 @@ test.describe('What the policy gives, and to whom', () => {
 
 		expect((await beta.site.user(closed)).member, 'a closed account is nobody to add').toBe(false);
 
-		// The super admin, under “whoever asks”, on /beta/: reaches every
-		// site already, so there is no box.
+		// The super admin, under a Pro answer stored without Pro, on /beta/:
+		// reaches every site already, so there is no box.
 		await hub.set({ diluxone_users_membership: 'click' });
 
 		const join = joinPage(beta);
@@ -272,7 +272,7 @@ test.describe('What the policy gives, and to whom', () => {
 });
 
 test.describe('A removal is a decision', () => {
-	test('removed from /beta/, under “whoever asks” they are told it is by invitation; the sync under “every site” skips them', async ({
+	test('removed from /beta/, they are told it is by invitation; the sync under “every site” skips them', async ({
 		guest,
 		hub,
 		beta,
@@ -366,7 +366,7 @@ test.describe('A removal an administrator undoes', () => {
 	});
 });
 
-test.describe('“Join this site”, what is drawn', () => {
+test.describe('The box for a site somebody is not a member of, what is drawn', () => {
 	test('refused, the page says it is by invitation, with no welcome', async ({ browser, hub, beta }) => {
 		await hub.set({ diluxone_users_membership: 'invite', diluxone_users_membership_confirmed: 1 });
 
@@ -428,7 +428,7 @@ test.describe('“Join this site”, what is drawn', () => {
 		}
 	});
 
-	test('a password typed on the hub’s wp-login.php, on the way back to /beta/, lands on the box that offers to join', async ({ guest, hub, beta }) => {
+	test('a password typed on the hub’s wp-login.php, on the way back to /beta/, lands on the box that says it is by invitation', async ({ guest, hub, beta }) => {
 		await hub.set({ diluxone_users_membership: 'click', diluxone_users_membership_confirmed: 1 });
 
 		const email = freshEmail('hub-join-wplogin');
@@ -441,8 +441,8 @@ test.describe('“Join this site”, what is drawn', () => {
 		await signInWithPassword(guest, email, PASSWORD);
 		await guest.waitForURL((url) => url.href.startsWith(beta.url), { waitUntil: 'domcontentloaded' });
 
-		expect(new URL(guest.url()).searchParams.get('diluxone-users'), 'the way back says there is a site to join').toBe('join');
-		expect(await joinBox(guest)).toBe('click');
+		expect(new URL(guest.url()).searchParams.get('diluxone-users'), 'the way back says there is a site they are not a member of').toBe('join');
+		expect(await joinBox(guest)).toBe('invite');
 	});
 });
 

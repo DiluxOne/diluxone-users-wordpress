@@ -8,13 +8,15 @@ import { NETWORK_ADMIN_STATE, NETWORK_URL } from '../../../playwright.network.co
 /**
  * Which sites an account is a member of: the network's membership policy.
  *
- * Set on Network Admin › Membership, one of three: every live site (the
- * default), whoever asks ("Join this site"), or by invitation. Each test
- * walks one of them the way people meet it: an administrator making an
- * account or a site in Network Admin, taking somebody off /beta/ in its Users
- * screen; a person signing in from /beta/ and finding a button, a sentence,
- * or nothing to do. And the activity log of /beta/, which has the sign-ins
- * on the hub that were for it.
+ * Set on Network Admin › Membership: every live site (the default) is the
+ * plugin's; "whoever asks" and "by invitation" are Users+ Pro's, and its own
+ * repository drives them. Here, one of them stored without Pro is the hub
+ * only, says the site is by invitation and stays on the screen as an inactive
+ * Pro choice. Each test walks it the way people meet it: an administrator
+ * making an account or a site in Network Admin, taking somebody off /beta/ in
+ * its Users screen; a person signing in from /beta/ and finding a sentence,
+ * or nothing to do. And the activity log of /beta/, which has the sign-ins on
+ * the hub that were for it.
  */
 
 const PASSWORD = 'e2e-Membership-1!';
@@ -44,7 +46,7 @@ function drain(): void {
 	expect(queued(), 'the queue is worked to the end').toBe(0);
 }
 
-/** The signed-in person's box on a page of a site: 'click', 'invite', 'joined', or null. */
+/** The signed-in person's box on a page of a site: 'invite', 'joined', or null. */
 async function joinBox(page: Page): Promise<string | null> {
 	const box = page.locator('[data-diluxone-users-join]').first();
 
@@ -61,24 +63,31 @@ function joinPage(one: SiteHandle): { id: string; url: string } {
 test.describe('Network Admin › Membership', () => {
 	test.use({ storageState: NETWORK_ADMIN_STATE });
 
-	test('saves each of the three answers, and the network reads it', async ({ page, hub, alpha }) => {
+	test('saves every site; a Pro answer stored stays chosen, inactive and kept; the Pro card follows the answers', async ({ page, hub, alpha }) => {
 		await hub.keep(['diluxone_users_membership']);
+		await hub.set({ diluxone_users_membership: 'click', diluxone_users_membership_confirmed: 1 });
 
-		for (const value of ['click', 'invite', 'all']) {
-			await page.goto(SCREEN);
-			await policy(page, value).check();
-			await savePanel(page);
-
-			await page.goto(SCREEN);
-			await expect(policy(page, value), `${value} is what the screen shows`).toBeChecked();
-			expect((await alpha.site.getOptions(['diluxone_users_membership'])).diluxone_users_membership, `/alpha/ reads ${value}`).toBe(value);
-		}
-
-		// "Sync everyone now" is there under every site, and only there.
-		await expect(page.locator('[data-diluxone-users-sync]')).toBeVisible();
-		await hub.set({ diluxone_users_membership: 'click' });
 		await page.goto(SCREEN);
-		await expect(page.locator('[data-diluxone-users-sync]')).toHaveCount(0);
+		await expect(policy(page, 'click'), 'the stored Pro answer, chosen').toBeChecked();
+		await expect(page.locator('.diluxone-users-choice, label', { hasText: 'Your Pro choice (inactive)' }).first()).toBeVisible();
+		await expect(policy(page, 'invite'), 'no answer of Pro’s offered').toHaveCount(0);
+		await expect(page.locator('[data-diluxone-users-pro="network/membership/rules"]'), 'the card after the answers').toBeVisible();
+		await expect(page.locator('[data-diluxone-users-sync]'), 'no sync but under every site').toHaveCount(0);
+
+		await savePanel(page);
+		expect((await alpha.site.getOptions(['diluxone_users_membership'])).diluxone_users_membership, 'kept by the save').toBe('click');
+
+		await page.goto(SCREEN);
+		await policy(page, 'all').check();
+		await savePanel(page);
+
+		await page.goto(SCREEN);
+		await expect(policy(page, 'all')).toBeChecked();
+		await expect(policy(page, 'click'), 'gone once another answer is picked').toHaveCount(0);
+		expect((await alpha.site.getOptions(['diluxone_users_membership'])).diluxone_users_membership, '/alpha/ reads all').toBe('all');
+
+		// "Sync everyone now" is there under every site.
+		await expect(page.locator('[data-diluxone-users-sync]')).toBeVisible();
 	});
 
 	test('a site’s menu has no Membership: it is the network’s', async ({ page, alpha }) => {
@@ -196,88 +205,43 @@ test.describe('Every site (the default)', () => {
 	});
 });
 
-test.describe('Whoever asks', () => {
-	test('/beta/ offers “Join this site” — in the menu, on its page and on the way back — and pressing it makes them a member', async ({
-		page,
-		hub,
-		beta,
-	}) => {
-		await hub.set({ diluxone_users_membership: 'click' });
+for (const stored of ['click', 'invite']) {
+	test.describe(`A Pro answer stored without Users+ Pro (${stored})`, () => {
+		test('/beta/ says it is by invitation — at the top, on its page and in the menu — and nothing makes them a member', async ({ page, hub, beta }) => {
+			await hub.set({ diluxone_users_membership: stored });
 
-		const email = freshEmail('net-click');
+			const email = freshEmail(`net-${stored}`);
 
-		await hub.site.makeUser({ email, password: PASSWORD });
+			await hub.site.makeUser({ email, password: PASSWORD });
 
-		const menu = await beta.site.menu();
-		const join = joinPage(beta);
+			const menu = await beta.site.menu();
+			const join = joinPage(beta);
 
-		await beta.set({ diluxone_users_menu_location: menu.location });
+			await beta.set({ diluxone_users_menu_location: menu.location });
 
-		try {
-			await signInFrom(page, beta, hub, email, PASSWORD);
-			await page.waitForURL((url) => url.href.startsWith(beta.url), { waitUntil: 'domcontentloaded' });
+			try {
+				await signInFrom(page, beta, hub, email, PASSWORD);
+				await page.waitForURL((url) => url.href.startsWith(beta.url), { waitUntil: 'domcontentloaded' });
 
-			expect(new URL(page.url()).searchParams.get('diluxone-users'), 'the way back says there is a site to join').toBe('join');
-			expect(await joinBox(page), 'at the top of the page').toBe('click');
-			expect((await beta.site.user(email)).member, 'signing in joined only the hub').toBe(false);
+				expect(new URL(page.url()).searchParams.get('diluxone-users'), 'the way back says there is a site they are not a member of').toBe('join');
+				expect(await joinBox(page), 'at the top of the page').toBe('invite');
 
-			await page.goto(menu.url);
-			await expect(page.locator('.diluxone-users-menu--join a'), 'in the menu').toBeVisible();
+				await page.goto(join.url);
+				expect(await joinBox(page), 'on the page with the shortcode').toBe('invite');
+				await expect(page.locator('[data-diluxone-users-join] button, [data-diluxone-users-join] form'), 'nothing to press').toHaveCount(0);
 
-			await page.goto(join.url);
-			const button = page.locator('[data-diluxone-users-join="click"] button[type="submit"]');
+				await page.goto(menu.url);
+				await expect(page.locator('.diluxone-users-menu--invite'), 'in the menu').toHaveCount(1);
+				await expect(page.locator('.diluxone-users-menu--join')).toHaveCount(0);
 
-			await expect(button, 'on the page with the shortcode').toBeVisible();
-			await navigated(page, () => button.click());
-
-			expect(new URL(page.url()).searchParams.get('diluxone-users')).toBe('joined');
-			expect(await joinBox(page), 'welcomed').toBe('joined');
-			expect((await beta.site.user(email)).member, 'a member of /beta/ now').toBe(true);
-			expect(await whoOn(page, beta.url)).toBe(email);
-
-			await page.goto(menu.url);
-			await expect(page.locator('.diluxone-users-menu--join'), 'nothing more to join').toHaveCount(0);
-		} finally {
-			await beta.site.forgetMenu();
-			wp(['post', 'delete', join.id, '--force'], beta.url);
-		}
+				expect((await beta.site.user(email)).member, 'the hub only').toBe(false);
+			} finally {
+				await beta.site.forgetMenu();
+				wp(['post', 'delete', join.id, '--force'], beta.url);
+			}
+		});
 	});
-});
-
-test.describe('By invitation', () => {
-	test('/beta/ says it is by invitation, and nothing makes them a member', async ({ page, hub, beta }) => {
-		await hub.set({ diluxone_users_membership: 'invite' });
-
-		const email = freshEmail('net-invite');
-
-		await hub.site.makeUser({ email, password: PASSWORD });
-
-		const menu = await beta.site.menu();
-		const join = joinPage(beta);
-
-		await beta.set({ diluxone_users_menu_location: menu.location });
-
-		try {
-			await signInFrom(page, beta, hub, email, PASSWORD);
-			await page.waitForURL((url) => url.href.startsWith(beta.url), { waitUntil: 'domcontentloaded' });
-
-			expect(await joinBox(page), 'at the top of the page').toBe('invite');
-
-			await page.goto(join.url);
-			expect(await joinBox(page), 'on the page with the shortcode').toBe('invite');
-			await expect(page.locator('[data-diluxone-users-join] button')).toHaveCount(0);
-
-			await page.goto(menu.url);
-			await expect(page.locator('.diluxone-users-menu--invite'), 'in the menu').toHaveCount(1);
-			await expect(page.locator('.diluxone-users-menu--join')).toHaveCount(0);
-
-			expect((await beta.site.user(email)).member).toBe(false);
-		} finally {
-			await beta.site.forgetMenu();
-			wp(['post', 'delete', join.id, '--force'], beta.url);
-		}
-	});
-});
+}
 
 test.describe('The activity log', () => {
 	test.use({ storageState: NETWORK_ADMIN_STATE });
