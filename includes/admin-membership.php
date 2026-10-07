@@ -116,15 +116,15 @@ function diluxone_users_membership_unconfirmed_notice(): void {
 add_action( 'network_admin_notices', 'diluxone_users_membership_unconfirmed_notice' );
 
 /**
- * The three answers, each in a sentence.
+ * The answers, each in a sentence: the plugin's, and the ones an add-on offers.
  *
  * @return array<string, array{title: string, help: string, state: string}>
  */
 function diluxone_users_membership_choices(): array {
 	$hub = diluxone_users_hub_name();
 
-	return array(
-		'all'    => array(
+	$choices = array(
+		'all' => array(
 			'title' => __( 'Every site', 'diluxone-users' ),
 			'help'  => sprintf(
 				/* translators: %s: the name of the site where the network's accounts live */
@@ -133,33 +133,35 @@ function diluxone_users_membership_choices(): array {
 			),
 			'state' => __( 'Every account is a member of every live site of the network.', 'diluxone-users' ),
 		),
-		'click'  => array(
-			'title' => __( 'Whoever asks', 'diluxone-users' ),
-			'help'  => sprintf(
-				/* translators: %s: the name of the site where the network's accounts live */
-				__( 'An account is a member of %s, where it lives. On any other site, somebody signed in who is not a member is offered “Join this site”, and joins with that site’s New User Default Role.', 'diluxone-users' ),
-				$hub
-			),
-			'state' => sprintf(
-				/* translators: %s: the name of the site where the network's accounts live */
-				__( 'Accounts are members of %s, and join any other site with a click.', 'diluxone-users' ),
-				$hub
-			),
-		),
-		'invite' => array(
-			'title' => __( 'By invitation', 'diluxone-users' ),
-			'help'  => sprintf(
-				/* translators: %s: the name of the site where the network's accounts live */
-				__( 'An account is a member of %s, where it lives. Only a site’s administrators add people to it; somebody signed in who is not a member is told the site is by invitation.', 'diluxone-users' ),
-				$hub
-			),
-			'state' => sprintf(
-				/* translators: %s: the name of the site where the network's accounts live */
-				__( 'Accounts are members of %s; administrators add them to any other site.', 'diluxone-users' ),
-				$hub
-			),
-		),
 	);
+
+	/**
+	 * Filters the Membership screen's answers, by policy.
+	 *
+	 * For a policy an add-on offers through `diluxone_users_membership_policies`:
+	 * its `title` and `help` on the card, and its `state`, the sentence the
+	 * rail says while it is the network's.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param array<string, array{title: string, help: string, state: string}> $choices Policy => its words.
+	 * @param string                                                          $hub     The name of the site where the network's accounts live.
+	 */
+	$more = (array) apply_filters( 'diluxone_users_membership_choices', $choices, $hub );
+
+	// What came back is an add-on's: read every word, not trusted to be there.
+	foreach ( $more as $policy => $words ) {
+		/** @var mixed $words */
+		if ( is_array( $words ) ) {
+			$choices[ (string) $policy ] = array(
+				'title' => (string) ( $words['title'] ?? $policy ),
+				'help'  => (string) ( $words['help'] ?? '' ),
+				'state' => (string) ( $words['state'] ?? '' ),
+			);
+		}
+	}
+
+	return $choices;
 }
 
 /**
@@ -248,6 +250,19 @@ function diluxone_users_screen_membership_policy(): void {
 
 	diluxone_users_ui_choices( $list );
 
+	diluxone_users_ui_pro_card(
+		array(
+			'where'  => 'network/membership/rules',
+			'screen' => 'network-membership',
+			'title'  => __( 'Whoever asks, or by invitation', 'diluxone-users' ),
+			'text'   => sprintf(
+				/* translators: %s: the name of the site where the network's accounts live */
+				__( 'Users+ Pro adds two more answers: accounts are members of %s, and join any other site with a click on “Join this site” — or only its administrators add them.', 'diluxone-users' ),
+				diluxone_users_hub_name()
+			),
+		)
+	);
+
 	$confirmed = diluxone_users_membership_confirmed();
 
 	if ( ! $confirmed ) {
@@ -295,7 +310,7 @@ function diluxone_users_screen_membership_policy(): void {
 			diluxone_users_ui_note(
 				__( 'A removal is a decision', 'diluxone-users' ),
 				array(
-					__( 'Somebody an administrator removes from a site is not added back to it by any of this — not by the policy, not by signing in, not by “Join this site” — until an administrator adds them again.', 'diluxone-users' ),
+					__( 'Somebody an administrator removes from a site is not added back to it by any of this — not by the policy, not by signing in, not by asking — until an administrator adds them again.', 'diluxone-users' ),
 					__( 'Super admins reach every site already and are never added. Archived, spam and deleted sites get nobody.', 'diluxone-users' ),
 				)
 			);

@@ -421,9 +421,8 @@ function diluxone_users_option_defaults_own(): array {
 
 		// ── Membership, on a network ──────────────────────────────────
 		// Which sites of a network an account is a member of: 'all' (every
-		// live site), 'click' (the hub, and any other site the person joins
-		// with "Join this site") or 'invite' (the hub; administrators add them
-		// anywhere else). Meaningless on a single site. See membership.php.
+		// live site), or a policy an add-on offers (Users+ Pro's 'click' and
+		// 'invite'). Meaningless on a single site. See membership.php.
 		'diluxone_users_membership'            => 'all',
 		// Whether the network has confirmed that policy on Network Admin ›
 		// Membership. Until it has, the policy adds nobody to anything: a

@@ -318,9 +318,11 @@ to the site they started from. What an add-on or a theme builds on:
 ### Membership on a network
 
 Which sites an account is a member of is the network's policy
-(`diluxone_users_membership()`: `all`, `click` or `invite`, set on Network
-Admin › Membership; see [`architecture.md`](architecture.md)). A stored policy
-that is none of these — one an add-on offered and is not running to apply —
+(`diluxone_users_membership()`, set on Network Admin › Membership; see
+[`architecture.md`](architecture.md)). The plugin's is `all`; an add-on offers
+more (Users+ Pro's `click`, "whoever asks", and `invite`, "by invitation"),
+and under any policy but `all` the plugin adds nobody on its own. A stored
+policy nothing offers — one an add-on offered and is not running to apply —
 reads as `hub`: people are members of the hub only, nothing is queued or
 synced, and a non-member is told the site is by invitation, until a policy is
 chosen again. The screen shows it as an inactive Pro choice and keeps it on
@@ -329,12 +331,26 @@ save. What an add-on or a theme builds on:
 - `diluxone_users_member_added` (action) fires every time the plugin makes
   somebody a member of a site: `( int $user_id, int $site_id, string $role,
   string $how )`, where `$how` is `account` (a new account under "every
-  site"), `site` (a new site), `sync`, `sign-in` or `click` ("Join this
-  site"). Once per person and site in a request. Additions made by WordPress
+  site"), `site` (a new site), `sync`, `sign-in` or `click` (a person who
+  asked, an add-on's "Join this site"; the one addition made before the
+  policy is confirmed). Once per person and site in a request. Additions made by WordPress
   or by an administrator do not fire it.
+- `diluxone_users_membership_policies` (filter) receives the policies after
+  `all`, `( array $policies )`: an add-on adds its own values.
+  `diluxone_users_membership_choices` (filter) receives the screen's words,
+  `( array $choices, string $hub )`, `policy => array( title, help, state )`:
+  its card and the sentence the rail says while it is the network's.
+- `diluxone_users_join_state` (filter) receives what somebody signed in, not
+  a member and not taken off the site, can do about it under a policy that is
+  not `all`: `( string $state, string $policy, int $user_id, int $site_id )`,
+  `invite` from the plugin. An add-on answers a state of its own and draws it:
+  `diluxone_users_join_box` (filter) `( string $box, string $state, bool $notice )`
+  returns the box's markup, and `diluxone_users_join_link` (filter)
+  `( array $link, string $state )` returns the menu's link as `label` and
+  `url`. Left empty, the person is told the site is by invitation.
 - `[diluxone_users_join]` draws `templates/join.php` for somebody signed in
-  who is not a member of the site: `$state` is `click` (a button that joins
-  it), `invite` (the site is by invitation) or `joined`, `$site` and `$hub`
+  who is not a member of the site: `$state` is `invite` (the site is by
+  invitation) or `joined`, or an add-on's box for its own state, `$site` and `$hub`
   the two sites' names, `$notice` whether it is the box at the top of the page
   the hub sent them back to. It draws nothing for nobody, for a member, and on
   a single site. The same box goes at the top of that page through
@@ -1026,6 +1042,7 @@ them answers false for all.
 | `design/login/shapes` | A card after the shapes on Design › The sign-in page: the split and full-background layouts. |
 | `design/account/shapes` | A card after the shapes on Design › Account area: the account area with a cover. |
 | `design/brand/any-color` | A card after the accent's swatches on Design › Your brand: any colour. |
+| `network/membership/rules` | A card after the answers on Network Admin › Membership: "whoever asks" and "by invitation". |
 | `account/sections/more` | A card under the list on Account › Sections: sections of the site's own. |
 | `design/brand/color-map` | A picture under "From your theme" on Design › Your brand: which colour of the theme's palette does what. |
 

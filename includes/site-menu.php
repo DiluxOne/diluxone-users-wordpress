@@ -122,12 +122,30 @@ function diluxone_users_menu_items( $items, $args ) {
 	};
 
 	// On a network, somebody signed in who is not a member of this site:
-	// the way to join it, or the word that it is by invitation (see
-	// membership-join.php). Nothing on a single site.
+	// the word that it is by invitation, or the way to join it an add-on
+	// offers (see membership-join.php). Nothing on a single site.
 	$join = diluxone_users_join_state();
 
-	if ( 'click' === $join ) {
-		$add( diluxone_users_menu_item( 990002, esc_html__( 'Join this site', 'diluxone-users' ), diluxone_users_join_url(), 0, 'diluxone-users-menu--join' ) );
+	if ( '' !== $join && ! in_array( $join, array( 'invite', 'joined' ), true ) ) {
+		/**
+		 * Filters the menu's link for a state an add-on answered through
+		 * `diluxone_users_join_state`: Users+ Pro's "Join this site".
+		 *
+		 * An array with `label` (plain text) and `url`, or empty for none —
+		 * and then the menu says the site is by invitation.
+		 *
+		 * @since 1.0.0
+		 *
+		 * @param array<string, string> $link  label and url.
+		 * @param string                $state The add-on's state.
+		 */
+		$link = (array) apply_filters( 'diluxone_users_join_link', array(), $join );
+
+		if ( ! empty( $link['label'] ) && ! empty( $link['url'] ) ) {
+			$add( diluxone_users_menu_item( 990002, esc_html( (string) $link['label'] ), (string) $link['url'], 0, 'diluxone-users-menu--join' ) );
+		} else {
+			$join = 'invite';
+		}
 	}
 
 	// Without an account page there is no account to go to: the address of

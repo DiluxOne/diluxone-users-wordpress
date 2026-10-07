@@ -154,9 +154,8 @@ their own too: `[diluxone_users_fields]`, `[diluxone_users_avatar]`,
 `[diluxone_users_sessions]` and `[diluxone_users_notifications]`. On a
 network they are the main site's: placed on another site, each one draws a
 button to the main site's page, which brings people back afterwards. On a
-network, `[diluxone_users_join]` offers "Join this site" to somebody signed in
-who is not a member (or says the site is by invitation); it draws nothing on a
-single site.
+network, `[diluxone_users_join]` tells somebody signed in who is not a member
+that the site is by invitation; it draws nothing on a single site.
 
 = Does it work on multisite? =
 
@@ -191,9 +190,8 @@ Membership**, and nothing is added until you confirm it there (Network Admin
 says so; until then WordPress's own memberships stand): every live site (the default: a new account joins every site, a
 new site gets every account, big networks in the background, and "Sync
 everyone now" or `wp diluxone-users network membership sync` for what was
-there before), whoever asks (a "Join this site" button in the menu, in the
-`[diluxone_users_join]` shortcode and on the page people come back to), or by
-invitation (only administrators add people). The role is each site's own New
+there before). DiluxOne Users+ Pro adds two more answers: whoever asks (a "Join
+this site" button) and by invitation (only administrators add people). The role is each site's own New
 User Default Role, and on the main site the role new accounts get. Somebody an
 administrator removed from a site is not added back until an administrator
 does. Each site's Reports › Activity also lists the sign-ins on the main site
