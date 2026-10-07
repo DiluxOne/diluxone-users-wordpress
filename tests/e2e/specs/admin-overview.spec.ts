@@ -125,7 +125,7 @@ test.describe('Overview › what your people use', () => {
 
 		const rows = page.locator('.diluxone-users-usage__row');
 
-		await expect(rows).toHaveCount(4);
+		await expect(rows).toHaveCount(3);
 
 		const read = async () =>
 			Promise.all(
@@ -147,11 +147,10 @@ test.describe('Overview › what your people use', () => {
 
 		const after = await read();
 
-		// The rows: public name, social, authenticator, passkey.
+		// The rows: public name, social, authenticator.
 		expect(after[0].count).toBe(before[0].count + 1);
 		expect(after[1].count).toBe(before[1].count);
 		expect(after[2].count).toBe(before[2].count + 1);
-		expect(after[3].count).toBe(before[3].count);
 
 		for (const row of after) {
 			expect(row.total).toBe(before[0].total + 2);
@@ -178,7 +177,6 @@ test.describe('Overview › how your people get in', () => {
 			diluxone_users_login_method: 'link',
 			diluxone_e2e_sso: 0,
 			diluxone_users_sso: {},
-			diluxone_users_passkey_enabled: 0,
 			diluxone_users_mail_last: { ok: 0, time: Math.floor(Date.now() / 1000), error: 'e2e-mail-boom' },
 		});
 

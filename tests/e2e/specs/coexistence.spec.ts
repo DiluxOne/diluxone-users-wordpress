@@ -178,48 +178,6 @@ test.describe('The plugin’s own doors fire wp_login, once', () => {
 		expect(await site.wpLogins(email)).toBe(1);
 	});
 
-	test('a passkey', async ({ page, site, pages, options, browserName }) => {
-		test.skip(browserName !== 'chromium', 'the virtual authenticator is a Chromium protocol');
-
-		await options.set({
-			diluxone_users_passkey_enabled: 1,
-			diluxone_users_passkey_where: 'any',
-			diluxone_users_passkey_verify: 1,
-			diluxone_users_2fa_mode: 'off',
-		});
-
-		const email = freshEmail('wplogin-passkey');
-		await site.makeUser({ email, password: PASSWORD });
-
-		const cdp = await page.context().newCDPSession(page);
-		await cdp.send('WebAuthn.enable', { enableUI: false });
-		const { authenticatorId } = await cdp.send('WebAuthn.addVirtualAuthenticator', {
-			options: { protocol: 'ctap2', transport: 'internal', hasResidentKey: true, hasUserVerification: true, isUserVerified: true, automaticPresenceSimulation: true },
-		});
-
-		await page.goto(pages.login.url);
-		await signInWithPassword(page, email, PASSWORD);
-		await expectSignedIn(page, email);
-
-		await page.goto(`${pages.account.url.replace(/\/?$/, '/')}security/`);
-		await page.locator('details.diluxone-users-panel').filter({ has: page.locator('[data-diluxone-users-passkey="register"]') }).first().evaluate((d: HTMLDetailsElement) => (d.open = true));
-		await page.locator('[data-diluxone-users-passkey-label]').fill('e2e');
-		await page.locator('[data-diluxone-users-passkey="register"]').click();
-		await expect(page.locator('input[name="diluxone_users_passkey_label"]')).toHaveValue('e2e', { timeout: 20_000 });
-
-		await page.context().clearCookies();
-		await options.set({ diluxone_e2e_wp_login: null });
-
-		await page.goto(pages.login.url);
-		await page.locator('[data-diluxone-users-passkey="login"]').click();
-		await page.waitForURL((url) => !url.href.startsWith(pages.login.url), { timeout: 20_000 });
-
-		await expectSignedIn(page, email);
-		expect(await site.wpLogins(email)).toBe(1);
-
-		await cdp.send('WebAuthn.removeVirtualAuthenticator', { authenticatorId });
-	});
-
 	test('a link that asks for the second step: asked once, and wp_login once it is answered', async ({ page, site, pages, options }) => {
 		await options.set({
 			diluxone_users_2fa_mode: 'required',
@@ -376,7 +334,6 @@ test.describe('Safe mode (DILUXONE_USERS_SAFE_MODE)', () => {
 			diluxone_e2e_sso: 1,
 			diluxone_users_sso: { mock: { active: 1, id: 'e2e-client-id', secret: 'e2e-client-secret', tested: 1 } },
 			diluxone_users_sso_login: 1,
-			diluxone_users_passkey_enabled: 1,
 		});
 	});
 
@@ -393,11 +350,10 @@ test.describe('Safe mode (DILUXONE_USERS_SAFE_MODE)', () => {
 		await expectSignedIn(page, email);
 	});
 
-	test('the sign-in page has no social button and no passkey', async ({ page, pages }) => {
+	test('the sign-in page has no social button', async ({ page, pages }) => {
 		await page.goto(pages.login.url);
 
 		await expect(ssoButton(page, 'mock')).toHaveCount(0);
-		await expect(page.locator('[data-diluxone-users-passkey="login"]')).toHaveCount(0);
 	});
 
 	test.describe('the dashboard', () => {

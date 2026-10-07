@@ -85,14 +85,13 @@ test.describe('The sign-in page looks like it did', () => {
 	 * Every way in switched on, behind tabs.
 	 *
 	 * The picture above is the ordinary case and says nothing about the
-	 * arrangement built for the other one: four doors on a laptop. That one has
-	 * a tab strip, a neutral icon per tab, one panel showing and three not —
+	 * arrangement built for the other one: three doors on a laptop. That one has
+	 * a tab strip, a neutral icon per tab, one panel showing and two not —
 	 * none of which a measurement can look at.
 	 */
-	test('signed out, four ways in, in tabs', async ({ page, pages, options }) => {
+	test('signed out, three ways in, in tabs', async ({ page, pages, options }) => {
 		await options.set({
 			diluxone_users_login_method: 'both',
-			diluxone_users_passkey_enabled: 1,
 			diluxone_users_sso_login: 1,
 			diluxone_users_login_layout: 'tabs',
 			diluxone_users_login_order: ['social', 'email', 'password'],

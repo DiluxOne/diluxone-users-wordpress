@@ -15,7 +15,7 @@ const literal = (text: string): string => text.replace(/[.*+?^${}()|[\]\\]/g, '\
  *
  * On a subdirectory network Access lives on the main site — the hub — where
  * people sign in, register and keep their account. Another site does not
- * have it. The ways in that are the network's (social sign-in, passkeys) are
+ * have it. The way in that is the network's (social sign-in) is
  * drawn there as they stand; WordPress's own registration form is the
  * network's too. What the hub saves is what /alpha/ and /beta/ send people
  * to.
@@ -53,14 +53,13 @@ test.describe('The hub’s Access', () => {
 	});
 
 	test('Ways in draws the network’s doors as they stand, says where they are switched, and a forced press writes neither', async ({ page, hub }) => {
-		await hub.set({ diluxone_users_sso_login: 1, diluxone_users_passkey_enabled: 0, diluxone_users_login_method: 'both' });
+		await hub.set({ diluxone_users_sso_login: 1, diluxone_users_login_method: 'both' });
 
 		await page.goto(accessOnHub('ways'));
 
 		const sso = control(page, 'diluxone_users_sso_login');
 
 		await expect(sso).toBeDisabled();
-		await expect(control(page, 'diluxone_users_passkey_enabled')).toBeDisabled();
 		await expect(page.locator('.diluxone-users-studio__fields .du-notice'), 'the note pointing to Network Admin').toHaveCount(1);
 
 		await sso.evaluate((box: HTMLInputElement) => {
@@ -70,6 +69,24 @@ test.describe('The hub’s Access', () => {
 		await savePanel(page);
 
 		expect(Number((await hub.site.getOptions(['diluxone_users_sso_login'])).diluxone_users_sso_login), 'a site screen switched the network’s social sign-in off').toBe(1);
+	});
+
+	test('Ways in on the hub: one Users+ Pro card after the network’s doors, gone with the network’s previews', async ({ page, hub }) => {
+		await hub.keep(['diluxone_users_pro_previews']);
+		await hub.set({ diluxone_users_pro_previews: 1 });
+
+		await page.goto(accessOnHub('ways'));
+
+		const pro = page.locator('[data-diluxone-users-pro="login/ways/more"]');
+
+		await expect(pro).toHaveCount(1);
+		await expect(pro.locator('a')).toHaveAttribute('href', /diluxone\.com\/users-pro\/.*utm_medium=login/);
+		await expect(pro.locator('input, select, textarea, button'), 'nothing in it is a control').toHaveCount(0);
+		await expect(control(page, 'diluxone_users_passkey_enabled'), 'no passkey box, drawn or switchable').toHaveCount(0);
+
+		await hub.set({ diluxone_users_pro_previews: 0 });
+		await page.reload();
+		await expect(page.locator('[data-diluxone-users-pro]')).toHaveCount(0);
 	});
 
 	test('Registration shows WordPress’s own form as the network has it, and never as a box to change', async ({ page, hub, network }) => {
@@ -188,20 +205,19 @@ test.describe('The hub’s Access', () => {
 	});
 
 	test('the summary on the hub reads the network’s doors as Network Admin set them', async ({ page, hub }) => {
-		await hub.set({ diluxone_users_passkey_enabled: 1, diluxone_users_2fa_mode: 'optional' });
+		await hub.set({ diluxone_users_2fa_mode: 'optional' });
 
 		await page.goto(accessOnHub('summary'));
 
 		const rows = page.locator('table.diluxone-users-summary tbody tr');
 
-		await expectPill(rows.nth(4).locator('.diluxone-users-summary__state'), 'active');
-		await expectPill(rows.nth(6).locator('.diluxone-users-summary__state'), 'active');
-		await expect(rows.nth(6).locator('a'), 'the second step is set in Network Admin').toHaveAttribute('href', /\/wp-admin\/network\/admin\.php\?page=diluxone-users-security/);
+		await expect(rows, 'page, link, password, social, registration, after').toHaveCount(6);
+		await expectPill(rows.nth(5).locator('.diluxone-users-summary__state'), 'active');
+		await expect(rows.nth(5).locator('a'), 'the second step is set in Network Admin').toHaveAttribute('href', /\/wp-admin\/network\/admin\.php\?page=diluxone-users-security/);
 
-		await hub.set({ diluxone_users_passkey_enabled: 0, diluxone_users_2fa_mode: 'off' });
+		await hub.set({ diluxone_users_2fa_mode: 'off' });
 		await page.reload();
-		await expectPill(rows.nth(4).locator('.diluxone-users-summary__state'), 'off');
-		await expectPill(rows.nth(6).locator('.diluxone-users-summary__state'), 'off');
+		await expectPill(rows.nth(5).locator('.diluxone-users-summary__state'), 'off');
 	});
 });
 
@@ -262,7 +278,7 @@ test.describe('The live preview, on the hub', () => {
 	test('redraws from the form and writes nothing, on the hub or for the network', async ({ page, hub }) => {
 		await hub.set({ diluxone_users_sso_button_text: '', diluxone_e2e_sso: 1, diluxone_users_sso: { mock: { active: 1, id: 'a', secret: 'b', tested: 1 } } });
 
-		const keys = ['diluxone_users_sso_button_text', 'diluxone_users_sso', 'diluxone_users_sso_login', 'diluxone_users_passkey_enabled'];
+		const keys = ['diluxone_users_sso_button_text', 'diluxone_users_sso', 'diluxone_users_sso_login'];
 		const before = await hub.site.getOptions(keys);
 
 		await page.goto(onHub('admin.php?page=diluxone-users-design&tab=social'));

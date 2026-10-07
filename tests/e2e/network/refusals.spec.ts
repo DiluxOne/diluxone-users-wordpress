@@ -521,22 +521,6 @@ const ROWS: Row[] = [
 		expect: { 'no nonce': 'nonce', 'forged nonce': 'nonce', 'without the right': { status: 500 }, 'signed out': 'to-login' },
 		probe: victimState,
 	},
-
-	/* ── Passkeys are the hub's ────────────────────────────────────── */
-	{
-		id: 'a passkey registered on /beta/ (wp_ajax_diluxone_users_passkeys)',
-		method: 'POST',
-		url: () => ON('beta', 'admin-ajax.php'),
-		fields: () => ({ action: 'diluxone_users_passkeys', step: 'register-options' }),
-		nonce: { field: 'nonce', action: 'diluxone_users_passkeys' },
-		actor: 'member',
-		other: { who: 'member' },
-		// With the member's own valid nonce: told the passkeys are the hub's.
-		expect: { 'forged nonce': { status: 403 }, 'as somebody else': { status: 403 } },
-		prepare: async ({ hub }: { hub: SiteHandle }) => hub.set({ diluxone_users_passkey_enabled: 1 }),
-		probe: async (w) => metaOf(w.door, w.member.email, ['diluxone_users_passkeys']),
-		leaks: (answer) => expect(answer.body, 'no challenge handed out off the hub').not.toContain('challenge'),
-	},
 ];
 
 test.describe('Every network door that writes refuses what it should', () => {
@@ -580,7 +564,6 @@ const HUB_POSTS: Array<{ action: string; nonce: string; field?: string; fields: 
 	{ action: 'diluxone_users_sessions', nonce: 'diluxone_users_sessions', fields: {} },
 	{ action: 'diluxone_users_notifications', nonce: 'diluxone_users_notifications', fields: {} },
 	{ action: 'diluxone_users_data_request', nonce: 'diluxone_users_data_request', fields: { diluxone_users_request: 'export' } },
-	{ action: 'diluxone_users_passkey', nonce: 'diluxone_users_passkey', fields: { diluxone_users_passkey: 'x', diluxone_users_passkey_do: 'delete' } },
 ];
 
 async function memberState(w: World): Promise<unknown> {
@@ -753,7 +736,6 @@ const PANELS: PanelRow[] = [
 	{ screen: 'diluxone-users', tab: 'uninstall', change: { diluxone_users_uninstall_wipe: '1' }, options: ['diluxone_users_uninstall_wipe'] },
 	{ screen: 'diluxone-users-membership', tab: 'policy', change: { diluxone_users_membership: 'invite' }, options: ['diluxone_users_membership', 'diluxone_users_membership_confirmed'] },
 	{ screen: 'diluxone-users-security', tab: '2fa', change: { diluxone_users_2fa_mode: 'off' }, options: ['diluxone_users_2fa_mode', 'diluxone_users_2fa_methods'] },
-	{ screen: 'diluxone-users-security', tab: 'passkeys', change: { diluxone_users_passkey_where: 'device' }, options: ['diluxone_users_passkey_where', 'diluxone_users_passkey_verify'] },
 	{ screen: 'diluxone-users-security', tab: 'sessions', change: { diluxone_users_session_long_days: '99' }, options: ['diluxone_users_session_long_days', 'diluxone_users_sessions_show'] },
 	{ screen: 'diluxone-users-security', tab: 'proxy', change: { diluxone_users_trusted_proxies: '10.9.9.9' }, options: ['diluxone_users_trusted_proxies', 'diluxone_users_ip_header'] },
 	{ screen: 'diluxone-users-social', tab: 'general', change: { diluxone_users_sso_verified_only: '1' }, options: ['diluxone_users_sso_verified_only', 'diluxone_users_sso_link_by_email'] },
@@ -842,9 +824,8 @@ test.describe('Every network panel refuses a save it should not take', () => {
 
 test.describe('The hub’s Access › Ways in draws the network’s doors and saves none of them', () => {
 	/**
-	 * The passkey box of this form is forced in network-admin.spec.ts; this is
-	 * the other network key the same form draws: social sign-in, unticked and
-	 * sent anyway by a super admin. The hub's own setting in the form saves,
+	 * A network key the hub's Access › Ways in draws: social sign-in, unticked
+	 * and sent anyway by a super admin. The hub's own setting in the form saves,
 	 * so the save ran; the network's was left out.
 	 */
 	test('social sign-in forced off and sent from the hub’s screen stays on', async ({ page, hub }) => {

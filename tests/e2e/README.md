@@ -74,8 +74,8 @@ browser back, frame by frame.
   written in its recipient's language) never depend on what a machine
   happened to have.
 - Nothing else. No mail server: the mu-plugin catches the mail. No OAuth
-  credentials: the mu-plugin answers as the provider. No HTTPS: `localhost`
-  counts as a secure context, which is what passkeys need.
+  credentials: the mu-plugin answers as the provider. No HTTPS: nothing the
+  free plugin does needs it on `localhost`.
 
 ## How it is put together
 
@@ -100,7 +100,7 @@ tests/e2e/
 
 ### The three kinds of spec
 
-- **The flows** — sign-in, registration, the second step, passkeys, social,
+- **The flows** — sign-in, registration, the second step, social,
   the settings that change the public page. A person doing something, and
   what the site does about it.
 - **The measurements** (`specs/admin-layout.spec.ts`, with `support/layout.ts`)
@@ -210,21 +210,20 @@ deletes all of them. Nothing else on the site has that domain.
 | `two-factor.spec.ts` | The code by e-mail and the authenticator app. The five-try limit, the sixty-second resend wait, the expired attempt, "do not ask again on this browser", the backup codes, and the e-mail link *not* asking for a code that goes to the same inbox. |
 | `sso.spec.ts` | A new social account, one that matches an existing address, and **H-01**: an unverified address must not be handed an existing account. Silence treated as silence. "Verified only". Cancelling at the provider. Linking and unlinking. **H-02**: a link trip with no nonce. A forged `state`. |
 | `admin-settings.spec.ts` | Every tab of every settings screen renders with no PHP notice and no footer riding up into the layout; and eight settings changed by pressing Save, each checked on the public page afterwards — including **M-10**, the legal line keeping its link. |
-| `passkeys.spec.ts` | Register a passkey from the account screen and sign in with it, against Chrome's virtual authenticator; and a key the account has removed no longer opening it. |
 | `account-area.spec.ts` | The account area as its owner: the guest screen, the menu, the sections that exist only while offered, details and a required field, the photo and its attachment, the public name, the new-device notice and its switch, export and erasure requests, two-step on and off, the app removed with a backup code, new backup codes, closing browsers. |
 | `site-menu.spec.ts` | The person in the site's own menu, on the mu-plugin's classic menu: the stranger's sign-in item, the person's sections and sign-out, the three styles, and the tab that saves them. |
 | `admin-effects.spec.ts` | The rest of the dashboard's saves, each checked on the public side: wp-login.php branding, photos, initials, the registration heading, the account menu down the side, the toolbar, profile.php, the sessions list, notice rules, a provider switched off, and what happens to wp-login.php. |
 | `admin-tools.spec.ts` | Status › Tools (export, import, close sessions, fresh code, rebuild, test message), Reports › Sessions and Activity, WordPress's Users screens and Add New User, a field added and deleted, a section of the site's own. |
-| `network/*.spec.ts` | Two sites of one network and its main site, the hub: every site's doors leading to the hub and back (password, e-mail link, social, passkey, second step, registration, wp-login.php, the menu), a site on a domain of its own, membership only by using a link, the network's registration setting, the main site's sign-in settings on every site, the sessions report per site, Add New User, the photo across sites, the second step as the network's, a social identity across sites, a site born after activation, deactivating and activating, WP-CLI, the account's pieces on another site as doors to the hub (`account-pieces.spec.ts`); Network Admin's screens (menu, every tab measured, every moved tab saving for every site, a field added there), what a site's menu keeps, a network screen refused on a site, a site's form unable to write the network's settings; and the move of a network's settings (`migration.spec.ts`). `network-snapshots.spec.ts` is the pictures, opt-in. |
+| `network/*.spec.ts` | Two sites of one network and its main site, the hub: every site's doors leading to the hub and back (password, e-mail link, social, second step, registration, wp-login.php, the menu), a site on a domain of its own, membership only by using a link, the network's registration setting, the main site's sign-in settings on every site, the sessions report per site, Add New User, the photo across sites, the second step as the network's, a social identity across sites, a site born after activation, deactivating and activating, WP-CLI, the account's pieces on another site as doors to the hub (`account-pieces.spec.ts`); Network Admin's screens (menu, every tab measured, every moved tab saving for every site, a field added there), what a site's menu keeps, a network screen refused on a site, a site's form unable to write the network's settings; and the move of a network's settings (`migration.spec.ts`). `network-snapshots.spec.ts` is the pictures, opt-in. |
 | `account-pieces.spec.ts` | The pieces of the account each on a page of their own, as a site puts them: nothing drawn to a stranger, the menu, the fields saved back to that page, the sessions closed one at a time and all the others, the social networks, the public name's availability check, the photo and the notifications. |
 | `create-page.spec.ts` | “Create the page” beside a page the plugin needs: the page made, chosen and announced, drawing its form to a stranger; refused without the nonce. |
-| `login-ways.spec.ts` | The four ways in as one screen: with all of them on, the sign-in card fits a 1366×768 laptop in tabs and does not stacked — both halves, so the measurement cannot pass on the broken arrangement. The passkey staying above the strip. The tab that opens: the site's choice for a stranger, the cookie after that, and the way in that just failed over both. The site's order, in tabs and stacked. Every way in visible with JavaScript off. And the dashboard end: the order saved from the drag list and read back off the public page. |
+| `login-ways.spec.ts` | The three ways in as one screen: with all of them on, the sign-in card fits a 1366×768 laptop in tabs and does not stacked — both halves, so the measurement cannot pass on the broken arrangement. The tab that opens: the site's choice for a stranger, the cookie after that, and the way in that just failed over both. The site's order, in tabs and stacked. Every way in visible with JavaScript off, and no passkey anywhere on the page. And the dashboard end: the order saved from the drag list and read back off the public page. |
 | `refusals.spec.ts`, `network/refusals.spec.ts` | Every door that writes — each `admin_post_` and `wp_ajax_` action, every settings panel, the dashboard's forms, the Tools, the preview and its "Try" token, the public forms, the membership sync, "Join this site" — sent with no nonce, a forged one, by a role without the right (carrying a nonce valid for that role), signed out and by another person, each answer asserted and everything it would have written read back unchanged; on a network also from a site administrator, and the hub's doors posted to another site. |
 | `admin-framework*.spec.ts`, `admin-overview.spec.ts`, `admin-access-*.spec.ts` | The dashboard's shared pieces (the save box, dirty state, leave warning, refused saves, dependants, pickers, the stage and the trial page, the field dialog), the Overview's cards, steps and panels, and every control of Access driven, saved, read back and seen on the public page. |
-| `admin-security-*.spec.ts`, `admin-social-*.spec.ts`, `admin-status-*.spec.ts`, `admin-reports-*.spec.ts`, `wp-screens-users.spec.ts` | Security's two-step, passkeys, sessions and proxy controls with their effect; a provider set up through its screen (the secret never printed back), the social rules; each Tool and check; the reports' filters, closes and log settings on rows of their own; WordPress's own Users screens. |
+| `admin-security-*.spec.ts`, `admin-social-*.spec.ts`, `admin-status-*.spec.ts`, `admin-reports-*.spec.ts`, `wp-screens-users.spec.ts` | Security's two-step, sessions and proxy controls with their effect, and the picture of what Users+ Pro adds under its Summary; a provider set up through its screen (the secret never printed back), the social rules; each Tool and check; the reports' filters, closes and log settings on rows of their own; WordPress's own Users screens. |
 | `admin-account-*.spec.ts`, `admin-fields-*.spec.ts`, `admin-design-*.spec.ts`, `admin-notices.spec.ts` | The account area's sections, public names and dashboard rules; every field type and edit rule; every Design control and its effect on the page; the notices' rules and templates, the mail they send. |
-| `signin-*.spec.ts` | The ways in off their plain paths: every message state, the link's limits, the second step's lock and replays, passkeys switched off, claimed twice and in a browser without them, wp-login.php under the takeover, a reset with a forged key, social returns tampered with, and the ways in at 390px. |
-| `my-account-*.spec.ts` | The account area as its owner, section by section: every field type, the photo and the public name's rules, notifications, sessions, two-step and passkeys, data requests and their links, closing an account kept for its content, linked accounts, the site menu, WP-CLI, and the area at 390px. |
+| `signin-*.spec.ts` | The ways in off their plain paths: every message state, the link's limits, the second step's lock and replays, wp-login.php under the takeover, a reset with a forged key, social returns tampered with, and the ways in at 390px. |
+| `my-account-*.spec.ts` | The account area as its owner, section by section: every field type, the photo and the public name's rules, notifications, sessions, two-step (and nothing between it and “How you get in” without an add-on), data requests and their links, closing an account kept for its content, linked accounts, the site menu, WP-CLI, and the area at 390px. |
 | `network/hub-*.spec.ts`, `network/signin-doors.spec.ts`, `network/my-account-hub.spec.ts`, `network/admin-*.spec.ts` | The network's controls saved and read on every site, the membership screen and its sync, the hub's routing (sign-up and activation, a reset, a site on a domain of its own), Network Admin, the hub's account used from another site, and each admin area's network half. |
 | `front-snapshots.spec.ts`, `admin-mobile-snapshots.spec.ts`, `network/network-front-snapshots.spec.ts` | The pictures of the public pages and of the dashboard on a phone (opt-in, `make test-visual` and `make test-visual-network`). |
 
@@ -234,10 +233,10 @@ product is fixed; it is not loosened and not marked `fixme`.
 
 ### Skipped, and why
 
-- `passkeys.spec.ts` skips itself on anything that is not Chromium: the virtual
-  authenticator is a DevTools-protocol feature and Firefox and WebKit have no
-  equivalent. On Chromium it runs in full — `http://localhost` is a secure
-  context, so no HTTPS is needed.
+- Nothing about passkeys runs here: they are Users+ Pro's, and its own
+  repository has their specs (against Chrome's virtual authenticator). This
+  suite only asserts that the free plugin offers and names none, and where it
+  draws the Users+ Pro placeholders instead.
 
 ### What this suite already changed
 

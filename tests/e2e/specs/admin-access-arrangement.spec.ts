@@ -39,7 +39,7 @@ async function openTab(page: Page): Promise<string> {
 }
 
 /** Two ways in: the link and the password, nothing else. */
-const TWO_WAYS = { diluxone_users_login_method: 'both', diluxone_users_sso_login: 0, diluxone_users_passkey_enabled: 0, diluxone_e2e_sso: 0 };
+const TWO_WAYS = { diluxone_users_login_method: 'both', diluxone_users_sso_login: 0, diluxone_e2e_sso: 0 };
 
 test.describe('Access › How they are arranged', () => {
 	test.beforeEach(async ({ options, guest }) => {
@@ -142,16 +142,6 @@ test.describe('Access › How they are arranged', () => {
 		expect(stored.diluxone_users_login_open).toBe('');
 		expect(stored.diluxone_users_login_order as string[]).not.toContain('evil');
 		expect((stored.diluxone_users_login_order as string[]).length).toBe(3);
-	});
-
-	test('the passkey is named above the list, never in it', async ({ page, options }) => {
-		await options.set({ diluxone_users_passkey_enabled: 1 });
-
-		await page.goto(accessTab('arrangement'));
-
-		await expect(page.locator('[data-diluxone-users-sortable] li')).toHaveCount(3);
-		await expect(page.locator('[data-diluxone-users-sortable] input[value="passkey"]')).toHaveCount(0);
-		await expect(page.locator('.du-note strong').first()).toBeVisible();
 	});
 
 	/*

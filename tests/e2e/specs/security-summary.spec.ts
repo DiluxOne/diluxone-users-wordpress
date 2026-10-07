@@ -29,9 +29,12 @@ test.use({ storageState: ADMIN_STATE });
 
 const SECURITY = 'diluxone-users-security';
 
-/** The summary table itself. */
+/**
+ * The summary table itself: the first one. The picture of what Users+ Pro
+ * adds, under it, is drawn with the same table.
+ */
 function summary(page: Page): Locator {
-	return page.locator('table.diluxone-users-summary');
+	return page.locator('table.diluxone-users-summary').first();
 }
 
 /**
@@ -106,35 +109,45 @@ test.describe('Security › Summary', () => {
 		await expect(pill(row(page, '2fa', 0))).toHaveClass(/diluxone-users-state--pending/);
 	});
 
-	test('passkeys: the rows follow the switch that is on another screen', async ({
-		page,
-		options,
-	}) => {
-		await options.set({ diluxone_users_passkey_enabled: 0 });
+	/*
+	 * Passkeys are Users+ Pro's. Under the real table, a picture of the rows
+	 * they would add: blurred, out of reach, with nothing in it that sends,
+	 * and gone with the setting that turns the previews off. None of the
+	 * real rows is about them.
+	 */
+	test('under the table, a picture of what Users+ Pro adds, and nothing of it in the real rows', async ({ page, options }) => {
+		await options.keep(['diluxone_users_pro_previews']);
+		await options.set({ diluxone_users_pro_previews: 1 });
 
 		await page.goto(adminUrl(SECURITY, 'summary'));
 
-		// The two rows that link to the passkeys tab are the settings that
-		// only bite while passkeys are offered.
-		await expect(pill(row(page, 'passkeys', 0))).toHaveClass(/diluxone-users-state--off/);
-		await expect(pill(row(page, 'passkeys', 1))).toHaveClass(/diluxone-users-state--off/);
+		const pro = page.locator('[data-diluxone-users-pro="security/summary/more"]');
 
-		await options.set({
-			diluxone_users_passkey_enabled: 1,
-			diluxone_users_passkey_verify: 1,
-		});
+		await expect(pro).toHaveCount(1);
+		await expect(pro.locator('.du-pro__picture')).toHaveAttribute('inert', '');
+		await expect(pro.locator('.du-pro__picture')).toHaveAttribute('aria-hidden', 'true');
+		await expect(pro.locator('[name]'), 'nothing in the picture is sent').toHaveCount(0);
+		await expect(pro.locator('.du-pro__over a')).toHaveAttribute('href', /diluxone\.com\/users-pro\/.*utm_medium=security/);
 
-		await page.goto(adminUrl(SECURITY, 'summary'));
-		await expect(pill(row(page, 'passkeys', 0))).toHaveClass(/diluxone-users-state--active/);
-		await expect(pill(row(page, 'passkeys', 1))).toHaveClass(/diluxone-users-state--active/);
+		const real = summary(page);
 
-		// The fingerprint is a setting of its own, and switching it off must
-		// not take the row above it with it.
-		await options.set({ diluxone_users_passkey_verify: 0 });
+		await expect(real.locator('xpath=ancestor::*[@inert]'), 'the first table is the real one').toHaveCount(0);
 
-		await page.goto(adminUrl(SECURITY, 'summary'));
-		await expect(pill(row(page, 'passkeys', 0))).toHaveClass(/diluxone-users-state--active/);
-		await expect(pill(row(page, 'passkeys', 1))).toHaveClass(/diluxone-users-state--off/);
+		await expect(real.locator('a[href*="tab=passkeys"]'), 'no real row points at a passkeys tab').toHaveCount(0);
+		await expect(page.locator('.nav-tab[href*="tab=passkeys"]'), 'and there is no such tab').toHaveCount(0);
+
+		const below = await real.evaluate(
+			(table, card) => Boolean(table.compareDocumentPosition(card as Node) & Node.DOCUMENT_POSITION_FOLLOWING),
+			await pro.elementHandle()
+		);
+
+		expect(below, 'the picture is under the real table').toBe(true);
+
+		await options.set({ diluxone_users_pro_previews: 0 });
+		await page.reload();
+		await expect(page.locator('[data-diluxone-users-pro]')).toHaveCount(0);
+		await expect(page.locator('table.diluxone-users-summary'), 'the real table alone').toHaveCount(1);
+		await expect(page.locator('#wpbody-content')).not.toContainText(/passkey/i);
 	});
 
 	test('saving how long a session lasts is what the summary then says', async ({

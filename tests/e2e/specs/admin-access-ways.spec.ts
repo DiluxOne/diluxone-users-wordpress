@@ -1,7 +1,6 @@
-import { test, expect, expectSignedIn } from '../support/fixtures';
+import { test, expect } from '../support/fixtures';
 import { freshEmail, waitForMail } from '../support/api';
 import {
-	accountSection,
 	adminError,
 	adminSaved,
 	askForLink,
@@ -9,13 +8,11 @@ import {
 	linkForm,
 	loginWay,
 	needsOne,
-	openPanel,
 	openWay,
 	passwordForm,
 	saveButton,
 	savePanel,
 	sentScreen,
-	signInWithPassword,
 	submitPanelWithoutScript,
 } from '../support/ui';
 import { accessTab, control, notNow, storedNumbers } from '../support/admin-access';
@@ -42,7 +39,7 @@ test.describe('Access › Ways in', () => {
 			'diluxone_users_login_throttle',
 			'diluxone_users_handle_login',
 			'diluxone_users_sso_login',
-			'diluxone_users_passkey_enabled',
+			'diluxone_users_pro_previews',
 			'diluxone_users_wp_screens',
 		]);
 	});
@@ -159,38 +156,36 @@ test.describe('Access › Ways in', () => {
 		await expect(page.locator('.du-choice-group').filter({ has: loginWay(page, 'link') }).locator('.diluxone-users-not-now')).toHaveCount(1);
 	});
 
-	test('the passkey box: ticked, the sign-in page and the account offer one; unticked, neither does', async ({ page, guest, site, pages, options }) => {
-		await options.set({ diluxone_users_passkey_enabled: 0, diluxone_users_2fa_mode: 'off' });
-
-		const email = freshEmail('passkey-ui');
-
-		await site.makeUser({ email, password: PASSWORD });
-
-		await page.goto(accessTab('ways'));
-		await expect(control(page, 'diluxone_users_passkey_enabled')).not.toBeChecked();
-		await control(page, 'diluxone_users_passkey_enabled').check();
-		await savePanel(page);
-		expect((await storedNumbers(site, ['diluxone_users_passkey_enabled'])).diluxone_users_passkey_enabled).toBe(1);
-
-		await guest.goto(pages.login.url);
-		await expect(guest.locator('[data-diluxone-users-passkey="login"]')).toBeVisible();
-
-		await signInWithPassword(guest, email, PASSWORD);
-		await expectSignedIn(guest, email);
-		await guest.goto(accountSection(pages.account.url, 'security'));
-		await openPanel(guest, '[data-diluxone-users-passkey="register"]');
+	/*
+	 * Passkeys are Users+ Pro's. Without it they are not a box that cannot be
+	 * ticked among the ones that can: one card after the real ways in says
+	 * what it would add, with nothing in it that is a control, and the
+	 * setting that turns the previews off takes it away.
+	 */
+	test('after the real ways in, one card says what Users+ Pro adds, and it goes with the previews', async ({ page, options }) => {
+		await options.set({ diluxone_users_pro_previews: 1 });
 
 		await page.goto(accessTab('ways'));
-		await control(page, 'diluxone_users_passkey_enabled').uncheck();
-		await savePanel(page);
-		expect((await storedNumbers(site, ['diluxone_users_passkey_enabled'])).diluxone_users_passkey_enabled).toBe(0);
 
-		await guest.goto(accountSection(pages.account.url, 'security'));
-		await expect(guest.locator('[data-diluxone-users-passkey="register"]'), 'the account still offers to add one').toHaveCount(0);
+		const pro = page.locator('[data-diluxone-users-pro="login/ways/more"]');
 
-		await guest.context().clearCookies();
-		await guest.goto(pages.login.url);
-		await expect(guest.locator('[data-diluxone-users-passkey="login"]'), 'the sign-in page still offers one').toHaveCount(0);
+		await expect(pro).toHaveCount(1);
+		await expect(pro).toContainText('Sign in with a passkey');
+		await expect(pro.locator('a')).toHaveAttribute('href', /diluxone\.com\/users-pro\/.*utm_medium=login/);
+		await expect(pro.locator('input, select, textarea, button'), 'nothing in it is a control').toHaveCount(0);
+		await expect(control(page, 'diluxone_users_passkey_enabled'), 'no passkey box among the real ones').toHaveCount(0);
+
+		const after = await control(page, 'diluxone_users_sso_login').evaluate(
+			(box, card) => Boolean(box.compareDocumentPosition(card as Node) & Node.DOCUMENT_POSITION_FOLLOWING),
+			await pro.elementHandle()
+		);
+
+		expect(after, 'the card comes after the real ways in').toBe(true);
+
+		await options.set({ diluxone_users_pro_previews: 0 });
+		await page.reload();
+		await expect(page.locator('[data-diluxone-users-pro]')).toHaveCount(0);
+		await expect(control(page, 'diluxone_users_sso_login')).toHaveCount(1);
 	});
 
 	/*

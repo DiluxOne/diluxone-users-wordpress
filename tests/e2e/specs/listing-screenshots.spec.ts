@@ -157,7 +157,6 @@ test.describe('The front end', () => {
 		await options.set({
 			...SHOP_WINDOW,
 			diluxone_users_login_method: 'both',
-			diluxone_users_passkey_enabled: 1,
 			diluxone_users_sso_login: 1,
 			diluxone_users_login_layout: 'tabs',
 			diluxone_users_login_order: ['social', 'email', 'password'],
@@ -236,7 +235,7 @@ test.describe('The account area', () => {
 		await shootWindow(page, 2);
 	});
 
-	test('3 · security: passkeys, two-step verification and every browser signed in', async ({
+	test('3 · security: two-step verification and every browser signed in', async ({
 		page,
 		site,
 		pages,
@@ -245,7 +244,6 @@ test.describe('The account area', () => {
 		await options.set({
 			...SHOP_WINDOW,
 			diluxone_users_login_method: 'both',
-			diluxone_users_passkey_enabled: 1,
 			diluxone_users_2fa_mode: 'optional',
 			diluxone_users_2fa_methods: ['totp', 'email'],
 		});

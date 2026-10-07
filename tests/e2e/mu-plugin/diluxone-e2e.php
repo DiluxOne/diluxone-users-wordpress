@@ -1466,7 +1466,7 @@ function diluxone_e2e_refusals_nonce( WP_REST_Request $request ): WP_REST_Respon
  * User meta as it is stored, arrays included.
  *
  * The /user route reads meta as strings, which is right for the fields and
- * wrong for a list of passkeys: an array read as a string is "Array" whatever
+ * wrong for a list kept as an array: an array read as a string is "Array" whatever
  * is in it, and a refusal that compares "Array" with "Array" proves nothing.
  */
 function diluxone_e2e_refusals_meta( WP_REST_Request $request ): WP_REST_Response {

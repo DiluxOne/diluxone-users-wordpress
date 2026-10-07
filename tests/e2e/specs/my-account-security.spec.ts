@@ -1,12 +1,12 @@
 import { Browser, Page } from '@playwright/test';
 import { test, expect, expectSignedIn, expectSignedOut } from '../support/fixtures';
 import { Site, codeIn, freshEmail, waitForMail } from '../support/api';
-import { accountSection, challengeCode, challengeScreen, notice, openAllPanels, openPanel, signInWithPassword } from '../support/ui';
+import { accountSection, challengeCode, challengeScreen, notice, openAllPanels, signInWithPassword } from '../support/ui';
 import { avoidWindowEdge, totp } from '../support/totp';
 import { PASSWORD, anotherBrowser, formOf, nonceOf, postByHand, reveal, send, signedIn } from '../support/my-account';
 
 /**
- * Notifications, the list of sessions, the second step and the passkeys, as
+ * Notifications, the list of sessions and the second step, as
  * the person whose account it is — and, where it matters, as somebody else
  * trying to reach into it.
  *
@@ -487,116 +487,28 @@ test.describe('Two-step verification', () => {
 	});
 });
 
-test.describe('Passkeys', () => {
-	test.skip(({ browserName }) => browserName !== 'chromium', 'the virtual authenticator is a Chromium protocol');
-
-	const VIRTUAL_KEY = {
-		protocol: 'ctap2' as const,
-		transport: 'internal' as const,
-		hasResidentKey: true,
-		hasUserVerification: true,
-		isUserVerified: true,
-		automaticPresenceSimulation: true,
-	};
-
-	test.beforeEach(async ({ options }) => {
-		await options.set({
-			diluxone_users_passkey_enabled: 1,
-			diluxone_users_passkey_where: 'any',
-			diluxone_users_passkey_verify: 1,
-		});
-	});
-
-	/** A key in this browser, registered from the account. */
-	async function register(page: Page, accountUrl: string, label: string): Promise<void> {
-		const cdp = await page.context().newCDPSession(page);
-
-		await cdp.send('WebAuthn.enable', { enableUI: false });
-		await cdp.send('WebAuthn.addVirtualAuthenticator', { options: VIRTUAL_KEY });
-
-		await page.goto(accountSection(accountUrl, 'security'));
-
-		const panel = await openPanel(page, '[data-diluxone-users-passkey="register"]');
-
-		await panel.locator('[data-diluxone-users-passkey-label]').fill(label);
-		await panel.locator('[data-diluxone-users-passkey="register"]').click();
-		await expect(page.locator('input[name="diluxone_users_passkey_label"]').first()).toHaveValue(label, { timeout: 20_000 });
-	}
-
-	test('with passkeys off on the site, the account has no passkey panel', async ({ page, site, pages, options }) => {
-		await options.set({ diluxone_users_passkey_enabled: 0 });
-		await signedIn(page, site, pages.login.url, 'pk-off');
-
+/*
+ * Passkeys are Users+ Pro's. Without it, the place an add-on draws its panel
+ * in — between how somebody gets in and the second step — holds nothing,
+ * and nothing on the section offers or names a passkey.
+ */
+test.describe('Without an add-on', () => {
+	test('the second step comes right after “How you get in”, and there is no passkey anywhere on the section', async ({ page, site, pages }) => {
+		await signedIn(page, site, pages.login.url, 'no-addon');
 		await page.goto(accountSection(pages.account.url, 'security'));
-		await expect(page.locator('[data-diluxone-users-passkey="register"]')).toHaveCount(0);
-	});
 
-	test('adding and removing a key are each mailed, and the removal is said on the page', async ({ page, site, pages }) => {
-		const { email } = await signedIn(page, site, pages.login.url, 'pk-mail');
+		const howIn = page.locator('details.diluxone-users-panel').filter({ has: page.locator('.diluxone-users-data') });
 
-		await site.clearMail();
-		await register(page, pages.account.url, 'E2E laptop');
+		await expect(howIn).toHaveCount(1);
 
-		expect((await noticesFor(site, email)).length, 'adding a key is mailed').toBe(1);
+		const next = howIn.locator('xpath=following-sibling::*[1]');
 
+		await expect(next, 'the panel after it is the second step').toHaveClass(/diluxone-users-panel/);
+		await expect(next.locator('input[name="action"][value="diluxone_users_security"]').first()).toBeAttached();
+
+		await expect(page.locator('[data-diluxone-users-passkey]')).toHaveCount(0);
+		await expect(page.locator('input[name^="diluxone_users_passkey"]')).toHaveCount(0);
 		await openAllPanels(page);
-		expect(await send(page, page.locator('button[name="diluxone_users_passkey_do"][value="delete"]').first())).toBe('passkeyoff');
-		await expect(notice(page, 'ok').first()).toBeVisible();
-		await expect(page.locator('input[name="diluxone_users_passkey_label"]')).toHaveCount(0);
-
-		const mails = await noticesFor(site, email);
-
-		expect(mails.length, 'removing it is mailed').toBe(2);
-		expect(mails[1].body).not.toBe(mails[0].body);
-	});
-
-	test('the same authenticator a second time is refused on the page, without a reload', async ({ page, site, pages }) => {
-		await signedIn(page, site, pages.login.url, 'pk-twice');
-		await register(page, pages.account.url, 'Only one');
-
-		const panel = await openPanel(page, '[data-diluxone-users-passkey="register"]');
-		const url = page.url();
-
-		await panel.locator('[data-diluxone-users-passkey="register"]').click();
-
-		const said = page.locator('[data-diluxone-users-passkey-notice]');
-
-		await expect(said).toBeVisible({ timeout: 20_000 });
-		await expect(said).toHaveClass(/diluxone-users-notice--error/);
-		expect(page.url()).toBe(url);
-		await expect(page.locator('input[name="diluxone_users_passkey_label"]'), 'still one key').toHaveCount(1);
-	});
-
-	test('a key of another account can be neither renamed nor removed, and nobody is mailed', async ({ page, browser, baseURL, site, pages }) => {
-		const { email: owner } = await signedIn(page, site, pages.login.url, 'pk-owner');
-
-		await register(page, pages.account.url, 'Owner key');
-
-		const theirs = await page.locator('input[name="diluxone_users_passkey"]').first().inputValue();
-
-		const context = await browser.newContext({ baseURL, storageState: undefined });
-		const stranger = await context.newPage();
-		const { email: other } = await signedIn(stranger, site, pages.login.url, 'pk-stranger');
-
-		await register(stranger, pages.account.url, 'Stranger key');
-		await site.clearMail();
-
-		const nonce = await nonceOf(stranger, 'diluxone_users_passkey');
-
-		await postByHand(stranger, { action: 'diluxone_users_passkey', _wpnonce: nonce, diluxone_users_passkey: theirs, diluxone_users_passkey_do: 'rename', diluxone_users_passkey_label: 'Stolen' });
-
-		const removed = await postByHand(stranger, { action: 'diluxone_users_passkey', _wpnonce: nonce, diluxone_users_passkey: theirs, diluxone_users_passkey_do: 'delete' });
-
-		expect(removed.state).not.toBe('passkeyoff');
-
-		await page.reload();
-		await expect(page.locator('input[name="diluxone_users_passkey_label"]'), 'the owner keeps the key, with its name').toHaveValue('Owner key');
-		await stranger.reload();
-		await expect(stranger.locator('input[name="diluxone_users_passkey_label"]'), 'and the stranger keeps theirs').toHaveValue('Stranger key');
-
-		expect(await site.mail(owner)).toEqual([]);
-		expect(await site.mail(other)).toEqual([]);
-		await context.close();
+		await expect(page.locator('.diluxone-users-account__section, main').first()).not.toContainText(/passkey/i);
 	});
 });
-

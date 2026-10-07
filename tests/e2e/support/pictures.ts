@@ -29,7 +29,7 @@ export const MOVES_BY_ITSELF = [
 	// Somebody's photograph, which comes from Gravatar or from the theme.
 	'img.avatar',
 	// On the public pages: the month somebody joined, how long ago a session
-	// started, when a passkey was used, when a request was made.
+	// started, when a request was made.
 	'.diluxone-users-account__since',
 	'.diluxone-users-session__what span',
 	'.diluxone-users-requests td:first-child',

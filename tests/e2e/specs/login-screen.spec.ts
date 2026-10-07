@@ -33,7 +33,7 @@ const LAPTOPS = [
 const PANEL = {
 	diluxone_users_login_template: 'split',
 	diluxone_users_login_panel_title: 'Una cuenta.\nSin contraseñas.',
-	diluxone_users_login_panel_text: 'Entrá con tu correo, con una red o con una passkey.',
+	diluxone_users_login_panel_text: 'Entrá con tu correo, con una red o con tu contraseña.',
 	diluxone_users_login_panel_points: 'Sin contraseñas que recordar\nUn segundo paso cuando hace falta\nTus sesiones, a la vista',
 	diluxone_users_login_panel_foot: '© Un sitio cualquiera',
 };
@@ -80,11 +80,10 @@ test.describe('The sign-in page, split down the middle', () => {
 	 * page whose only job is to be understood in one look.
 	 */
 	test('on a laptop, the panel’s heading is on screen before anybody scrolls', async ({ guest, pages, options }) => {
-		// The longest the form gets: a passkey, the networks, an address and a
+		// The longest the form gets: the networks, an address and a
 		// password. That is the case the panel was being stretched by.
 		await options.set({
 			diluxone_users_login_method: 'both',
-			diluxone_users_passkey_enabled: 1,
 			diluxone_e2e_sso: 1,
 			diluxone_users_sso: { mock: { active: 1, id: 'e2e-client-id', secret: 'e2e-client-secret', tested: 1 } },
 		});
@@ -120,7 +119,7 @@ test.describe('The sign-in page, split down the middle', () => {
 	 * below the blue.
 	 */
 	test('the panel fits the window, and its words fit the panel', async ({ guest, pages, options }) => {
-		await options.set({ diluxone_users_login_method: 'both', diluxone_users_passkey_enabled: 1 });
+		await options.set({ diluxone_users_login_method: 'both' });
 
 		for (const size of LAPTOPS) {
 			await guest.setViewportSize(size);
@@ -152,7 +151,6 @@ test.describe('The sign-in page, split down the middle', () => {
 	test('with a short form the two columns agree on one height', async ({ guest, pages, options }) => {
 		await options.set({
 			diluxone_users_login_method: 'link',
-			diluxone_users_passkey_enabled: 0,
 			diluxone_e2e_sso: 0,
 		});
 
@@ -178,7 +176,7 @@ test.describe('The sign-in page, split down the middle', () => {
 	 * A form that is genuinely longer than the window scrolls; the panel does
 	 * not go with it.
 	 *
-	 * A row of networks, a passkey, an address and a password is a real screen
+	 * A row of networks, an address and a password is a real screen
 	 * and it is longer than a laptop. What must not happen is the panel — and
 	 * with it the only sentence explaining what this page is — being carried
 	 * off the top of the window by the form beside it.
@@ -193,7 +191,6 @@ test.describe('The sign-in page, split down the middle', () => {
 	test('the panel holds while a long form goes past it', async ({ guest, pages, options }) => {
 		await options.set({
 			diluxone_users_login_method: 'both',
-			diluxone_users_passkey_enabled: 1,
 			diluxone_e2e_sso: 1,
 			diluxone_users_sso: { mock: { active: 1, id: 'e2e-client-id', secret: 'e2e-client-secret', tested: 1 } },
 			// Stacked, said out loud. Left on 'auto' this many ways in go
@@ -204,7 +201,9 @@ test.describe('The sign-in page, split down the middle', () => {
 			diluxone_users_login_layout: 'stack',
 		});
 
-		await guest.setViewportSize(LAPTOPS[0]);
+		// The smaller of the two laptops: the three ways in stacked reach
+		// well past its fold, which on the bigger one they only just do.
+		await guest.setViewportSize(LAPTOPS[1]);
 		await guest.goto(pages.login.url);
 
 		const atRest = await splitBoxes(guest);

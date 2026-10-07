@@ -87,8 +87,6 @@ export const VISUAL_OPTIONS: Record<string, unknown> = {
 	diluxone_users_menu_style: null,
 	diluxone_users_notice_rules: null,
 	diluxone_users_notice_style: "bar",
-	diluxone_users_passkey_verify: null,
-	diluxone_users_passkey_where: null,
 	diluxone_users_privacy_delete: null,
 	diluxone_users_privacy_delete_link: "account",
 	diluxone_users_privacy_delete_when: "confirm",
@@ -143,8 +141,8 @@ const IPHONE =
 	'Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Mobile/15E148 Safari/604.1';
 
 /**
- * The cast: ten people with an account, a public name, a social account, an
- * authenticator app or a passkey in the proportions the overview shows.
+ * The cast: ten people with an account, a public name, a social account or an
+ * authenticator app in the proportions the overview shows.
  *
  * They carry `@example.com`, not the suite's domain, because they are not the
  * suite's: they are the development site's example people, and the teardown
@@ -160,10 +158,6 @@ export const CAST: Person[] = [
 		meta: {
 			first_name: 'Ana',
 			last_name: 'Figueroa',
-			diluxone_users_passkeys: [
-				{ id: 'aXHUlnfdjBuAXl60ZGQM', label: 'Ana’s iPhone', created: 1786746534, used: 1788474534, ua: IPHONE },
-				{ id: 'AQsz8a1nsuNlWbQK4dGJ', label: 'MacBook Pro', created: 1788301734, used: 1788992934, ua: MAC },
-			],
 			diluxone_users_totp: 'JBSWY3DPEHPK3PXP',
 			diluxone_users_2fa_on: '1',
 			diluxone_users_2fa_pending: null,
@@ -203,15 +197,6 @@ export const CAST: Person[] = [
 		meta: {
 			first_name: 'Tomás',
 			last_name: 'Vega',
-			diluxone_users_passkeys: [
-				{
-					id: 'kYdIqiiFGMJm3jJD1PgJ',
-					label: 'Pixel 8',
-					created: 1788647334,
-					used: 1789165734,
-					ua: 'Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Mobile Safari/537.36',
-				},
-			],
 			diluxone_users_handle: 'tomi',
 			diluxone_users_totp_pending: 'WLXUN2BSDI6Y6NNQDSBU434AFKUDNXTQ',
 		},
@@ -256,15 +241,6 @@ export const CAST: Person[] = [
 		meta: {
 			first_name: 'Bruno',
 			last_name: 'Alcaraz',
-			diluxone_users_passkeys: [
-				{
-					id: 'tGqq0CY6HW7PJHWatLhE',
-					label: 'Windows Hello',
-					created: 1788992934,
-					used: 1789252134,
-					ua: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36',
-				},
-			],
 		},
 	},
 	{

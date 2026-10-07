@@ -3,7 +3,7 @@ import { test, expect, whoOn, signInFrom, SiteHandle } from './support';
 import { codeIn, freshEmail, linkIn, waitForMail } from '../support/api';
 import { wp } from '../support/cli';
 import { avoidWindowEdge, totp } from '../support/totp';
-import { askForLink, challengeCode, challengeScreen, fillCredentials, navigated, saveButton, signInWithPassword, ssoButton } from '../support/ui';
+import { askForLink, challengeCode, challengeScreen, fillCredentials, navigated, saveButton, ssoButton } from '../support/ui';
 import { NETWORK_ADMIN_STATE, NETWORK_URL } from '../../../playwright.network.config';
 
 /**
@@ -169,42 +169,6 @@ test.describe('The hub’s own doors fire wp_login, once', () => {
 		expect(await hub.site.wpLogins(email)).toBe(1);
 	});
 
-	test('a passkey', async ({ page, hub, alpha, browserName }) => {
-		test.skip(browserName !== 'chromium', 'the virtual authenticator is a Chromium protocol');
-
-		await hub.set({ diluxone_users_passkey_enabled: 1, diluxone_users_passkey_where: 'any', diluxone_users_passkey_verify: 1, diluxone_users_2fa_mode: 'off' });
-
-		const email = freshEmail('net-wplogin-passkey');
-		await alpha.site.makeUser({ email, password: PASSWORD });
-
-		const cdp = await page.context().newCDPSession(page);
-		await cdp.send('WebAuthn.enable', { enableUI: false });
-		const { authenticatorId } = await cdp.send('WebAuthn.addVirtualAuthenticator', {
-			options: { protocol: 'ctap2', transport: 'internal', hasResidentKey: true, hasUserVerification: true, isUserVerified: true, automaticPresenceSimulation: true },
-		});
-
-		await page.goto(hub.pages.login.url);
-		await signInWithPassword(page, email, PASSWORD);
-		await page.waitForLoadState('domcontentloaded');
-
-		await page.goto(`${hub.pages.account.url.replace(/\/?$/, '/')}security/`);
-		await page.locator('details.diluxone-users-panel').filter({ has: page.locator('[data-diluxone-users-passkey="register"]') }).first().evaluate((d: HTMLDetailsElement) => (d.open = true));
-		await page.locator('[data-diluxone-users-passkey-label]').fill('e2e');
-		await page.locator('[data-diluxone-users-passkey="register"]').click();
-		await expect(page.locator('input[name="diluxone_users_passkey_label"]')).toHaveValue('e2e', { timeout: 20_000 });
-
-		await page.context().clearCookies();
-		await hub.set({ diluxone_e2e_wp_login: null });
-
-		await page.goto(hub.pages.login.url);
-		await page.locator('[data-diluxone-users-passkey="login"]').click();
-		await page.waitForURL((url) => !url.href.startsWith(hub.pages.login.url), { timeout: 20_000 });
-
-		expect(await whoOn(page, hub.url)).toBe(email);
-		expect(await hub.site.wpLogins(email)).toBe(1);
-
-		await cdp.send('WebAuthn.removeVirtualAuthenticator', { authenticatorId });
-	});
 });
 
 test.describe('A registration from somewhere else', () => {

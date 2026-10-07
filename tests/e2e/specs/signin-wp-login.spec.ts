@@ -353,7 +353,6 @@ test.describe('The emergency switch closes the rest', () => {
 			diluxone_e2e_sso: 1,
 			diluxone_users_sso: MOCK_ON,
 			diluxone_users_sso_login: 1,
-			diluxone_users_passkey_enabled: 1,
 			diluxone_users_login_method: 'both',
 			diluxone_users_lost_password: 'site',
 			diluxone_users_wp_profile: 'block',
@@ -362,21 +361,11 @@ test.describe('The emergency switch closes the rest', () => {
 		});
 	});
 
-	test('in safe mode: no social trip, no passkey dialogue, WordPress’s reset and WordPress’s profile', async ({ page, site, pages, options }) => {
-		await page.goto(pages.login.url);
-		const nonce = await page.evaluate(() => (window as any).diluxOneUsersPasskeys?.nonce as string);
-		expect(nonce, 'the passkey dialogue is there before the switch').toBeTruthy();
-
+	test('in safe mode: no social trip, WordPress’s reset and WordPress’s profile', async ({ page, site, options }) => {
 		await options.set({ diluxone_e2e_safe_mode: 1 });
 
 		const trip = await page.request.get('/sso/mock/?diluxone_users_go=1', { maxRedirects: 0, failOnStatusCode: false });
 		expect(trip.headers()['location'] ?? '', 'no trip to the provider').not.toContain('/oauth/authorize');
-
-		const ajax = await page.request.post('/wp-admin/admin-ajax.php', {
-			form: { action: 'diluxone_users_passkeys', nonce, step: 'login-options' },
-			failOnStatusCode: false,
-		});
-		expect(ajax.status(), 'the dialogue answers that there are no passkeys').toBe(400);
 
 		const email = freshEmail('safe-reset');
 		await site.makeUser({ email, password: PASSWORD });

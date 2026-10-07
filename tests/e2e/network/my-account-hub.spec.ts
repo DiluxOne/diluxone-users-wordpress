@@ -112,7 +112,6 @@ test.describe('Forms posted to /beta/', () => {
 		{ action: 'diluxone_users_security', fields: { diluxone_users_security: 'on' } },
 		{ action: 'diluxone_users_sessions', fields: {} },
 		{ action: 'diluxone_users_data_request', fields: { diluxone_users_request: 'export' } },
-		{ action: 'diluxone_users_passkey', fields: { diluxone_users_passkey: 'x', diluxone_users_passkey_do: 'delete' } },
 		{ action: 'diluxone_users_sso_unlink', fields: { diluxone_users_provider: 'mock' } },
 		{ action: 'diluxone_users_link_request', fields: { diluxone_users_email: 'nobody@e2e.test' } },
 		{ action: 'diluxone_users_signup', fields: { diluxone_users_email: 'nobody@e2e.test' } },

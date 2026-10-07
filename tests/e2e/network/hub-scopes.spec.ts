@@ -49,15 +49,6 @@ const CONTROLS: Array<{
 		after: { diluxone_users_2fa_link: 'never' },
 	},
 	{
-		tab: 'diluxone-users-security&tab=passkeys',
-		keys: { diluxone_users_passkey_where: 'any', diluxone_users_passkey_verify: 1 },
-		act: async (page) => {
-			await page.locator('input[name="diluxone_users_passkey_where"][value="device"]').check();
-			await page.locator('input[name="diluxone_users_passkey_verify"]').uncheck();
-		},
-		after: { diluxone_users_passkey_where: 'device', diluxone_users_passkey_verify: 0 },
-	},
-	{
 		tab: 'diluxone-users-security&tab=sessions',
 		keys: { diluxone_users_session_short_days: 0, diluxone_users_sessions_show: 1 },
 		act: async (page) => {

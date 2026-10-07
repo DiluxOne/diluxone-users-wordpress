@@ -62,7 +62,6 @@ test.describe('The sign-in page on a phone', () => {
 		await options.set({
 			diluxone_users_login_layout: 'tabs',
 			diluxone_users_login_method: 'both',
-			diluxone_users_passkey_enabled: 1,
 			diluxone_users_sso_login: 1,
 			diluxone_e2e_sso: 1,
 			diluxone_users_sso: MOCK_ON,

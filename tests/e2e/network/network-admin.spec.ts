@@ -10,7 +10,7 @@ import { MAPPED_HOST, NETWORK_ADMIN_STATE, NETWORK_URL } from '../../../playwrig
  * The network's settings, set in Network Admin and nowhere else.
  *
  * On a network where the plugin is on for every site, who gets in and how
- * safely is one decision for all of them: the second step, passkeys,
+ * safely is one decision for all of them: the second step,
  * sessions, the proxy, the social sign-in apps, the fields a person has, what
  * the log keeps. Those screens are in Network Admin, they leave every site's
  * menu, and what is saved there is what every site reads. A site's own
@@ -122,13 +122,6 @@ const SAVES: Array<{
 		before: '',
 		act: (page) => page.locator('textarea[name="diluxone_users_trusted_proxies"]').fill('10.0.0.1'),
 		after: '10.0.0.1',
-	},
-	{
-		tab: 'diluxone-users-security&tab=passkeys',
-		key: 'diluxone_users_passkey_enabled',
-		before: 0,
-		act: (page) => page.locator('input[name="diluxone_users_passkey_enabled"]').check(),
-		after: '1',
 	},
 	{
 		tab: 'diluxone-users-social&tab=general',
@@ -266,38 +259,6 @@ test.describe('A site’s menu keeps only what is its own', () => {
 
 			expect(response?.status(), url).toBe(403);
 		}
-	});
-});
-
-test.describe('A site cannot change the network’s settings', () => {
-	/**
-	 * Access › Ways in draws passkeys and social sign-in as they stand — they
-	 * are the network's — and a form forced open and sent anyway writes
-	 * nothing of them.
-	 */
-	test('the network’s doors on the main site’s Access are drawn, not saved', async ({ page, hub }) => {
-		await hub.set({ diluxone_users_passkey_enabled: 0, diluxone_users_sso_login: 1, diluxone_users_login_method: 'both', diluxone_users_login_expiry: 15 });
-
-		await page.goto(`${hub.url}wp-admin/admin.php?page=diluxone-users-login&tab=ways`);
-
-		const passkey = page.locator('input[name="diluxone_users_passkey_enabled"]');
-
-		await expect(passkey).toBeDisabled();
-
-		await passkey.evaluate((box: HTMLInputElement) => {
-			box.disabled = false;
-			box.checked = true;
-		});
-		// The same form carries a setting that is the hub's: that one saves,
-		// so the save ran and only the network's part was left out.
-		await page.locator('input[name="diluxone_users_login_expiry"]').fill('37');
-		await savePanel(page);
-
-		const stored = await hub.site.getOptions(['diluxone_users_passkey_enabled', 'diluxone_users_login_expiry', 'diluxone_users_sso_login']);
-
-		expect(Number(stored.diluxone_users_passkey_enabled), 'a box forced on and sent from a site’s screen').toBe(0);
-		expect(Number(stored.diluxone_users_login_expiry), 'the hub’s own setting, in the same form, saved').toBe(37);
-		expect(Number(stored.diluxone_users_sso_login), 'and the network’s other door left as it was').toBe(1);
 	});
 });
 

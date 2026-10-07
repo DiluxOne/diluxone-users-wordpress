@@ -1,6 +1,6 @@
 import { Page } from '@playwright/test';
 import { test, expect } from '../support/fixtures';
-import { accountSection, openAllPanels, openPanel } from '../support/ui';
+import { accountSection } from '../support/ui';
 import { anotherBrowser, reveal, signedIn } from '../support/my-account';
 
 /**
@@ -146,33 +146,4 @@ test('a session row puts its Close under the text', async ({ page, browser, base
 	expect(closeBox.y, 'the Close button below the text').toBeGreaterThanOrEqual(whatBox.y + whatBox.height - 1);
 	await expectNoSideScroll(page);
 	await other.context().close();
-});
-
-test.describe('A passkey on a phone', () => {
-	test.skip(({ browserName }) => browserName !== 'chromium', 'the virtual authenticator is a Chromium protocol');
-
-	test('the open key’s form keeps a narrow inset', async ({ page, site, pages, options }) => {
-		await options.set({
-			diluxone_users_account_sections: {},
-			diluxone_users_passkey_enabled: 1,
-			diluxone_users_passkey_where: 'any',
-			diluxone_users_passkey_verify: 1,
-		});
-		await signedIn(page, site, pages.login.url, 'mob-key');
-
-		const cdp = await page.context().newCDPSession(page);
-
-		await cdp.send('WebAuthn.enable', { enableUI: false });
-		await cdp.send('WebAuthn.addVirtualAuthenticator', {
-			options: { protocol: 'ctap2', transport: 'internal', hasResidentKey: true, hasUserVerification: true, isUserVerified: true, automaticPresenceSimulation: true },
-		});
-
-		await page.goto(accountSection(pages.account.url, 'security'));
-		await (await openPanel(page, '[data-diluxone-users-passkey="register"]')).locator('[data-diluxone-users-passkey="register"]').click();
-		await expect(page.locator('input[name="diluxone_users_passkey_label"]')).toHaveCount(1, { timeout: 20_000 });
-		await openAllPanels(page);
-
-		expect(await page.locator('.diluxone-users-key__edit').evaluate((el) => getComputedStyle(el).paddingLeft)).toBe('16px');
-		await expectNoSideScroll(page);
-	});
 });
