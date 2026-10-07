@@ -3,9 +3,9 @@
  * Everything about keeping an account from being taken over.
  *
  * Its tabs come from the features that are installed: the second factor
- * registers its own, passkeys registers its own, sessions registers its own.
- * The screen itself knows about none of them, which is what lets any one of
- * the three live in its own files and leave with them.
+ * registers its own, sessions registers its own, and so does an add-on's
+ * feature. The screen itself knows about none of them, which is what lets any
+ * one of them live in its own files and leave with them.
  *
  * If nothing registers anything, the screen does not appear in the menu at
  * all — an empty screen is worse than no screen.
@@ -58,8 +58,8 @@ add_action( 'diluxone_users_register_panels', 'diluxone_users_security_summary_p
  * Every line of the summary, from the features that are installed.
  *
  * The screen knows about none of them — that is the whole argument of this
- * file — so it cannot write down the rows either: a hard-coded passkeys row
- * on an install without passkeys is a summary that lies, which is worse than
+ * file — so it cannot write down the rows either: a hard-coded row for a
+ * feature that is not installed is a summary that lies, which is worse than
  * no summary. Each feature adds its own lines from its own file, at the
  * priority its tab sits at, so the table reads in the order of the tabs.
  *
@@ -120,6 +120,22 @@ function diluxone_users_screen_security_summary(): void {
 	diluxone_users_summary_table( diluxone_users_security_rows() );
 
 	/*
+	 * Where passkeys would add their lines, a picture of them: the summary is
+	 * where a feature of this screen says how it stands, and a tab of its own
+	 * holding nothing but a picture would be a screen of its own for an
+	 * upsell. Users+ Pro answers false to it once it brings them.
+	 */
+	diluxone_users_ui_pro(
+		array(
+			'where'  => 'security/summary/more',
+			'screen' => 'security',
+			'title'  => __( 'Passkeys', 'diluxone-users' ),
+			'text'   => __( 'Users+ Pro adds passkeys: which ones are accepted, whether the fingerprint, the face or the PIN is required, and who has one.', 'diluxone-users' ),
+		),
+		'diluxone_users_security_pro_picture'
+	);
+
+	/*
 	 * The rail carries the one thing the table cannot: the boundary. Half of
 	 * what people look for on a screen called Security is on Access, because
 	 * it is about doors, and saying so here is quicker than letting somebody
@@ -129,7 +145,7 @@ function diluxone_users_screen_security_summary(): void {
 		static function (): void {
 			diluxone_users_ui_note(
 				__( 'What none of this decides', 'diluxone-users' ),
-				__( 'Everything above happens to somebody who is already at the sign-in form. Which forms there are at all — the password, the e-mail link, the social buttons, the passkey — is a question about doors, and it is answered on Access.', 'diluxone-users' )
+				__( 'Everything above happens to somebody who is already at the sign-in form. Which forms there are at all — the password, the e-mail link, the social buttons — is a question about doors, and it is answered on Access.', 'diluxone-users' )
 			);
 
 			diluxone_users_ui_links(
@@ -138,7 +154,7 @@ function diluxone_users_screen_security_summary(): void {
 					array(
 						'url'   => diluxone_users_admin_url( 'diluxone-users-login', array( 'tab' => 'ways' ) ),
 						'label' => __( 'Access › Ways in', 'diluxone-users' ),
-						'help'  => __( 'What the sign-in form takes, passkeys among them: turning a door on is a question about doors.', 'diluxone-users' ),
+						'help'  => __( 'What the sign-in form takes: turning a door on is a question about doors.', 'diluxone-users' ),
 					),
 					array(
 						'url'   => diluxone_users_admin_url( 'diluxone-users-login' ),
@@ -148,5 +164,37 @@ function diluxone_users_screen_security_summary(): void {
 				)
 			);
 		}
+	);
+}
+
+/**
+ * The picture under the summary: lines a site with passkeys would read.
+ *
+ * Made up for the picture — but for the site's own address — and drawn with
+ * the table the summary is drawn with. Nothing in it sends.
+ */
+function diluxone_users_security_pro_picture(): void {
+	diluxone_users_summary_table(
+		array(
+			array(
+				'label'  => __( 'Passkeys', 'diluxone-users' ),
+				'state'  => 'active',
+				'detail' => sprintf(
+					/* translators: %s: the domain the passkeys are tied to */
+					esc_html__( 'Offered, and tied to %s: a passkey made here works here and nowhere else.', 'diluxone-users' ),
+					'<code>' . esc_html( (string) wp_parse_url( home_url(), PHP_URL_HOST ) ) . '</code>'
+				),
+			),
+			array(
+				'label'  => __( 'Which passkeys are accepted', 'diluxone-users' ),
+				'state'  => 'active',
+				'detail' => esc_html__( 'Any: the device being used, a USB key, or another phone.', 'diluxone-users' ),
+			),
+			array(
+				'label'  => __( 'The fingerprint, the face or the PIN', 'diluxone-users' ),
+				'state'  => 'active',
+				'detail' => esc_html__( 'Required, which is what makes a passkey count as two things at once.', 'diluxone-users' ),
+			),
+		)
 	);
 }

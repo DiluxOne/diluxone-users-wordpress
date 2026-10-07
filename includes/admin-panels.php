@@ -3,9 +3,9 @@
  * The tabs of a screen, registered instead of written down.
  *
  * A screen used to carry its tabs in an array in its own file, which meant
- * the file had to know about every feature that might appear on it. Passkeys
- * lived inside the sign-in screen; the social buttons lived inside the social
- * screen; and taking one out meant editing a file that had nothing to do with
+ * the file had to know about every feature that might appear on it. The
+ * second step lived inside the sign-in screen; the social buttons lived
+ * inside the social screen; and taking one out meant editing a file that had nothing to do with
  * it.
  *
  * Now a feature registers its own panel from its own file. The screen asks

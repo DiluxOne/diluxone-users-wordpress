@@ -357,8 +357,8 @@ details.diluxone-users-panel[open] > .diluxone-users-panel__head .diluxone-users
 }
 .diluxone-users-button--soft:hover { background: var(--diluxone-users-surface-alt); color: var(--diluxone-users-text); filter: none; }
 
-/* Used by the passkey button and by the way out of "check your email", and
-   until now it was a class on the markup with no rule behind it. */
+/* Used by a door that is one button and by the way out of "check your
+   email", and until now it was a class on the markup with no rule behind it. */
 .diluxone-users-button--wide { display: flex; width: 100%; }
 
 .diluxone-users-button--danger { background: var(--diluxone-users-danger); color: #fff; }
@@ -493,93 +493,6 @@ details.diluxone-users-panel[open] > .diluxone-users-panel__head .diluxone-users
 	.diluxone-users-session__what { flex: 1 1 100%; order: 2; }
 }
 
-/* ── Las passkeys ───────────────────────────────────────────────────── */
-
-/* Each key is a box that opens, the same as the screen panels: closed you
-   read the name, open you change it or remove the key. A text field always
-   open on every row looks like a half-filled form. */
-.diluxone-users-keys {
-	list-style: none;
-	margin: 0 0 var(--diluxone-users-gap);
-	padding: 0;
-	border: 1px solid var(--diluxone-users-border);
-	border-radius: var(--diluxone-users-radius);
-	overflow: hidden;
-	background: var(--diluxone-users-surface);
-}
-.diluxone-users-keys > li + li { border-top: 1px solid var(--diluxone-users-border); }
-
-.diluxone-users-key__row {
-	display: flex;
-	align-items: center;
-	gap: 14px;
-	padding: 12px 16px;
-	cursor: pointer;
-	list-style: none;
-}
-.diluxone-users-key__row::-webkit-details-marker { display: none; }
-.diluxone-users-key__row::marker { content: ''; }
-.diluxone-users-key__row:focus-visible { outline: 2px solid var(--diluxone-users-accent); outline-offset: -3px; }
-
-.diluxone-users-key__logo {
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-	width: 38px;
-	height: 38px;
-	flex: 0 0 38px;
-	border-radius: 50%;
-	background: var(--diluxone-users-accent-bg);
-	color: var(--diluxone-users-accent-ink);
-}
-.diluxone-users-key__who { display: flex; flex-direction: column; gap: 2px; flex: 1 1 auto; min-width: 0; }
-.diluxone-users-key__who > span { font-size: 0.9em; color: var(--diluxone-users-muted); }
-
-/* The same tip as the panels, in miniature: it is the same gesture. */
-.diluxone-users-key__arrow {
-	position: relative;
-	flex: 0 0 auto;
-	width: 30px;
-	height: 30px;
-	border-radius: 50%;
-	background: var(--diluxone-users-surface-alt);
-	transition: transform .18s ease, background-color .18s ease;
-}
-.diluxone-users-key__arrow::before {
-	content: '';
-	position: absolute;
-	top: 50%;
-	left: 50%;
-	width: 8px;
-	height: 8px;
-	border-right: 2px solid var(--diluxone-users-text);
-	border-bottom: 2px solid var(--diluxone-users-text);
-	transform: translate(-50%, -70%) rotate(45deg);
-}
-details.diluxone-users-key[open] > .diluxone-users-key__row .diluxone-users-key__arrow { transform: rotate(180deg); }
-.diluxone-users-key__row:hover .diluxone-users-key__arrow { background-color: color-mix( in srgb, var(--diluxone-users-accent) 16%, var(--diluxone-users-surface-alt) ); }
-
-.diluxone-users-key__edit {
-	display: flex;
-	flex-direction: column;
-	align-items: flex-start;
-	gap: 8px;
-	margin: 0;
-	padding: 4px 16px 18px 68px;
-}
-.diluxone-users-key__edit label { font-weight: 600; font-size: 0.9em; }
-.diluxone-users-key__edit input[type="text"] { width: 100%; max-width: 22rem; }
-.diluxone-users-key__actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
-.diluxone-users-key__actions .diluxone-users-button { min-height: 38px; padding: 0 16px; font-size: 0.9em; }
-
-.diluxone-users-key-add { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px; margin: 0; }
-.diluxone-users-key-add .diluxone-users-key__field { display: flex; flex-direction: column; gap: 6px; flex: 0 1 22rem; min-width: 0; }
-.diluxone-users-key-add label { font-weight: 600; }
-
-@media (max-width: 640px) {
-	.diluxone-users-key__edit { padding-left: 16px; }
-}
-
 /* ── The shape of the sign-in page ──────────────────────────────────
    Three of the four take over the page. They break out of the theme's column
    with the same full-bleed margin the account cover uses — a sign-in screen
@@ -653,7 +566,7 @@ details.diluxone-users-key[open] > .diluxone-users-key__row .diluxone-users-key_
 /* The panel is never taller than the window, and stays put while the form
    goes past it.
 
-   A form with a dozen networks, a passkey, an address and a password on it is
+   A form with a dozen networks, an address and a password on it is
    genuinely longer than a laptop screen, and stretching the panel to match was
    putting the one sentence this page came to say — the heading — at the middle
    of a column twice the height of the window, which is to say below the fold.
@@ -843,8 +756,8 @@ details.diluxone-users-key[open] > .diluxone-users-key__row .diluxone-users-key_
 
 /* The sign-in block itself. A reading column is the right measure for a form
    in a page and the wrong one for the one thing a screen exists to do, so in
-   here the form takes the room the frame gives it and the two doors — the
-   passkey and the link — go the whole way across. How wide "the whole way"
+   here the form takes the room the frame gives it and the doors — the link,
+   and any that is one button — go the whole way across. How wide "the whole way"
    is, is the frame's business, and a site that wants a narrower column than
    the frame says so once. */
 .diluxone-users-login { width: 100%; max-width: var(--diluxone-users-login-w, none); margin-inline: auto; }

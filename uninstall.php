@@ -5,7 +5,7 @@
  * By default: everything. The settings, the activity log and — above all —
  * what is in people's profiles. Most of what this plugin wrote is not the
  * plugin's: it is somebody's name, their phone number, their date of birth,
- * the passkey they sign in with and the second factor standing between their
+ * the keys they sign in with and the second factor standing between their
  * account and whoever wants it. A plugin deleted by accident, or deleted in
  * order to be installed again, must not be the thing that loses them.
  *

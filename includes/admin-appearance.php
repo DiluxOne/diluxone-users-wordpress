@@ -744,7 +744,7 @@ function diluxone_users_screen_design_brand(): void {
 				'name'    => 'diluxone_users_button_icons',
 				'value'   => '1',
 				'checked' => (bool) diluxone_users_option( 'diluxone_users_button_icons' ),
-				'title'   => __( 'An icon inside the two doors: an envelope on the link, a key on the passkey', 'diluxone-users' ),
+				'title'   => __( 'An icon inside the buttons of the doors: an envelope on the link', 'diluxone-users' ),
 			),
 		)
 	);

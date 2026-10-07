@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       DiluxOne Users+
  * Plugin URI:        https://github.com/DiluxOne/diluxone-users-wordpress
- * Description:       Custom user fields, a front-end account area, passwordless sign-in, social login, two-step verification, passkeys and session control.
+ * Description:       Custom user fields, a front-end account area, passwordless sign-in, social login, two-step verification and session control.
  * Version:           1.0.0
  * Author:            Pablo Ariel Di Loreto
  * Author URI:        https://diluxone.com/plugins-wordpress
@@ -23,8 +23,8 @@
  * Here it lives once.
  *
  * What it covers: the details you ask a person for, the account area on the
- * front end, how they sign in — e-mail link, password, social accounts,
- * passkeys —, the second factor, their sessions and their data.
+ * front end, how they sign in — e-mail link, password, social accounts —,
+ * the second factor, their sessions and their data.
  *
  * What it does not cover yet: paid subscriptions. That drags in a payment
  * gateway, recurring billing, retries and invoicing, and it will arrive as a

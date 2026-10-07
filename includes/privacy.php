@@ -4,21 +4,22 @@
  *
  * `log-privacy.php` answers for the activity log. This file answers for the
  * rest, and the rest is most of it: the answers to the fields the site asks
- * for, the public name, the avatar, the social accounts that are linked, the
- * passkeys, whether there is a second step and which browsers have been seen.
+ * for, the public name, the avatar, the social accounts that are linked,
+ * whether there is a second step, which browsers have been seen, and whatever
+ * an add-on keeps under the plugin's namespace.
  *
  * It matters because of what the two tools in Tools → Export/Erase Personal
  * Data look like when this is missing. They report success. A site owner
  * answers a legal request saying the data is gone, and the person's document
- * number, phone number, linked Google account and passkeys are all still in
+ * number, phone number and linked Google account are all still in
  * `wp_usermeta` — invisible, because core's own exporter walks the user row
  * and not the meta a plugin invented. The readme promised the opposite, which
  * made the gap a claim rather than an omission.
  *
  * What is exported is what the person is entitled to see. What is NOT
  * exported is anything that is a credential rather than a fact about them:
- * the TOTP secret, the backup-code hashes and a passkey's public key say
- * nothing about a person and would be a copy of the keys to the account,
+ * the TOTP secret, the backup-code hashes and an add-on's keys say nothing
+ * about a person and would be a copy of the keys to the account,
  * travelling by e-mail in a zip. The erasers remove them all the same.
  *
  * @package DiluxOneUsers
@@ -46,7 +47,7 @@ add_filter( 'wp_privacy_personal_data_exporters', 'diluxone_users_privacy_export
  * Everything at once, in one page.
  *
  * Unlike the log, this does not grow: it is one row per field and one per
- * passkey, for one person. There is nothing here that a site with a hundred
+ * thing an add-on keeps, for one person. There is nothing here that a site with a hundred
  * thousand of anything could turn into a timeout.
  *
  * @return array{data: array<int, array<string, mixed>>, done: bool}
@@ -82,28 +83,6 @@ function diluxone_users_privacy_export( string $email, int $page = 1 ): array {
 			'group_label' => __( 'How you sign in', 'diluxone-users' ),
 			'item_id'     => 'diluxone-users-access',
 			'data'        => $access,
-		);
-	}
-
-	foreach ( diluxone_users_passkeys( $user_id ) as $index => $key ) {
-		$items[] = array(
-			'group_id'    => 'diluxone-users-passkeys',
-			'group_label' => __( 'Passkeys', 'diluxone-users' ),
-			'item_id'     => 'diluxone-users-passkey-' . $index,
-			'data'        => array(
-				array(
-					'name'  => __( 'Name', 'diluxone-users' ),
-					'value' => (string) ( $key['label'] ?? '' ),
-				),
-				array(
-					'name'  => __( 'Added', 'diluxone-users' ),
-					'value' => diluxone_users_privacy_when( (int) ( $key['created'] ?? 0 ) ),
-				),
-				array(
-					'name'  => __( 'Last used', 'diluxone-users' ),
-					'value' => diluxone_users_privacy_when( (int) ( $key['used'] ?? 0 ) ),
-				),
-			),
 		);
 	}
 
@@ -188,13 +167,12 @@ function diluxone_users_privacy_retained(): array {
  * @return array<int, string>
  */
 function diluxone_users_privacy_unknown_keys( int $user_id ): array {
-	$known = array_merge( diluxone_users_privacy_keys( $user_id ), diluxone_users_privacy_retained(), array( 'diluxone_users_passkeys' ) );
+	$known = array_merge( diluxone_users_privacy_keys( $user_id ), diluxone_users_privacy_retained() );
 
 	return array_values(
 		array_filter(
 			diluxone_users_privacy_meta_keys( $user_id ),
-			// A passkey's index row is the list's shadow, explained with it.
-			static fn( string $key ): bool => ! in_array( $key, $known, true ) && 0 !== strpos( $key, 'diluxone_users_pk_' )
+			static fn( string $key ): bool => ! in_array( $key, $known, true )
 		)
 	);
 }
@@ -370,7 +348,7 @@ add_filter( 'wp_privacy_personal_data_erasers', 'diluxone_users_privacy_eraser' 
 /**
  * Removes it, credentials included.
  *
- * The second factor and the passkeys go with the rest. It reads like the one
+ * The second factor and an add-on's keys go with the rest. It reads like the one
  * thing worth keeping — it protects the account — but an erasure request is
  * somebody saying the account should not hold anything of theirs, and a TOTP
  * secret derived from nothing but them is theirs. The account is left with
@@ -420,11 +398,6 @@ function diluxone_users_privacy_erase( string $email, int $page = 1 ): array {
 		delete_user_meta( $user_id, $key );
 		$removed = true;
 	}
-
-	// Through the saver and not by hand: it is what keeps the credential-id
-	// index in step with the list, and an index row left behind is a row that
-	// still says whose passkey a credential is.
-	diluxone_users_passkeys_save( $user_id, array() );
 
 	// The sites an administrator removed them from stay: it is the one thing
 	// that keeps the plugin from adding them back, and the account may outlive
@@ -533,7 +506,7 @@ function diluxone_users_privacy_keys( int $user_id ): array {
 function diluxone_users_privacy_policy(): void {
 	$text = '<p>' . __( 'This site uses DiluxOne Users+ to hold accounts and sign people in.', 'diluxone-users' ) . '</p>'
 		. '<p><strong>' . __( 'What is stored in your profile', 'diluxone-users' ) . '</strong> — '
-		. __( 'the answers to the fields this site asks for, your public name, your profile picture, which social accounts you have linked, your passkeys, whether two-step verification is on, and a hash of each browser you have signed in from so that a new one can be announced once.', 'diluxone-users' ) . '</p>'
+		. __( 'the answers to the fields this site asks for, your public name, your profile picture, which social accounts you have linked, whether two-step verification is on, and a hash of each browser you have signed in from so that a new one can be announced once.', 'diluxone-users' ) . '</p>'
 		. '<p><strong>' . __( 'What is stored in the activity log', 'diluxone-users' ) . '</strong> — '
 		. __( 'for each recorded event: the date, the account, your IP address and your browser’s user-agent string. When a sign-in is refused, what was typed in the username box is kept with it, because that is how an attempt to guess an account is recognised. Which events are recorded, and for how many days, are settings of this site.', 'diluxone-users' ) . '</p>'
 		. '<p><strong>' . __( 'Cookies', 'diluxone-users' ) . '</strong> — '

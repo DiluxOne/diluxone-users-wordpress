@@ -7,7 +7,7 @@
  * detail of storage but of meaning:
  *
  * - 'network': one value for the whole network. What decides who gets in and
- *   how safely — the second step, passkeys, how long a session lasts, which
+ *   how safely — the second step, how long a session lasts, which
  *   proxy to believe, the social credentials and the rules about linking an
  *   identity, the fields a person has, the log's retention. People are
  *   network-wide, and a person's second factor or the field holding their
@@ -68,9 +68,6 @@ function diluxone_users_option_scopes(): array {
 		// See includes/membership.php.
 		'diluxone_users_membership_queue'       => 'network',
 		'diluxone_users_log_levels'             => 'network',
-		'diluxone_users_passkey_enabled'        => 'network',
-		'diluxone_users_passkey_verify'         => 'network',
-		'diluxone_users_passkey_where'          => 'network',
 		'diluxone_users_session_long_days'      => 'network',
 		'diluxone_users_session_short_days'     => 'network',
 		'diluxone_users_sessions_show'          => 'network',

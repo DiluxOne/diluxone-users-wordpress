@@ -340,7 +340,8 @@ function diluxone_users_option_defaults_own(): array {
 		// quiet one. It travels as properties and not as a class, so it is the
 		// same answer on every screen that has a button on it.
 		'diluxone_users_button_style'          => 'solid',
-		// The icon inside the two doors — the link by e-mail and the passkey.
+		// The icon inside the buttons of the doors — the link by e-mail, and
+		// any door an add-on draws with diluxone_users_button_icon().
 		'diluxone_users_button_icons'          => 0,
 		// And the one on the screen that says the e-mail is on its way: on its
 		// own, or in a circle of washed colour.
@@ -401,7 +402,6 @@ function diluxone_users_option_defaults_own(): array {
 		// Days a browser that already passed the challenge is remembered. 0 = never.
 		'diluxone_users_2fa_remember_days'     => 30,
 
-		// ── Passkeys ──────────────────────────────────────────────────
 		// ── Privacy ─────────────────────────────────────────────────
 		// What somebody can do with their own data without asking anyone.
 		// Both come turned on: it is the right thing, and a site that would
@@ -433,13 +433,6 @@ function diluxone_users_option_defaults_own(): array {
 		// ── Sessions ────────────────────────────────────────────────
 		// Whether each person sees where their sessions are open and can close them.
 		'diluxone_users_sessions_show'         => 1,
-
-		'diluxone_users_passkey_enabled'       => 0,
-		// 'device' only the key of the device in use; 'any' also the ones from
-		// outside — a USB key, or the phone scanning a QR code.
-		'diluxone_users_passkey_where'         => 'any',
-		// Require verifying who they are on top: fingerprint, face or PIN.
-		'diluxone_users_passkey_verify'        => 1,
 
 		// What happens when somebody opens the WordPress dashboard profile:
 		// 'allow' nothing, 'redirect' sends them to the site account area,
@@ -474,9 +467,9 @@ function diluxone_users_option_defaults_own(): array {
 		// ── Deleting the plugin ───────────────────────────────────────
 		// Whether removing the plugin also removes everything it wrote.
 		// Off, because most of what it wrote is not the plugin's: it is
-		// people's names, phone numbers and dates of birth, and their
-		// passkeys and second factors. A plugin deleted by accident, or
-		// deleted to be reinstalled, must not be the thing that loses
+		// people's names, phone numbers and dates of birth, and the keys
+		// and second factors they sign in with. A plugin deleted by
+		// accident, or deleted to be reinstalled, must not be the thing that loses
 		// them. Whoever really wants it all gone ticks this first.
 		'diluxone_users_uninstall_wipe'        => 0,
 
