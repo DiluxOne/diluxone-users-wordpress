@@ -136,10 +136,6 @@ msgstr "L’application d’authentification a été retirée."
 msgid "System"
 msgstr "Du système"
 
-#: includes/account.php:120
-msgid "Yours"
-msgstr "La vôtre"
-
 #: includes/admin-account.php:259 includes/admin-account.php:970
 msgid "Sections"
 msgstr "Sections"
@@ -157,10 +153,6 @@ msgstr "Nouvel ordre enregistré."
 msgid "Section saved."
 msgstr "Section enregistrée."
 
-#: includes/admin-account.php:546
-msgid "Section removed."
-msgstr "Section retirée."
-
 #: includes/admin-account.php:548
 msgid "That section needs a name, and an address that is not taken."
 msgstr ""
@@ -174,17 +166,9 @@ msgstr "Il n’y a pas encore de page de compte"
 msgid "The sections of “my account”"
 msgstr "Les sections de « mon compte »"
 
-#: includes/admin-account.php:604 includes/admin-account.php:734
-msgid "Add section"
-msgstr "Ajouter une section"
-
 #: includes/admin-account.php:641
 msgid "Save the order"
 msgstr "Enregistrer l’ordre"
-
-#: includes/admin-account.php:739
-msgid "New section"
-msgstr "Nouvelle section"
 
 #: includes/admin-account.php:760
 msgid "Showing"
@@ -193,10 +177,6 @@ msgstr "Affichée"
 #: includes/admin-account.php:760 includes/admin-fields.php:486
 msgid "Hidden"
 msgstr "Masquée"
-
-#: includes/admin-account.php:781
-msgid "Delete this section?"
-msgstr "Supprimer cette section ?"
 
 #: includes/admin-account.php:782 includes/admin.php:432
 msgid "Remove"
@@ -10391,3 +10371,15 @@ msgstr "Sauge"
 #: includes/palette.php:103
 msgid "Paper"
 msgstr "Papier"
+
+#: includes/admin-account.php
+msgid "Sections of your own"
+msgstr "Vos propres sections"
+
+#: includes/admin-account.php
+msgid ""
+"Users+ Pro adds sections of the site’s own to the account area: your text, "
+"or the shortcode of a course, a membership or a support desk, each with its "
+"name, address and who sees it."
+msgstr ""
+"Users+ Pro ajoute à l’espace compte des sections propres au site : votre texte, ou le shortcode d’un cours, d’une adhésion ou d’un support, chacune avec son nom, son adresse et qui la voit."

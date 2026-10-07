@@ -130,10 +130,6 @@ msgstr "Se quitó la aplicación autenticadora."
 msgid "System"
 msgstr "Del sistema"
 
-#: includes/account.php:120
-msgid "Yours"
-msgstr "Tuya"
-
 #: includes/admin-account.php:259 includes/admin-account.php:970
 msgid "Sections"
 msgstr "Secciones"
@@ -151,10 +147,6 @@ msgstr "Listo, ese es el orden nuevo."
 msgid "Section saved."
 msgstr "Sección guardada."
 
-#: includes/admin-account.php:546
-msgid "Section removed."
-msgstr "Sección eliminada."
-
 #: includes/admin-account.php:548
 msgid "That section needs a name, and an address that is not taken."
 msgstr "Esa sección necesita un nombre, y una dirección que no esté ocupada."
@@ -167,17 +159,9 @@ msgstr "Todavía no hay página de cuenta"
 msgid "The sections of “my account”"
 msgstr "Las secciones de \"mi cuenta\""
 
-#: includes/admin-account.php:604 includes/admin-account.php:734
-msgid "Add section"
-msgstr "Agregar sección"
-
 #: includes/admin-account.php:641
 msgid "Save the order"
 msgstr "Guardar el orden"
-
-#: includes/admin-account.php:739
-msgid "New section"
-msgstr "Sección nueva"
 
 #: includes/admin-account.php:760
 msgid "Showing"
@@ -186,10 +170,6 @@ msgstr "Se muestra"
 #: includes/admin-account.php:760 includes/admin-fields.php:486
 msgid "Hidden"
 msgstr "Oculto"
-
-#: includes/admin-account.php:781
-msgid "Delete this section?"
-msgstr "¿Borrar esta sección?"
 
 #: includes/admin-account.php:782 includes/admin.php:432
 msgid "Remove"
@@ -10267,3 +10247,15 @@ msgstr "Salvia"
 #: includes/palette.php:103
 msgid "Paper"
 msgstr "Papel"
+
+#: includes/admin-account.php
+msgid "Sections of your own"
+msgstr "Secciones propias"
+
+#: includes/admin-account.php
+msgid ""
+"Users+ Pro adds sections of the site’s own to the account area: your text, "
+"or the shortcode of a course, a membership or a support desk, each with its "
+"name, address and who sees it."
+msgstr ""
+"Users+ Pro agrega secciones propias del sitio al área de cuenta: tu texto, o el shortcode de un curso, una membresía o una mesa de ayuda, cada una con su nombre, su dirección y quién la ve."

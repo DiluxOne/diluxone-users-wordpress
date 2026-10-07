@@ -136,10 +136,6 @@ msgstr "L’app di autenticazione è stata rimossa."
 msgid "System"
 msgstr "Di sistema"
 
-#: includes/account.php:120
-msgid "Yours"
-msgstr "Tua"
-
 #: includes/admin-account.php:259 includes/admin-account.php:970
 msgid "Sections"
 msgstr "Sezioni"
@@ -157,10 +153,6 @@ msgstr "Nuovo ordine salvato."
 msgid "Section saved."
 msgstr "Sezione salvata."
 
-#: includes/admin-account.php:546
-msgid "Section removed."
-msgstr "Sezione rimossa."
-
 #: includes/admin-account.php:548
 msgid "That section needs a name, and an address that is not taken."
 msgstr ""
@@ -174,17 +166,9 @@ msgstr "Non c’è ancora una pagina account"
 msgid "The sections of “my account”"
 msgstr "Le sezioni di «il mio account»"
 
-#: includes/admin-account.php:604 includes/admin-account.php:734
-msgid "Add section"
-msgstr "Aggiungi sezione"
-
 #: includes/admin-account.php:641
 msgid "Save the order"
 msgstr "Salva l’ordine"
-
-#: includes/admin-account.php:739
-msgid "New section"
-msgstr "Nuova sezione"
 
 #: includes/admin-account.php:760
 msgid "Showing"
@@ -193,10 +177,6 @@ msgstr "Visibile"
 #: includes/admin-account.php:760 includes/admin-fields.php:486
 msgid "Hidden"
 msgstr "Nascosta"
-
-#: includes/admin-account.php:781
-msgid "Delete this section?"
-msgstr "Eliminare questa sezione?"
 
 #: includes/admin-account.php:782 includes/admin.php:432
 msgid "Remove"
@@ -10288,3 +10268,15 @@ msgstr "Salvia"
 #: includes/palette.php:103
 msgid "Paper"
 msgstr "Carta"
+
+#: includes/admin-account.php
+msgid "Sections of your own"
+msgstr "Sezioni tue"
+
+#: includes/admin-account.php
+msgid ""
+"Users+ Pro adds sections of the site’s own to the account area: your text, "
+"or the shortcode of a course, a membership or a support desk, each with its "
+"name, address and who sees it."
+msgstr ""
+"Users+ Pro aggiunge all’area account sezioni proprie del sito: il tuo testo, o lo shortcode di un corso, di un abbonamento o di un servizio di assistenza, ognuna con il suo nome, il suo indirizzo e chi la vede."
