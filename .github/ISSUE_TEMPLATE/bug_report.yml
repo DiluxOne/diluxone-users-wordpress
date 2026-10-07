@@ -79,7 +79,6 @@ body:
         - E-mail link (passwordless)
         - Username and password
         - Social provider
-        - Passkey
         - Second factor by e-mail code
         - Second factor by authenticator app
         - Backup code

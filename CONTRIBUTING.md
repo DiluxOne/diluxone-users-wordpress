@@ -4,7 +4,7 @@ Thanks for helping. This page covers issues, pull requests and what CI enforces.
 
 ## Bugs, ideas and questions
 
-- **A bug or a feature request:** open a [new issue](https://github.com/DiluxOne/diluxone-users-wordpress/issues/new/choose) with the matching template. Say which WordPress and PHP, single site or network, and which way in (e-mail link, password, a social provider, a passkey, a second factor): most sign-in bugs depend on the combination.
+- **A bug or a feature request:** open a [new issue](https://github.com/DiluxOne/diluxone-users-wordpress/issues/new/choose) with the matching template. Say which WordPress and PHP, single site or network, and which way in (e-mail link, password, a social provider, a second factor): most sign-in bugs depend on the combination.
 - **Using the plugin** (how do I…?, my sign-in link does not arrive): the [wordpress.org support forum](https://wordpress.org/support/plugin/diluxone-users/), once the plugin is published, where answers stay public for the next person.
 - **A security vulnerability:** [SECURITY.md](SECURITY.md), never a public issue. A plugin that decides who gets into a site is worth reporting privately even when you are not sure.
 

@@ -12,7 +12,7 @@ kind: wordpress-plugin
 high-risk:
   - "diluxone-users.php"
   - "uninstall.php"
-  # Signing in: the second factor, passkeys, the ways in, the e-mail link.
+  # Signing in: the second factor, the ways in, the e-mail link.
   - "includes/auth*.php"
   - "includes/login*.php"
   - "includes/passwordless.php"

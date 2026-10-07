@@ -114,6 +114,29 @@ add_filter( 'diluxone_users_allowed_html', function ( array $allowed ): array {
 } );
 ```
 
+### Drawing a tab
+
+A tab is drawn out of the same pieces as the plugin's, so it looks like the
+rest of the admin and follows it when the admin changes:
+
+- `diluxone_users_ui_aside_open()` and `diluxone_users_ui_aside_close( $rail )`
+  — the column of settings and the rail beside it (`$rail` prints what goes
+  there: notes, notices, links).
+- `diluxone_users_intro( $text )` — the sentence under the tab's title;
+  `diluxone_users_ui_section( $title, $help )` — a group's heading.
+- `diluxone_users_ui_choices( $choices )` — radios and tick boxes, each
+  `type`, `name`, `value`, `checked`, `title`, `help` (and `state`, `note`,
+  `disabled`, `children`).
+- `diluxone_users_ui_note( $title, $text, $state )`, `diluxone_users_ui_notice( $html, $kind )`,
+  `diluxone_users_ui_links( $title, $links )` (each `url`, `label`, `help`)
+  and `diluxone_users_not_now( $why, $url, $go )` — what the rail and a
+  dimmed control say.
+- `diluxone_users_summary_table( $rows )` — a summary.
+- `diluxone_users_admin_url( $screen, $args )` — a link to a screen and tab,
+  in the site's admin or Network Admin, wherever it is drawn;
+  `diluxone_users_admin_context()` — `single`, `network` (Network Admin) or
+  `site` (a site of a network).
+
 ### The shape every screen has
 
 The first tab of a screen with settings is a **Summary**: `form => false`,
@@ -131,8 +154,8 @@ reason), `off`, and `unknown` for what cannot be told from inside the site.
 The Security screen's summary is built from what each feature says about
 itself: `diluxone_users_security_summary` (filter) receives the rows, an
 array of `label`, `state` and optionally `why`, `word`, `detail`, `url` and
-`change`, and a feature adds its own at the priority its tab sits at (the
-passkeys at 20, the sessions at 30, the proxy at 50). A row without a label
+`change`, and a feature adds its own at the priority its tab sits at (an
+add-on's at 20, the sessions at 30, the proxy at 50). A row without a label
 or a state is dropped.
 
 The state is not negotiable and the word is. Most rows are switches and read
@@ -172,8 +195,8 @@ say so.
 
 The sign-in page draws the ways in from a registry, not from a list in the
 template: each one registers itself, and the template asks what there is. The
-plugin's own four — the passkey, the networks, the e-mail link and the
-password — register this way, and so does an add-on's.
+plugin's own three — the networks, the e-mail link and the password — register
+this way, and so does an add-on's (Users+ Pro's passkey is one).
 
 ```php
 add_action( 'diluxone_users_register_ways', function () {
@@ -186,8 +209,9 @@ add_action( 'diluxone_users_register_ways', function () {
             'available' => 'my_addon_sms_offered',     // asked every time; false and it takes no room
             'over'      => __( 'or by SMS', 'my-addon' ), // the divider above it when they are stacked
             'states'    => array( 'sms' ),             // the diluxone-users= states it authors: the tab that opens after a failed attempt
-            'outside'   => false,                      // true: above the tabs, always visible (the passkey is)
-            'position'  => 25,                         // the plugin's own: 0, 10, 20, 30
+            'outside'   => false,                      // true: above the tabs, always visible (a one-button way in)
+            'strong'    => false,                      // true: it already proves two things, so no second step after it
+            'position'  => 25,                         // the plugin's own: 10, 20, 30
         )
     );
 } );
@@ -199,7 +223,45 @@ Ways in; a way it has never seen follows in the order its `position` asks
 for. `diluxone_users_ways` (filter) receives the ways this site offers, in
 order, once `available` has been asked: it is for taking one out or moving
 it. The id ends up in a cookie (`diluxone_users_way`, the last way used) and in
-the saved order; it is a word and nothing else.
+the saved order; it is a word and nothing else. A way that is not registered
+any more — its add-on is off — is skipped wherever the order, the tab to open
+or the cookie names it, and the next way opens.
+
+A way registered with `strong` proves two things in one gesture — something
+the person has and something they are or know — so a session opened through
+it with `diluxone_users_open_session( $user_id, $id, $remember )` or
+`diluxone_users_complete_login()` is not asked for the second step
+(`diluxone_users_way_strong( $via )` answers it).
+
+A way in is switched on with the others, on Access › Ways in.
+`diluxone_users_way_switches` (filter) takes one box per way, keyed by the
+setting it writes (1 or 0) — a key the add-on added through
+`diluxone_users_option_defaults`, with a scope; any other key is left out:
+
+```php
+add_filter( 'diluxone_users_way_switches', function ( array $switches ): array {
+    $switches['diluxone_users_sms_enabled'] = array(
+        'title'    => __( 'A code by SMS', 'my-addon' ),
+        'help'     => __( 'Sent to the number on the account.', 'my-addon' ),
+        'state'    => '',          // 'pending' when it cannot work yet, with
+        'note'     => '',          // the reason here
+        'settings' => array(       // where the rest of it is set up, listed beside the boxes
+            'url'   => diluxone_users_admin_url( 'diluxone-users-security', array( 'tab' => 'sms' ) ),
+            'label' => __( 'By SMS', 'my-addon' ),
+            'help'  => __( 'The sender and the message.', 'my-addon' ),
+        ),
+    );
+    return $switches;
+} );
+```
+
+The screen draws the box, ticked from the setting, and writes it on save —
+only while the box is drawn, so an add-on that is off never has its setting
+turned off by somebody saving the tab. On a network a box whose setting is
+not editable from the hub is drawn as it stands, and switched where the
+add-on's own tab is (in Network Admin). `diluxone_users_doors` (filter)
+receives Access › Summary's rows before how an account is made; an add-on
+adds its way in there, as a summary row.
 
 ### Doors on a network
 
@@ -226,6 +288,10 @@ to the site they started from. What an add-on or a theme builds on:
   is its own wp-login.php; `$args['url']` the address it leads to,
   `$args['hub']` the hub's name),
   which a theme can replace like any other template.
+- `diluxone_users_hub_posts` (filter) — the `admin-post.php` actions that
+  belong to the hub. One posted to another site is sent to the hub before
+  its handler writes anything, and one sent by somebody signed out to sign
+  in. Add yours when your forms are on the account area or the sign-in page.
 - `diluxone_users_off_hub()` says whether the current site is a site of a
   network other than the hub; `diluxone_users_sends_to_hub()` whether it sends
   people there (not a site on a domain of its own, see
@@ -352,6 +418,101 @@ and give each card an `id`: that is the key the admin remembers when somebody
 turns one off. Without one, the plugin makes it from the label, and the label
 changes.
 
+## The account's Security section
+
+The section people manage their own security on (`templates/account/security.php`)
+has three seams for an add-on that keeps a way in on the account:
+
+- `diluxone_users_account_security` (action, `( WP_User $user )`) fires
+  between how somebody gets in and the second step. Draw a panel of your own
+  there with `diluxone_users_panel_open( $title )` and
+  `diluxone_users_panel_close()`, like the plugin's.
+- `diluxone_users_security_notices` (filter, `( array $notices, WP_User $user )`)
+  maps the `diluxone-users=` word an action comes back with to a notice:
+  `array( 'ok' | 'error', $sentence )`.
+- A form of yours posts to an `admin-post.php` action of its own, or to
+  `diluxone_users_security` with a word the plugin does not know:
+  `diluxone_users_security_action` (action, `( string $action, int $user_id, string $target )`)
+  fires for it once the nonce (`diluxone_users_security`) and the session are
+  checked, and you redirect; if you do not, the person is sent back to the
+  section (`$target`). On a network add your own action to
+  `diluxone_users_hub_posts` (below).
+
+Front-end pieces an add-on draws with: the classes `diluxone-users-button`
+(`--wide`, `--soft`), `diluxone-users-notice` (`--ok`, `--error`) and
+`diluxone-users-note`, the stylesheet handle `diluxone-users` to depend on,
+`diluxone_users_icon( $name )` and `diluxone_users_button_icon( $name )` (an
+icon from the plugin's set, inside a button only when the site wants icons),
+and `diluxone_users_allowed_html()` for `wp_kses()`.
+
+## A door of your own
+
+What an add-on's way in calls once it has proved who somebody is, so it
+behaves like the plugin's own doors:
+
+- `diluxone_users_join_site( $user_id )` — on a network, makes them a member
+  of this site if the network's policy says so. Every door calls it.
+- `diluxone_users_open_session( $user_id, $via, $remember )` — opens the
+  session, fires `wp_login` and `diluxone_users_logged_in`, and records the
+  sign-in. `$via` is the id of your way in. Or
+  `diluxone_users_complete_login( $user_id, $via, $remember, $redirect )`,
+  which also asks for the second step unless the way is `strong`.
+- `diluxone_users_login_redirect` (filter) — where they go next.
+- `diluxone_users_notify_security( $user_id, $event )` — the e-mail that tells
+  somebody their security changed; `$event` is a callable that returns the
+  sentence, called in their language.
+- `diluxone_users_via_labels` (filter) names your door in the new-device
+  e-mail ("a key on your phone"), `diluxone_users_log_doors` (filter) in the
+  activity log ("Key").
+- `diluxone_users_ip_burst( $what, $many, $window )` — false once this address
+  asked for `$what` more than `$many` times in `$window` seconds: the ceiling
+  for an endpoint somebody signed out can call.
+- `diluxone_users_safe_mode()` — while it is true, your door is shut.
+- `diluxone_users_login_url()`, `diluxone_users_account_url( $section )`,
+  `diluxone_users_display_name( $user )`, `diluxone_users_off_hub()`,
+  `diluxone_users_hub_site_id()` and `diluxone_users_hub_name()` — where people
+  sign in and keep their account, and on a network which site that is: an
+  add-on whose keys belong to a domain uses the hub's.
+
+## A person in Users
+
+The Access column of Users and the block on somebody's profile say what the
+account has. An add-on that keeps a way in on it adds to both:
+
+- `diluxone_users_person_chips` (filter, `( array $chips, int $user_id )`) —
+  the column's chips: `array( 'on' | 'blank', $words )`.
+- `diluxone_users_person_rows` (filter, `( array $rows, WP_User $user )`) —
+  the block's facts, as summary rows, in order.
+- `diluxone_users_person_take_off` (filter, `( array $choices, WP_User $user )`) —
+  tick boxes an administrator ticks to take one of your things off the
+  account, with names of your own.
+- `diluxone_users_person_saved` (action, `( int $user_id )`) — the profile was
+  saved; the profile's nonce and `edit_user` are checked. Read your boxes
+  here, checking both again first.
+
+## Reports
+
+- `diluxone_users_stats` (filter) — the counts of this site's accounts; add
+  yours under a key of your own. The plugin's own counts are kept.
+- `diluxone_users_usage` (filter, `( array $rows, array $stats )`) — what
+  people chose, as Overview › Usage and Maintenance › Status draw it: a
+  `label`, a `detail` line and a `value`.
+- `diluxone_users_checks` (filter) — the checks on Maintenance › Status, in
+  the shape `diluxone_users_check()` returns; a check without a label or a
+  state is dropped.
+
+## The activity log
+
+`diluxone_users_log_record( $event, $user_id, $detail )` writes a row when the
+site records that event's group. An add-on's events are its own:
+
+- `diluxone_users_log_events` (filter) — event => group (`access`, `account`
+  or `security`). An event in no group that exists is never written; the
+  plugin's own keep theirs.
+- `diluxone_users_log_labels` (filter) — what each event is called.
+- `diluxone_users_log_says` (filter, `( string $says, array $row, bool $network )`)
+  — what a row of yours says beyond its name, from its detail. Plain text.
+
 ## Second-factor methods
 
 ```php
@@ -422,8 +583,11 @@ The markup from the second one goes through `wp_kses` with form tags and the
 attributes they need: you can replace a text box, not turn it into a script
 tag.
 
-A field's key is the user meta key its answers are stored under. Under the
-plugin's prefix a field may only have a key in the fields' own corner,
+A field's key is the user meta key its answers are stored under. An add-on
+names the keys it keeps about a person with
+`diluxone_users_reserved_meta_keys` and, for keys it makes one per thing,
+`diluxone_users_reserved_meta_prefixes`, and no field can be named after them.
+Under the plugin's prefix a field may only have a key in the fields' own corner,
 `diluxone_users_field_<name>` — where the screen makes every new one — or one
 a field already had before that corner existed, or a suggested field's. The
 rest of `diluxone_users_` is what the plugin, or an add-on of it, keeps about
@@ -795,12 +959,14 @@ them answers false for all.
 | `$where` | What it is |
 | --- | --- |
 | `social/providers/more` | A card after the networks on Social login › Providers: the ten networks Users+ Pro adds. |
+| `login/ways/more` | A card after the ways in on Access › Ways in: signing in with a passkey. |
+| `security/summary/more` | A picture under the table on Security › Summary: the lines passkeys add. |
 
 ## The emergency switch
 
 `define( 'DILUXONE_USERS_SAFE_MODE', true );` in `wp-config.php` makes the
 plugin step aside at every door it put up: nothing redirects, nobody is asked
-for the second step, passkeys and social sign-in are shut, and WordPress's own
+for the second step, social sign-in is shut, and WordPress's own
 wp-login.php is the way in, on every site of a network. Every dashboard page
 says so while it lasts. The constant feeds `diluxone_users_safe_mode`
 (filter), which is also how a must-use plugin turns it on.
@@ -820,8 +986,8 @@ go before the page starts.
 ## Things that happen
 
 - `wp_login` — WordPress's own action fires for every way in, not only the
-  password: the e-mail link, a social account, a passkey and the end of the
-  second step fire it once, with the login name and the `WP_User`, after the
+  password: the e-mail link, a social account, an add-on's door and the end of
+  the second step fire it once, with the login name and the `WP_User`, after the
   session is open. A password that went through the second step fires it once,
   when the password was right, as WordPress does.
 - `diluxone_users_logged_in` — somebody got in. Receives the user and how.
@@ -833,6 +999,9 @@ go before the page starts.
   and the method (see [Second-factor methods](#second-factor-methods)).
 - `diluxone_users_register_sections`, `diluxone_users_register_panels`,
   `diluxone_users_register_ways` — the moments to register.
+- `diluxone_users_account_security`, `diluxone_users_security_action`,
+  `diluxone_users_person_saved` — see [The account's Security section](#the-accounts-security-section)
+  and [A person in Users](#a-person-in-users).
 
 ## What the plugin will not promise
 

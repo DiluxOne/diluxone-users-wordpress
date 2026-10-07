@@ -9,7 +9,7 @@ this file is the short version an agent must follow without exception.
 
 DiluxOne Users+, a WordPress plugin with the slug `diluxone-users`: custom
 user fields, a front-end account area, passwordless sign-in, social login,
-two-step verification, passkeys and session control, in one plugin that
+two-step verification and session control, in one plugin that
 depends on no other. It is at 1.0.0 and **not yet published** on
 wordpress.org. Architecture, hard rules and review priorities:
 [`docs/architecture.md`](docs/architecture.md). The public API (hooks an
