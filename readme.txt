@@ -28,9 +28,10 @@ Everything about the people who use your site, in one place.
 * **Social login** with Google and Microsoft, a step-by-step guide for each
   console and a live test before one is turned on. DiluxOne Users+ Pro, a
   separate add-on, adds ten more providers.
-* **Two-step verification**: a code by e-mail, an authenticator app with a QR
-  code, and backup codes, with a policy per role and a rule of its own for
-  sign-ins by e-mail link.
+* **Two-step verification**: a code by e-mail and backup codes, optional or
+  required, with a rule of its own for sign-ins by e-mail link. DiluxOne
+  Users+ Pro adds an authenticator app, asking it of some roles only, and
+  not asking again on a browser that passed it.
 * **Design**: the sign-in page left in your page or in a centred card, a
   simple account area, the colours from your theme or from a short palette
   that always reads, and the sizes and spacing — or no stylesheet at all, for
@@ -109,8 +110,7 @@ The plugin itself sends nothing anywhere: no telemetry, no licence check.
 = Export and erasure =
 
 **Tools → Export / Erase Personal Data** answer for all of the above. The
-export leaves out credentials (authenticator secret, backup-code hashes, an
-add-on's keys); the erasure removes them, and everything an add-on kept under
+export leaves out credentials (backup-code hashes, an add-on's keys); the erasure removes them, and everything an add-on kept under
 the plugin's prefix with them. Refused sign-ins that typed a name are
 exported, and kept on erasure as security evidence until the log removes them.
 On a network, the sites an administrator removed somebody from are exported
@@ -139,8 +139,7 @@ The social buttons show each network's logo as inline SVG
 (`includes/sso-icons.php`). The logos are trademarks of their owners, shown
 only to identify the button that signs in with that service, as their brand
 guidelines allow. Everything else is original work under GPLv2 or later; no
-third-party library is bundled (the QR encoder, TOTP and WebAuthn verification
-are written for this plugin).
+third-party library is bundled.
 
 == Frequently Asked Questions ==
 

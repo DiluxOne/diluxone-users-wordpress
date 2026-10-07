@@ -486,12 +486,15 @@ they come back as they were when the add-on does.
 ## The account's Security section
 
 The section people manage their own security on (`templates/account/security.php`)
-has three seams for an add-on that keeps a way in on the account:
+has these seams for an add-on that keeps a way in on the account:
 
 - `diluxone_users_account_security` (action, `( WP_User $user )`) fires
   between how somebody gets in and the second step. Draw a panel of your own
   there with `diluxone_users_panel_open( $title )` and
   `diluxone_users_panel_close()`, like the plugin's.
+- `diluxone_users_account_security_2fa` (action, `( WP_User $user )`) fires
+  after the second step's panel, while the site offers the second step to the
+  person: where a method of yours is set up (Users+ Pro's authenticator app).
 - `diluxone_users_security_notices` (filter, `( array $notices, WP_User $user )`)
   maps the `diluxone-users=` word an action comes back with to a notice:
   `array( 'ok' | 'error', $sentence )`.
@@ -615,10 +618,46 @@ stays in the option: the screen shows it ticked and switched off as an
 inactive Pro choice, the save keeps it, nobody is asked for it, and it does
 not count as the one method the second step needs.
 
+A site whose every ticked method is one nothing registers today — an
+add-on's, the add-on off — gets the e-mail code in its place: the second step
+that was asked is still asked, and nobody who had only the add-on's method is
+locked out.
+
 `diluxone_users_2fa_failed` (action) fires on every wrong code:
 `( int $user_id, string $method )`, where `$method` is the method's id, or
 `reauth` for the code asked again before something sensitive in the account.
 The activity log listens to it.
+
+### Who is asked, and what is remembered
+
+The plugin asks the second step of everybody with an account and remembers
+nothing: every sign-in that needs it is asked. An add-on narrows the first and
+adds the second (Users+ Pro's "only some roles" and "do not ask again on this
+browser"):
+
+- `diluxone_users_2fa_in_scope` (filter, `( bool $in, int $user_id )`, true)
+  decides whether the second step is for a person at all. The sign-in, the
+  account's Security section and the summaries ask it through
+  `diluxone_users_2fa_in_scope()`. `diluxone_users_2fa_who` (filter,
+  `( string $who )`) says the result in the summary's line; an empty answer
+  is a site that reaches nobody, and the summary says so.
+- `diluxone_users_2fa_skip` (filter, `( bool $skip, int $user_id, string $via )`,
+  false) lets a sign-in that needs the step skip it.
+- `diluxone_users_2fa_form` (action, `( int $user_id, string $screen )`) fires
+  inside the second step's form, after the code box, on the sign-in page
+  (`page`) and on wp-login.php (`wp-login`). Name your fields
+  `diluxone_users_2fa_extra[...]`: `diluxone_users_2fa_passed` (action,
+  `( int $user_id, array $extra, string $via )`) hands you what they sent,
+  cleaned as text, once the code is right and the single-use attempt is
+  spent, before the session opens.
+- `diluxone_users_2fa_forget` (action, `( int $user_id )`) fires when whatever
+  was remembered has to go: the step turned off, a method removed, the
+  person's other sessions closed.
+
+On **Security → Two-step verification**, `diluxone_users_2fa_screen` (action,
+`( string $place )`) fires at `who` (under the three modes), `methods` (under
+the methods) and `end` (after the e-mail link's rule). What you draw there is
+saved with the tab, on `diluxone_users_panel_saved`.
 
 ## Profile fields
 
@@ -1043,6 +1082,9 @@ them answers false for all.
 | `design/account/shapes` | A card after the shapes on Design › Account area: the account area with a cover. |
 | `design/brand/any-color` | A card after the accent's swatches on Design › Your brand: any colour. |
 | `network/membership/rules` | A card after the answers on Network Admin › Membership: "whoever asks" and "by invitation". |
+| `security/2fa/roles` | A card under the three modes on Security › Two-step verification: asking only some roles. |
+| `security/2fa/app` | A card after the methods on Security › Two-step verification: the authenticator app. |
+| `security/2fa/remember` | A card at the end of Security › Two-step verification: not asking again on a browser. |
 | `account/sections/more` | A card under the list on Account › Sections: sections of the site's own. |
 | `design/brand/color-map` | A picture under "From your theme" on Design › Your brand: which colour of the theme's palette does what. |
 

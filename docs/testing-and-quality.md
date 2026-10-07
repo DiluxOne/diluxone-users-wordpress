@@ -10,7 +10,7 @@ The checks run from the shared workflows in [`DiluxOne/.github`](https://github.
 | --- | --- | --- | --- |
 | Conventions | shared `conventions` workflow, lychee | Branch name, PR title and commit headers; the description's What changes and Why, and no "Generated with …" footer; broken relative doc links; retired product names. | (runs on PR) |
 | Syntax | `php -l` on PHP 8.0 to 8.5 | Syntax the minimum PHP can't parse. | (runs on PR) |
-| Unit tests | PHPUnit + brain/monkey + mockery, same PHP matrix | Logic regressions in pure-PHP units: TOTP, QR, social identity, the two-step policy, the client's address. | `make test`, `make test-unit-min` |
+| Unit tests | PHPUnit + brain/monkey + mockery, same PHP matrix | Logic regressions in pure-PHP units: social identity, the two-step policy, the client's address. | `make test`, `make test-unit-min` |
 | Coding style | PHP_CodeSniffer + WordPress Coding Standards + PHPCompatibilityWP | Style, naming, prefixes, escaping, sanitisation, prepared statements, syntax above PHP 8.0. | `make lint` |
 | Static analysis | PHPStan level 8 + szepeviktor/phpstan-wordpress | Type safety, unreachable code, undefined functions, missing return types. **No baseline.** | `make stan` |
 | Security taint analysis | Psalm + humanmade/psalm-plugin-wordpress (taint-only mode) | XSS, SQL injection, command injection, file-system traversal: user input flowing into dangerous sinks. | `make psalm` |
@@ -55,7 +55,7 @@ make test-unit-min   # the same on PHP 8.0, the minimum; CI runs every version i
 
 When you add one:
 
-- Name it after what it covers (`TotpTest.php` for `includes/auth-totp.php`) and keep it in `tests/Unit/DiluxOneUsers/`.
+- Name it after what it covers (`TwoFactorPolicyTest.php` for the policy in `includes/auth.php`) and keep it in `tests/Unit/DiluxOneUsers/`.
 - Set brain/monkey up in `setUp()` and tear it down in `tearDown()`, as the existing tests do.
 - Don't touch `$_GET`, `$_POST`, the database or the filesystem. Move that to integration tests.
 
