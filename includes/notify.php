@@ -39,7 +39,7 @@ function diluxone_users_default_notifications(): array {
 
 	$prefs['diluxone_users_notify_security'] = array(
 		'label'   => __( 'When something in my security changes', 'diluxone-users' ),
-		'help'    => __( 'A passkey added or removed, two-step verification turned on or off, a social account linked or unlinked.', 'diluxone-users' ),
+		'help'    => __( 'Two-step verification turned on or off, a social account linked or unlinked, or another way in added or removed.', 'diluxone-users' ),
 		'default' => '1',
 	);
 
@@ -265,8 +265,8 @@ function diluxone_users_device_id(): string {
  * Notifies when somebody signs in from a device that had not been seen.
  *
  * It hangs off `diluxone_users_logged_in`, which every way in the plugin
- * handles goes through: the link, the password, a social network and a
- * passkey. Once per device.
+ * handles goes through: the link, the password, a social network and an
+ * add-on's way in. Once per device.
  */
 function diluxone_users_notify_new_device( int $user_id, string $via ): void {
 	$id    = diluxone_users_device_id();
@@ -324,10 +324,22 @@ function diluxone_users_via_label( string $via ): string {
 		'link'     => __( 'a link sent to your email', 'diluxone-users' ),
 		'password' => __( 'your password', 'diluxone-users' ),
 		'sso'      => __( 'a social account', 'diluxone-users' ),
-		'passkey'  => __( 'a passkey', 'diluxone-users' ),
 	);
 
-	return $labels[ $via ] ?? $via;
+	/**
+	 * Filters how a door is named in the e-mails to the person who used it.
+	 *
+	 * The `$via` an add-on's way in opens the session with, in the voice of
+	 * the "new device" e-mail: "a key on your phone", not "Key". Asked in the
+	 * language of the person it goes to.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param array<string, string> $labels Via => how it is said.
+	 */
+	$labels = (array) apply_filters( 'diluxone_users_via_labels', $labels );
+
+	return (string) ( $labels[ $via ] ?? $via );
 }
 
 /* ── Changes to security ───────────────────────────────────────────── */
@@ -335,10 +347,10 @@ function diluxone_users_via_label( string $via ): string {
 /**
  * Notifies that something in the security changed.
  *
- * The parts of the plugin that change something call it: the passkeys, the
- * second factor and the linked networks. The value of the notice is precisely
- * that it arrives when it was NOT you: if somebody got in and added a
- * passkey, that is the moment to find out.
+ * The parts of the plugin that change something call it — the second factor
+ * and the linked networks — and so does an add-on's way in. The value of the
+ * notice is precisely that it arrives when it was NOT you: if somebody got in
+ * and added a way in of their own, that is the moment to find out.
  *
  * What happened is handed over as a function that says it, not as a sentence
  * already said: the sentence has to be written in the language of the person
@@ -373,7 +385,7 @@ function diluxone_users_notify_security( int $user_id, callable $event ): void {
  *
  * A notice is not always sent from that person's own request: an
  * administrator removing an authenticator app, or somebody else's browser
- * adding a passkey to a stolen session, would otherwise write it in their
+ * adding a way in to a stolen session, would otherwise write it in their
  * own language. So the language is switched to the recipient's for as long as
  * the notice is being written — the plugin's words, the site's rewrite for
  * that language, the date — and put back after.

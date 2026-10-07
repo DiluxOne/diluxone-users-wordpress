@@ -3,14 +3,14 @@
  * The hub: on a network, every door leads to one site, and back.
  *
  * A network applies its rules to every site, and a person's account — their
- * sign-in, their registration, their profile, their passkeys, their social
+ * sign-in, their registration, their profile, their keys, their social
  * identities — lives on one site of it, the hub, which in this version is
  * always the network's main site. The other sites have no sign-in of their
  * own: whatever door a person finds on them (the "Sign in" item in the menu, a
  * shortcode placed on one of their pages, WordPress's own wp-login.php, a link
  * WordPress builds with wp_login_url()) takes them to the hub, carrying where
  * they were. Once they are in, whichever way they got in — the e-mail link, a
- * password, a social account, a passkey, with or without a second step — they
+ * password, a social account, an add-on's door, with or without a second step — they
  * are sent back there, and made a member of that site if the network's
  * membership policy says every account belongs to every site (membership.php).
  *
@@ -849,7 +849,7 @@ add_filter( 'pre_do_shortcode_tag', 'diluxone_users_shortcode_off_hub', 10, 3 );
  * @return array<int, string>
  */
 function diluxone_users_hub_posts(): array {
-	return array(
+	$posts = array(
 		'diluxone_users_link_request',
 		'diluxone_users_signup',
 		'diluxone_users_reset',
@@ -861,8 +861,20 @@ function diluxone_users_hub_posts(): array {
 		'diluxone_users_sessions',
 		'diluxone_users_notifications',
 		'diluxone_users_data_request',
-		'diluxone_users_passkey',
 	);
+
+	/**
+	 * Filters the admin-post.php actions that belong to the hub.
+	 *
+	 * An add-on whose forms are drawn on the account area or the sign-in page
+	 * adds its actions here, so one posted to another site of the network is
+	 * sent to the hub before its handler writes anything there.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param array<int, string> $posts The plugin's own.
+	 */
+	return array_values( array_unique( array_merge( $posts, array_map( 'strval', (array) apply_filters( 'diluxone_users_hub_posts', $posts ) ) ) ) );
 }
 
 /** Sends a form posted to a site that is not the hub to the hub, before its handler runs. */
@@ -900,18 +912,27 @@ function diluxone_users_post_signed_out(): void {
 	exit;
 }
 
-foreach ( diluxone_users_hub_posts() as $diluxone_users_hub_post ) {
-	add_action( 'admin_post_' . $diluxone_users_hub_post, 'diluxone_users_post_to_hub', 0 );
-}
+/**
+ * Puts both in front of every action of the hub's.
+ *
+ * On `init` and not at load time: an add-on adds its actions through
+ * `diluxone_users_hub_posts`, and it is loaded after this plugin. admin-post.php
+ * fires the action itself long after `init`.
+ */
+function diluxone_users_hub_posts_hook(): void {
+	foreach ( diluxone_users_hub_posts() as $action ) {
+		add_action( 'admin_post_' . $action, 'diluxone_users_post_to_hub', 0 );
+	}
 
-foreach ( diluxone_users_hub_posts_public() as $diluxone_users_hub_post ) {
-	add_action( 'admin_post_nopriv_' . $diluxone_users_hub_post, 'diluxone_users_post_to_hub', 0 );
-}
+	foreach ( diluxone_users_hub_posts_public() as $action ) {
+		add_action( 'admin_post_nopriv_' . $action, 'diluxone_users_post_to_hub', 0 );
+	}
 
-foreach ( array_diff( diluxone_users_hub_posts(), diluxone_users_hub_posts_public() ) as $diluxone_users_hub_post ) {
-	add_action( 'admin_post_nopriv_' . $diluxone_users_hub_post, 'diluxone_users_post_signed_out', 0 );
+	foreach ( array_diff( diluxone_users_hub_posts(), diluxone_users_hub_posts_public() ) as $action ) {
+		add_action( 'admin_post_nopriv_' . $action, 'diluxone_users_post_signed_out', 0 );
+	}
 }
-unset( $diluxone_users_hub_post );
+add_action( 'init', 'diluxone_users_hub_posts_hook', 0 );
 
 /* ── A site on a domain of its own ─────────────────────────────────── */
 
