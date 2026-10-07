@@ -479,7 +479,7 @@ function diluxone_users_log_groups(): array {
 		),
 		'security' => array(
 			'label'  => __( 'Changes to the security', 'diluxone-users' ),
-			'help'   => __( 'Two-step verification turned on or off, a passkey added or removed, sessions closed.', 'diluxone-users' ),
+			'help'   => __( 'Two-step verification turned on or off, a way in added or removed, sessions closed.', 'diluxone-users' ),
 			'writes' => __( 'Almost nothing, and it is the group worth having when an account is taken over.', 'diluxone-users' ),
 		),
 	);
@@ -497,7 +497,7 @@ function diluxone_users_log_groups(): array {
  * @return array<string, string>
  */
 function diluxone_users_log_events(): array {
-	return array(
+	$events = array(
 		'signed_in'        => 'access',
 		'signed_out'       => 'access',
 		'sign_in_failed'   => 'access',
@@ -508,10 +508,32 @@ function diluxone_users_log_events(): array {
 		'profile_saved'    => 'account',
 		'2fa_on'           => 'security',
 		'2fa_off'          => 'security',
-		'passkey_added'    => 'security',
-		'passkey_removed'  => 'security',
 		'sessions_closed'  => 'security',
 	);
+
+	/**
+	 * Filters the events the activity log writes, and the group of each.
+	 *
+	 * An add-on that reports events of its own through
+	 * `diluxone_users_log_record()` adds them here, each in one of the
+	 * groups a site ticks (`access`, `account` or `security`); an event in no
+	 * group that exists is never written. The plugin's own are kept as they
+	 * are.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param array<string, string> $events Event => group.
+	 */
+	$more   = (array) apply_filters( 'diluxone_users_log_events', $events );
+	$groups = array_keys( diluxone_users_log_groups() );
+
+	foreach ( $more as $event => $group ) {
+		if ( is_string( $event ) && '' !== $event && ! isset( $events[ $event ] ) && in_array( $group, $groups, true ) ) {
+			$events[ $event ] = (string) $group;
+		}
+	}
+
+	return $events;
 }
 
 /**
@@ -524,7 +546,7 @@ function diluxone_users_log_events(): array {
  * @return array<string, string>
  */
 function diluxone_users_log_labels(): array {
-	return array(
+	$labels = array(
 		'signed_in'        => __( 'Signed in', 'diluxone-users' ),
 		'signed_out'       => __( 'Signed out', 'diluxone-users' ),
 		'sign_in_failed'   => __( 'Sign-in refused', 'diluxone-users' ),
@@ -535,10 +557,19 @@ function diluxone_users_log_labels(): array {
 		'profile_saved'    => __( 'Details saved', 'diluxone-users' ),
 		'2fa_on'           => __( 'Two-step verification turned on', 'diluxone-users' ),
 		'2fa_off'          => __( 'Two-step verification turned off', 'diluxone-users' ),
-		'passkey_added'    => __( 'Passkey added', 'diluxone-users' ),
-		'passkey_removed'  => __( 'Passkey removed', 'diluxone-users' ),
 		'sessions_closed'  => __( 'Sessions closed', 'diluxone-users' ),
 	);
+
+	/**
+	 * Filters what each event of the activity log is called on screen.
+	 *
+	 * An add-on names the events it added through `diluxone_users_log_events`.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param array<string, string> $labels Event => its name.
+	 */
+	return array_map( 'strval', (array) apply_filters( 'diluxone_users_log_labels', $labels ) ) + $labels;
 }
 
 /** One event's name, or its slug when nobody has written one. */

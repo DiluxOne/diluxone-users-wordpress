@@ -11,7 +11,7 @@
  *
  * It also listens rather than being called for a second reason, less elegant
  * and more important: the parts that would otherwise have to report — the
- * passkeys, the second step, the account area — belong to other subjects, and
+ * second step, the sessions, the account area — belong to other subjects, and
  * a log that needs a line added to twelve files is a log that goes quiet the
  * next time one of them is rewritten. Every hook below is either WordPress's
  * own or one this plugin already fired for something else.
@@ -24,7 +24,7 @@ defined( 'ABSPATH' ) || exit;
 /* ── The way in and the way out ────────────────────────────────────── */
 
 /**
- * Every door: the e-mail link, a social account, a passkey, the password —
+ * Every door: the e-mail link, a social account, the password, an add-on's —
  * directly or once the second step is done. The password arrives here through
  * diluxone_users_password_logged_in(), which says why it only fires once the
  * session really is open. On a network, a sign-in on the hub for another site
@@ -188,10 +188,10 @@ add_action( 'diluxone_users_fields_saved', 'diluxone_users_log_fields_saved', 10
 /* ── What somebody changed about their security ────────────────────── */
 
 /**
- * The three things worth knowing, all of which live in user meta.
+ * The two things worth knowing, both of which live in user meta.
  *
- * This is the part that looks odd and is not. The second step, the passkeys
- * and the open sessions are each stored in one meta key, and each is changed
+ * This is the part that looks odd and is not. The second step and the open
+ * sessions are each stored in one meta key, and each is changed
  * from a different file for a different reason — none of which is "so that the
  * log hears about it". Asking those files to report would mean a line added to
  * each of them, and a line that goes missing the next time one is rewritten.
@@ -200,10 +200,10 @@ add_action( 'diluxone_users_fields_saved', 'diluxone_users_log_fields_saved', 10
  * `delete_user_metadata` are filters and they are used here as the only thing
  * that answers the question these events need answering: what was it BEFORE.
  * They run before the row is written, so the old value is still readable, and
- * the decision is always a comparison — on from off, one passkey fewer, a
- * session that is gone. Both hand back what they were given untouched: a
- * listener that changed the answer would be deciding whether somebody's
- * passkey gets saved, which is not this file's business.
+ * the decision is always a comparison — on from off, a session that is gone.
+ * Both hand back what they were given untouched: a listener that changed the
+ * answer would be deciding whether somebody's second step gets saved, which
+ * is not this file's business.
  *
  * @param mixed  $check     What the filters before decided. Always handed back.
  * @param int    $object_id Whose meta.
@@ -257,25 +257,6 @@ function diluxone_users_log_meta_change( int $user_id, string $key, $value ): vo
 
 		if ( $was !== $now ) {
 			diluxone_users_log_record( $now ? '2fa_on' : '2fa_off', $user_id );
-		}
-
-		return;
-	}
-
-	if ( 'diluxone_users_passkeys' === $key ) {
-		// `get_user_meta()` answers '' for a key nobody has, and `(array) ''`
-		// is a list with one empty string in it — so a cast alone counts the
-		// first passkey anybody registers as no change at all, and the one
-		// event this group exists for is the one that goes missing. The list
-		// is asked whether it is a list.
-		$stored = get_user_meta( $user_id, $key, true );
-		$was    = is_array( $stored ) ? count( $stored ) : 0;
-		$now    = is_array( $value ) ? count( $value ) : 0;
-
-		if ( $now > $was ) {
-			diluxone_users_log_record( 'passkey_added', $user_id, array( 'keys' => $now ) );
-		} elseif ( $now < $was ) {
-			diluxone_users_log_record( 'passkey_removed', $user_id, array( 'keys' => $now ) );
 		}
 
 		return;

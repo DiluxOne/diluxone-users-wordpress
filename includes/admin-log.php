@@ -384,8 +384,19 @@ function diluxone_users_log_via( string $via ): string {
 		'password' => __( 'Password', 'diluxone-users' ),
 		'link'     => __( 'E-mail link', 'diluxone-users' ),
 		'sso'      => __( 'Social account', 'diluxone-users' ),
-		'passkey'  => __( 'Passkey', 'diluxone-users' ),
 	);
+
+	/**
+	 * Filters the names of the doors in the activity log.
+	 *
+	 * The `$via` an add-on's way in opens the session with
+	 * (`diluxone_users_open_session()`), and what the report calls it.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param array<string, string> $doors Via => its name.
+	 */
+	$doors = (array) apply_filters( 'diluxone_users_log_doors', $doors );
 
 	return (string) ( $doors[ $via ] ?? $via );
 }
@@ -443,14 +454,6 @@ function diluxone_users_log_says( array $row, bool $network = false ): string {
 		case 'profile_saved':
 			return (string) ( $detail['fields'] ?? '' );
 
-		case 'passkey_added':
-		case 'passkey_removed':
-			return sprintf(
-				/* translators: %s: how many passkeys the account has left. */
-				__( '%s on the account now', 'diluxone-users' ),
-				number_format_i18n( (int) ( $detail['keys'] ?? 0 ) )
-			);
-
 		case 'sessions_closed':
 			return sprintf(
 				/* translators: %s: how many sessions were closed at once. */
@@ -459,7 +462,19 @@ function diluxone_users_log_says( array $row, bool $network = false ): string {
 			);
 	}
 
-	return '';
+	/**
+	 * Filters what a row of an add-on's event says, beyond its name.
+	 *
+	 * Built from the detail the event was recorded with. Plain text: it is
+	 * escaped where it is printed.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param string               $says    '' unless something answers.
+	 * @param array<string, mixed> $row     The row, as the report reads it.
+	 * @param bool                 $network Whether it is drawn on the network's report.
+	 */
+	return (string) apply_filters( 'diluxone_users_log_says', '', $row, $network );
 }
 
 /**
