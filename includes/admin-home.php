@@ -214,8 +214,9 @@ function diluxone_users_panel_actions( array $actions ): void {
  * This panel is the one that is not configuration: every row is a count of
  * real accounts, and it is written as such — "40 of 120 accounts", not a bare
  * number that could be read as a setting. The bar is the same number drawn,
- * so the four rows can be compared with the eye; no chart library for four
- * numbers, and on paper it prints as the table it is.
+ * so the rows can be compared with the eye; no chart library for a handful of
+ * numbers, and on paper it prints as the table it is. The rows are
+ * diluxone_users_usage_rows(), which an add-on adds to.
  */
 function diluxone_users_panel_usage(): void {
 	diluxone_users_ui_aside_open();
@@ -223,28 +224,7 @@ function diluxone_users_panel_usage(): void {
 	$stats = diluxone_users_stats();
 	$total = (int) $stats['users'];
 
-	$rows = array(
-		array(
-			'label'  => __( 'Have a public name', 'diluxone-users' ),
-			'detail' => __( 'The short name that goes in the address of their profile. Without one, the site falls back to their first and last name.', 'diluxone-users' ),
-			'value'  => (int) $stats['handles'],
-		),
-		array(
-			'label'  => __( 'Linked a social account', 'diluxone-users' ),
-			'detail' => __( 'They can get in with Google, Microsoft or whichever provider is enabled, instead of waiting for the e-mail.', 'diluxone-users' ),
-			'value'  => (int) $stats['social'],
-		),
-		array(
-			'label'  => __( 'Set up an authenticator app', 'diluxone-users' ),
-			'detail' => __( 'The six-digit code as a second step, from an app on their phone.', 'diluxone-users' ),
-			'value'  => (int) $stats['totp'],
-		),
-		array(
-			'label'  => __( 'Registered a passkey', 'diluxone-users' ),
-			'detail' => __( 'Their fingerprint or their face instead of a password. It is the only way in that cannot be phished.', 'diluxone-users' ),
-			'value'  => (int) $stats['passkeys'],
-		),
-	);
+	$rows = diluxone_users_usage_rows( $stats );
 
 	diluxone_users_intro(
 		sprintf(
@@ -327,7 +307,7 @@ function diluxone_users_panel_usage_aside(): void {
 			array(
 				'url'   => diluxone_users_admin_url( 'diluxone-users-login' ),
 				'label' => __( 'Access', 'diluxone-users' ),
-				'help'  => __( 'Which ways in exist at all, passkeys among them, and who may create an account.', 'diluxone-users' ),
+				'help'  => __( 'Which ways in exist at all, and who may create an account.', 'diluxone-users' ),
 			),
 			array(
 				'url'   => admin_url( 'users.php' ),
