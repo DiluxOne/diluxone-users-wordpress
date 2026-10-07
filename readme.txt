@@ -30,6 +30,10 @@ Everything about the people who use your site, in one place.
 * **Two-step verification**: a code by e-mail, an authenticator app with a QR
   code, and backup codes, with a policy per role and a rule of its own for
   sign-ins by e-mail link.
+* **Design**: the sign-in page left in your page or in a centred card, a
+  simple account area, the colours from your theme or from a short palette
+  that always reads, and the sizes and spacing — or no stylesheet at all, for
+  a site that styles everything itself.
 * **Sessions**: how long they last (WordPress's length until you choose one), where they are open, and how to close them. A new password closes every one of them.
 * **An activity log** of its own: who signed in, who was refused and what
   changed. It records IP addresses; see Privacy below.

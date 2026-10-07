@@ -71,7 +71,8 @@ it never showed. Pass what the save worked out through
 its control arrived, or, for a tick box (which sends nothing unticked), when
 the box said it was drawn — `diluxone_users_ui_choice()` sends its name in
 `diluxone_users_panel_drawn[]` for that. `$from` names the control that
-answers for a value whose own name is not posted (`'diluxone_users_account_cover' => 'diluxone_users_account_cover_own'`).
+answers for a value whose own name is not posted (a colour of its own decided by a
+tick box: `'diluxone_users_sms_color' => 'diluxone_users_sms_color_own'`).
 A save that writes a list or a map merges with what is stored and keeps the
 entries it does not recognise.
 
@@ -95,6 +96,14 @@ sessions live beside ordinary settings tabs. A form of its own that saves
 settings gives itself an `id` and asks for its button with
 `diluxone_users_ui_save( $form_id, $label )` before the column beside it is
 drawn; the button reaches the form through its `form` attribute.
+
+A tab of the plugin's own that an add-on draws part of — the settings a shape
+brings, under the shapes — is saved with it: `diluxone_users_panel_saved`
+(action, `( string $screen, string $tab )`) fires after a tab's save, unless
+that save refused, and in the live preview's trial run as well, so what the
+add-on would write is previewed with the rest. The listener checks the tab's
+nonce and the capability itself, like any save, and writes through
+`diluxone_users_save_options( diluxone_users_panel_drawn( … ) )`.
 
 A tab exists because something registered it. Nothing registered means no tab
 — not an empty one. `diluxone_users_panels` (filter) receives a screen's tabs
@@ -131,6 +140,15 @@ rest of the admin and follows it when the admin changes:
   `diluxone_users_ui_links( $title, $links )` (each `url`, `label`, `help`)
   and `diluxone_users_not_now( $why, $url, $go )` — what the rail and a
   dimmed control say.
+- `diluxone_users_ui_words( $key, $label, $fallback, $help )` and
+  `diluxone_users_ui_words_area( … )` — a sentence the site may rewrite;
+  `diluxone_users_ui_inline_choices( $label, $choices, $help )` — a short
+  question in a row; `diluxone_users_ui_fold( $block, $inside )` — something
+  folded away; `diluxone_users_image_field( $key, $help )` — a picture from
+  the media library, stored as its id on the hub.
+- `diluxone_users_ui_color( $field )` — any colour, with a tick box for "a
+  colour of its own"; `diluxone_users_ui_swatches( $field )` — one of the
+  plugin's short palettes (see [Colours](#colours)).
 - `diluxone_users_summary_table( $rows )` — a summary.
 - `diluxone_users_admin_url( $screen, $args )` — a link to a screen and tab,
   in the site's admin or Network Admin, wherever it is drawn;
@@ -603,47 +621,80 @@ the list is not offered again; one ticked is added at the end of the list by
 
 ## Looks
 
+### Shapes
+
 ```php
-// Another shape for the sign-in page. The id becomes a class on the frame:
-// .diluxone-users-login-frame--neon — bring your own CSS.
+// Another shape for the sign-in page. Every shape but `plain` takes the page
+// over: the form goes in a box inside a frame that breaks out of the theme's
+// column. The id becomes a class on the frame — bring your own CSS.
 add_filter( 'diluxone_users_login_templates', function ( array $t ): array {
     $t['neon'] = array(
-        'label'   => __( 'Neon', 'my-addon' ),
-        'help'    => __( 'Dark, with a glow.', 'my-addon' ),
-        'picture' => false,   // true gives it the picture field
+        'label'      => __( 'Neon', 'my-addon' ),
+        'help'       => __( 'Dark, with a glow.', 'my-addon' ),
+        // All three optional.
+        'classes'    => fn(): array => array( 'my-addon-glow' ),          // more classes on the frame
+        'properties' => fn(): array => array( '--my-addon-hue' => '200' ), // custom properties on it
+        'inside'     => 'my_addon_neon_panel',                            // prints what goes before the form's box
     );
     return $t;
 } );
 
-// And for the account area: .diluxone-users-account--<id>
+// And for the account area: .diluxone-users-account--<id>. The rest of the
+// row is what pressing its card fills in (layout, nav_style, header, avatar,
+// since, action, width).
 add_filter( 'diluxone_users_account_templates', function ( array $t ): array { … } );
 ```
+
+What a shape adds to the account area goes through three filters, each given
+the shape in force: `diluxone_users_account_classes` (the area's classes),
+`diluxone_users_account_style` (custom properties, name => value, printed on
+the area) and `diluxone_users_account_avatar_size` (the size the header's
+picture is fetched at, 64 by default). Properties are printed only with a
+`--` name and a value that cannot close the declaration — a frame's too.
+
+A shape's settings go under the shapes on the Design screen:
+`diluxone_users_design_login_shape` and `diluxone_users_design_account_shape`
+(actions) fire there with the shape chosen — a kept one included — and the
+add-on saves them on `diluxone_users_panel_saved`.
+
+Its stylesheet: `diluxone_users_enqueue_styles` (action) fires whenever the
+plugin's own sheet is enqueued on the front end, the moment to enqueue one with
+`diluxone-users` as its dependency — never where the site turned the plugin's
+off. The previews on the Design screen are documents of their own; an add-on's
+sheet joins them through `diluxone_users_preview_stylesheets` (filter,
+handle => URL). And `diluxone_users_style_css` (filter) is the CSS the admin's
+answers become, printed after the sheet on the front end and in every preview:
+a shape that reads one of the plugin's answers adds its rule there, printed
+only when there is an answer.
 
 A shape stored while an add-on offered it and no longer offered (the add-on is
 off) is not thrown away: the sign-in page draws a card in its place and the
 account area the simple one, and the Design screen shows the stored shape as
 an inactive Pro choice that its save keeps until another shape is picked.
 
+### Colours
+
 Colours and corners are CSS custom properties — `--diluxone-users-accent`,
 `--diluxone-users-radius` and the rest — so a site or an add-on can repoint
 them from a stylesheet without any PHP at all.
 
-### The split layout's panel
+Where the admin is asked for a colour — the accent, the ground of the account
+area, wp-login.php's colour — the answer is one of a short palette, drawn with
+`diluxone_users_ui_swatches()`. `diluxone_users_accent_palette()` is eight
+accents, each one reading at WCAG AA (4.5:1) under white letters and as a link
+on white, the graphite among them for a site whose brand is not a colour;
+`diluxone_users_ground_palette()` is four near-whites the plugin's text reads on.
+What is stored is the hex.
 
-The half of the window the split shape gives to a picture can carry words
-instead, or as well. They are written in **Design → The sign-in page → What
-the panel says**: a mark, a heading, a paragraph, a list of what an account
-gets, and the line that holds the bottom. Empty is the answer that was there
-before — the picture on its own, hidden from screen readers.
-
-The heading and the list are read a line at a time, because that is how both
-are written: two deliberate lines of heading, one advantage per line. With a
-picture underneath, a shade goes between the two so the words stay readable
-(`--diluxone-users-login-panel-over`).
-
-This is the seam a site was missing: before it, the only way to put a sentence
-on that panel was to copy a page template, and a copied template does not
-follow the plugin when the plugin changes.
+`diluxone_users_any_color` (filter, default false) makes any hex an answer, and
+`diluxone_users_color_choices` (action, `( string $name, string $value )`)
+fires at the end of each row of swatches while it is true: one more radio of
+the same name, whose value is the colour picked, is all an add-on needs to
+draw — the plugin's save stores it like a swatch. A hex stored while any colour
+was an answer and kept once it is not is drawn as the palette's nearest,
+measured in OKLab (`diluxone_users_palette_color()`), or the default when that
+one would not read; the screen shows it chosen, as "Your Pro colour
+(inactive)", and keeps it until another one is picked.
 
 ## Styling it from a site
 
@@ -669,10 +720,9 @@ added. So the measurements are properties too, not only the colours:
 | Property | What it is | Default |
 | --- | --- | --- |
 | `--diluxone-users-read` | The reading column, when the content is held to one | `980px` |
-| `--diluxone-users-bleed` | How far the cover breaks out of the theme's column | `calc(50% - 50vw)` |
-| `--diluxone-users-cover-pad` | The air inside the cover band | `40px` |
-| `--diluxone-users-header-gap` | Between the picture and the name | `18px` / `24px` |
-| `--diluxone-users-avatar` | The picture | `64px` / `96px` |
+| `--diluxone-users-bleed` | How far a frame that takes the page over breaks out of the theme's column | `calc(50% - 50vw)` |
+| `--diluxone-users-header-gap` | Between the picture and the name | `18px` |
+| `--diluxone-users-avatar` | The picture | `64px` |
 | `--diluxone-users-bar-bg` | Behind the menu's strip | `transparent` |
 | `--diluxone-users-bar-rule` | Its rule, whole: `1px solid #ddd` | none |
 | `--diluxone-users-bar-pad` | Inside the strip, above and below the menu | `10px` |
@@ -682,38 +732,19 @@ added. So the measurements are properties too, not only the colours:
 | `--diluxone-users-tab-pad` | Inside one | by the shape |
 | `--diluxone-users-side-w` | The side menu's column | `minmax(180px, 220px)` |
 | `--diluxone-users-nav-min` | Narrowest item when the menu wraps on a phone | `140px` |
-| `--diluxone-users-avatar-ring` | The ring around the picture on a cover | `3px solid rgba(255,255,255,.35)` |
-| `--diluxone-users-cover-at` | Where the cover picture is anchored | `center` |
-| `--diluxone-users-cover-over` | What is laid over it | the cover colour at 78% |
 | `--diluxone-users-sent-icon` | The circle on "check your email" | `88px` |
 | `--diluxone-users-dial-w` | The dial-code column of a phone field | `minmax(0, 9rem)` |
 | `--diluxone-users-border-w` | A control's edge — inputs and buttons | `1px` |
 | `--diluxone-users-accent-soft` | The accent with the volume down | the accent at 12% |
 | `--diluxone-users-panel-gap` | Between the rows of a panel's body | `normal` |
-| `--diluxone-users-body-end` | Under the content, on a cover | `64px` |
-| `--diluxone-users-body-top` | Above it | none |
+| `--diluxone-users-body-top` | Above the content | none |
 | `--diluxone-users-ground` | The colour the whole account area sits on | none |
 | `--diluxone-users-row-w` | The width the area's three rows line up to | from the admin |
 | `--diluxone-users-row-pad` | And the gutter inside them | from the admin |
-| `--diluxone-users-pad` | The gutter a cover band keeps once the breakout is off | the row gutter |
 | `--diluxone-users-display-font` | The face for the headings the plugin does size — the sign-in screens it takes over | inherit |
-| `--diluxone-users-login-min` | How tall a frame that took over the page is, at least | `min(720px, 80vh)` |
 | `--diluxone-users-login-w` | The column the sign-in block is held to | none |
-| `--diluxone-users-login-box-w` | The box the form sits in, on a split | `520px` |
-| `--diluxone-users-login-box-pad` | The air inside it | `48px` |
 | `--diluxone-users-login-title` | The form's heading, inside a frame | `clamp(26px, 2.4vw, 34px)` |
 | `--diluxone-users-login-title-weight` | And its weight | `800` |
-| `--diluxone-users-login-panel-bg` | The split panel's colour | the accent |
-| `--diluxone-users-login-panel-ink` | The words on it | `#fff` |
-| `--diluxone-users-login-panel-pad` | The air inside it | `56px` / `36px 20px` |
-| `--diluxone-users-login-panel-w` | The column the words are held to | `480px` |
-| `--diluxone-users-login-panel-mark` | The mark at the top of it | `42px` |
-| `--diluxone-users-login-panel-title` | Its heading | `clamp(30px, 3.4vw, 50px)` |
-| `--diluxone-users-login-panel-title-weight` | And its weight | `800` |
-| `--diluxone-users-login-panel-art` | A drawing over its colour, whole: `url(…) 0 0 / cover no-repeat` | none |
-| `--diluxone-users-login-panel-art-opacity` | How loud that drawing is | `1` |
-| `--diluxone-users-login-panel-over` | The shade between a picture and the words on it | `rgba(0,0,0,.45)` |
-| `--diluxone-users-login-point-mark` | The mark before each advantage, as a mask | a tick |
 | `--diluxone-users-note-bg` | Behind the note beside a drawing | transparent |
 | `--diluxone-users-note-pad` | The air inside it, which turns it into a box | `0` |
 | `--diluxone-users-note-gap` | Between the drawing and the words | `8px` |
@@ -780,15 +811,15 @@ plugin, but to undo it.
 
 The sign-in page is the one place this is the other way round, and the line is
 worth saying out loud: **in `plain` the heading is the theme's, and inside the
-three frames that take the page over it is the plugin's.** A designed screen,
+frames that take the page over it is the plugin's.** A designed screen,
 edge to edge, with a theme's `h2` dropped into it reads as a form that landed
 in a blog post; a form the theme placed itself should look like everything
 else the theme places, and does. Those sizes are properties —
-`--diluxone-users-login-title`, `--diluxone-users-login-panel-title` — so a
+`--diluxone-users-login-title` and a shape's own — so a
 site with a scale of its own still says it once, as a value.
 
 What the plugin does keep is the layout of its own header: the margins around
-the name, the gap beside the picture, the air at the end of a cover. Those are
+the name, the gap beside the picture, the air above the content. Those are
 this block's, not the theme's.
 
 ### The one thing that is not a property
@@ -823,7 +854,7 @@ one that means exactly what you mean:
 
 | Axis | Classes | On |
 | --- | --- | --- |
-| Which shape | `--plain` `--cover` | the area |
+| Which shape | `--plain`, or an add-on's | the area |
 | Where the menu goes | `--tabs` `--side` | the area |
 | How wide | `--contained` `--full` | the area |
 | Which way the menu runs | `--row` `--column` | the menu |
@@ -961,6 +992,10 @@ them answers false for all.
 | `social/providers/more` | A card after the networks on Social login › Providers: the ten networks Users+ Pro adds. |
 | `login/ways/more` | A card after the ways in on Access › Ways in: signing in with a passkey. |
 | `security/summary/more` | A picture under the table on Security › Summary: the lines passkeys add. |
+| `design/login/shapes` | A card after the shapes on Design › The sign-in page: the split and full-background layouts. |
+| `design/account/shapes` | A card after the shapes on Design › Account area: the account area with a cover. |
+| `design/brand/any-color` | A card after the accent's swatches on Design › Your brand: any colour. |
+| `design/brand/color-map` | A picture under "From your theme" on Design › Your brand: which colour of the theme's palette does what. |
 
 ## The emergency switch
 
