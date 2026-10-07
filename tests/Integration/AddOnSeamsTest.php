@@ -290,7 +290,7 @@ class AddOnSeamsTest extends IntegrationTestCase {
 
 		$rows = diluxone_users_usage_rows( $stats );
 		$this->assertSame( 'Added the add-on’s key', end( $rows )['label'] );
-		$this->assertCount( 4, $rows, 'a row without a label is dropped' );
+		$this->assertCount( 3, $rows, 'a row without a label is dropped' );
 
 		$this->assertStringContainsString( 'Added the add-on’s key', $this->draw( 'diluxone_users_panel_usage' ) );
 		$this->assertStringContainsString( 'Added the add-on’s key', $this->draw( 'diluxone_users_screen_status_checks' ) );

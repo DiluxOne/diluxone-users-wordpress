@@ -111,18 +111,30 @@ class CoverSettingsSecurityTest extends IntegrationTestCase {
 		$this->where_the_network_is_set();
 		$this->the_admin();
 
+		// An add-on's method, as Users+ Pro's app: the tab lists it, off.
+		$this->hook(
+			'diluxone_users_2fa_methods',
+			static function ( array $methods ): array {
+				$methods['device'] = array(
+					'label' => 'A device',
+					'help'  => '',
+				);
+
+				return $methods;
+			}
+		);
 		diluxone_users_update_option( 'diluxone_users_2fa_methods', array( 'email' ) );
 
 		$this->send_panel(
 			DILUXONE_USERS_SECURITY,
 			array(
 				'diluxone_users_2fa_mode'    => 'optional',
-				'diluxone_users_2fa_methods' => array( 'email', 'totp' ),
+				'diluxone_users_2fa_methods' => array( 'email', 'device' ),
 			)
 		);
 		$this->assertNotFalse( $this->ended( 'diluxone_users_2fa_save' ) );
 
-		$this->assertSame( array( 'email', 'totp' ), diluxone_users_raw_get( 'diluxone_users_2fa_methods' ), 'the app, off until now, is on' );
+		$this->assertSame( array( 'email', 'device' ), diluxone_users_raw_get( 'diluxone_users_2fa_methods' ), 'the add-on’s, off until now, is on' );
 	}
 
 	public function test_from_the_hubs_own_dashboard_the_save_writes_nothing(): void {
@@ -165,7 +177,7 @@ class CoverSettingsSecurityTest extends IntegrationTestCase {
 		}
 
 		$this->assertSame( 'optional', diluxone_users_option( 'diluxone_users_2fa_mode' ), 'nothing written' );
-		$this->assertSame( array( 'totp', 'email' ), diluxone_users_option( 'diluxone_users_2fa_methods' ) );
+		$this->assertSame( array( 'email' ), diluxone_users_option( 'diluxone_users_2fa_methods' ) );
 	}
 
 	public function test_off_needs_no_method_and_is_saved(): void {
@@ -175,9 +187,8 @@ class CoverSettingsSecurityTest extends IntegrationTestCase {
 		$this->send_panel(
 			DILUXONE_USERS_SECURITY,
 			array(
-				'diluxone_users_2fa_mode'          => 'off',
-				'diluxone_users_2fa_link'          => 'never',
-				'diluxone_users_2fa_remember_days' => '-7',
+				'diluxone_users_2fa_mode' => 'off',
+				'diluxone_users_2fa_link' => 'never',
 			)
 		);
 
@@ -185,7 +196,6 @@ class CoverSettingsSecurityTest extends IntegrationTestCase {
 		$this->assertSame( 'off', diluxone_users_option( 'diluxone_users_2fa_mode' ) );
 		$this->assertSame( array(), diluxone_users_option( 'diluxone_users_2fa_methods' ) );
 		$this->assertSame( 'never', diluxone_users_option( 'diluxone_users_2fa_link' ) );
-		$this->assertSame( 7, (int) diluxone_users_option( 'diluxone_users_2fa_remember_days' ), 'a number of days, never a negative one' );
 	}
 
 	/* ── The second step, drawn ────────────────────────────────────── */
@@ -233,6 +243,83 @@ class CoverSettingsSecurityTest extends IntegrationTestCase {
 		diluxone_users_update_option( 'diluxone_users_login_method', 'password' );
 
 		$this->assertStringContainsString( 'The e-mail link is not one of the ways in on this site, so nobody follows one.', $this->draw( 'diluxone_users_screen_login_2fa' ) );
+	}
+
+	/* ── Where Users+ Pro's second-step rules would go ─────────────── */
+
+	/**
+	 * No roles, no app, no days on the tab: three Users+ Pro cards where they
+	 * were, and three places an add-on draws them in, in the tab's order.
+	 */
+	public function test_the_tab_has_three_pro_cards_and_three_places_in_order(): void {
+		$this->where_the_network_is_set();
+		$this->the_admin();
+
+		$this->hook(
+			'diluxone_users_2fa_screen',
+			static function ( string $place ): void {
+				echo '<p data-place="' . esc_attr( $place ) . '"></p>';
+			}
+		);
+
+		$html = $this->draw( 'diluxone_users_screen_login_2fa' );
+
+		$this->assertStringNotContainsString( 'name="diluxone_users_2fa_scope"', $html );
+		$this->assertStringNotContainsString( 'name="diluxone_users_2fa_remember_days"', $html );
+		$this->assertStringNotContainsString( 'value="totp"', $html );
+
+		// Where a piece starts; a control's name and value sit on lines of their own.
+		$at = static function ( string $pattern ) use ( $html ): int {
+			return preg_match( $pattern, $html, $m, PREG_OFFSET_CAPTURE ) ? (int) $m[0][1] : 0;
+		};
+
+		$order = array(
+			$at( '/name="diluxone_users_2fa_mode"\s+value="off"/' ),
+			$at( '/data-diluxone-users-pro="security\/2fa\/roles"/' ),
+			$at( '/data-place="who"/' ),
+			$at( '/name="diluxone_users_2fa_methods\[\]"/' ),
+			$at( '/data-diluxone-users-pro="security\/2fa\/app"/' ),
+			$at( '/data-place="methods"/' ),
+			$at( '/name="diluxone_users_2fa_link"\s+value="never"/' ),
+			$at( '/data-diluxone-users-pro="security\/2fa\/remember"/' ),
+			$at( '/data-place="end"/' ),
+		);
+
+		foreach ( $order as $n => $where ) {
+			$this->assertGreaterThan( 0, $where, "piece $n is drawn" );
+		}
+
+		$sorted = $order;
+		sort( $sorted );
+		$this->assertSame( $sorted, $order, 'in the tab’s order' );
+
+		$this->hook( 'diluxone_users_upsell', static fn( bool $show, string $where ): bool => 0 !== strpos( $where, 'security/2fa/' ) && $show, 10, 2 );
+
+		$this->assertStringNotContainsString( 'data-diluxone-users-pro="security/2fa/', $this->draw( 'diluxone_users_screen_login_2fa' ) );
+	}
+
+	/** A method an add-on registered, kept after it went: ticked, switched off, a Pro choice, kept on save. */
+	public function test_a_method_nothing_registers_is_an_inactive_pro_choice_kept_on_save(): void {
+		$this->where_the_network_is_set();
+		$this->the_admin();
+		diluxone_users_update_option( 'diluxone_users_2fa_methods', array( 'totp', 'email' ) );
+
+		$html = $this->draw( 'diluxone_users_screen_login_2fa' );
+
+		$this->assertMatchesRegularExpression( '/name="diluxone_users_2fa_methods\[\]"\s+value="totp"[^>]*disabled/', $html, 'switched off' );
+		$this->assertMatchesRegularExpression( '/name="diluxone_users_2fa_methods\[\]"\s+value="totp"[^>]*checked/', $html, 'and ticked' );
+		$this->assertStringContainsString( 'Your Pro choice (inactive)', $html );
+
+		$this->send_panel(
+			DILUXONE_USERS_SECURITY,
+			array(
+				'diluxone_users_2fa_mode'    => 'optional',
+				'diluxone_users_2fa_methods' => array( 'email' ),
+			)
+		);
+		$this->assertNotFalse( $this->ended( 'diluxone_users_2fa_save' ) );
+
+		$this->assertSame( array( 'email', 'totp' ), diluxone_users_raw_get( 'diluxone_users_2fa_methods' ), 'kept' );
 	}
 
 	/* ── Where passkeys would go ─────────────────────────────────── */

@@ -30,6 +30,10 @@ class NotificationsTest extends TestCase {
 		// opened, and that is what login.php answers.
 		require_once DILUXONE_USERS_DIR . 'includes/login.php';
 		require_once DILUXONE_USERS_DIR . 'includes/account-sections.php';
+		// Whether a code by e-mail goes out is the second step's registry's answer.
+		require_once DILUXONE_USERS_DIR . 'includes/safe-mode.php';
+		require_once DILUXONE_USERS_DIR . 'includes/auth-email.php';
+		require_once DILUXONE_USERS_DIR . 'includes/auth.php';
 
 		$GLOBALS['diluxone_users_test_user_meta'] = array();
 		$GLOBALS['_test_wp_options']   = array();
@@ -199,12 +203,17 @@ class NotificationsTest extends TestCase {
 	public function test_the_second_step_code_is_listed_only_where_a_code_is_offered(): void {
 		$this->assertArrayHasKey( 'diluxone_users_notify_2fa', diluxone_users_notification_musts() );
 
-		// Two-step verification on, but by app only: no code ever leaves.
-		$GLOBALS['_test_wp_options']['diluxone_users_2fa_methods'] = array( 'totp' );
+		// Two-step verification on, with no method ticked: no code ever leaves.
+		$GLOBALS['_test_wp_options']['diluxone_users_2fa_methods'] = array();
 		$this->assertArrayNotHasKey( 'diluxone_users_notify_2fa', diluxone_users_notification_musts() );
 
-		// The e-mail among the methods, but two-step verification off: same.
-		$GLOBALS['_test_wp_options']['diluxone_users_2fa_methods'] = array( 'totp', 'email' );
+		// Only a method nothing registers (Users+ Pro's app, Pro off): the
+		// e-mail code stands in, so it is listed.
+		$GLOBALS['_test_wp_options']['diluxone_users_2fa_methods'] = array( 'totp' );
+		$this->assertArrayHasKey( 'diluxone_users_notify_2fa', diluxone_users_notification_musts() );
+
+		// The e-mail among the methods, but two-step verification off: none.
+		$GLOBALS['_test_wp_options']['diluxone_users_2fa_methods'] = array( 'email' );
 		$GLOBALS['_test_wp_options']['diluxone_users_2fa_mode']    = 'off';
 		$this->assertArrayNotHasKey( 'diluxone_users_notify_2fa', diluxone_users_notification_musts() );
 	}

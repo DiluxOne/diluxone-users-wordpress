@@ -153,11 +153,17 @@ class ClosedDoorsTest extends IntegrationTestCase {
 		$this->assertNull( \WP_Session_Tokens::get_instance( $member )->get( $token ) );
 	}
 
-	/** Closing a person's sessions also forgets the browsers that skip their second step. */
-	public function test_closing_a_persons_sessions_forgets_their_trusted_browsers(): void {
+	/** Closing a person's sessions also forgets whatever let them skip the second step. */
+	public function test_closing_a_persons_sessions_forgets_what_was_remembered(): void {
 		$admin  = $this->make_user( 'administrator' );
 		$member = $this->make_user();
-		update_user_meta( $member, 'diluxone_users_2fa_epoch', 'before' );
+		$forgot = array();
+		$this->hook(
+			'diluxone_users_2fa_forget',
+			static function ( int $user_id ) use ( &$forgot ): void {
+				$forgot[] = $user_id;
+			}
+		);
 
 		if ( is_multisite() ) {
 			grant_super_admin( $admin );
@@ -174,7 +180,7 @@ class ClosedDoorsTest extends IntegrationTestCase {
 			}
 		}
 
-		$this->assertNotSame( 'before', get_user_meta( $member, 'diluxone_users_2fa_epoch', true ) );
+		$this->assertSame( array( $member ), $forgot );
 	}
 
 	/** The administrator's button refuses a forged nonce, a nobody and an id that is no account. */

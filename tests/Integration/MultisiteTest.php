@@ -244,16 +244,16 @@ class MultisiteTest extends IntegrationTestCase {
 		$user = $this->make_user( 'subscriber' );
 		add_user_to_blog( $this->site, $user, 'administrator' );
 
-		diluxone_users_update_option( 'diluxone_users_2fa_mode', 'required' );
-		diluxone_users_update_option( 'diluxone_users_2fa_methods', array( 'email' ) );
-		diluxone_users_update_option( 'diluxone_users_2fa_scope', 'some' );
-		diluxone_users_update_option( 'diluxone_users_2fa_roles', array( 'administrator' ) );
+		// A rule about roles that is the network's — the social sign-in's here;
+		// Users+ Pro's second step for some roles asks the same question.
+		diluxone_users_update_option( 'diluxone_users_sso_scope', 'some' );
+		diluxone_users_update_option( 'diluxone_users_sso_roles', array( 'administrator' ) );
 
-		$this->assertTrue( diluxone_users_2fa_required( $user, 'password' ), 'A subscriber here, an administrator next door' );
+		$this->assertTrue( diluxone_users_scope_includes( $user, 'diluxone_users_sso' ), 'A subscriber here, an administrator next door' );
 
 		$other = $this->make_user( 'subscriber' );
 
-		$this->assertFalse( diluxone_users_2fa_required( $other, 'password' ), 'A subscriber everywhere is not reached' );
+		$this->assertFalse( diluxone_users_scope_includes( $other, 'diluxone_users_sso' ), 'A subscriber everywhere is not reached' );
 	}
 
 	/** A super admin is an administrator everywhere, member or not. */
@@ -261,12 +261,10 @@ class MultisiteTest extends IntegrationTestCase {
 		$admin = $this->make_user();
 		grant_super_admin( $admin );
 
-		diluxone_users_update_option( 'diluxone_users_2fa_mode', 'required' );
-		diluxone_users_update_option( 'diluxone_users_2fa_methods', array( 'email' ) );
-		diluxone_users_update_option( 'diluxone_users_2fa_scope', 'some' );
-		diluxone_users_update_option( 'diluxone_users_2fa_roles', array( 'administrator' ) );
+		diluxone_users_update_option( 'diluxone_users_sso_scope', 'some' );
+		diluxone_users_update_option( 'diluxone_users_sso_roles', array( 'administrator' ) );
 
-		$this->assertTrue( diluxone_users_2fa_required( $admin, 'password' ) );
+		$this->assertTrue( diluxone_users_scope_includes( $admin, 'diluxone_users_sso' ) );
 
 		revoke_super_admin( $admin );
 	}

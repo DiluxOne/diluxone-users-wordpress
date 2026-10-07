@@ -123,7 +123,6 @@ class ArrayInputTest extends IntegrationTestCase {
 		$design = 'diluxone-users-design';
 
 		return array(
-			'the days a browser is remembered' => array( 'diluxone_users_2fa_save', 'diluxone-users-security', 'diluxone_users_2fa_remember_days', 30, array( 'diluxone_users_2fa_mode' => 'off' ) ),
 			'the long session'                 => array( 'diluxone_users_sessions_save', 'diluxone-users-security', 'diluxone_users_session_long_days', 0, array() ),
 			'the short session'                => array( 'diluxone_users_sessions_save', 'diluxone-users-security', 'diluxone_users_session_short_days', 0, array() ),
 			'the days the log keeps'           => array( 'diluxone_users_log_settings_save', 'diluxone-users-reports', 'diluxone_users_log_days', 90, array() ),

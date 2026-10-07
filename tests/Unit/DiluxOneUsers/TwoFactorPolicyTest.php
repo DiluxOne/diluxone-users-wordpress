@@ -175,13 +175,8 @@ class TwoFactorPolicyTest extends TestCase {
 
 	/** Nothing remembered lets anybody past the second step: that is an add-on's to answer. */
 	public function test_nothing_skips_the_second_step(): void {
-		$_COOKIE[ 'diluxone_users_2fa_' . COOKIEHASH ] = self::USER_ID . '|' . ( time() + 3600 ) . '|whatever';
-
-		try {
-			$this->assertFalse( diluxone_users_2fa_skip( self::USER_ID, 'password' ) );
-		} finally {
-			unset( $_COOKIE[ 'diluxone_users_2fa_' . COOKIEHASH ] );
-		}
+		$this->assertFalse( diluxone_users_2fa_skip( self::USER_ID, 'password' ) );
+		$this->assertTrue( diluxone_users_2fa_required( self::USER_ID, 'password' ), 'and the step is asked' );
 	}
 
 	public function test_backup_codes_are_not_stored_in_the_clear(): void {

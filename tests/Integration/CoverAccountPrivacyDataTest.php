@@ -191,16 +191,17 @@ class CoverAccountPrivacyDataTest extends IntegrationTestCase {
 		$access = $this->rows( $export['data'], 'diluxone-users-access' );
 		$this->assertSame( 'Google', $access['Linked account'] ?? null, 'The network, not the id it gave' );
 		$this->assertSame( 'On', $access['Two-step verification'] ?? null );
-		$this->assertSame( 'Set up', $access['Authenticator app'] ?? null );
+		$this->assertArrayNotHasKey( 'Authenticator app', $access, 'the app is Users+ Pro’s to explain' );
 		$this->assertSame( '#987654', $access['Sites an administrator removed you from'] ?? null, 'A site that does not exist is named by its number' );
 		$this->assertSame( '2', $access['Devices recognised'] ?? null, 'The count, not the hashes' );
 
 		$other = $this->rows( $export['data'], 'diluxone-users-other' );
 		$this->assertSame( 'Kept, and not shown here', $other['diluxone_users_addon_keys'] ?? null, 'Named, so the person knows it is there' );
 		$this->assertSame( 'Kept, and not shown here', $other['diluxone_users_addon_ix_abc'] ?? null );
+		$this->assertSame( 'Kept, and not shown here', $other['diluxone_users_totp'] ?? null, 'and so is the app’s secret, with Pro off' );
 
 		$flat = (string) wp_json_encode( $export );
-		$this->assertStringNotContainsString( 'SECRETSECRETSECRET', $flat, 'The TOTP secret is a key to the account, not a fact about the person' );
+		$this->assertStringNotContainsString( 'SECRETSECRETSECRET', $flat, 'The app’s secret is a key to the account, not a fact about the person' );
 		$this->assertStringNotContainsString( 'PUBLIC-KEY-BYTES', $flat );
 		$this->assertStringNotContainsString( 'google-sub-123', $flat );
 		$this->assertStringNotContainsString( 'hash-a', $flat );

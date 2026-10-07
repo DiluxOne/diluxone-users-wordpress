@@ -24,7 +24,6 @@ class CoverSignInScreensTest extends IntegrationTestCase {
 
 		diluxone_users_update_option( 'diluxone_users_2fa_mode', 'required' );
 		diluxone_users_update_option( 'diluxone_users_2fa_methods', array( 'email' ) );
-		diluxone_users_update_option( 'diluxone_users_2fa_remember_days', 0 );
 
 		$this->user = $this->make_user();
 	}
@@ -79,10 +78,35 @@ class CoverSignInScreensTest extends IntegrationTestCase {
 		);
 	}
 
-	/** The person also has an authenticator app set up, and the site offers it. */
-	private function with_an_app(): void {
-		diluxone_users_update_option( 'diluxone_users_2fa_methods', array( 'email', 'totp' ) );
-		update_user_meta( $this->user, 'diluxone_users_totp', diluxone_users_totp_secret_new() );
+	/**
+	 * The person also has an add-on's method set up — one that sends nothing,
+	 * as Users+ Pro's app — and the add-on draws a field on the form.
+	 */
+	private function with_an_add_ons_method(): void {
+		$this->hook(
+			'diluxone_users_2fa_methods',
+			static function ( array $methods ): array {
+				$methods['device'] = array(
+					'channel'  => 'device',
+					'label'    => 'A device',
+					'help'     => 'The code on the device.',
+					'ready'    => '__return_true',
+					'verify'   => '__return_false',
+					'position' => 10,
+				);
+
+				return $methods;
+			}
+		);
+		$this->hook(
+			'diluxone_users_2fa_form',
+			static function ( int $user_id, string $screen ): void {
+				echo '<input type="checkbox" name="diluxone_users_2fa_extra[mine]" data-screen="' . esc_attr( $screen ) . '" data-user="' . (int) $user_id . '">';
+			},
+			10,
+			2
+		);
+		diluxone_users_update_option( 'diluxone_users_2fa_methods', array( 'email', 'device' ) );
 	}
 
 	/** The sign-in shortcode as a visitor gets it, in this state. */
@@ -101,7 +125,7 @@ class CoverSignInScreensTest extends IntegrationTestCase {
 		$footer = new \ReflectionFunction( 'login_footer' );
 
 		if ( false === strpos( (string) $footer->getFileName(), 'CoverSignInWpLogin.php' ) ) {
-			$this->markTestSkipped( 'login_footer() is not the stand-in (it ends in an exit); the same screen on the sign-in page is test_the_second_step_on_the_page_offers_the_other_methods_and_trust.' );
+			$this->markTestSkipped( 'login_footer() is not the stand-in (it ends in an exit); the same screen on the sign-in page is test_the_second_step_on_the_page_offers_the_other_methods_and_an_add_ons_field.' );
 		}
 
 		ob_start();
@@ -207,28 +231,28 @@ class CoverSignInScreensTest extends IntegrationTestCase {
 		$this->assertStringContainsString( 'name="diluxone_users_2fa_key" value="' . esc_attr( $attempt['key'] ) . '"', $html );
 		$this->assertStringContainsString( 'name="diluxone_users_2fa_method" value="email"', $html );
 		$this->assertStringContainsString( 'We send a six-digit code', $html );
-		// The e-mail can be sent again; there is nothing else to switch to, and no trust box.
+		// The e-mail can be sent again; there is nothing else to switch to, and no box to tick.
 		$this->assertStringContainsString( 'name="diluxone_users_2fa_resend"', $html );
 		$this->assertStringNotContainsString( 'Or use:', $html );
-		$this->assertStringNotContainsString( 'diluxone_users_2fa_trust', $html );
+		$this->assertStringNotContainsString( 'type="checkbox"', $html );
 		$this->assertStringNotContainsString( 'name="diluxone_users_email"', $html );
 	}
 
-	public function test_the_second_step_on_the_page_offers_the_other_methods_and_trust(): void {
+	public function test_the_second_step_on_the_page_offers_the_other_methods_and_an_add_ons_field(): void {
 		$this->login_page();
-		$this->with_an_app();
-		diluxone_users_update_option( 'diluxone_users_2fa_remember_days', 14 );
+		$this->with_an_add_ons_method();
 		$attempt = $this->halfway();
 
 		$html = $this->login();
 
-		// The app comes first, and has no code to send.
-		$this->assertSame( 'totp', $attempt['method'] );
+		// The add-on's method comes first, and has no code to send.
+		$this->assertSame( 'device', $attempt['method'] );
 		$this->assertStringNotContainsString( 'name="diluxone_users_2fa_resend"', $html );
 		$this->assertStringContainsString( 'Or use:', $html );
 		$this->assertStringContainsString( esc_url( diluxone_users_2fa_url( (int) $attempt['user'], $attempt['key'], 'email' ) ), $html );
 		$this->assertStringContainsString( 'A code by email', $html );
-		$this->assertStringContainsString( 'Do not ask again on this browser for 14 days', $html );
+		$this->assertStringContainsString( 'name="diluxone_users_2fa_extra[mine]" data-screen="page" data-user="' . $attempt['user'] . '"', $html, 'inside the form' );
+		$this->assertLessThan( strpos( $html, '</form>' ), strpos( $html, 'diluxone_users_2fa_extra[mine]' ) );
 	}
 
 	/** @return array<string, array{0: string, 1: string}> */
@@ -302,17 +326,15 @@ class CoverSignInScreensTest extends IntegrationTestCase {
 	 * @runInSeparateProcess
 	 * @preserveGlobalState disabled
 	 */
-	public function test_wp_login_offers_the_other_methods_and_trust(): void {
-		$this->with_an_app();
-		diluxone_users_update_option( 'diluxone_users_2fa_remember_days', 30 );
+	public function test_wp_login_offers_the_other_methods_and_an_add_ons_field(): void {
+		$this->with_an_add_ons_method();
 		$attempt = $this->halfway();
 
 		$html = $this->wp_login_screen();
 
 		$this->assertStringContainsString( 'Or use:', $html );
 		$this->assertStringContainsString( esc_url( diluxone_users_2fa_url( (int) $attempt['user'], $attempt['key'], 'email' ) ), $html );
-		$this->assertStringContainsString( 'class="forgetmenot"', $html );
-		$this->assertStringContainsString( 'for 30 days', $html );
+		$this->assertStringContainsString( 'name="diluxone_users_2fa_extra[mine]" data-screen="wp-login"', $html );
 		$this->assertStringNotContainsString( 'name="diluxone_users_2fa_resend"', $html );
 	}
 

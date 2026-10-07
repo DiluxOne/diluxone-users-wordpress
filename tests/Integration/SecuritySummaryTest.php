@@ -91,7 +91,6 @@ class SecuritySummaryTest extends IntegrationTestCase {
 		$this->assertSame( 'off', $this->rows_for( '2fa' )[0]['state'] );
 
 		diluxone_users_update_option( 'diluxone_users_2fa_mode', 'required' );
-		diluxone_users_update_option( 'diluxone_users_2fa_scope', 'all' );
 		$this->assertSame( 'active', $this->rows_for( '2fa' )[0]['state'] );
 
 		diluxone_users_update_option( 'diluxone_users_2fa_mode', 'optional' );
@@ -101,13 +100,12 @@ class SecuritySummaryTest extends IntegrationTestCase {
 	/**
 	 * The state the tab that sets it cannot see.
 	 *
-	 * Required, of a list of roles nobody filled in, is a site that believes
-	 * it asks for a code and asks nobody for anything.
+	 * Required, of nobody — an add-on's list of roles nobody filled in — is a
+	 * site that believes it asks for a code and asks nobody for anything.
 	 */
 	public function test_required_of_nobody_is_pending_and_says_so(): void {
 		diluxone_users_update_option( 'diluxone_users_2fa_mode', 'required' );
-		diluxone_users_update_option( 'diluxone_users_2fa_scope', 'some' );
-		diluxone_users_update_option( 'diluxone_users_2fa_roles', array() );
+		$this->hook( 'diluxone_users_2fa_who', '__return_empty_string' );
 
 		$row = $this->rows_for( '2fa' )[0];
 
@@ -115,21 +113,35 @@ class SecuritySummaryTest extends IntegrationTestCase {
 		$this->assertNotSame( '', $row['why'], 'A pending pill is never shown bare.' );
 	}
 
-	public function test_the_second_step_row_names_the_roles_it_reaches(): void {
+	/** Whom it reaches, in the add-on's words when one narrows it, and everybody's when none does. */
+	public function test_the_second_step_row_names_whom_it_reaches(): void {
 		diluxone_users_update_option( 'diluxone_users_2fa_mode', 'required' );
-		diluxone_users_update_option( 'diluxone_users_2fa_scope', 'some' );
-		diluxone_users_update_option( 'diluxone_users_2fa_roles', array( 'editor' ) );
 
-		$this->assertStringContainsString(
-			translate_user_role( wp_roles()->get_names()['editor'] ),
-			$this->rows_for( '2fa' )[0]['detail']
-		);
+		$this->assertStringContainsString( 'everybody with an account', $this->rows_for( '2fa' )[0]['detail'] );
+
+		$this->hook( 'diluxone_users_2fa_who', static fn(): string => 'Editor' );
+
+		$this->assertStringContainsString( 'Editor', $this->rows_for( '2fa' )[0]['detail'] );
 	}
 
 	/** What carries the code is read from what is ticked, not from the default. */
 	public function test_the_method_row_follows_the_methods_that_are_on(): void {
+		$this->hook(
+			'diluxone_users_2fa_methods',
+			static function ( array $methods ): array {
+				$methods['device'] = array(
+					'channel'  => 'device',
+					'label'    => 'A device',
+					'ready'    => '__return_true',
+					'verify'   => '__return_false',
+					'position' => 10,
+				);
+
+				return $methods;
+			}
+		);
 		diluxone_users_update_option( 'diluxone_users_2fa_mode', 'optional' );
-		diluxone_users_update_option( 'diluxone_users_2fa_methods', array( 'totp' ) );
+		diluxone_users_update_option( 'diluxone_users_2fa_methods', array( 'device' ) );
 
 		$one = $this->rows_for( '2fa' )[1];
 
@@ -138,7 +150,7 @@ class SecuritySummaryTest extends IntegrationTestCase {
 		// The words are translated eight ways, so what is asserted is that
 		// the line moves when the ticks move: one method reads differently
 		// from two, whatever language the site is in.
-		diluxone_users_update_option( 'diluxone_users_2fa_methods', array( 'totp', 'email' ) );
+		diluxone_users_update_option( 'diluxone_users_2fa_methods', array( 'device', 'email' ) );
 
 		$this->assertNotSame( $one['detail'], $this->rows_for( '2fa' )[1]['detail'] );
 

@@ -301,12 +301,12 @@ class CoverAdminStatusTest extends IntegrationTestCase {
 		$html = $this->draw( 'diluxone_users_screen_status_checks' );
 
 		$this->assertMatchesRegularExpression( '/notice-error[^>]*><p>\d+ things need attention\./', $html );
-		$this->assertStringContainsString( 'Set up an authenticator app', $html );
+		$this->assertStringNotContainsString( 'Set up an authenticator app', $html, 'the app is Users+ Pro’s to count' );
 		$this->assertStringContainsString( 'wp-content/themes/' . get_stylesheet() . '/diluxone-users/', $html );
 		$this->assertStringContainsString( '<code>' . DILUXONE_USERS_VERSION . '</code>', $html );
 
 		$stats = diluxone_users_stats();
-		$this->assertGreaterThanOrEqual( 1, $stats['totp'] );
+		$this->assertArrayNotHasKey( 'totp', $stats );
 		$this->assertGreaterThanOrEqual( 1, $stats['social'] );
 	}
 
