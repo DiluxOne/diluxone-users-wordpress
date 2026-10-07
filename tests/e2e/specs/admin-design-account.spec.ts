@@ -1,14 +1,16 @@
 import { Page } from '@playwright/test';
 import { test, expect } from '../support/fixtures';
 import { adminUrl, savePanel } from '../support/ui';
-import { forgetPicture, mediaPicture, pickPicture, previewAnswer, rgb, signInMember, stage } from '../support/admin-content';
+import { previewAnswer, rgb, signInMember, stage } from '../support/admin-content';
 import { ADMIN_STATE } from '../../../playwright.config';
 
 /**
- * Design › The account area: the shape, the header and its pieces, the cover,
- * the menu, the spacing, the ground and the width — each saved through the
- * tab's control and measured on a subscriber's account by class and computed
- * style.
+ * Design › The account area: the shape, the header and its pieces, the menu,
+ * the spacing, the ground and the width — each saved through the tab's
+ * control and measured on a subscriber's account by class and computed style.
+ * The account area with a cover is Users+ Pro's, and its own suite covers
+ * it; here a card stands where it would go, and a cover stored while Pro was
+ * on is the simple area.
  */
 
 test.use({ storageState: ADMIN_STATE });
@@ -23,10 +25,8 @@ const ACCOUNT_KEYS = [
 	'diluxone_users_account_avatar',
 	'diluxone_users_account_since',
 	'diluxone_users_account_action',
-	'diluxone_users_account_cover',
 	'diluxone_users_account_ground',
-	'diluxone_users_account_cover_kind',
-	'diluxone_users_account_cover_image',
+	'diluxone_users_pro_previews',
 	'diluxone_users_account_nav_small',
 	'diluxone_users_account_row_w',
 	'diluxone_users_account_row_pad',
@@ -55,10 +55,8 @@ test.beforeEach(async ({ options, guest, site, pages }) => {
 		diluxone_users_account_avatar: 1,
 		diluxone_users_account_since: 1,
 		diluxone_users_account_action: 0,
-		diluxone_users_account_cover: '',
 		diluxone_users_account_ground: '',
-		diluxone_users_account_cover_kind: 'color',
-		diluxone_users_account_cover_image: 0,
+		diluxone_users_pro_previews: 1,
 		diluxone_users_account_nav_small: 'scroll',
 		diluxone_users_account_row_w: '',
 		diluxone_users_account_row_pad: '',
@@ -74,44 +72,55 @@ test.beforeEach(async ({ options, guest, site, pages }) => {
 });
 
 test.describe('Design › The account area', () => {
-	test('pressing “with a cover” moves the pieces below it, redraws the stage, and saved the account has a cover', async ({ page, guest, site, pages }) => {
+	test('pressing “Simple” puts back the pieces its shape is made of and redraws the stage', async ({ page, guest, site, pages }) => {
 		await page.goto(TAB);
+		await expect(page.locator('input[name="diluxone_users_account_template"]'), 'the one shape of the plugin’s own').toHaveCount(1);
 
-		const cover = radio(page, 'diluxone_users_account_template', 'cover');
-		const preset = JSON.parse((await cover.getAttribute('data-diluxone-users-template-pieces'))!) as Record<string, string | number>;
+		await radio(page, 'diluxone_users_account_nav_style', 'underline').check({ force: true });
+		await tick(page, 'diluxone_users_account_action', true);
+
+		const plain = radio(page, 'diluxone_users_account_template', 'plain');
+		const preset = JSON.parse((await plain.getAttribute('data-diluxone-users-template-pieces'))!) as Record<string, string | number>;
 		const redraw = previewAnswer(page);
 
-		await page.locator('.diluxone-users-templates__one').filter({ has: cover }).click();
-		await expect(page.locator('.diluxone-users-templates__one.is-chosen')).toHaveCount(1);
-		await expect(page.locator('.diluxone-users-templates__one.is-chosen').locator('input')).toHaveValue('cover');
-
-		// Every piece the preset names now says what the preset says.
-		for (const [piece, wanted] of Object.entries(preset)) {
-			const fields = page.locator(`[data-diluxone-users-piece="${piece}"]`);
-
-			for (let n = 0; n < (await fields.count()); n++) {
-				const field = fields.nth(n);
-				const type = await field.getAttribute('type');
-
-				if (type === 'checkbox') {
-					await expect(field, `${piece} follows the shape`).toBeChecked({ checked: String(wanted) === '1' });
-				} else if (type === 'radio') {
-					if ((await field.getAttribute('value')) === String(wanted)) {
-						await expect(field, `${piece} follows the shape`).toBeChecked();
-					}
-				} else {
-					await expect(field).toHaveValue(String(wanted));
-				}
-			}
-		}
+		await plain.dispatchEvent('change');
+		await expect(radio(page, 'diluxone_users_account_nav_style', String(preset.nav_style)), 'the menu’s look follows the shape').toBeChecked();
+		await expect(page.locator('input[type="checkbox"][name="diluxone_users_account_action"]')).toBeChecked({ checked: String(preset.action) === '1' });
 
 		await redraw;
 		await savePanel(page);
-		expect((await site.getOptions(['diluxone_users_account_template'])).diluxone_users_account_template).toBe('cover');
+		expect((await site.getOptions(['diluxone_users_account_template'])).diluxone_users_account_template).toBe('plain');
 
 		await guest.goto(pages.account.url);
-		await expect(area(guest)).toHaveClass(/diluxone-users-account--cover/);
+		await expect(area(guest)).toHaveClass(/diluxone-users-account--plain/);
 		await expect(guest.locator('.diluxone-users-account__nav')).toHaveClass(new RegExp(`--${preset.nav_style}`));
+	});
+
+	test('where Users+ Pro’s cover would go: a card after the shapes, gone with the previews setting', async ({ page, options }) => {
+		await page.goto(TAB);
+
+		const card = page.locator('[data-diluxone-users-pro="design/account/shapes"]');
+
+		await expect(card).toHaveCount(1);
+		await expect(page.locator('[name="diluxone_users_account_cover"], [name="diluxone_users_account_cover_kind"]'), 'nothing of the cover is a control here').toHaveCount(0);
+
+		await options.set({ diluxone_users_pro_previews: 0 });
+		await page.goto(TAB);
+		await expect(card).toHaveCount(0);
+	});
+
+	test('a cover stored while Pro was on is the simple area on the page and kept on the tab', async ({ page, guest, site, pages, options }) => {
+		await options.set({ diluxone_users_account_template: 'cover' });
+
+		await guest.goto(pages.account.url);
+		await expect(area(guest)).toHaveClass(/diluxone-users-account--plain/);
+		await expect(area(guest)).not.toHaveClass(/--cover/);
+
+		await page.goto(TAB);
+		await expect(radio(page, 'diluxone_users_account_template', 'cover')).toBeChecked();
+		await expect(page.locator('.diluxone-users-templates__one.is-chosen')).toContainText('Your Pro choice (inactive)');
+		await savePanel(page);
+		expect((await site.getOptions(['diluxone_users_account_template'])).diluxone_users_account_template).toBe('cover');
 	});
 
 	test('the header’s pieces: without the month and the button it keeps the picture; switched off, there is no header', async ({ page, guest, site, pages }) => {
@@ -142,42 +151,6 @@ test.describe('Design › The account area', () => {
 		await guest.goto(pages.account.url);
 		await expect(guest.locator('.diluxone-users-account__header')).toHaveCount(0);
 		await expect(area(guest), 'opened by the menu, it says so').toHaveClass(/diluxone-users-account--bare/);
-	});
-
-	test('the cover: a colour of its own paints the band, unticked it follows the accent; a picture puts the photo on it', async ({ page, guest, site, pages }) => {
-		await page.goto(TAB);
-		await page.locator('.diluxone-users-templates__one').filter({ has: radio(page, 'diluxone_users_account_template', 'cover') }).click();
-		await radio(page, 'diluxone_users_account_cover_kind', 'color').check({ force: true });
-		await tick(page, 'diluxone_users_account_cover_own', true);
-		await page.locator('input[type="color"][name="diluxone_users_account_cover"]').fill('#7b2d8e');
-		await savePanel(page);
-		expect((await site.getOptions(['diluxone_users_account_cover'])).diluxone_users_account_cover).toBe('#7b2d8e');
-
-		await guest.goto(pages.account.url);
-		await expect(area(guest)).toHaveAttribute('style', /--diluxone-users-cover:#7b2d8e/);
-		expect(await guest.locator('.diluxone-users-account__header').evaluate((header) => getComputedStyle(header).backgroundColor)).toBe(rgb('#7b2d8e'));
-
-		await tick(page, 'diluxone_users_account_cover_own', false);
-		await savePanel(page);
-		expect((await site.getOptions(['diluxone_users_account_cover'])).diluxone_users_account_cover, 'unticked: no colour of its own').toBe('');
-
-		await guest.goto(pages.account.url);
-		await expect(area(guest)).not.toHaveAttribute('style', /--diluxone-users-cover:/);
-
-		const picture = await mediaPicture(page.request, 'e2e-cover-picture');
-
-		try {
-			await radio(page, 'diluxone_users_account_cover_kind', 'image').check({ force: true });
-			await pickPicture(page, 'diluxone_users_account_cover_image', picture);
-			await savePanel(page);
-			expect(Number((await site.getOptions(['diluxone_users_account_cover_image'])).diluxone_users_account_cover_image)).toBe(picture.id);
-
-			await guest.goto(pages.account.url);
-			await expect(area(guest)).toHaveClass(/diluxone-users-account--cover-image/);
-			await expect(area(guest)).toHaveAttribute('style', /--diluxone-users-cover-image:url\([^)]*e2e-cover-picture/);
-		} finally {
-			await forgetPicture(page.request, 'e2e-cover-picture');
-		}
 	});
 
 	test('the menu: its style and its alignment are the classes and the place the account shows', async ({ page, guest, site, pages }) => {
@@ -211,13 +184,12 @@ test.describe('Design › The account area', () => {
 		expect(gap, 'as much room on either side').toBeLessThan(4);
 	});
 
-	test('shapes, menus and covers that are not on their lists are drawn as the plain ones and not kept', async ({ page, guest, site, pages }) => {
+	test('menus that are not on their lists are drawn as the plain ones and not kept', async ({ page, guest, site, pages }) => {
 		await page.goto(TAB);
 
 		for (const [name, value] of [
 			['diluxone_users_account_nav_style', 'pills'],
 			['diluxone_users_account_nav_align', 'start'],
-			['diluxone_users_account_cover_kind', 'color'],
 		]) {
 			await radio(page, name, value).evaluate((input: HTMLInputElement) => {
 				input.value = 'e2e-forged';
@@ -231,10 +203,10 @@ test.describe('Design › The account area', () => {
 		await expect(guest.locator('.diluxone-users-account__nav')).toHaveClass(/diluxone-users-account__nav--pills/);
 		await expect(guest.locator('.diluxone-users-account__nav')).toHaveClass(/diluxone-users-account__nav--start/);
 
-		const stored = await site.getOptions(['diluxone_users_account_nav_style', 'diluxone_users_account_nav_align', 'diluxone_users_account_cover_kind']);
+		const stored = await site.getOptions(['diluxone_users_account_nav_style', 'diluxone_users_account_nav_align']);
 
 		expect
-			.soft(Object.values(stored), 'bug: the menu style, alignment and cover kind keep values from outside their lists (admin-design.php diluxone_users_design_account_save stores sanitize_key() of what was posted)')
+			.soft(Object.values(stored), 'bug: the menu style and alignment keep values from outside their lists (admin-design.php diluxone_users_design_account_save stores sanitize_key() of what was posted)')
 			.not.toContain('e2e-forged');
 	});
 
@@ -286,22 +258,33 @@ test.describe('Design › The account area', () => {
 		expect(await guest.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--diluxone-users-nav-top').trim())).toBe('');
 	});
 
-	test('a ground of its own is the colour behind the area; unticked, nothing is kept', async ({ page, guest, site, pages }) => {
+	test('a ground from its palette is the colour behind the area; the page’s own keeps nothing, and a colour sent by hand is no answer', async ({ page, guest, site, pages }) => {
 		await page.goto(TAB);
-		await tick(page, 'diluxone_users_account_ground_own', true);
-		await page.locator('input[type="color"][name="diluxone_users_account_ground"]').fill('#f3e9d2');
+
+		const row = page.locator('[data-diluxone-users-swatches="diluxone_users_account_ground"]');
+
+		await expect(row.locator('input[type="radio"]'), 'the page’s own and four shades').toHaveCount(5);
+		await expect(row.locator('input[value=""]')).toBeChecked();
+
+		await radio(page, 'diluxone_users_account_ground', '#eef6f1').check({ force: true });
 		await savePanel(page);
-		expect((await site.getOptions(['diluxone_users_account_ground'])).diluxone_users_account_ground).toBe('#f3e9d2');
+		expect((await site.getOptions(['diluxone_users_account_ground'])).diluxone_users_account_ground).toBe('#eef6f1');
 
 		await guest.goto(pages.account.url);
-		expect(await area(guest).evaluate((element) => getComputedStyle(element).backgroundColor)).toBe(rgb('#f3e9d2'));
+		expect(await area(guest).evaluate((element) => getComputedStyle(element).backgroundColor)).toBe(rgb('#eef6f1'));
 
-		await tick(page, 'diluxone_users_account_ground_own', false);
+		await radio(page, 'diluxone_users_account_ground', '#eef6f1').evaluate((input: HTMLInputElement) => {
+			input.value = '#f3e9d2';
+		});
+		await savePanel(page);
+		expect((await site.getOptions(['diluxone_users_account_ground'])).diluxone_users_account_ground, 'a shade nobody offered').toBe('');
+
+		await radio(page, 'diluxone_users_account_ground', '').check({ force: true });
 		await savePanel(page);
 		expect((await site.getOptions(['diluxone_users_account_ground'])).diluxone_users_account_ground).toBe('');
 
 		await guest.goto(pages.account.url);
-		expect(await area(guest).evaluate((element) => getComputedStyle(element).backgroundColor)).not.toBe(rgb('#f3e9d2'));
+		expect(await area(guest).evaluate((element) => getComputedStyle(element).backgroundColor)).not.toBe(rgb('#eef6f1'));
 	});
 
 	test('the width: “as wide as the theme allows” lifts the reading column’s limit', async ({ page, guest, site, pages }) => {

@@ -1,7 +1,7 @@
 import { Page } from '@playwright/test';
 import { test, expect } from '../support/fixtures';
 import { accountSection, navigated } from '../support/ui';
-import { PIXEL, anotherBrowser, formOf, reveal, send, signedIn } from '../support/my-account';
+import { anotherBrowser, reveal, signedIn } from '../support/my-account';
 
 /**
  * The account page as a whole: which section opens for which address, what
@@ -229,42 +229,15 @@ test.describe('The header and the look', () => {
 		await expect(root.locator('.diluxone-users-account__header')).toHaveCount(0);
 	});
 
-	test('the cover carries its colour, and a picture only once one is chosen', async ({ page, site, pages, options }) => {
-		const { email } = await signedIn(page, site, pages.login.url, 'look-cover');
+	test('a cover stored while Users+ Pro was on is the simple area, with nothing of the cover on it', async ({ page, site, pages, options }) => {
+		await signedIn(page, site, pages.login.url, 'look-cover');
 		const root = page.locator('.diluxone-users-account');
 
 		await options.set({ diluxone_users_account_template: 'cover', diluxone_users_account_cover: '#123456', diluxone_users_account_cover_kind: 'color' });
 		await page.goto(pages.account.url);
-		await expect(root).toHaveClass(/diluxone-users-account--cover(\s|$)/);
-		await expect(root).toHaveAttribute('style', /--diluxone-users-cover:#123456/);
-
-		// A picture asked for and none chosen: the colour, not an empty band.
-		await options.set({ diluxone_users_account_cover_kind: 'image', diluxone_users_account_cover_image: 0 });
-		await page.goto(pages.account.url);
-		await expect(root).not.toHaveClass(/--cover-image|--cover-dim/);
-
-		// A real picture: uploaded as the person's photo, then chosen as the cover.
-		await options.set({ diluxone_users_avatar_upload: 1 });
-		await page.goto(accountSection(pages.account.url, 'details'));
-		await reveal(page, 'form.diluxone-users-avatar__form');
-		await page.locator('input[name="diluxone_users_avatar_file"]').setInputFiles({ name: 'cover.png', mimeType: 'image/png', buffer: PIXEL });
-		expect(await send(page, formOf(page, 'diluxone_users_avatar').locator('button[type="submit"]').first())).toBe('saved');
-
-		const picture = Number((await site.user(email, ['diluxone_users_avatar'])).fields.diluxone_users_avatar);
-
-		await options.set({ diluxone_users_account_cover_image: picture });
-		await page.goto(pages.account.url);
-		await expect(root).toHaveClass(/diluxone-users-account--cover-image/);
-		await expect(root).toHaveAttribute('style', /--diluxone-users-cover-image:url\(/);
-
-		await options.set({ diluxone_users_account_cover_kind: 'dim' });
-		await page.goto(pages.account.url);
-		await expect(root).toHaveClass(/diluxone-users-account--cover-dim/);
-
-		// The plain shape carries no cover style at all.
-		await options.set({ diluxone_users_account_template: 'plain' });
-		await page.goto(pages.account.url);
-		await expect(root).not.toHaveAttribute('style', /.+/);
+		await expect(root).toHaveClass(/diluxone-users-account--plain/);
+		await expect(root).not.toHaveClass(/--cover/);
+		await expect(root, 'the plain shape carries no properties of its own').not.toHaveAttribute('style', /.+/);
 	});
 
 	test('the width and the menu’s look and alignment are classes the stylesheet reads; an unknown value is the default', async ({

@@ -85,15 +85,16 @@ test.describe('Status › Tools', () => {
 		site,
 		options,
 	}) => {
-		// Two settings that hold lists of lists: the sections of the account
-		// area and the colour map.
+		// Two settings that hold more than one value: the sections of the
+		// account area, a list of lists, and the notices' rules, a map.
 		await options.set({
 			diluxone_users_account_sections: {
 				privacy: { enabled: 1, label: 'Your data, e2e', slug: 'privacy', position: 70 },
 			},
+			diluxone_users_notice_rules: { expired: 'quiet' },
 		});
 
-		const nested = ['diluxone_users_account_sections', 'diluxone_users_color_map'];
+		const nested = ['diluxone_users_account_sections', 'diluxone_users_notice_rules'];
 		const before = await site.getOptions(nested);
 
 		await page.goto(adminUrl('diluxone-users-status', 'tools'));
@@ -107,7 +108,7 @@ test.describe('Status › Tools', () => {
 		// Changed after the export, so that only the import can bring them back.
 		await options.set({
 			diluxone_users_account_sections: { privacy: { enabled: 0, label: 'Changed since', slug: 'changed', position: 10 } },
-			diluxone_users_color_map: { accent: 'changed-since' },
+			diluxone_users_notice_rules: { expired: 'changedsince' },
 		});
 
 		await tool(page, 'import').locator('input[type="file"]').setInputFiles(path);

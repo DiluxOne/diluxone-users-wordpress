@@ -15,7 +15,7 @@ test.use({ storageState: ADMIN_STATE });
 const BRAND_KEYS = [
 	'diluxone_users_styles',
 	'diluxone_users_colors',
-	'diluxone_users_color_map',
+	'diluxone_users_pro_previews',
 	'diluxone_users_style_accent',
 	'diluxone_users_style_radius',
 	'diluxone_users_style_control',
@@ -44,8 +44,11 @@ test.beforeEach(async ({ options }) => {
 		diluxone_users_button_icons: 0,
 		diluxone_users_notice_style: 'bar',
 		diluxone_users_login_logo: 0,
+		diluxone_users_pro_previews: 1,
 	});
 });
+
+const swatch = (page: Page, hex: string) => page.locator(`input[name="diluxone_users_style_accent"][value="${hex}"]`);
 
 test.describe('Design › Your brand', () => {
 	test('“the site writes it”: the plugin’s stylesheet leaves the public pages; back to “mine”, it returns', async ({ page, guest, site, pages }) => {
@@ -66,18 +69,51 @@ test.describe('Design › Your brand', () => {
 		await expect(guest.locator('link#diluxone-users-css')).toHaveCount(1);
 	});
 
-	test('an accent chosen in the picker is the accent of the sign-in page and of its filled button', async ({ page, guest, site, pages }) => {
+	test('an accent chosen from the palette is the accent of the sign-in page and of its filled button', async ({ page, guest, site, pages }) => {
 		await page.goto(adminUrl('diluxone-users-design', 'brand'));
 		await look(page, 'own').check({ force: true });
-		await page.locator('#diluxone_users_style_accent').fill('#7b2d8e');
+
+		const row = page.locator('[data-diluxone-users-swatches="diluxone_users_style_accent"]');
+
+		await expect(row.locator('input[type="radio"]'), 'eight accents').toHaveCount(8);
+		await expect(swatch(page, '#2b59d6'), 'nothing stored is the default').toBeChecked();
+
+		await swatch(page, '#6d28d9').check({ force: true });
 		await savePanel(page);
 
-		await expect(page.locator('#diluxone_users_style_accent')).toHaveValue('#7b2d8e');
-		expect((await site.getOptions(['diluxone_users_style_accent'])).diluxone_users_style_accent).toBe('#7b2d8e');
+		await expect(swatch(page, '#6d28d9')).toBeChecked();
+		expect((await site.getOptions(['diluxone_users_style_accent'])).diluxone_users_style_accent).toBe('#6d28d9');
 
 		await guest.goto(pages.login.url);
-		expect(await resolvedColour(guest, '--diluxone-users-accent')).toBe(rgb('#7b2d8e'));
-		expect(await linkButton(guest).evaluate((button) => getComputedStyle(button).backgroundColor)).toBe(rgb('#7b2d8e'));
+		expect(await resolvedColour(guest, '--diluxone-users-accent')).toBe(rgb('#6d28d9'));
+		expect(await linkButton(guest).evaluate((button) => getComputedStyle(button).backgroundColor)).toBe(rgb('#6d28d9'));
+	});
+
+	test('a colour kept from Users+ Pro: inactive and kept on the tab, its nearest of the palette on the page; any colour is a card', async ({ page, guest, site, pages, options }) => {
+		await options.set({ diluxone_users_style_accent: '#008671' });
+
+		await guest.goto(pages.login.url);
+		expect(await resolvedColour(guest, '--diluxone-users-accent'), 'the teal of the palette, the nearest').toBe(rgb('#0f766e'));
+
+		await page.goto(adminUrl('diluxone-users-design', 'brand'));
+
+		const kept = page.locator('.du-swatch--kept');
+
+		await expect(kept).toContainText('Your Pro colour (inactive)');
+		await expect(swatch(page, '#008671')).toBeChecked();
+		await expect(page.locator('[data-diluxone-users-pro="design/brand/any-color"]')).toHaveCount(1);
+
+		await savePanel(page);
+		expect((await site.getOptions(['diluxone_users_style_accent'])).diluxone_users_style_accent, 'kept by the save').toBe('#008671');
+
+		await swatch(page, '#15803d').check({ force: true });
+		await savePanel(page);
+		expect((await site.getOptions(['diluxone_users_style_accent'])).diluxone_users_style_accent).toBe('#15803d');
+		await expect(kept, 'gone once another is picked').toHaveCount(0);
+
+		await options.set({ diluxone_users_pro_previews: 0 });
+		await page.goto(adminUrl('diluxone-users-design', 'brand'));
+		await expect(page.locator('[data-diluxone-users-pro="design/brand/any-color"]')).toHaveCount(0);
 	});
 
 	test('the corners: 0 squares every button; “back to the default” empties the box, redraws the preview and saves the plugin’s own', async ({
@@ -140,7 +176,7 @@ test.describe('Design › Your brand', () => {
 		test(`buttons “${style}”: the filled button is no longer filled with the accent`, async ({ page, guest, pages }) => {
 			await page.goto(adminUrl('diluxone-users-design', 'brand'));
 			await look(page, 'own').check({ force: true });
-			await page.locator('#diluxone_users_style_accent').fill('#7b2d8e');
+			await swatch(page, '#6d28d9').check({ force: true });
 			await page.locator(`input[name="diluxone_users_button_style"][value="${style}"]`).check({ force: true });
 			await savePanel(page);
 			await expect(page.locator(`input[name="diluxone_users_button_style"][value="${style}"]`)).toBeChecked();
@@ -149,8 +185,8 @@ test.describe('Design › Your brand', () => {
 
 			const painted = await linkButton(guest).evaluate((button) => ({ bg: getComputedStyle(button).backgroundColor, ink: getComputedStyle(button).color }));
 
-			expect(painted.bg, 'not the solid accent').not.toBe(rgb('#7b2d8e'));
-			expect(painted.ink, 'the words take the accent instead').toBe(rgb('#7b2d8e'));
+			expect(painted.bg, 'not the solid accent').not.toBe(rgb('#6d28d9'));
+			expect(painted.ink, 'the words take the accent instead').toBe(rgb('#6d28d9'));
 
 			if (style === 'outline') {
 				expect(painted.bg).toBe('rgba(0, 0, 0, 0)');
@@ -266,43 +302,27 @@ test.describe('Design › Your brand', () => {
 		}
 	});
 
-	test('the theme’s palette: a colour mapped to the accent is the accent the sign-in page shows', async ({ page, guest, site, pages }) => {
+	test('the theme’s palette: the accent is the colour its names say, and choosing which does what is a picture of Users+ Pro', async ({ page, guest, pages, options }) => {
 		await page.goto(adminUrl('diluxone-users-design', 'brand'));
 		await look(page, 'theme').check({ force: true });
-
-		const fine = page.locator('details[data-diluxone-users-brand-map]');
-
-		if (!(await fine.evaluate((element: HTMLDetailsElement) => element.open))) {
-			await fine.locator('> summary').click();
-		}
-
-		const select = page.locator('#diluxone_users_color_map_accent');
-		const slugs = await select.locator('option').evaluateAll((all) => all.map((one) => (one as HTMLOptionElement).value).filter((value) => value !== ''));
-		const now = await select.inputValue();
-		const chosen = slugs.find((slug) => slug !== now)!;
-
-		expect(chosen, 'the theme has a palette to choose from').toBeTruthy();
-
-		await select.selectOption(chosen);
 		await savePanel(page);
 
-		expect(((await site.getOptions(['diluxone_users_color_map'])).diluxone_users_color_map as Record<string, string>).accent).toBe(chosen);
+		const picture = page.locator('[data-diluxone-users-pro="design/brand/color-map"]');
 
-		if (!(await fine.evaluate((element: HTMLDetailsElement) => element.open))) {
-			await fine.locator('> summary').click();
-		}
+		await expect(picture).toHaveCount(1);
+		await expect(picture.locator('[inert]')).toHaveCount(1);
+		await expect(picture.locator('[name]'), 'nothing in the picture sends').toHaveCount(0);
+		await expect(page.locator('select[name^="diluxone_users_color_map"]')).toHaveCount(0);
 
-		await expect(select).toHaveValue(chosen);
-
-		// The chip beside the select is the palette colour that slug names.
-		const swatch = await page
-			.locator('.diluxone-users-palette__row')
-			.filter({ has: select })
-			.locator('.diluxone-users-palette__chip')
-			.evaluate((chip) => getComputedStyle(chip).backgroundColor);
+		// The chip of the accent in the picture is the palette colour its names gave it.
+		const chip = await picture.locator('.diluxone-users-palette__chip').first().evaluate((one) => getComputedStyle(one).backgroundColor);
 
 		await guest.goto(pages.login.url);
-		expect(await resolvedColour(guest, '--diluxone-users-accent'), 'the accent on the page is the palette colour chosen').toBe(swatch);
+		expect(await resolvedColour(guest, '--diluxone-users-accent'), 'the accent on the page is the palette colour guessed').toBe(chip);
+
+		await options.set({ diluxone_users_pro_previews: 0 });
+		await page.goto(adminUrl('diluxone-users-design', 'brand'));
+		await expect(picture).toHaveCount(0);
 	});
 });
 
@@ -313,12 +333,12 @@ test.describe('Design › Your brand › the live preview', () => {
 
 		const redraw = previewAnswer(page);
 
-		await page.locator('#diluxone_users_style_accent').fill('#1f8a3b');
+		await swatch(page, '#b91c1c').check({ force: true });
 		await redraw;
 
 		await expect
 			.poll(async () => resolvedColour(await stage(page), '--diluxone-users-accent').catch(() => ''), { message: 'the stage resolves the new accent' })
-			.toBe(rgb('#1f8a3b'));
+			.toBe(rgb('#b91c1c'));
 
 		expect((await site.getOptions(['diluxone_users_style_accent'])).diluxone_users_style_accent, 'the preview saves nothing').toBe('');
 	});

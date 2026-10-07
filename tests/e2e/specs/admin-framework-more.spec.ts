@@ -150,7 +150,7 @@ test.describe('The account area’s own question', () => {
 
 test.describe('The theme’s colours, remembered', () => {
 	test('measured once and kept in the browser; the next page paints them before any script measures again', async ({ guest, pages, options }) => {
-		await options.set({ diluxone_users_styles: 1, diluxone_users_colors: 'theme', diluxone_users_color_map: [] });
+		await options.set({ diluxone_users_styles: 1, diluxone_users_colors: 'theme' });
 
 		await guest.goto(pages.login.url);
 

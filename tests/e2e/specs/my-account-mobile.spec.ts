@@ -5,7 +5,7 @@ import { anotherBrowser, reveal, signedIn } from '../support/my-account';
 
 /**
  * The account area on a phone, 390 pixels wide: what the stylesheet's
- * narrow-screen rules do to the menu, the side layout, the cover and the rows
+ * narrow-screen rules do to the menu, the side layout, the header and the rows
  * of the lists. Behaviour, not pictures — the computed style the rule sets,
  * and where things land on the screen.
  */
@@ -103,21 +103,17 @@ test('the side menu goes back across the top, and an underline becomes a line un
 	await expectNoSideScroll(page);
 });
 
-test('the cover’s header wraps on a phone, button and all, and nothing runs off the side', async ({ page, site, pages, options }) => {
+test('the header holds a long name and its button on a phone, and nothing runs off the side', async ({ page, site, pages, options }) => {
 	await options.set({
-		diluxone_users_account_template: 'cover',
+		diluxone_users_account_template: 'plain',
 		diluxone_users_account_header: 1,
 		diluxone_users_account_avatar: 1,
 		diluxone_users_account_since: 1,
 		diluxone_users_account_action: 1,
 		diluxone_users_account_sections: {},
 	});
-	await signedIn(page, site, pages.login.url, 'mob-cover', { meta: { first_name: 'Maximiliano', last_name: 'Bartolomeo-Etchegaray' } });
+	await signedIn(page, site, pages.login.url, 'mob-header', { meta: { first_name: 'Maximiliano', last_name: 'Bartolomeo-Etchegaray' } });
 	await page.goto(pages.account.url);
-
-	const inner = page.locator('.diluxone-users-account__header-inner');
-
-	expect(await inner.evaluate((el) => getComputedStyle(el).flexWrap)).toBe('wrap');
 
 	const action = (await page.locator('.diluxone-users-account__action').boundingBox())!;
 

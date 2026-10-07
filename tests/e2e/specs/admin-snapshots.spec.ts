@@ -95,11 +95,7 @@ test.describe('Every screen looks like it did', () => {
  * under it — is invisible to a single picture, which would show one third of
  * the screen and call it the screen.
  *
- * So: one picture per answer, and a fourth with the fine tuning opened. That
- * last one is where the bug was that nobody could name — seven bordered
- * squares with nothing in them, read as seven tick boxes — and it is the one
- * thing here a measurement cannot see, because an empty square and a painted
- * one are the same box.
+ * So: one picture per answer.
  */
 test.describe('Your brand looks like it did', () => {
 	const ANSWERS: Record<string, Record<string, unknown>> = {
@@ -121,25 +117,6 @@ test.describe('Your brand looks like it did', () => {
 			);
 		});
 	}
-
-	test('from the theme, with the fine tuning open', async ({ page, options }) => {
-		await options.set({
-			...ANSWERS.theme,
-			// The guess and nothing else, so the parts the theme says nothing
-			// about are left to the plugin — the rows whose square used to be
-			// empty.
-			diluxone_users_color_map: [],
-		});
-
-		await page.goto(adminUrl('diluxone-users-design', 'brand'));
-		await page.locator('details[data-diluxone-users-brand-map] summary').click();
-		await settled(page);
-
-		await expect(page.locator('.wrap.diluxone-users-admin')).toHaveScreenshot(
-			'design-brand-theme-open.png',
-			{ mask: masks(page) }
-		);
-	});
 });
 
 /**
@@ -147,26 +124,13 @@ test.describe('Your brand looks like it did', () => {
  *
  * The picture of each tab above is the tab on the site's shape, and the
  * preview inside it draws that one. The other shapes are where the preview
- * has the most to get right — a panel beside the form, a picture behind it, a
- * band across the account — and a single picture shows none of them. The
+ * has the most to get right — a frame taking the page over, a menu down the
+ * side — and a single picture shows none of them. The
  * sign-in page itself, on each shape, is in `front-snapshots.spec.ts`.
  */
 test.describe('Design, on every shape', () => {
 	const LOGIN: Record<string, Record<string, unknown>> = {
 		card: { diluxone_users_login_template: 'card' },
-		'split-left': {
-			diluxone_users_login_template: 'split',
-			diluxone_users_login_side: 'left',
-			diluxone_users_login_panel_title: 'One account.\nNo passwords.',
-			diluxone_users_login_panel_text: 'Everything you do here, in one place.',
-		},
-		'split-right': {
-			diluxone_users_login_template: 'split',
-			diluxone_users_login_side: 'right',
-			diluxone_users_login_panel_title: 'One account.\nNo passwords.',
-			diluxone_users_login_panel_text: 'Everything you do here, in one place.',
-		},
-		backdrop: { diluxone_users_login_template: 'backdrop' },
 	};
 
 	for (const [shape, settings] of Object.entries(LOGIN)) {
@@ -184,8 +148,6 @@ test.describe('Design, on every shape', () => {
 
 	const ACCOUNT: Array<[string, string]> = [
 		['plain', 'side'],
-		['cover', 'tabs'],
-		['cover', 'side'],
 	];
 
 	for (const [shape, layout] of ACCOUNT) {

@@ -26,7 +26,9 @@ function liveAnswer(page: Page) {
 
 test.describe('Templates and defaults', () => {
 	test('pressing a template fills the pieces under it with that template’s values and redraws the preview', async ({ page, options }) => {
-		await options.keep(['diluxone_users_account_template']);
+		// A shape kept from Users+ Pro is the one chosen, so the plugin's own
+		// is a template still to press.
+		await options.set({ diluxone_users_account_template: 'cover' });
 
 		await page.goto(adminUrl('diluxone-users-design', 'account'));
 
@@ -90,26 +92,28 @@ test.describe('Templates and defaults', () => {
 	});
 });
 
-test.describe('A colour of its own', () => {
-	test('unticked, the picker is off and nothing is stored; ticked, the colour is stored and the account area is painted with it', async ({ page, guest, site, pages, options }) => {
+test.describe('A colour from a short palette', () => {
+	test('the swatches are one group of radios: the arrows move along the row, and saved it paints the area', async ({ page, guest, site, pages, options }) => {
 		await options.keep(['diluxone_users_account_ground']);
-		await options.set({ diluxone_users_account_ground: '#123456' });
+		await options.set({ diluxone_users_account_ground: '' });
 
 		await page.goto(adminUrl('diluxone-users-design', 'account'));
 
-		const own = page.locator('input[name="diluxone_users_account_ground_own"]');
-		const picker = page.locator('input[type="color"][name="diluxone_users_account_ground"]');
+		const row = page.locator('[data-diluxone-users-swatches="diluxone_users_account_ground"]');
+		const none = row.locator('input[value=""]');
 
-		await expect(own).toBeChecked();
-		await expect(picker).toBeEnabled();
+		await expect(none).toBeChecked();
+		await none.focus();
+		await page.keyboard.press('ArrowRight');
 
-		await page.locator('label.du-choice').filter({ has: own }).click();
-		await expect(picker).toBeDisabled();
+		const next = row.locator('input[type="radio"]').nth(1);
+
+		await expect(next, 'the arrow picks the next shade').toBeChecked();
+
+		const chosen = (await next.getAttribute('value'))!;
+
 		await savePanel(page);
-
-		expect(String((await site.getOptions(['diluxone_users_account_ground'])).diluxone_users_account_ground ?? '')).toBe('');
-		await expect(own).not.toBeChecked();
-		await expect(picker).toBeDisabled();
+		expect(String((await site.getOptions(['diluxone_users_account_ground'])).diluxone_users_account_ground)).toBe(chosen);
 
 		const email = freshEmail('ground');
 
@@ -118,24 +122,14 @@ test.describe('A colour of its own', () => {
 		await signInWithPassword(guest, email, PASSWORD);
 		await expectSignedIn(guest, email);
 		await guest.goto(pages.account.url);
-		expect((await guest.content()).toLowerCase(), 'a colour unticked still painted').not.toContain('#2a7b4f');
-
-		await page.locator('label.du-choice').filter({ has: own }).click();
-		await expect(picker).toBeEnabled();
-		await picker.fill('#2a7b4f');
-		await savePanel(page);
-
-		expect(String((await site.getOptions(['diluxone_users_account_ground'])).diluxone_users_account_ground).toLowerCase()).toBe('#2a7b4f');
-
-		await guest.reload();
-		expect((await guest.content()).toLowerCase(), 'the account area does not carry the colour').toContain('#2a7b4f');
+		expect((await guest.content()).toLowerCase(), 'the account area carries the shade').toContain(chosen);
 	});
 });
 
 test.describe('The media picker', () => {
 	test('a picture chosen from the library is stored by id and drawn on the sign-in page; removed, it goes', async ({ page, guest, site, pages, options, request }) => {
-		await options.keep(['diluxone_users_login_image', 'diluxone_users_login_template']);
-		await options.set({ diluxone_users_login_image: 0, diluxone_users_login_template: 'split' });
+		await options.keep(['diluxone_users_login_logo']);
+		await options.set({ diluxone_users_login_logo: 0 });
 
 		const made = await request.post(`${E2E_NS}/admin-access/attachment`, { headers: E2E_HEADER });
 
@@ -144,9 +138,9 @@ test.describe('The media picker', () => {
 		const picture = (await made.json()) as { id: number; url: string };
 
 		try {
-			await page.goto(adminUrl('diluxone-users-design', 'login'));
+			await page.goto(adminUrl('diluxone-users-design', 'brand'));
 
-			const box = page.locator('[data-diluxone-users-image]').filter({ has: page.locator('input[name="diluxone_users_login_image"]') });
+			const box = page.locator('[data-diluxone-users-image]').filter({ has: page.locator('input[name="diluxone_users_login_logo"]') });
 
 			await box.locator('[data-diluxone-users-image-pick]').click();
 
@@ -164,12 +158,12 @@ test.describe('The media picker', () => {
 			await modal.locator(`li.attachment[data-id="${picture.id}"]`).click();
 			await modal.locator('.media-button-select').click();
 
-			await expect(box.locator('input[name="diluxone_users_login_image"]')).toHaveValue(String(picture.id));
+			await expect(box.locator('input[name="diluxone_users_login_logo"]')).toHaveValue(String(picture.id));
 			await expect(box.locator('[data-diluxone-users-image-preview]')).toBeVisible();
 			await expect(box.locator('[data-diluxone-users-image-clear]')).toBeVisible();
 
 			await savePanel(page);
-			expect(Number((await site.getOptions(['diluxone_users_login_image'])).diluxone_users_login_image)).toBe(picture.id);
+			expect(Number((await site.getOptions(['diluxone_users_login_logo'])).diluxone_users_login_logo)).toBe(picture.id);
 
 			const file = new URL(picture.url).pathname.split('/').pop()!.replace(/\.png$/, '');
 
@@ -177,11 +171,11 @@ test.describe('The media picker', () => {
 			expect(await guest.content(), 'the sign-in page does not draw the picture').toContain(file);
 
 			await box.locator('[data-diluxone-users-image-clear]').click();
-			await expect(box.locator('input[name="diluxone_users_login_image"]')).toHaveValue('0');
+			await expect(box.locator('input[name="diluxone_users_login_logo"]')).toHaveValue('0');
 			await expect(box.locator('[data-diluxone-users-image-preview]')).toBeHidden();
 			await savePanel(page);
 
-			expect(Number((await site.getOptions(['diluxone_users_login_image'])).diluxone_users_login_image)).toBe(0);
+			expect(Number((await site.getOptions(['diluxone_users_login_logo'])).diluxone_users_login_logo)).toBe(0);
 			await guest.reload();
 			expect(await guest.content()).not.toContain(file);
 		} finally {
@@ -287,7 +281,7 @@ test.describe('The trial page', () => {
 	async function trial(page: Page): Promise<string> {
 		await page.goto(adminUrl('diluxone-users-design', 'wp'));
 		await page.locator('input[name="diluxone_users_wp_login_brand"]').check();
-		await page.locator('input[name="diluxone_users_wp_login_bg"]').fill('#7b2d8e');
+		await page.locator('input[name="diluxone_users_wp_login_bg"][value="#6d28d9"]').check({ force: true });
 
 		const [answer] = await Promise.all([
 			page.waitForResponse((response) => response.url().includes('diluxone-users-try=')),
@@ -315,7 +309,7 @@ test.describe('The trial page', () => {
 		// A stranger with the same address does not.
 		await guest.goto(url);
 		await expect(guest.locator('[data-diluxone-users-trial]')).toHaveCount(0);
-		expect(await guest.evaluate(() => getComputedStyle(document.body).backgroundColor)).not.toBe('rgb(123, 45, 142)');
+		expect(await guest.evaluate(() => getComputedStyle(document.body).backgroundColor)).not.toBe('rgb(109, 40, 217)');
 
 		// Nor does another administrator.
 		const email = freshEmail('other-admin');

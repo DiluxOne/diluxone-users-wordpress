@@ -10,7 +10,9 @@ product is fixed, not to be loosened.
 Passkeys are not here: they are Users+ Pro's, and its own repository covers
 them. What this suite asserts about them is that the free plugin, without the
 add-on, offers none and names none, and draws its Users+ Pro placeholders where
-they would be.
+they would be. The same goes for the split and full-background sign-in layouts,
+the account area with a cover, any colour and the map of the theme's colours:
+here a Pro choice stored is drawn as the closest free one and kept on its screen.
 
 ## Signing in
 
@@ -31,7 +33,7 @@ they would be.
 | Authenticator app: set up from the account, sign in, trusted browser, backup codes | `two-factor` › with an authenticator app |
 | Social: new account, known verified address, H-01, silence, verified-only, social registration off, cancel, roles, link/unlink, H-02, forged state, buttons off | `sso` |
 | WP-CLI `wp diluxone-users login` link | `network/lifecycle` › WP-CLI |
-| Nobody's form for somebody signed in; `title="yes"`; the site's heading, intro, small print, logo; backdrop picture | `signin-page` › What the sign-in page draws, and for whom |
+| Nobody's form for somebody signed in; `title="yes"`; the site's heading, intro, small print, logo; a Pro layout stored is the card | `signin-page` › What the sign-in page draws, and for whom |
 | Every `?diluxone-users=` state on the sign-in, second-step, reset and register screens, with its tone and the site's rewrite (all 17 messages); an unknown state draws nothing | `signin-page` › each state draws its message with its tone… · a state nobody knows… |
 | `login_email` from a real submit; the sent screen keeps the address out of the URL, "Use a different address", the site's sent texts and round icon | `signin-page` › a real non-address… · The "sent" screen |
 | Layout `auto`, the arrow keys on the tabs (remembered), the "or" hidden between tabs | `signin-page` › The arrangement of the ways in |
@@ -50,7 +52,7 @@ they would be.
 | Social linking: `taken`, `linked` + security mails on link/unlink, unlink without its nonce | `signin-social` › Linking from the account, off the plain path |
 | Social then 2FA; new device after social | `signin-social` › What a social sign-in sets off |
 | Social button skin/shape/contents/rows/words on the real page | `signin-social` › The buttons on the real page |
-| The ways in at 390px: split stacks, tab labels fold, social one column, register / 2FA / reset fit | `signin-mobile` |
+| The ways in at 390px: the card takes the width, tab labels fold, social one column, register / 2FA / reset fit | `signin-mobile` |
 | WP-CLI on a single site: `login` link opens once, `--send` mails it, bad and unknown addresses refused, the network commands say it is not a network; "Join this site" posted on a single site has no handler | `my-account-entry` › Join, templates and WP-CLI on a single site |
 
 ## Registration
@@ -117,7 +119,7 @@ they would be.
 | `[diluxone_users_fields group="main"|"extra"]` draws and saves one block | `admin-fields-rules` › How to use them |
 | Section by `?section=`; unknown slug opens the first; a section off or role-limited is not drawn at its own address; every section off draws nothing; Notifications absent when nothing is sent or offered | `my-account-sections` › Which section opens |
 | Home: "Hello, <first name>", cards (details x/y, sessions, networks linked) linking to their sections, a card hidden by the site, every card hidden | `my-account-sections` › Home |
-| Header pieces (photo, member since, Edit profile, no header `--bare`), cover colour/picture/dim, width, nav style and alignment (unknown value → default), nav shortcode `--column` | `my-account-sections` › The header and the look |
+| Header pieces (photo, member since, Edit profile, no header `--bare`), a cover stored is the simple area, width, nav style and alignment (unknown value → default), nav shortcode `--column` | `my-account-sections` › The header and the look |
 | Site-written section content before/after/replace with shortcodes; custom section for some roles (none ticked → nobody); section renamed, moved first, own slug | `my-account-sections` › What the site writes into a section |
 | Every field type drawn, cleaned and drawn back (textarea, email, phone dial+number, country, url, number, date, select, datalist, checkbox) | `my-account-details` › every type is drawn… |
 | Forged closed-list, country, address, impossible date and infinite number not stored | `my-account-details` › a value off a closed list… |
@@ -139,7 +141,7 @@ they would be.
 | Tools › Export/Erase Personal Data run the plugin's exporters and erasers; Privacy policy guide text | `my-account-data` › WordPress’s own tools |
 | A data e-mail rewritten on Notifications › The e-mails reaches the inbox, link intact | `my-account-data` › The e-mails |
 | Linked accounts: notice and link/unlink mails; identity of another account → `taken`; forged provider unlinks nothing; `only="linked"`/`"available"` with empty words, the link back to the shortcode page, no provider | `my-account-entry` › Linked accounts |
-| On a phone (390 px): tabs scroll or wrap, side menu back across the top with the underline as a bottom border, cover header wraps, session row Close under the text | `my-account-mobile` |
+| On a phone (390 px): tabs scroll or wrap, side menu back across the top with the underline as a bottom border, a long name and its button fit the header, session row Close under the text | `my-account-mobile` |
 
 ## The site's own menu and WordPress's screens
 
@@ -202,7 +204,7 @@ they would be.
 | A save refused by the server keeps the stored answer and shows only the error | `admin-framework` › A save the server refuses |
 | Choice groups open only while chosen; "only some roles" picker shows/hides roles and keeps them | `admin-framework` › What hangs off an answer |
 | Copy box selects all; rows-per-page auto-submits; live provider test opens a pop-up; safe-mode notice hidden from an editor | `admin-framework` › The small behaviours |
-| Template pieces filled from the template; "Back to the default"; a colour of its own (stored '' / colour, painted on the account page); media picker stored by id and drawn on the sign-in page, removed | `admin-framework-design` › Templates and defaults; A colour of its own; The media picker |
+| Template pieces filled from the template; "Back to the default"; a colour from a short palette (one group of radios, the arrows move along it, saved it paints the account page); media picker stored by id and drawn on the sign-in page, removed | `admin-framework-design` › Templates and defaults; A colour from a short palette; The media picker |
 | Preview stage: phone/desktop widths, "See it big"; a late live answer never draws over a newer one | `admin-framework-design` › The stage |
 | "Show me what I chose": for the presser only (stranger, other admin see the saved look), only while its key lives | `admin-framework-design` › The trial page |
 | Field editor dialog: open, Cancel, save, fallback to the field screen when the fetch fails; type shows only its rows | `admin-framework-more` › The field editor |
@@ -253,21 +255,21 @@ they would be.
 | User fields: delete asks, keeps answers; arrows reorder; nobody-registers warning; dialog (Cancel, close, Escape, Edit, save; full width at 400px) | `admin-fields-rules` |
 | User fields › Suggested: nothing ticked (`nosuggested`), all added | `admin-fields-rules` › suggested fields |
 | User fields: the rows each type shows | `admin-fields-types` › the rows the form shows for each type |
-| Design › Brand: site writes it, accent, corners + default, controls, button styles, icons, soft notices, logo via media library, theme palette map, live preview | `admin-design-brand` |
-| Design › Sign-in: shapes, forged shape, picture and side, panel words, intro, legal sanitised, sent screen words and envelope, emptied box falls back, live preview | `admin-design-login` › The sign-in page |
+| Design › Brand: site writes it, the accent's eight swatches, a Pro colour stored (inactive, kept on save, the palette's nearest on the page), corners + default, controls, button styles, icons, soft notices, logo via media library, the theme's palette guessed and the picture of the colour map (`design/brand/color-map`), the any-colour card (`design/brand/any-color`), live preview | `admin-design-brand` |
+| Design › Sign-in: the two shapes, the Pro layouts' card (`design/login/shapes`) and the previews setting, a Pro layout stored (card on the page, inactive and kept on the tab), forged shape, intro, legal sanitised, sent screen words and envelope, emptied box falls back, live preview | `admin-design-login` › The sign-in page |
 | Design › Registration: intro and done, warning, live preview | `admin-design-login` › The registration page |
-| Design › Account: cover preset, header pieces, cover colour/picture, menu style/align, forged values, spacing + defaults (row width), ground, width, phone wrap, live preview | `admin-design-account` |
+| Design › Account: the simple shape's pieces, the cover's card (`design/account/shapes`), a cover stored (simple on the page, inactive and kept on the tab), header pieces, menu style/align, forged values, spacing + defaults (row width), ground from its palette (a shade sent by hand refused), width, phone wrap, live preview | `admin-design-account` |
 | Design › Social: finish on the sign-in buttons | `admin-design-more` › Social buttons |
 | Design › Photo: largest size | `admin-design-more` › Profile photo |
-| Design › wp-login.php: exact background, own mark | `admin-design-more` › WordPress’s own screen |
+| Design › wp-login.php: a swatch of the accent palette is the exact background, own mark | `admin-design-more` › WordPress’s own screen |
 | Design stage: phone/desk widths, zoom; trial only for its maker and gone after its key | `admin-design-more` › the stage |
 | Design studio on a narrow window | `admin-design-more` › on a narrow window |
 | E-mail notices › Rules: never, off by default, always, the security rule, forged policy | `admin-notices` › the rules |
 | E-mail notices › Summary: rows, failed delivery | `admin-notices` › the summary |
 | E-mail notices › E-mails: missing `{link}`/`{code}` refused, back to the plugin's words, emptied boxes, unchanged save, second-step / new-device / security templates, another language | `admin-notices` › the e-mails |
 | A save writes only what its screen drew (an unticked box counts when it was drawn); a list or a map keeps the entries it does not know (a second factor, a provider's row, a section of the site's own) | a provider's row: `admin-social-providers` › The grid: a network nothing registers…; the rest not in a browser yet. Integration: `SavesKeepUnknownTest`, `CoverSettingsDesignTest`, `CoverSettingsSocialTest` |
-| A stored sign-in or account shape, or a second factor, nothing offers today: the closest free one on the page, an inactive Pro choice on the screen, kept on save | not in a browser yet: nothing stores one until Users+ Pro exists. Integration: `UnknownChoiceTest` |
-| A Users+ Pro placeholder (picture or card): only in the admin, for its administrators, while the setting is on and `diluxone_users_upsell` allows; inert, nothing posted, escaped link with the screen as its medium | the card after the networks on Social › Providers (`social/providers/more`), with a network nothing registers kept and shown inactive before it: `admin-social-providers` › The grid; the card after the ways in on Access › Ways in (`login/ways/more`): `admin-access-ways` › after the real ways in…, and on the hub `network/admin-access` › Ways in on the hub…; the picture of passkeys under Security › Summary (`security/summary/more`): `security-summary` › under the table…, and in Network Admin `network/admin-security-network` › Network Admin › Security › Summary. Integration: `ProPreviewTest`, `CoverSettingsSocialTest` |
+| A stored sign-in or account shape, or a second factor, nothing offers today: the closest free one on the page, an inactive Pro choice on the screen, kept on save | the Pro layouts and the cover: `admin-design-login`, `admin-design-account`, `signin-page`, `my-account-sections`; a Pro colour: `admin-design-brand`, `design-brand`. Integration: `UnknownChoiceTest`, `DesignSeamsTest` |
+| A Users+ Pro placeholder (picture or card): only in the admin, for its administrators, while the setting is on and `diluxone_users_upsell` allows; inert, nothing posted, escaped link with the screen as its medium | the card after the networks on Social › Providers (`social/providers/more`), with a network nothing registers kept and shown inactive before it: `admin-social-providers` › The grid; the card after the ways in on Access › Ways in (`login/ways/more`): `admin-access-ways` › after the real ways in…, and on the hub `network/admin-access` › Ways in on the hub…; the picture of passkeys under Security › Summary (`security/summary/more`): `security-summary` › under the table…, and in Network Admin `network/admin-security-network` › Network Admin › Security › Summary. the four on Design (`design/login/shapes`, `design/account/shapes`, `design/brand/any-color`, `design/brand/color-map`): `admin-design-login`, `admin-design-account`, `admin-design-brand`. Integration: `ProPreviewTest`, `CoverSettingsSocialTest`, `DesignSeamsTest` |
 | Maintenance › Tools › Users+ Pro on these screens (single site); Network Admin › Users+ Pro (network) | the tab is in `support/screens.ts`, so `admin-layout` and the network layout spec draw it. Integration: `ProPreviewTest` |
 | A field's key is made in `diluxone_users_field_`; any other key under the prefix is refused unless a field already had it | Unit: `FieldKeyTest`. Integration: `FieldNamespaceTest`, `CoverAdminFieldsTest` |
 | Export and erasure account for the whole `diluxone_users_` namespace by prefix | not in a browser: the data an add-on would keep does not exist yet. Integration: `PrivacyNamespaceTest` |

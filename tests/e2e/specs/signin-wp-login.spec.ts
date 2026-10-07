@@ -396,14 +396,14 @@ test.describe('wp-login.php in the site’s colours, and the pages a cache must 
 		try {
 			await options.set({
 				diluxone_users_wp_login_brand: 1,
-				diluxone_users_wp_login_bg: '#7b2d8e',
+				diluxone_users_wp_login_bg: '#6d28d9',
 				diluxone_users_style_radius: '12',
 				diluxone_users_wp_login_logo: image.id,
 			});
 
 			await page.goto('/wp-login.php?diluxone-users-admin=1');
 
-			expect(await page.locator('body').evaluate((body) => getComputedStyle(body).backgroundColor)).toBe('rgb(123, 45, 142)');
+			expect(await page.locator('body').evaluate((body) => getComputedStyle(body).backgroundColor)).toBe('rgb(109, 40, 217)');
 			expect(await page.locator('#loginform').evaluate((form) => getComputedStyle(form).borderTopLeftRadius)).toBe('12px');
 			expect(await page.locator('#login h1 a').evaluate((a) => getComputedStyle(a).backgroundImage), 'the logo is the uploaded picture').toContain(
 				new URL(image.url).pathname.replace(/\.png$/, '')

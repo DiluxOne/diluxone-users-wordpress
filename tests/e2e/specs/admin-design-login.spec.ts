@@ -2,26 +2,21 @@ import { Page } from '@playwright/test';
 import { test, expect } from '../support/fixtures';
 import { freshEmail } from '../support/api';
 import { adminUrl, askForLink, registerForm, savePanel, sentScreen, submitPluginForm } from '../support/ui';
-import { forgetPicture, mediaPicture, pickPicture, previewAnswer, railNotice, stage, unique } from '../support/admin-content';
+import { previewAnswer, railNotice, stage, unique } from '../support/admin-content';
 import { ADMIN_STATE } from '../../../playwright.config';
 
 /**
- * Design › Sign-in page and Registration page: the shape, the picture, the
- * panel and every sentence, each saved through its control and found on the
- * public page by its class.
+ * Design › Sign-in page and Registration page: the shape and every sentence,
+ * each saved through its control and found on the public page by its class.
+ * The split and full-background layouts are Users+ Pro's, and its own suite
+ * covers them; here a card stands where they would go.
  */
 
 test.use({ storageState: ADMIN_STATE });
 
 const LOGIN_KEYS = [
 	'diluxone_users_login_template',
-	'diluxone_users_login_side',
-	'diluxone_users_login_image',
-	'diluxone_users_login_panel_logo',
-	'diluxone_users_login_panel_title',
-	'diluxone_users_login_panel_text',
-	'diluxone_users_login_panel_points',
-	'diluxone_users_login_panel_foot',
+	'diluxone_users_pro_previews',
 	'diluxone_users_login_title',
 	'diluxone_users_login_intro',
 	'diluxone_users_login_legal',
@@ -40,40 +35,62 @@ test.describe('Design › The sign-in page', () => {
 		await options.keep(LOGIN_KEYS);
 		await options.set({
 			diluxone_users_login_template: 'plain',
-			diluxone_users_login_side: 'left',
-			diluxone_users_login_image: 0,
+			diluxone_users_pro_previews: 1,
 			diluxone_users_login_title: '',
 			diluxone_users_login_intro: '',
 			diluxone_users_login_legal: '',
 			diluxone_users_sent_title: '',
 			diluxone_users_sent_note: '',
 			diluxone_users_sent_icon: 'plain',
-			diluxone_users_login_panel_title: '',
-			diluxone_users_login_panel_text: '',
-			diluxone_users_login_panel_points: '',
-			diluxone_users_login_panel_foot: '',
 		});
 	});
 
-	for (const id of ['split', 'backdrop', 'card']) {
-		test(`the “${id}” shape, chosen on the tab, frames the sign-in page; “plain” leaves it alone`, async ({ page, guest, site, pages }) => {
-			await page.goto(LOGIN_TAB);
-			await template(page, id).check({ force: true });
-			await savePanel(page);
-			await expect(template(page, id)).toBeChecked();
-			expect((await site.getOptions(['diluxone_users_login_template'])).diluxone_users_login_template).toBe(id);
+	test('the card, chosen on the tab, frames the sign-in page; “plain” leaves it alone', async ({ page, guest, site, pages }) => {
+		await page.goto(LOGIN_TAB);
+		await expect(page.locator('input[name="diluxone_users_login_template"]'), 'the two shapes of the plugin’s own').toHaveCount(2);
+		await template(page, 'card').check({ force: true });
+		await savePanel(page);
+		await expect(template(page, 'card')).toBeChecked();
+		expect((await site.getOptions(['diluxone_users_login_template'])).diluxone_users_login_template).toBe('card');
 
-			await guest.goto(pages.login.url);
-			await expect(frame(guest)).toHaveClass(new RegExp(`diluxone-users-login-frame--${id}`));
-			await expect(guest.locator('.diluxone-users-login-frame__picture'), 'only “split” has a panel of its own').toHaveCount(id === 'split' ? 1 : 0);
+		await guest.goto(pages.login.url);
+		await expect(frame(guest)).toHaveAttribute('class', 'diluxone-users-login-frame diluxone-users-login-frame--card');
+		await expect(frame(guest)).not.toHaveAttribute('style', /./);
 
-			await template(page, 'plain').check({ force: true });
-			await savePanel(page);
+		await template(page, 'plain').check({ force: true });
+		await savePanel(page);
 
-			await guest.goto(pages.login.url);
-			await expect(frame(guest)).toHaveCount(0);
-		});
-	}
+		await guest.goto(pages.login.url);
+		await expect(frame(guest)).toHaveCount(0);
+	});
+
+	test('where Users+ Pro’s layouts would go: a card after the shapes, gone with the previews setting', async ({ page, options }) => {
+		await page.goto(LOGIN_TAB);
+
+		const card = page.locator('[data-diluxone-users-pro="design/login/shapes"]');
+
+		await expect(card).toHaveCount(1);
+		await expect(card.locator('a')).toHaveAttribute('href', /diluxone\.com\/users-pro\/.*utm_medium=design/);
+		await expect(page.locator('input[name="diluxone_users_login_side"], input[name="diluxone_users_login_panel_title"], textarea[name="diluxone_users_login_panel_title"]'), 'nothing of theirs is a control here').toHaveCount(0);
+
+		await options.set({ diluxone_users_pro_previews: 0 });
+		await page.goto(LOGIN_TAB);
+		await expect(card).toHaveCount(0);
+	});
+
+	test('a Pro layout stored while Pro was on is a card on the page and kept on the tab', async ({ page, guest, site, pages, options }) => {
+		await options.set({ diluxone_users_login_template: 'split' });
+
+		await guest.goto(pages.login.url);
+		await expect(frame(guest)).toHaveAttribute('class', 'diluxone-users-login-frame diluxone-users-login-frame--card');
+		await expect(guest.locator('.diluxone-users-login-frame__picture')).toHaveCount(0);
+
+		await page.goto(LOGIN_TAB);
+		await expect(template(page, 'split')).toBeChecked();
+		await expect(page.locator('.diluxone-users-templates__one.is-chosen')).toContainText('Your Pro choice (inactive)');
+		await savePanel(page);
+		expect((await site.getOptions(['diluxone_users_login_template'])).diluxone_users_login_template).toBe('split');
+	});
 
 	test('a shape that is not on the list is not kept, and the page stays plain', async ({ page, guest, site, pages }) => {
 		await page.goto(LOGIN_TAB);
@@ -107,72 +124,6 @@ test.describe('Design › The sign-in page', () => {
 		await savePanel(page);
 		expect((await site.getOptions(['diluxone_users_login_template'])).diluxone_users_login_template, 'replaced once another is picked').toBe('plain');
 		await expect(page.locator('input[name="diluxone_users_login_template"][value="e2e_addon_shape"]')).toHaveCount(0);
-	});
-
-	test('“split” with a picture on the right: the picture is the one picked, beside the form on the side chosen', async ({ page, guest, site, pages }) => {
-		const picture = await mediaPicture(page.request, 'e2e-login-picture');
-
-		try {
-			await page.goto(LOGIN_TAB);
-			await template(page, 'split').check({ force: true });
-			await pickPicture(page, 'diluxone_users_login_image', picture);
-			await page.locator('input[name="diluxone_users_login_side"][value="left"]').check({ force: true });
-			await savePanel(page);
-			expect(Number((await site.getOptions(['diluxone_users_login_image'])).diluxone_users_login_image)).toBe(picture.id);
-
-			await guest.goto(pages.login.url);
-			await expect(frame(guest)).toHaveAttribute('style', /e2e-login-picture/);
-
-			const leftSide = await guest.evaluate(() => {
-				const picture = document.querySelector('.diluxone-users-login-frame__picture')!.getBoundingClientRect();
-				const form = document.querySelector('.diluxone-users-login-frame__box')!.getBoundingClientRect();
-
-				return picture.left < form.left;
-			});
-
-			expect(leftSide, '“left”: the picture is left of the form').toBe(true);
-
-			await page.locator('input[name="diluxone_users_login_side"][value="right"]').check({ force: true });
-			await savePanel(page);
-			expect((await site.getOptions(['diluxone_users_login_side'])).diluxone_users_login_side).toBe('right');
-
-			await guest.goto(pages.login.url);
-			await expect(frame(guest)).toHaveClass(/diluxone-users-login-frame--right/);
-
-			const rightSide = await guest.evaluate(() => {
-				const picture = document.querySelector('.diluxone-users-login-frame__picture')!.getBoundingClientRect();
-				const form = document.querySelector('.diluxone-users-login-frame__box')!.getBoundingClientRect();
-
-				return picture.left > form.left;
-			});
-
-			expect(rightSide, '“right”: the picture is right of the form').toBe(true);
-		} finally {
-			await forgetPicture(page.request, 'e2e-login-picture');
-		}
-	});
-
-	test('the panel’s words, written on the tab: a title in two lines, the text, one point per line and the foot', async ({ page, guest, pages }) => {
-		await page.goto(LOGIN_TAB);
-		await template(page, 'split').check({ force: true });
-		await box(page, 'diluxone_users_login_panel_title').fill('E2E first line\nE2E second line');
-		await box(page, 'diluxone_users_login_panel_text').fill('E2E panel text');
-		await box(page, 'diluxone_users_login_panel_points').fill('E2E point one\nE2E point two\nE2E point three');
-		await box(page, 'diluxone_users_login_panel_foot').fill('E2E foot');
-		await savePanel(page);
-
-		await expect(box(page, 'diluxone_users_login_panel_points')).toHaveValue('E2E point one\nE2E point two\nE2E point three');
-
-		await guest.goto(pages.login.url);
-
-		const title = guest.locator('.diluxone-users-login-frame__title');
-
-		await expect(title).toContainText('E2E first line');
-		await expect(title).toContainText('E2E second line');
-		await expect(title.locator('span'), 'each line written is a line of its own').toHaveText(['E2E first line', 'E2E second line']);
-		await expect(guest.locator('.diluxone-users-login-frame__text')).toHaveText('E2E panel text');
-		await expect(guest.locator('.diluxone-users-login-frame__points li')).toHaveText(['E2E point one', 'E2E point two', 'E2E point three']);
-		await expect(guest.locator('.diluxone-users-login-frame__foot')).toHaveText('E2E foot');
 	});
 
 	test('the line under the heading is on the page, under the heading', async ({ page, guest, pages }) => {

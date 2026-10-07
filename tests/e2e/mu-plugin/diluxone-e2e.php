@@ -1810,7 +1810,7 @@ function diluxone_e2e_h4_usermeta( WP_REST_Request $request ): WP_REST_Response 
 /**
  * A small picture in the media library, made once by name and reused.
  *
- * For the screens that pick an image (the site logo, a cover, the mark on
+ * For the screens that pick an image (the site logo, the mark on
  * wp-login.php): the picker lists what the library holds, and a test needs
  * one known picture in it. `DELETE` removes it again.
  */

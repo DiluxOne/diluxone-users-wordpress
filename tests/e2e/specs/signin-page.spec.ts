@@ -26,7 +26,7 @@ import { ADMIN_STATE } from '../../../playwright.config';
  * the main paths. These are the states and settings they leave out: somebody
  * already in, the heading on demand, the button that starts over, the "sent"
  * screen's own words, every `?diluxone-users=` state drawn with its tone and
- * in the site's own words, the logo and the backdrop, the automatic layout,
+ * in the site's own words, the logo and a Pro layout as the card, the automatic layout,
  * the keyboard on the tabs, the dividers, and the link request's per-inbox,
  * per-machine and per-registration limits.
  */
@@ -121,21 +121,14 @@ test.describe('What the sign-in page draws, and for whom', () => {
 		}
 	});
 
-	test('the backdrop shape puts the chosen picture behind the form', async ({ browser, baseURL, page, pages, options }) => {
-		const image = await uploadImage(browser, baseURL!, ADMIN_STATE);
+	test('a Pro layout stored while Users+ Pro was on is the card, with the form in its box', async ({ page, pages, options }) => {
+		await options.set({ diluxone_users_login_template: 'backdrop' });
 
-		try {
-			await options.set({ diluxone_users_login_template: 'backdrop', diluxone_users_login_image: image.id });
+		await page.goto(pages.login.url);
 
-			await page.goto(pages.login.url);
-
-			const frame = page.locator('.diluxone-users-login-frame--backdrop');
-			await expect(frame).toBeVisible();
-			expect(await frame.getAttribute('style')).toContain(image.url);
-			await expect(frame.locator('.diluxone-users-login-frame__box').locator(linkForm(page))).toBeVisible();
-		} finally {
-			await image.forget();
-		}
+		const frame = page.locator('.diluxone-users-login-frame');
+		await expect(frame).toHaveAttribute('class', 'diluxone-users-login-frame diluxone-users-login-frame--card');
+		await expect(frame.locator('.diluxone-users-login-frame__box').locator(linkForm(page))).toBeVisible();
 	});
 
 	test('a state nobody knows draws no notice at all', async ({ page, pages }) => {

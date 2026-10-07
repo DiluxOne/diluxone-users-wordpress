@@ -12,15 +12,14 @@ import { pinVisualState } from '../support/visual-state';
  * the ones everybody else does, drawn inside the site's theme: the sign-in
  * page on each of its shapes and arrangements, the screens that follow it —
  * the link on its way, the second step, a new password — the registration
- * form open and closed, and the account area on both its shapes and both its
- * menus, section by section. Every one of them is a screen a measurement can
+ * form open and closed, and the account area on both its menus, section by
+ * section. Users+ Pro's shapes are photographed in its own suite. Every one of them is a screen a measurement can
  * pass while it looks wrong, and every one has a setting on the Design tabs
  * that claims to change it.
  *
  * The same spec runs twice: in the `visual` project at 1280 and in
  * `visual-mobile` at 390, where the stylesheet's 640, 560 and 480 rules take
- * over and the split layout gives up its panel. The pictures of the second
- * run carry `-mobile` in their name.
+ * over. The pictures of the second run carry `-mobile` in their name.
  *
  * Everything a picture shows is pinned here or in `visual-state.ts`: the
  * settings, and a person with a fixed address and name, made for these
@@ -58,9 +57,8 @@ async function signIn(page: Page): Promise<void> {
 }
 
 /**
- * The block a sign-in shape draws: the frame for the framed ones — the card,
- * the split and the backdrop reach past the theme's column on purpose — and
- * the form itself for the plain one.
+ * The block a sign-in shape draws: the frame for the card — it reaches past
+ * the theme's column on purpose — and the form itself for the plain one.
  */
 async function signInBlock(page: Page) {
 	const frame = page.locator('.diluxone-users-login-frame');
@@ -106,20 +104,6 @@ test.describe('The sign-in page looks like it did', () => {
 
 	const SHAPES: Record<string, Record<string, unknown>> = {
 		card: { diluxone_users_login_template: 'card' },
-		'split-left': {
-			diluxone_users_login_template: 'split',
-			diluxone_users_login_side: 'left',
-			diluxone_users_login_panel_title: 'One account.\nNo passwords.',
-			diluxone_users_login_panel_text: 'Everything you do here, in one place.',
-			diluxone_users_login_panel_points: 'Sign in with your e-mail\nOr with a social account',
-		},
-		'split-right': {
-			diluxone_users_login_template: 'split',
-			diluxone_users_login_side: 'right',
-			diluxone_users_login_panel_title: 'One account.\nNo passwords.',
-			diluxone_users_login_panel_text: 'Everything you do here, in one place.',
-		},
-		backdrop: { diluxone_users_login_template: 'backdrop' },
 	};
 
 	for (const [shape, settings] of Object.entries(SHAPES)) {
@@ -266,8 +250,6 @@ test.describe('The account area looks like it did', () => {
 	const SHAPES: Array<[string, string]> = [
 		['plain', 'tabs'],
 		['plain', 'side'],
-		['cover', 'tabs'],
-		['cover', 'side'],
 	];
 
 	for (const [shape, layout] of SHAPES) {

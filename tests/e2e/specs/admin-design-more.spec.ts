@@ -129,14 +129,14 @@ test.describe('Design › WordPress’s own screen', () => {
 
 	test('the background colour saved is exactly the background of wp-login.php', async ({ page, guest, site }) => {
 		await page.goto(adminUrl('diluxone-users-design', 'wp'));
-		await page.locator('#diluxone_users_wp_login_bg').fill('#7b2d8e');
+		await page.locator('input[name="diluxone_users_wp_login_bg"][value="#6d28d9"]').check({ force: true });
 		await savePanel(page);
 
-		await expect(page.locator('#diluxone_users_wp_login_bg')).toHaveValue('#7b2d8e');
-		expect((await site.getOptions(['diluxone_users_wp_login_bg'])).diluxone_users_wp_login_bg).toBe('#7b2d8e');
+		await expect(page.locator('input[name="diluxone_users_wp_login_bg"][value="#6d28d9"]')).toBeChecked();
+		expect((await site.getOptions(['diluxone_users_wp_login_bg'])).diluxone_users_wp_login_bg).toBe('#6d28d9');
 
 		await guest.goto('/wp-login.php?diluxone-users-admin=1');
-		expect(await guest.locator('body').evaluate((body) => getComputedStyle(body).backgroundColor)).toBe(rgb('#7b2d8e'));
+		expect(await guest.locator('body').evaluate((body) => getComputedStyle(body).backgroundColor)).toBe(rgb('#6d28d9'));
 	});
 
 	test('a mark of its own replaces WordPress’s logo on wp-login.php, and the link still reads the site’s name', async ({ page, guest, site }) => {
@@ -205,7 +205,7 @@ test.describe('Design › the stage', () => {
 
 		await page.goto(adminUrl('diluxone-users-design', 'wp'));
 		await page.locator('input[name="diluxone_users_wp_login_brand"]').check();
-		await page.locator('input[name="diluxone_users_wp_login_bg"]').fill('#7b2d8e');
+		await page.locator('input[name="diluxone_users_wp_login_bg"][value="#6d28d9"]').check({ force: true });
 
 		const [answer] = await Promise.all([
 			page.waitForResponse((one) => one.url().includes('diluxone-users-try=')),
@@ -226,12 +226,12 @@ test.describe('Design › the stage', () => {
 
 		const mine = await page.context().newPage();
 
-		expect(await painted(mine), 'the maker sees the trial').toEqual({ mark: 1, bg: rgb('#7b2d8e') });
+		expect(await painted(mine), 'the maker sees the trial').toEqual({ mark: 1, bg: rgb('#6d28d9') });
 
 		const stranger = await painted(guest);
 
 		expect(stranger.mark, 'a stranger is shown no trial').toBe(0);
-		expect(stranger.bg).not.toBe(rgb('#7b2d8e'));
+		expect(stranger.bg).not.toBe(rgb('#6d28d9'));
 
 		const other = freshEmail('other-admin');
 
@@ -250,7 +250,7 @@ test.describe('Design › the stage', () => {
 			const theirs = await painted(second);
 
 			expect(theirs.mark, 'another administrator is shown no trial').toBe(0);
-			expect(theirs.bg).not.toBe(rgb('#7b2d8e'));
+			expect(theirs.bg).not.toBe(rgb('#6d28d9'));
 		} finally {
 			await context.close();
 		}
