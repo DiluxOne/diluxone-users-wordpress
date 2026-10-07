@@ -11,8 +11,8 @@
  * WordPress hands it over through wp_get_global_settings(). So the plugin can
  * ask. Which colour of that palette plays which part is the one thing nobody
  * can know for certain — `primary` means the brand in most themes and
- * something else in some — so it is guessed where the slug says so and asked
- * where it does not, on a screen that shows the palette it found.
+ * something else in some — so it is guessed where the slug says so; choosing
+ * it by hand is Users+ Pro's (`diluxone_users_color_map`).
  *
  * Several themes, Astra among them, publish values that are themselves custom
  * properties: `var(--ast-global-color-0)`. Those are kept as they are rather
@@ -92,49 +92,6 @@ function diluxone_users_color_own(): array {
 		'surface-alt' => '#f5f6f8',
 		'border'      => '#e2e5ec',
 	);
-}
-
-/**
- * The colour to paint in the square beside a part — always one, never none.
- *
- * Two different things used to leave that square empty, and an empty square
- * with a border on a settings screen is a tick box nobody has ticked: seven of
- * them in a column, and the question stopped being "which colour does what"
- * and became "what have I failed to switch on".
- *
- * The first was “leave it to the plugin”, which was painted `transparent`
- * when the honest answer is that the plugin has a colour for that part and
- * this is it. The second is the good case and the common one: a theme that
- * hands over `var(--ast-global-color-0)` instead of a hex is a theme the
- * plugin follows live, into its dark mode — and that value is exactly the
- * one the dashboard cannot resolve, because the theme’s stylesheet is not
- * loaded in here.
- *
- * So the variable is passed on with the plugin’s own colour behind it. Where
- * the property exists the fallback is never reached; where it does not — in
- * this screen — the square shows what the part would look like if the theme
- * said nothing, which is the truest thing that can be shown from here.
- *
- * @param string $role One of diluxone_users_color_roles().
- * @param string $slug The palette slug chosen for it, or '' for none.
- */
-function diluxone_users_color_swatch( string $role, string $slug ): string {
-	$own     = diluxone_users_color_own();
-	$mine    = (string) ( $own[ $role ] ?? '#ffffff' );
-	$palette = diluxone_users_theme_palette();
-
-	if ( '' === $slug || ! isset( $palette[ $slug ] ) ) {
-		return $mine;
-	}
-
-	$colour = $palette[ $slug ]['color'];
-
-	// Only ever a `var(...)`, an rgb/hsl or a hex: diluxone_users_color_value()
-	// refused everything else on the way in, so the closing bracket is there
-	// to be found.
-	return 0 === stripos( $colour, 'var(' )
-		? substr( $colour, 0, -1 ) . ', ' . $mine . ')'
-		: $colour;
 }
 
 /**
@@ -271,29 +228,42 @@ function diluxone_users_color_guess( array $palette ): array {
 }
 
 /**
- * The mapping in force: what the site chose, over what was guessed.
+ * The mapping in force.
+ *
+ * What the palette's names say, guessed. Choosing it by hand is Users+ Pro's,
+ * and arrives through the filter; a part mapped to a colour the palette does
+ * not have is left to the plugin.
  *
  * @return array<string, string> Role => slug.
  */
 function diluxone_users_color_map(): array {
 	$palette = diluxone_users_theme_palette();
-	$stored  = (array) diluxone_users_option( 'diluxone_users_color_map' );
-	$map     = diluxone_users_color_guess( $palette );
 
-	foreach ( $stored as $role => $slug ) {
+	/**
+	 * Filters which colour of the theme's palette plays which part.
+	 *
+	 * Role (diluxone_users_color_roles()) => slug of the theme's palette, or
+	 * '' to leave that part to the plugin's own colour.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param array<string, string>                $map     The guess, from the palette's names.
+	 * @param array<string, array<string, string>> $palette The theme's palette, keyed by slug.
+	 */
+	$map   = (array) apply_filters( 'diluxone_users_color_map', diluxone_users_color_guess( $palette ), $palette );
+	$roles = diluxone_users_color_roles();
+	$clean = array();
+
+	foreach ( $map as $role => $slug ) {
 		$role = sanitize_key( (string) $role );
 		$slug = sanitize_key( (string) $slug );
 
-		if ( ! isset( diluxone_users_color_roles()[ $role ] ) ) {
-			continue;
+		if ( isset( $roles[ $role ], $palette[ $slug ] ) ) {
+			$clean[ $role ] = $slug;
 		}
-
-		// An empty answer is an answer: it means "leave this one to the
-		// plugin", and it has to be able to beat the guess.
-		$map[ $role ] = isset( $palette[ $slug ] ) ? $slug : '';
 	}
 
-	return array_filter( $map );
+	return $clean;
 }
 
 /**

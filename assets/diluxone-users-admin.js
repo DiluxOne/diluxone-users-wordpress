@@ -467,7 +467,7 @@ function diluxoneUsersChoiceGroups( root ) {
 	 * How tall the page inside actually is.
 	 *
 	 * Measured in two passes and never in a loop: the frame is put at the
-	 * window's height first, because a cover that asks for 80vh has to be
+	 * window's height first, because a frame that asks for 80vh has to be
 	 * given a viewport before it can answer, and only then is the content
 	 * measured. Growing afterwards cannot shrink anything back.
 	 */
@@ -788,7 +788,7 @@ function diluxoneUsersChoiceGroups( root ) {
 
 					// A value set from here does not announce itself, and the
 					// preview listens on the form: without this, choosing a
-					// cover changed the thumbnail and nothing else until the
+					// picture changed the thumbnail and nothing else until the
 					// page was saved.
 					field.dispatchEvent( new Event( 'change', { bubbles: true } ) );
 				} );

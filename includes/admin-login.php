@@ -1094,46 +1094,40 @@ function diluxone_users_screen_login_words(): void {
  * The shapes the sign-in page comes in.
  *
  * Only the first leaves the page alone, and it is the default: a site that
- * designed its own page does not want a plugin taking it over. The other
- * three are for the sites that would otherwise install a second plugin to get
- * a sign-in screen that does not look like a form dropped into a blog post.
+ * designed its own page does not want a plugin taking it over. The card is
+ * for the sites that would otherwise install a second plugin to get a
+ * sign-in screen that does not look like a form dropped into a blog post.
  *
- * @return array<string, array{label: string, help: string, picture: bool}>
+ * @return array<string, array<string, mixed>>
  */
 function diluxone_users_login_templates(): array {
 	$templates = array(
-		'plain'    => array(
-			'label'   => __( 'In the page', 'diluxone-users' ),
-			'help'    => __( 'The form where the theme put it, with nothing around it. For a site that already designed this page.', 'diluxone-users' ),
-			'picture' => false,
+		'plain' => array(
+			'label' => __( 'In the page', 'diluxone-users' ),
+			'help'  => __( 'The form where the theme put it, with nothing around it. For a site that already designed this page.', 'diluxone-users' ),
 		),
-		'card'     => array(
-			'label'   => __( 'A centred card', 'diluxone-users' ),
-			'help'    => __( 'The form in a box in the middle of the page. The safe answer when there is no design for this screen.', 'diluxone-users' ),
-			'picture' => false,
-		),
-		'split'    => array(
-			'label'   => __( 'Split with a picture', 'diluxone-users' ),
-			'help'    => __( 'Half the window is a picture and the other half is the form. On a phone the picture goes and the form stays.', 'diluxone-users' ),
-			'picture' => true,
-		),
-		'backdrop' => array(
-			'label'   => __( 'On a full background', 'diluxone-users' ),
-			'help'    => __( 'The picture behind everything and the form on top of it, darkened enough to stay readable.', 'diluxone-users' ),
-			'picture' => true,
+		'card'  => array(
+			'label' => __( 'A centred card', 'diluxone-users' ),
+			'help'  => __( 'The form in a box in the middle of the page. The safe answer when there is no design for this screen.', 'diluxone-users' ),
 		),
 	);
 
 	/**
 	 * Filters the shapes the sign-in page comes in.
 	 *
-	 * A shape added here needs its own CSS: the plugin prints the id as a
-	 * class on the frame — `diluxone-users-login-frame--<id>` — and stops
-	 * there. Set `picture` to true and it gets the picture field.
+	 * Every shape but `plain` takes the page over: the form goes in a box,
+	 * inside a frame that breaks out of the theme's column. The plugin prints
+	 * the id as a class on the frame — `diluxone-users-login-frame--<id>` —
+	 * and a shape brings its own CSS. A row is `label` and `help` (its card on
+	 * Design › The sign-in page), and optionally `classes` (a callable giving
+	 * more classes for the frame), `properties` (a callable giving custom
+	 * properties, name => value, for the frame's style attribute) and
+	 * `inside` (a callable printing what the frame holds before the form's
+	 * box: a picture, a panel).
 	 *
 	 * @since 1.0.0
 	 *
-	 * @param array<string, array{label: string, help: string, picture: bool}> $templates
+	 * @param array<string, array<string, mixed>> $templates
 	 */
 	return (array) apply_filters( 'diluxone_users_login_templates', $templates );
 }
@@ -1144,7 +1138,7 @@ function diluxone_users_screen_login_shape(): void {
 	$kept     = diluxone_users_unknown_choice( 'diluxone_users_login_template', array_keys( $shapes ) );
 	$template = '' !== $kept ? $kept : diluxone_users_login_template();
 
-	diluxone_users_intro( __( 'What surrounds the form. Three of the four take over the page, edge to edge; the first leaves it exactly where your theme put it.', 'diluxone-users' ) );
+	diluxone_users_intro( __( 'What surrounds the form. In the page leaves it exactly where your theme put it; a card takes the page over, edge to edge.', 'diluxone-users' ) );
 
 	diluxone_users_ui_section( __( 'The shape of the page', 'diluxone-users' ) );
 
@@ -1155,8 +1149,8 @@ function diluxone_users_screen_login_shape(): void {
 			<label class="diluxone-users-templates__one <?php echo $id === $template ? 'is-chosen' : ''; ?>">
 				<input type="radio" name="diluxone_users_login_template" value="<?php echo esc_attr( $id ); ?>" <?php checked( $id, $template ); ?>>
 				<span class="diluxone-users-templates__art diluxone-users-templates__art--login-<?php echo esc_attr( $id ); ?>" aria-hidden="true"></span>
-				<span class="diluxone-users-templates__name"><?php echo esc_html( $shape['label'] ); ?></span>
-				<span class="diluxone-users-templates__help"><?php echo esc_html( $shape['help'] ); ?></span>
+				<span class="diluxone-users-templates__name"><?php echo esc_html( (string) ( $shape['label'] ?? $id ) ); ?></span>
+				<span class="diluxone-users-templates__help"><?php echo esc_html( (string) ( $shape['help'] ?? '' ) ); ?></span>
 			</label>
 		<?php endforeach; ?>
 		<?php
@@ -1168,72 +1162,30 @@ function diluxone_users_screen_login_shape(): void {
 	<?php
 	diluxone_users_ui_field_close();
 
-	diluxone_users_ui_field_open( __( 'The picture', 'diluxone-users' ) );
-	diluxone_users_image_field( 'diluxone_users_login_image' );
-	diluxone_users_ui_field_close( __( 'Used by the two templates that have one. It is decoration, so it carries no alternative text: nothing that has to be read should live in it.', 'diluxone-users' ) );
-
-	diluxone_users_ui_inline_choices(
-		__( 'Which side', 'diluxone-users' ),
+	/*
+	 * After the real answers and never among them: a card with nothing to
+	 * pick, saying what Users+ Pro adds.
+	 */
+	diluxone_users_ui_pro_card(
 		array(
-			array(
-				'name'    => 'diluxone_users_login_side',
-				'value'   => 'left',
-				'checked' => 'right' !== (string) diluxone_users_option( 'diluxone_users_login_side' ),
-				'title'   => __( 'Picture on the left, form on the right', 'diluxone-users' ),
-			),
-			array(
-				'name'    => 'diluxone_users_login_side',
-				'value'   => 'right',
-				'checked' => 'right' === (string) diluxone_users_option( 'diluxone_users_login_side' ),
-				'title'   => __( 'Picture on the right, form on the left', 'diluxone-users' ),
-			),
-		),
-		__( 'Only the split template uses this.', 'diluxone-users' )
+			'where'  => 'design/login/shapes',
+			'screen' => 'design',
+			'title'  => __( 'Split with a picture, and on a full background', 'diluxone-users' ),
+			'text'   => __( 'Users+ Pro adds two shapes that take the page over with a picture: half the window with words of your own on it, or the picture behind everything.', 'diluxone-users' ),
+		)
 	);
 
-	diluxone_users_ui_section(
-		__( 'What the panel says', 'diluxone-users' ),
-		__( 'Half the window, with something written on it. Leave it all empty and the panel is the picture on its own, which is what it was. With a picture behind them the words get a shade over it so they stay readable, and with no picture they sit on the colour.', 'diluxone-users' )
-	);
-
-	if ( 'split' !== $template ) {
-		diluxone_users_not_now( __( 'Only the split template has a panel. What is written here waits for the day that is the shape chosen above.', 'diluxone-users' ) );
-	}
-
-	diluxone_users_ui_field_open( __( 'The mark on it', 'diluxone-users' ) );
-	diluxone_users_image_field( 'diluxone_users_login_panel_logo' );
-	diluxone_users_ui_field_close( __( 'It sits at the top of the panel. Rarely the same file as the one above the form: this one lands on a block of colour and usually has to be the light version.', 'diluxone-users' ) );
-
-	diluxone_users_ui_words_area(
-		'diluxone_users_login_panel_title',
-		__( 'The heading', 'diluxone-users' ),
-		__( "One account.\nNo passwords.", 'diluxone-users' ),
-		__( 'One line per line. A heading on a panel is written in deliberate lines, not broken wherever the column happens to end.', 'diluxone-users' ),
-		2
-	);
-
-	diluxone_users_ui_words_area(
-		'diluxone_users_login_panel_text',
-		__( 'The paragraph under it', 'diluxone-users' ),
-		__( 'Sign in with the account you already have, or with a link we email you.', 'diluxone-users' ),
-		'',
-		3
-	);
-
-	diluxone_users_ui_words_area(
-		'diluxone_users_login_panel_points',
-		__( 'What they get', 'diluxone-users' ),
-		__( "Everything on the site\nYour certificates\nWord when we go live", 'diluxone-users' ),
-		__( 'One per line, each with a tick beside it. Three or four: a panel is not a features page.', 'diluxone-users' ),
-		4
-	);
-
-	diluxone_users_ui_words(
-		'diluxone_users_login_panel_foot',
-		__( 'The line at the foot', 'diluxone-users' ),
-		__( 'Already 25,000 of us.', 'diluxone-users' ),
-		__( 'It holds the bottom of the panel. Somewhere for the one fact that makes signing up feel less like a form.', 'diluxone-users' )
-	);
+	/**
+	 * Fires under the shapes of the sign-in page, on Design › The sign-in page.
+	 *
+	 * Where the settings a shape brings go — its picture, its words — drawn
+	 * with the screen's pieces and saved on `diluxone_users_panel_saved`.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param string $template The shape chosen, a kept one included.
+	 */
+	do_action( 'diluxone_users_design_login_shape', $template );
 
 	diluxone_users_ui_section( __( 'Your mark', 'diluxone-users' ) );
 
@@ -1271,11 +1223,16 @@ function diluxone_users_screen_login_wp(): void {
 					diluxone_users_image_field( 'diluxone_users_wp_login_logo' );
 					diluxone_users_ui_field_close( __( 'Replaces the WordPress logo above the box. Without one, the site’s name is written there instead — which is still better than somebody else’s logo.', 'diluxone-users' ) );
 
-					diluxone_users_ui_field_open( __( 'The colour there', 'diluxone-users' ), 'diluxone_users_wp_login_bg' );
-					?>
-					<input type="color" id="diluxone_users_wp_login_bg" name="diluxone_users_wp_login_bg" value="<?php echo esc_attr( diluxone_users_wp_login_bg() ); ?>">
-					<?php
-					diluxone_users_ui_field_close( __( 'Left as the accent colour it follows the accent, instead of becoming a second colour that drifts from the first.', 'diluxone-users' ) );
+					diluxone_users_ui_swatches(
+						array(
+							'label'   => __( 'The colour there', 'diluxone-users' ),
+							'name'    => 'diluxone_users_wp_login_bg',
+							'value'   => (string) diluxone_users_option( 'diluxone_users_wp_login_bg' ),
+							'palette' => diluxone_users_accent_palette(),
+							'none'    => __( 'The accent colour', 'diluxone-users' ),
+							'help'    => __( 'The accent colour follows the accent, instead of becoming a second colour that drifts from the first. The links on it are white, so each of the others is a colour white reads on.', 'diluxone-users' ),
+						)
+					);
 				},
 			),
 		)

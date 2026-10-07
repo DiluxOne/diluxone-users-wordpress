@@ -1435,6 +1435,128 @@ function diluxone_users_ui_color( array $field ): void {
 }
 
 /**
+ * A colour, chosen from one of the short palettes.
+ *
+ * A row of swatches and not a picker: each one a radio with the colour on it
+ * and its name, so the answer is seen and read, and a keyboard moves along the
+ * row as it does along any group of radios. `none` is the answer that stores
+ * nothing — "follow the accent", "the page's own" — drawn first, with no
+ * colour on it.
+ *
+ * A colour stored that is none of these — chosen while Users+ Pro offered any
+ * colour, and Pro is off now — is drawn after them as what it is: chosen,
+ * inactive, and saying which colour the site gets in its place. It stays
+ * chosen until another one is picked (diluxone_users_color_answer() keeps it
+ * on the way in). With any colour an answer (`diluxone_users_any_color`), an
+ * add-on adds its own way to choose one at the end of the row, on
+ * `diluxone_users_color_choices`.
+ *
+ * @param array<string, mixed> $field name, value (what is stored), palette
+ *                                    (diluxone_users_accent_palette() or
+ *                                    diluxone_users_ground_palette()), label,
+ *                                    and optionally help, none (the label of
+ *                                    the answer that stores nothing) and
+ *                                    fallback (the colour checked when
+ *                                    nothing is stored and there is no
+ *                                    `none`).
+ */
+function diluxone_users_ui_swatches( array $field ): void {
+	$name    = (string) $field['name'];
+	$palette = (array) $field['palette'];
+	$stored  = diluxone_users_hex( (string) ( $field['value'] ?? '' ) );
+	$none    = (string) ( $field['none'] ?? '' );
+	$now     = '' === $stored && '' === $none ? diluxone_users_hex( (string) ( $field['fallback'] ?? '' ) ) : $stored;
+	$any     = diluxone_users_any_color();
+	$kept    = '' !== $now && ! $any && ! diluxone_users_palette_has( $palette, $now );
+
+	diluxone_users_ui_field_open( (string) ( $field['label'] ?? '' ) );
+
+	printf( '<div class="du-swatches" data-diluxone-users-swatches="%s">', esc_attr( $name ) );
+
+	if ( '' !== $none ) {
+		diluxone_users_ui_swatch( $name, '', $none, '' === $now );
+	}
+
+	foreach ( $palette as $swatch ) {
+		$hex = diluxone_users_hex( (string) $swatch['color'] );
+
+		diluxone_users_ui_swatch( $name, $hex, (string) $swatch['name'], $hex === $now );
+	}
+
+	if ( $kept ) {
+		diluxone_users_ui_swatch( $name, $now, __( 'Your Pro colour (inactive)', 'diluxone-users' ), true, true );
+	}
+
+	if ( $any ) {
+		/**
+		 * Fires at the end of a row of swatches, while any colour is an answer.
+		 *
+		 * Users+ Pro adds its picker here: one more radio of the same name,
+		 * whose value is the colour picked.
+		 *
+		 * @since 1.0.0
+		 *
+		 * @param string $name  The radios' name: the setting.
+		 * @param string $value What is stored, as a hex, or ''.
+		 */
+		do_action( 'diluxone_users_color_choices', $name, $stored );
+	}
+
+	echo '</div>';
+
+	$help = (string) ( $field['help'] ?? '' );
+
+	if ( $kept ) {
+		$instead = (string) ( $palette[ diluxone_users_palette_nearest( $now, $palette ) ]['name'] ?? '' );
+		$help    = trim(
+			$help . ' ' . sprintf(
+				/* translators: 1: the stored colour, as a hex, 2: the name of the colour of the palette drawn instead */
+				__( 'The colour %1$s was chosen while Users+ Pro offered any colour. Until it is back, this site draws %2$s instead. It stays chosen until you pick another one.', 'diluxone-users' ),
+				$now,
+				'' !== $instead ? $instead : __( 'the default', 'diluxone-users' )
+			)
+		);
+	}
+
+	diluxone_users_ui_field_close( $help );
+}
+
+/**
+ * One swatch of the row.
+ *
+ * @param string $name    The radios' name.
+ * @param string $value   The colour, or '' for the answer that stores nothing.
+ * @param string $label   What it is called.
+ * @param bool   $checked Whether it is the answer stored.
+ * @param bool   $kept    Whether it is a stored colour nothing offers today.
+ */
+function diluxone_users_ui_swatch( string $name, string $value, string $label, bool $checked, bool $kept = false ): void {
+	$classes = array( 'du-swatch' );
+
+	if ( '' === $value ) {
+		$classes[] = 'du-swatch--none';
+	}
+
+	if ( $kept ) {
+		$classes[] = 'du-swatch--kept';
+	}
+
+	if ( $checked ) {
+		$classes[] = 'is-on';
+	}
+
+	printf(
+		'<label class="%1$s"><input type="radio" name="%2$s" value="%3$s"%4$s><span class="du-swatch__chip"%5$s aria-hidden="true"></span><span class="du-swatch__name">%6$s</span></label>',
+		esc_attr( implode( ' ', $classes ) ),
+		esc_attr( $name ),
+		esc_attr( $value ),
+		checked( $checked, true, false ),
+		'' === $value ? '' : ' style="' . esc_attr( 'background-color:' . $value ) . '"',
+		esc_html( $label )
+	);
+}
+
+/**
  * A short question answered in a line: the title above, the answers in a row.
  *
  * The card group is for options that need explaining — a title and two lines

@@ -1120,7 +1120,7 @@ function diluxone_users_screen_account_page(): void {
 					array(
 						'url'   => diluxone_users_admin_url( DILUXONE_USERS_DESIGN, array( 'tab' => 'account' ) ),
 						'label' => __( 'What it looks like', 'diluxone-users' ),
-						'help'  => __( 'Its shape, its cover and its menu, with the page itself beside the settings.', 'diluxone-users' ),
+						'help'  => __( 'Its shape, its header and its menu, with the page itself beside the settings.', 'diluxone-users' ),
 					),
 				)
 			);

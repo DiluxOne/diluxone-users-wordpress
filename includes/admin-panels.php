@@ -198,6 +198,42 @@ function diluxone_users_panel_drawn( string $screen, array $values, array $from 
 }
 
 /**
+ * Runs a panel's save, and then what an add-on saves with it.
+ *
+ * A tab is one form, and an add-on that draws part of it — a shape's
+ * settings under the shapes, a colour beside the palette — saves its part
+ * when the tab is saved. It hears `diluxone_users_panel_saved` after the
+ * tab's own save, and only when that save did not refuse.
+ *
+ * @param array<string, mixed> $panel  The panel, as registered.
+ * @param string               $screen The screen it is on.
+ * @param string               $tab    Its slug.
+ * @return mixed What the save answered: false when it refused.
+ */
+function diluxone_users_panel_save( array $panel, string $screen, string $tab ) {
+	$answer = call_user_func( $panel['save'] );
+
+	if ( false !== $answer ) {
+		/**
+		 * Fires after a tab of the plugin's screens has been saved.
+		 *
+		 * The form is the tab's, with its nonce: a listener checks
+		 * `check_admin_referer( 'diluxone_users_panel_' . $screen, 'diluxone_users_panel_nonce' )`
+		 * and `diluxone_users_panel_allowed()` itself before it reads
+		 * anything, and writes through `diluxone_users_save_options()`.
+		 *
+		 * @since 1.0.0
+		 *
+		 * @param string $screen The screen, e.g. 'diluxone-users-design'.
+		 * @param string $tab    The tab, e.g. 'login'.
+		 */
+		do_action( 'diluxone_users_panel_saved', $screen, $tab );
+	}
+
+	return $answer;
+}
+
+/**
  * Draws a whole screen out of its panels.
  *
  * Every screen built this way behaves the same: the tabs, the current one,
@@ -236,7 +272,7 @@ function diluxone_users_screen_panels( string $screen, string $title ): void {
 		 * a second step with no way of sending the code — stop showing it
 		 * over the error explaining that nothing was written.
 		 */
-		if ( false !== call_user_func( $panel['save'] ) ) {
+		if ( false !== diluxone_users_panel_save( $panel, $screen, $current ) ) {
 			diluxone_users_notice( __( 'Saved.', 'diluxone-users' ) );
 		}
 
@@ -358,7 +394,7 @@ add_action( 'admin_init', 'diluxone_users_panels_ready', 1 );
  * A preview, as a page of its own.
  *
  * This is the whole reason the previews are in an iframe. The sign-in frames
- * break out to the full width of the window the way any cover does, with
+ * break out to the full width of the window, with
  * `calc(50% - 50vw)` — and a preview drawn inside the admin column reads the
  * *admin's* window: half of 1900px of photo inside a 460px box, with the form
  * pushed off the side and clipped. Nothing was wrong with the markup; it was
@@ -381,6 +417,31 @@ function diluxone_users_preview_document( string $body ): string {
 	// The social buttons come with their own sheet on the front end too.
 	$styles->add( 'diluxone-users-preview-social', DILUXONE_USERS_URL . 'assets/diluxone-users-social.css', array( 'diluxone-users-preview-front' ), diluxone_users_asset_version( 'assets/diluxone-users-social.css' ) );
 
+	/**
+	 * Filters the stylesheets an add-on adds to the previews.
+	 *
+	 * A preview is a document of its own, with the plugin's sheets in it and
+	 * nothing the dashboard enqueued, so a shape an add-on draws in it brings
+	 * its sheet here: handle => URL, loaded after the plugin's own.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param array<string, string> $sheets Nothing, from the plugin.
+	 */
+	$sheets = (array) apply_filters( 'diluxone_users_preview_stylesheets', array() );
+
+	foreach ( $sheets as $handle => $src ) {
+		$handle = sanitize_key( (string) $handle );
+		$src    = esc_url_raw( (string) $src );
+
+		if ( '' === $handle || '' === $src || isset( array_flip( $deps )[ $handle ] ) ) {
+			continue;
+		}
+
+		$styles->add( $handle, $src, array( 'diluxone-users-preview-social' ), null );
+		$deps[] = $handle;
+	}
+
 	$vars = diluxone_users_preview_theme_url();
 
 	if ( '' !== $vars ) {
@@ -390,7 +451,7 @@ function diluxone_users_preview_document( string $body ): string {
 
 	/*
 	 * The padding is the page's margin and it is what the breakout undoes: a
-	 * cover reaches the edge of this document exactly as it reaches the edge
+	 * frame reaches the edge of this document exactly as it reaches the edge
 	 * of the browser on the site.
 	 *
 	 * The rest is the same CSS the front end is given, built in the same
@@ -476,7 +537,7 @@ function diluxone_users_preview_scripts( ?string $handle = null, bool $take = fa
  * In the preview it did not, and it was the worst kind of not working: the
  * document in the frame is the plugin's own, with the plugin's own sheet and
  * nothing of the theme's, so `var(--ast-global-color-0)` resolved to nothing,
- * every token built on it became invalid, and the accent, the cover and the
+ * every token built on it became invalid, and the accent, the bands and the
  * ink on it all fell back to whatever they inherit. A name in white on a blue
  * band came out grey on white — a preview that says "your theme's colours" and
  * shows something the site has never looked like.
@@ -875,7 +936,7 @@ function diluxone_users_preview_try_url( string $screen, string $id ): string {
  * @param array<string, mixed> $panel
  * @return array<string, mixed> Option name => what would have been stored.
  */
-function diluxone_users_preview_would_save( array $panel ): array {
+function diluxone_users_preview_would_save( array $panel, string $screen = '', string $tab = '' ): array {
 	if ( ! is_callable( $panel['save'] ) ) {
 		return array();
 	}
@@ -912,7 +973,7 @@ function diluxone_users_preview_would_save( array $panel ): array {
 		add_filter( 'pre_update_site_option_' . $key, $refuse_network, 999, 3 );
 	}
 
-	call_user_func( $panel['save'] );
+	diluxone_users_panel_save( $panel, $screen, $tab );
 
 	remove_filter( 'pre_update_option', $refuse, 999 );
 
@@ -954,7 +1015,7 @@ function diluxone_users_preview_try(): void {
 		DILUXONE_USERS_PREVIEW_TRY . $token,
 		array(
 			'user'   => get_current_user_id(),
-			'values' => diluxone_users_preview_would_save( $panels[ $id ] ),
+			'values' => diluxone_users_preview_would_save( $panels[ $id ], $screen, $id ),
 		),
 		MINUTE_IN_SECONDS
 	);
@@ -1076,7 +1137,7 @@ function diluxone_users_preview_request(): void {
 	$request  = $_REQUEST;
 	$_POST    = wp_slash( $form );
 	$_REQUEST = $_POST;
-	$values   = diluxone_users_preview_would_save( $panels[ $id ] );
+	$values   = diluxone_users_preview_would_save( $panels[ $id ], $screen, $id );
 	$_POST    = $post;
 	$_REQUEST = $request;
 

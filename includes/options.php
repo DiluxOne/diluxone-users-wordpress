@@ -117,31 +117,11 @@ function diluxone_users_option_defaults_own(): array {
 
 		// ── What the sign-in screen looks like ───────────────────────
 		// The shape of the page the form sits on. 'plain' leaves it where the
-		// theme put it, which is what a site with its own design wants;
-		// the other three take over the page, which is what a site that has
-		// not designed one wants and would otherwise install a second plugin
-		// to get.
+		// theme put it, which is what a site with its own design wants; 'card'
+		// takes over the page, which is what a site that has not designed one
+		// wants and would otherwise install a second plugin to get.
 		'diluxone_users_login_template'        => 'plain',
-		// Where the picture goes in the split layout, and which picture.
-		'diluxone_users_login_side'            => 'left',
-		'diluxone_users_login_image'           => 0,
 		'diluxone_users_login_logo'            => 0,
-		// What the split layout's panel says. Half a window of photograph is
-		// half a window saying nothing, and every site that wanted a sentence
-		// on it had to copy a page template to get one. Empty is the answer
-		// that was there before: the picture on its own.
-		// The title takes a line per line, because a heading on a panel like
-		// this is written as two or three deliberate lines and not as a
-		// sentence broken wherever the column happens to end.
-		'diluxone_users_login_panel_title'     => '',
-		'diluxone_users_login_panel_text'      => '',
-		// One advantage per line.
-		'diluxone_users_login_panel_points'    => '',
-		'diluxone_users_login_panel_foot'      => '',
-		// The mark on the panel, which is rarely the same file as the mark
-		// above the form: this one sits on a block of colour and usually has
-		// to be the light version of it.
-		'diluxone_users_login_panel_logo'      => 0,
 
 		// ── The black bar across the top ─────────────────────────────
 		// 'wp' leaves it exactly as WordPress shows it. 'hide' takes it away
@@ -237,18 +217,16 @@ function diluxone_users_option_defaults_own(): array {
 		// "my account" — LifterLMS, bbPress, a certificate — points right.
 		'diluxone_users_account_page'          => 0,
 		// The account area's starting point. 'plain' is the area as a panel in
-		// the page, the way a settings screen looks; 'cover' is the header as
-		// a band the full width of the window with the person on it and the
-		// menu in a bar of its own underneath, the way a profile looks. It is
-		// a starting point and not a lid: every piece below can still be
-		// changed afterwards.
+		// the page, the way a settings screen looks; an add-on brings others.
+		// It is a starting point and not a lid: every piece below can still
+		// be changed afterwards.
 		'diluxone_users_account_template'      => 'plain',
 		// Where the navigation goes: on top, down the side, or nowhere at all
 		// because the site places it with [diluxone_users_account_nav].
 		'diluxone_users_account_layout'        => 'tabs',
 		// And what the menu looks like, which is a different question from
 		// where it goes and from which header the area has. It used to come
-		// out of the template — the cover quietly turned the pills into
+		// out of the template — a header shape quietly turned the pills into
 		// underlined tabs — and a look that changes as a side effect of a
 		// choice about the header is a look nobody can predict.
 		'diluxone_users_account_nav_style'     => 'pills',
@@ -259,8 +237,8 @@ function diluxone_users_option_defaults_own(): array {
 		// The front page with avatar, name and member-since date.
 		'diluxone_users_account_header'        => 1,
 		// And what that header is made of. They are separate options and not
-		// one "style" because a site wanting the big cover without the join
-		// date should not have to copy a template to get it.
+		// one "style" because a site wanting a header without the join date
+		// should not have to copy a template to get it.
 		'diluxone_users_account_avatar'        => 1,
 		'diluxone_users_account_since'         => 1,
 		// The button on the far side of the header, to their own details.
@@ -269,12 +247,8 @@ function diluxone_users_option_defaults_own(): array {
 		// nothing and the page's own ground shows through, which is what it
 		// always did. It is asked because white cards on white are not cards:
 		// a site whose page is white needs a shade behind the area for the
-		// boxes in it to have an edge at all.
+		// boxes in it to have an edge at all. A shade of the ground palette.
 		'diluxone_users_account_ground'        => '',
-		// The colour behind the cover. Empty means the accent colour, so a
-		// site that only changes its accent gets a cover that matches without
-		// setting a second colour that would then drift from the first.
-		'diluxone_users_account_cover'         => '',
 		// How wide the content runs: held to a reading column, or the whole
 		// width the theme gives it.
 		'diluxone_users_account_width'         => 'contained',
@@ -324,11 +298,9 @@ function diluxone_users_option_defaults_own(): array {
 		// what stops a site from having to write a stylesheet that repoints
 		// every token by hand and then goes stale.
 		'diluxone_users_colors'                => 'own',
-		// Which colour of that palette plays which part. Empty means whatever
-		// the slugs suggested; a part left empty here is left to the plugin.
-		'diluxone_users_color_map'             => array(),
 		// The two values that change everything else, because the rest of the
-		// sheet derives from them. Empty = the ones the sheet ships with.
+		// sheet derives from them. Empty = the ones the sheet ships with. The
+		// accent is one of the short palette's (includes/palette.php).
 		'diluxone_users_style_accent'          => '',
 		'diluxone_users_style_radius'          => '',
 		// How thick a control's edge is, and how tall it is. They were tokens
@@ -349,11 +321,6 @@ function diluxone_users_option_defaults_own(): array {
 		// A notice: a bar down its left, or a soft filled box.
 		'diluxone_users_notice_style'          => 'bar',
 
-		// ── The account area's cover ──────────────────────────────────
-		// A colour, a picture, or a picture with the colour over it so the
-		// name stays readable on top of whatever was uploaded.
-		'diluxone_users_account_cover_kind'    => 'color',
-		'diluxone_users_account_cover_image'   => 0,
 		// What the menu does on a phone when it does not fit: scrolls
 		// sideways, or wraps and shows every section at once.
 		'diluxone_users_account_nav_small'     => 'scroll',

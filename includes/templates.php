@@ -278,11 +278,37 @@ function diluxone_users_asset_version( string $file ): string {
 	return $time > 0 ? DILUXONE_USERS_VERSION . '.' . $time : DILUXONE_USERS_VERSION;
 }
 
-/** The accent colour currently in use. */
+/**
+ * The accent colour in use, as a hex.
+ *
+ * One of the short palette's, or the default with nothing stored. A colour
+ * stored that is none of them — chosen while any colour was an answer — is
+ * drawn as the palette's nearest, until any colour is an answer again.
+ */
 function diluxone_users_style_accent(): string {
-	$accent = trim( (string) diluxone_users_option( 'diluxone_users_style_accent' ) );
+	$stored = (string) diluxone_users_option( 'diluxone_users_style_accent' );
 
-	return '' !== $accent ? $accent : '#2b59d6';
+	if ( diluxone_users_any_color() && '' !== diluxone_users_hex( $stored ) ) {
+		return diluxone_users_hex( $stored );
+	}
+
+	return diluxone_users_palette_color( $stored, diluxone_users_accent_palette(), diluxone_users_accent_default(), true );
+}
+
+/**
+ * The shade the account area sits on, as a hex, or '' for the page's own.
+ *
+ * A shade of the ground palette, or any colour while any colour is an answer;
+ * one stored that is neither is drawn as the palette's nearest.
+ */
+function diluxone_users_account_ground(): string {
+	$stored = diluxone_users_hex( (string) diluxone_users_option( 'diluxone_users_account_ground' ) );
+
+	if ( '' === $stored || diluxone_users_any_color() ) {
+		return $stored;
+	}
+
+	return diluxone_users_palette_color( $stored, diluxone_users_ground_palette(), '', false );
 }
 
 /**
@@ -310,7 +336,7 @@ function diluxone_users_style_tokens(): string {
 		! diluxone_users_colors_from_theme()
 		&& '' !== trim( (string) diluxone_users_option( 'diluxone_users_style_accent' ) )
 	) {
-		$accent  = (string) sanitize_hex_color( diluxone_users_style_accent() );
+		$accent  = diluxone_users_style_accent();
 		$tokens .= '--diluxone-users-accent:' . $accent . ';';
 		$tokens .= '--diluxone-users-accent-bg:' . $accent . ';';
 	}
@@ -360,7 +386,21 @@ function diluxone_users_style_css(): string {
 
 	// The theme's palette goes first, so the plugin's own answers — an accent
 	// picked on this screen, a button shape — still land on top of it.
-	return diluxone_users_theme_colors_css() . $css . diluxone_users_notice_css() . diluxone_users_account_css();
+	$css = diluxone_users_theme_colors_css() . $css . diluxone_users_notice_css() . diluxone_users_account_css();
+
+	/**
+	 * Filters the CSS the admin's answers become.
+	 *
+	 * Printed after the plugin's stylesheet, on the front end and in every
+	 * preview. An add-on whose shapes read an answer of the plugin's — the air
+	 * under the content, say — adds its rule here, printed only when there is
+	 * an answer, the way the plugin's own are.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param string $css
+	 */
+	return (string) apply_filters( 'diluxone_users_style_css', $css );
 }
 
 /**
@@ -411,11 +451,10 @@ function diluxone_users_account_css(): string {
 	 * hex here would be one more colour that does not turn round with the
 	 * rest of the site when the page goes dark.
 	 */
-	$ground = (string) diluxone_users_option( 'diluxone_users_account_ground' );
+	$ground = diluxone_users_account_ground();
 
-	if ( '' !== trim( $ground ) ) {
-		$css .= '.diluxone-users-account{background:var(--diluxone-users-ground,'
-			. (string) sanitize_hex_color( $ground ) . ');}';
+	if ( '' !== $ground ) {
+		$css .= '.diluxone-users-account{background:var(--diluxone-users-ground,' . $ground . ');}';
 	}
 
 	// The strip's own measurements ride as properties, because the sheet
@@ -456,16 +495,14 @@ function diluxone_users_account_css(): string {
 
 	if ( '' !== trim( $body ) ) {
 		/*
-		 * Both ends, and both of them through the property the sheet already
-		 * reads. It used to declare `--diluxone-users-body-end` on `:root`,
-		 * which was a token shadowing itself: this block is printed after the
-		 * site's stylesheet, so a site that had set that property got the
-		 * number from this screen instead — the one place a documented
+		 * Through the property the sheet already reads. Declared on `:root` it
+		 * would be a token shadowing itself: this block is printed after the
+		 * site's stylesheet, so a site that had set that property would get
+		 * the number from this screen instead — the one place a documented
 		 * property could not be set. As a fallback it is the other way round,
 		 * which is the way round the rest of them work.
 		 */
-		$css .= '.diluxone-users-account__body{padding-top:var(--diluxone-users-body-top,' . (int) $body . 'px);}'
-			. '.diluxone-users-account--cover .diluxone-users-account__body{padding-bottom:var(--diluxone-users-body-end,' . (int) $body . 'px);}';
+		$css .= '.diluxone-users-account__body{padding-top:var(--diluxone-users-body-top,' . (int) $body . 'px);}';
 	}
 
 	return $css;
@@ -541,7 +578,7 @@ function diluxone_users_styles(): void {
 	// late in block themes, which assemble the template at another moment: in
 	// Twenty Twenty-Five the sheet did not come out and everything looked raw.
 	if ( diluxone_users_page_has_shortcode() ) {
-		wp_enqueue_style( 'diluxone-users' );
+		diluxone_users_enqueue_styles();
 	}
 }
 add_action( 'wp_enqueue_scripts', 'diluxone_users_styles', 5 );
@@ -574,9 +611,22 @@ function diluxone_users_page_has_shortcode(): bool {
 
 /** Enqueues the sheet, if it is registered. The shortcodes call it as they draw. */
 function diluxone_users_enqueue_styles(): void {
-	if ( wp_style_is( 'diluxone-users', 'registered' ) ) {
-		wp_enqueue_style( 'diluxone-users' );
+	if ( ! wp_style_is( 'diluxone-users', 'registered' ) ) {
+		return;
 	}
+
+	wp_enqueue_style( 'diluxone-users' );
+
+	/**
+	 * Fires when the plugin's stylesheet is enqueued on the front end.
+	 *
+	 * The moment for an add-on to enqueue a stylesheet of its own that builds
+	 * on it (with `diluxone-users` as a dependency): only where the plugin's
+	 * is, and never where the site turned the plugin's off.
+	 *
+	 * @since 1.0.0
+	 */
+	do_action( 'diluxone_users_enqueue_styles' );
 }
 
 /**
