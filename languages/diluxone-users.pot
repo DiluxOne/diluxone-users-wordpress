@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-07T06:01:03+00:00\n"
+"POT-Creation-Date: 2026-10-07T07:43:06+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: diluxone-users\n"
@@ -195,7 +195,7 @@ msgid "Your details"
 msgstr ""
 
 #: includes/account-sections.php:39
-#: includes/admin-people.php:211
+#: includes/admin-people.php:206
 msgid "Linked accounts"
 msgstr ""
 
@@ -205,7 +205,7 @@ msgstr ""
 
 #: includes/account-sections.php:51
 #: includes/admin-login.php:407
-#: includes/admin-people.php:318
+#: includes/admin-people.php:303
 #: includes/admin.php:80
 msgid "Security"
 msgstr ""
@@ -282,21 +282,12 @@ msgstr ""
 msgid "Failed"
 msgstr ""
 
-#: includes/account-security.php:87
+#: includes/account-security.php:86
 msgid "Two-step verification was turned on."
 msgstr ""
 
-#: includes/account-security.php:110
+#: includes/account-security.php:109
 msgid "Two-step verification was turned off."
-msgstr ""
-
-#: includes/account-security.php:126
-msgid "An authenticator app was set up."
-msgstr ""
-
-#: includes/account-security.php:140
-#: templates/account/security.php:38
-msgid "The authenticator app was removed."
 msgstr ""
 
 #: includes/account.php:57
@@ -341,10 +332,10 @@ msgid "Nothing but the words, with the open one in your colour. For a site whose
 msgstr ""
 
 #: includes/admin-2fa.php:25
-#: includes/admin-2fa.php:468
-#: includes/admin-people.php:204
+#: includes/admin-2fa.php:485
+#: includes/admin-people.php:199
 #: includes/privacy.php:286
-#: templates/account/security.php:114
+#: templates/account/security.php:112
 msgid "Two-step verification"
 msgstr ""
 
@@ -365,237 +356,222 @@ msgstr ""
 msgid "Six digits to the address on the account. Nothing to install, which is why it is the one people actually turn on."
 msgstr ""
 
-#: includes/admin-2fa.php:76
-#: includes/auth.php:133
-msgid "An authenticator app"
-msgstr ""
-
-#: includes/admin-2fa.php:77
-msgid "Six digits that change every thirty seconds, from Google Authenticator, 1Password or Aegis. The stronger one: the code never travels."
-msgstr ""
-
-#: includes/admin-2fa.php:166
+#: includes/admin-2fa.php:157
 msgid "Nothing is asked: the second step is off for the whole site, whatever is chosen here."
 msgstr ""
 
-#: includes/admin-2fa.php:173
+#: includes/admin-2fa.php:164
 msgid "The second step is asked of somebody who came in by link, whichever one they have."
 msgstr ""
 
-#: includes/admin-2fa.php:180
+#: includes/admin-2fa.php:171
 msgid "Nothing is asked of somebody who came in by link: following it is the whole of it."
 msgstr ""
 
-#: includes/admin-2fa.php:188
+#: includes/admin-2fa.php:179
 msgid "The second step is asked: a method that is on does not arrive by e-mail, so it proves something the link did not."
 msgstr ""
 
-#: includes/admin-2fa.php:195
+#: includes/admin-2fa.php:186
 msgid "Nothing is asked: every method that is on arrives by e-mail, at the inbox the person just opened."
 msgstr ""
 
-#: includes/admin-2fa.php:211
+#: includes/admin-2fa.php:202
 msgid "Asked"
 msgstr ""
 
-#: includes/admin-2fa.php:212
+#: includes/admin-2fa.php:203
 msgid "Not asked"
 msgstr ""
 
-#: includes/admin-2fa.php:224
+#: includes/admin-2fa.php:215
 msgid "One more thing after the password or the link: a code that only that person has. Whoever gets hold of an email still does not get in."
 msgstr ""
 
-#: includes/admin-2fa.php:232
+#: includes/admin-2fa.php:223
 msgid "When it is asked for"
 msgstr ""
 
-#: includes/admin-2fa.php:240
+#: includes/admin-2fa.php:231
 msgid "Optional: whoever wants it turns it on from their account"
 msgstr ""
 
-#: includes/admin-2fa.php:241
+#: includes/admin-2fa.php:232
 msgid "Nobody is made to do anything, and whoever turned it on is asked from then on."
 msgstr ""
 
-#: includes/admin-2fa.php:249
+#: includes/admin-2fa.php:240
 msgid "needs a sign-in page"
 msgstr ""
 
-#: includes/admin-2fa.php:250
+#: includes/admin-2fa.php:241
 msgid "Required: everybody it applies to has to set it up"
 msgstr ""
 
-#: includes/admin-2fa.php:251
+#: includes/admin-2fa.php:242
 msgid "They are walked through it the next time they sign in, and there is no way past."
 msgstr ""
 
-#: includes/admin-2fa.php:257
+#: includes/admin-2fa.php:248
 msgid "Off: it is not offered at all"
 msgstr ""
 
-#: includes/admin-2fa.php:258
+#: includes/admin-2fa.php:249
 msgid "Nobody is asked, not even whoever had it set up. What they set up is kept and works again the day this comes back on."
 msgstr ""
 
-#: includes/admin-2fa.php:270
+#: includes/admin-2fa.php:261
 msgid "The second step is off, so nothing below is asked of anybody. What is chosen applies the day it is turned on."
 msgstr ""
 
-#: includes/admin-2fa.php:275
+#: includes/admin-2fa.php:266
 msgid "The sign-in page →"
 msgstr ""
 
-#: includes/admin-2fa.php:279
-msgid "To whom"
+#: includes/admin-2fa.php:274
+#: includes/admin.php:301
+msgid "Only some roles"
+msgstr ""
+
+#: includes/admin-2fa.php:275
+msgid "Users+ Pro asks the second step of the roles you choose — the ones that can change things — and not of everybody with an account."
 msgstr ""
 
 #: includes/admin-2fa.php:281
-msgid "Asking only the roles that can change things is the usual middle ground: the second step where the friction is worth it."
-msgstr ""
-
-#: includes/admin-2fa.php:283
 msgid "With what"
 msgstr ""
 
-#: includes/admin-2fa.php:300
-msgid "no code from it"
-msgstr ""
-
-#: includes/admin-2fa.php:319
-msgid "Asking it of somebody who came in by link"
+#: includes/admin-2fa.php:298
+msgid "no code from it, and the code by email in its place when nothing else is ticked"
 msgstr ""
 
 #: includes/admin-2fa.php:320
+msgid "An authenticator app"
+msgstr ""
+
+#: includes/admin-2fa.php:321
+msgid "Users+ Pro adds the six digits that change every thirty seconds, from Google Authenticator, 1Password or Aegis: the code never travels, so it is asked on the e-mail link too."
+msgstr ""
+
+#: includes/admin-2fa.php:328
+msgid "Asking it of somebody who came in by link"
+msgstr ""
+
+#: includes/admin-2fa.php:329
 msgid "Whether there is a sign-in link at all is decided on Access. This is only what happens after one is followed."
 msgstr ""
 
-#: includes/admin-2fa.php:325
+#: includes/admin-2fa.php:334
 msgid "The e-mail link is not one of the ways in on this site, so nobody follows one. What is chosen here applies the day it is."
 msgstr ""
 
-#: includes/admin-2fa.php:327
+#: includes/admin-2fa.php:336
 #: includes/admin-login.php:498
 msgid "Ways in →"
 msgstr ""
 
-#: includes/admin-2fa.php:337
+#: includes/admin-2fa.php:346
 msgid "Work it out: ask, unless the second step is another email"
 msgstr ""
 
-#: includes/admin-2fa.php:338
+#: includes/admin-2fa.php:347
 msgid "A code sent to the inbox the person has just opened to follow the link proves nothing the link did not prove already. An app does, so on an app it asks."
 msgstr ""
 
-#: includes/admin-2fa.php:344
+#: includes/admin-2fa.php:353
 msgid "Always ask"
 msgstr ""
 
-#: includes/admin-2fa.php:345
+#: includes/admin-2fa.php:354
 msgid "The second step on every link, including the errand of a code going back to the same inbox."
 msgstr ""
 
-#: includes/admin-2fa.php:351
+#: includes/admin-2fa.php:360
 msgid "Never ask"
 msgstr ""
 
-#: includes/admin-2fa.php:352
+#: includes/admin-2fa.php:361
 msgid "Following the link is the whole of it. The quickest way in, and the weakest of the three."
 msgstr ""
 
-#: includes/admin-2fa.php:358
-msgid "Remembering a browser"
+#: includes/admin-2fa.php:370
+msgid "Remember a browser"
 msgstr ""
 
-#: includes/admin-2fa.php:359
-msgid "A signed cookie, no more: it does not let anybody in, it only saves repeating the step on a browser that already passed it."
+#: includes/admin-2fa.php:371
+msgid "Users+ Pro lets people skip the second step for a few days on a browser that already passed it, with a signed cookie that lets nobody in on its own."
 msgstr ""
 
-#: includes/admin-2fa.php:364
-msgid "For how long"
-msgstr ""
-
-#: includes/admin-2fa.php:367
-#: includes/admin-log.php:145
-#: includes/admin-sessions.php:165
-#: includes/admin-sessions.php:176
-msgid "days"
-msgstr ""
-
-#: includes/admin-2fa.php:369
-msgid "0 to ask every time."
-msgstr ""
-
-#: includes/admin-2fa.php:384
+#: includes/admin-2fa.php:388
 msgid "The second step, for somebody who came in by link"
 msgstr ""
 
-#: includes/admin-2fa.php:392
+#: includes/admin-2fa.php:396
 msgid "What this leans on"
 msgstr ""
 
-#: includes/admin-2fa.php:396
+#: includes/admin-2fa.php:400
 msgid "E-mail notices › The e-mails"
 msgstr ""
 
-#: includes/admin-2fa.php:397
+#: includes/admin-2fa.php:401
 msgid "The subject and the words of the message that carries the six digits are written there, not here."
 msgstr ""
 
-#: includes/admin-2fa.php:401
+#: includes/admin-2fa.php:405
 #: includes/admin-security.php:156
 msgid "Access › Ways in"
 msgstr ""
 
-#: includes/admin-2fa.php:402
+#: includes/admin-2fa.php:406
 msgid "Whether there is a sign-in link at all — the arrival the rule above is about — is decided there."
 msgstr ""
 
-#: includes/admin-2fa.php:420
+#: includes/admin-2fa.php:449
 msgid "everybody with an account"
 msgstr ""
 
-#: includes/admin-2fa.php:432
-msgid "nobody: it is set to some roles and none of them is ticked"
+#: includes/admin-2fa.php:469
+msgid "nobody: none of the roles it is meant for is ticked"
 msgstr ""
 
 #. translators: %s: who it applies to — a list of roles, or "everybody with an account"
-#: includes/admin-2fa.php:459
+#: includes/admin-2fa.php:476
 #, php-format
 msgid "Required of %s: they are walked through it the next time they sign in, and there is no way past."
 msgstr ""
 
 #. translators: %s: who it applies to — a list of roles, or "everybody with an account"
-#: includes/admin-2fa.php:462
+#: includes/admin-2fa.php:479
 #, php-format
 msgid "Offered to %s, and asked of whoever turned it on from their own account."
 msgstr ""
 
-#: includes/admin-2fa.php:464
+#: includes/admin-2fa.php:481
 msgid "Nobody is asked for a second step, not even whoever has one set up. What they set up is kept."
 msgstr ""
 
-#: includes/admin-2fa.php:472
+#: includes/admin-2fa.php:489
 msgid "there is nowhere to type the code"
 msgstr ""
 
-#: includes/admin-2fa.php:472
+#: includes/admin-2fa.php:489
 msgid "it reaches nobody as it stands"
 msgstr ""
 
-#: includes/admin-2fa.php:485
+#: includes/admin-2fa.php:502
 msgid "How the code arrives"
 msgstr ""
 
-#: includes/admin-2fa.php:487
+#: includes/admin-2fa.php:504
 msgid "while the second step is off"
 msgstr ""
 
-#: includes/admin-2fa.php:489
+#: includes/admin-2fa.php:506
 msgid "Nothing carries it: no method is ticked, so nobody could finish signing in."
 msgstr ""
 
-#: includes/admin-2fa.php:499
+#: includes/admin-2fa.php:516
 msgid "The second step, on a link sign-in"
 msgstr ""
 
@@ -619,7 +595,7 @@ msgstr ""
 
 #: includes/admin-account.php:282
 #: includes/admin-account.php:1032
-#: includes/admin-people.php:170
+#: includes/admin-people.php:165
 #: includes/privacy.php:230
 #: templates/account/handle-field.php:21
 msgid "Public name"
@@ -1382,7 +1358,7 @@ msgstr ""
 
 #: includes/admin-appearance.php:217
 #: includes/admin-fields.php:834
-#: includes/privacy.php:516
+#: includes/privacy.php:505
 msgid "Where it goes"
 msgstr ""
 
@@ -2419,8 +2395,8 @@ msgstr ""
 
 #: includes/admin-home.php:309
 #: includes/admin-home.php:380
-#: includes/admin-people.php:40
-#: includes/admin-people.php:313
+#: includes/admin-people.php:39
+#: includes/admin-people.php:298
 #: includes/admin.php:78
 msgid "Access"
 msgstr ""
@@ -2513,7 +2489,7 @@ msgid "Who is in this site, what is asked of them and how they get in."
 msgstr ""
 
 #: includes/admin-home.php:509
-#: includes/admin-status.php:603
+#: includes/admin-status.php:597
 msgid "Accounts"
 msgstr ""
 
@@ -2604,6 +2580,12 @@ msgstr ""
 
 #: includes/admin-log.php:142
 msgid "Keep a row for"
+msgstr ""
+
+#: includes/admin-log.php:145
+#: includes/admin-sessions.php:165
+#: includes/admin-sessions.php:176
+msgid "days"
 msgstr ""
 
 #: includes/admin-log.php:147
@@ -2729,7 +2711,7 @@ msgstr ""
 #: includes/admin-log.php:384
 #: includes/login-ways.php:563
 #: includes/login-ways.php:620
-#: templates/account/security.php:71
+#: templates/account/security.php:69
 msgid "Password"
 msgstr ""
 
@@ -3022,7 +3004,7 @@ msgid "Which providers the buttons offer, and the keys each one needs before it 
 msgstr ""
 
 #: includes/admin-login.php:408
-#: includes/admin-people.php:319
+#: includes/admin-people.php:304
 msgid "Whether a second step is asked for after the door."
 msgstr ""
 
@@ -4099,119 +4081,107 @@ msgstr ""
 msgid "This is what you chose, not what is saved. Save to make it so."
 msgstr ""
 
-#: includes/admin-people.php:62
+#: includes/admin-people.php:61
 msgid "2FA"
 msgstr ""
 
-#: includes/admin-people.php:66
-msgid "App"
-msgstr ""
-
-#: includes/admin-people.php:98
+#: includes/admin-people.php:93
 msgid "Only the e-mail link"
 msgstr ""
 
-#: includes/admin-people.php:173
+#: includes/admin-people.php:168
 msgctxt "the public name of one account"
 msgid "Chosen"
 msgstr ""
 
-#: includes/admin-people.php:174
+#: includes/admin-people.php:169
 msgctxt "the public name of one account"
 msgid "None"
 msgstr ""
 
-#: includes/admin-people.php:177
+#: includes/admin-people.php:172
 msgid "None chosen. The account is known by its e-mail address."
 msgstr ""
 
-#: includes/admin-people.php:180
+#: includes/admin-people.php:175
 msgid "Last seen"
 msgstr ""
 
 #. translators: 1: how long ago, 2: device and browser, 3: IP address
-#: includes/admin-people.php:188
+#: includes/admin-people.php:183
 #, php-format
 msgid "%1$s ago, from %2$s (%3$s)"
 msgstr ""
 
-#: includes/admin-people.php:193
+#: includes/admin-people.php:188
 msgid "No open session."
 msgstr ""
 
-#: includes/admin-people.php:201
+#: includes/admin-people.php:196
 msgid "Every session →"
 msgstr ""
 
-#: includes/admin-people.php:207
-msgid "An authenticator app is set up."
+#: includes/admin-people.php:202
+msgid "Asked when they sign in."
 msgstr ""
 
-#: includes/admin-people.php:208
-msgid "No authenticator app."
+#: includes/admin-people.php:203
+msgid "Not asked when they sign in."
 msgstr ""
 
-#: includes/admin-people.php:214
+#: includes/admin-people.php:209
 msgctxt "the social networks on one account"
 msgid "Linked"
 msgstr ""
 
-#: includes/admin-people.php:215
+#: includes/admin-people.php:210
 msgctxt "the social networks on one account"
 msgid "None"
 msgstr ""
 
-#: includes/admin-people.php:218
+#: includes/admin-people.php:213
 msgid "None."
 msgstr ""
 
-#: includes/admin-people.php:243
-msgid "Remove the authenticator app"
-msgstr ""
-
-#: includes/admin-people.php:244
-msgid "For somebody who lost the phone it lived on. They set a new one up from their own account."
-msgstr ""
-
 #. translators: %s: name of the social network
-#: includes/admin-people.php:255
+#: includes/admin-people.php:240
 #, php-format
 msgid "Unlink %s"
 msgstr ""
 
-#: includes/admin-people.php:258
+#: includes/admin-people.php:243
 msgid "Unlinking does not delete anything: that network simply stops opening this account."
 msgstr ""
 
-#: includes/admin-people.php:283
+#: includes/admin-people.php:268
 msgid "Take a way in off this account"
 msgstr ""
 
-#: includes/admin-people.php:284
+#: includes/admin-people.php:269
 msgid "Ticked here, it goes when the profile is saved."
 msgstr ""
 
-#: includes/admin-people.php:304
+#: includes/admin-people.php:289
 msgid "What this block does"
 msgstr ""
 
-#: includes/admin-people.php:305
+#: includes/admin-people.php:290
 msgid "It reads what this account has, and it can take a way in off it. It cannot add one: only the owner of an account can do that, from their own account area."
 msgstr ""
 
-#: includes/admin-people.php:309
+#: includes/admin-people.php:294
 msgid "The rules this account lives under"
 msgstr ""
 
-#: includes/admin-people.php:314
+#: includes/admin-people.php:299
 msgid "Which ways in the site offers at all. Nothing above can give this account one the site does not have."
 msgstr ""
 
-#: includes/admin-people.php:329
+#: includes/admin-people.php:314
 msgid "Every session this account has open"
 msgstr ""
 
-#: includes/admin-people.php:330
+#: includes/admin-people.php:315
 msgid "Where it signed in from, on what, and the button that closes them all."
 msgstr ""
 
@@ -4220,8 +4190,8 @@ msgid "the e-mail link"
 msgstr ""
 
 #: includes/admin-register.php:65
-#: includes/auth.php:369
-#: includes/notify.php:326
+#: includes/auth.php:373
+#: includes/notify.php:328
 msgid "a social account"
 msgstr ""
 
@@ -4936,7 +4906,7 @@ msgid "Getting started"
 msgstr ""
 
 #: includes/admin-social.php:630
-#: includes/admin-status.php:600
+#: includes/admin-status.php:594
 msgid "Usage"
 msgstr ""
 
@@ -5128,7 +5098,7 @@ msgstr ""
 
 #: includes/admin-state.php:32
 #: includes/privacy.php:289
-#: templates/account/security.php:150
+#: templates/account/security.php:156
 msgid "Off"
 msgstr ""
 
@@ -5301,123 +5271,115 @@ msgstr ""
 msgid "Turn it on →"
 msgstr ""
 
-#: includes/admin-status.php:504
+#: includes/admin-status.php:503
 msgid "Have a public name"
 msgstr ""
 
-#: includes/admin-status.php:505
+#: includes/admin-status.php:504
 msgid "The short name that goes in the address of their profile. Without one, the site falls back to their first and last name."
 msgstr ""
 
-#: includes/admin-status.php:509
+#: includes/admin-status.php:508
 msgid "Linked a social account"
 msgstr ""
 
-#: includes/admin-status.php:510
+#: includes/admin-status.php:509
 msgid "They can get in with Google, Microsoft or whichever provider is enabled, instead of waiting for the e-mail."
 msgstr ""
 
-#: includes/admin-status.php:514
-msgid "Set up an authenticator app"
-msgstr ""
-
-#: includes/admin-status.php:515
-msgid "The six-digit code as a second step, from an app on their phone."
-msgstr ""
-
-#: includes/admin-status.php:558
+#: includes/admin-status.php:552
 msgid "Plugin version"
 msgstr ""
 
-#: includes/admin-status.php:559
+#: includes/admin-status.php:553
 msgid "WordPress"
 msgstr ""
 
-#: includes/admin-status.php:561
+#: includes/admin-status.php:555
 msgid "Site language"
 msgstr ""
 
-#: includes/admin-status.php:562
+#: includes/admin-status.php:556
 msgid "Multisite"
 msgstr ""
 
-#: includes/admin-status.php:562
+#: includes/admin-status.php:556
 msgid "yes"
 msgstr ""
 
-#: includes/admin-status.php:562
+#: includes/admin-status.php:556
 msgid "no"
 msgstr ""
 
-#: includes/admin-status.php:563
+#: includes/admin-status.php:557
 msgid "Object cache"
 msgstr ""
 
-#: includes/admin-status.php:563
+#: includes/admin-status.php:557
 msgid "external"
 msgstr ""
 
-#: includes/admin-status.php:563
+#: includes/admin-status.php:557
 msgid "none"
 msgstr ""
 
-#: includes/admin-status.php:564
+#: includes/admin-status.php:558
 msgid "Dashboard profile rule"
 msgstr ""
 
-#: includes/admin-status.php:575
+#: includes/admin-status.php:569
 msgid "Nothing here changes anything: it looks and it counts. What needs fixing gets fixed on the Tools tab."
 msgstr ""
 
-#: includes/admin-status.php:584
+#: includes/admin-status.php:578
 msgid "Everything checks out."
 msgstr ""
 
 #. translators: %d: number of failing checks
-#: includes/admin-status.php:589
+#: includes/admin-status.php:583
 #, php-format
 msgid "%d thing needs attention."
 msgid_plural "%d things need attention."
 msgstr[0] ""
 msgstr[1] ""
 
-#: includes/admin-status.php:620
+#: includes/admin-status.php:614
 msgid "Environment"
 msgstr ""
 
-#: includes/admin-status.php:621
+#: includes/admin-status.php:615
 msgid "Copy this into a support message and half the back-and-forth disappears."
 msgstr ""
 
-#: includes/admin-status.php:643
+#: includes/admin-status.php:637
 msgid "Templates a theme can replace"
 msgstr ""
 
-#: includes/admin-status.php:644
+#: includes/admin-status.php:638
 msgid "Copy any file from the plugin’s templates/ folder into the folder below and edit it there. The plugin will use yours."
 msgstr ""
 
-#: includes/admin-status.php:669
+#: includes/admin-status.php:663
 msgid "On a site without passwords and without outgoing mail, an expired session leaves you outside. There are two ways back that do not depend on either."
 msgstr ""
 
-#: includes/admin-status.php:672
+#: includes/admin-status.php:666
 msgid "From the server"
 msgstr ""
 
-#: includes/admin-status.php:673
+#: includes/admin-status.php:667
 msgid "That prints a single-use link and does not need the mail to work. It is WP-CLI, so it needs a shell on the server."
 msgstr ""
 
-#: includes/admin-status.php:679
+#: includes/admin-status.php:673
 msgid "From the browser"
 msgstr ""
 
-#: includes/admin-status.php:680
+#: includes/admin-status.php:674
 msgid "That address shows the WordPress form with a username and a password, whatever the site is set to. It is no secret: the password is still what keeps the door shut, so it opens only for an account that has one."
 msgstr ""
 
-#: includes/admin-status.php:691
+#: includes/admin-status.php:685
 #: includes/admin-tools.php:80
 msgid "Tools"
 msgstr ""
@@ -5752,10 +5714,6 @@ msgstr ""
 msgid "Everybody"
 msgstr ""
 
-#: includes/admin.php:301
-msgid "Only some roles"
-msgstr ""
-
 #: includes/admin.php:322
 msgid "— always kept, whatever is chosen"
 msgstr ""
@@ -5799,45 +5757,37 @@ msgid ""
 "It is good for %2$d minutes. If you did not ask for it, ignore this message: without the code nobody gets in."
 msgstr ""
 
-#: includes/auth-wp-login.php:73
+#: includes/auth-wp-login.php:72
 #: templates/login-2fa.php:27
 msgid "One more step"
 msgstr ""
 
-#: includes/auth-wp-login.php:84
+#: includes/auth-wp-login.php:83
 #: templates/login-2fa.php:43
 msgid "The code"
 msgstr ""
 
-#: includes/auth-wp-login.php:95
-#: templates/login-2fa.php:84
+#: includes/auth-wp-login.php:94
+#: templates/login-2fa.php:85
 msgid "Or use:"
 msgstr ""
 
-#: includes/auth-wp-login.php:104
-#: templates/login-2fa.php:93
+#: includes/auth-wp-login.php:103
+#: templates/login-2fa.php:94
 msgid "Lost the phone and the email? Use one of your backup codes: they go in the same box."
 msgstr ""
 
-#. translators: %d: days
-#: includes/auth-wp-login.php:114
-#: templates/login-2fa.php:55
-#, php-format
-msgid "Do not ask again on this browser for %d days"
-msgstr ""
-
-#: includes/auth-wp-login.php:124
-#: templates/account/security.php:248
-#: templates/login-2fa.php:64
+#: includes/auth-wp-login.php:111
+#: templates/login-2fa.php:65
 msgid "Confirm"
 msgstr ""
 
-#: includes/auth-wp-login.php:131
-#: templates/login-2fa.php:78
+#: includes/auth-wp-login.php:118
+#: templates/login-2fa.php:79
 msgid "Send it again"
 msgstr ""
 
-#: includes/auth-wp-login.php:162
+#: includes/auth-wp-login.php:149
 msgid "That attempt ran out of time or of tries. Sign in again and a new code is sent."
 msgstr ""
 
@@ -5845,20 +5795,16 @@ msgstr ""
 msgid "We send a six-digit code to the address on the account. Nothing to install."
 msgstr ""
 
-#: includes/auth.php:134
-msgid "The six-digit code that changes every thirty seconds, from Google Authenticator, 1Password, Aegis or whichever one you use."
-msgstr ""
-
-#: includes/auth.php:361
+#: includes/auth.php:365
 msgid "the link we email you"
 msgstr ""
 
-#: includes/auth.php:365
-#: includes/notify.php:325
+#: includes/auth.php:369
+#: includes/notify.php:327
 msgid "your password"
 msgstr ""
 
-#: includes/auth.php:1190
+#: includes/auth.php:1196
 msgid "This account asks for a second step when signing in, and this way in cannot ask for it."
 msgstr ""
 
@@ -6008,16 +5954,16 @@ msgstr ""
 msgid "Extra block — “if you like, tell us more”"
 msgstr ""
 
-#: includes/fields.php:617
+#: includes/fields.php:613
 msgid "This one cannot be changed from here. Write to us if it is wrong."
 msgstr ""
 
-#: includes/fields.php:627
+#: includes/fields.php:623
 msgid "You already used up the changes for this one. Write to us if it is wrong."
 msgstr ""
 
 #. translators: %d: how many more times they can change it
-#: includes/fields.php:632
+#: includes/fields.php:628
 #, php-format
 msgid "You can change this one %d more time."
 msgid_plural "You can change this one %d more times."
@@ -6457,7 +6403,7 @@ msgid "Networks"
 msgstr ""
 
 #: includes/login-ways.php:550
-#: templates/account/security.php:69
+#: templates/account/security.php:67
 msgid "Email"
 msgstr ""
 
@@ -6648,47 +6594,47 @@ msgstr ""
 msgid "Two-step verification turned on or off, a social account linked or unlinked, or another way in added or removed."
 msgstr ""
 
-#: includes/notify.php:88
+#: includes/notify.php:90
 msgid "The link that signs me in"
 msgstr ""
 
-#: includes/notify.php:89
+#: includes/notify.php:91
 msgid "Sent the moment you ask to get in."
 msgstr ""
 
-#: includes/notify.php:90
+#: includes/notify.php:92
 msgid "Nobody can turn it off: without it there is no way in."
 msgstr ""
 
-#: includes/notify.php:96
+#: includes/notify.php:98
 msgid "The code for the second step"
 msgstr ""
 
-#: includes/notify.php:97
+#: includes/notify.php:99
 msgid "Sent halfway through signing in, when this site asks you for a code."
 msgstr ""
 
-#: includes/notify.php:98
+#: includes/notify.php:100
 msgid "Nobody can turn it off: a code that does not arrive leaves you out."
 msgstr ""
 
-#: includes/notify.php:119
+#: includes/notify.php:121
 msgid "On by default — each person can turn it off"
 msgstr ""
 
-#: includes/notify.php:120
+#: includes/notify.php:122
 msgid "Off by default — each person can turn it on"
 msgstr ""
 
-#: includes/notify.php:121
+#: includes/notify.php:123
 msgid "Always sent — no switch for anybody"
 msgstr ""
 
-#: includes/notify.php:122
+#: includes/notify.php:124
 msgid "Never sent"
 msgstr ""
 
-#: includes/notify.php:324
+#: includes/notify.php:326
 msgid "a link sent to your email"
 msgstr ""
 
@@ -6775,7 +6721,7 @@ msgid "Not from here"
 msgstr ""
 
 #: includes/privacy.php:38
-#: includes/privacy.php:340
+#: includes/privacy.php:333
 msgid "Account details and sign-in methods"
 msgstr ""
 
@@ -6804,68 +6750,59 @@ msgid "Linked account"
 msgstr ""
 
 #: includes/privacy.php:288
-#: templates/account/security.php:149
+#: templates/account/security.php:155
 msgid "On"
 msgstr ""
 
-#: includes/privacy.php:294
-#: templates/account/security.php:215
-msgid "Authenticator app"
-msgstr ""
-
-#: includes/privacy.php:295
-msgid "Set up"
-msgstr ""
-
-#: includes/privacy.php:310
+#: includes/privacy.php:303
 msgid "Sites an administrator removed you from"
 msgstr ""
 
-#: includes/privacy.php:320
+#: includes/privacy.php:313
 msgid "Devices recognised"
 msgstr ""
 
-#: includes/privacy.php:410
+#: includes/privacy.php:403
 msgid "The list of sites an administrator removed this person from was kept: it is what keeps them from being added back to those sites."
 msgstr ""
 
-#: includes/privacy.php:507
+#: includes/privacy.php:496
 msgid "This site uses DiluxOne Users+ to hold accounts and sign people in."
 msgstr ""
 
-#: includes/privacy.php:508
+#: includes/privacy.php:497
 msgid "What is stored in your profile"
 msgstr ""
 
-#: includes/privacy.php:509
+#: includes/privacy.php:498
 msgid "the answers to the fields this site asks for, your public name, your profile picture, which social accounts you have linked, whether two-step verification is on, and a hash of each browser you have signed in from so that a new one can be announced once."
 msgstr ""
 
-#: includes/privacy.php:510
+#: includes/privacy.php:499
 msgid "What is stored in the activity log"
 msgstr ""
 
-#: includes/privacy.php:511
+#: includes/privacy.php:500
 msgid "for each recorded event: the date, the account, your IP address and your browser’s user-agent string. When a sign-in is refused, what was typed in the username box is kept with it, because that is how an attempt to guess an account is recognised. Which events are recorded, and for how many days, are settings of this site."
 msgstr ""
 
-#: includes/privacy.php:512
+#: includes/privacy.php:501
 msgid "Cookies"
 msgstr ""
 
-#: includes/privacy.php:513
+#: includes/privacy.php:502
 msgid "while you sign in, short-lived cookies hold the progress of the attempt: a social sign-in, a password reset, the address you asked a link for, the request you are signing in to confirm. If you ask not to be asked for the second step again on a browser, a cookie remembers that browser for the number of days this site sets. And a cookie remembers which way of signing in you used last, so the sign-in page opens on it."
 msgstr ""
 
-#: includes/privacy.php:514
+#: includes/privacy.php:503
 msgid "Deleting your account"
 msgstr ""
 
-#: includes/privacy.php:515
+#: includes/privacy.php:504
 msgid "you can ask for it from your account; once you confirm it by e-mail and the site carries it out, your data is erased and the account deleted, or, if you published something here or belong to another site of the network, left with no name, e-mail or password so what you wrote stays without your name."
 msgstr ""
 
-#: includes/privacy.php:517
+#: includes/privacy.php:506
 msgid "the plugin sends nothing anywhere on its own. If this site offers social sign-in, the provider you choose receives what it needs to identify you, and only when you use it; the account id it answers with is kept in your profile so it can recognise you next time. If your profile has no picture of its own and this site shows Gravatar pictures, your browser asks Gravatar (gravatar.com) for one using a hash of your e-mail address."
 msgstr ""
 
@@ -7179,7 +7116,6 @@ msgid "Choose a photo"
 msgstr ""
 
 #: templates/account/avatar.php:39
-#: templates/account/security.php:224
 msgid "Remove it"
 msgstr ""
 
@@ -7376,141 +7312,113 @@ msgstr ""
 msgid "Ask to delete my account"
 msgstr ""
 
-#: templates/account/security.php:35
+#: templates/account/security.php:36
 msgid "Two-step verification is on."
 msgstr ""
 
-#: templates/account/security.php:36
+#: templates/account/security.php:37
 msgid "Two-step verification is off."
 msgstr ""
 
-#: templates/account/security.php:37
-msgid "Your authenticator app is set up."
-msgstr ""
-
-#: templates/account/security.php:39
+#: templates/account/security.php:38
 msgid "New backup codes. The old ones no longer work."
 msgstr ""
 
-#: templates/account/security.php:40
-msgid "That code is not right. Check the app and try again — they change every thirty seconds."
-msgstr ""
-
-#: templates/account/security.php:41
+#: templates/account/security.php:39
 msgid "First set up a way to receive the second step."
 msgstr ""
 
-#: templates/account/security.php:42
+#: templates/account/security.php:40
 msgid "Two-step verification is not available on this site right now."
 msgstr ""
 
-#: templates/account/security.php:43
+#: templates/account/security.php:41
 msgid "This site requires two-step verification: it cannot be turned off."
 msgstr ""
 
-#: templates/account/security.php:44
-msgid "That needs a current code — from your app, one of your backup codes, or one we email you — and it was missing or not right."
+#: templates/account/security.php:42
+msgid "That needs a current code — one of your backup codes, or one we email you — and it was missing or not right."
 msgstr ""
 
-#: templates/account/security.php:45
+#: templates/account/security.php:43
 msgid "We emailed you a code. Type it in below and try again."
 msgstr ""
 
-#: templates/account/security.php:67
+#: templates/account/security.php:65
 msgid "How you get in"
 msgstr ""
 
-#: templates/account/security.php:75
+#: templates/account/security.php:73
 msgid "The one on your WordPress account."
 msgstr ""
 
-#: templates/account/security.php:76
+#: templates/account/security.php:74
 msgid "You do not have one. You get in with a link sent to your email, or with a social account."
 msgstr ""
 
-#: templates/account/security.php:104
+#: templates/account/security.php:102
 msgid "Write these down now"
 msgstr ""
 
-#: templates/account/security.php:105
+#: templates/account/security.php:103
 msgid "Each one gets you in once, if you lose the phone or the email. They are shown only this time: we keep them scrambled, so nobody —including us— can read them back."
 msgstr ""
 
-#: templates/account/security.php:115
+#: templates/account/security.php:113
 msgid "One more thing when you sign in: a code that only you have. If somebody gets hold of your email, they still do not get in."
 msgstr ""
 
-#: templates/account/security.php:126
+#: templates/account/security.php:124
 msgid "Right now it is not being asked anywhere: the only way in you have is the link we email you, and the second step would be another code to that same inbox — it would not prove anything new."
 msgstr ""
 
 #. translators: %s: list of ways in, already comma-separated
-#: templates/account/security.php:132
+#: templates/account/security.php:130
 #, php-format
 msgid "It is not asked when you get in with the link we email you: that link already proves you have the inbox, and the code would go to the same place. It is asked when you get in with %s."
 msgstr ""
 
-#: templates/account/security.php:140
-msgid "Set up the authenticator app below and it starts being asked with the link too."
+#: templates/account/security.php:143
+msgid "Set up a way of getting the code that is not an email, below, and it starts being asked with the link too."
 msgstr ""
 
-#: templates/account/security.php:154
+#: templates/account/security.php:160
 msgid "This site requires it."
 msgstr ""
 
 #. translators: %s: list of available methods
-#: templates/account/security.php:164
+#: templates/account/security.php:170
 #, php-format
 msgid "Ready to use: %s."
 msgstr ""
 
-#: templates/account/security.php:184
+#: templates/account/security.php:190
 msgid "A current code, to confirm it is you"
 msgstr ""
 
-#: templates/account/security.php:186
-msgid "From your app, one of your backup codes, or the one we email you."
+#: templates/account/security.php:192
+msgid "Any code you can get for the second step: one of your backup codes, or the one we email you."
 msgstr ""
 
-#: templates/account/security.php:188
+#: templates/account/security.php:194
 msgid "Email me a code"
 msgstr ""
 
-#: templates/account/security.php:193
+#: templates/account/security.php:199
 msgid "Turn it on"
 msgstr ""
 
-#: templates/account/security.php:195
+#: templates/account/security.php:201
 msgid "Turn it off"
 msgstr ""
 
 #. translators: %d: codes they have left
-#: templates/account/security.php:204
+#: templates/account/security.php:210
 #, php-format
 msgid "New backup codes (%d left)"
 msgstr ""
 
-#: templates/account/security.php:218
-msgid "Set up. When you sign in, we ask for the six-digit code from the app."
-msgstr ""
-
-#: templates/account/security.php:222
-msgid "The code from the app, to confirm it is you"
-msgstr ""
-
-#: templates/account/security.php:231
-msgid "Scan this with Google Authenticator, 1Password, Aegis or whichever app you use, and then write down the code it shows to confirm it."
-msgstr ""
-
-#: templates/account/security.php:237
-msgid "Cannot scan it? Type this key into the app:"
-msgstr ""
-
-#: templates/account/security.php:245
-msgid "The code from the app"
-msgstr ""
-
-#: templates/account/security.php:266
+#: templates/account/security.php:248
 msgid "Where you are signed in"
 msgstr ""
 

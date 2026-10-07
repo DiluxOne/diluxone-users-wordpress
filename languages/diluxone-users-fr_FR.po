@@ -124,14 +124,6 @@ msgstr "La vérification en deux étapes a été activée."
 msgid "Two-step verification was turned off."
 msgstr "La vérification en deux étapes a été désactivée."
 
-#: includes/account-security.php:126
-msgid "An authenticator app was set up."
-msgstr "Une application d’authentification a été configurée."
-
-#: includes/account-security.php:140 templates/account/security.php:38
-msgid "The authenticator app was removed."
-msgstr "L’application d’authentification a été retirée."
-
 #: includes/account.php:56
 msgid "System"
 msgstr "Du système"
@@ -816,10 +808,6 @@ msgstr "Désactivée : elle n’est pas proposée du tout"
 msgid "With what"
 msgstr "Avec quoi"
 
-#: includes/admin-2fa.php:279
-msgid "To whom"
-msgstr "À qui"
-
 #: includes/admin-2fa.php:337
 msgid "Work it out: ask, unless the second step is another email"
 msgstr "Décider : demander, sauf si la deuxième étape est un autre e-mail"
@@ -831,14 +819,6 @@ msgstr "Toujours demander"
 #: includes/admin-2fa.php:351
 msgid "Never ask"
 msgstr "Ne jamais demander"
-
-#: includes/admin-2fa.php:359
-msgid ""
-"A signed cookie, no more: it does not let anybody in, it only saves "
-"repeating the step on a browser that already passed it."
-msgstr ""
-"Un cookie signé, rien de plus : il ne laisse entrer personne, il évite "
-"seulement de répéter l’étape sur un navigateur qui l’a déjà passée."
 
 #: includes/admin-account.php:1020
 msgid "Their data"
@@ -1578,14 +1558,6 @@ msgid ""
 msgstr ""
 "Nous envoyons un code à six chiffres à l’adresse du compte. Rien à "
 "installer."
-
-#: includes/auth.php:134
-msgid ""
-"The six-digit code that changes every thirty seconds, from Google "
-"Authenticator, 1Password, Aegis or whichever one you use."
-msgstr ""
-"Le code à six chiffres qui change toutes les trente secondes, depuis Google "
-"Authenticator, 1Password, Aegis ou celle que vous utilisez."
 
 #: includes/auth.php:361
 msgid "the link we email you"
@@ -2422,21 +2394,9 @@ msgstr "La vérification en deux étapes est activée."
 msgid "Two-step verification is off."
 msgstr "La vérification en deux étapes est désactivée."
 
-#: templates/account/security.php:37
-msgid "Your authenticator app is set up."
-msgstr "Votre application d’authentification est configurée."
-
 #: templates/account/security.php:39
 msgid "New backup codes. The old ones no longer work."
 msgstr "Nouveaux codes de secours. Les anciens ne fonctionnent plus."
-
-#: templates/account/security.php:40
-msgid ""
-"That code is not right. Check the app and try again — they change every "
-"thirty seconds."
-msgstr ""
-"Ce code n’est pas le bon. Regardez dans l’application et réessayez : ils "
-"changent toutes les trente secondes."
 
 #: templates/account/security.php:41
 msgid "First set up a way to receive the second step."
@@ -2519,14 +2479,6 @@ msgstr ""
 "par e-mail : ce lien prouve déjà que vous avez la boîte de réception, et le "
 "code irait au même endroit. Il est demandé quand vous entrez avec %s."
 
-#: templates/account/security.php:140
-msgid ""
-"Set up the authenticator app below and it starts being asked with the link "
-"too."
-msgstr ""
-"Configurez l’application d’authentification ci-dessous et il commence à être"
-" demandé avec le lien aussi."
-
 #: includes/privacy.php:288 templates/account/security.php:149
 msgid "On"
 msgstr "Activée"
@@ -2559,32 +2511,6 @@ msgstr "La désactiver"
 #, php-format
 msgid "New backup codes (%d left)"
 msgstr "Nouveaux codes de secours (%d restants)"
-
-#: includes/privacy.php:294 templates/account/security.php:215
-msgid "Authenticator app"
-msgstr "Application d’authentification"
-
-#: templates/account/security.php:218
-msgid "Set up. When you sign in, we ask for the six-digit code from the app."
-msgstr ""
-"Configurée. Quand vous vous connectez, nous demandons le code à six chiffres"
-" de l’application."
-
-#: templates/account/security.php:231
-msgid ""
-"Scan this with Google Authenticator, 1Password, Aegis or whichever app you "
-"use, and then write down the code it shows to confirm it."
-msgstr ""
-"Scannez ceci avec Google Authenticator, 1Password, Aegis ou l’application "
-"que vous utilisez, puis écrivez le code qu’elle affiche pour la confirmer."
-
-#: templates/account/security.php:237
-msgid "Cannot scan it? Type this key into the app:"
-msgstr "Impossible de le scanner ? Tapez cette clé dans l’application :"
-
-#: templates/account/security.php:245
-msgid "The code from the app"
-msgstr "Le code de l’application"
 
 #: includes/auth-wp-login.php:124 templates/account/security.php:248
 #: templates/login-2fa.php:64
@@ -2647,12 +2573,6 @@ msgstr "Envoyé. Regardez votre e-mail."
 #: includes/auth-wp-login.php:84 templates/login-2fa.php:43
 msgid "The code"
 msgstr "Le code"
-
-#. translators: %d: days
-#: includes/auth-wp-login.php:114 templates/login-2fa.php:55
-#, php-format
-msgid "Do not ask again on this browser for %d days"
-msgstr "Ne plus demander sur ce navigateur pendant %d jours"
 
 #: includes/auth-wp-login.php:131 templates/login-2fa.php:78
 msgid "Send it again"
@@ -2875,14 +2795,6 @@ msgstr ""
 msgid "The message could not be sent: %s"
 msgstr "Le message n’a pas pu être envoyé : %s"
 
-#: includes/admin-2fa.php:281
-msgid ""
-"Asking only the roles that can change things is the usual middle ground: the"
-" second step where the friction is worth it."
-msgstr ""
-"Ne le demander qu’aux rôles qui peuvent changer des choses est le compromis "
-"habituel : la deuxième étape là où la friction en vaut la peine."
-
 #: includes/admin-login.php:301
 msgid "Username and password"
 msgstr "Identifiant et mot de passe"
@@ -2905,10 +2817,6 @@ msgstr "Accès"
 msgid "2FA"
 msgstr "2FA"
 
-#: includes/admin-people.php:66
-msgid "App"
-msgstr "App"
-
 #: includes/admin-people.php:98
 msgid "Only the e-mail link"
 msgstr "Seulement le lien par e-mail"
@@ -2926,14 +2834,6 @@ msgstr "N’a aucune session ouverte."
 #, php-format
 msgid "%1$s ago, from %2$s (%3$s)"
 msgstr "il y a %1$s, depuis %2$s (%3$s)"
-
-#: includes/admin-people.php:207
-msgid "An authenticator app is set up."
-msgstr "A une application d’authentification configurée."
-
-#: includes/admin-people.php:208
-msgid "No authenticator app."
-msgstr "Pas d’application d’authentification."
 
 #: includes/admin-people.php:218
 msgid "None."
@@ -3086,16 +2986,6 @@ msgstr ""
 #: includes/admin-status.php:509
 msgid "Linked a social account"
 msgstr "Ont lié un compte social"
-
-#: includes/admin-status.php:514
-msgid "Set up an authenticator app"
-msgstr "Ont configuré une application d'authentification"
-
-#: includes/admin-status.php:515
-msgid "The six-digit code as a second step, from an app on their phone."
-msgstr ""
-"Le code à six chiffres comme deuxième étape, depuis une application sur leur"
-" téléphone."
 
 #. translators: %s: number of accounts on the site
 #: includes/admin-home.php:232
@@ -4502,15 +4392,6 @@ msgstr ""
 "Ce compte demande une deuxième étape à la connexion, et cette façon d’entrer"
 " ne peut pas la demander."
 
-#: templates/account/security.php:44
-msgid ""
-"That needs a current code — from your app, one of your backup codes, or one "
-"we email you — and it was missing or not right."
-msgstr ""
-"Il faut pour cela un code en cours de validité — de votre application, l’un "
-"de vos codes de secours, ou un que nous vous envoyons par e-mail — et il "
-"manquait ou n’était pas bon."
-
 #: templates/account/security.php:45
 msgid "We emailed you a code. Type it in below and try again."
 msgstr ""
@@ -4521,19 +4402,9 @@ msgstr ""
 msgid "A current code, to confirm it is you"
 msgstr "Un code en cours de validité, pour confirmer que c’est bien vous"
 
-#: templates/account/security.php:186
-msgid "From your app, one of your backup codes, or the one we email you."
-msgstr ""
-"De votre application, l’un de vos codes de secours, ou celui que nous vous "
-"envoyons par e-mail."
-
 #: templates/account/security.php:188
 msgid "Email me a code"
 msgstr "M’envoyer un code par e-mail"
-
-#: templates/account/security.php:222
-msgid "The code from the app, to confirm it is you"
-msgstr "Le code de l’application, pour confirmer que c’est bien vous"
 
 #: includes/admin-sessions.php:63 includes/admin-sessions.php:532
 msgid "Behind a proxy"
@@ -4624,15 +4495,6 @@ msgstr ""
 "Six chiffres vers l’adresse du compte. Rien à installer, et c’est pour cela "
 "que c’est celle que les gens activent vraiment."
 
-#: includes/admin-2fa.php:77
-msgid ""
-"Six digits that change every thirty seconds, from Google Authenticator, "
-"1Password or Aegis. The stronger one: the code never travels."
-msgstr ""
-"Six chiffres qui changent toutes les trente secondes, depuis Google "
-"Authenticator, 1Password ou Aegis. La plus solide : le code ne voyage "
-"jamais."
-
 #: includes/admin-2fa.php:240
 msgid "Optional: whoever wants it turns it on from their account"
 msgstr "Facultatif : qui le veut l’active depuis son compte"
@@ -4689,14 +4551,6 @@ msgid ""
 msgstr ""
 "Suivre le lien, c’est tout. La façon la plus rapide d’entrer, et la plus "
 "faible des trois."
-
-#: includes/admin-2fa.php:358
-msgid "Remembering a browser"
-msgstr "Se souvenir d’un navigateur"
-
-#: includes/admin-2fa.php:364
-msgid "For how long"
-msgstr "Pendant combien de temps"
 
 #: includes/admin-account.php:1152
 msgid ""
@@ -5204,10 +5058,6 @@ msgstr ""
 "activée et aucune de celles-ci cochée, personne ne peut finir de se "
 "connecter."
 
-#: includes/admin-2fa.php:369
-msgid "0 to ask every time."
-msgstr "0 pour le demander à chaque fois."
-
 #: includes/admin-account.php:844
 msgid "Nothing to show right now."
 msgstr "Rien à afficher pour l’instant."
@@ -5454,18 +5304,6 @@ msgstr "Aucun choisi. Le compte est connu par son adresse e-mail."
 #: includes/admin-people.php:201
 msgid "Every session →"
 msgstr "Toutes les sessions →"
-
-#: includes/admin-people.php:243
-msgid "Remove the authenticator app"
-msgstr "Retirer l’application d’authentification"
-
-#: includes/admin-people.php:244
-msgid ""
-"For somebody who lost the phone it lived on. They set a new one up from "
-"their own account."
-msgstr ""
-"Pour quelqu’un qui a perdu le téléphone où elle vivait. La personne en "
-"configure une nouvelle depuis son propre compte."
 
 #: includes/admin-people.php:283
 msgid "Take a way in off this account"
@@ -6467,10 +6305,6 @@ msgstr ""
 #: includes/admin-2fa.php:420
 msgid "everybody with an account"
 msgstr "toute personne ayant un compte"
-
-#: includes/admin-2fa.php:432
-msgid "nobody: it is set to some roles and none of them is ticked"
-msgstr "personne : c’est réglé sur certains rôles et aucun n’est coché"
 
 #. translators: %s: who it applies to — a list of roles, or "everybody with an
 #. account"
@@ -7913,10 +7747,6 @@ msgstr "Non"
 #: includes/privacy.php:280
 msgid "Linked account"
 msgstr "Compte lié"
-
-#: includes/privacy.php:295
-msgid "Set up"
-msgstr "Configurée"
 
 #: includes/privacy.php:320
 msgid "Devices recognised"
@@ -9777,10 +9607,6 @@ msgstr "Administration du réseau › Réglages →"
 msgid "https://github.com/DiluxOne/diluxone-users-wordpress"
 msgstr "https://github.com/DiluxOne/diluxone-users-wordpress"
 
-#: includes/admin-2fa.php:300
-msgid "no code from it"
-msgstr "aucun code par ce moyen"
-
 #. translators: %s: the name of the site where the network's accounts live
 #: includes/admin-membership.php:204
 #, php-format
@@ -10325,3 +10151,47 @@ msgstr "Sur demande, ou sur invitation"
 #, php-format
 msgid "Users+ Pro adds two more answers: accounts are members of %s, and join any other site with a click on “Join this site” — or only its administrators add them."
 msgstr "Users+ Pro ajoute deux réponses : les comptes sont membres de %s et rejoignent tout autre site d’un clic sur « Rejoindre ce site », ou seuls ses administrateurs les ajoutent."
+
+#: includes/admin-2fa.php:275
+msgid "Users+ Pro asks the second step of the roles you choose — the ones that can change things — and not of everybody with an account."
+msgstr "Users+ Pro demande la deuxième étape aux rôles que vous choisissez — ceux qui peuvent modifier des choses — et non à tous ceux qui ont un compte."
+
+#: includes/admin-2fa.php:298
+msgid "no code from it, and the code by email in its place when nothing else is ticked"
+msgstr "n’envoie aucun code, et le code par e-mail le remplace quand rien d’autre n’est coché"
+
+#: includes/admin-2fa.php:321
+msgid "Users+ Pro adds the six digits that change every thirty seconds, from Google Authenticator, 1Password or Aegis: the code never travels, so it is asked on the e-mail link too."
+msgstr "Users+ Pro ajoute les six chiffres qui changent toutes les trente secondes, depuis Google Authenticator, 1Password ou Aegis : le code ne voyage jamais, il est donc aussi demandé avec le lien par e-mail."
+
+#: includes/admin-2fa.php:370
+msgid "Remember a browser"
+msgstr "Se souvenir d’un navigateur"
+
+#: includes/admin-2fa.php:371
+msgid "Users+ Pro lets people skip the second step for a few days on a browser that already passed it, with a signed cookie that lets nobody in on its own."
+msgstr "Users+ Pro permet de sauter la deuxième étape pendant quelques jours sur un navigateur qui l’a déjà passée, avec un cookie signé qui ne laisse entrer personne à lui seul."
+
+#: includes/admin-2fa.php:469
+msgid "nobody: none of the roles it is meant for is ticked"
+msgstr "personne : aucun des rôles visés n’est coché"
+
+#: includes/admin-people.php:202
+msgid "Asked when they sign in."
+msgstr "Demandée à la connexion."
+
+#: includes/admin-people.php:203
+msgid "Not asked when they sign in."
+msgstr "Pas demandée à la connexion."
+
+#: templates/account/security.php:42
+msgid "That needs a current code — one of your backup codes, or one we email you — and it was missing or not right."
+msgstr "Il faut un code valide — l’un de vos codes de secours, ou un code que nous vous envoyons par e-mail — et il manquait ou était incorrect."
+
+#: templates/account/security.php:143
+msgid "Set up a way of getting the code that is not an email, below, and it starts being asked with the link too."
+msgstr "Configurez ci-dessous un moyen de recevoir le code qui ne soit pas un e-mail, et il sera aussi demandé avec le lien."
+
+#: templates/account/security.php:192
+msgid "Any code you can get for the second step: one of your backup codes, or the one we email you."
+msgstr "Tout code que vous pouvez obtenir pour la deuxième étape : l’un de vos codes de secours, ou celui que nous vous envoyons par e-mail."
