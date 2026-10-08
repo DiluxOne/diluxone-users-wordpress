@@ -235,6 +235,12 @@ class IntegrationTestCase extends TestCase {
 		wp_cache_flush();
 	}
 
+	/** @var mixed The defaults' mark as the test found it, while from_before_the_settled_defaults() has it away. */
+	private $settled = null;
+
+	/** Whether the test starts on a site that turned nothing on, rather than on one with the features on. */
+	protected bool $fresh = false;
+
 	/** @var array<int, array{0: string, 1: callable, 2: int}> Filters and actions the test added through hook(). */
 	private array $hooks = array();
 
@@ -253,6 +259,16 @@ class IntegrationTestCase extends TestCase {
 
 			if ( is_multisite() ) {
 				delete_site_option( $option );
+			}
+		}
+
+		// The suite walks what the plugin does once it is turned on, so every
+		// test starts on a site with its features on: the answers build 1.0.0
+		// gave by default, which is also what an upgraded site keeps. A test
+		// about a site that turned nothing on says so with $fresh.
+		if ( ! $this->fresh ) {
+			foreach ( diluxone_users_defaults_before() as $option => $value ) {
+				diluxone_users_update_option( $option, $value );
 			}
 		}
 
@@ -292,7 +308,22 @@ class IntegrationTestCase extends TestCase {
 		add_filter( 'send_auth_cookies', '__return_false' );
 	}
 
+	/**
+	 * The test is about an install from before its defaults were settled: a
+	 * network whose settings and log have not moved yet, say. Without the
+	 * mark, the moves have their work to do; it is put back after the test.
+	 */
+	protected function from_before_the_settled_defaults(): void {
+		$this->settled = diluxone_users_raw_get( DILUXONE_USERS_DEFAULTS_VERSION_OPTION, null );
+		diluxone_users_delete_option( DILUXONE_USERS_DEFAULTS_VERSION_OPTION );
+	}
+
 	protected function tearDown(): void {
+		if ( null !== $this->settled ) {
+			diluxone_users_update_option( DILUXONE_USERS_DEFAULTS_VERSION_OPTION, $this->settled );
+			$this->settled = null;
+		}
+
 		remove_filter( 'wp_redirect', array( $this, 'throw_redirect' ), 1 );
 		remove_filter( 'pre_wp_mail', array( $this, 'catch_mail' ), 10 );
 		remove_filter( 'diluxone_users_cookie', array( $this, 'catch_cookie' ), 10 );

@@ -28,12 +28,18 @@ function diluxone_users_admin_login_is_email(): bool {
 		return false;
 	}
 
+	// Only once the plugin has a way in of its own, which is what makes an
+	// account's username its e-mail: until then the screen is WordPress's.
+	$own = diluxone_users_login_has_link()
+		|| diluxone_users_option( 'diluxone_users_register_form' )
+		|| array() !== diluxone_users_sso_available();
+
 	/**
 	 * Filters whether Add New User uses the e-mail as the username.
 	 *
 	 * @param bool $email True to use the e-mail, as every other door does.
 	 */
-	return (bool) apply_filters( 'diluxone_users_admin_login_is_email', true );
+	return (bool) apply_filters( 'diluxone_users_admin_login_is_email', $own );
 }
 
 /**

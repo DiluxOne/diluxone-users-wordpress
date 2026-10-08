@@ -202,16 +202,6 @@ class CoverAccountNetworkTest extends IntegrationTestCase {
 		$this->assertSame( 10, has_action( 'admin_notices', 'diluxone_users_mapped_site_notice' ) );
 	}
 
-	public function test_a_site_born_with_nothing_to_set_up_is_left_alone(): void {
-		$current = get_current_blog_id();
-
-		diluxone_users_site_born( 'not a site' );
-
-		$this->assertSame( $current, get_current_blog_id(), 'Nothing to switch to, nothing switched' );
-		$this->assertFalse( is_multisite() && ms_is_switched() );
-		$this->assertFalse( is_multisite() && ms_is_switched() );
-	}
-
 	/* ── The way back from the hub's sign-in page ──────────────────── */
 
 	/** The main query standing on a page of the hub, during template_redirect. */

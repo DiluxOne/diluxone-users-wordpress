@@ -58,6 +58,20 @@ export const BASELINE = (pages: { login: number; register: number; account: numb
 	diluxone_users_handle_enabled: 0,
 	diluxone_users_handle_login: 0,
 
+	// What the specs walk is the plugin turned on, and a fresh activation
+	// turns nothing on (`make test-noop` is the check for that). These are the
+	// answers build 1.0.0 gave by default, the ones an upgraded site keeps.
+	diluxone_users_log_levels: ['access'],
+	diluxone_users_notice_rules: {},
+	diluxone_users_sessions_show: 1,
+	diluxone_users_reset_ends_sessions: 1,
+	diluxone_users_privacy_export: 1,
+	diluxone_users_privacy_delete: 1,
+	diluxone_users_avatar_upload: 1,
+	diluxone_users_wp_register_fields: 1,
+	// On a network, every site's doors lead to the hub; nothing on a single site.
+	diluxone_users_network_hub: 1,
+
 	// The fake social network is off until the SSO spec asks for it, so nobody
 	// using this environment by hand finds a network called "Mock" on it.
 	diluxone_e2e_sso: 0,

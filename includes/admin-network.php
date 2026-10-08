@@ -72,10 +72,12 @@ function diluxone_users_screen_scopes(): array {
  */
 function diluxone_users_panel_scopes(): array {
 	return array(
-		// The network's own page: how it is set up, and what happens to
-		// everybody's data when the plugin is deleted.
+		// The network's own page: how it is set up, whether its sites send
+		// people to the hub, and what happens to everybody's data when the
+		// plugin is deleted.
 		DILUXONE_USERS_MENU      => array(
 			'network'   => 'network',
+			'hub'       => 'network',
 			'previews'  => 'network',
 			'uninstall' => 'network',
 		),
@@ -280,6 +282,17 @@ function diluxone_users_network_panels(): void {
 			'position' => 10,
 			'render'   => 'diluxone_users_screen_network_overview',
 			'form'     => false,
+		)
+	);
+
+	diluxone_users_register_panel(
+		DILUXONE_USERS_MENU,
+		'hub',
+		array(
+			'label'    => __( 'Signing in across the network', 'diluxone-users' ),
+			'position' => 50,
+			'render'   => 'diluxone_users_screen_network_hub',
+			'save'     => 'diluxone_users_network_hub_save',
 		)
 	);
 
@@ -533,6 +546,54 @@ function diluxone_users_network_conflicts_dismiss(): void {
 	exit;
 }
 add_action( 'admin_init', 'diluxone_users_network_conflicts_dismiss' );
+
+/* ── Signing in across the network ─────────────────────────────────── */
+
+/** Saves whether the other sites send people to the hub. */
+function diluxone_users_network_hub_save(): void {
+	check_admin_referer( 'diluxone_users_panel_' . DILUXONE_USERS_MENU, 'diluxone_users_panel_nonce' );
+	diluxone_users_panel_allowed();
+
+	diluxone_users_save_options( array( 'diluxone_users_network_hub' => isset( $_POST['diluxone_users_network_hub'] ) ? 1 : 0 ) );
+}
+
+/**
+ * Whether the network's sites hand their doors to the hub.
+ *
+ * Off until the network says so: activating the plugin leaves every site's
+ * wp-login.php where WordPress put it.
+ */
+function diluxone_users_screen_network_hub(): void {
+	diluxone_users_ui_aside_open();
+
+	diluxone_users_ui_choices(
+		array(
+			array(
+				'type'    => 'checkbox',
+				'name'    => 'diluxone_users_network_hub',
+				'value'   => '1',
+				'checked' => (bool) diluxone_users_option( 'diluxone_users_network_hub' ),
+				'title'   => sprintf(
+					/* translators: %s: name of the network's hub site */
+					__( 'Every site sends people to %s to sign in, register and reset a password', 'diluxone-users' ),
+					diluxone_users_hub_name()
+				),
+				'help'    => __( 'One door for the whole network, and back to the site they came from afterwards. Unticked, every site keeps its own wp-login.php, as WordPress has it. A site on a domain of its own always keeps its own.', 'diluxone-users' ),
+			),
+		)
+	);
+
+	diluxone_users_ui_aside_close(
+		static function (): void {
+			diluxone_users_ui_aside_state(
+				diluxone_users_option( 'diluxone_users_network_hub' )
+					? esc_html__( 'Every site sends people to the hub to sign in.', 'diluxone-users' )
+					: esc_html__( 'Every site keeps its own wp-login.php.', 'diluxone-users' ),
+				diluxone_users_option( 'diluxone_users_network_hub' ) ? 'active' : 'off'
+			);
+		}
+	);
+}
 
 /* ── Users+ Pro on these screens ───────────────────────────────────── */
 

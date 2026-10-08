@@ -22,18 +22,6 @@
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Does this site let people create their own accounts, as WordPress sees it?
- *
- * It is where the plugin's own switch starts from until the site answers the
- * question itself on the plugin's screen: activating a plugin is not deciding
- * that strangers may create accounts. On a single site that is "Anyone can
- * register"; on a network it is the network's own setting.
- */
-function diluxone_users_site_takes_accounts(): bool {
-	return is_multisite() ? diluxone_users_network_takes_accounts() : (bool) get_option( 'users_can_register' );
-}
-
-/**
  * May accounts be created on this network at all?
  *
  * On a network an account belongs to the whole network, and whether people
@@ -73,114 +61,24 @@ function diluxone_users_join_site( int $user_id ): void {
 	}
 }
 
-/* ── The life of a site ────────────────────────────────────────────── */
-
-/**
- * Everything one site needs from the plugin, done on that site.
- *
- * One list, run in three moments: activation on a single site, activation for
- * the whole network (once per site), and the birth of a site on the network.
- *
- * The activity log's table is made here only on a single site. On a network
- * it is the network's, one for every site, made once by the network's
- * activation below: a site has nothing of its own to create.
- */
-function diluxone_users_site_setup(): void {
-	diluxone_users_seed_fields();
-	diluxone_users_seed_registration();
-
-	if ( ! is_multisite() ) {
-		diluxone_users_log_install();
-	}
-}
+/* ── Activation ────────────────────────────────────────────────────── */
 
 /**
  * Activation.
  *
- * On a network it is always for the whole network (the plugin says
- * `Network: true`, and WordPress activates it network-wide even when asked
- * from a site). Every site gets its setup now and not "the first time
- * somebody opens its dashboard": a site whose visitors sign in before its
- * administrator ever looks would be reading settings nobody wrote. The log's
- * table, the network's, is made once, first.
+ * It decides nothing for the site. No setting is written, no table made, no
+ * event scheduled: every setting reads its default until an administrator
+ * saves it, and every default leaves the site as WordPress has it. What is
+ * settled is which defaults those are — today's, or, on a site that ran an
+ * older version, that version's answers written down as its own (see
+ * diluxone_users_defaults_settle()). On a network that is the network's,
+ * once, for every site: a site born later has nothing of its own to set up.
  *
  * @param bool $network_wide Whether it was activated for the whole network.
  */
 function diluxone_users_activate( $network_wide = false ): void {
-	if ( ! is_multisite() ) {
-		diluxone_users_site_setup();
-
-		return;
-	}
-
-	diluxone_users_log_install();
-
-	foreach ( get_sites(
-		array(
-			'fields'     => 'ids',
-			'number'     => 0,
-			'network_id' => (int) get_current_network_id(),
-		)
-	) as $site ) {
-		switch_to_blog( (int) $site );
-		diluxone_users_site_setup();
-		restore_current_blog();
-	}
+	diluxone_users_defaults_settle();
 }
-
-/**
- * A site born on a network where the plugin is active everywhere.
- *
- * After WordPress's own setup of the site (priority 10), and inside it:
- * `switch_to_blog()` points the options at the new site, which is where its
- * own settings belong. Its log is the network's table, already there.
- *
- * @param WP_Site $site The new site.
- */
-function diluxone_users_site_born( $site ): void {
-	if ( ! $site instanceof WP_Site || ! diluxone_users_network_activated() ) {
-		return;
-	}
-
-	switch_to_blog( (int) $site->blog_id );
-	diluxone_users_site_setup();
-	restore_current_blog();
-}
-add_action( 'wp_initialize_site', 'diluxone_users_site_born', 11 );
-
-/**
- * Whether people may create their own accounts, as the site had it.
- *
- * Written once, when the plugin arrives, from the site's own answer: turning
- * a plugin on is not deciding that strangers may create accounts, by e-mail
- * link or by social sign-in. From then on they are the plugin's switches, on
- * its Registration screen.
- */
-function diluxone_users_seed_registration(): void {
-	foreach ( array( 'diluxone_users_login_register', 'diluxone_users_sso_register' ) as $door ) {
-		if ( null === diluxone_users_raw_get( $door, null ) ) {
-			diluxone_users_update_option( $door, (int) diluxone_users_site_takes_accounts() );
-		}
-	}
-}
-
-/**
- * The starter fields.
- *
- * Seeded by diluxone_users_site_setup(), and again on the dashboard as a
- * safety net, only if the option does not exist: a deliberately empty list is
- * respected.
- */
-function diluxone_users_seed_fields(): void {
-	if ( false === diluxone_users_raw_get( 'diluxone_users_fields', false ) ) {
-		diluxone_users_update_option( 'diluxone_users_fields', diluxone_users_default_fields() );
-
-		return;
-	}
-
-	diluxone_users_seed_native_fields();
-}
-add_action( 'admin_init', 'diluxone_users_seed_fields' );
 
 /**
  * WordPress's own fields, on a site that already had the list assembled.
@@ -191,7 +89,14 @@ add_action( 'admin_init', 'diluxone_users_seed_fields' );
  * already had.
  */
 function diluxone_users_seed_native_fields(): void {
-	$fields  = (array) diluxone_users_raw_get( 'diluxone_users_fields', array() );
+	$stored = diluxone_users_raw_get( 'diluxone_users_fields', null );
+
+	// A list never saved is the starter list, read as a default: nothing to add.
+	if ( null === $stored ) {
+		return;
+	}
+
+	$fields  = (array) $stored;
 	$keys    = array_column( $fields, 'key' );
 	$missing = array();
 
@@ -207,3 +112,4 @@ function diluxone_users_seed_native_fields(): void {
 
 	diluxone_users_update_option( 'diluxone_users_fields', array_merge( $missing, $fields ) );
 }
+add_action( 'admin_init', 'diluxone_users_seed_native_fields' );

@@ -127,7 +127,7 @@ class CoverAdminToolsTest extends IntegrationTestCase {
 		diluxone_users_update_option( 'diluxone_users_rewrite_version', '0.0.1' );
 
 		$this->assertSame( 'redirect', $this->tool( array( 'tool' => 'flush' ) )[0] );
-		$this->assertSame( DILUXONE_USERS_VERSION, diluxone_users_raw_get( 'diluxone_users_rewrite_version' ) );
+		$this->assertSame( diluxone_users_rewrite_stamp(), (string) diluxone_users_raw_get( 'diluxone_users_rewrite_version', '' ), 'the rules the plugin adds now, or no note when it adds none' );
 		$this->assertSame( array( 'Rewrite rules rebuilt.', 'success' ), $this->said() );
 	}
 

@@ -61,10 +61,20 @@ class ActivityLogTest extends TestCase {
 		return array_keys( array_filter( diluxone_users_log_events(), static fn( string $g ): bool => $g === $group ) );
 	}
 
-	public function test_a_fresh_install_records_the_way_in_and_nothing_else(): void {
+	public function test_a_fresh_install_records_nothing(): void {
 		// Nothing stored: the defaults decide, and the default is the decision
 		// that somebody's disk and somebody's privacy are not this plugin's to
-		// spend without being asked.
+		// spend without being asked. Not even the way in.
+		$this->assertSame( array(), diluxone_users_log_levels() );
+
+		foreach ( array_keys( diluxone_users_log_events() ) as $event ) {
+			$this->assertFalse( diluxone_users_log_records( (string) $event ), $event );
+		}
+	}
+
+	public function test_the_way_in_is_one_tick_away(): void {
+		$this->recording( array( 'access' ) );
+
 		$this->assertTrue( diluxone_users_log_records( 'signed_in' ) );
 		$this->assertTrue( diluxone_users_log_records( 'signed_out' ) );
 		$this->assertTrue( diluxone_users_log_records( 'sign_in_failed' ) );

@@ -293,6 +293,13 @@ function diluxone_users_client_ip( ?array $server = null ): string {
  * @return array<string, mixed>
  */
 function diluxone_users_session_ip( array $info ): array {
+	// What is written into WordPress's own session record stays WordPress's
+	// until the site offers people their list of sessions: until then nobody
+	// reads this, and it is not the plugin's to add.
+	if ( ! diluxone_users_option( 'diluxone_users_sessions_show' ) ) {
+		return $info;
+	}
+
 	$ip = diluxone_users_client_ip();
 
 	if ( '' !== $ip ) {

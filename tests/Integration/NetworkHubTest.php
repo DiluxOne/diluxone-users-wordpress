@@ -636,12 +636,14 @@ class NetworkHubTest extends IntegrationTestCase {
 
 		$this->assertSame( $hub, diluxone_users_sso_redirect_uri( 'google' ), 'one address for the providers, from every site' );
 
+		// A provider set up, which is what the route is there for.
+		MockProvider::install();
+
 		unset( $wp_rewrite->extra_rules_top[ $rule ] );
 		diluxone_users_sso_rule();
 		$this->assertSame( 'index.php?diluxone_users_sso=$matches[1]', $wp_rewrite->extra_rules_top[ $rule ] ?? null, 'the /sso/ route on a site that is not the hub too, so an old address by path reaches the handler below' );
 
 		// An old address on this site starts nothing here.
-		MockProvider::install();
 		$_GET = array(
 			'diluxone_users_sso' => MockProvider::ID,
 			'diluxone_users_go'  => '1',
@@ -681,6 +683,9 @@ class NetworkHubTest extends IntegrationTestCase {
 		global $wp_rewrite;
 
 		$this->assertStringStartsWith( home_url( '/' ), diluxone_users_sso_redirect_uri( 'google' ) );
+
+		// A provider set up, which is what the route is there for.
+		MockProvider::install();
 
 		$rule = '^' . preg_quote( diluxone_users_sso_base(), '/' ) . '/([a-z0-9_-]+)/?$';
 		unset( $wp_rewrite->extra_rules_top[ $rule ] );

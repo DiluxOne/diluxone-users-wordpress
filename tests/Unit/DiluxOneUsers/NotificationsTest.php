@@ -36,7 +36,24 @@ class NotificationsTest extends TestCase {
 		require_once DILUXONE_USERS_DIR . 'includes/auth.php';
 
 		$GLOBALS['diluxone_users_test_user_meta'] = array();
-		$GLOBALS['_test_wp_options']   = array();
+		// A site that has turned on what these notices are about: the e-mail
+		// link, the second step, and no rule of its own written yet. A fresh
+		// install, with nothing saved, is the case below of its own.
+		$GLOBALS['_test_wp_options'] = array(
+			'diluxone_users_login_method' => 'both',
+			'diluxone_users_2fa_mode'     => 'optional',
+			'diluxone_users_notice_rules' => array(),
+		);
+	}
+
+	public function test_a_fresh_install_sends_none_of_its_own_notices(): void {
+		$GLOBALS['_test_wp_options'] = array();
+
+		$this->assertSame( 'never', diluxone_users_notice_policy( 'diluxone_users_notify_login' ) );
+		$this->assertSame( 'never', diluxone_users_notice_policy( 'diluxone_users_notify_security' ) );
+		$this->assertFalse( diluxone_users_wants( self::USER_ID, 'diluxone_users_notify_login' ) );
+		$this->assertFalse( diluxone_users_wants( self::USER_ID, 'diluxone_users_notify_security' ) );
+		$this->assertFalse( diluxone_users_notifications_any(), 'no link, no code, no notice: nothing to list' );
 	}
 
 	protected function tearDown(): void {
@@ -82,7 +99,7 @@ class NotificationsTest extends TestCase {
 		$GLOBALS['_test_wp_options']['diluxone_users_notice_rules'] = array( self::LOGIN => $policy );
 	}
 
-	public function test_with_no_rule_written_the_policy_is_on_by_default(): void {
+	public function test_with_no_rule_written_the_policy_is_the_notices_own_default(): void {
 		$this->assertSame( 'default_on', diluxone_users_notice_policy( self::LOGIN ) );
 	}
 

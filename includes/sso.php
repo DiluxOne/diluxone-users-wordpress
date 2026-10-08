@@ -110,6 +110,22 @@ function diluxone_users_sso_configured( string $id ): bool {
 	return '' !== $c['id'] && '' !== $c['secret'];
 }
 
+/**
+ * Has any provider been set up, so that its round trip needs an address?
+ *
+ * From the moment its credentials are saved, because the live test before it
+ * is turned on already comes back through the route.
+ */
+function diluxone_users_sso_routed(): bool {
+	foreach ( array_keys( diluxone_users_sso_providers() ) as $id ) {
+		if ( diluxone_users_sso_configured( (string) $id ) ) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
 /** Is it ready for people to use? Configured, tested and turned on. */
 function diluxone_users_sso_ready( string $id ): bool {
 	return 'enabled' === diluxone_users_sso_state( $id );
@@ -234,8 +250,15 @@ function diluxone_users_sso_test_url( string $id ): string {
  * has to reach diluxone_users_sso_handle(), which sends it on to the hub, the
  * way the same address written with a query parameter already does — not a
  * 404.
+ *
+ * Only once a provider has been set up: until then /sso/ is whatever the site
+ * had there, and the plugin adds nothing to its rewrite rules.
  */
 function diluxone_users_sso_rule(): void {
+	if ( ! diluxone_users_sso_routed() ) {
+		return;
+	}
+
 	add_rewrite_rule(
 		'^' . preg_quote( diluxone_users_sso_base(), '/' ) . '/([a-z0-9_-]+)/?$',
 		'index.php?diluxone_users_sso=$matches[1]',

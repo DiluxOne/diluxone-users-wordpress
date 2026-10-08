@@ -97,6 +97,13 @@ function diluxone_users_option_scopes(): array {
 		'diluxone_users_log_moved'              => 'network',
 		'diluxone_users_log_moving'             => 'network',
 		'diluxone_users_log_kept'               => 'network',
+		// Which defaults this install has settled on: the ones it was
+		// activated with, or the ones an older version had, written down.
+		// See diluxone_users_defaults_settle() in includes/migrate.php.
+		'diluxone_users_defaults_version'       => 'network',
+		// Whether the other sites send people to the hub (network-hub.php).
+		'diluxone_users_network_hub'            => 'network',
+		'diluxone_users_reset_ends_sessions'    => 'network',
 
 		// ── Hub: the screens people sign in, register and live on ───
 		'diluxone_users_account_action'         => 'hub',
@@ -163,6 +170,7 @@ function diluxone_users_option_scopes(): array {
 		'diluxone_users_privacy_export_when'    => 'hub',
 		'diluxone_users_register_done'          => 'hub',
 		'diluxone_users_register_form'          => 'hub',
+		'diluxone_users_wp_register_fields'     => 'hub',
 		'diluxone_users_register_intro'         => 'hub',
 		'diluxone_users_register_page'          => 'hub',
 		'diluxone_users_register_title'         => 'hub',

@@ -225,6 +225,7 @@ class CoverFieldsAccountTest extends IntegrationTestCase {
 
 	public function test_the_cards_count_the_fields_filled_and_the_networks_linked(): void {
 		$user = $this->signed_in();
+		diluxone_users_update_option( 'diluxone_users_fields', array() );
 
 		$this->assertSame( array(), diluxone_users_summary_details(), 'No fields, no card' );
 		$this->assertSame( array(), diluxone_users_summary_accounts(), 'No network, no card' );

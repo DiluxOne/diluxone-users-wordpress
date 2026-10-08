@@ -20,10 +20,15 @@ class PluginTest extends IntegrationTestCase {
 	public function test_options_have_a_default_value(): void {
 		// With nothing stored, every setting has to answer something reasonable:
 		// a freshly installed plugin cannot depend on somebody going through
-		// all of its screens before the site works.
-		$this->assertSame( 'both', diluxone_users_option( 'diluxone_users_login_method' ) );
-		$this->assertSame( 'optional', diluxone_users_option( 'diluxone_users_2fa_mode' ) );
-		$this->assertSame( 1, (int) diluxone_users_option( 'diluxone_users_privacy_export' ) );
+		// all of its screens before the site works. And the answer is the one
+		// that leaves the site as WordPress has it.
+		foreach ( array( 'diluxone_users_login_method', 'diluxone_users_2fa_mode', 'diluxone_users_privacy_export' ) as $key ) {
+			diluxone_users_delete_option( $key );
+		}
+
+		$this->assertSame( 'password', diluxone_users_option( 'diluxone_users_login_method' ) );
+		$this->assertSame( 'off', diluxone_users_option( 'diluxone_users_2fa_mode' ) );
+		$this->assertSame( 0, (int) diluxone_users_option( 'diluxone_users_privacy_export' ) );
 	}
 
 	public function test_the_account_area_ships_its_sections(): void {
@@ -43,8 +48,6 @@ class PluginTest extends IntegrationTestCase {
 	}
 
 	public function test_wordpress_own_fields_are_among_the_fields(): void {
-		diluxone_users_seed_fields();
-
 		$keys = wp_list_pluck( diluxone_users_fields(), 'key' );
 
 		$this->assertContains( 'first_name', $keys );

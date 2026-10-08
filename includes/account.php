@@ -400,18 +400,51 @@ function diluxone_users_account_query_var( array $vars ): array {
 add_filter( 'query_vars', 'diluxone_users_account_query_var' );
 
 /**
+ * Which rules of its own the plugin adds to this site, as one word.
+ *
+ * Empty while it adds none: no account page here and no social provider set
+ * up. Then the site's rewrite rules are exactly WordPress's, and the plugin
+ * has nothing to store about them either.
+ */
+function diluxone_users_rewrite_stamp(): string {
+	$parts = array();
+
+	if ( diluxone_users_page_here( 'diluxone_users_account_page' ) > 0 ) {
+		$parts[] = 'account';
+	}
+
+	if ( diluxone_users_sso_routed() ) {
+		$parts[] = 'sso';
+	}
+
+	return array() === $parts ? '' : DILUXONE_USERS_VERSION . ':' . implode( ',', $parts );
+}
+
+/**
  * The rewrite rules are saved once, not on every request.
  *
- * They are regenerated when the account page changes or when the plugin
- * changes version, the two moments at which the endpoint may have gone stale.
+ * They are regenerated when the rules the plugin adds change — the account
+ * page chosen or moved, the first social provider set up or the last one
+ * forgotten — or when the plugin changes version, the moments at which the
+ * stored copy may have gone stale. A site the plugin adds no rule to is never
+ * flushed and keeps no note.
  */
 function diluxone_users_account_flush_rules(): void {
-	if ( diluxone_users_raw_get( 'diluxone_users_rewrite_version' ) === DILUXONE_USERS_VERSION ) {
+	$stamp = diluxone_users_rewrite_stamp();
+
+	if ( (string) diluxone_users_raw_get( 'diluxone_users_rewrite_version', '' ) === $stamp ) {
 		return;
 	}
 
 	flush_rewrite_rules( false );
-	diluxone_users_update_option( 'diluxone_users_rewrite_version', DILUXONE_USERS_VERSION );
+
+	if ( '' === $stamp ) {
+		diluxone_users_delete_option( 'diluxone_users_rewrite_version' );
+
+		return;
+	}
+
+	diluxone_users_update_option( 'diluxone_users_rewrite_version', $stamp );
 }
 add_action( 'wp_loaded', 'diluxone_users_account_flush_rules' );
 

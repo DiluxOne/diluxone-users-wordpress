@@ -182,7 +182,17 @@ function diluxone_users_site_mapped( int $site_id = 0 ): bool {
  */
 function diluxone_users_sends_to_hub(): bool {
 	// In safe mode every site keeps its own wp-login.php (safe-mode.php).
-	return diluxone_users_off_hub() && ! diluxone_users_site_mapped() && ! diluxone_users_safe_mode();
+	return diluxone_users_off_hub() && diluxone_users_hub_on() && ! diluxone_users_site_mapped() && ! diluxone_users_safe_mode();
+}
+
+/**
+ * Has the network asked its sites to send people to the hub?
+ *
+ * On Network Admin › Overview. Until it has, every site keeps its own
+ * wp-login.php and its own addresses, as WordPress has them.
+ */
+function diluxone_users_hub_on(): bool {
+	return is_multisite() && (bool) diluxone_users_option( 'diluxone_users_network_hub' );
 }
 
 /* ── The network's addresses ───────────────────────────────────────── */
@@ -278,7 +288,7 @@ function diluxone_users_safe_return( string $url ): string {
 function diluxone_users_allowed_hosts( $hosts ): array {
 	$hosts = (array) $hosts;
 
-	if ( ! is_multisite() ) {
+	if ( ! diluxone_users_hub_on() ) {
 		return $hosts;
 	}
 
@@ -559,7 +569,7 @@ add_filter( 'lostpassword_url', 'diluxone_users_core_lostpassword_url', 20, 2 );
  * and goes straight back.
  */
 function diluxone_users_return_capture(): void {
-	if ( ! diluxone_users_scoped_storage_active() || ! diluxone_users_on_the_hub() || diluxone_users_safe_mode() ) {
+	if ( ! diluxone_users_hub_on() || ! diluxone_users_on_the_hub() || diluxone_users_safe_mode() ) {
 		return;
 	}
 
@@ -640,7 +650,7 @@ function diluxone_users_return_forget(): void {
  * @param int    $user_id  Who, or 0 while nobody has signed in yet.
  */
 function diluxone_users_return_after_sign_in( $redirect, $user_id = 0 ): string {
-	if ( ! diluxone_users_scoped_storage_active() ) {
+	if ( ! diluxone_users_hub_on() ) {
 		return (string) $redirect;
 	}
 
@@ -676,7 +686,7 @@ add_filter( 'diluxone_users_login_redirect', 'diluxone_users_return_after_sign_i
 function diluxone_users_return_password( $login, $user ): void {
 	// One of the plugin's own doors: the way back was spent when it chose
 	// where to send them (diluxone_users_announce_wp_login()).
-	if ( ! diluxone_users_scoped_storage_active() || ! $user instanceof WP_User || '' !== diluxone_users_own_door() ) {
+	if ( ! diluxone_users_hub_on() || ! $user instanceof WP_User || '' !== diluxone_users_own_door() ) {
 		return;
 	}
 

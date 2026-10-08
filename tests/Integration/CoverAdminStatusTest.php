@@ -234,8 +234,14 @@ class CoverAdminStatusTest extends IntegrationTestCase {
 		$this->assertSame( 'pending', $check['state'] );
 		$this->assertStringContainsString( 'tab=tools', $check['url'] );
 
-		diluxone_users_update_option( 'diluxone_users_rewrite_version', DILUXONE_USERS_VERSION );
+		diluxone_users_update_option( 'diluxone_users_rewrite_version', diluxone_users_rewrite_stamp() );
 		$this->assertSame( 'active', $this->row( 'Rewrite rules' )['state'] );
+
+		// A site the plugin adds no rule to keeps no note, and is up to date.
+		if ( '' === diluxone_users_rewrite_stamp() ) {
+			diluxone_users_delete_option( 'diluxone_users_rewrite_version' );
+			$this->assertSame( 'active', $this->row( 'Rewrite rules' )['state'] );
+		}
 	}
 
 	/* ── Ways in and the social networks ───────────────────────────── */

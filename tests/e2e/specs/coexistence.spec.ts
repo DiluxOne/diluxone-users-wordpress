@@ -225,15 +225,15 @@ test.describe('A registration from somewhere else', () => {
 test.describe('A fresh site asks for a name, and the rest is suggested', () => {
 	test.use({ storageState: ADMIN_STATE });
 
-	test('only the first and last name are seeded, neither required; the suggested fields are added from their tab', async ({ page, site, options }) => {
+	test('only the first and last name are there, neither required and nothing stored; the suggested fields are added from their tab', async ({ page, site, options }) => {
 		await options.set({ diluxone_users_fields: null });
 
 		await page.goto(adminUrl('diluxone-users-fields'));
 
-		const seeded = (await site.getOptions(['diluxone_users_fields'])).diluxone_users_fields as Array<{ key: string; required: number | boolean }>;
-
-		expect(seeded.map((one) => one.key)).toEqual(['first_name', 'last_name']);
-		expect(seeded.every((one) => !one.required), 'neither is required').toBe(true);
+		// The starter list is a default, read and not written: opening the
+		// screen stores nothing.
+		expect((await site.getOptions(['diluxone_users_fields'])).diluxone_users_fields ?? null, 'nothing stored by looking').toBeNull();
+		await expect(page.locator('input[name="diluxone_users_suggested[]"][value="first_name"]')).toHaveCount(0);
 
 		await page.goto(adminUrl('diluxone-users-fields', 'suggested'));
 		await page.locator('input[name="diluxone_users_suggested[]"][value="diluxone_users_country"]').check({ force: true });
@@ -242,9 +242,10 @@ test.describe('A fresh site asks for a name, and the rest is suggested', () => {
 
 		await expect(page.locator('.notice-success')).toBeVisible();
 
-		const after = (await site.getOptions(['diluxone_users_fields'])).diluxone_users_fields as Array<{ key: string }>;
+		const after = (await site.getOptions(['diluxone_users_fields'])).diluxone_users_fields as Array<{ key: string; required: number | boolean }>;
 
 		expect(after.map((one) => one.key)).toEqual(['first_name', 'last_name', 'diluxone_users_country', 'diluxone_users_birthday']);
+		expect(after.every((one) => !one.required), 'none is required').toBe(true);
 
 		// What is on the list is not offered again.
 		await page.goto(adminUrl('diluxone-users-fields', 'suggested'));

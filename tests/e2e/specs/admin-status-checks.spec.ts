@@ -146,7 +146,7 @@ test.describe('Status › Status: the checks', () => {
 		await expect(headline(page, 'error')).toContainText('2');
 	});
 
-	test('rewrite rules from another version are rebuilt by the next request, so the row reads active and the stamp is this version', async ({
+	test('rewrite rules from another version are rebuilt by the next request, so the row reads active and the stamp is this version’s', async ({
 		page,
 		site,
 		options,
@@ -159,7 +159,8 @@ test.describe('Status › Status: the checks', () => {
 
 		await page.goto(STATUS);
 		expect(await stateIn(row(page, 'rewrite'))).toBe('active');
-		expect((await site.getOptions(['diluxone_users_rewrite_version'])).diluxone_users_rewrite_version).toBe(VERSION);
+		// This version, and the rules it adds: the account page's route.
+		expect((await site.getOptions(['diluxone_users_rewrite_version'])).diluxone_users_rewrite_version).toBe(`${VERSION}:account`);
 	});
 
 	test('a social provider saved but off is pending and leads to Social login; on, the row is active; none saved, no row', async ({

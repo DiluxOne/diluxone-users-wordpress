@@ -195,6 +195,9 @@ function diluxone_users_screen_register_save(): bool {
 			// written as such: a door left open under an answer that says it
 			// is not is how the site and the screen come to disagree.
 			$open ? $doors : array_fill_keys( array_keys( $doors ), 0 ),
+			// WordPress's own form is only this plugin's to add to on a single
+			// site; on a network it is wp-signup.php, which it leaves alone.
+			is_multisite() ? array() : array( 'diluxone_users_wp_register_fields' => isset( $_POST['diluxone_users_wp_register_fields'] ) ? 1 : 0 ),
 			array(
 				'diluxone_users_register_page' => ( isset( $_POST['diluxone_users_register_page'] ) && is_scalar( $_POST['diluxone_users_register_page'] ) ? absint( wp_unslash( $_POST['diluxone_users_register_page'] ) ) : 0 ),
 				// Only a role the screen was willing to offer. A drop-down is
@@ -385,6 +388,24 @@ function diluxone_users_screen_register(): void {
 							'is'   => array( 'open' ),
 						)
 					);
+
+					// What WordPress's own form asks for, apart from the doors:
+					// it is not one more way in, and on a network that form is
+					// wp-signup.php, which the plugin leaves alone.
+					if ( ! is_multisite() ) {
+						diluxone_users_ui_choices(
+							array(
+								array(
+									'type'    => 'checkbox',
+									'name'    => 'diluxone_users_wp_register_fields',
+									'value'   => '1',
+									'checked' => (bool) diluxone_users_option( 'diluxone_users_wp_register_fields' ),
+									'title'   => __( 'WordPress’s own form asks for the user fields too', 'diluxone-users' ),
+									'help'    => __( 'The active fields, under the username and the e-mail, with the required ones required. Unticked, the form is exactly WordPress’s.', 'diluxone-users' ),
+								),
+							)
+						);
+					}
 
 					$diluxone_users_roles = diluxone_users_register_roles();
 

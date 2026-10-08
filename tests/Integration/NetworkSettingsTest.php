@@ -21,6 +21,7 @@ class NetworkSettingsTest extends IntegrationTestCase {
 
 	protected function setUp(): void {
 		parent::setUp();
+		$this->from_before_the_settled_defaults();
 
 		if ( ! is_multisite() ) {
 			$this->markTestSkipped( 'Needs a multisite network: run `make env-multisite` first.' );
@@ -169,7 +170,7 @@ class NetworkSettingsTest extends IntegrationTestCase {
 
 		$this->assertSame( array( 'network-activity', 'logging' ), array_keys( diluxone_users_panels( DILUXONE_USERS_REPORTS ) ), 'Every site’s rows, and the rules' );
 		$this->assertContains( '2fa', array_keys( diluxone_users_panels( DILUXONE_USERS_SECURITY ) ) );
-		$this->assertSame( array( 'network', 'previews', 'uninstall' ), array_keys( diluxone_users_panels( DILUXONE_USERS_MENU ) ) );
+		$this->assertSame( array( 'network', 'hub', 'previews', 'uninstall' ), array_keys( diluxone_users_panels( DILUXONE_USERS_MENU ) ) );
 	}
 
 	public function test_a_link_to_a_screen_goes_where_the_screen_is(): void {
@@ -350,7 +351,7 @@ class NetworkSettingsTest extends IntegrationTestCase {
 		$this->assertSame( DILUXONE_USERS_NETWORK_VERSION, (int) get_site_option( DILUXONE_USERS_NETWORK_VERSION_OPTION ) );
 		$this->assertFalse( get_site_option( DILUXONE_USERS_NETWORK_CONFLICTS ) );
 		$this->assertFalse( get_site_option( 'diluxone_users_2fa_mode' ), 'Nothing to take: the defaults stand' );
-		$this->assertSame( 'optional', diluxone_users_option( 'diluxone_users_2fa_mode' ) );
+		$this->assertSame( 'off', diluxone_users_option( 'diluxone_users_2fa_mode' ) );
 	}
 
 	/** The network as it was before its settings were the network's. */

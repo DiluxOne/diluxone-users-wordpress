@@ -19,6 +19,13 @@ And for the authenticator app, the second step for some roles only and "do
 not ask again on this browser": here what Pro left behind asks the step of
 everybody, with the code by e-mail, and skips it for nobody.
 
+## Activation
+
+| Feature / state | Covered by |
+|---|---|
+| Activating with nothing saved changes nothing: home, wp-login.php (sign-in, register, lost password), `/sso/…`, a subscriber's and an administrator's profile, the Users list, every option but `diluxone_users_defaults_version`, tables, user meta, rewrite rules, cron, and the mails and HTTP requests of a registration, a reset and a sign-in | `make test-noop` (`tests/noop/activation-noop.sh`, a clean wp-env of its own) · integration: `ActivationTest` › a new install writes one option and nothing else; `DefaultsTest` (unit) |
+| A site that ran 1.0.0 keeps what it did; a network waits for its moves | integration: `ActivationTest` › an install that ran 1.0.0 keeps what it did; a network that has not moved its settings waits |
+
 ## Signing in
 
 | Feature / state | Covered by |
@@ -411,7 +418,7 @@ on each. The two end-to-end columns are the two topologies.
 | Deleting the plugin: one network box; a site's Tools say so | — | net: `NetworkSettingsTest`; `UninstallNetworkTest` · single: `UninstallSiteTest` | `single-site` › Maintenance › Tools still asks | `network-admin` › …deleting the plugin; another site keeps… |
 | "Show me what I chose" writes nothing of the network's | — | net: `NetworkSettingsTest` › a trial run writes nothing of the network's · single: `SingleSiteTest` › a trial run writes nothing | `preview` | — |
 | 2FA: one network rule; a chosen role on any site; super admin | — | net: `MultisiteTest` › the second step is asked on every site alike; a chosen role on any site; a super admin… · single: `SingleSiteTest` › a chosen role puts somebody in scope · both: `TwoFactorFlowTest`, `AccountSecurityTest` | `two-factor` | `isolation` › The second step is the network's; `network-admin` › the second step required there… |
-| Who may create an account: the network's registration, then the site's doors | — | net: `MultisiteTest` › the network decides…; on a closed network the doors start closed · single: `SingleSiteTest` › the site's own switch decides…; the doors start where "Anyone can register" is | `magic-link`, `register` | `doors` |
+| Who may create an account: the network's registration, then the site's doors | — | net: `MultisiteTest` › the network decides…; a site born on the network has nothing written for it · single: `SingleSiteTest` › the site's own switch decides…; the doors start shut whatever "Anyone can register" says | `magic-link`, `register` | `doors` |
 | Setup: activation, a site born on the network (no log table of its own), a deleted site (its rows and any old table go) | `NetworkLogTest` › a deleted site drops its own table and never the network's | net: `MultisiteTest` › a site born…; a deleted site takes its rows and its old table… · single: `SingleSiteTest` › activation sets the site up in its own table | — | `lifecycle` |
 | Deactivation leaves no purge event | — | net: `MultisiteTest` › network deactivation clears the event on every site · single: `SingleSiteTest` › deactivation clears the event | — | `lifecycle` |
 | Membership (see “Membership on a network” below) | `MembershipTest` | net/single: `MembershipTest` · single: `SingleSiteTest` › joining the site changes nobody | `single-site` › there is no membership… | `membership`, `doors` |

@@ -188,6 +188,14 @@ test-integration-single-down: ## Stop the single-site integration environment.
 test-integration-single-clean: ## Destroy the single-site integration environment and its volumes.
 	@cd "$(INTEG_SINGLE_DIR)" 2>/dev/null && npx @wordpress/env destroy --force 2>/dev/null || true
 
+.PHONY: test-noop
+test-noop: ## Activating the plugin changes nothing: a clean site fingerprinted before and after (wp-env, 8884/8885).
+	@bash tests/noop/activation-noop.sh
+
+.PHONY: test-noop-clean
+test-noop-clean: ## Destroy the no-op check's environment.
+	@cd build/noop 2>/dev/null && npx @wordpress/env destroy --force 2>/dev/null || true
+
 .PHONY: test-integration-all
 test-integration-all: ## The integration suite on both: the network (main env) and a single site.
 	$(MAKE) env-multisite

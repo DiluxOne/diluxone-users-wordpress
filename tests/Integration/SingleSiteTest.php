@@ -74,17 +74,15 @@ class SingleSiteTest extends IntegrationTestCase {
 		$this->assertCount( 1, self::$mail, 'Switched on, the link is sent' );
 	}
 
-	/** Activation sets the site up, and every setting it writes is the site's own. */
-	public function test_activation_sets_the_site_up_in_its_own_table(): void {
-		global $wpdb;
+	/** Activation writes no setting, and the one mark it keeps is in the site's own table. */
+	public function test_activation_keeps_its_one_mark_in_the_sites_own_table(): void {
+		diluxone_users_delete_option( 'diluxone_users_login_register' );
 
 		diluxone_users_activate( false );
 
-		$table = diluxone_users_log_table();
-
-		$this->assertSame( $table, $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $wpdb->esc_like( $table ) ) ) );
-		$this->assertNotFalse( get_option( 'diluxone_users_fields', false ), 'The fields, in the site’s table' );
-		$this->assertNotFalse( get_option( 'diluxone_users_login_register', false ), 'The doors, in the site’s table' );
+		$this->assertFalse( get_option( 'diluxone_users_fields', false ), 'The starter fields are a default, not a stored list' );
+		$this->assertFalse( get_option( 'diluxone_users_login_register', false ), 'No door written' );
+		$this->assertSame( DILUXONE_USERS_DEFAULTS_VERSION, (int) get_option( DILUXONE_USERS_DEFAULTS_VERSION_OPTION ), 'The defaults’ version, in the site’s table' );
 	}
 
 	/**
@@ -112,18 +110,23 @@ class SingleSiteTest extends IntegrationTestCase {
 		diluxone_users_log_empty_network();
 	}
 
-	/** The doors start where WordPress's "Anyone can register" is. */
-	public function test_the_doors_start_where_anyone_can_register_is(): void {
+	/** The plugin's doors start shut, whatever WordPress's "Anyone can register" says. */
+	public function test_the_doors_start_shut_whatever_anyone_can_register_says(): void {
+		$was = get_option( 'users_can_register' );
+
 		foreach ( array( 0, 1 ) as $anyone ) {
 			update_option( 'users_can_register', $anyone );
 			diluxone_users_delete_option( 'diluxone_users_login_register' );
 			diluxone_users_delete_option( 'diluxone_users_sso_register' );
 
-			diluxone_users_site_setup();
+			diluxone_users_activate( false );
 
-			$this->assertSame( $anyone, (int) get_option( 'diluxone_users_login_register' ), "Anyone can register: {$anyone}" );
-			$this->assertSame( $anyone, (int) get_option( 'diluxone_users_sso_register' ), "Anyone can register: {$anyone}" );
+			$this->assertFalse( get_option( 'diluxone_users_login_register' ), "Anyone can register: {$anyone}" );
+			$this->assertSame( 0, (int) diluxone_users_option( 'diluxone_users_sso_register' ), "Anyone can register: {$anyone}" );
+			$this->assertSame( $anyone, (int) get_option( 'users_can_register' ), 'and WordPress\'s own answer is left as it was' );
 		}
+
+		update_option( 'users_can_register', $was );
 	}
 
 	/** Deactivating leaves no purge event behind, however the hook is called. */

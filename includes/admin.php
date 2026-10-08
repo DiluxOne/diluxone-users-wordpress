@@ -486,14 +486,21 @@ function diluxone_users_intro( string $text ): void {
  * The plugin admin styles.
  *
  * Besides the plugin's own screens, WordPress's Users list and the profile
- * screen get them too: the Access column and the block on the profile are
- * drawn with the same pills, and without the stylesheet they come out as a
- * run-on line of words.
+ * screens get them too, while the plugin draws something there: the Access
+ * column and the block on the profile are drawn with the same pills, and
+ * without the stylesheet they come out as a run-on line of words.
  */
 function diluxone_users_admin_styles( string $hook ): void {
-	$people = in_array( $hook, array( 'users.php', 'user-edit.php', 'profile.php' ), true );
+	$people = in_array( $hook, array( 'users.php', 'user-edit.php', 'profile.php', 'user-new.php' ), true );
 
 	if ( ! $people && false === strpos( $hook, 'diluxone-users' ) ) {
+		return;
+	}
+
+	// WordPress's own screens only once the plugin draws something on them:
+	// the Access column and block (a way in turned on), or a field of the
+	// site's own.
+	if ( $people && ! diluxone_users_access_features_on() && ! diluxone_users_has_own_fields() ) {
 		return;
 	}
 

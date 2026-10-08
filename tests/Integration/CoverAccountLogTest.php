@@ -39,6 +39,7 @@ class CoverAccountLogTest extends IntegrationTestCase {
 
 	protected function setUp(): void {
 		parent::setUp();
+		$this->from_before_the_settled_defaults();
 
 		foreach ( array( DILUXONE_USERS_LOG_SCHEMA_OPTION, DILUXONE_USERS_LOG_MOVED, DILUXONE_USERS_LOG_MOVING, DILUXONE_USERS_NETWORK_VERSION_OPTION, DILUXONE_USERS_NETWORK_MIGRATING ) as $key ) {
 			$this->markers[ $key ] = diluxone_users_raw_get( $key, null );

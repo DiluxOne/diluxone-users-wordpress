@@ -203,7 +203,7 @@ class HooksTest extends IntegrationTestCase {
 		);
 
 		$this->assertSame( 1, diluxone_users_add_suggested_fields( array( 'diluxone_users_vat', 'wp_capabilities' ) ) );
-		$this->assertSame( array( 'diluxone_users_vat' ), array_column( (array) diluxone_users_raw_get( 'diluxone_users_fields' ), 'key' ) );
+		$this->assertSame( array( 'first_name', 'last_name', 'diluxone_users_vat' ), array_column( (array) diluxone_users_raw_get( 'diluxone_users_fields' ), 'key' ), 'after the starter fields, which a list never saved is' );
 	}
 
 	/** `diluxone_users_template`: a site's own file replaces the plugin's, and none draws nothing. */
