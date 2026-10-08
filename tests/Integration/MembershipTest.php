@@ -207,10 +207,91 @@ class MembershipTest extends IntegrationTestCase {
 		}
 
 		diluxone_users_update_option( 'diluxone_users_membership', 'everybody-everywhere' );
-		$this->assertSame( 'all', diluxone_users_membership(), 'anything else reads as every site' );
+		$this->assertSame( 'hub', diluxone_users_membership(), 'anything else reads as the hub only, never as every site' );
 
 		$this->assertSame( 'network', diluxone_users_option_scope( 'diluxone_users_membership' ) );
 		$this->assertSame( 'everybody-everywhere', get_site_option( 'diluxone_users_membership' ), 'stored in the network’s options' );
+	}
+
+	/**
+	 * A policy nothing applies today — one an add-on offered and is not running
+	 * to apply — is the hub only: nobody is added anywhere else, nothing is
+	 * queued, nothing is synced, and nothing says "every site".
+	 */
+	public function test_a_policy_nothing_applies_today_is_the_hub_only(): void {
+		$this->network_only();
+
+		diluxone_users_update_option( 'diluxone_users_membership', 'addon_policy' );
+
+		$this->assertSame( 'hub', diluxone_users_membership() );
+
+		// A new account: the site it was made on, and nothing more.
+		$made = $this->make_user();
+		$this->assertFalse( is_user_member_of_blog( $made, $this->alpha ), 'a new account joins no other site' );
+
+		// Signing in on a site: the hub, not that site.
+		$user = $this->nobody();
+		diluxone_users_update_option( 'diluxone_users_membership', 'addon_policy' );
+		switch_to_blog( $this->alpha );
+		diluxone_users_join_site( $user );
+		wp_set_current_user( $user );
+		$this->assertSame( 'invite', diluxone_users_join_state(), 'nothing to press: an administrator adds people' );
+		restore_current_blog();
+
+		$this->assertFalse( is_user_member_of_blog( $user, $this->alpha ), 'not the site they signed in on' );
+		$this->assertSame( 'contributor', $this->role_on( $user, get_main_site_id() ), 'the hub, where the account lives' );
+
+		// Nothing queued, and a job left from "every site" is dropped.
+		$this->assertSame( array(), diluxone_users_membership_queue() );
+		diluxone_users_membership_sync();
+		$this->assertSame( array(), diluxone_users_membership_queue(), 'no sync of everybody onto every site' );
+		$this->assertFalse( is_user_member_of_blog( $user, $this->alpha ) );
+
+		add_filter( 'diluxone_users_membership_inline', '__return_zero', 20 );
+		diluxone_users_membership_enqueue(
+			array(
+				'kind' => 'user',
+				'id'   => $user,
+			)
+		);
+		remove_filter( 'diluxone_users_membership_inline', '__return_zero', 20 );
+
+		$this->assertTrue( diluxone_users_membership_drain() );
+		$this->assertSame( array(), diluxone_users_membership_queue() );
+		$this->assertFalse( is_user_member_of_blog( $user, $this->alpha ) );
+		$this->assertSame( array(), wp_list_filter( $this->added, array( 'site' => $this->alpha ) ), 'nobody was added to the site' );
+	}
+
+	/** The screen shows that policy as inactive, and its save keeps it until another is picked. */
+	public function test_the_screen_keeps_a_policy_it_shows_as_inactive(): void {
+		$this->network_only();
+		$this->in_network_admin();
+
+		diluxone_users_update_option( 'diluxone_users_membership', 'addon_policy' );
+
+		ob_start();
+		diluxone_users_screen_membership_policy();
+		$html = (string) ob_get_clean();
+
+		$this->assertStringContainsString( 'value="addon_policy"', $html );
+		$this->assertStringContainsString( 'Your Pro choice (inactive)', $html );
+		$this->assertStringContainsString( 'The policy chosen is not active', $html, 'the state says what the network gets: the hub only' );
+		$this->assertStringNotContainsString( 'data-diluxone-users-sync', $html, 'and no sync of everybody' );
+
+		$this->postPanel( DILUXONE_USERS_MEMBERSHIP_SCREEN, array( DILUXONE_USERS_MEMBERSHIP => 'addon_policy' ) );
+		diluxone_users_membership_save();
+		$this->assertSame( 'addon_policy', get_site_option( 'diluxone_users_membership' ), 'kept' );
+
+		ob_start();
+		$this->postPanel( DILUXONE_USERS_MEMBERSHIP_SCREEN, array( DILUXONE_USERS_MEMBERSHIP => 'another_one' ) );
+		$this->assertFalse( diluxone_users_membership_save(), 'a word the screen never offered is refused' );
+		ob_end_clean();
+		$this->assertSame( 'addon_policy', get_site_option( 'diluxone_users_membership' ) );
+
+		$this->postPanel( DILUXONE_USERS_MEMBERSHIP_SCREEN, array( DILUXONE_USERS_MEMBERSHIP => 'invite' ) );
+		diluxone_users_membership_save();
+		$this->assertSame( 'invite', diluxone_users_membership(), 'replaced once another is picked' );
+		$this->assertSame( '', diluxone_users_unknown_choice( 'diluxone_users_membership', diluxone_users_membership_policies() ) );
 	}
 
 	/** Saved from Network Admin › Membership, and from nowhere else. */

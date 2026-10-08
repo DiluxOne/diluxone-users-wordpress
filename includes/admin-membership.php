@@ -57,9 +57,12 @@ function diluxone_users_membership_save() {
 	check_admin_referer( 'diluxone_users_panel_' . DILUXONE_USERS_MEMBERSHIP_SCREEN, 'diluxone_users_panel_nonce' );
 	diluxone_users_panel_allowed();
 
-	$policy = sanitize_key( wp_unslash( $_POST[ DILUXONE_USERS_MEMBERSHIP ] ?? '' ) );
+	$posted = sanitize_key( wp_unslash( $_POST[ DILUXONE_USERS_MEMBERSHIP ] ?? '' ) );
+	// One of the answers there are, or the one the network already had and the
+	// screen showed as inactive: confirming that one confirms the hub only.
+	$policy = diluxone_users_choice_kept( DILUXONE_USERS_MEMBERSHIP, $posted, diluxone_users_membership_policies(), '' );
 
-	if ( ! in_array( $policy, diluxone_users_membership_policies(), true ) ) {
+	if ( '' === $policy ) {
 		diluxone_users_notice( __( 'That is not one of the three answers. Nothing was saved.', 'diluxone-users' ), 'error' );
 
 		return false;
@@ -190,6 +193,18 @@ function diluxone_users_screen_membership_policy(): void {
 	$policy  = diluxone_users_membership();
 	$choices = diluxone_users_membership_choices();
 	$queue   = diluxone_users_membership_queue();
+	$kept    = diluxone_users_unknown_choice( DILUXONE_USERS_MEMBERSHIP, diluxone_users_membership_policies() );
+
+	// A policy nothing applies today is read as the hub only, and says so.
+	$choices['hub'] = array(
+		'title' => '',
+		'help'  => '',
+		'state' => sprintf(
+			/* translators: %s: the name of the site where the network's accounts live */
+			__( 'The policy chosen is not active: accounts are members of %s only, and nobody is added to any other site until a policy is chosen again.', 'diluxone-users' ),
+			diluxone_users_hub_name()
+		),
+	);
 
 	// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- only which notice to show after the redirect.
 	$synced = isset( $_GET['diluxone-users-synced'] ) ? sanitize_key( wp_unslash( $_GET['diluxone-users-synced'] ) ) : '';
@@ -208,7 +223,7 @@ function diluxone_users_screen_membership_policy(): void {
 
 	$list = array();
 
-	foreach ( $choices as $value => $choice ) {
+	foreach ( array_intersect_key( $choices, array_flip( diluxone_users_membership_policies() ) ) as $value => $choice ) {
 		$list[] = array(
 			'type'    => 'radio',
 			'name'    => DILUXONE_USERS_MEMBERSHIP,
@@ -216,6 +231,18 @@ function diluxone_users_screen_membership_policy(): void {
 			'checked' => $policy === $value,
 			'title'   => $choice['title'],
 			'help'    => $choice['help'],
+		);
+	}
+
+	if ( '' !== $kept ) {
+		$list[] = diluxone_users_ui_kept(
+			DILUXONE_USERS_MEMBERSHIP,
+			$kept,
+			sprintf(
+				/* translators: %s: the name of the site where the network's accounts live */
+				__( 'accounts that are members of %s only', 'diluxone-users' ),
+				diluxone_users_hub_name()
+			)
 		);
 	}
 

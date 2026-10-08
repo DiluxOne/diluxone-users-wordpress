@@ -42,15 +42,22 @@ function diluxone_users_join_state( int $user_id = 0 ): string {
 
 	$policy = diluxone_users_membership();
 
-	if ( 'invite' === $policy || in_array( $site_id, diluxone_users_membership_removed( $user_id ), true ) ) {
+	if ( in_array( $site_id, diluxone_users_membership_removed( $user_id ), true ) ) {
 		return 'invite';
+	}
+
+	if ( 'all' === $policy ) {
+		return '';
 	}
 
 	if ( 'click' === $policy ) {
 		return diluxone_users_membership_may_join( $user_id, $site_id ) ? 'click' : 'invite';
 	}
 
-	return '';
+	// Any other policy — and the hub only, which is what a policy nothing
+	// applies today is read as — gives nothing to press: an administrator
+	// adds people, which is what "by invitation" says.
+	return 'invite';
 }
 
 /** Where "Join this site" is pressed from a link: the current site's handler, with its nonce. */

@@ -13,9 +13,49 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Default values. The key is the option name, with its prefix.
  *
+ * The plugin's own, and an add-on's beside them: a key that is here is a
+ * setting like any other — read with its default, saved by
+ * diluxone_users_save_options(), carried by the settings file and stored
+ * where its scope says. Not kept between calls: an add-on that hooks the
+ * filter late in a request is still heard, and reading it costs a filter.
+ *
  * @return array<string, mixed>
  */
 function diluxone_users_option_defaults(): array {
+	$defaults = diluxone_users_option_defaults_own();
+
+	/**
+	 * Filters the settings the plugin knows, with their defaults.
+	 *
+	 * An add-on that stores settings through the plugin's helpers adds its
+	 * keys here, and gives each a scope with `diluxone_users_option_scope`.
+	 * What it can add is a key of the plugin's namespace (`diluxone_users_`)
+	 * that the plugin does not have: anything else would let a settings
+	 * screen, or a settings file, write an option that is not the plugin's,
+	 * and a default of the plugin's own changed from outside would change
+	 * the type its readers count on. Both are left as they were.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param array<string, mixed> $defaults Option name => default.
+	 */
+	$filtered = (array) apply_filters( 'diluxone_users_option_defaults', $defaults );
+
+	foreach ( $filtered as $key => $value ) {
+		if ( is_string( $key ) && 0 === strpos( $key, 'diluxone_users_' ) && ! array_key_exists( $key, $defaults ) ) {
+			$defaults[ $key ] = $value;
+		}
+	}
+
+	return $defaults;
+}
+
+/**
+ * The plugin's own defaults, with nobody else's.
+ *
+ * @return array<string, mixed>
+ */
+function diluxone_users_option_defaults_own(): array {
 	return array(
 		// ── Passwordless sign-in ──────────────────────────────────────
 		// How people get into this site:
@@ -439,7 +479,85 @@ function diluxone_users_option_defaults(): array {
 		// deleted to be reinstalled, must not be the thing that loses
 		// them. Whoever really wants it all gone ticks this first.
 		'diluxone_users_uninstall_wipe'        => 0,
+
+		// ── Users+ Pro in the admin ───────────────────────────────────
+		// Whether the plugin's screens show where a Pro feature would go: a
+		// blurred picture of it, a badge and a link out. Only to whoever
+		// administers, only on these screens. Off, there is no trace of it.
+		'diluxone_users_pro_previews'          => 1,
 	);
+}
+
+/* ── What the plugin does not know ─────────────────────────────────── */
+
+/**
+ * The entries of a stored list that are not among the ones there are now.
+ *
+ * A list of ids — the second factors offered, say — can hold one that
+ * something else put there: an add-on that registered it and is not running
+ * today. The plugin does not draw it and does not use it, and it does not
+ * throw it away either: a screen saved without it would lose the choice for
+ * the day the add-on comes back.
+ *
+ * @param array<mixed>      $stored What the setting holds.
+ * @param array<int|string> $known  The ids there are now.
+ * @return array<int, string>
+ */
+function diluxone_users_unknown_entries( array $stored, array $known ): array {
+	$known = array_map( 'strval', $known );
+
+	return array_values(
+		array_filter(
+			array_map( 'sanitize_key', array_filter( $stored, 'is_string' ) ),
+			static fn( string $id ): bool => '' !== $id && ! in_array( $id, $known, true )
+		)
+	);
+}
+
+/**
+ * A stored choice that is not one of the choices there are now, or ''.
+ *
+ * The same thing for one answer: a layout, a policy, a way of doing something
+ * that an add-on offered and saved. Read on the front end, the plugin uses
+ * the closest answer of its own in its place; on its screen it shows the
+ * choice as inactive and keeps it until somebody picks another one
+ * (diluxone_users_choice_kept()).
+ *
+ * @param string            $key   Option name, with its prefix.
+ * @param array<int|string> $known The answers there are now.
+ */
+function diluxone_users_unknown_choice( string $key, array $known ): string {
+	$stored = diluxone_users_raw_get( $key, null );
+
+	if ( ! is_string( $stored ) || '' === $stored || sanitize_key( $stored ) !== $stored ) {
+		return '';
+	}
+
+	return in_array( $stored, array_map( 'strval', $known ), true ) ? '' : $stored;
+}
+
+/**
+ * The answer a screen's save keeps: one of the answers there are, or the one
+ * the setting already held and the screen showed as inactive.
+ *
+ * Anything else — a word nobody offered, sent by hand — is the fallback, as
+ * it always was. What it never does is turn the stored choice into the
+ * fallback because the screen could not offer it: the screen showed it and
+ * nobody picked another.
+ *
+ * @param string            $key      Option name, with its prefix.
+ * @param string            $posted   What arrived, sanitised.
+ * @param array<int|string> $known    The answers there are now.
+ * @param string            $fallback What anything else is.
+ */
+function diluxone_users_choice_kept( string $key, string $posted, array $known, string $fallback ): string {
+	if ( in_array( $posted, array_map( 'strval', $known ), true ) ) {
+		return $posted;
+	}
+
+	$kept = diluxone_users_unknown_choice( $key, $known );
+
+	return '' !== $kept && $kept === $posted ? $kept : $fallback;
 }
 
 /**

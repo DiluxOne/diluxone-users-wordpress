@@ -54,10 +54,26 @@ function my_addon_sms_save(): void {
     diluxone_users_panel_allowed();
 
     diluxone_users_save_options(
-        array( 'my_addon_sms_sender' => sanitize_text_field( wp_unslash( $_POST['my_addon_sms_sender'] ?? '' ) ) )
+        array( 'diluxone_users_sms_sender' => sanitize_text_field( wp_unslash( $_POST['diluxone_users_sms_sender'] ?? '' ) ) )
     );
 }
 ```
+
+`diluxone_users_save_options()` writes only settings the plugin knows, so the
+key is added to them first, with its default and its scope (see
+[Options](#options)).
+
+A save writes what its tab drew and nothing else. Read every answer you have a
+name for and write "empty" for the ones that did not arrive, and the day part
+of the tab is drawn by something else — or by nobody — the save wipes a value
+it never showed. Pass what the save worked out through
+`diluxone_users_panel_drawn( $screen, $values, $from )`: a value is kept when
+its control arrived, or, for a tick box (which sends nothing unticked), when
+the box said it was drawn — `diluxone_users_ui_choice()` sends its name in
+`diluxone_users_panel_drawn[]` for that. `$from` names the control that
+answers for a value whose own name is not posted (`'diluxone_users_account_cover' => 'diluxone_users_account_cover_own'`).
+A save that writes a list or a map merges with what is stored and keeps the
+entries it does not recognise.
 
 The button is
 not at the foot of the form: it heads the column beside the fields — the rail,
@@ -81,7 +97,9 @@ settings gives itself an `id` and asks for its button with
 drawn; the button reaches the form through its `form` attribute.
 
 A tab exists because something registered it. Nothing registered means no tab
-— not an empty one.
+— not an empty one. `diluxone_users_panels` (filter) receives a screen's tabs
+once they are in order, `( array $panels, string $screen )`: registering is the
+way in, the filter is for taking one out or moving it.
 
 What a tab prints is drawn into a buffer and printed through `wp_kses()` with
 the plugin's list of allowed markup: the post editor's, plus form controls,
@@ -106,7 +124,16 @@ detail and a "Change it →" link to the tab that owns it.
 There is one vocabulary of state, four words, on every screen:
 `active`, `pending` (half set up, or waiting on something — always with a
 reason), `off`, and `unknown` for what cannot be told from inside the site.
-`diluxone_users_state_pill( $state, $why, $word )` draws one.
+`diluxone_users_state_pill( $state, $why, $word )` draws one. A fifth pill,
+`pro`, is not a state: it is the badge of a Users+ Pro placeholder (see
+[Users+ Pro on these screens](#users-pro-on-these-screens)).
+
+The Security screen's summary is built from what each feature says about
+itself: `diluxone_users_security_summary` (filter) receives the rows, an
+array of `label`, `state` and optionally `why`, `word`, `detail`, `url` and
+`change`, and a feature adds its own at the priority its tab sits at (the
+passkeys at 20, the sessions at 30, the proxy at 50). A row without a label
+or a state is dropped.
 
 The state is not negotiable and the word is. Most rows are switches and read
 as Active or Off in any language; a row that names something with no switch on
@@ -140,6 +167,39 @@ an account.
 While the e-mail link is the only way in, `users_can_register` reads as off
 whatever is stored (`diluxone_users_block_registration()`), and both screens
 say so.
+
+### Ways in
+
+The sign-in page draws the ways in from a registry, not from a list in the
+template: each one registers itself, and the template asks what there is. The
+plugin's own four — the passkey, the networks, the e-mail link and the
+password — register this way, and so does an add-on's.
+
+```php
+add_action( 'diluxone_users_register_ways', function () {
+    diluxone_users_register_way(
+        'sms',
+        array(
+            'label'     => __( 'SMS', 'my-addon' ),   // the tab's word
+            'icon'      => 'mail',                     // mail, info, key, network or user; any other name draws no icon
+            'render'    => 'my_addon_sms_way',         // prints the form
+            'available' => 'my_addon_sms_offered',     // asked every time; false and it takes no room
+            'over'      => __( 'or by SMS', 'my-addon' ), // the divider above it when they are stacked
+            'states'    => array( 'sms' ),             // the diluxone-users= states it authors: the tab that opens after a failed attempt
+            'outside'   => false,                      // true: above the tabs, always visible (the passkey is)
+            'position'  => 25,                         // the plugin's own: 0, 10, 20, 30
+        )
+    );
+} );
+```
+
+`diluxone_users_register_ways` fires on `init` (priority 5); register there
+and not at load time. The site drags the ways into its own order on Access ›
+Ways in; a way it has never seen follows in the order its `position` asks
+for. `diluxone_users_ways` (filter) receives the ways this site offers, in
+order, once `available` has been asked: it is for taking one out or moving
+it. The id ends up in a cookie (`diluxone_users_way`, the last way used) and in
+the saved order; it is a word and nothing else.
 
 ### Doors on a network
 
@@ -175,8 +235,12 @@ to the site they started from. What an add-on or a theme builds on:
 
 Which sites an account is a member of is the network's policy
 (`diluxone_users_membership()`: `all`, `click` or `invite`, set on Network
-Admin › Membership; see [`architecture.md`](architecture.md)). What an add-on
-or a theme builds on:
+Admin › Membership; see [`architecture.md`](architecture.md)). A stored policy
+that is none of these — one an add-on offered and is not running to apply —
+reads as `hub`: people are members of the hub only, nothing is queued or
+synced, and a non-member is told the site is by invitation, until a policy is
+chosen again. The screen shows it as an inactive Pro choice and keeps it on
+save. What an add-on or a theme builds on:
 
 - `diluxone_users_member_added` (action) fires every time the plugin makes
   somebody a member of a site: `( int $user_id, int $site_id, string $role,
@@ -211,21 +275,43 @@ everything comes from a table. Adding one is a filter and nothing else.
 add_filter( 'diluxone_users_sso_providers', function ( array $providers ): array {
     $providers['twitch'] = array(
         'name'      => 'Twitch',
-        'authorize' => 'https://id.twitch.tv/oauth2/authorize',
-        'token'     => 'https://id.twitch.tv/oauth2/token',
-        'userinfo'  => 'https://api.twitch.tv/helix/users',
-        'scope'     => 'user:read:email',
-        'brand'     => '#9146FF',
+        'color'     => '#9146FF',                                // its brand colour, for the card and the button
+        'authorize' => 'https://id.twitch.tv/oauth2/authorize',  // where the person is sent
+        'token'     => 'https://id.twitch.tv/oauth2/token',      // where the code becomes a token
+        'profile'   => 'https://id.twitch.tv/oauth2/userinfo',   // where the profile is read
+        'scope'     => 'openid user:read:email',
+        'extra'     => array(),                                  // optional: odd parameters the provider wants
+        'pkce'      => false,                                    // optional: true when it requires PKCE
+        'map'       => 'diluxone_users_sso_map_oidc',            // optional: reads the profile (below)
+        'console'   => 'https://dev.twitch.tv/console/apps',     // optional: where the application is made
+        'guide'     => 'https://dev.twitch.tv/docs/authentication/getting-tokens-oidc/', // optional: its documentation
     );
 
     return $providers;
 } );
 ```
 
+`map` is a callable that receives the profile (decoded JSON) and the access
+token and returns `id`, `email`, `name` (the first name), `last_name` and
+`verified` (true, false, or null when the provider does not say);
+`diluxone_users_sso_map_oidc` reads a standard OpenID Connect `userinfo` and
+is what a row without a `map` gets. A field left out is filled in with an
+empty value of its type, so a provider missing one does not work rather than
+breaking the page.
+
 Its icon goes through `diluxone_users_sso_icon_paths`, and the step-by-step
 for its console through `diluxone_users_sso_guides`. It then appears on the
 Social login screen with its card, its redirect URL and its live test, like
 any other.
+
+The callback lives at `/sso/<provider>/` on the site (on the hub, on a
+network). `diluxone_users_sso_base` (filter, default `sso`) changes the first
+part, for a site where that address is taken; the rewrite rules have to be
+rebuilt after (Maintenance › Tools).
+
+A provider's stored row (`diluxone_users_sso`, keyed by provider id) keeps
+whatever else is in it when the plugin saves the credentials, and a row of a
+provider nothing registers today is left alone.
 
 ## Account area sections
 
@@ -285,7 +371,16 @@ A method registered this way appears on **Security → Two-step verification**
 as one more box to tick, and it does **not** work until the site ticks it:
 which methods a site offers is the site's decision, not the add-on's. The
 option holding the ticked ones happens to share the filter's name — the
-filter says what exists, the option says what is offered.
+filter says what exists, the option says what is offered. A method ticked
+while an add-on registered it and no longer registered (the add-on is off)
+stays in the option: the screen shows it ticked and switched off as an
+inactive Pro choice, the save keeps it, nobody is asked for it, and it does
+not count as the one method the second step needs.
+
+`diluxone_users_2fa_failed` (action) fires on every wrong code:
+`( int $user_id, string $method )`, where `$method` is the method's id, or
+`reauth` for the code asked again before something sensitive in the account.
+The activity log listens to it.
 
 ## Profile fields
 
@@ -315,6 +410,14 @@ The markup from the second one goes through `wp_kses` with form tags and the
 attributes they need: you can replace a text box, not turn it into a script
 tag.
 
+A field's key is the user meta key its answers are stored under. Under the
+plugin's prefix a field may only have a key in the fields' own corner,
+`diluxone_users_field_<name>` — where the screen makes every new one — or one
+a field already had before that corner existed, or a suggested field's. The
+rest of `diluxone_users_` is what the plugin, or an add-on of it, keeps about
+a person, and no field can be named after it. A key outside the prefix
+follows the older rule: anything but WordPress's own keys.
+
 A new site starts with the first and last name only, neither required. The
 fields offered on User fields › Suggested fields — a country, a date of birth,
 a gender and a phone — come from `diluxone_users_suggested_fields` (filter):
@@ -339,6 +442,11 @@ add_filter( 'diluxone_users_login_templates', function ( array $t ): array {
 // And for the account area: .diluxone-users-account--<id>
 add_filter( 'diluxone_users_account_templates', function ( array $t ): array { … } );
 ```
+
+A shape stored while an add-on offered it and no longer offered (the add-on is
+off) is not thrown away: the sign-in page draws a card in its place and the
+account area the simple one, and the Design screen shows the stored shape as
+an inactive Pro choice that its save keeps until another shape is picked.
 
 Colours and corners are CSS custom properties — `--diluxone-users-accent`,
 `--diluxone-users-radius` and the rest — so a site or an add-on can repoint
@@ -593,6 +701,26 @@ one from code gets it pinned for good — and the admin says so, with the
 function and file doing the pinning, rather than showing a control that does
 nothing.
 
+`diluxone_users_option_defaults` filters the settings the plugin knows, with
+their defaults. An add-on that stores settings through the plugin's helpers
+adds its keys here, and from then on each is a setting like the plugin's own:
+read with its default by `diluxone_users_option()`, written by
+`diluxone_users_save_options()`, carried by the settings file on Maintenance ›
+Tools, and stored where its scope says. Only keys of the plugin's namespace
+(`diluxone_users_`) that the plugin does not have are taken: a key outside it
+would let a screen or a settings file write an option that is not the
+plugin's, and the plugin's own defaults are not changed from outside.
+
+```php
+add_filter( 'diluxone_users_option_defaults', function ( array $defaults ): array {
+    $defaults['diluxone_users_sms_sender'] = '';
+    return $defaults;
+} );
+add_filter( 'diluxone_users_option_scope', function ( string $scope, string $key ): string {
+    return 'diluxone_users_sms_sender' === $key ? 'network' : $scope;
+}, 10, 2 );
+```
+
 `diluxone_users_option_scope` filters where a setting belongs on a network:
 `network`, `hub` or `site`, as `includes/options-scope.php` has it for the
 plugin's own. An add-on that stores settings through
@@ -615,6 +743,42 @@ have; any other is stored as plain text. The plugin's own list is
 forms, so it can link the terms and the privacy policy. An add-on whose
 setting needs a link adds its key; a key taken off the list is stored as plain
 text from its next save.
+
+## Privacy
+
+The plugin owns the `diluxone_users_` namespace, and what an add-on keeps
+about a person is under it too. The add-on may not be running when somebody
+asks for their data or for it to be erased, so both work by the prefix: the
+erasure takes every `diluxone_users_` and `_diluxone_users_` user meta key the
+person has (but the sites an administrator removed them from and a closed
+account's flag, which keep them off and closed), and the export lists every
+key of the namespace nothing explained, by name, with its value withheld.
+Deleting the plugin with the wipe ticked deletes the namespace by prefix as
+well.
+
+- `diluxone_users_privacy_export_items` (filter) receives the export's rows,
+  `( array $items, int $user_id )`, in the shape WordPress's exporters return
+  (`group_id`, `group_label`, `item_id`, `data`). An add-on adds its own here.
+- `diluxone_users_privacy_keys` (filter) receives the keys the plugin accounts
+  for, `( array $keys, int $user_id )`. Name the keys your rows explain, so the
+  export does not list them again; a key outside the namespace that you keep
+  about a person is erased only when it is on this list. WordPress's own keys
+  are never erased, whatever the list says.
+
+## Users+ Pro on these screens
+
+Where a feature of DiluxOne Users+ Pro would go, the plugin's screens draw a
+blurred, inert picture of it with a "Pro" badge, a line about what it adds and
+a link to diluxone.com — or, for an answer among others, a card after the real
+answers. Only administrators see them, only on the plugin's screens, never on
+the front end, and the setting `diluxone_users_pro_previews` (Maintenance ›
+Tools on a single site, Network Admin's Users+ Pro tab on a network) turns
+them all off.
+
+`diluxone_users_upsell` (filter) decides each one: `( bool $show, string $where )`,
+where `$where` names the placeholder (`<screen>/<tab>/<feature>`). Users+ Pro
+answers false for every feature it draws for real; a site that wants none of
+them answers false for all.
 
 ## The emergency switch
 
@@ -649,8 +813,10 @@ go before the page starts.
   member of a site. Receives the user, the site, the role and what made it
   (see [Membership on a network](#membership-on-a-network)).
 - `diluxone_users_fields_saved` — a person's fields were saved.
-- `diluxone_users_register_sections`, `diluxone_users_register_panels` — the
-  moments to register.
+- `diluxone_users_2fa_failed` — a wrong second-step code. Receives the user
+  and the method (see [Second-factor methods](#second-factor-methods)).
+- `diluxone_users_register_sections`, `diluxone_users_register_panels`,
+  `diluxone_users_register_ways` — the moments to register.
 
 ## What the plugin will not promise
 

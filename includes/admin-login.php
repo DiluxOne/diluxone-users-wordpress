@@ -1072,8 +1072,9 @@ function diluxone_users_login_templates(): array {
 
 /** The shape of the sign-in page, and what it is made of. */
 function diluxone_users_screen_login_shape(): void {
-	$template = diluxone_users_login_template();
 	$shapes   = diluxone_users_login_templates();
+	$kept     = diluxone_users_unknown_choice( 'diluxone_users_login_template', array_keys( $shapes ) );
+	$template = '' !== $kept ? $kept : diluxone_users_login_template();
 
 	diluxone_users_intro( __( 'What surrounds the form. Three of the four take over the page, edge to edge; the first leaves it exactly where your theme put it.', 'diluxone-users' ) );
 
@@ -1090,6 +1091,11 @@ function diluxone_users_screen_login_shape(): void {
 				<span class="diluxone-users-templates__help"><?php echo esc_html( $shape['help'] ); ?></span>
 			</label>
 		<?php endforeach; ?>
+		<?php
+		if ( '' !== $kept ) {
+			diluxone_users_ui_kept_card( 'diluxone_users_login_template', $kept, (string) ( $shapes['card']['label'] ?? __( 'A centred card', 'diluxone-users' ) ) );
+		}
+		?>
 	</div>
 	<?php
 	diluxone_users_ui_field_close();

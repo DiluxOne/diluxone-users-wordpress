@@ -137,6 +137,9 @@ function diluxone_users_allowed_html(): array {
 		'aria-haspopup'    => true,
 		'aria-disabled'    => true,
 		'aria-busy'        => true,
+		// A Pro preview is a picture of a screen: it can be seen and not
+		// reached, by a pointer, a keyboard or a screen reader.
+		'inert'            => true,
 	);
 
 	$control = array(

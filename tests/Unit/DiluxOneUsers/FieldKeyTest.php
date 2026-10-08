@@ -43,12 +43,17 @@ class FieldKeyTest extends TestCase {
 	/** @return array<string, array{string, bool}> */
 	public static function keys(): array {
 		return array(
-			'an ordinary one'                 => array( 'diluxone_users_company', true ),
+			'an ordinary one'                 => array( 'diluxone_users_field_company', true ),
 			'one of the shipped defaults'     => array( 'diluxone_users_country', true ),
 			'another shipped default'         => array( 'diluxone_users_birthday', true ),
 			'a name of nobody in particular'  => array( 'vat_number', true ),
-			'a longer name next to a taken one' => array( 'diluxone_users_avatar_size', true ),
-			'and the numbered form of one'    => array( 'diluxone_users_avatar_2', true ),
+			'a longer name next to a taken one' => array( 'diluxone_users_field_avatar_size', true ),
+			'and the numbered form of one'    => array( 'diluxone_users_field_avatar_2', true ),
+			// The rest of the namespace is somebody's data: the plugin's, or
+			// an add-on's that is not here to say so.
+			'the prefix outside the corner'   => array( 'diluxone_users_company', false ),
+			'a name an add-on could keep'     => array( 'diluxone_users_avatar_size', false ),
+			'the corner and nothing in it'    => array( 'diluxone_users_field_', false ),
 			'WordPress first name'            => array( 'first_name', true ),
 			'WordPress last name'             => array( 'last_name', true ),
 			'nothing at all'                  => array( '', false ),
@@ -119,27 +124,34 @@ class FieldKeyTest extends TestCase {
 		}
 	}
 
-	public function test_a_generated_key_steps_over_a_reserved_name(): void {
+	public function test_a_generated_key_is_made_in_the_fields_own_corner(): void {
 		require_once DILUXONE_USERS_DIR . 'includes/admin-fields.php';
 
-		// "Avatar" would otherwise become diluxone_users_avatar, which is
-		// where the profile picture is stored.
+		// "Avatar" used to become diluxone_users_avatar, where the profile
+		// picture is stored, and "Closed" the flag that keeps a closed
+		// account out. In the fields' corner neither can be reached.
 		$key = diluxone_users_key_from( 'Avatar', array() );
 
+		$this->assertSame( 'diluxone_users_field_avatar', $key );
 		$this->assertTrue( diluxone_users_field_key_allowed( $key ) );
-		$this->assertNotSame( 'diluxone_users_avatar', $key );
-
-		// A field named "Closed" would have been the flag that keeps a closed
-		// account out — a box its owner could untick.
-		$this->assertSame( 'diluxone_users_closed_2', diluxone_users_key_from( 'Closed', array() ) );
+		$this->assertSame( 'diluxone_users_field_closed', diluxone_users_key_from( 'Closed', array() ) );
 	}
 
 	public function test_a_generated_key_still_steps_over_one_already_taken(): void {
 		require_once DILUXONE_USERS_DIR . 'includes/admin-fields.php';
 
 		$this->assertSame(
-			'diluxone_users_company_2',
-			diluxone_users_key_from( 'Company', array( 'diluxone_users_company' ) )
+			'diluxone_users_field_company_2',
+			diluxone_users_key_from( 'Company', array( 'diluxone_users_field_company' ) )
 		);
+	}
+
+	public function test_a_field_made_before_the_corner_keeps_its_key(): void {
+		$GLOBALS['_test_wp_options']['diluxone_users_fields'] = array(
+			array( 'key' => 'diluxone_users_company' ),
+		);
+
+		$this->assertTrue( diluxone_users_field_key_allowed( 'diluxone_users_company' ), 'everybody’s answers are under it' );
+		$this->assertFalse( diluxone_users_field_key_allowed( 'diluxone_users_team' ), 'one that is not on the list is not' );
 	}
 }

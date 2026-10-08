@@ -160,6 +160,44 @@ function diluxone_users_panel_allowed(): void {
 }
 
 /**
+ * What a panel's save worked out, cut down to what its screen drew.
+ *
+ * A save reads every answer it knows the name of, and an answer that did not
+ * arrive used to be read as "empty" or "unticked" and written. That holds
+ * while the screen draws every one of them. The day a part of it is not drawn
+ * — an add-on draws it instead, or nobody does — the save would write empty
+ * over a value it never showed: what somebody chose elsewhere, lost to a save
+ * of a screen that had not even asked.
+ *
+ * So a value is written when its screen drew it: when it arrived, or — a tick
+ * box sends nothing when it is unticked — when the box said it was there
+ * (`diluxone_users_ui_choice()` sends its name in `diluxone_users_panel_drawn`).
+ * A value made from another control's answer names that control in `$from`.
+ *
+ * @param string                $screen The screen whose nonce the form carries.
+ * @param array<string, mixed>  $values Option name => what the save would write.
+ * @param array<string, string> $from   Option name => the control that answers for it, when it is not its own name.
+ * @return array<string, mixed> The values whose control was drawn.
+ */
+function diluxone_users_panel_drawn( string $screen, array $values, array $from = array() ): array {
+	check_admin_referer( 'diluxone_users_panel_' . $screen, 'diluxone_users_panel_nonce' );
+	diluxone_users_panel_allowed();
+
+	$drawn = array_map( 'sanitize_key', (array) wp_unslash( $_POST['diluxone_users_panel_drawn'] ?? array() ) );
+	$kept  = array();
+
+	foreach ( $values as $key => $value ) {
+		$control = $from[ $key ] ?? $key;
+
+		if ( isset( $_POST[ $control ] ) || in_array( $control, $drawn, true ) ) {
+			$kept[ $key ] = $value;
+		}
+	}
+
+	return $kept;
+}
+
+/**
  * Draws a whole screen out of its panels.
  *
  * Every screen built this way behaves the same: the tabs, the current one,
@@ -857,7 +895,11 @@ function diluxone_users_preview_would_save( array $panel ): array {
 
 	// On a network the network's settings go to its own options, which have
 	// no filter for every write, only one per name: so each is caught by name.
-	$network        = array_keys( array_filter( diluxone_users_option_scopes(), static fn( string $scope ): bool => 'network' === $scope ) );
+	// Every setting there is — an add-on's included, with the scope it gave it.
+	$network        = array_filter(
+		array_unique( array_merge( array_keys( diluxone_users_option_scopes() ), array_keys( diluxone_users_option_defaults() ) ) ),
+		static fn( string $key ): bool => 'network' === diluxone_users_option_scope( $key )
+	);
 	$refuse_network = static function ( $value, $old, string $option ) use ( &$caught ) {
 		$caught[ $option ] = $value;
 

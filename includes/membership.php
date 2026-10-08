@@ -16,6 +16,10 @@
  *   - 'invite': an account is a member of the hub; only an administrator adds
  *     somebody to any other site.
  *
+ * A stored policy that is none of these — one an add-on offered and is not
+ * running to apply — is read as 'hub': the hub only, nothing queued, nobody
+ * added anywhere else, until a policy is chosen again.
+ *
  * The role on each site is that site's: on the hub the one the plugin gives
  * whoever registers, on any other site that site's own "New User Default
  * Role" (WordPress's `default_role`), and subscriber when either would hand
@@ -71,7 +75,7 @@ const DILUXONE_USERS_MEMBERSHIP_LOCK = 'diluxone_users_membership_lock';
 /* ── Pure answers ──────────────────────────────────────────────────── */
 
 /**
- * The three policies, in the order the screen offers them.
+ * The policies there are, in the order the screen offers them.
  *
  * @return array<int, string>
  */
@@ -80,12 +84,24 @@ function diluxone_users_membership_policies(): array {
 }
 
 /**
- * A stored policy, read: anything that is not one of the three is 'all'.
+ * A stored policy, read.
+ *
+ * One of the policies there are is itself. Anything else — a policy an add-on
+ * offered and is not here to apply, a value nobody chose — is 'hub': people
+ * are members of the hub, where their account lives, and of nothing else
+ * until somebody adds them. It used to be 'all', and 'all' is the one answer
+ * that must never be reached by accident: it queues every account onto every
+ * site of the network, and the next policy chosen cannot take that back.
  *
  * @param mixed $stored What the setting holds.
  */
 function diluxone_users_membership_policy( $stored ): string {
-	return is_string( $stored ) && in_array( $stored, diluxone_users_membership_policies(), true ) ? $stored : 'all';
+	// Never written is the default, as every setting's is.
+	if ( null === $stored ) {
+		return 'all';
+	}
+
+	return is_string( $stored ) && in_array( $stored, diluxone_users_membership_policies(), true ) ? $stored : 'hub';
 }
 
 /**

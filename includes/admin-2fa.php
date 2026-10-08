@@ -101,7 +101,11 @@ function diluxone_users_2fa_save(): bool {
 	$mode    = in_array( $mode, array( 'off', 'optional', 'required' ), true ) ? $mode : 'optional';
 	$link    = in_array( $link, array( 'auto', 'always', 'never' ), true ) ? $link : 'auto';
 	$methods = array_values( array_intersect( $methods, array_keys( diluxone_users_2fa_methods_offered() ) ) );
-	$days    = ( isset( $_POST['diluxone_users_2fa_remember_days'] ) && is_scalar( $_POST['diluxone_users_2fa_remember_days'] ) ? absint( wp_unslash( $_POST['diluxone_users_2fa_remember_days'] ) ) : 30 );
+	// Kept, and kept out of the question below: a method stored by something
+	// that is not running now is not one this screen drew, so it is not one
+	// it can take away — and it sends no code today, so it answers nothing.
+	$kept = diluxone_users_unknown_entries( (array) diluxone_users_raw_get( 'diluxone_users_2fa_methods', array() ), array_keys( diluxone_users_2fa_methods_offered() ) );
+	$days = ( isset( $_POST['diluxone_users_2fa_remember_days'] ) && is_scalar( $_POST['diluxone_users_2fa_remember_days'] ) ? absint( wp_unslash( $_POST['diluxone_users_2fa_remember_days'] ) ) : 30 );
 
 	/*
 	 * Off is the one mode where none of them is an answer: nothing is asked,
@@ -131,7 +135,7 @@ function diluxone_users_2fa_save(): bool {
 			diluxone_users_scope_posted( 'diluxone_users_2fa', DILUXONE_USERS_SECURITY ),
 			array(
 				'diluxone_users_2fa_mode'          => $mode,
-				'diluxone_users_2fa_methods'       => $methods,
+				'diluxone_users_2fa_methods'       => array_values( array_unique( array_merge( $methods, $kept ) ) ),
 				'diluxone_users_2fa_link'          => $link,
 				'diluxone_users_2fa_remember_days' => $days,
 			)
@@ -289,6 +293,11 @@ function diluxone_users_screen_login_2fa(): void {
 			'title'   => (string) $method['label'],
 			'help'    => (string) ( $method['help'] ?? '' ),
 		);
+	}
+
+	// Kept by the save, so shown: ticked, switched off, after the real ones.
+	foreach ( diluxone_users_unknown_entries( (array) diluxone_users_raw_get( 'diluxone_users_2fa_methods', array() ), array_keys( $all ) ) as $key ) {
+		$cards[] = diluxone_users_ui_kept( 'diluxone_users_2fa_methods[]', $key, __( 'no code from it', 'diluxone-users' ), 'checkbox' );
 	}
 
 	/*

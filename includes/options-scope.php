@@ -85,6 +85,11 @@ function diluxone_users_option_scopes(): array {
 		// one decision for all of them, which today uninstall.php can only
 		// piece together by waiting for every site to have ticked it.
 		'diluxone_users_uninstall_wipe'         => 'network',
+		// Whether the screens show where a Pro feature would go. The people
+		// who see them administer the network's screens and every site's, and
+		// a preview the main site turned off reappearing on the next site is
+		// the same question asked twice: one answer, the network's.
+		'diluxone_users_pro_previews'           => 'network',
 		// The network's own bookkeeping: which shape its settings were moved
 		// to, and what the move found. See includes/migrate.php.
 		'diluxone_users_network_version'        => 'network',

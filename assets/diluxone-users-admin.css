@@ -47,6 +47,11 @@
 	--du-warn: #dba617;
 	--du-warn-wash: #fcf9e8;
 
+	/* Users+ Pro's badge: a colour of its own, so it never reads as one of
+	   the four states something here can be in. */
+	--du-pro: #5b2a99;
+	--du-pro-wash: #efe7fb;
+
 	/* The room between two blocks. It is a token and not a number typed into
 	   each piece because that is how it went wrong: the group of cards
 	   carried no margin at all, the field under it carried none on top, and
@@ -1253,6 +1258,8 @@
 	display: block; height: 72px; margin-bottom: 10px; border-radius: 3px;
 	border: 1px solid #dcdcde; background: #fff;
 }
+/* A shape an add-on offered and is not here to draw: chosen, and no picture. */
+.diluxone-users-templates__art--kept { border-style: dashed; background: #f6f7f7; }
 .diluxone-users-templates__art--plain {
 	background:
 		linear-gradient(#f0f0f1 0 18px, transparent 18px 20px),
@@ -1522,6 +1529,7 @@ span.diluxone-users-state {
 .diluxone-users-state--pending { background: #fdf0d5; color: #7a5200; }
 .diluxone-users-state--off     { background: #f0f0f1; color: #50575e; }
 .diluxone-users-state--unknown { background: #e3edf7; color: #1d4f80; }
+.diluxone-users-state--pro     { background: var(--du-pro-wash, #efe7fb); color: var(--du-pro, #5b2a99); }
 .diluxone-users-state__why { color: #50575e; }
 
 /* ── The status strip every screen opens with ────────────────────────────
@@ -1681,3 +1689,38 @@ span.diluxone-users-state {
 
    Nothing goes below this line. */
 .diluxone-users-admin [hidden] { display: none; }
+
+/* ── Users+ Pro, where it belongs ────────────────────────────────────────
+   A part of a screen Pro brings is drawn as a picture of itself: the real
+   pieces, blurred and out of reach, with the badge, a line and the way out
+   on top. The blur is the one DiluxOne's other plugins use for "not here
+   yet", so the family says it the same way. */
+.du-pro { position: relative; margin: 0 0 var(--du-block); }
+.du-pro__picture {
+	filter: blur( 4px );
+	opacity: .45;
+	pointer-events: none;
+	user-select: none;
+}
+.du-pro__over {
+	position: absolute; inset: 0; z-index: 2;
+	display: flex; flex-direction: column; align-items: center; justify-content: center;
+	gap: var(--du-2); padding: var(--du-4); text-align: center;
+}
+.du-pro__head, .du-pro__says, .du-pro__go { margin: 0; }
+.du-pro__title { font-size: var(--du-title); font-weight: 600; color: var(--du-text); }
+.du-pro__says { max-width: 46ch; font-size: var(--du-help); font-weight: 600; color: var(--du-text); }
+
+/* The blur is decorative; without it the dimming still says "not here". */
+@media ( prefers-reduced-motion: reduce ) {
+	.du-pro__picture { filter: none; opacity: .35; }
+}
+
+/* A Pro answer after the real ones: a card with no control in it. */
+.du-pro-card {
+	display: flex; flex-direction: column; gap: var(--du-2);
+	margin: 0 0 var(--du-3); padding: var(--du-4);
+	border: 1px dashed var(--du-line); border-radius: var(--du-radius);
+	background: var(--du-ground-alt);
+}
+.du-pro-card .du-pro__says { max-width: none; font-weight: 400; color: var(--du-muted); }

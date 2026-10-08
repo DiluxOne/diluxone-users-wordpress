@@ -83,7 +83,7 @@ class SettingsFileTest extends IntegrationTestCase {
 				array(
 					'diluxone_users_fields' => array(
 						array(
-							'key'     => 'diluxone_users_x',
+							'key'     => 'diluxone_users_field_x',
 							'label'   => 'X',
 							'type'    => array( 'a' ),
 							'options' => array( 'one', array( 'two' ) ),
@@ -105,7 +105,7 @@ class SettingsFileTest extends IntegrationTestCase {
 
 		$fields = diluxone_users_fields( '', false );
 
-		$this->assertSame( array( 'diluxone_users_x' ), wp_list_pluck( $fields, 'key' ) );
+		$this->assertSame( array( 'diluxone_users_field_x' ), wp_list_pluck( $fields, 'key' ) );
 		$this->assertSame( 'text', $fields[0]['type'] );
 		$this->assertSame( array( 'one' ), $fields[0]['options'] );
 	}
@@ -278,7 +278,10 @@ class SettingsFileTest extends IntegrationTestCase {
 	/** @return array<string, array{0: string, 1: callable, 2: mixed}> */
 	public static function enums(): array {
 		return array(
-			'the sign-in shape'   => array( 'diluxone_users_login_template', 'diluxone_users_login_template', 'plain' ),
+			// A shape nothing offers is read as the card: the closest one of
+			// the plugin's own that still takes the page over, which is what a
+			// shape an add-on stored did (see UnknownChoiceTest).
+			'the sign-in shape'   => array( 'diluxone_users_login_template', 'diluxone_users_login_template', 'card' ),
 			'the account shape'   => array( 'diluxone_users_account_template', 'diluxone_users_account_template', 'plain' ),
 			'the menu style'      => array( 'diluxone_users_account_nav_style', 'diluxone_users_account_nav_style', 'pills' ),
 			'the menu alignment'  => array( 'diluxone_users_account_nav_align', 'diluxone_users_account_nav_align', 'start' ),

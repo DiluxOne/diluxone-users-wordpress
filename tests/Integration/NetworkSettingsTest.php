@@ -169,7 +169,7 @@ class NetworkSettingsTest extends IntegrationTestCase {
 
 		$this->assertSame( array( 'network-activity', 'logging' ), array_keys( diluxone_users_panels( DILUXONE_USERS_REPORTS ) ), 'Every site’s rows, and the rules' );
 		$this->assertContains( '2fa', array_keys( diluxone_users_panels( DILUXONE_USERS_SECURITY ) ) );
-		$this->assertSame( array( 'network', 'uninstall' ), array_keys( diluxone_users_panels( DILUXONE_USERS_MENU ) ) );
+		$this->assertSame( array( 'network', 'previews', 'uninstall' ), array_keys( diluxone_users_panels( DILUXONE_USERS_MENU ) ) );
 	}
 
 	public function test_a_link_to_a_screen_goes_where_the_screen_is(): void {

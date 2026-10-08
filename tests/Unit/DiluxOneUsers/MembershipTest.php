@@ -40,7 +40,7 @@ class MembershipTest extends TestCase {
 	 * @dataProvider storedPolicies
 	 * @param mixed $stored
 	 */
-	public function test_a_stored_policy_is_one_of_three_and_every_site_otherwise( $stored, string $policy ): void {
+	public function test_a_stored_policy_is_one_of_three_and_the_hub_only_otherwise( $stored, string $policy ): void {
 		$this->assertSame( $policy, diluxone_users_membership_policy( $stored ) );
 	}
 
@@ -50,11 +50,14 @@ class MembershipTest extends TestCase {
 			'whoever asks'         => array( 'click', 'click' ),
 			'by invitation'        => array( 'invite', 'invite' ),
 			'never written'        => array( null, 'all' ),
-			'nothing'              => array( '', 'all' ),
-			'something else'       => array( 'everybody', 'all' ),
-			'in capitals'          => array( 'CLICK', 'all' ),
-			'a number'             => array( 1, 'all' ),
-			'a list'               => array( array( 'click' ), 'all' ),
+			// Anything else — a policy an add-on offered and is not running to
+			// apply, a value nobody chose — is the hub only: never every site,
+			// which would queue every account onto every site by accident.
+			'nothing'              => array( '', 'hub' ),
+			'something else'       => array( 'everybody', 'hub' ),
+			'in capitals'          => array( 'CLICK', 'hub' ),
+			'a number'             => array( 1, 'hub' ),
+			'a list'               => array( array( 'click' ), 'hub' ),
 		);
 	}
 

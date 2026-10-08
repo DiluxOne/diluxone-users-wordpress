@@ -598,6 +598,19 @@ function diluxone_users_ui_choice( array $choice ): void {
 	if ( $disabled ) {
 		$classes[] = 'is-locked';
 	}
+
+	/*
+	 * An unticked box sends nothing, which a save cannot tell from a box that
+	 * was never drawn. So a box says it was there, and a save that writes only
+	 * what its screen drew (diluxone_users_panel_drawn()) reads the absence
+	 * of a tick as "unticked" only when the box was on the screen.
+	 */
+	if ( 'checkbox' === $type ) {
+		printf(
+			'<input type="hidden" name="diluxone_users_panel_drawn[]" value="%s">',
+			esc_attr( (string) strtok( (string) $choice['name'], '[' ) )
+		);
+	}
 	?>
 	<label class="<?php echo esc_attr( implode( ' ', $classes ) ); ?>">
 		<input
@@ -622,6 +635,73 @@ function diluxone_users_ui_choice( array $choice ): void {
 				<span class="du-choice__help"><?php echo wp_kses_post( (string) $choice['help'] ); ?></span>
 			<?php endif; ?>
 		</span>
+	</label>
+	<?php
+}
+
+/**
+ * A stored choice nothing offers today, as one more answer beside the real ones.
+ *
+ * An add-on offered it, the site chose it, and the add-on is not running now.
+ * The choice is not thrown away — on the front end the plugin uses the
+ * closest answer of its own in its place — and the screen does not pretend it
+ * is one of its own either: it shows it as what it is, chosen and doing
+ * nothing, after the answers that work. A radio stays chosen, and is sent as
+ * it is, until somebody picks another answer
+ * (diluxone_users_choice_kept() keeps it on the way in). A tick box is a list
+ * entry the save keeps by itself, so it is drawn ticked and switched off.
+ *
+ * @param string $name    The control's name, as the real answers have it.
+ * @param string $value   What is stored.
+ * @param string $instead What the site gets in its place today, in a few words.
+ * @param string $type    'radio' or 'checkbox'.
+ * @return array<string, mixed> A choice for diluxone_users_ui_choices().
+ */
+function diluxone_users_ui_kept( string $name, string $value, string $instead, string $type = 'radio' ): array {
+	return array(
+		'type'     => 'checkbox' === $type ? 'checkbox' : 'radio',
+		'name'     => $name,
+		'value'    => $value,
+		'checked'  => true,
+		'disabled' => 'checkbox' === $type,
+		'title'    => __( 'Your Pro choice (inactive)', 'diluxone-users' ),
+		'help'     => diluxone_users_ui_kept_says( $value, $instead ),
+	);
+}
+
+/**
+ * What that choice says about itself.
+ *
+ * @param string $value   What is stored.
+ * @param string $instead What the site gets in its place today.
+ */
+function diluxone_users_ui_kept_says( string $value, string $instead ): string {
+	return sprintf(
+		/* translators: 1: the stored choice, as a word in code, 2: what the site gets in its place today */
+		__( 'Chosen while an add-on that is not active now offered it (%1$s). Until it is back, this site gets %2$s instead. It stays chosen until you pick another answer.', 'diluxone-users' ),
+		'<code>' . esc_html( $value ) . '</code>',
+		esc_html( $instead )
+	);
+}
+
+/**
+ * The same, as one more card of a grid of shapes.
+ *
+ * The sign-in page and the account area are chosen from pictures, not from
+ * a list, so the choice nothing offers today takes a card of its own at the
+ * end of the grid: chosen, with no picture, saying what the site gets.
+ *
+ * @param string $name    The radio's name.
+ * @param string $value   What is stored.
+ * @param string $instead What the site gets in its place today.
+ */
+function diluxone_users_ui_kept_card( string $name, string $value, string $instead ): void {
+	?>
+	<label class="diluxone-users-templates__one is-chosen">
+		<input type="radio" name="<?php echo esc_attr( $name ); ?>" value="<?php echo esc_attr( $value ); ?>" checked>
+		<span class="diluxone-users-templates__art diluxone-users-templates__art--kept" aria-hidden="true"></span>
+		<span class="diluxone-users-templates__name"><?php esc_html_e( 'Your Pro choice (inactive)', 'diluxone-users' ); ?></span>
+		<span class="diluxone-users-templates__help"><?php echo wp_kses( diluxone_users_ui_kept_says( $value, $instead ), array( 'code' => array() ) ); ?></span>
 	</label>
 	<?php
 }
@@ -1657,4 +1737,157 @@ function diluxone_users_ui_needs_one( array $chosen, string $complaint ): bool {
 	diluxone_users_notice( $complaint, 'error' );
 
 	return false;
+}
+
+/* ── Users+ Pro, where it belongs ──────────────────────────────────── */
+
+/**
+ * Whether a Pro preview is drawn here.
+ *
+ * Only on the plugin's own screens, only to whoever administers them, and
+ * only while the site — the network, on one — has not turned the previews
+ * off. Never on the front end: a visitor has nothing to buy here. Each place
+ * asks the filter on its own, so Users+ Pro turns off the placeholder of each
+ * feature it brings, and a site turns off any of them, or all.
+ *
+ * @param string $where Which placeholder: the screen, the tab and the feature, e.g. 'design/login/shapes'.
+ */
+function diluxone_users_pro_shown( string $where ): bool {
+	if ( ! is_admin() || ! current_user_can( diluxone_users_admin_cap() ) || ! diluxone_users_option( 'diluxone_users_pro_previews' ) ) {
+		return false;
+	}
+
+	/**
+	 * Filters whether one Pro placeholder is drawn.
+	 *
+	 * Users+ Pro answers false for each feature it draws for real. A site
+	 * that wants none of them answers false for all, or unticks the setting.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param bool   $show  Whether to draw it.
+	 * @param string $where Which placeholder.
+	 */
+	return (bool) apply_filters( 'diluxone_users_upsell', true, $where );
+}
+
+/**
+ * Where "Learn about Users+ Pro" goes, saying which screen it came from.
+ *
+ * @param string $screen The screen the link is on: it becomes the campaign's medium.
+ */
+function diluxone_users_pro_url( string $screen ): string {
+	return add_query_arg(
+		array(
+			'utm_source'   => 'diluxone-users',
+			'utm_medium'   => sanitize_key( $screen ),
+			'utm_campaign' => 'free',
+		),
+		'https://diluxone.com/users-pro/'
+	);
+}
+
+/**
+ * The markup a preview may hold: the plugin's own, with nothing that sends.
+ *
+ * A preview is drawn inside the screen's form, and `inert` stops a pointer
+ * and a keyboard but not a form: a control with a name in there would be
+ * posted with the save. So no control in a preview has a name, or a form to
+ * belong to, whatever the piece that drew it put on it.
+ *
+ * @return array<string, array<string, bool>>
+ */
+function diluxone_users_pro_allowed_html(): array {
+	$allowed = diluxone_users_allowed_html();
+
+	foreach ( $allowed as $tag => $attributes ) {
+		unset( $attributes['name'], $attributes['form'], $attributes['formaction'] );
+		$allowed[ $tag ] = $attributes;
+	}
+
+	unset( $allowed['form'] );
+
+	return $allowed;
+}
+
+/**
+ * The badge, the line and the way out a Pro placeholder carries.
+ *
+ * @param array<string, mixed> $args where, screen, text and optionally title.
+ */
+function diluxone_users_ui_pro_says( array $args ): void {
+	$title = (string) ( $args['title'] ?? '' );
+
+	echo '<p class="du-pro__head">';
+
+	if ( '' !== $title ) {
+		printf( '<span class="du-pro__title">%s</span> ', esc_html( $title ) );
+	}
+
+	echo wp_kses( diluxone_users_state_pill( 'pro' ), diluxone_users_allowed_html() );
+	echo '</p>';
+
+	if ( ! empty( $args['text'] ) ) {
+		printf( '<p class="du-pro__says">%s</p>', esc_html( (string) $args['text'] ) );
+	}
+
+	printf(
+		'<p class="du-pro__go"><a class="button button-primary" href="%1$s" target="_blank" rel="noopener noreferrer">%2$s<span class="screen-reader-text"> %3$s</span></a></p>',
+		esc_url( diluxone_users_pro_url( (string) ( $args['screen'] ?? '' ) ) ),
+		esc_html__( 'Learn about Users+ Pro', 'diluxone-users' ),
+		/* translators: Accessibility text. */
+		esc_html__( '(opens in a new tab)', 'diluxone-users' )
+	);
+}
+
+/**
+ * A part of a screen that Users+ Pro brings, as a picture of itself.
+ *
+ * Drawn where the feature would be, with the pieces the screen is made of —
+ * `$preview` prints it with the same helpers the real screen uses — and then
+ * made into a picture: blurred, out of reach of a pointer, a keyboard and a
+ * screen reader (`inert`, `aria-hidden`), and with no control in it that
+ * sends anything. Over it, the badge, one line about what it adds and the way
+ * to diluxone.com. It holds no Pro code and no Pro value: what is drawn is
+ * made up for the picture.
+ *
+ * @param array<string, mixed> $args    where (the filter's id), screen (the
+ *                                      link's medium), text (what it adds,
+ *                                      in a line) and optionally title.
+ * @param callable             $preview Prints the picture.
+ */
+function diluxone_users_ui_pro( array $args, callable $preview ): void {
+	if ( ! diluxone_users_pro_shown( (string) ( $args['where'] ?? '' ) ) ) {
+		return;
+	}
+
+	ob_start();
+	call_user_func( $preview );
+	$picture = (string) ob_get_clean();
+
+	printf( '<div class="du-pro" data-diluxone-users-pro="%s">', esc_attr( (string) ( $args['where'] ?? '' ) ) );
+	echo '<div class="du-pro__picture" inert aria-hidden="true">' . wp_kses( $picture, diluxone_users_pro_allowed_html() ) . '</div>';
+	echo '<div class="du-pro__over">';
+	diluxone_users_ui_pro_says( $args );
+	echo '</div></div>';
+}
+
+/**
+ * A Pro answer, as a card of its own after the real ones.
+ *
+ * Never a padlocked option inside a group that works: an answer that cannot
+ * be picked among answers that can is a control that lies about itself, and
+ * a keyboard lands on it. So it sits after the group, a card with no control
+ * in it, saying what it is and where to learn about it.
+ *
+ * @param array<string, mixed> $args where, screen, title and text.
+ */
+function diluxone_users_ui_pro_card( array $args ): void {
+	if ( ! diluxone_users_pro_shown( (string) ( $args['where'] ?? '' ) ) ) {
+		return;
+	}
+
+	printf( '<div class="du-pro-card" data-diluxone-users-pro="%s">', esc_attr( (string) ( $args['where'] ?? '' ) ) );
+	diluxone_users_ui_pro_says( $args );
+	echo '</div>';
 }

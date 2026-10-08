@@ -208,7 +208,66 @@ function diluxone_users_sso_providers(): array {
 	/**
 	 * Filters the social-login providers.
 	 *
+	 * A row has the fields listed above. One that leaves some out gets them
+	 * filled in (see diluxone_users_sso_provider_row()), so a provider added
+	 * with a missing key is a provider that does not work, never a fatal
+	 * error on the sign-in page.
+	 *
 	 * @param array<string, array<string, mixed>> $providers
 	 */
-	return apply_filters( 'diluxone_users_sso_providers', $providers );
+	$providers = (array) apply_filters( 'diluxone_users_sso_providers', $providers );
+	$rows      = array();
+
+	foreach ( $providers as $id => $row ) {
+		if ( is_string( $id ) && '' !== $id && is_array( $row ) ) {
+			$rows[ $id ] = diluxone_users_sso_provider_row( $id, $row );
+		}
+	}
+
+	return $rows;
+}
+
+/**
+ * One provider's row, with every field the engine reads.
+ *
+ * The engine reads each of them without asking: the extra parameters are
+ * merged into the address, the map is called on the profile. A row from a
+ * filter that left one out, or gave a list where a word goes, used to stop
+ * the request there. Each field gets a value of the type it is read as; the
+ * map falls back to the OpenID Connect one, which is what a provider that
+ * says nothing about its profile most likely speaks.
+ *
+ * @param string               $id  The provider's id.
+ * @param array<string, mixed> $row What was registered.
+ * @return array<string, mixed>
+ */
+function diluxone_users_sso_provider_row( string $id, array $row ): array {
+	$row = wp_parse_args(
+		$row,
+		array(
+			'name'      => $id,
+			'color'     => '',
+			'authorize' => '',
+			'token'     => '',
+			'profile'   => '',
+			'scope'     => '',
+			'extra'     => array(),
+			'pkce'      => false,
+			'map'       => 'diluxone_users_sso_map_oidc',
+			'console'   => '',
+			'guide'     => '',
+		)
+	);
+
+	foreach ( array( 'name', 'color', 'authorize', 'token', 'profile', 'scope', 'console', 'guide' ) as $word ) {
+		$row[ $word ] = is_scalar( $row[ $word ] ) ? (string) $row[ $word ] : '';
+	}
+
+	// A provider is called something: its id, when what it said is no name.
+	$row['name']  = '' !== $row['name'] ? $row['name'] : $id;
+	$row['extra'] = is_array( $row['extra'] ) ? $row['extra'] : array();
+	$row['pkce']  = (bool) $row['pkce'];
+	$row['map']   = is_callable( $row['map'] ) ? $row['map'] : 'diluxone_users_sso_map_oidc';
+
+	return $row;
 }

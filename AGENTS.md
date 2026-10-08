@@ -102,6 +102,7 @@ a change:
 - **The plugin knows nothing about other plugins.** What belongs to a course,
   a membership or a forum enters through a filter or a shortcode
   ([`docs/architecture.md`](docs/architecture.md)).
+- **Its own Pro add-on is the one exception, and only as advertising.** The free plugin may show a Pro preview (`diluxone_users_ui_pro()`, off with one setting) where a Pro feature belongs, but ships no Pro code and names no Pro setting; Pro enters through the public hooks ([`docs/roadmap.md`](docs/roadmap.md#free-and-pro)).
 - **What an administrator turns off disappears from the front end**, and
   anything shown to a person is true for every way in the site left open.
 - **Every user-facing string** goes through a translation function with the
@@ -131,5 +132,6 @@ a change:
 | Which test covers which feature | [`tests/e2e/COVERAGE.md`](tests/e2e/COVERAGE.md) |
 | Branches, titles, pull requests, forks, the review | [`CONTRIBUTING.md`](CONTRIBUTING.md) |
 | Versions, the first submission, the release after it | [`docs/release.md`](docs/release.md) |
+| What comes next and what the plugin will not do | [`docs/roadmap.md`](docs/roadmap.md) |
 | How AI is used here and the rules for AI-assisted work | [`docs/ai.md`](docs/ai.md) |
 | The shared workflows, policy and review profiles | [DiluxOne/.github](https://github.com/DiluxOne/.github) |

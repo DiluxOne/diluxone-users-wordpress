@@ -226,10 +226,10 @@ class HooksTest extends IntegrationTestCase {
 
 	}
 
-	/** `diluxone_users_login_templates`: an add-on's shape is honoured; one nobody registered is the plain one. */
+	/** `diluxone_users_login_templates`: an add-on's shape is honoured; with the add-on gone, the card stands in. */
 	public function test_a_sign_in_shape_an_add_on_adds_is_honoured(): void {
 		diluxone_users_update_option( 'diluxone_users_login_template', 'carousel' );
-		$this->assertSame( 'plain', diluxone_users_login_template() );
+		$this->assertSame( 'card', diluxone_users_login_template() );
 
 		$this->hook( 'diluxone_users_login_templates', static fn( array $shapes ): array => $shapes + array( 'carousel' => array( 'label' => 'Carousel' ) ) );
 		$this->assertSame( 'carousel', diluxone_users_login_template() );
