@@ -6,6 +6,12 @@
 # organisation's pack for it (DiluxOne/.github, kinds/wordpress-plugin/).
 kind: wordpress-plugin
 
+# The paid add-on plans in a private repository; the issue triage reads its
+# roadmap to classify a request and never quotes it.
+paid-roadmap:
+  repository: DiluxOne/diluxone-users-pro-wordpress
+  path: docs/roadmap.md
+
 # Code where a mistake lets the wrong person in, locks the right one out,
 # leaks somebody's data or breaks every site: always high risk, always a
 # human merge.

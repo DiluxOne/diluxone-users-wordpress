@@ -1,0 +1,66 @@
+name: Plugin checks
+
+# The checks of DiluxOne Users+ (wordpress.org slug diluxone-users), from the
+# shared workflows in DiluxOne/.github: the fast quality gates and the slow
+# wp-env suites, on every pull request, on a push to main, once a week and by
+# hand. The conventions, the accepted-issue gate, the Claude review and the
+# auto-merge decision are the organisation's (org-pull-request.yml, required
+# by its ruleset): nothing of them here. A push to main runs the suites only
+# when its tree is not the one the pull request's checks ran on; a scheduled
+# failure opens one ci:weekly issue.
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+  push:
+    branches: [main]
+  schedule:
+    - cron: '17 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    permissions:
+      contents: read
+      pull-requests: read # the push to main looks up the pull request it came from
+      checks: read # and the checks of its head
+    uses: DiluxOne/.github/.github/workflows/plugin-checks-wp.yml@v5
+    with:
+      slug: diluxone-users
+      main-file: diluxone-users.php
+      version-constant: DILUXONE_USERS_VERSION
+      # From Requires PHP (8.0) to the latest.
+      php-versions: '["8.0","8.1","8.2","8.3","8.4","8.5"]'
+      # The eight locales the plugin ships are complete, and the admin's
+      # scripts are analysed.
+      translations-complete: true
+      codeql-languages: javascript-typescript
+
+  tests:
+    permissions:
+      contents: read
+      pull-requests: read
+      checks: read
+    uses: DiluxOne/.github/.github/workflows/plugin-tests-wp.yml@v5
+    # Every layer on a single site and on a network, one check each: the
+    # plugin behaves differently on a network (the hub, membership, the
+    # network's settings), so neither run stands in for the other. The visual
+    # suites stay local (`make test-visual`, `make test-visual-network`):
+    # their pictures are taken on the maintainer's machine, and fonts differ
+    # on the CI image.
+    with:
+      integration-targets: '["single","network"]'
+      e2e-suites: >-
+        [{"name":"single","site":"single","run":"npx playwright test","timeout":90},
+         {"name":"network","site":"network","run":"npx playwright test -c playwright.network.config.ts","results":"build/e2e-network-results","timeout":60}]
+
+  weekly-failure:
+    needs: [checks, tests]
+    if: ${{ !cancelled() && github.event_name == 'schedule' && contains(needs.*.result, 'failure') }}
+    permissions:
+      contents: read
+      issues: write
+    uses: DiluxOne/.github/.github/workflows/weekly-failure.yml@v5
