@@ -1062,6 +1062,70 @@ well.
   about a person is erased only when it is on this list. WordPress's own keys
   are never erased, whatever the list says.
 
+## Functions an add-on may call
+
+The hooks above are the way in; these are the functions an add-on calls once it is in. They are public API like the hooks: their names and signatures stay, and a change to one is a breaking change of the plugin. Anything else in `includes/` is the plugin's own and may change in any version.
+
+**Whether the plugin is on, and where a setting lives**
+
+| Function | What it answers |
+| --- | --- |
+| `diluxone_users_awake(): bool` | Whether the plugin is working here: on a network, only when it is on for the whole network. Load nothing of yours while it is false. |
+| `diluxone_users_admin_owns( string $scope, string $context = '' ): bool` | Whether a setting of that scope (`network`, `hub`, `site`) is set from where the admin is being looked at (the current context when left out). |
+| `diluxone_users_hub_image_url( int $id, string $size ): string` | The address of a media-library picture stored by the hub, from any site of the network. |
+
+**The admin's pieces** (the same ones the plugin's screens use, so a screen of yours looks like the rest)
+
+| Function | What it draws |
+| --- | --- |
+| `diluxone_users_ui_text( array $field ): void` | A text box: `label`, `id`, `name`, `value`, optional `help`, `placeholder`, `required`, `code`. |
+| `diluxone_users_ui_number( array $field ): void` | A number box: `label`, `name`, `value`, optional `id`, `suffix`, `help`, `min`, `max`, `step`. |
+| `diluxone_users_ui_field_open( string $label, string $target = '' ): void` / `diluxone_users_ui_field_close( string $help = '' ): void` | The frame around a control of your own, with its label and help. |
+| `diluxone_users_panel_allowed(): void` | Stops a panel's save that is not allowed here (capability, and the screen's scope); call it after the nonce, first thing. |
+| `diluxone_users_scope_control( string $prefix, string $help = '', string $spared = '' ): void` | The "everybody / only some roles" picker of a setting pair `{prefix}_scope` and `{prefix}_roles`. |
+| `diluxone_users_scope_posted( string $prefix, string $screen ): array` | That pair, read from the request the picker posted, ready for `diluxone_users_save_options()`. |
+
+**Who a setting applies to**
+
+| Function | What it answers |
+| --- | --- |
+| `diluxone_users_scope( string $prefix ): string` | `all` or `some`, for a `{prefix}_scope` / `{prefix}_roles` pair. |
+| `diluxone_users_scope_includes( int $user_id, string $prefix ): bool` | Whether that person is in it, by any of their roles (on a network, on any of their sites). |
+
+**Signing in and the second step**
+
+| Function | What it does |
+| --- | --- |
+| `diluxone_users_register_way( string $id, array $way ): void` | Registers a way in (see "Ways in"). |
+| `diluxone_users_2fa_methods(): array` | The second-step methods there are, the plugin's and the add-ons', as ticked on the screen. |
+| `diluxone_users_2fa_offered( int $user_id ): bool` | Whether the site offers that person a second step at all. |
+| `diluxone_users_2fa_forget_browsers( int $user_id ): void` | Forgets every browser that person's second step trusted; call it when a factor of theirs is removed. |
+| `diluxone_users_backup_left( int $user_id ): int` | How many backup codes that person has left. |
+| `diluxone_users_backup_generate( int $user_id, int $many = 8 ): array` / `diluxone_users_backup_stash( int $user_id, array $codes ): void` | A fresh set of backup codes (stored hashed), and the one-minute window in which they can still be shown. |
+| `diluxone_users_security_confirm( int $user_id, string $code, string $target ): void` | Stops an action that weakens an account unless a current second-step code came with it; sends the person back to `$target` and does not return when it did not. |
+| `diluxone_users_cookie_set( string $name, string $value, int $expires ): void` | Sets a cookie with the plugin's path, domain and flags, the same on every site of a network. |
+
+**The account area and the network**
+
+| Function | What it does |
+| --- | --- |
+| `diluxone_users_register_section( string $id, array $args ): void` | Registers a section (see "Account area sections"). |
+| `diluxone_users_sections( bool $all = false ): array` | The sections, sorted, with what the administrator decided; `$all` includes the ones turned off. |
+| `diluxone_users_account_template(): string` / `diluxone_users_login_template(): string` | The account area's and the sign-in page's shape, as stored (see "Shapes"). |
+| `diluxone_users_membership_may_join( int $user_id, int $site_id ): bool` | Whether that person may be added to that site: not a super admin, not closed, the site live, not removed by an administrator. |
+| `diluxone_users_membership_add( int $user_id, int $site_id, string $how ): bool` | Adds them with the site's role, through the same checks; `$how` is what made it (`click` for a person who asked). |
+
+**Colours**
+
+| Function | What it answers |
+| --- | --- |
+| `diluxone_users_style_accent(): string` | The accent in use, as a hex colour. |
+| `diluxone_users_theme_palette(): array` | The active theme's palette, `slug => hex`. |
+| `diluxone_users_color_roles(): array` | The roles a colour plays (accent, text, ground…), `role => array( name, paints )`. |
+| `diluxone_users_color_map(): array` | Which colour of the theme's palette plays each role, `role => slug`: guessed from the palette's names, or as an add-on set it through the filter. |
+| `diluxone_users_color_own(): array` | The colours the plugin paints each role with when the site chose its own look, `role => hex`. |
+| `diluxone_users_palette_has( array $palette, string $hex ): bool` | Whether a colour is one of a short palette's. |
+
 ## Users+ Pro on these screens
 
 Where a feature of DiluxOne Users+ Pro would go, the plugin's screens draw a
