@@ -314,7 +314,9 @@ function diluxone_users_log_has_rows(): bool {
  * over FTP or over git fires no activation hook, and a site that updated that
  * way would be writing into a table that is a version behind. Neither exists
  * before an administrator ticks a group to record. The check is one option read, and the option does not autoload, so
- * the cost of asking is a cached query on dashboard requests only.
+ * the cost of asking is a cached query on dashboard requests only; while the
+ * log is off and a table from before is still there, one `SELECT 1 … LIMIT 1`
+ * more, until its rows age out and the purge stops.
  *
  * Where the table is the network's, so is the purge: one event, on the main
  * site, for every row. Another site that still has the event it had when its
