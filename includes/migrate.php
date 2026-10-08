@@ -102,12 +102,13 @@ function diluxone_users_network_secret_keys(): array {
 /**
  * Whether the network's settings are already where they belong.
  *
- * Also when the install started on settled defaults: a network that never
- * ran an older version has nothing on its sites to move.
+ * A network that never ran an older version has nothing on its sites to
+ * move: settling its defaults records the move as done
+ * (diluxone_users_defaults_settle()). A single site that settled and is made a
+ * network later did not, and moves its settings like any other.
  */
 function diluxone_users_network_migrated(): bool {
-	return (int) diluxone_users_raw_get( DILUXONE_USERS_NETWORK_VERSION_OPTION, 0 ) >= DILUXONE_USERS_NETWORK_VERSION
-		|| diluxone_users_defaults_settled();
+	return (int) diluxone_users_raw_get( DILUXONE_USERS_NETWORK_VERSION_OPTION, 0 ) >= DILUXONE_USERS_NETWORK_VERSION;
 }
 
 /**
@@ -524,7 +525,12 @@ function diluxone_users_defaults_settle(): void {
 		return;
 	}
 
-	if ( diluxone_users_ran_before() ) {
+	if ( ! diluxone_users_ran_before() ) {
+		// A new network has no site holding settings to move.
+		if ( diluxone_users_scoped_storage_active() ) {
+			diluxone_users_update_option( DILUXONE_USERS_NETWORK_VERSION_OPTION, DILUXONE_USERS_NETWORK_VERSION );
+		}
+	} else {
 		if ( diluxone_users_scoped_storage_active()
 			&& ( (int) diluxone_users_raw_get( DILUXONE_USERS_NETWORK_VERSION_OPTION, 0 ) < DILUXONE_USERS_NETWORK_VERSION
 				|| (int) diluxone_users_raw_get( 'diluxone_users_log_moved', 0 ) < 1 ) ) {

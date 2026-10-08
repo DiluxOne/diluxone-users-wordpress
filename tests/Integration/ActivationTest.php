@@ -272,6 +272,28 @@ class ActivationTest extends IntegrationTestCase {
 		);
 	}
 
+	/**
+	 * A new network records its move as done when it settles; a settled
+	 * install is not, by that alone, a moved one: a single site made a network
+	 * later still moves its settings.
+	 */
+	public function test_settling_a_new_network_records_the_move_and_settling_alone_does_not(): void {
+		$this->without(
+			array_merge( $this->every_setting(), array( 'diluxone_users_network_version' ) ),
+			function (): void {
+				diluxone_users_update_option( DILUXONE_USERS_DEFAULTS_VERSION_OPTION, DILUXONE_USERS_DEFAULTS_VERSION );
+
+				$this->assertFalse( diluxone_users_network_migrated(), 'settled is not moved' );
+
+				diluxone_users_delete_option( DILUXONE_USERS_DEFAULTS_VERSION_OPTION );
+				diluxone_users_defaults_settle();
+
+				$this->assertTrue( diluxone_users_defaults_settled() );
+				$this->assertSame( is_multisite(), diluxone_users_network_migrated(), 'a new network has nothing to move; a single site moves when it becomes one' );
+			}
+		);
+	}
+
 	public function test_wordpress_own_fields_are_put_back_in_front_of_the_sites_own(): void {
 		$team = array(
 			'key'   => 'diluxone_users_team',
