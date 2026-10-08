@@ -27,7 +27,7 @@ The checks run from the shared workflows in [`DiluxOne/.github`](https://github.
 | Listing screenshots | Playwright (`listing` project) | Not a check: retakes the pictures wordpress.org shows. | `make screenshots` |
 | Coverage | PCOV + phpcov (unit, integration on both topologies, merged); a script for the browser suites | Lines, functions and classes per file of `includes/` and `templates/` no test runs; a screen, tab, shortcode, action, address, command or template no spec walks. | `make coverage`, `make coverage-e2e-map` |
 | JS supply chain | CodeQL (JS) | Common JS vulnerability patterns in the admin and front-end scripts. | (runs on PR) |
-| Claude review | shared `claude-review` workflow | Everything in [`architecture.md`](architecture.md) and the organisation's WordPress review profile; rates risk and complexity. | (runs on PR) |
+| Claude review | the organisation's pipeline (`org-pull-request.yml`) | Everything in [`architecture.md`](architecture.md) and the organisation's WordPress review profile; rates risk and complexity. | (runs on PR) |
 
 ## The rule: tests at every layer a change touches
 
