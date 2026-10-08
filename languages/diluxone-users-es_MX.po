@@ -2532,12 +2532,8 @@ msgid "Or use:"
 msgstr "O usa:"
 
 #: includes/auth-wp-login.php:104 templates/login-2fa.php:93
-msgid ""
-"Lost the phone and the email? Use one of your backup codes: they go in the "
-"same box."
-msgstr ""
-"¿Has perdido el teléfono y el correo? Usa uno de tus códigos de respaldo: "
-"van en la misma caja."
+msgid "Can’t get a code? Use one of your backup codes: they go in the same box."
+msgstr "¿No te llega ningún código? Usa uno de tus códigos de respaldo: van en la misma casilla."
 
 #: includes/admin-login.php:1082 templates/login.php:42
 msgid "Check your email"

@@ -91,5 +91,5 @@ $diluxone_users_actual = $args['methods'][ $args['method'] ] ?? array(
 		</p>
 	<?php endif; ?>
 
-	<p class="diluxone-users-note"><?php esc_html_e( 'Lost the phone and the email? Use one of your backup codes: they go in the same box.', 'diluxone-users' ); ?></p>
+	<p class="diluxone-users-note"><?php esc_html_e( 'Can’t get a code? Use one of your backup codes: they go in the same box.', 'diluxone-users' ); ?></p>
 </div>

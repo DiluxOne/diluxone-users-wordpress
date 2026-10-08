@@ -100,7 +100,7 @@ function diluxone_users_2fa_wp_login(): void {
 				</p>
 			<?php endif; ?>
 
-			<p class="description"><?php esc_html_e( 'Lost the phone and the email? Use one of your backup codes: they go in the same box.', 'diluxone-users' ); ?></p>
+			<p class="description"><?php esc_html_e( 'Can’t get a code? Use one of your backup codes: they go in the same box.', 'diluxone-users' ); ?></p>
 
 			<?php
 			/** This action is documented in templates/login-2fa.php */

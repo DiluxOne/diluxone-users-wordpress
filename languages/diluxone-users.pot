@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-08T01:29:17+00:00\n"
+"POT-Creation-Date: 2026-10-08T04:01:16+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: diluxone-users\n"
@@ -5816,7 +5816,7 @@ msgstr ""
 
 #: includes/auth-wp-login.php:103
 #: templates/login-2fa.php:94
-msgid "Lost the phone and the email? Use one of your backup codes: they go in the same box."
+msgid "Can’t get a code? Use one of your backup codes: they go in the same box."
 msgstr ""
 
 #: includes/auth-wp-login.php:111
