@@ -26,11 +26,11 @@ suppressions:
     reason: "A GET parameter that only says which admin screen this is, so the plugin knows whether to look further; the action taken on that screen then verifies its own nonce and capability in the same function before it reads anything else, and nothing is written by this read."
   - file: includes/admin-account.php
     sniff: WordPress.Security.NonceVerification.Recommended
-    fingerprint: 123df5c62e32
+    fingerprint: 32af53153bfa
     reason: "A GET parameter that only chooses which fixed message to show after a redirect; it is sanitised and looked up in the plugin's own list of messages, nothing is written, and an unknown value shows nothing."
   - file: includes/admin-account.php
     sniff: WordPress.Security.NonceVerification.Recommended
-    fingerprint: 9616e128075a
+    fingerprint: f2961d00f5a2
     reason: "A GET parameter that only chooses what this screen draws (which section is being edited); it is sanitised, compared with what the screen offers, and nothing is written or acted on, so there is no request to forge."
   - file: includes/admin-fields.php
     sniff: WordPress.Security.NonceVerification.Recommended
