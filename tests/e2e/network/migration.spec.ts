@@ -1,4 +1,4 @@
-import { test, expect } from './support';
+import { test, expect, asOlderInstall } from './support';
 import { wp } from '../support/cli';
 import { NETWORK_ADMIN_STATE, NETWORK_URL } from '../../../playwright.network.config';
 import { navigated } from '../support/ui';
@@ -27,6 +27,7 @@ test('the main site’s values become the network’s, the differences are shown
 }) => {
 	// What the network has now is put back when the test ends.
 	await hub.keep([...MOVED, ...BOOKS]);
+	const older = await asOlderInstall(hub);
 
 	// Two sites that kept their own copies, and disagree about one of them.
 	wp(['option', 'update', 'diluxone_users_2fa_mode', 'required'], hub.url);
@@ -89,6 +90,8 @@ test('the main site’s values become the network’s, the differences are shown
 				// Already gone.
 			}
 		}
+
+		older();
 	}
 });
 
@@ -97,7 +100,8 @@ test('the main site’s values become the network’s, the differences are shown
  * network's: the rows arrive with their site, the old table goes, and a
  * second run has nothing to do.
  */
-test('each site’s old activity log moves into the network’s table, with its site, and the old table goes', async ({ page, beta }) => {
+test('each site’s old activity log moves into the network’s table, with its site, and the old table goes', async ({ page, hub, beta }) => {
+	const older = await asOlderInstall(hub);
 	const tag = `moved-${Date.now().toString(36)}`;
 	const prefix = wp(['eval', 'global $wpdb; echo $wpdb->prefix;'], beta.url).trim();
 	const betaId = wp(['eval', 'echo get_current_blog_id();'], beta.url).trim();
@@ -142,4 +146,5 @@ test('each site’s old activity log moves into the network’s table, with its 
 
 	// Done is done.
 	expect(wp(['diluxone-users', 'network', 'migrate'])).toContain('already in the network’s table');
+	older();
 });

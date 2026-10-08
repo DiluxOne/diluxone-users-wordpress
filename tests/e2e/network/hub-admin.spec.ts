@@ -1,4 +1,4 @@
-import { test, expect, SiteHandle } from './support';
+import { test, expect, SiteHandle, asOlderInstall } from './support';
 import { Site, freshEmail } from '../support/api';
 import { wp, PLUGIN_DIR } from '../support/cli';
 import { NETWORK_SCREENS } from '../support/screens';
@@ -150,6 +150,7 @@ test.describe('The move from per-site settings', () => {
 
 	test('a wipe the main site had ticked is not carried over: the network’s starts unticked, and the Overview says so', async ({ page, hub }) => {
 		await hub.keep(['diluxone_users_uninstall_wipe', ...BOOKS]);
+		const older = await asOlderInstall(hub);
 
 		wp(['option', 'update', 'diluxone_users_uninstall_wipe', '1'], hub.url);
 		forget(['diluxone_users_uninstall_wipe', ...BOOKS]);
@@ -171,11 +172,13 @@ test.describe('The move from per-site settings', () => {
 			await expect(page.locator('.diluxone-users-list tr').filter({ hasText: 'diluxone_users_uninstall_wipe' }), 'written down beside the rest').toHaveCount(1);
 		} finally {
 			dropCopy('diluxone_users_uninstall_wipe', hub);
+			older();
 		}
 	});
 
 	test('different credentials and a different field are written down by kind, and no secret is printed', async ({ page, hub, alpha }) => {
 		await hub.keep(['diluxone_users_sso', 'diluxone_users_fields', ...BOOKS]);
+		const older = await asOlderInstall(hub);
 
 		const mine = { mock: { active: 0, id: 'hub-id', secret: 'hub-secret-xyz' } };
 		const theirs = { mock: { active: 0, id: 'alpha-id', secret: 'alpha-secret-xyz' } };
@@ -204,11 +207,13 @@ test.describe('The move from per-site settings', () => {
 				dropCopy(key, hub);
 				dropCopy(key, alpha);
 			}
+			older();
 		}
 	});
 
 	test('a network that has not moved moves on the first page anybody opens, with no WP-CLI', async ({ page, hub, alpha }) => {
 		await hub.keep(['diluxone_users_session_long_days', ...BOOKS]);
+		const older = await asOlderInstall(hub);
 
 		wp(['option', 'update', 'diluxone_users_session_long_days', '23'], hub.url);
 		forget(['diluxone_users_session_long_days', ...BOOKS]);
@@ -220,6 +225,7 @@ test.describe('The move from per-site settings', () => {
 			expect(Number((await alpha.site.getOptions(['diluxone_users_session_long_days'])).diluxone_users_session_long_days), '/alpha/ reads the main site’s').toBe(23);
 		} finally {
 			dropCopy('diluxone_users_session_long_days', hub);
+			older();
 		}
 	});
 });

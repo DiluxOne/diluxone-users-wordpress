@@ -178,12 +178,15 @@ test.describe('A registration from somewhere else', () => {
 test.describe('The network’s fields: a name, and the rest suggested', () => {
 	test.use({ storageState: NETWORK_ADMIN_STATE });
 
-	test('a fresh network seeds the first and last name; suggested fields are added in Network Admin and reach /beta/', async ({ page, hub, beta }) => {
+	test('a fresh network reads the first and last name; suggested fields are added in Network Admin and reach /beta/', async ({ page, hub, beta }) => {
 		await hub.set({ diluxone_users_fields: null });
 
 		await page.goto(networkAdmin('diluxone-users-fields'));
 
-		const seeded = (await hub.site.getOptions(['diluxone_users_fields'])).diluxone_users_fields as Array<{ key: string; required: number | boolean }>;
+		// Opening the screen stores nothing: the starter list is a default, read.
+		expect((await hub.site.getOptions(['diluxone_users_fields'])).diluxone_users_fields, 'nothing written by looking').toBeNull();
+
+		const seeded = JSON.parse(wp(['eval', 'echo wp_json_encode( diluxone_users_fields_stored() );'])) as Array<{ key: string; required: number | boolean }>;
 
 		expect(seeded.map((one) => one.key)).toEqual(['first_name', 'last_name']);
 		expect(seeded.every((one) => !one.required)).toBe(true);

@@ -3,6 +3,7 @@ import type { Locator, Page } from '@playwright/test';
 import { test, expect, signInFrom, SiteHandle } from './support';
 import { freshEmail } from '../support/api';
 import { navigated } from '../support/ui';
+import { wp } from '../support/cli';
 import { Ops, siteScreen } from '../support/admin-ops';
 import { NETWORK_ADMIN_STATE } from '../../../playwright.network.config';
 
@@ -19,7 +20,6 @@ import { NETWORK_ADMIN_STATE } from '../../../playwright.network.config';
 test.use({ storageState: NETWORK_ADMIN_STATE });
 
 const PASSWORD = 'e2e-Net-Tools-1!';
-const VERSION = readFileSync('diluxone-users.php', 'utf8').match(/define\(\s*'DILUXONE_USERS_VERSION',\s*'([^']+)'/)![1];
 
 /** What a site that is not the hub decides for itself (options-scope.php's `site`). */
 const SITE_KEYS = [
@@ -54,7 +54,10 @@ test.describe('Status › Tools on a site of the network', () => {
 
 		await expect(page.locator('.notice-success')).toHaveCount(1);
 		expect(new URL(page.url()).pathname.startsWith(new URL(alpha.url).pathname)).toBe(true);
-		expect((await alpha.site.getOptions(['diluxone_users_rewrite_version'])).diluxone_users_rewrite_version).toBe(VERSION);
+		// The note is the rules the plugin adds to /alpha/, and none when it adds none.
+		const stamp = wp(['eval', 'echo diluxone_users_rewrite_stamp();'], alpha.url).trim();
+
+		expect((await alpha.site.getOptions(['diluxone_users_rewrite_version'])).diluxone_users_rewrite_version ?? '').toBe(stamp);
 	});
 
 	test('/alpha/’s file carries only what /alpha/ decides, and restoring one writes only that', async ({ page, alpha, beta }) => {
