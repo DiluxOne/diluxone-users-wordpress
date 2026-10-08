@@ -94,7 +94,7 @@ from the repository name:
 | `Makefile` (`i18n`) | `--slug=diluxone-users --domain=diluxone-users`. |
 | `Makefile` (`deploy-test`) | Copies into `wp-content/plugins/diluxone-users/`, and the `.mo` files into `wp-content/languages/plugins/`. |
 | `.github/workflows/release.yml` | `slug: diluxone-users`, or the release targets an SVN path that does not exist. |
-| `.github/workflows/pull-request.yml` | `slug: diluxone-users` for the plugin checks, which build the shipped tree under that name before Plugin Check and i18n read it. |
+| `.github/workflows/plugin-checks.yml` | `slug: diluxone-users` for the plugin checks, which build the shipped tree under that name before Plugin Check and i18n read it. |
 
 Where the **repository name** is correct and must be left alone, because
 `wp-env` mounts the plugin under the checkout's directory name:

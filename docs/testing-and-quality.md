@@ -4,11 +4,11 @@ What every quality gate enforces, why, and how to run each one locally.
 
 ## Quality stack at a glance
 
-The checks run from the shared workflows in [`DiluxOne/.github`](https://github.com/DiluxOne/.github) (conventions, the fast suite, the slow suite on wp-env and the Claude review), called from [`pull-request.yml`](../.github/workflows/pull-request.yml). This repository declares `kind: wordpress-plugin` in [`.github/review-policy.yml`](../.github/review-policy.yml), so the organisation's pack for WordPress plugins decides the rules, the Plugin Check settings and the review profile; nothing of it is written here. Every layer below has a Make target that runs it locally.
+The checks run from the shared workflows in [`DiluxOne/.github`](https://github.com/DiluxOne/.github): the conventions, the accepted-issue gate and the Claude review are the organisation's pipeline (`org-pull-request.yml`, required by its ruleset), and the fast suite and the slow suite on wp-env are this repository's, called from [`plugin-checks.yml`](../.github/workflows/plugin-checks.yml). This repository declares `kind: wordpress-plugin` in [`.github/review-policy.yml`](../.github/review-policy.yml), so the organisation's pack for WordPress plugins decides the rules, the Plugin Check settings and the review profile; nothing of it is written here. Every layer below has a Make target that runs it locally.
 
 | Layer | Tool | Catches | Make target |
 | --- | --- | --- | --- |
-| Conventions | shared `conventions` workflow, lychee | Branch name, PR title and commit headers; the description's What changes and Why, and no "Generated with …" footer; broken relative doc links; retired product names. | (runs on PR) |
+| Conventions | the organisation's pipeline, lychee | An accepted issue the pull request closes, with a Type that fits; branch name, PR title and commit headers; the description's What changes and Why, and no "Generated with …" footer; broken relative doc links; retired product names. | (runs on PR) |
 | Syntax | `php -l` on PHP 8.0 to 8.5 | Syntax the minimum PHP can't parse. | (runs on PR) |
 | Unit tests | PHPUnit + brain/monkey + mockery, same PHP matrix | Logic regressions in pure-PHP units: social identity, the two-step policy, the client's address. | `make test`, `make test-unit-min` |
 | Coding style | PHP_CodeSniffer + WordPress Coding Standards + PHPCompatibilityWP | Style, naming, prefixes, escaping, sanitisation, prepared statements, syntax above PHP 8.0. | `make lint` |
