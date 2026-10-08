@@ -19,7 +19,6 @@ class TwoFactorFlowTest extends IntegrationTestCase {
 
 		diluxone_users_update_option( 'diluxone_users_2fa_mode', 'required' );
 		diluxone_users_update_option( 'diluxone_users_2fa_methods', array( 'email' ) );
-		diluxone_users_update_option( 'diluxone_users_2fa_remember_days', 0 );
 
 		// The site's own sign-in page, where the challenge is drawn and where
 		// an attempt that ran out says "expired". Without one it is
@@ -250,16 +249,38 @@ class TwoFactorFlowTest extends IntegrationTestCase {
 	}
 
 	/**
-	 * "Send it again" on the app sends nothing — the app has nothing to send —
-	 * and so does not say it sent something. "Sent" sent the person to an
-	 * inbox with nothing new in it.
+	 * A device method with nothing to send — an add-on's, as Users+ Pro's app —
+	 * goes first when it sits first.
 	 */
-	public function test_sending_the_app_again_says_nothing_was_sent(): void {
-		diluxone_users_update_option( 'diluxone_users_2fa_methods', array( 'totp', 'email' ) );
-		update_user_meta( $this->user, 'diluxone_users_totp', 'JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP' );
+	private function a_device_method(): void {
+		$this->hook(
+			'diluxone_users_2fa_methods',
+			static function ( array $methods ): array {
+				$methods['device'] = array(
+					'channel'  => 'device',
+					'label'    => 'A device',
+					'help'     => '',
+					'ready'    => '__return_true',
+					'verify'   => static fn( int $user_id, string $code ): bool => '424242' === $code,
+					'position' => 10,
+				);
+
+				return $methods;
+			}
+		);
+	}
+
+	/**
+	 * "Send it again" on a method that sends nothing — an add-on's app — sends
+	 * nothing, and so does not say it sent something. "Sent" sent the person
+	 * to an inbox with nothing new in it.
+	 */
+	public function test_sending_a_method_with_nothing_to_send_again_says_nothing_was_sent(): void {
+		$this->a_device_method();
+		diluxone_users_update_option( 'diluxone_users_2fa_methods', array( 'device', 'email' ) );
 
 		$key = $this->challenge();
-		$this->assertSame( array(), self::$mail, 'the app goes first, and nothing is mailed' );
+		$this->assertSame( array(), self::$mail, 'the device goes first, and nothing is mailed' );
 		$this->assertSame( 0, (int) diluxone_users_meta_list( $this->user, 'diluxone_users_2fa_pending' )['sent'] );
 
 		$this->postAs(
@@ -267,7 +288,7 @@ class TwoFactorFlowTest extends IntegrationTestCase {
 			array(
 				'diluxone_users_2fa_user'   => (string) $this->user,
 				'diluxone_users_2fa_key'    => $key,
-				'diluxone_users_2fa_method' => 'totp',
+				'diluxone_users_2fa_method' => 'device',
 				'diluxone_users_2fa_resend' => '1',
 			)
 		);
@@ -275,7 +296,7 @@ class TwoFactorFlowTest extends IntegrationTestCase {
 
 		$this->assertSame( array(), self::$mail );
 		$this->assertNotSame( 'sent', $this->redirectState( $url ) );
-		$this->assertSame( 'totp', $this->queryArg( $url, 'diluxone_users_method' ), 'back on the app' );
+		$this->assertSame( 'device', $this->queryArg( $url, 'diluxone_users_method' ), 'back on the device' );
 	}
 
 	/* ── What no other test asked ─────────────────────────────────── */
@@ -317,8 +338,8 @@ class TwoFactorFlowTest extends IntegrationTestCase {
 
 	/** A method the site turned off answers nothing, even with its right code. */
 	public function test_a_method_turned_off_cannot_answer_even_with_its_code(): void {
-		update_user_meta( $this->user, 'diluxone_users_totp', 'JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP' );
-		diluxone_users_update_option( 'diluxone_users_2fa_methods', array( 'totp' ) );
+		$this->a_device_method();
+		diluxone_users_update_option( 'diluxone_users_2fa_methods', array( 'device' ) );
 		update_user_meta( $this->user, 'diluxone_users_2fa_email', array( 'hash' => wp_hash( '123456' ), 'expires' => time() + 600 ) );
 
 		$this->assertFalse( diluxone_users_2fa_verify( $this->user, 'email', '123456' ) );
@@ -380,12 +401,24 @@ class TwoFactorFlowTest extends IntegrationTestCase {
 		$this->assertSame( 0, $expiries[1], 'not remembered: a cookie for the browser session' );
 	}
 
-	/** No "trust this browser" cookie unless the box was ticked. */
-	public function test_no_trust_cookie_unless_the_box_was_ticked(): void {
-		diluxone_users_update_option( 'diluxone_users_2fa_remember_days', 14 );
+	/** The plugin itself marks no browser: no cookie of the second step's, whatever is posted. */
+	public function test_no_cookie_of_the_second_steps_is_written(): void {
+		$key = $this->challenge();
 
-		$this->submit( $this->challenge(), $this->mailedCode() );
+		$this->postAs(
+			0,
+			array(
+				'diluxone_users_2fa_user'   => (string) $this->user,
+				'diluxone_users_2fa_key'    => $key,
+				'diluxone_users_2fa_method' => 'email',
+				'diluxone_users_2fa_code'   => $this->mailedCode(),
+				'diluxone_users_2fa_trust'  => '1',
+				'diluxone_users_2fa_extra'  => array( 'trust' => '1' ),
+			)
+		);
+		$this->expectRedirect( 'diluxone_users_2fa_handle' );
 
+		$this->assertSame( $this->user, get_current_user_id() );
 		$this->assertSame( array(), preg_grep( '/^diluxone_users_2fa_/', array_keys( self::$cookies ) ) );
 	}
 }

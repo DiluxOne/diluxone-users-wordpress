@@ -9,7 +9,7 @@ this file is the short version an agent must follow without exception.
 
 DiluxOne Users+, a WordPress plugin with the slug `diluxone-users`: custom
 user fields, a front-end account area, passwordless sign-in, social login,
-two-step verification, passkeys and session control, in one plugin that
+two-step verification and session control, in one plugin that
 depends on no other. It is at 1.0.0 and **not yet published** on
 wordpress.org. Architecture, hard rules and review priorities:
 [`docs/architecture.md`](docs/architecture.md). The public API (hooks an
@@ -102,7 +102,7 @@ a change:
 - **The plugin knows nothing about other plugins.** What belongs to a course,
   a membership or a forum enters through a filter or a shortcode
   ([`docs/architecture.md`](docs/architecture.md)).
-- **Its own Pro add-on is the one exception, and only as advertising.** The free plugin may show a Pro preview (`diluxone_users_ui_pro()`, off with one setting) where a Pro feature belongs, but ships no Pro code and names no Pro setting; Pro enters through the public hooks ([`docs/roadmap.md`](docs/roadmap.md#free-and-pro)).
+- **Its own Pro add-on is the one exception, and only as advertising.** The free plugin may show a Pro preview (`diluxone_users_ui_pro()`, off with one setting) where a Pro feature belongs, but ships no Pro code and names no Pro setting; Pro enters through the public hooks ([`docs/extending.md`](docs/extending.md#users-pro-on-these-screens)).
 - **What an administrator turns off disappears from the front end**, and
   anything shown to a person is true for every way in the site left open.
 - **Every user-facing string** goes through a translation function with the

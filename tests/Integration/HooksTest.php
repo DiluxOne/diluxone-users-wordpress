@@ -430,16 +430,6 @@ class HooksTest extends IntegrationTestCase {
 		$this->assertStringNotContainsString( '<script', (string) diluxone_users_raw_get( 'diluxone_users_login_intro' ), 'and never a script' );
 	}
 
-	/** `diluxone_users_passkey_rp_id`: the domain a passkey belongs to follows it, in the options and in the check. */
-	public function test_the_passkeys_domain_follows_the_filter(): void {
-		$this->hook( 'diluxone_users_passkey_rp_id', static fn(): string => 'example.test' );
-
-		$this->assertSame( 'example.test', diluxone_users_passkey_rp_id() );
-		$this->assertSame( 'example.test', diluxone_users_passkeys_login_options()['rpId'] );
-		$this->assertNotNull( diluxone_users_passkey_auth_data( hash( 'sha256', 'example.test', true ) . chr( 0x05 ) . pack( 'N', 1 ) ) );
-		$this->assertNull( diluxone_users_passkey_auth_data( hash( 'sha256', (string) wp_parse_url( home_url(), PHP_URL_HOST ), true ) . chr( 0x05 ) . pack( 'N', 1 ) ), 'the host itself is no longer it' );
-	}
-
 	/** `diluxone_users_plugin_name`: the menu and the browser tab say the name given. */
 	public function test_the_plugins_name_follows_the_filter(): void {
 		$this->hook( 'diluxone_users_plugin_name', static fn(): string => 'Members' );

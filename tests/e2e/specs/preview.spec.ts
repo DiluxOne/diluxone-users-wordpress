@@ -70,9 +70,6 @@ test.describe('The preview takes the colours the site takes', () => {
 		await options.set({
 			diluxone_users_styles: 1,
 			diluxone_users_colors: 'theme',
-			// The guess, whatever the theme's slugs turn out to be: the test is
-			// about the colour arriving, not about which one was picked.
-			diluxone_users_color_map: [],
 		});
 
 		await page.goto(pages.account.url);
@@ -98,7 +95,6 @@ test.describe('The preview takes the colours the site takes', () => {
 		await options.set({
 			diluxone_users_styles: 1,
 			diluxone_users_colors: 'theme',
-			diluxone_users_color_map: [],
 		});
 
 		await page.goto(pages.account.url);
@@ -145,7 +141,7 @@ test.describe('A real page can be shown with what was chosen', () => {
 		// Switched on and given a colour nothing else on the site uses, so what
 		// comes back can only have come from the form.
 		await page.locator('input[name="diluxone_users_wp_login_brand"]').check();
-		await page.locator('input[name="diluxone_users_wp_login_bg"]').fill('#7b2d8e');
+		await page.locator('input[name="diluxone_users_wp_login_bg"][value="#6d28d9"]').check({ force: true });
 
 		await Promise.all([
 			page.waitForResponse((answer) => answer.url().includes('diluxone-users-try')),
@@ -160,7 +156,7 @@ test.describe('A real page can be shown with what was chosen', () => {
 			.poll(async () =>
 				trial.evaluate(() => window.getComputedStyle(document.body).backgroundColor)
 			)
-			.toBe('rgb(123, 45, 142)');
+			.toBe('rgb(109, 40, 217)');
 
 		// And the site is exactly as it was: a trial is not a save.
 		const saved = await site.getOptions(['diluxone_users_wp_login_brand', 'diluxone_users_wp_login_bg']);
@@ -172,7 +168,7 @@ test.describe('A real page can be shown with what was chosen', () => {
 	/** With the box unticked, the trial shows the page with nothing painted on it. */
 	test('and the page unpainted when the box comes off', async ({ page, options }) => {
 		await options.keep(['diluxone_users_wp_login_brand', 'diluxone_users_wp_login_bg']);
-		await options.set({ diluxone_users_wp_login_brand: 1, diluxone_users_wp_login_bg: '#7b2d8e' });
+		await options.set({ diluxone_users_wp_login_brand: 1, diluxone_users_wp_login_bg: '#6d28d9' });
 
 		await page.goto(adminUrl('diluxone-users-design', 'wp'));
 
@@ -189,7 +185,7 @@ test.describe('A real page can be shown with what was chosen', () => {
 			.poll(async () =>
 				trial.evaluate(() => window.getComputedStyle(document.body).backgroundColor)
 			)
-			.not.toBe('rgb(123, 45, 142)');
+			.not.toBe('rgb(109, 40, 217)');
 	});
 });
 

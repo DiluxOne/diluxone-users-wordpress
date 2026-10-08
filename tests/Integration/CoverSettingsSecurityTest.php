@@ -1,8 +1,9 @@
 <?php
 /**
- * The Security screen's two tabs: the second step and passkeys.
+ * The Security screen's second step, and where Users+ Pro's passkeys would
+ * go.
  *
- * Both are the network's on a network, saved and drawn from Network Admin;
+ * It is the network's on a network, saved and drawn from Network Admin;
  * on a single site they are the site's. Every case runs on both topologies.
  */
 
@@ -41,7 +42,6 @@ class CoverSettingsSecurityTest extends IntegrationTestCase {
 				),
 				'diluxone_users_2fa_mode',
 			),
-			'passkeys'        => array( 'diluxone_users_passkeys_settings_save', array( 'diluxone_users_passkey_where' => 'device' ), 'diluxone_users_passkey_where' ),
 		);
 	}
 
@@ -111,43 +111,33 @@ class CoverSettingsSecurityTest extends IntegrationTestCase {
 		$this->where_the_network_is_set();
 		$this->the_admin();
 
+		// An add-on's method, as Users+ Pro's app: the tab lists it, off.
+		$this->hook(
+			'diluxone_users_2fa_methods',
+			static function ( array $methods ): array {
+				$methods['device'] = array(
+					'label' => 'A device',
+					'help'  => '',
+				);
+
+				return $methods;
+			}
+		);
 		diluxone_users_update_option( 'diluxone_users_2fa_methods', array( 'email' ) );
 
 		$this->send_panel(
 			DILUXONE_USERS_SECURITY,
 			array(
 				'diluxone_users_2fa_mode'    => 'optional',
-				'diluxone_users_2fa_methods' => array( 'email', 'totp' ),
+				'diluxone_users_2fa_methods' => array( 'email', 'device' ),
 			)
 		);
 		$this->assertNotFalse( $this->ended( 'diluxone_users_2fa_save' ) );
 
-		$this->assertSame( array( 'email', 'totp' ), diluxone_users_raw_get( 'diluxone_users_2fa_methods' ), 'the app, off until now, is on' );
+		$this->assertSame( array( 'email', 'device' ), diluxone_users_raw_get( 'diluxone_users_2fa_methods' ), 'the add-on’s, off until now, is on' );
 	}
 
-	public function test_passkeys_are_saved_and_switched_on_only_where_there_is_no_access_screen(): void {
-		$this->where_the_network_is_set();
-		$this->the_admin();
-
-		$this->send_panel(
-			DILUXONE_USERS_SECURITY,
-			array(
-				'diluxone_users_passkey_where'   => 'Device',
-				'diluxone_users_passkey_verify'  => '1',
-				'diluxone_users_passkey_enabled' => '1',
-			)
-		);
-		diluxone_users_passkeys_settings_save();
-
-		$this->assertSame( 'device', diluxone_users_option( 'diluxone_users_passkey_where' ) );
-		$this->assertSame( 1, (int) diluxone_users_option( 'diluxone_users_passkey_verify' ) );
-
-		// On a network this form is where they are offered; on a site that is
-		// Access › Ways in, and this form leaves it alone.
-		$this->assertSame( is_multisite() ? 1 : 0, (int) diluxone_users_option( 'diluxone_users_passkey_enabled' ) );
-	}
-
-	public function test_from_the_hubs_own_dashboard_neither_save_writes_anything(): void {
+	public function test_from_the_hubs_own_dashboard_the_save_writes_nothing(): void {
 		$this->network_only( 'CoverSettingsSecurityTest::test_off_needs_no_method_and_is_saved' );
 
 		$this->the_admin();
@@ -155,15 +145,12 @@ class CoverSettingsSecurityTest extends IntegrationTestCase {
 		$this->send_panel(
 			DILUXONE_USERS_SECURITY,
 			array(
-				'diluxone_users_2fa_mode'      => 'off',
-				'diluxone_users_passkey_where' => 'device',
+				'diluxone_users_2fa_mode' => 'off',
 			)
 		);
 		diluxone_users_2fa_save();
-		diluxone_users_passkeys_settings_save();
 
 		$this->assertSame( 'optional', diluxone_users_option( 'diluxone_users_2fa_mode' ) );
-		$this->assertSame( 'any', diluxone_users_option( 'diluxone_users_passkey_where' ) );
 	}
 
 	/* ── The second step, saved ────────────────────────────────────── */
@@ -190,7 +177,7 @@ class CoverSettingsSecurityTest extends IntegrationTestCase {
 		}
 
 		$this->assertSame( 'optional', diluxone_users_option( 'diluxone_users_2fa_mode' ), 'nothing written' );
-		$this->assertSame( array( 'totp', 'email' ), diluxone_users_option( 'diluxone_users_2fa_methods' ) );
+		$this->assertSame( array( 'email' ), diluxone_users_option( 'diluxone_users_2fa_methods' ) );
 	}
 
 	public function test_off_needs_no_method_and_is_saved(): void {
@@ -200,9 +187,8 @@ class CoverSettingsSecurityTest extends IntegrationTestCase {
 		$this->send_panel(
 			DILUXONE_USERS_SECURITY,
 			array(
-				'diluxone_users_2fa_mode'          => 'off',
-				'diluxone_users_2fa_link'          => 'never',
-				'diluxone_users_2fa_remember_days' => '-7',
+				'diluxone_users_2fa_mode' => 'off',
+				'diluxone_users_2fa_link' => 'never',
 			)
 		);
 
@@ -210,7 +196,6 @@ class CoverSettingsSecurityTest extends IntegrationTestCase {
 		$this->assertSame( 'off', diluxone_users_option( 'diluxone_users_2fa_mode' ) );
 		$this->assertSame( array(), diluxone_users_option( 'diluxone_users_2fa_methods' ) );
 		$this->assertSame( 'never', diluxone_users_option( 'diluxone_users_2fa_link' ) );
-		$this->assertSame( 7, (int) diluxone_users_option( 'diluxone_users_2fa_remember_days' ), 'a number of days, never a negative one' );
 	}
 
 	/* ── The second step, drawn ────────────────────────────────────── */
@@ -260,33 +245,95 @@ class CoverSettingsSecurityTest extends IntegrationTestCase {
 		$this->assertStringContainsString( 'The e-mail link is not one of the ways in on this site, so nobody follows one.', $this->draw( 'diluxone_users_screen_login_2fa' ) );
 	}
 
-	/* ── Passkeys ──────────────────────────────────────────────────── */
+	/* ── Where Users+ Pro's second-step rules would go ─────────────── */
 
-	public function test_passkeys_offered_say_which_domain_they_are_tied_to(): void {
+	/**
+	 * No roles, no app, no days on the tab: three Users+ Pro cards where they
+	 * were, and three places an add-on draws them in, in the tab's order.
+	 */
+	public function test_the_tab_has_three_pro_cards_and_three_places_in_order(): void {
 		$this->where_the_network_is_set();
 		$this->the_admin();
-		diluxone_users_update_option( 'diluxone_users_passkey_enabled', 1 );
 
-		$html = $this->draw( 'diluxone_users_screen_login_passkeys' );
+		$this->hook(
+			'diluxone_users_2fa_screen',
+			static function ( string $place ): void {
+				echo '<p data-place="' . esc_attr( $place ) . '"></p>';
+			}
+		);
 
-		$this->assertStringContainsString( 'People can add passkeys and sign in with them. They are tied to <code>' . esc_html( diluxone_users_passkey_rp_id() ) . '</code>', $html );
-		$this->assertStringContainsString( is_multisite() ? 'Offered on every site' : 'Offered on this site', $html );
+		$html = $this->draw( 'diluxone_users_screen_login_2fa' );
 
-		diluxone_users_update_option( 'diluxone_users_passkey_enabled', 0 );
+		$this->assertStringNotContainsString( 'name="diluxone_users_2fa_scope"', $html );
+		$this->assertStringNotContainsString( 'name="diluxone_users_2fa_remember_days"', $html );
+		$this->assertStringNotContainsString( 'value="totp"', $html );
 
-		$this->assertStringContainsString( 'Nobody can add one or sign in with one, whatever is chosen beside this.', $this->draw( 'diluxone_users_screen_login_passkeys' ) );
+		// Where a piece starts; a control's name and value sit on lines of their own.
+		$at = static function ( string $pattern ) use ( $html ): int {
+			return preg_match( $pattern, $html, $m, PREG_OFFSET_CAPTURE ) ? (int) $m[0][1] : 0;
+		};
+
+		$order = array(
+			$at( '/name="diluxone_users_2fa_mode"\s+value="off"/' ),
+			$at( '/data-diluxone-users-pro="security\/2fa\/roles"/' ),
+			$at( '/data-place="who"/' ),
+			$at( '/name="diluxone_users_2fa_methods\[\]"/' ),
+			$at( '/data-diluxone-users-pro="security\/2fa\/app"/' ),
+			$at( '/data-place="methods"/' ),
+			$at( '/name="diluxone_users_2fa_link"\s+value="never"/' ),
+			$at( '/data-diluxone-users-pro="security\/2fa\/remember"/' ),
+			$at( '/data-place="end"/' ),
+		);
+
+		foreach ( $order as $n => $where ) {
+			$this->assertGreaterThan( 0, $where, "piece $n is drawn" );
+		}
+
+		$sorted = $order;
+		sort( $sorted );
+		$this->assertSame( $sorted, $order, 'in the tab’s order' );
+
+		$this->hook( 'diluxone_users_upsell', static fn( bool $show, string $where ): bool => 0 !== strpos( $where, 'security/2fa/' ) && $show, 10, 2 );
+
+		$this->assertStringNotContainsString( 'data-diluxone-users-pro="security/2fa/', $this->draw( 'diluxone_users_screen_login_2fa' ) );
 	}
 
-	public function test_the_summary_says_which_passkeys_are_accepted(): void {
-		diluxone_users_update_option( 'diluxone_users_passkey_where', 'device' );
+	/** A method an add-on registered, kept after it went: ticked, switched off, a Pro choice, kept on save. */
+	public function test_a_method_nothing_registers_is_an_inactive_pro_choice_kept_on_save(): void {
+		$this->where_the_network_is_set();
+		$this->the_admin();
+		diluxone_users_update_option( 'diluxone_users_2fa_methods', array( 'totp', 'email' ) );
 
-		$rows = array_column( diluxone_users_passkeys_summary_rows( array() ), 'detail', 'label' );
+		$html = $this->draw( 'diluxone_users_screen_login_2fa' );
 
-		$this->assertSame( 'Only the device in front of them: no phone, no hardware key.', $rows['Which passkeys are accepted'] ?? null );
+		$this->assertMatchesRegularExpression( '/name="diluxone_users_2fa_methods\[\]"\s+value="totp"[^>]*disabled/', $html, 'switched off' );
+		$this->assertMatchesRegularExpression( '/name="diluxone_users_2fa_methods\[\]"\s+value="totp"[^>]*checked/', $html, 'and ticked' );
+		$this->assertStringContainsString( 'Your Pro choice (inactive)', $html );
 
-		diluxone_users_update_option( 'diluxone_users_passkey_where', 'any' );
-		$rows = array_column( diluxone_users_passkeys_summary_rows( array() ), 'detail', 'label' );
+		$this->send_panel(
+			DILUXONE_USERS_SECURITY,
+			array(
+				'diluxone_users_2fa_mode'    => 'optional',
+				'diluxone_users_2fa_methods' => array( 'email' ),
+			)
+		);
+		$this->assertNotFalse( $this->ended( 'diluxone_users_2fa_save' ) );
 
-		$this->assertSame( 'Any: the device being used, a USB key, or another phone.', $rows['Which passkeys are accepted'] ?? null );
+		$this->assertSame( array( 'email', 'totp' ), diluxone_users_raw_get( 'diluxone_users_2fa_methods' ), 'kept' );
+	}
+
+	/* ── Where passkeys would go ─────────────────────────────────── */
+
+	public function test_there_is_no_passkeys_tab_and_the_summary_shows_their_picture(): void {
+		$this->where_the_network_is_set();
+		$this->the_admin();
+
+		$this->assertArrayNotHasKey( 'passkeys', diluxone_users_panel_registry( DILUXONE_USERS_SECURITY ), 'a tab holding only a picture would be a screen of its own' );
+
+		$html = $this->draw( 'diluxone_users_screen_security_summary' );
+
+		$this->assertStringContainsString( 'data-diluxone-users-pro="security/summary/more"', $html );
+		$this->assertStringContainsString( 'Which passkeys are accepted', $html, 'the picture is the lines they would add' );
+		$this->assertStringNotContainsString( 'name="', substr( $html, (int) strpos( $html, 'du-pro__picture' ) ), 'and nothing in it sends' );
 	}
 }

@@ -1,7 +1,6 @@
 import { Page } from '@playwright/test';
 import { test, expect, expectSignedIn, expectSignedOut } from '../support/fixtures';
 import { codeIn, freshEmail, linkIn, waitForMail } from '../support/api';
-import { avoidWindowEdge, totp } from '../support/totp';
 import { adminUrl, askForLink, challengeCode, challengeScreen, fillCredentials, navigated, saveButton, signInWithPassword, ssoButton } from '../support/ui';
 import { ADMIN_STATE } from '../../../playwright.config';
 
@@ -18,7 +17,6 @@ import { ADMIN_STATE } from '../../../playwright.config';
  */
 
 const PASSWORD = 'e2e-Coexist-1!';
-const SECRET = 'JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP';
 
 /** Signs in on WordPress's own wp-login.php, the way somebody with no sign-in page does. */
 async function signInOnWpLogin(page: Page, email: string, remember = false): Promise<void> {
@@ -48,8 +46,7 @@ test.describe('The second step with no sign-in page: wp-login.php draws it', () 
 			diluxone_users_login_method: 'both',
 			diluxone_users_wp_screens: 'auto',
 			diluxone_users_2fa_mode: 'required',
-			diluxone_users_2fa_methods: ['totp', 'email'],
-			diluxone_users_2fa_remember_days: 0,
+			diluxone_users_2fa_methods: ['email'],
 		});
 	});
 
@@ -83,20 +80,6 @@ test.describe('The second step with no sign-in page: wp-login.php draws it', () 
 		await expect(challengeScreen(page)).toBeVisible();
 		await expect(page.locator('#login_error')).toBeVisible();
 		await expectSignedOut(page);
-	});
-
-	test('a password and the authenticator app finish signing in, on wp-login.php', async ({ page, site }) => {
-		const email = freshEmail('wplogin-app');
-		await site.makeUser({ email, password: PASSWORD, meta: { diluxone_users_totp: SECRET, diluxone_users_2fa_on: 1 } });
-
-		await signInOnWpLogin(page, email);
-		await expect(challengeScreen(page)).toBeVisible();
-		expect(new URL(page.url()).searchParams.get('diluxone_users_method'), 'the app first').toBe('totp');
-
-		await avoidWindowEdge();
-		await answerOnWpLogin(page, totp(SECRET));
-
-		await expectSignedIn(page, email);
 	});
 
 	test('with a sign-in page the second step is on the page, not on wp-login.php', async ({ page, site, pages, options }) => {
@@ -178,54 +161,11 @@ test.describe('The plugin’s own doors fire wp_login, once', () => {
 		expect(await site.wpLogins(email)).toBe(1);
 	});
 
-	test('a passkey', async ({ page, site, pages, options, browserName }) => {
-		test.skip(browserName !== 'chromium', 'the virtual authenticator is a Chromium protocol');
-
-		await options.set({
-			diluxone_users_passkey_enabled: 1,
-			diluxone_users_passkey_where: 'any',
-			diluxone_users_passkey_verify: 1,
-			diluxone_users_2fa_mode: 'off',
-		});
-
-		const email = freshEmail('wplogin-passkey');
-		await site.makeUser({ email, password: PASSWORD });
-
-		const cdp = await page.context().newCDPSession(page);
-		await cdp.send('WebAuthn.enable', { enableUI: false });
-		const { authenticatorId } = await cdp.send('WebAuthn.addVirtualAuthenticator', {
-			options: { protocol: 'ctap2', transport: 'internal', hasResidentKey: true, hasUserVerification: true, isUserVerified: true, automaticPresenceSimulation: true },
-		});
-
-		await page.goto(pages.login.url);
-		await signInWithPassword(page, email, PASSWORD);
-		await expectSignedIn(page, email);
-
-		await page.goto(`${pages.account.url.replace(/\/?$/, '/')}security/`);
-		await page.locator('details.diluxone-users-panel').filter({ has: page.locator('[data-diluxone-users-passkey="register"]') }).first().evaluate((d: HTMLDetailsElement) => (d.open = true));
-		await page.locator('[data-diluxone-users-passkey-label]').fill('e2e');
-		await page.locator('[data-diluxone-users-passkey="register"]').click();
-		await expect(page.locator('input[name="diluxone_users_passkey_label"]')).toHaveValue('e2e', { timeout: 20_000 });
-
-		await page.context().clearCookies();
-		await options.set({ diluxone_e2e_wp_login: null });
-
-		await page.goto(pages.login.url);
-		await page.locator('[data-diluxone-users-passkey="login"]').click();
-		await page.waitForURL((url) => !url.href.startsWith(pages.login.url), { timeout: 20_000 });
-
-		await expectSignedIn(page, email);
-		expect(await site.wpLogins(email)).toBe(1);
-
-		await cdp.send('WebAuthn.removeVirtualAuthenticator', { authenticatorId });
-	});
-
 	test('a link that asks for the second step: asked once, and wp_login once it is answered', async ({ page, site, pages, options }) => {
 		await options.set({
 			diluxone_users_2fa_mode: 'required',
 			diluxone_users_2fa_methods: ['email'],
 			diluxone_users_2fa_link: 'always',
-			diluxone_users_2fa_remember_days: 0,
 			diluxone_e2e_wp_login: null,
 		});
 
@@ -376,7 +316,6 @@ test.describe('Safe mode (DILUXONE_USERS_SAFE_MODE)', () => {
 			diluxone_e2e_sso: 1,
 			diluxone_users_sso: { mock: { active: 1, id: 'e2e-client-id', secret: 'e2e-client-secret', tested: 1 } },
 			diluxone_users_sso_login: 1,
-			diluxone_users_passkey_enabled: 1,
 		});
 	});
 
@@ -393,11 +332,10 @@ test.describe('Safe mode (DILUXONE_USERS_SAFE_MODE)', () => {
 		await expectSignedIn(page, email);
 	});
 
-	test('the sign-in page has no social button and no passkey', async ({ page, pages }) => {
+	test('the sign-in page has no social button', async ({ page, pages }) => {
 		await page.goto(pages.login.url);
 
 		await expect(ssoButton(page, 'mock')).toHaveCount(0);
-		await expect(page.locator('[data-diluxone-users-passkey="login"]')).toHaveCount(0);
 	});
 
 	test.describe('the dashboard', () => {

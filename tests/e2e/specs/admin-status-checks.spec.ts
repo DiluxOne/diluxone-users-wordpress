@@ -36,12 +36,6 @@ function headline(page: Page, kind: 'success' | 'error') {
 }
 
 test.describe('Status › Status: the checks', () => {
-	test.beforeEach(async ({ options }) => {
-		// HTTPS is off on this machine, and with passkeys on that is a check
-		// that fails for a reason none of these tests is about.
-		await options.set({ diluxone_users_passkey_enabled: 0 });
-	});
-
 	test('the account page: none chosen, gone, not published, and right — a chosen page draws its form even without the shortcode', async ({
 		page,
 		guest,
@@ -186,17 +180,15 @@ test.describe('Status › Status: the checks', () => {
 		expect(await stateIn(row(page, 'social'))).toBe('active');
 	});
 
-	test('HTTPS: on plain HTTP it is only a warning while passkeys are off, and a failure the moment they are on', async ({ page, baseURL, options }) => {
+	test('HTTPS: on plain HTTP it is a warning, about what travels in the clear', async ({ page, baseURL }) => {
 		test.skip(baseURL!.startsWith('https:'), 'this site is on HTTPS');
 
 		await page.goto(STATUS);
 		expect(await stateIn(row(page, 'https'))).toBe('pending');
 		expect(await stateIn(row(page, 'permalinks')), 'pretty permalinks on this site').toBe('active');
 
-		await options.set({ diluxone_users_passkey_enabled: 1 });
-		await page.goto(STATUS);
-		expect(await stateIn(row(page, 'https'))).toBe('off');
-		await expect(headline(page, 'error')).toHaveCount(1);
+		// Passkeys are Users+ Pro's: without it the check has none to name.
+		await expect(row(page, 'https')).not.toContainText(/passkey/i);
 	});
 
 	test('the usage counts move with the site, and the environment names this version', async ({ page, site }) => {
@@ -205,25 +197,25 @@ test.describe('Status › Status: the checks', () => {
 
 		await page.goto(STATUS);
 
+		// The rows: accounts, then the Overview's own — public name and social
+		// account — and nothing else without an add-on.
+		await expect(usage(0).locator('xpath=ancestor::tbody/tr')).toHaveCount(3);
+
 		const accounts = await read(0);
-		const app = await read(1);
-		const passkeys = await read(2);
-		const social = await read(3);
+		const handle = await read(1);
+		const social = await read(2);
 
 		await site.makeUser({
 			email: freshEmail('status-usage'),
 			meta: {
-				diluxone_users_totp: 'JBSWY3DPEHPK3PXP',
-				diluxone_users_passkeys: [{ id: `e2e-status-${Date.now()}`, label: 'e2e', created: 1, rp: '' }],
-				diluxone_users_sso_github: 'github|e2e-status',
+				diluxone_users_sso_microsoft: 'microsoft|e2e-status',
 			},
 		});
 
 		await page.goto(STATUS);
 		expect(await read(0), 'accounts').toBe(accounts + 1);
-		expect(await read(1), 'with an app').toBe(app + 1);
-		expect(await read(2), 'with a passkey').toBe(passkeys + 1);
-		expect(await read(3), 'with a social account').toBe(social + 1);
+		expect(await read(1), 'with a public name').toBe(handle);
+		expect(await read(2), 'with a social account').toBe(social + 1);
 
 		const environment = page.locator('table.diluxone-users-summary').nth(2);
 

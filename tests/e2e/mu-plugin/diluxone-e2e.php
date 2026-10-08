@@ -904,7 +904,6 @@ function diluxone_e2e_user_read( WP_REST_Request $request ): WP_REST_Response {
 				'first_name'          => (string) get_user_meta( $user->ID, 'first_name', true ),
 				'last_name'           => (string) get_user_meta( $user->ID, 'last_name', true ),
 				'diluxone_users_2fa_on' => (string) get_user_meta( $user->ID, 'diluxone_users_2fa_on', true ),
-				'diluxone_users_totp' => (string) get_user_meta( $user->ID, 'diluxone_users_totp', true ),
 				'diluxone_users_sso_mock' => (string) get_user_meta( $user->ID, 'diluxone_users_sso_mock', true ),
 			),
 			'fields'   => diluxone_e2e_user_fields( (int) $user->ID, (string) $request->get_param( 'fields' ) ),
@@ -1000,7 +999,6 @@ function diluxone_e2e_user_write( WP_REST_Request $request ): WP_REST_Response {
 			'id'       => $id,
 			'email'    => $email,
 			'password' => $pass,
-			'totp'     => (string) get_user_meta( $id, 'diluxone_users_totp', true ),
 		)
 	);
 }
@@ -1466,7 +1464,7 @@ function diluxone_e2e_refusals_nonce( WP_REST_Request $request ): WP_REST_Respon
  * User meta as it is stored, arrays included.
  *
  * The /user route reads meta as strings, which is right for the fields and
- * wrong for a list of passkeys: an array read as a string is "Array" whatever
+ * wrong for a list kept as an array: an array read as a string is "Array" whatever
  * is in it, and a refusal that compares "Array" with "Array" proves nothing.
  */
 function diluxone_e2e_refusals_meta( WP_REST_Request $request ): WP_REST_Response {
@@ -1810,7 +1808,7 @@ function diluxone_e2e_h4_usermeta( WP_REST_Request $request ): WP_REST_Response 
 /**
  * A small picture in the media library, made once by name and reused.
  *
- * For the screens that pick an image (the site logo, a cover, the mark on
+ * For the screens that pick an image (the site logo, the mark on
  * wp-login.php): the picker lists what the library holds, and a test needs
  * one known picture in it. `DELETE` removes it again.
  */

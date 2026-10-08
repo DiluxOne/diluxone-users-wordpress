@@ -264,7 +264,7 @@ test.describe('A photo belongs to the person, and the person to the network', ()
 });
 
 test.describe('The second step is the network’s', () => {
-	test('required of administrators, it is asked of an administrator of /alpha/ who signs in for /beta/ as a subscriber', async ({
+	test('required, it is asked of an administrator of /alpha/ who signs in for /beta/ as a subscriber', async ({
 		page,
 		hub,
 		alpha,
@@ -273,8 +273,6 @@ test.describe('The second step is the network’s', () => {
 		await hub.set({
 			diluxone_users_2fa_mode: 'required',
 			diluxone_users_2fa_methods: ['email'],
-			diluxone_users_2fa_scope: 'some',
-			diluxone_users_2fa_roles: ['administrator'],
 			diluxone_users_login_method: 'both',
 		});
 
@@ -290,8 +288,9 @@ test.describe('The second step is the network’s', () => {
 
 		// From /beta/, where they are only a subscriber, the password is not
 		// enough either: the session a sign-in opens is a cookie on `/`, the
-		// whole network's, and it would open /alpha/'s dashboard. So "only
-		// administrators" means an administrator of any site of theirs.
+		// whole network's, and it would open /alpha/'s dashboard. (Users+
+		// Pro's "only some roles" reads a role on any site of theirs for the
+		// same reason, in its own tests.)
 		await page.context().clearCookies();
 		await signInFrom(page, beta, hub, email, PASSWORD);
 		await expect(challengeScreen(page)).toBeVisible();

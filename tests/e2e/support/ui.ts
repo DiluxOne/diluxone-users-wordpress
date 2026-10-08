@@ -204,9 +204,9 @@ export async function openPanel(page: Page, inner: string): Promise<Locator> {
 
 	await expect(panel).toBeAttached();
 
-	// `> summary` and not `summary`: some rows inside a box are boxes of their
-	// own — a passkey with its details — and a plain descendant selector picks
-	// up theirs as well.
+	// `> summary` and not `summary`: a row inside a box can be a box of its
+	// own — an add-on's, with its details — and a plain descendant selector picks
+	// up that one as well.
 	if (!(await panel.evaluate((element: HTMLDetailsElement) => element.open))) {
 		await panel.locator('> summary').click();
 	}

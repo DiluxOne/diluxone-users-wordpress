@@ -31,24 +31,13 @@
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Does this install have passkeys at all?
- *
- * Passkeys is one feature in two files. Everything outside those two asks
- * this instead of calling into them, so an install without them gets a screen
- * with one row fewer rather than a fatal error. It is also the shape every
- * optional feature will take.
- */
-function diluxone_users_has_passkeys(): bool {
-	return function_exists( 'diluxone_users_passkeys_enabled' ) && diluxone_users_passkeys_enabled();
-}
-
-/**
  * The shape of the sign-in page.
  *
- * Four answers and only one of them leaves the page alone. A site with a
- * designed page wants 'plain' — the form where the theme put it. A site that
- * has not designed one wants the page taken over, which is what the other
- * three do, and is the reason a second plugin usually gets installed for it.
+ * Two answers of the plugin's own: 'plain' leaves the page alone — the form
+ * where the theme put it, for a site with a designed page — and 'card' takes
+ * the page over with the form in a box in the middle, for a site that has not
+ * designed one. An add-on adds shapes of its own through
+ * `diluxone_users_login_templates`.
  */
 function diluxone_users_login_template(): string {
 	$template = (string) diluxone_users_option( 'diluxone_users_login_template' );
@@ -58,7 +47,7 @@ function diluxone_users_login_template(): string {
 	// setting would save and then quietly not apply.
 	$known = function_exists( 'diluxone_users_login_templates' )
 		? array_keys( diluxone_users_login_templates() )
-		: array( 'plain', 'card', 'split', 'backdrop' );
+		: array( 'plain', 'card' );
 
 	if ( in_array( $template, $known, true ) ) {
 		return $template;
@@ -98,117 +87,6 @@ function diluxone_users_button_icon( string $name ): string {
 }
 
 /**
- * What the split layout's panel says, in pieces, or nothing.
- *
- * Half the window was a photograph and no more: a site that wanted a sentence
- * on it had to copy a page template, which is the sign of a missing seam
- * rather than of a site doing something unusual. Every piece is optional and
- * all of them empty means what it always meant — the picture on its own.
- *
- * The title arrives as lines because that is how a panel heading is written:
- * two or three deliberate lines, not a sentence broken wherever the column
- * happens to end. The points arrive the same way, one per line, for the same
- * reason a list is a list.
- *
- * @return array{title: array<int, string>, text: string, points: array<int, string>, foot: string, logo: string}
- */
-function diluxone_users_login_panel(): array {
-	return array(
-		'title'  => diluxone_users_lines( (string) diluxone_users_option( 'diluxone_users_login_panel_title' ) ),
-		'text'   => trim( (string) diluxone_users_option( 'diluxone_users_login_panel_text' ) ),
-		'points' => diluxone_users_lines( (string) diluxone_users_option( 'diluxone_users_login_panel_points' ) ),
-		'foot'   => trim( (string) diluxone_users_option( 'diluxone_users_login_panel_foot' ) ),
-		'logo'   => diluxone_users_login_image( 'diluxone_users_login_panel_logo' ),
-	);
-}
-
-/**
- * A textarea read as the lines somebody typed.
- *
- * Blank lines go: they are how a person separates while typing, not something
- * they meant to appear.
- *
- * @return array<int, string>
- */
-function diluxone_users_lines( string $text ): array {
-	$split = preg_split( '/\R/', $text );
-	$lines = array_map( 'trim', false === $split ? array() : $split );
-
-	return array_values( array_filter( $lines, static fn( string $line ): bool => '' !== $line ) );
-}
-
-/**
- * Is there anything to write on the panel at all?
- *
- * @param array{title: array<int, string>, text: string, points: array<int, string>, foot: string, logo: string} $panel
- */
-function diluxone_users_login_panel_has_words( array $panel ): bool {
-	return array() !== $panel['title'] || '' !== $panel['text'] || array() !== $panel['points'] || '' !== $panel['foot'] || '' !== $panel['logo'];
-}
-
-/**
- * The panel of the split layout, with whatever the site wrote on it.
- *
- * Three rows — the mark, what it says, the line at the foot — so that the
- * first and the last sit against the top and the bottom of the panel however
- * much there is in the middle. Any of them can be missing.
- *
- * @param array{title: array<int, string>, text: string, points: array<int, string>, foot: string, logo: string} $panel
- */
-function diluxone_users_login_panel_words( array $panel ): void {
-	echo '<div class="diluxone-users-login-frame__words">';
-
-	if ( '' !== $panel['logo'] ) {
-		printf(
-			'<p class="diluxone-users-login-frame__mark"><img src="%1$s" alt="%2$s"></p>',
-			esc_url( $panel['logo'] ),
-			esc_attr( get_bloginfo( 'name' ) )
-		);
-	} else {
-		// The row still has to be there, or "what it says" would be pushed to
-		// the top of the panel by the space-between and the foot would be the
-		// only thing holding the bottom.
-		echo '<span aria-hidden="true"></span>';
-	}
-
-	echo '<div class="diluxone-users-login-frame__say">';
-
-	if ( array() !== $panel['title'] ) {
-		echo '<h2 class="diluxone-users-login-frame__title">';
-
-		foreach ( $panel['title'] as $line ) {
-			printf( '<span>%s</span>', esc_html( $line ) );
-		}
-
-		echo '</h2>';
-	}
-
-	if ( '' !== $panel['text'] ) {
-		printf( '<p class="diluxone-users-login-frame__text">%s</p>', esc_html( $panel['text'] ) );
-	}
-
-	if ( array() !== $panel['points'] ) {
-		echo '<ul class="diluxone-users-login-frame__points">';
-
-		foreach ( $panel['points'] as $point ) {
-			printf( '<li>%s</li>', esc_html( $point ) );
-		}
-
-		echo '</ul>';
-	}
-
-	echo '</div>';
-
-	if ( '' !== $panel['foot'] ) {
-		printf( '<p class="diluxone-users-login-frame__foot">%s</p>', esc_html( $panel['foot'] ) );
-	} else {
-		echo '<span aria-hidden="true"></span>';
-	}
-
-	echo '</div>';
-}
-
-/**
  * The frame around the sign-in form, opened.
  *
  * It lives here and not in the template because both steps of signing in go
@@ -226,15 +104,20 @@ function diluxone_users_login_frame_open(): void {
 		return;
 	}
 
-	$image = diluxone_users_login_image( 'diluxone_users_login_image' );
-	$side  = 'right' === (string) diluxone_users_option( 'diluxone_users_login_side' ) ? 'right' : 'left';
+	$shape      = (array) ( diluxone_users_login_templates()[ $template ] ?? array() );
+	$classes    = array( 'diluxone-users-login-frame', 'diluxone-users-login-frame--' . $template );
+	$properties = array();
 
-	// The picture travels as a custom property because it is a background in
-	// every layout that has one, and a property can be repointed from a
-	// stylesheet without touching any of this.
-	$style = '' !== $image && in_array( $template, array( 'split', 'backdrop' ), true )
-		? '--diluxone-users-login-image: url(' . esc_url( $image ) . ')'
-		: '';
+	// What a shape adds to the frame: classes of its own and the custom
+	// properties its stylesheet reads. Asked of the shape, so a shape an
+	// add-on brings draws its frame the way the plugin's own would.
+	if ( isset( $shape['classes'] ) && is_callable( $shape['classes'] ) ) {
+		$classes = array_merge( $classes, array_map( 'strval', (array) call_user_func( $shape['classes'] ) ) );
+	}
+
+	if ( isset( $shape['properties'] ) && is_callable( $shape['properties'] ) ) {
+		$properties = (array) call_user_func( $shape['properties'] );
+	}
 
 	/*
 	 * The wrapper is not decoration: it is what makes the frame a grandchild.
@@ -242,47 +125,54 @@ function diluxone_users_login_frame_open(): void {
 	 * `:where(.is-layout-constrained) > :where(…)` — direct children only, and
 	 * with !important on both the margin and the max-width, so nothing a child
 	 * declares can break out of the column. The wrapper takes that treatment
-	 * and the frame inside it is free, which is the same thing the account
-	 * cover does one level down.
+	 * and the frame inside it is free.
 	 */
 	echo '<div class="diluxone-users-login-page">';
 
+	$style = diluxone_users_css_properties( $properties );
+
 	printf(
-		'<div class="diluxone-users-login-frame diluxone-users-login-frame--%1$s diluxone-users-login-frame--%2$s"%3$s>',
-		esc_attr( $template ),
-		esc_attr( $side ),
+		'<div class="%1$s"%2$s>',
+		esc_attr( implode( ' ', array_unique( array_filter( array_map( 'sanitize_html_class', $classes ) ) ) ) ),
 		'' === $style ? '' : ' style="' . esc_attr( $style ) . '"'
 	);
 
-	if ( 'split' === $template ) {
-		$panel = diluxone_users_login_panel();
-		$words = diluxone_users_login_panel_has_words( $panel );
-
-		/*
-		 * With nothing written on it the panel is decoration and says so: it
-		 * is hidden from screen readers and carries no alt text to invent.
-		 * With words on it, it is content, and the two stop being the same
-		 * element in every way except the class.
-		 *
-		 * A picture underneath words needs something between them or neither
-		 * is readable — the same thing the backdrop layout does, for the same
-		 * reason, and the same property so a site can change it once.
-		 */
-		printf(
-			'<div class="diluxone-users-login-frame__picture%1$s%2$s"%3$s>',
-			$words ? ' diluxone-users-login-frame__picture--words' : '',
-			$words && '' !== $image ? ' diluxone-users-login-frame__picture--over' : '',
-			$words ? '' : ' aria-hidden="true"'
-		);
-
-		if ( $words ) {
-			diluxone_users_login_panel_words( $panel );
-		}
-
-		echo '</div>';
+	// What the shape draws beside the form, before its box: a picture, a
+	// panel with words on it. Printed through the same allow-list as any
+	// markup the plugin builds.
+	if ( isset( $shape['inside'] ) && is_callable( $shape['inside'] ) ) {
+		ob_start();
+		call_user_func( $shape['inside'] );
+		echo wp_kses( (string) ob_get_clean(), diluxone_users_allowed_html() );
 	}
 
 	echo '<div class="diluxone-users-login-frame__box">';
+}
+
+/**
+ * Custom properties, as the declarations of a style attribute.
+ *
+ * Only properties — a name that starts with two dashes — and only values that
+ * cannot close the declaration, the rule or the attribute they are printed
+ * in: a value is a value, never a way out of it.
+ *
+ * @param array<mixed, mixed> $properties Name => value.
+ */
+function diluxone_users_css_properties( array $properties ): string {
+	$style = '';
+
+	foreach ( $properties as $name => $value ) {
+		$name  = (string) $name;
+		$value = trim( is_scalar( $value ) ? (string) $value : '' );
+
+		if ( ! preg_match( '/^--[a-z0-9-]+$/i', $name ) || '' === $value || preg_match( '/[;{}<>"\\\\]/', $value ) ) {
+			continue;
+		}
+
+		$style .= $name . ':' . $value . ';';
+	}
+
+	return $style;
 }
 
 /** And closed. */
@@ -309,8 +199,8 @@ function diluxone_users_icon( string $name, int $size = 0 ): string {
 	$paths = array(
 		'mail'    => '<rect x="2.5" y="4.5" width="19" height="15" rx="2"></rect><path d="m3 6 9 6.5L21 6"></path>',
 		'info'    => '<circle cx="12" cy="12" r="9"></circle><path d="M12 16v-5M12 8h.01"></path>',
-		// The passkey: a key, because that is what everybody's operating
-		// system draws on the prompt this button opens.
+		// A key, for a way in that is a key: that is what everybody's
+		// operating system draws on the prompt such a button opens.
 		'key'     => '<circle cx="8" cy="12" r="4"></circle><path d="M12 12h9M18 12v4M15.5 12v3"></path>',
 
 		/*

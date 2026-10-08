@@ -675,7 +675,7 @@ function diluxone_users_screen_tools_boxes(): void {
 
 	diluxone_users_tool_box(
 		__( 'What happens when the plugin is deleted', 'diluxone-users' ),
-		__( 'By default, nothing. The settings stay, the activity log stays, and so does everything in people’s profiles — their details, their public names, their passkeys and their second factors. That is on purpose: a plugin deleted by accident, or deleted to be installed again, should not be what loses somebody their account. Tick this only when the plugin is going for good and the data is meant to go with it. It cannot be undone, and it runs on delete, not on deactivate.', 'diluxone-users' ),
+		__( 'By default, nothing. The settings stay, the activity log stays, and so does everything in people’s profiles — their details, their public names, the ways in they set up and their second factors. That is on purpose: a plugin deleted by accident, or deleted to be installed again, should not be what loses somebody their account. Tick this only when the plugin is going for good and the data is meant to go with it. It cannot be undone, and it runs on delete, not on deactivate.', 'diluxone-users' ),
 		static function (): void {
 			echo '<input type="hidden" name="tool" value="wipe">';
 			echo '<p><label><input type="checkbox" name="wipe" value="1"';

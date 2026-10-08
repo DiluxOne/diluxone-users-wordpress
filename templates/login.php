@@ -15,7 +15,7 @@
  *
  * @var array{state: string, email: string, providers: array<string, array<string,mixed>>, minutes: int, title: bool} $args
  *
- * The shape of the page around this — the card, the split, the background —
+ * The shape of the page around this — the card, or a shape an add-on brings —
  * is not in here: it wraps both steps of signing in, so it is printed by
  * diluxone_users_login_frame_open() and a theme replacing this file still
  * gets it.

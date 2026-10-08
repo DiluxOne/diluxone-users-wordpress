@@ -19,7 +19,7 @@ import { adminUrl } from './ui';
 export const SCREENS: Record<string, string[]> = {
 	'diluxone-users': ['usage', 'doors', 'asked'],
 	'diluxone-users-login': ['summary', 'page', 'ways', 'arrangement', 'register', 'messages'],
-	'diluxone-users-security': ['summary', '2fa', 'passkeys', 'sessions', 'proxy'],
+	'diluxone-users-security': ['summary', '2fa', 'sessions', 'proxy'],
 	'diluxone-users-social': ['providers', 'general'],
 	'diluxone-users-account': ['summary', 'page', 'sections', 'handle', 'menu', 'dashboard'],
 	'diluxone-users-fields': ['list', 'suggested', 'usage'],
@@ -41,7 +41,7 @@ export const SCREENS: Record<string, string[]> = {
 export const NETWORK_SCREENS: Record<string, string[]> = {
 	'diluxone-users': ['network', 'previews', 'uninstall'],
 	'diluxone-users-membership': ['policy'],
-	'diluxone-users-security': ['summary', '2fa', 'passkeys', 'sessions', 'proxy'],
+	'diluxone-users-security': ['summary', '2fa', 'sessions', 'proxy'],
 	'diluxone-users-social': ['providers', 'general'],
 	'diluxone-users-fields': ['list', 'suggested', 'usage'],
 	'diluxone-users-reports': ['network-activity', 'logging'],

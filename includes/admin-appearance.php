@@ -37,17 +37,17 @@ function diluxone_users_style_preview(): void {
 }
 
 /**
- * The two shapes the account area comes in.
+ * The shapes the account area comes in.
  *
  * A template is a starting point and not a lid: pressing one fills in the
  * pieces underneath, and from there every one of them is yours to change.
- * Which of the two was chosen IS stored, unlike the values it wrote — the
- * shape is not the sum of its pieces, it is the difference between a panel in
- * the page and a band across the window.
+ * Which one was chosen IS stored, unlike the values it wrote — the shape is
+ * not the sum of its pieces.
  *
- * The shape of a row is documented rather than declared: it goes through a
- * filter, and what comes back from a filter is whatever somebody put there.
- * Every reader treats a missing key as absent.
+ * The plugin's own is the simple one; an add-on adds others through the
+ * filter. The shape of a row is documented rather than declared: what comes
+ * back from a filter is whatever somebody put there, so every reader treats a
+ * missing key as absent.
  *
  * @return array<string, array<string, mixed>>
  */
@@ -64,29 +64,18 @@ function diluxone_users_account_templates(): array {
 			'action'    => 0,
 			'width'     => 'contained',
 		),
-		'cover' => array(
-			'label'     => __( 'With a cover', 'diluxone-users' ),
-			'help'      => __( 'The person on a coloured band the full width of the window, with the menu in a bar of its own underneath. The way a profile looks.', 'diluxone-users' ),
-			'layout'    => 'tabs',
-			// Underlined and not filled, because a filled block directly under
-			// a filled band is two blocks of colour fighting. It is filled in
-			// here as a starting point, where it can be seen and changed —
-			// not applied behind the back of the control that shows it.
-			'nav_style' => 'underline',
-			'header'    => 1,
-			'avatar'    => 1,
-			'since'     => 1,
-			'action'    => 1,
-			'width'     => 'contained',
-		),
 	);
 
 	/**
 	 * Filters the shapes the account area comes in.
 	 *
 	 * The id is printed as a class on the area — `diluxone-users-account--<id>`
-	 * — and the rest of the row is what pressing it fills in. Anything that
-	 * is not one of the plugin's own needs its own CSS.
+	 * — and the rest of the row (`label`, `help`, and the pieces pressing it
+	 * fills in: `layout`, `nav_style`, `header`, `avatar`, `since`, `action`,
+	 * `width`) is its card on Design › Account area. A shape brings its own
+	 * CSS, and what it adds to the area's markup goes through
+	 * `diluxone_users_account_classes`, `diluxone_users_account_style` and
+	 * `diluxone_users_account_avatar_size`.
 	 *
 	 * @since 1.0.0
 	 *
@@ -120,8 +109,8 @@ function diluxone_users_screen_appearance_template(): void {
 					data-diluxone-users-template
 					data-diluxone-users-template-pieces="<?php echo esc_attr( (string) wp_json_encode( $preset ) ); ?>">
 				<span class="diluxone-users-templates__art diluxone-users-templates__art--<?php echo esc_attr( $id ); ?>" aria-hidden="true"></span>
-				<span class="diluxone-users-templates__name"><?php echo esc_html( $preset['label'] ); ?></span>
-				<span class="diluxone-users-templates__help"><?php echo esc_html( $preset['help'] ); ?></span>
+				<span class="diluxone-users-templates__name"><?php echo esc_html( (string) ( $preset['label'] ?? $id ) ); ?></span>
+				<span class="diluxone-users-templates__help"><?php echo esc_html( (string) ( $preset['help'] ?? '' ) ); ?></span>
 			</label>
 		<?php endforeach; ?>
 		<?php
@@ -132,6 +121,28 @@ function diluxone_users_screen_appearance_template(): void {
 	</div>
 	<?php
 	diluxone_users_ui_wide_close();
+
+	// After the real answers and never among them.
+	diluxone_users_ui_pro_card(
+		array(
+			'where'  => 'design/account/shapes',
+			'screen' => 'design',
+			'title'  => __( 'With a cover', 'diluxone-users' ),
+			'text'   => __( 'Users+ Pro adds the account area with a cover: the person on a band the full width of the window, in a colour or a picture, with the menu in a strip of its own underneath.', 'diluxone-users' ),
+		)
+	);
+
+	/**
+	 * Fires under the shapes of the account area, on Design › Account area.
+	 *
+	 * Where the settings a shape brings go, drawn with the screen's pieces
+	 * and saved on `diluxone_users_panel_saved`.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param string $template The shape chosen, a kept one included.
+	 */
+	do_action( 'diluxone_users_design_account_shape', $template );
 
 	diluxone_users_ui_section( __( 'The header', 'diluxone-users' ) );
 
@@ -185,64 +196,6 @@ function diluxone_users_screen_appearance_template(): void {
 		)
 	);
 
-	diluxone_users_ui_section( __( 'The cover', 'diluxone-users' ) );
-
-	/*
-	 * Three answers and not a tick box: "a picture" and "a picture you can
-	 * read a name on top of" are different, and a site should not have to
-	 * find that out by uploading a bright one.
-	 */
-	$covers = array(
-		'color' => array(
-			__( 'A colour', 'diluxone-users' ),
-			__( 'A flat band. The steadiest, and the one that never fights the name on top of it.', 'diluxone-users' ),
-		),
-		'image' => array(
-			__( 'A picture', 'diluxone-users' ),
-			__( 'The photo across the band. Choose a dark, quiet one: the name goes on top in white.', 'diluxone-users' ),
-		),
-		'dim'   => array(
-			__( 'A picture under the colour', 'diluxone-users' ),
-			__( 'The photo with your colour laid over it. The name stays readable whatever was uploaded, which is why it is here.', 'diluxone-users' ),
-		),
-	);
-
-	$kinds = array();
-
-	foreach ( $covers as $key => $one ) {
-		$kinds[] = array(
-			'name'    => 'diluxone_users_account_cover_kind',
-			'value'   => $key,
-			'piece'   => 'cover_kind',
-			'checked' => (string) diluxone_users_option( 'diluxone_users_account_cover_kind' ) === $key,
-			'title'   => $one[0],
-			'help'    => $one[1],
-		);
-	}
-
-	diluxone_users_ui_field_open( __( 'What the cover is', 'diluxone-users' ) );
-	diluxone_users_ui_choices( $kinds );
-	diluxone_users_ui_field_close();
-
-	diluxone_users_ui_field_open( __( 'The cover picture', 'diluxone-users' ) );
-	diluxone_users_image_field(
-		'diluxone_users_account_cover_image',
-		__( 'It runs the whole width of the window, so a wide one. With none chosen the band falls back to the colour, rather than coming out empty.', 'diluxone-users' )
-	);
-	diluxone_users_ui_field_close();
-
-	diluxone_users_ui_color(
-		array(
-			'label'    => __( 'The cover colour', 'diluxone-users' ),
-			'name'     => 'diluxone_users_account_cover',
-			'value'    => diluxone_users_account_cover(),
-			'fallback' => diluxone_users_style_accent(),
-			'help'     => __( 'Unticked it follows the accent colour, which is what it does out of the box: a site that changes its accent gets a cover that follows instead of a second colour, set once, drifting from the first.', 'diluxone-users' )
-				. ' '
-				. __( 'It is also what goes over the picture in the third answer above, so the two never drift apart.', 'diluxone-users' ),
-		)
-	);
-
 	diluxone_users_ui_section( __( 'The menu', 'diluxone-users' ) );
 
 	diluxone_users_forced_notice( 'diluxone_users_account_layout' );
@@ -266,9 +219,9 @@ function diluxone_users_screen_appearance_template(): void {
 	diluxone_users_ui_field_close();
 
 	/*
-	 * Its own question, and not a consequence of the template. Until now the
-	 * cover turned the menu into underlined tabs on its way past, so the same
-	 * three sections changed shape because of a decision about the header.
+	 * Its own question, and not a consequence of the template. A shape used to
+	 * turn the menu into underlined tabs on its way past, so the same three
+	 * sections changed shape because of a decision about the header.
 	 */
 	$looks = array();
 
@@ -382,18 +335,19 @@ function diluxone_users_screen_appearance_template(): void {
 	diluxone_users_ui_section( __( 'The page it sits on', 'diluxone-users' ) );
 
 	/*
-	 * Empty and not a colour, for the reason the numbers below it are empty:
-	 * with no answer the plugin prints no rule, and the page's own ground is
+	 * Nothing by default, for the reason the numbers below it are empty: with
+	 * no answer the plugin prints no rule, and the page's own ground is
 	 * whatever the theme makes it. A "white" default would be an answer, and
 	 * an answer that loads after the site's stylesheet wins over it.
 	 */
-	diluxone_users_ui_color(
+	diluxone_users_ui_swatches(
 		array(
-			'label'    => __( 'Behind the whole area', 'diluxone-users' ),
-			'name'     => 'diluxone_users_account_ground',
-			'value'    => (string) diluxone_users_option( 'diluxone_users_account_ground' ),
-			'fallback' => '#f5f6f8',
-			'help'     => __( 'The shade the area sits on. Unticked it sits on whatever the page is, which is what it always did — and on a white page white boxes have no edge, so this is how they get one.', 'diluxone-users' ),
+			'label'   => __( 'Behind the whole area', 'diluxone-users' ),
+			'name'    => 'diluxone_users_account_ground',
+			'value'   => (string) diluxone_users_option( 'diluxone_users_account_ground' ),
+			'palette' => diluxone_users_ground_palette(),
+			'none'    => __( 'The page’s own', 'diluxone-users' ),
+			'help'    => __( 'The shade the area sits on. The page’s own is what it always did — and on a white page white boxes have no edge, so this is how they get one.', 'diluxone-users' ),
 		)
 	);
 
@@ -460,7 +414,7 @@ function diluxone_users_screen_appearance_template(): void {
 
 	diluxone_users_ui_field_open( __( 'The content', 'diluxone-users' ) );
 	diluxone_users_ui_choices( $held );
-	diluxone_users_ui_field_close( __( 'Forms are hard to read at full width; a list of courses is not. This holds the content only — a cover always runs edge to edge.', 'diluxone-users' ) );
+	diluxone_users_ui_field_close( __( 'Forms are hard to read at full width; a list of courses is not. This holds the content only.', 'diluxone-users' ) );
 }
 
 /**
@@ -487,91 +441,65 @@ function diluxone_users_brand_look(): string {
 }
 
 /**
- * Which colour of the theme’s palette plays which part of the plugin.
+ * A picture of which colour of the theme's palette plays which part.
  *
- * Folded away, and that is the whole of what it needed. It is not a question
- * this screen is asking: a theme that names its colours the way WordPress
- * suggests — Astra does — arrives here already mapped, and seven dropdowns
- * drawn open above the settings read as seven things left undone. The case it
- * is really for is narrow and it is worth saying out loud: a theme that
- * numbers its colours cannot be guessed at, and this is where it gets told.
- *
- * Each row is a square of the colour, the answer, and a sentence naming the
- * part and saying where in the plugin it turns up. The square used to be
- * `transparent` whenever a part was left to the plugin, which on a settings
- * screen is not “nothing chosen” — it is an unticked box, seven of them in a
- * column, and the whole row of them was read as work rather than as a palette.
+ * Choosing that by hand is Users+ Pro's. The plugin guesses it from the names
+ * the theme gives its colours, which is right for a theme that names them the
+ * way WordPress suggests; the picture is of the rows that say so, with the
+ * theme's own colours in them, and nothing in it sends.
  *
  * @param array<string, array<string, string>> $palette
  */
-function diluxone_users_brand_colour_map( array $palette ): void {
-	diluxone_users_ui_fold(
-		array(
-			'label' => __( 'Fine tuning: which colour does what', 'diluxone-users' ),
-			'help'  => __( 'Already filled in from the names your theme gives its colours. Worth opening only if the plugin came out in the wrong ones — a theme that numbers its colours instead of naming them cannot be guessed at.', 'diluxone-users' ),
-			'data'  => array( 'brand-map' => 'theme-colours' ),
-		),
-		static function () use ( $palette ): void {
-			$map = diluxone_users_color_map();
+function diluxone_users_brand_map_picture( array $palette ): void {
+	$map = diluxone_users_color_map();
 
-			foreach ( diluxone_users_color_roles() as $role => $part ) {
-				$now = (string) ( $map[ $role ] ?? '' );
-				$id  = 'diluxone_users_color_map_' . $role;
-				?>
-				<p class="diluxone-users-palette__row">
-					<span class="diluxone-users-palette__chip" style="background: <?php echo esc_attr( diluxone_users_color_swatch( $role, $now ) ); ?>" aria-hidden="true"></span>
-
-					<select id="<?php echo esc_attr( $id ); ?>" name="diluxone_users_color_map[<?php echo esc_attr( $role ); ?>]">
-						<option value=""><?php esc_html_e( '— the plugin’s own', 'diluxone-users' ); ?></option>
-						<?php foreach ( $palette as $slug => $colour ) : ?>
-							<option value="<?php echo esc_attr( $slug ); ?>" <?php selected( $now, $slug ); ?>>
-								<?php echo esc_html( $colour['name'] ); ?>
-							</option>
-						<?php endforeach; ?>
-					</select>
-
-					<label class="description" for="<?php echo esc_attr( $id ); ?>">
-						<strong><?php echo esc_html( $part['name'] ); ?></strong>
-						<?php echo esc_html( $part['paints'] ); ?>
-					</label>
-				</p>
-				<?php
-			}
-		}
-	);
+	foreach ( diluxone_users_color_roles() as $role => $part ) {
+		$now = (string) ( $map[ $role ] ?? '' );
+		?>
+		<p class="diluxone-users-palette__row">
+			<span class="diluxone-users-palette__chip" style="background: <?php echo esc_attr( isset( $palette[ $now ] ) ? (string) $palette[ $now ]['color'] : (string) ( diluxone_users_color_own()[ $role ] ?? '#ffffff' ) ); ?>" aria-hidden="true"></span>
+			<select>
+				<option><?php echo esc_html( isset( $palette[ $now ] ) ? (string) $palette[ $now ]['name'] : __( '— the plugin’s own', 'diluxone-users' ) ); ?></option>
+			</select>
+			<span class="description">
+				<strong><?php echo esc_html( $part['name'] ); ?></strong>
+				<?php echo esc_html( $part['paints'] ); ?>
+			</span>
+		</p>
+		<?php
+	}
 }
 
 /**
  * The accent, and the corners, for a site that is choosing them here.
  *
- * The picker is switched off while the colours are the theme’s, because there
- * it is the answer to a question nobody is asking any more — the palette
- * answers it. Switched off it is also not posted, and a save that reads an
- * absence as “no colour” is a save that throws away a colour somebody chose
- * the moment they try the theme’s palette for an afternoon. Hence the keeper
- * in front of it: while the picker is off, what it is holding goes with the
- * form anyway. In front, and not behind, so that the picker wins the moment
- * the browser switches it back on.
+ * The accent is one of the short palette's: each reads under white letters and
+ * as a link on white, which is the whole of what an accent has to do. While
+ * the colours are the theme's this hangs folded under an answer nobody chose,
+ * and its radios still go with the form: trying the theme's palette for an
+ * afternoon does not throw away the colour chosen here.
  */
 function diluxone_users_brand_own_colour(): void {
-	$from_theme = diluxone_users_colors_from_theme();
-
-	diluxone_users_ui_field_open( __( 'Accent colour', 'diluxone-users' ), 'diluxone_users_style_accent' );
-
-	if ( $from_theme ) {
-		printf(
-			'<input type="hidden" name="diluxone_users_style_accent" value="%s">',
-			esc_attr( (string) diluxone_users_option( 'diluxone_users_style_accent' ) )
-		);
-	}
-
-	printf(
-		'<input type="color" id="diluxone_users_style_accent" name="diluxone_users_style_accent" value="%1$s"%2$s>',
-		esc_attr( diluxone_users_style_accent() ),
-		disabled( $from_theme, true, false )
+	diluxone_users_ui_swatches(
+		array(
+			'label'    => __( 'Accent colour', 'diluxone-users' ),
+			'name'     => 'diluxone_users_style_accent',
+			'value'    => (string) diluxone_users_option( 'diluxone_users_style_accent' ),
+			'palette'  => diluxone_users_accent_palette(),
+			'fallback' => diluxone_users_accent_default(),
+			'help'     => __( 'A filled button, a link, the section of the menu somebody is reading, and the initials drawn for anybody with no photo. Everything else — the grounds, the lines, the quiet text — the plugin builds around it. Each of these reads under white letters and as a link on white.', 'diluxone-users' ),
+		)
 	);
 
-	diluxone_users_ui_field_close( __( 'A filled button, a link, the section of the menu somebody is reading, and the initials drawn for anybody with no photo. Everything else — the grounds, the lines, the quiet text — the plugin builds around it.', 'diluxone-users' ) );
+	// After the real answers and never among them.
+	diluxone_users_ui_pro_card(
+		array(
+			'where'  => 'design/brand/any-color',
+			'screen' => 'design',
+			'title'  => __( 'Any colour', 'diluxone-users' ),
+			'text'   => __( 'Users+ Pro adds a picker for any colour at all, here and wherever the plugin asks for one.', 'diluxone-users' ),
+		)
+	);
 
 	diluxone_users_ui_number(
 		array(
@@ -639,7 +567,27 @@ function diluxone_users_screen_design_brand(): void {
 	// setting for something that cannot happen.
 	if ( array() !== $palette ) {
 		$theme['children'] = static function () use ( $palette ): void {
-			diluxone_users_brand_colour_map( $palette );
+			diluxone_users_ui_pro(
+				array(
+					'where'  => 'design/brand/color-map',
+					'screen' => 'design',
+					'title'  => __( 'Which colour does what', 'diluxone-users' ),
+					'text'   => __( 'Users+ Pro lets you choose which colour of your theme’s palette plays each part, for a theme that numbers its colours instead of naming them.', 'diluxone-users' ),
+				),
+				static function () use ( $palette ): void {
+					diluxone_users_brand_map_picture( $palette );
+				}
+			);
+
+			/**
+			 * Fires under "From your theme" on Design › Your brand, while the
+			 * theme publishes a palette.
+			 *
+			 * @since 1.0.0
+			 *
+			 * @param array<string, array<string, string>> $palette The theme's palette, keyed by slug.
+			 */
+			do_action( 'diluxone_users_design_theme_colors', $palette );
 		};
 	}
 
@@ -653,12 +601,6 @@ function diluxone_users_screen_design_brand(): void {
 				'checked'  => 'own' === $look,
 				'title'    => __( 'I choose it here', 'diluxone-users' ),
 				'help'     => __( 'One colour and one corner, and the plugin builds the rest around them. The panel beside this one is the account area itself, so what is chosen can be looked at rather than imagined.', 'diluxone-users' ),
-				// What turns the picker back on the moment this answer is
-				// given, rather than at the next save: the server draws it
-				// switched off because the saved answer is the theme’s
-				// palette, and that stops being true as soon as this is
-				// pressed.
-				'data'     => array( 'toggle' => '#diluxone_users_style_accent' ),
 				'children' => 'diluxone_users_brand_own_colour',
 			),
 			array(
@@ -744,7 +686,7 @@ function diluxone_users_screen_design_brand(): void {
 				'name'    => 'diluxone_users_button_icons',
 				'value'   => '1',
 				'checked' => (bool) diluxone_users_option( 'diluxone_users_button_icons' ),
-				'title'   => __( 'An icon inside the two doors: an envelope on the link, a key on the passkey', 'diluxone-users' ),
+				'title'   => __( 'An icon inside the buttons of the doors: an envelope on the link', 'diluxone-users' ),
 			),
 		)
 	);

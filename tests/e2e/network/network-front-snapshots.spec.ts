@@ -67,7 +67,7 @@ test.describe('The hub’s own pages look like they did', () => {
 
 	test('the second step, after coming from a site', async ({ page, alpha, hub }) => {
 		await hub.set({ diluxone_users_2fa_mode: 'optional', diluxone_users_2fa_methods: ['email'] });
-		await hub.site.makeUser({ email: PERSON.email, password: PERSON.password, name: 'Alex Rivera', meta: { diluxone_users_2fa_on: '1', diluxone_users_totp: null } });
+		await hub.site.makeUser({ email: PERSON.email, password: PERSON.password, name: 'Alex Rivera', meta: { diluxone_users_2fa_on: '1' } });
 
 		await signInFrom(page, alpha, hub, PERSON.email, PERSON.password);
 		await expect(challengeScreen(page)).toBeVisible();
@@ -76,34 +76,22 @@ test.describe('The hub’s own pages look like they did', () => {
 	});
 });
 
-test.describe('Joining a site looks like it did', () => {
-	for (const policy of ['click', 'invite'] as const) {
-		test(`offered: ${policy}`, async ({ page, hub, beta }) => {
-			await hub.set({ diluxone_users_membership: policy });
-			await hub.site.makeUser({ email: PERSON.email, password: PERSON.password, name: 'Alex Rivera', });
+test.describe('A site somebody is not a member of looks like it did', () => {
+	// "Join this site" and its welcome are Users+ Pro's, photographed there.
+	test('by invitation', async ({ page, hub, beta }) => {
+		await hub.set({ diluxone_users_membership: 'invite' });
+		await hub.site.makeUser({ email: PERSON.email, password: PERSON.password, name: 'Alex Rivera' });
 
-			const join = joinPage(beta);
+		const join = joinPage(beta);
 
-			try {
-				await signInFrom(page, beta, hub, PERSON.email, PERSON.password);
-				await page.goto(join.url);
-				await expect(page.locator(`[data-diluxone-users-join="${policy}"]`)).toBeVisible();
+		try {
+			await signInFrom(page, beta, hub, PERSON.email, PERSON.password);
+			await page.goto(join.url);
+			await expect(page.locator('[data-diluxone-users-join="invite"]')).toBeVisible();
 
-				await picture(page, '[data-diluxone-users-join]', `network-front-join-${policy}.png`);
-
-				if (policy === 'click') {
-					await Promise.all([page.waitForURL(/diluxone-users=joined/), page.locator('[data-diluxone-users-join="click"] button[type="submit"]').click()]);
-					// Said once on the way back, where the shortcode is: the
-					// block theme draws the page's content before its top.
-					const welcome = '[data-diluxone-users-join="joined"]';
-
-					await expect(page.locator(welcome)).toHaveCount(1);
-
-					await picture(page, welcome, 'network-front-join-joined.png');
-				}
-			} finally {
-				wp(['post', 'delete', join.id, '--force'], beta.url);
-			}
-		});
-	}
+			await picture(page, '[data-diluxone-users-join]', 'network-front-join-invite.png');
+		} finally {
+			wp(['post', 'delete', join.id, '--force'], beta.url);
+		}
+	});
 });

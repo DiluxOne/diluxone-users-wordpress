@@ -55,9 +55,9 @@ class SaveOptionsTest extends IntegrationTestCase {
 	}
 
 	public function test_a_map_keeps_its_keys_cleaned(): void {
-		$this->save( array( 'diluxone_users_color_map' => array( 'Bad Key' => 'V!' ) ) );
+		$this->save( array( 'diluxone_users_notice_rules' => array( 'Bad Key' => 'V!' ) ) );
 
-		$this->assertSame( array( 'badkey' => 'v' ), diluxone_users_raw_get( 'diluxone_users_color_map' ) );
+		$this->assertSame( array( 'badkey' => 'v' ), diluxone_users_raw_get( 'diluxone_users_notice_rules' ) );
 	}
 
 	public function test_a_word_keeps_no_markup_unless_it_may(): void {

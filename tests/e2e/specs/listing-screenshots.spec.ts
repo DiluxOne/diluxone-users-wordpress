@@ -54,6 +54,13 @@ const SHOP_WINDOW = {
 	// The account area's sections as the plugin names them: a development
 	// site keeps whatever labels somebody typed into it, in their language.
 	diluxone_users_account_sections: {},
+	// The two networks the free plugin has, set up: a development site keeps
+	// whichever ones somebody configured, and a network only Users+ Pro
+	// registers draws no button here.
+	diluxone_users_sso: {
+		google: { active: 1, id: 'listing-google-id', secret: 'listing-google-secret', tested: 1 },
+		microsoft: { active: 1, id: 'listing-microsoft-id', secret: 'listing-microsoft-secret', tested: 1 },
+	},
 };
 
 /** The member the front-end pictures are of: an address, not a test id. */
@@ -157,7 +164,6 @@ test.describe('The front end', () => {
 		await options.set({
 			...SHOP_WINDOW,
 			diluxone_users_login_method: 'both',
-			diluxone_users_passkey_enabled: 1,
 			diluxone_users_sso_login: 1,
 			diluxone_users_login_layout: 'tabs',
 			diluxone_users_login_order: ['social', 'email', 'password'],
@@ -236,7 +242,7 @@ test.describe('The account area', () => {
 		await shootWindow(page, 2);
 	});
 
-	test('3 · security: passkeys, two-step verification and every browser signed in', async ({
+	test('3 · security: two-step verification and every browser signed in', async ({
 		page,
 		site,
 		pages,
@@ -245,9 +251,8 @@ test.describe('The account area', () => {
 		await options.set({
 			...SHOP_WINDOW,
 			diluxone_users_login_method: 'both',
-			diluxone_users_passkey_enabled: 1,
 			diluxone_users_2fa_mode: 'optional',
-			diluxone_users_2fa_methods: ['totp', 'email'],
+			diluxone_users_2fa_methods: ['email'],
 		});
 
 		const account = await asMember(page, site, pages);
@@ -304,7 +309,7 @@ test.describe('The dashboard', () => {
 			n: 8,
 			screen: 'diluxone-users-social',
 			tab: 'providers',
-			caption: 'social login: twelve networks, each with its own credentials and a live test',
+			caption: 'social login: each network with its own credentials and a live test',
 		},
 		{
 			n: 9,

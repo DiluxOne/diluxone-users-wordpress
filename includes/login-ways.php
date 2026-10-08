@@ -3,8 +3,8 @@
  * The ways into this site, registered instead of written down.
  *
  * The sign-in template used to stack them in an order somebody typed: the
- * passkey, then the networks, then the e-mail form, then username and
- * password, with a divider between each pair. Two things were wrong with
+ * networks, then the e-mail form, then username and password, with a divider
+ * between each pair. Two things were wrong with
  * that, and the second is the reason for this file.
  *
  * The first is height. Nobody decided the screen would be that tall — it is
@@ -12,7 +12,7 @@
  * was below the fold of the one page that exists to be understood in a look.
  *
  * The second is that the template had to know about every way in there is.
- * Passkeys were an `if` in it; the networks were another; an add-on with a way
+ * The networks were an `if` in it; an add-on with a way
  * of its own had no way of getting drawn except by replacing the file. Now
  * each one registers itself the way a panel of the dashboard does — an id, a
  * label, a neutral icon and something that draws it — and the template asks
@@ -77,8 +77,8 @@ function diluxone_users_way_registry( string $id = '', ?array $way = null ): arr
  * put five logos on one tab. A name this plugin does not know draws no icon,
  * which is a tab with a word on it and still a tab.
  *
- * @param string                                                                                                                                   $id  The way's slug. It ends up in a cookie and in the site's saved order.
- * @param array{label: string, icon?: string, render: callable, available?: callable, states?: array<int, string>, outside?: bool, position?: int} $way
+ * @param string                                                                                                                                                  $id  The way's slug. It ends up in a cookie and in the site's saved order.
+ * @param array{label: string, icon?: string, render: callable, available?: callable, states?: array<int, string>, outside?: bool, strong?: bool, position?: int} $way
  */
 function diluxone_users_register_way( string $id, array $way ): void {
 	diluxone_users_way_registry(
@@ -97,8 +97,9 @@ function diluxone_users_register_way( string $id, array $way ): void {
 				// the strip says it instead and every divider goes.
 				'over'      => '',
 				// Whether this site offers it at all, asked every time: the
-				// networks come and go with a setting, and a passkey needs
-				// HTTPS. A way that answers no is not drawn and takes no room.
+				// networks come and go with a setting, and an add-on's way may
+				// need HTTPS. A way that answers no is not drawn and takes no
+				// room.
 				'available' => '__return_true',
 				// The `diluxone-users=` states this way is the author of. The
 				// screen comes back from a failed attempt with one of them,
@@ -106,11 +107,16 @@ function diluxone_users_register_way( string $id, array $way ): void {
 				// that failed — a message about an address, over a password
 				// form, explains nothing.
 				'states'    => array(),
-				// Outside the tabs, always visible, above them. The passkey is
-				// the one the plugin ships: it is the fastest way in there is,
-				// a tab would cost it a click, and inside one the browser
-				// never gets to offer it as the e-mail field is focused.
+				// Outside the tabs, always visible, above them: for a way in
+				// that is one button and the fastest there is, which a tab
+				// would cost a click — and inside one the browser never gets
+				// to offer it as the e-mail field is focused.
 				'outside'   => false,
+				// Whether a sign-in through it already proved two things —
+				// something the person has and something they are or know —
+				// so the second step is not asked on top
+				// (diluxone_users_way_strong()). The plugin's own are not.
+				'strong'    => false,
 				'position'  => 50,
 			)
 		)
@@ -498,30 +504,33 @@ function diluxone_users_ways_render(): void {
 	}
 }
 
-/* ── The four this plugin ships ────────────────────────────────────── */
+/**
+ * Whether a sign-in through this door already proved two things.
+ *
+ * Asked by diluxone_users_complete_login() before the second step: a way in
+ * registered with `strong` — something the person has and something they are
+ * or know, in one gesture — goes straight in, because asking for a code on
+ * top would be asking for a third.
+ *
+ * @param string $via The door, as the session is opened with it.
+ */
+function diluxone_users_way_strong( string $via ): bool {
+	$way = diluxone_users_way_registry()[ $via ] ?? null;
+
+	return is_array( $way ) && ! empty( $way['strong'] );
+}
+
+/* ── The three this plugin ships ───────────────────────────────────── */
 
 /**
  * The plugin's own ways in.
  *
- * All four in one file because none of them is a feature of its own: each is
+ * All three in one file because none of them is a feature of its own: each is
  * a few lines drawn out of pieces that already exist elsewhere — the social
- * buttons, WordPress's form, the passkey script. What registers from its own
- * file is everything that is not the plugin's, which is the point of the
- * registry.
+ * buttons, the link form, WordPress's form. What registers from its own file
+ * is everything that is not the plugin's, which is the point of the registry.
  */
 function diluxone_users_ways_register(): void {
-	diluxone_users_register_way(
-		'passkey',
-		array(
-			'label'     => __( 'Passkey', 'diluxone-users' ),
-			'icon'      => 'key',
-			'position'  => 0,
-			'outside'   => true,
-			'available' => 'diluxone_users_has_passkeys',
-			'render'    => 'diluxone_users_way_passkey',
-		)
-	);
-
 	diluxone_users_register_way(
 		'social',
 		array(
@@ -562,15 +571,6 @@ function diluxone_users_ways_register(): void {
 	);
 }
 add_action( 'diluxone_users_register_ways', 'diluxone_users_ways_register' );
-
-/** The passkey, which is a button and the line it writes when it fails. */
-function diluxone_users_way_passkey(): void {
-	diluxone_users_passkeys_enqueue();
-	?>
-	<p class="diluxone-users-notice" data-diluxone-users-passkey-notice hidden></p>
-	<p><button type="button" class="diluxone-users-button diluxone-users-button--wide" data-diluxone-users-passkey="login"><?php echo wp_kses( diluxone_users_button_icon( 'key' ), diluxone_users_allowed_html() ); ?><?php esc_html_e( 'Sign in with a passkey', 'diluxone-users' ); ?></button></p>
-	<?php
-}
 
 /** The networks the site offers, as the buttons they already are. */
 function diluxone_users_way_social(): void {

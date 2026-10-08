@@ -3,7 +3,7 @@ import { execFileSync } from 'node:child_process';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { test, expect, expectSignedIn, signedInAs, stateOf } from '../support/fixtures';
 import { Site, freshEmail, linkIn, waitForMail } from '../support/api';
-import { accountSection, adminUrl, openPanel, savePanel, signInWithPassword, ssoButton } from '../support/ui';
+import { accountSection, adminUrl, savePanel, signInWithPassword, ssoButton } from '../support/ui';
 import { ADMIN_STATE } from '../../../playwright.config';
 import { PASSWORD, devWp, formOf, nonceOf, postByHand, reveal, send, signedIn } from '../support/my-account';
 
@@ -342,8 +342,6 @@ test.describe('The links in the e-mails', () => {
 });
 
 test.describe('Closing an account', () => {
-	test.skip(({ browserName }) => browserName !== 'chromium', 'the passkey part needs the virtual authenticator');
-
 	test('with something published: an empty shell `deleted-<id>`, no role, every plugin key erased, nothing reopens it, and the person is told', async ({
 		page,
 		browser,
@@ -359,9 +357,6 @@ test.describe('Closing an account', () => {
 			diluxone_users_sso_register: 0,
 			diluxone_users_sso_link_by_email: 1,
 			diluxone_users_sso_verified_only: 0,
-			diluxone_users_passkey_enabled: 1,
-			diluxone_users_passkey_where: 'any',
-			diluxone_users_passkey_verify: 1,
 			diluxone_users_handle_enabled: 1,
 		});
 
@@ -379,24 +374,13 @@ test.describe('Closing an account', () => {
 		const post = devWp(['post', 'create', '--post_type=post', '--post_status=publish', '--post_title=E2E closing', `--post_author=${id}`, '--porcelain']);
 
 		try {
-			// A passkey of theirs, before closing.
-			const cdp = await page.context().newCDPSession(page);
-
-			await cdp.send('WebAuthn.enable', { enableUI: false });
-			await cdp.send('WebAuthn.addVirtualAuthenticator', {
-				options: { protocol: 'ctap2', transport: 'internal', hasResidentKey: true, hasUserVerification: true, isUserVerified: true, automaticPresenceSimulation: true },
-			});
-			await page.goto(accountSection(pages.account.url, 'security'));
-			await (await openPanel(page, '[data-diluxone-users-passkey="register"]')).locator('[data-diluxone-users-passkey="register"]').click();
-			await expect(page.locator('input[name="diluxone_users_passkey_label"]')).toHaveCount(1, { timeout: 20_000 });
-
 			expect(await ask(page, pages.account.url, 'erase')).toBe('requested');
 			await page.goto(await confirmationLink(site, email));
 
 			// What arrives from here on is what the button sent. Emptied rather
 			// than filtered by time: the browser's clock and the server's are
-			// not the same clock, and a mail from just before (the new
-			// passkey's notice) could fall on either side of a timestamp.
+			// not the same clock, and a mail from just before could fall on
+			// either side of a timestamp.
 			await site.clearMail();
 
 			await Promise.all([page.waitForURL(/diluxone-users=closed/), yesDelete(page).click()]);
@@ -438,13 +422,6 @@ test.describe('Closing an account', () => {
 			if (who !== null) {
 				expect((await site.user(who)).id, 'whoever got in, it is not the shell').not.toBe(id);
 			}
-
-			// Nor does the passkey that was on it.
-			await page.context().clearCookies();
-			await page.goto(pages.login.url);
-			await page.locator('[data-diluxone-users-passkey="login"]').click();
-			await expect(page.locator('[data-diluxone-users-passkey-notice]')).toBeVisible({ timeout: 20_000 });
-			expect(await signedInAs(page)).toBeNull();
 		} finally {
 			devWp(['user', 'delete', String(id), '--yes']);
 		}
@@ -466,7 +443,7 @@ test.describe('The file', () => {
 		return execFileSync('unzip', ['-p', file], { encoding: 'utf8', maxBuffer: 32 * 1024 * 1024 });
 	}
 
-	test('the copy holds the plugin’s groups: the details with the custom field and the public name, how they sign in, the passkeys and the log', async ({
+	test('the copy holds the plugin’s groups: the details with the custom field and the public name, how they sign in and the log', async ({
 		page,
 		site,
 		pages,

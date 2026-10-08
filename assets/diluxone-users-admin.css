@@ -675,7 +675,7 @@
 
 /* ── A grid of cards ──────────────────────────────────────────────────
    One thing per card, in a row that wraps: the four numbers the overview
-   opens with, and the twelve networks on the sign-in providers screen. It is
+   opens with, and the networks on the sign-in providers screen. It is
    one grid and not two — it was two, and the second copy of it was the
    providers', which is why a card had a different amount of room around it
    depending on which screen it was on.
@@ -1268,18 +1268,9 @@
 	background-size: 100% 20px, calc(100% - 16px) 10px;
 	background-repeat: no-repeat;
 }
-.diluxone-users-templates__art--cover {
-	background:
-		linear-gradient(var(--diluxone-users-accent, #2271b1) 0 30px, transparent 30px),
-		linear-gradient(90deg, var(--diluxone-users-accent, #2271b1) 0 34px, #f0f0f1 34px 62px, #f0f0f1 68px 96px);
-	background-position: 0 0, 8px 40px;
-	background-size: 100% 30px, calc(100% - 16px) 10px;
-	background-repeat: no-repeat;
-}
-
-/* The four shapes of the sign-in page, drawn the same way as the account
-   templates: a header band, a box, a picture — in the proportions each one
-   actually has. */
+/* The shapes of the sign-in page, drawn the same way as the account
+   templates: a header band, a box — in the proportions each one actually
+   has. An add-on's shape draws its own as `__art--login-<id>`. */
 .diluxone-users-templates__art--login-plain {
 	background: linear-gradient(#f0f0f1 0 8px, transparent 8px), linear-gradient(var(--diluxone-users-accent, #2271b1) 0 100%);
 	background-position: 0 10px, 12px 26px;
@@ -1293,20 +1284,6 @@
 	background-repeat: no-repeat;
 	box-shadow: inset 0 0 0 100px #f0f0f1;
 }
-.diluxone-users-templates__art--login-split {
-	background: linear-gradient(var(--diluxone-users-accent, #2271b1) 0 100%), linear-gradient(#dcdcde 0 100%);
-	background-position: 0 0, 72% 50%;
-	background-size: 50% 100%, 32% 8px;
-	background-repeat: no-repeat;
-}
-.diluxone-users-templates__art--login-backdrop {
-	background: linear-gradient(rgba(0,0,0,.35) 0 100%), linear-gradient(#fff 0 100%), linear-gradient(var(--diluxone-users-accent, #2271b1) 0 100%);
-	background-position: 0 0, 50% 50%, 50% 60%;
-	background-size: 100% 100%, 50% 55%, 26% 7px;
-	background-repeat: no-repeat;
-	background-color: var(--diluxone-users-accent, #2271b1);
-}
-
 /* The picture chosen from the media library. */
 .diluxone-users-image__preview {
 	margin: 0 0 8px; padding: 6px;
@@ -1463,6 +1440,43 @@
 }
 .diluxone-users-palette__row select { min-width: 190px; }
 .diluxone-users-palette__row > .description { flex: 1 1 16em; }
+
+/* A colour from a short palette: a row of swatches, each one a radio with
+   the colour on it and its name under it. The chip is the pill the theme's
+   palette uses, so a colour reads as a colour on every screen of the plugin;
+   the one chosen gets the ring every chosen card gets. */
+.du-swatches {
+	display: grid; gap: var(--du-2);
+	grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
+	margin: 0 0 var(--du-2);
+}
+.du-swatch {
+	position: relative; display: flex; flex-direction: column; align-items: center; gap: 6px;
+	padding: var(--du-2) 6px; cursor: pointer; text-align: center;
+	border: 1px solid var(--du-line); border-radius: var(--du-radius);
+	background: var(--du-ground);
+}
+.du-swatch:hover { border-color: var(--du-accent-edge, #8c8f94); }
+.du-swatch:has(input:checked) {
+	border-color: var(--du-accent, #2271b1);
+	box-shadow: 0 0 0 1px var(--du-accent, #2271b1);
+	background: var(--du-accent-wash, #f0f6fc);
+}
+.du-swatch:has(input:focus-visible) { outline: 2px solid var(--du-accent, #2271b1); outline-offset: 2px; }
+/* The radio is still there for a keyboard and a screen reader; the chip is
+   what the eye answers with. */
+.du-swatch input { position: absolute; opacity: 0; width: 1px; height: 1px; margin: 0; }
+.du-swatch__chip {
+	width: 44px; height: 26px;
+	border: 1px solid rgba(0, 0, 0, .15); border-radius: 13px;
+}
+/* The answer that stores nothing: the page's own, the accent followed. */
+.du-swatch--none .du-swatch__chip {
+	background: repeating-linear-gradient(135deg, #fff 0 6px, #f0f0f1 6px 12px);
+	border-style: dashed; border-color: #c3c4c7;
+}
+.du-swatch--kept { border-style: dashed; }
+.du-swatch__name { font-size: 12px; line-height: 1.3; color: var(--du-text); }
 
 /* One rule per notice: every dropdown on the tab starts at the same width, so
    the column of answers lines up instead of stepping in and out with the
@@ -1723,4 +1737,6 @@ span.diluxone-users-state {
 	border: 1px dashed var(--du-line); border-radius: var(--du-radius);
 	background: var(--du-ground-alt);
 }
+/* In a grid it is one more cell: the grid's gap is its room. */
+.diluxone-users-cards > .du-pro-card { margin: 0; }
 .du-pro-card .du-pro__says { max-width: none; font-weight: 400; color: var(--du-muted); }

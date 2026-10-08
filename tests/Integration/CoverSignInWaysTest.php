@@ -1,7 +1,7 @@
 <?php
 /**
  * The ways in, drawn: which tab opens and why, the ways that stay outside the
- * tabs with the line between them, the passkey's button, the e-mail box that
+ * tabs with the line between them, an add-on's button, the e-mail box that
  * also takes a public name, and the tab script queued on the site rather than
  * in a preview.
  */
@@ -25,8 +25,6 @@ class CoverSignInWaysTest extends IntegrationTestCase {
 
 		wp_dequeue_script( 'diluxone-users-ways' );
 		wp_deregister_script( 'diluxone-users-ways' );
-		wp_dequeue_script( 'diluxone-users-passkeys' );
-		wp_deregister_script( 'diluxone-users-passkeys' );
 
 		// What a drawing in the dashboard asked the preview for.
 		diluxone_users_preview_scripts( null, true );
@@ -107,30 +105,65 @@ class CoverSignInWaysTest extends IntegrationTestCase {
 
 		diluxone_users_update_option( 'diluxone_users_login_open', 'gone' );
 
-		$this->assertSame( (string) array_key_first( array_diff_key( diluxone_users_ways(), array( 'passkey' => 1 ) ) ), $this->opens( $this->drawn() ) );
+		$this->assertSame( (string) array_key_first( diluxone_users_ways() ), $this->opens( $this->drawn() ) );
+	}
+
+	/* ── A way in whose add-on is off ────────────────────────────────── */
+
+	public function test_a_site_that_signed_in_with_passkeys_still_signs_in_with_the_rest_once_pro_is_off(): void {
+		// What Users+ Pro left behind: passkeys on, first in the order, the
+		// tab the site opens on, and the last way a browser used.
+		update_option( 'diluxone_users_passkey_enabled', 1 );
+		diluxone_users_update_option( 'diluxone_users_login_order', array( 'passkey', 'password', 'email' ) );
+		diluxone_users_update_option( 'diluxone_users_login_open', 'passkey' );
+		diluxone_users_update_option( 'diluxone_users_login_layout', 'tabs' );
+		$_COOKIE[ DILUXONE_USERS_WAY_COOKIE ] = 'passkey';
+
+		$html = $this->drawn();
+
+		$this->assertArrayNotHasKey( 'passkey', diluxone_users_ways(), 'nothing registers it' );
+		$this->assertStringNotContainsStringIgnoringCase( 'passkey', $html, 'no button that does nothing, no tab' );
+		$this->assertSame( 'password', $this->opens( $html ), 'the next way in the site’s own order opens' );
+		$this->assertStringContainsString( 'id="diluxone-users-way-email"', $html );
+		$this->assertStringContainsString( 'id="diluxone-users-way-password"', $html );
+		$this->assertSame( 1, (int) get_option( 'diluxone_users_passkey_enabled' ), 'and the add-on’s setting is kept for its return' );
+
+		delete_option( 'diluxone_users_passkey_enabled' );
 	}
 
 	/* ── What stays outside the tabs ─────────────────────────────────── */
 
-	public function test_the_passkey_stays_above_the_tabs_with_only_or_between(): void {
-		diluxone_users_update_option( 'diluxone_users_passkey_enabled', 1 );
+	/** An add-on's way in that is one button, above the tabs. */
+	private function a_button_outside(): void {
+		$this->extra(
+			'cover-key',
+			array(
+				'outside'  => true,
+				'position' => 0,
+				'render'   => static function (): void {
+					echo '<p><button type="button" class="diluxone-users-button diluxone-users-button--wide" data-cover-key>' . wp_kses( diluxone_users_button_icon( 'key' ), diluxone_users_allowed_html() ) . 'Sign in with a key</button></p>';
+				},
+			)
+		);
+	}
+
+	public function test_a_way_outside_stays_above_the_tabs_with_only_or_between(): void {
+		$this->a_button_outside();
 		diluxone_users_update_option( 'diluxone_users_login_layout', 'tabs' );
 
 		$html = $this->drawn();
 
-		$passkey = strpos( $html, 'id="diluxone-users-way-passkey"' );
+		$outside = strpos( $html, 'id="diluxone-users-way-cover-key"' );
 		$strip   = strpos( $html, 'data-diluxone-users-ways-strip' );
-		$this->assertNotFalse( $passkey );
-		$this->assertLessThan( $strip, $passkey );
-		$this->assertStringContainsString( 'data-diluxone-users-passkey="login"', $html );
-		$this->assertStringContainsString( 'Sign in with a passkey', $html );
-		// In tabs the line under the passkey is the plain "or".
+		$this->assertNotFalse( $outside );
+		$this->assertLessThan( $strip, $outside );
+		$this->assertStringContainsString( 'Sign in with a key', $html );
+		// In tabs the line under it is the plain "or".
 		$this->assertStringContainsString( '</div><p class="diluxone-users-divider"><span>or</span></p><div class="diluxone-users-ways__strip"', $html );
-		$this->assertTrue( wp_script_is( 'diluxone-users-passkeys', 'enqueued' ) );
 	}
 
-	public function test_stacked_the_line_under_the_passkey_is_the_first_way_s_own(): void {
-		diluxone_users_update_option( 'diluxone_users_passkey_enabled', 1 );
+	public function test_stacked_the_line_under_a_way_outside_is_the_first_way_s_own(): void {
+		$this->a_button_outside();
 		diluxone_users_update_option( 'diluxone_users_login_layout', 'stack' );
 		diluxone_users_update_option( 'diluxone_users_button_icons', 1 );
 
@@ -140,12 +173,12 @@ class CoverSignInWaysTest extends IntegrationTestCase {
 		$first = (array) reset( $tabs );
 		$this->assertStringContainsString( '<p class="diluxone-users-divider"><span>' . esc_html( (string) $first['over'] ) . '</span></p>', $html );
 		$this->assertStringContainsString( 'data-diluxone-users-ways-mode="stack"', $html );
-		// With icons on, the passkey's button carries its key.
-		$this->assertMatchesRegularExpression( '#data-diluxone-users-passkey="login"><svg class="diluxone-users-icon diluxone-users-icon--key"#', $html );
+		// With icons on, a button drawn with the plugin's icon carries it.
+		$this->assertMatchesRegularExpression( '#data-cover-key><svg class="diluxone-users-icon diluxone-users-icon--key"#', $html );
 	}
 
 	public function test_two_ways_outside_the_tabs_have_their_own_line_between_them(): void {
-		diluxone_users_update_option( 'diluxone_users_passkey_enabled', 1 );
+		$this->a_button_outside();
 		$this->extra(
 			'cover-outside',
 			array(

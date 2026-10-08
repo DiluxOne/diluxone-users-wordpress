@@ -40,7 +40,8 @@ function diluxone_users_design_brand_save(): void {
 	 * loaded, and whose colours are used. Storing the question as well would
 	 * be a third answer able to disagree with the two.
 	 */
-	$look = sanitize_key( wp_unslash( $_POST['diluxone_users_look'] ?? '' ) );
+	$look   = sanitize_key( wp_unslash( $_POST['diluxone_users_look'] ?? '' ) );
+	$accent = isset( $_POST['diluxone_users_style_accent'] ) && is_string( $_POST['diluxone_users_style_accent'] ) ? sanitize_text_field( wp_unslash( $_POST['diluxone_users_style_accent'] ) ) : '';
 
 	diluxone_users_save_options(
 		diluxone_users_panel_drawn(
@@ -48,8 +49,9 @@ function diluxone_users_design_brand_save(): void {
 			array(
 				'diluxone_users_styles'        => 'site' === $look ? 0 : 1,
 				'diluxone_users_colors'        => 'theme' === $look ? 'theme' : 'own',
-				'diluxone_users_color_map'     => (array) map_deep( wp_unslash( $_POST['diluxone_users_color_map'] ?? array() ), 'sanitize_key' ),
-				'diluxone_users_style_accent'  => ( isset( $_POST['diluxone_users_style_accent'] ) && is_string( $_POST['diluxone_users_style_accent'] ) ? sanitize_hex_color( wp_unslash( $_POST['diluxone_users_style_accent'] ) ) : null ) ?? '',
+				// One of the palette's, the colour already stored coming back as
+				// it went out, or any colour while any colour is an answer.
+				'diluxone_users_style_accent'  => diluxone_users_color_answer( $accent, (string) diluxone_users_option( 'diluxone_users_style_accent' ), diluxone_users_accent_palette(), diluxone_users_any_color() ),
 				'diluxone_users_style_radius'  => sanitize_text_field( wp_unslash( $_POST['diluxone_users_style_radius'] ?? '' ) ),
 				'diluxone_users_style_control' => sanitize_text_field( wp_unslash( $_POST['diluxone_users_style_control'] ?? '' ) ),
 				'diluxone_users_style_border'  => sanitize_text_field( wp_unslash( $_POST['diluxone_users_style_border'] ?? '' ) ),
@@ -91,30 +93,20 @@ function diluxone_users_design_login_save(): void {
 		diluxone_users_panel_drawn(
 			DILUXONE_USERS_DESIGN,
 			array(
-				'diluxone_users_login_template'     => $template,
-				'diluxone_users_login_side'         => 'right' === sanitize_key( wp_unslash( $_POST['diluxone_users_login_side'] ?? 'left' ) ) ? 'right' : 'left',
-				'diluxone_users_login_image'        => ( isset( $_POST['diluxone_users_login_image'] ) && is_scalar( $_POST['diluxone_users_login_image'] ) ? absint( wp_unslash( $_POST['diluxone_users_login_image'] ) ) : 0 ),
-				// The panel's words. The three that come in lines keep their
-				// newlines — that is what makes them lines — so they are cleaned
-				// as areas and not as fields.
-				'diluxone_users_login_panel_logo'   => ( isset( $_POST['diluxone_users_login_panel_logo'] ) && is_scalar( $_POST['diluxone_users_login_panel_logo'] ) ? absint( wp_unslash( $_POST['diluxone_users_login_panel_logo'] ) ) : 0 ),
-				'diluxone_users_login_panel_title'  => sanitize_textarea_field( wp_unslash( $_POST['diluxone_users_login_panel_title'] ?? '' ) ),
-				'diluxone_users_login_panel_text'   => sanitize_textarea_field( wp_unslash( $_POST['diluxone_users_login_panel_text'] ?? '' ) ),
-				'diluxone_users_login_panel_points' => sanitize_textarea_field( wp_unslash( $_POST['diluxone_users_login_panel_points'] ?? '' ) ),
-				'diluxone_users_login_panel_foot'   => sanitize_text_field( wp_unslash( $_POST['diluxone_users_login_panel_foot'] ?? '' ) ),
-				'diluxone_users_login_title'        => sanitize_text_field( wp_unslash( $_POST['diluxone_users_login_title'] ?? '' ) ),
-				'diluxone_users_login_intro'        => sanitize_text_field( wp_unslash( $_POST['diluxone_users_login_intro'] ?? '' ) ),
+				'diluxone_users_login_template' => $template,
+				'diluxone_users_login_title'    => sanitize_text_field( wp_unslash( $_POST['diluxone_users_login_title'] ?? '' ) ),
+				'diluxone_users_login_intro'    => sanitize_text_field( wp_unslash( $_POST['diluxone_users_login_intro'] ?? '' ) ),
 				// Links allowed, and only links: the terms and the privacy policy
 				// are pages, and a legal line that cannot point at them is not one.
-				'diluxone_users_login_legal'        => ( isset( $_POST['diluxone_users_login_legal'] ) && is_string( $_POST['diluxone_users_login_legal'] ) ? wp_kses_post( wp_unslash( $_POST['diluxone_users_login_legal'] ) ) : '' ),
-				'diluxone_users_sent_title'         => sanitize_text_field( wp_unslash( $_POST['diluxone_users_sent_title'] ?? '' ) ),
-				'diluxone_users_sent_note'          => sanitize_text_field( wp_unslash( $_POST['diluxone_users_sent_note'] ?? '' ) ),
+				'diluxone_users_login_legal'    => ( isset( $_POST['diluxone_users_login_legal'] ) && is_string( $_POST['diluxone_users_login_legal'] ) ? wp_kses_post( wp_unslash( $_POST['diluxone_users_login_legal'] ) ) : '' ),
+				'diluxone_users_sent_title'     => sanitize_text_field( wp_unslash( $_POST['diluxone_users_sent_title'] ?? '' ) ),
+				'diluxone_users_sent_note'      => sanitize_text_field( wp_unslash( $_POST['diluxone_users_sent_note'] ?? '' ) ),
 				// Beside the two lines it belongs with, because the screen that
 				// draws it is this one. It was read by the brand tab's save, which
 				// is a tab that never draws it — so every save of Your brand posted
 				// no answer, the save read the absence as “plain”, and a site that
 				// had chosen the circle lost it to a screen about colours.
-				'diluxone_users_sent_icon'          => 'circle' === sanitize_key( wp_unslash( $_POST['diluxone_users_sent_icon'] ?? '' ) ) ? 'circle' : 'plain',
+				'diluxone_users_sent_icon'      => 'circle' === sanitize_key( wp_unslash( $_POST['diluxone_users_sent_icon'] ?? '' ) ) ? 'circle' : 'plain',
 			)
 		)
 	);
@@ -134,51 +126,36 @@ function diluxone_users_design_account_save(): void {
 	$template = sanitize_key( wp_unslash( $_POST['diluxone_users_account_template'] ?? '' ) );
 	$template = diluxone_users_choice_kept( 'diluxone_users_account_template', $template, array_keys( diluxone_users_account_templates() ), 'plain' );
 	$layout   = sanitize_key( wp_unslash( $_POST['diluxone_users_account_layout'] ?? 'tabs' ) );
-	// The menu's look, where it sits and what the cover is: each one of the
-	// answers the screen offers, the first one for anything else.
-	$style = sanitize_key( wp_unslash( $_POST['diluxone_users_account_nav_style'] ?? 'pills' ) );
-	$align = sanitize_key( wp_unslash( $_POST['diluxone_users_account_nav_align'] ?? 'start' ) );
-	$cover = sanitize_key( wp_unslash( $_POST['diluxone_users_account_cover_kind'] ?? 'color' ) );
+	// The menu's look and where it sits: each one of the answers the screen
+	// offers, the first one for anything else.
+	$style  = sanitize_key( wp_unslash( $_POST['diluxone_users_account_nav_style'] ?? 'pills' ) );
+	$align  = sanitize_key( wp_unslash( $_POST['diluxone_users_account_nav_align'] ?? 'start' ) );
+	$ground = isset( $_POST['diluxone_users_account_ground'] ) && is_string( $_POST['diluxone_users_account_ground'] ) ? sanitize_text_field( wp_unslash( $_POST['diluxone_users_account_ground'] ) ) : '';
 
 	diluxone_users_save_options(
 		diluxone_users_panel_drawn(
 			DILUXONE_USERS_DESIGN,
 			array(
-				'diluxone_users_account_template'    => $template,
-				'diluxone_users_account_layout'      => isset( diluxone_users_account_layouts()[ $layout ] ) ? $layout : 'tabs',
-				'diluxone_users_account_nav_style'   => isset( diluxone_users_account_nav_styles()[ $style ] ) ? $style : 'pills',
-				'diluxone_users_account_nav_align'   => in_array( $align, array( 'start', 'center', 'end' ), true ) ? $align : 'start',
-				'diluxone_users_account_width'       => 'full' === sanitize_key( wp_unslash( $_POST['diluxone_users_account_width'] ?? '' ) ) ? 'full' : 'contained',
-				'diluxone_users_account_header'      => isset( $_POST['diluxone_users_account_header'] ) ? 1 : 0,
-				'diluxone_users_account_avatar'      => isset( $_POST['diluxone_users_account_avatar'] ) ? 1 : 0,
-				'diluxone_users_account_since'       => isset( $_POST['diluxone_users_account_since'] ) ? 1 : 0,
-				'diluxone_users_account_action'      => isset( $_POST['diluxone_users_account_action'] ) ? 1 : 0,
-				// The tick box is what decides, not the picker: a disabled picker
-				// is not posted at all, and with the script off it is posted with
-				// a colour nobody chose.
-				'diluxone_users_account_cover'       => isset( $_POST['diluxone_users_account_cover_own'] )
-					? ( ( isset( $_POST['diluxone_users_account_cover'] ) && is_string( $_POST['diluxone_users_account_cover'] ) ? sanitize_hex_color( wp_unslash( $_POST['diluxone_users_account_cover'] ) ) : null ) ?? '' )
-					: '',
-				// Same tick-box-decides shape as the cover colour above, and for
-				// the same reason: a colour picker has no way of saying "none".
-				'diluxone_users_account_ground'      => isset( $_POST['diluxone_users_account_ground_own'] )
-					? ( ( isset( $_POST['diluxone_users_account_ground'] ) && is_string( $_POST['diluxone_users_account_ground'] ) ? sanitize_hex_color( wp_unslash( $_POST['diluxone_users_account_ground'] ) ) : null ) ?? '' )
-					: '',
-				'diluxone_users_account_cover_kind'  => in_array( $cover, array( 'color', 'image', 'dim' ), true ) ? $cover : 'color',
-				'diluxone_users_account_cover_image' => ( isset( $_POST['diluxone_users_account_cover_image'] ) && is_scalar( $_POST['diluxone_users_account_cover_image'] ) ? absint( wp_unslash( $_POST['diluxone_users_account_cover_image'] ) ) : 0 ),
-				'diluxone_users_account_nav_small'   => 'wrap' === sanitize_key( wp_unslash( $_POST['diluxone_users_account_nav_small'] ?? '' ) ) ? 'wrap' : 'scroll',
-				'diluxone_users_account_row_w'       => sanitize_text_field( wp_unslash( $_POST['diluxone_users_account_row_w'] ?? '' ) ),
-				'diluxone_users_account_row_pad'     => sanitize_text_field( wp_unslash( $_POST['diluxone_users_account_row_pad'] ?? '' ) ),
-				'diluxone_users_account_body_pad'    => sanitize_text_field( wp_unslash( $_POST['diluxone_users_account_body_pad'] ?? '' ) ),
-				'diluxone_users_account_nav_top'     => sanitize_text_field( wp_unslash( $_POST['diluxone_users_account_nav_top'] ?? '' ) ),
-				'diluxone_users_account_nav_bottom'  => sanitize_text_field( wp_unslash( $_POST['diluxone_users_account_nav_bottom'] ?? '' ) ),
-				'diluxone_users_account_nav_left'    => sanitize_text_field( wp_unslash( $_POST['diluxone_users_account_nav_left'] ?? '' ) ),
-				'diluxone_users_account_nav_right'   => sanitize_text_field( wp_unslash( $_POST['diluxone_users_account_nav_right'] ?? '' ) ),
-				'diluxone_users_account_bar_gap'     => sanitize_text_field( wp_unslash( $_POST['diluxone_users_account_bar_gap'] ?? '' ) ),
-			),
-			array(
-				'diluxone_users_account_cover'  => 'diluxone_users_account_cover_own',
-				'diluxone_users_account_ground' => 'diluxone_users_account_ground_own',
+				'diluxone_users_account_template'   => $template,
+				'diluxone_users_account_layout'     => isset( diluxone_users_account_layouts()[ $layout ] ) ? $layout : 'tabs',
+				'diluxone_users_account_nav_style'  => isset( diluxone_users_account_nav_styles()[ $style ] ) ? $style : 'pills',
+				'diluxone_users_account_nav_align'  => in_array( $align, array( 'start', 'center', 'end' ), true ) ? $align : 'start',
+				'diluxone_users_account_width'      => 'full' === sanitize_key( wp_unslash( $_POST['diluxone_users_account_width'] ?? '' ) ) ? 'full' : 'contained',
+				'diluxone_users_account_header'     => isset( $_POST['diluxone_users_account_header'] ) ? 1 : 0,
+				'diluxone_users_account_avatar'     => isset( $_POST['diluxone_users_account_avatar'] ) ? 1 : 0,
+				'diluxone_users_account_since'      => isset( $_POST['diluxone_users_account_since'] ) ? 1 : 0,
+				'diluxone_users_account_action'     => isset( $_POST['diluxone_users_account_action'] ) ? 1 : 0,
+				// A shade of the ground palette, '' for the page's own.
+				'diluxone_users_account_ground'     => diluxone_users_color_answer( $ground, (string) diluxone_users_option( 'diluxone_users_account_ground' ), diluxone_users_ground_palette(), diluxone_users_any_color() ),
+				'diluxone_users_account_nav_small'  => 'wrap' === sanitize_key( wp_unslash( $_POST['diluxone_users_account_nav_small'] ?? '' ) ) ? 'wrap' : 'scroll',
+				'diluxone_users_account_row_w'      => sanitize_text_field( wp_unslash( $_POST['diluxone_users_account_row_w'] ?? '' ) ),
+				'diluxone_users_account_row_pad'    => sanitize_text_field( wp_unslash( $_POST['diluxone_users_account_row_pad'] ?? '' ) ),
+				'diluxone_users_account_body_pad'   => sanitize_text_field( wp_unslash( $_POST['diluxone_users_account_body_pad'] ?? '' ) ),
+				'diluxone_users_account_nav_top'    => sanitize_text_field( wp_unslash( $_POST['diluxone_users_account_nav_top'] ?? '' ) ),
+				'diluxone_users_account_nav_bottom' => sanitize_text_field( wp_unslash( $_POST['diluxone_users_account_nav_bottom'] ?? '' ) ),
+				'diluxone_users_account_nav_left'   => sanitize_text_field( wp_unslash( $_POST['diluxone_users_account_nav_left'] ?? '' ) ),
+				'diluxone_users_account_nav_right'  => sanitize_text_field( wp_unslash( $_POST['diluxone_users_account_nav_right'] ?? '' ) ),
+				'diluxone_users_account_bar_gap'    => sanitize_text_field( wp_unslash( $_POST['diluxone_users_account_bar_gap'] ?? '' ) ),
 			)
 		)
 	);
@@ -221,11 +198,14 @@ function diluxone_users_design_wp_save(): void {
 	check_admin_referer( 'diluxone_users_panel_' . DILUXONE_USERS_DESIGN, 'diluxone_users_panel_nonce' );
 	diluxone_users_panel_allowed();
 
+	$bg = isset( $_POST['diluxone_users_wp_login_bg'] ) && is_string( $_POST['diluxone_users_wp_login_bg'] ) ? sanitize_text_field( wp_unslash( $_POST['diluxone_users_wp_login_bg'] ) ) : '';
+
 	diluxone_users_save_options(
 		array(
 			'diluxone_users_wp_login_brand' => isset( $_POST['diluxone_users_wp_login_brand'] ) ? 1 : 0,
 			'diluxone_users_wp_login_logo'  => ( isset( $_POST['diluxone_users_wp_login_logo'] ) && is_scalar( $_POST['diluxone_users_wp_login_logo'] ) ? absint( wp_unslash( $_POST['diluxone_users_wp_login_logo'] ) ) : 0 ),
-			'diluxone_users_wp_login_bg'    => ( isset( $_POST['diluxone_users_wp_login_bg'] ) && is_string( $_POST['diluxone_users_wp_login_bg'] ) ? sanitize_hex_color( wp_unslash( $_POST['diluxone_users_wp_login_bg'] ) ) : null ) ?? '',
+			// '' follows the accent; otherwise one of the accent palette's.
+			'diluxone_users_wp_login_bg'    => diluxone_users_color_answer( $bg, (string) diluxone_users_option( 'diluxone_users_wp_login_bg' ), diluxone_users_accent_palette(), diluxone_users_any_color() ),
 		)
 	);
 }
@@ -339,7 +319,7 @@ add_action( 'diluxone_users_register_panels', 'diluxone_users_design_panels' );
  * says.
  */
 function diluxone_users_design_register(): void {
-	diluxone_users_intro( __( 'The words on the registration form. Its shape — the frame, the picture, your mark — comes from the Sign in tab: the two forms are the same page, so the frame is chosen once.', 'diluxone-users' ) );
+	diluxone_users_intro( __( 'The words on the registration form. Its shape — the frame and your mark — comes from the Sign in tab: the two forms are the same page, so the frame is chosen once.', 'diluxone-users' ) );
 
 	/*
 	 * Before the boxes and not after them: what is written here is kept and

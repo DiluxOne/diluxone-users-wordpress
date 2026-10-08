@@ -185,21 +185,27 @@ class CoverAccountSessionsTest extends IntegrationTestCase {
 		$this->assertSame( array( 'keep' ), array_keys( diluxone_users_meta_list( $me, 'session_tokens' ) ) );
 	}
 
-	public function test_closing_the_others_keeps_this_one_and_forgets_the_trusted_browsers(): void {
+	public function test_closing_the_others_keeps_this_one_and_forgets_what_was_remembered(): void {
 		$me   = $this->make_user();
 		$here = $this->sign_in_here( $me );
 		$all  = diluxone_users_meta_list( $me, 'session_tokens' );
 
 		$all['lost-phone'] = $this->session( time() - 3600 );
 		$this->give_sessions( $me, $all );
-		update_user_meta( $me, 'diluxone_users_2fa_epoch', 'before' );
+		$forgot = array();
+		$this->hook(
+			'diluxone_users_2fa_forget',
+			static function ( int $user_id ) use ( &$forgot ): void {
+				$forgot[] = $user_id;
+			}
+		);
 
 		$this->postAs( $me, array( '_wpnonce' => wp_create_nonce( 'diluxone_users_sessions' ) ) );
 
 		$this->expectRedirect( 'diluxone_users_sessions_action' );
 
 		$this->assertSame( array( $here ), array_keys( diluxone_users_meta_list( $me, 'session_tokens' ) ) );
-		$this->assertNotSame( 'before', get_user_meta( $me, 'diluxone_users_2fa_epoch', true ), 'A lost device does not walk back in as trusted' );
+		$this->assertSame( array( $me ), $forgot, 'A lost device does not walk back in as trusted' );
 	}
 
 	public function test_closing_the_others_for_somebody_else_closes_them_all(): void {

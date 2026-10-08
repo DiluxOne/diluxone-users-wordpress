@@ -8,10 +8,10 @@ import type { Locator, Page } from '@playwright/test';
  * order they are drawn.
  *
  * The complaint this suite comes from was one sentence — "no entra todo, hay
- * mucho scroll" — and it was true on a laptop with all four ways in switched
+ * mucho scroll" — and it was true on a laptop with every way in switched
  * on, because the screen stacked them and nobody had decided it would. So the
- * first test is a measurement and not a look: with the four doors and the tabs
- * the page fits the window, and with the same four stacked it does not. Both
+ * first test is a measurement and not a look: with every door and the tabs
+ * the page fits the window, and with the same doors stacked it does not. Both
  * halves are asserted. A "it fits" that would also pass on the broken
  * arrangement proves nothing at all, and the second assertion is what stops
  * this one quietly becoming that.
@@ -28,9 +28,8 @@ const LAPTOPS = [
 ] as const;
 
 /** Every way in this plugin has, switched on at once. */
-const ALL_FOUR = {
+const EVERY_WAY = {
 	diluxone_users_login_method: 'both',
-	diluxone_users_passkey_enabled: 1,
 	diluxone_users_sso_login: 1,
 	diluxone_e2e_sso: 1,
 	diluxone_users_sso: { mock: { active: 1, id: 'e2e-client-id', secret: 'e2e-client-secret', tested: 1 } },
@@ -111,13 +110,13 @@ function heights(page: Page) {
 
 test.describe('The sign-in page with every way in switched on', () => {
 	test.beforeEach(async ({ options }) => {
-		await options.set(ALL_FOUR);
+		await options.set(EVERY_WAY);
 	});
 
 	/**
 	 * The one the complaint was about, and its own control.
 	 *
-	 * Stacked first, on purpose: if the four doors one under the other fitted
+	 * Stacked first, on purpose: if the three doors one under the other fitted
 	 * a laptop there would be nothing here to fix, and this test would be
 	 * green for the wrong reason for ever. It has to be too tall before "in
 	 * tabs it fits" is worth asserting.
@@ -138,7 +137,7 @@ test.describe('The sign-in page with every way in switched on', () => {
 
 			expect(
 				stacked.card!,
-				`${where}: stacked, the four ways in already fit — there is nothing for tabs to fix and this test proves nothing`
+				`${where}: stacked, the three ways in already fit — there is nothing for tabs to fix and this test proves nothing`
 			).toBeGreaterThan(stacked.window);
 
 			await options.set({ diluxone_users_login_layout: 'tabs' });
@@ -157,32 +156,13 @@ test.describe('The sign-in page with every way in switched on', () => {
 		}
 	});
 
-	/**
-	 * The passkey is above the tabs, not one of them.
-	 *
-	 * It is the fastest way in there is; behind a tab it costs a click, and
-	 * the browser never gets to offer it as the address field is focused.
-	 */
-	test('the passkey stays outside the strip and on screen', async ({ guest, pages, options }) => {
-		await options.set({ diluxone_users_login_layout: 'tabs' });
-		await guest.setViewportSize(LAPTOPS[0]);
-		await guest.goto(pages.login.url);
-
-		await expect(panel(guest, 'passkey')).toBeVisible();
-		await expect(tab(guest, 'passkey'), 'the passkey was given a tab of its own').toHaveCount(0);
-
-		const strips = await strip(guest).boundingBox();
-		const key = await panel(guest, 'passkey').boundingBox();
-
-		expect(key!.y, 'the passkey belongs above the strip').toBeLessThan(strips!.y);
-	});
 });
 
 /* ── Which tab opens ───────────────────────────────────────────────── */
 
 test.describe('The tab that opens', () => {
 	test.beforeEach(async ({ options }) => {
-		await options.set({ ...ALL_FOUR, diluxone_users_login_layout: 'tabs' });
+		await options.set({ ...EVERY_WAY, diluxone_users_login_layout: 'tabs' });
 	});
 
 	/**
@@ -237,7 +217,7 @@ test.describe('The order the site chose', () => {
 	const REVERSED = ['password', 'email', 'social'];
 
 	test.beforeEach(async ({ options }) => {
-		await options.set({ ...ALL_FOUR, diluxone_users_login_order: REVERSED });
+		await options.set({ ...EVERY_WAY, diluxone_users_login_order: REVERSED });
 	});
 
 	test('is the order of the tabs', async ({ guest, pages, options }) => {
@@ -260,9 +240,7 @@ test.describe('The order the site chose', () => {
 		await guest.setViewportSize(LAPTOPS[0]);
 		await guest.goto(pages.login.url);
 
-		// The passkey is always first and never in the order: it is outside
-		// the tabs by design, so the order applies to the three under it.
-		expect(await panelOrder(guest)).toEqual(['passkey', ...REVERSED]);
+		expect(await panelOrder(guest)).toEqual(REVERSED);
 	});
 });
 
@@ -272,7 +250,7 @@ test.describe('With JavaScript off', () => {
 	test.use({ javaScriptEnabled: false });
 
 	test.beforeEach(async ({ options }) => {
-		await options.set({ ...ALL_FOUR, diluxone_users_login_layout: 'tabs' });
+		await options.set({ ...EVERY_WAY, diluxone_users_login_layout: 'tabs' });
 	});
 
 	/**
@@ -288,9 +266,15 @@ test.describe('With JavaScript off', () => {
 
 		await expect(ways(guest)).toBeVisible();
 
-		for (const way of ['passkey', 'social', 'email', 'password']) {
+		for (const way of ['social', 'email', 'password']) {
 			await expect(panel(guest, way), `${way} is not on the screen`).toBeVisible();
 		}
+
+		// Passkeys are Users+ Pro's: without it there is no way in, button or
+		// word on the page for one.
+		expect(await panelOrder(guest)).toEqual(['social', 'email', 'password']);
+		await expect(guest.locator('[data-diluxone-users-passkey]')).toHaveCount(0);
+		await expect(guest.locator('body')).not.toContainText(/passkey/i);
 
 		await expect(strip(guest), 'a strip of tabs nothing can open').toBeHidden();
 	});
@@ -314,7 +298,7 @@ test.describe('The arrangement tab', () => {
 	test.use({ storageState: ADMIN_STATE });
 
 	test.beforeEach(async ({ options }) => {
-		await options.set(ALL_FOUR);
+		await options.set(EVERY_WAY);
 		await options.keep(['diluxone_users_login_layout', 'diluxone_users_login_order']);
 	});
 

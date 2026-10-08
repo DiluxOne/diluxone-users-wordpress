@@ -1,11 +1,11 @@
 import { Page } from '@playwright/test';
 import { test, expect } from '../support/fixtures';
-import { accountSection, openAllPanels, openPanel } from '../support/ui';
+import { accountSection } from '../support/ui';
 import { anotherBrowser, reveal, signedIn } from '../support/my-account';
 
 /**
  * The account area on a phone, 390 pixels wide: what the stylesheet's
- * narrow-screen rules do to the menu, the side layout, the cover and the rows
+ * narrow-screen rules do to the menu, the side layout, the header and the rows
  * of the lists. Behaviour, not pictures — the computed style the rule sets,
  * and where things land on the screen.
  */
@@ -103,21 +103,17 @@ test('the side menu goes back across the top, and an underline becomes a line un
 	await expectNoSideScroll(page);
 });
 
-test('the cover’s header wraps on a phone, button and all, and nothing runs off the side', async ({ page, site, pages, options }) => {
+test('the header holds a long name and its button on a phone, and nothing runs off the side', async ({ page, site, pages, options }) => {
 	await options.set({
-		diluxone_users_account_template: 'cover',
+		diluxone_users_account_template: 'plain',
 		diluxone_users_account_header: 1,
 		diluxone_users_account_avatar: 1,
 		diluxone_users_account_since: 1,
 		diluxone_users_account_action: 1,
 		diluxone_users_account_sections: {},
 	});
-	await signedIn(page, site, pages.login.url, 'mob-cover', { meta: { first_name: 'Maximiliano', last_name: 'Bartolomeo-Etchegaray' } });
+	await signedIn(page, site, pages.login.url, 'mob-header', { meta: { first_name: 'Maximiliano', last_name: 'Bartolomeo-Etchegaray' } });
 	await page.goto(pages.account.url);
-
-	const inner = page.locator('.diluxone-users-account__header-inner');
-
-	expect(await inner.evaluate((el) => getComputedStyle(el).flexWrap)).toBe('wrap');
 
 	const action = (await page.locator('.diluxone-users-account__action').boundingBox())!;
 
@@ -146,33 +142,4 @@ test('a session row puts its Close under the text', async ({ page, browser, base
 	expect(closeBox.y, 'the Close button below the text').toBeGreaterThanOrEqual(whatBox.y + whatBox.height - 1);
 	await expectNoSideScroll(page);
 	await other.context().close();
-});
-
-test.describe('A passkey on a phone', () => {
-	test.skip(({ browserName }) => browserName !== 'chromium', 'the virtual authenticator is a Chromium protocol');
-
-	test('the open key’s form keeps a narrow inset', async ({ page, site, pages, options }) => {
-		await options.set({
-			diluxone_users_account_sections: {},
-			diluxone_users_passkey_enabled: 1,
-			diluxone_users_passkey_where: 'any',
-			diluxone_users_passkey_verify: 1,
-		});
-		await signedIn(page, site, pages.login.url, 'mob-key');
-
-		const cdp = await page.context().newCDPSession(page);
-
-		await cdp.send('WebAuthn.enable', { enableUI: false });
-		await cdp.send('WebAuthn.addVirtualAuthenticator', {
-			options: { protocol: 'ctap2', transport: 'internal', hasResidentKey: true, hasUserVerification: true, isUserVerified: true, automaticPresenceSimulation: true },
-		});
-
-		await page.goto(accountSection(pages.account.url, 'security'));
-		await (await openPanel(page, '[data-diluxone-users-passkey="register"]')).locator('[data-diluxone-users-passkey="register"]').click();
-		await expect(page.locator('input[name="diluxone_users_passkey_label"]')).toHaveCount(1, { timeout: 20_000 });
-		await openAllPanels(page);
-
-		expect(await page.locator('.diluxone-users-key__edit').evaluate((el) => getComputedStyle(el).paddingLeft)).toBe('16px');
-		await expectNoSideScroll(page);
-	});
 });

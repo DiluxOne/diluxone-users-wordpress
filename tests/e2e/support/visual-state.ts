@@ -23,14 +23,10 @@ import { Site } from './api';
  * value too: the plugin's default.
  */
 export const VISUAL_OPTIONS: Record<string, unknown> = {
-	diluxone_users_2fa_roles: [],
 	diluxone_users_account_action: "0",
 	diluxone_users_account_avatar: "1",
 	diluxone_users_account_bar_gap: "",
 	diluxone_users_account_body_pad: "",
-	diluxone_users_account_cover: "",
-	diluxone_users_account_cover_image: "0",
-	diluxone_users_account_cover_kind: "color",
 	diluxone_users_account_ground: "",
 	diluxone_users_account_header: "1",
 	diluxone_users_account_layout: null,
@@ -58,7 +54,6 @@ export const VISUAL_OPTIONS: Record<string, unknown> = {
 	diluxone_users_bar_account: "0",
 	diluxone_users_button_icons: "0",
 	diluxone_users_button_style: "solid",
-	diluxone_users_color_map: {"accent": "accent-1", "accent-ink": "base", "text": "contrast", "muted": "", "surface": "base", "surface-alt": "", "border": ""},
 	diluxone_users_colors: "own",
 	diluxone_users_fields: [{"key": "first_name", "label": "First name", "type": "text", "help": "", "options": [], "required": 1, "group": "main", "active": 1}, {"key": "last_name", "label": "Last name", "type": "text", "help": "", "options": [], "required": 0, "group": "main", "active": 1}, {"key": "phone", "label": "Phone", "type": "tel", "group": "contact", "required": 1, "active": 1, "edit": "always", "help": "With the area code, so we can reach you about a booking."}, {"key": "birthday", "label": "Date of birth", "type": "date", "group": "personal", "required": 0, "active": 1, "edit": "limited", "edit_max": 1}, {"key": "country", "label": "Country", "type": "country", "group": "contact", "required": 0, "active": 1, "edit": "always"}, {"key": "membership", "label": "Membership", "type": "select", "group": "personal", "options": ["Full member", "Family", "Student", "Honorary"], "required": 1, "active": 1, "edit": "never", "help": "Set by the office. Ask at the desk to change it."}, {"key": "dietary", "label": "Anything we should know for the asado", "type": "textarea", "group": "personal", "required": 0, "active": 1, "edit": "always"}, {"key": "newsletter", "label": "Send me the monthly newsletter", "type": "checkbox", "group": "preferences", "required": 0, "active": 1, "edit": "always"}],
 	diluxone_users_handle_cooldown: null,
@@ -70,16 +65,9 @@ export const VISUAL_OPTIONS: Record<string, unknown> = {
 	diluxone_users_ip_header: null,
 	diluxone_users_log_days: "90",
 	diluxone_users_log_levels: null,
-	diluxone_users_login_image: "0",
 	diluxone_users_login_logo: "0",
 	diluxone_users_login_open: "",
 	diluxone_users_login_order: null,
-	diluxone_users_login_panel_foot: "",
-	diluxone_users_login_panel_logo: "0",
-	diluxone_users_login_panel_points: "",
-	diluxone_users_login_panel_text: "",
-	diluxone_users_login_panel_title: "Una cuenta.\r\nSin contraseñas.",
-	diluxone_users_login_side: "left",
 	diluxone_users_mail_last: {"ok": 0, "time": 1789400368, "error": "Dirección no válida:  (From): wordpress@localhost"},
 	diluxone_users_mail_templates: {"es_AR": {"login_link": {"subject": "Tu entrada al club", "body": "Entrá: {link} — dura {minutes} minutos."}}},
 	diluxone_users_membership: null,
@@ -87,8 +75,6 @@ export const VISUAL_OPTIONS: Record<string, unknown> = {
 	diluxone_users_menu_style: null,
 	diluxone_users_notice_rules: null,
 	diluxone_users_notice_style: "bar",
-	diluxone_users_passkey_verify: null,
-	diluxone_users_passkey_where: null,
 	diluxone_users_privacy_delete: null,
 	diluxone_users_privacy_delete_link: "account",
 	diluxone_users_privacy_delete_when: "confirm",
@@ -105,14 +91,14 @@ export const VISUAL_OPTIONS: Record<string, unknown> = {
 	diluxone_users_session_long_days: "30",
 	diluxone_users_session_short_days: "2",
 	diluxone_users_sessions_show: "1",
-	diluxone_users_sso: {"google": {"active": 1, "id": "e2e-google-id", "secret": "e2e-google-secret", "tested": 1}, "microsoft": {"active": 1, "id": "e2e-microsoft-id", "secret": "e2e-microsoft-secret", "tested": 1}, "facebook": {"active": 1, "id": "e2e-facebook-id", "secret": "e2e-facebook-secret", "tested": 1}},
+	diluxone_users_sso: {"google": {"active": 1, "id": "e2e-google-id", "secret": "e2e-google-secret", "tested": 1}, "microsoft": {"active": 1, "id": "e2e-microsoft-id", "secret": "e2e-microsoft-secret", "tested": 1}},
 	diluxone_users_sso_blocked_roles: [],
 	diluxone_users_sso_button_columns: null,
 	diluxone_users_sso_button_shape: null,
 	diluxone_users_sso_button_show: null,
 	diluxone_users_sso_button_skin: null,
 	diluxone_users_sso_button_text: null,
-	diluxone_users_style_accent: "#2271b1",
+	diluxone_users_style_accent: "#2b59d6",
 	diluxone_users_style_border: "",
 	diluxone_users_style_control: "",
 	diluxone_users_style_radius: "6",
@@ -143,8 +129,8 @@ const IPHONE =
 	'Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Mobile/15E148 Safari/604.1';
 
 /**
- * The cast: ten people with an account, a public name, a social account, an
- * authenticator app or a passkey in the proportions the overview shows.
+ * The cast: ten people with an account, a public name, a social account or an
+ * authenticator app in the proportions the overview shows.
  *
  * They carry `@example.com`, not the suite's domain, because they are not the
  * suite's: they are the development site's example people, and the teardown
@@ -160,11 +146,6 @@ export const CAST: Person[] = [
 		meta: {
 			first_name: 'Ana',
 			last_name: 'Figueroa',
-			diluxone_users_passkeys: [
-				{ id: 'aXHUlnfdjBuAXl60ZGQM', label: 'Ana’s iPhone', created: 1786746534, used: 1788474534, ua: IPHONE },
-				{ id: 'AQsz8a1nsuNlWbQK4dGJ', label: 'MacBook Pro', created: 1788301734, used: 1788992934, ua: MAC },
-			],
-			diluxone_users_totp: 'JBSWY3DPEHPK3PXP',
 			diluxone_users_2fa_on: '1',
 			diluxone_users_2fa_pending: null,
 			diluxone_users_sso_google: 'google|10947362514',
@@ -189,7 +170,6 @@ export const CAST: Person[] = [
 		meta: {
 			first_name: 'Lucía',
 			last_name: 'Pereyra',
-			diluxone_users_totp: 'KRSXG5CTMVRXEZLU',
 			diluxone_users_2fa_on: '1',
 			diluxone_users_sso_microsoft: 'microsoft|8f3c2a',
 			diluxone_users_handle: 'lu',
@@ -203,17 +183,7 @@ export const CAST: Person[] = [
 		meta: {
 			first_name: 'Tomás',
 			last_name: 'Vega',
-			diluxone_users_passkeys: [
-				{
-					id: 'kYdIqiiFGMJm3jJD1PgJ',
-					label: 'Pixel 8',
-					created: 1788647334,
-					used: 1789165734,
-					ua: 'Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Mobile Safari/537.36',
-				},
-			],
 			diluxone_users_handle: 'tomi',
-			diluxone_users_totp_pending: 'WLXUN2BSDI6Y6NNQDSBU434AFKUDNXTQ',
 		},
 	},
 	{
@@ -224,7 +194,7 @@ export const CAST: Person[] = [
 		meta: {
 			first_name: 'Sofía',
 			last_name: 'Molina',
-			diluxone_users_sso_facebook: 'facebook|771204',
+			diluxone_users_sso_microsoft: 'microsoft|771204',
 			diluxone_users_2fa_on: '1',
 			diluxone_users_handle: 'sofi',
 		},
@@ -244,8 +214,7 @@ export const CAST: Person[] = [
 		meta: {
 			first_name: 'Valentina',
 			last_name: 'Díaz',
-			diluxone_users_sso_linkedin: 'linkedin|Rk82nQ',
-			diluxone_users_totp: 'MFRGGZDFMZTWQ2LK',
+			diluxone_users_sso_google: 'google|Rk82nQ',
 		},
 	},
 	{
@@ -256,15 +225,6 @@ export const CAST: Person[] = [
 		meta: {
 			first_name: 'Bruno',
 			last_name: 'Alcaraz',
-			diluxone_users_passkeys: [
-				{
-					id: 'tGqq0CY6HW7PJHWatLhE',
-					label: 'Windows Hello',
-					created: 1788992934,
-					used: 1789252134,
-					ua: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36',
-				},
-			],
 		},
 	},
 	{

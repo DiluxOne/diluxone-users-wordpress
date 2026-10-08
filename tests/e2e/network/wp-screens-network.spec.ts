@@ -1,4 +1,3 @@
-import { randomBytes } from 'node:crypto';
 import type { Page } from '@playwright/test';
 import { test, expect, signInFrom } from './support';
 import { freshEmail } from '../support/api';
@@ -19,11 +18,6 @@ import { NETWORK_ADMIN_STATE, NETWORK_URL } from '../../../playwright.network.co
 test.use({ storageState: NETWORK_ADMIN_STATE });
 
 const PASSWORD = 'e2e-Net-Screens-1!';
-const SECRET = 'JBSWY3DPEHPK3PXP';
-
-function passkey(label: string) {
-	return { id: `e2e-${randomBytes(6).toString('hex')}`, label, created: Math.floor(Date.now() / 1000), rp: '' };
-}
 
 function accessCell(page: Page, email: string) {
 	return page.locator('table.users tbody tr').filter({ hasText: email }).locator('td.column-diluxone_users');
@@ -36,18 +30,18 @@ test.describe('Users on a site of the network', () => {
 		const keys = freshEmail(`${tag}-k`);
 
 		await alpha.site.makeUser({ email: plain });
-		await alpha.site.makeUser({ email: keys, meta: { diluxone_users_2fa_on: 1, diluxone_users_totp: SECRET, diluxone_users_passkeys: [passkey('one')] } });
+		await alpha.site.makeUser({ email: keys, meta: { diluxone_users_2fa_on: 1 } });
 
 		await page.goto(`${alpha.url}wp-admin/users.php?s=${encodeURIComponent(tag)}`);
 
 		await expect(page.locator('th#diluxone_users, th.column-diluxone_users').first()).toBeVisible();
 		await expect(accessCell(page, plain).locator('.diluxone-users-pill--off')).toHaveCount(1);
-		await expect(accessCell(page, keys).locator('.diluxone-users-pill--on')).toHaveCount(3);
+		await expect(accessCell(page, keys).locator('.diluxone-users-pill--on'), 'the second step').toHaveCount(1);
 	});
 
 	test('on /alpha/, somebody’s profile carries the block with what the network’s account has', async ({ page, alpha }) => {
 		const email = freshEmail('nprofile');
-		const person = await alpha.site.makeUser({ email, meta: { diluxone_users_2fa_on: 1, diluxone_users_totp: SECRET, diluxone_users_sso_github: 'github|e2e-net' } });
+		const person = await alpha.site.makeUser({ email, meta: { diluxone_users_2fa_on: 1, diluxone_users_sso_microsoft: 'microsoft|e2e-net' } });
 
 		await page.goto(`${alpha.url}wp-admin/user-edit.php?user_id=${person.id}`);
 
@@ -55,8 +49,8 @@ test.describe('Users on a site of the network', () => {
 			.locator('table.diluxone-users-summary tbody > tr')
 			.evaluateAll((all: Element[]) => all.map((row) => (row.querySelector('.diluxone-users-state')?.className.match(/--([a-z]+)/) ?? [])[1]));
 
-		// Second step, passkeys, networks.
-		expect(states.slice(2)).toEqual(['active', 'off', 'active']);
+		// Second step, networks.
+		expect(states.slice(2)).toEqual(['active', 'active']);
 
 		// Its "every session" goes to /alpha/'s own report.
 		await expect(page.locator('table.diluxone-users-summary a[href*="tab=sessions"]').first()).toHaveAttribute('href', new RegExp(`^${alpha.url}wp-admin/`));
@@ -64,35 +58,31 @@ test.describe('Users on a site of the network', () => {
 });
 
 test.describe('Network Admin › Users › somebody’s profile', () => {
-	test('the app, a passkey and a network taken off there are gone from the account on every site', async ({ page, alpha, beta }) => {
+	test('a network taken off there is gone from the account on every site', async ({ page, alpha, beta }) => {
 		const email = freshEmail('nnetedit');
-		const gone = passkey('Lost');
 		const person = await alpha.site.makeUser({
 			email,
-			meta: { diluxone_users_2fa_on: 1, diluxone_users_totp: SECRET, diluxone_users_passkeys: [gone], diluxone_users_sso_github: 'github|e2e-netedit' },
+			meta: { diluxone_users_2fa_on: 1, diluxone_users_sso_microsoft: 'microsoft|e2e-netedit' },
 		});
 
 		await page.goto(networkAdmin(NETWORK_URL, `user-edit.php?user_id=${person.id}`));
 		await expect(page.locator('table.diluxone-users-summary')).toHaveCount(1);
 
-		await page.locator('input[name="diluxone_users_forget_totp"]').check();
-		await page.locator(`input[name="diluxone_users_forget_passkey[]"][value="${gone.id}"]`).check();
-		await page.locator('input[name="diluxone_users_unlink[]"][value="github"]').check();
+		await page.locator('input[name="diluxone_users_unlink[]"][value="microsoft"]').check();
 		await navigated(page, () => page.locator('#submit').click());
 
 		for (const one of [alpha, beta]) {
-			const after = await one.site.user(email, ['diluxone_users_sso_github']);
+			const after = await one.site.user(email, ['diluxone_users_sso_microsoft']);
 
-			expect(after.meta.diluxone_users_totp, `/${one.slug}/: the app`).toBe('');
-			expect(after.fields.diluxone_users_sso_github, `/${one.slug}/: the network`).toBe('');
+			expect(after.fields.diluxone_users_sso_microsoft, `/${one.slug}/: the network`).toBe('');
 		}
 
-		// Nothing left to take off: the passkey is no longer on the account.
+		// Nothing left to take off.
 		await page.goto(networkAdmin(NETWORK_URL, `user-edit.php?user_id=${person.id}`));
-		await expect(page.locator('input[name="diluxone_users_forget_totp"], input[name="diluxone_users_forget_passkey[]"], input[name="diluxone_users_unlink[]"]')).toHaveCount(0);
+		await expect(page.locator('input[name="diluxone_users_unlink[]"]')).toHaveCount(0);
 
 		// And /alpha/'s list, where they are a member, keeps the second step
-		// they turned on and nothing else: no app, no passkey, no network.
+		// they turned on and nothing else: no network.
 		await page.goto(`${alpha.url}wp-admin/users.php?s=${encodeURIComponent(email)}`);
 		await expect(accessCell(page, email).locator('.diluxone-users-pill--on')).toHaveCount(1);
 		await expect(accessCell(page, email).locator('.diluxone-users-pill--blank')).toHaveCount(0);

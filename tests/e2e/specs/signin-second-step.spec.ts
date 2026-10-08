@@ -1,8 +1,7 @@
 import { Page } from '@playwright/test';
 import { test, expect, expectSignedIn, expectSignedOut, stateOf } from '../support/fixtures';
 import { codeIn, freshEmail, linkIn, waitForMail } from '../support/api';
-import { avoidWindowEdge, totp } from '../support/totp';
-import { accountSection, askForLink, challengeScreen, openPanel, signInWithPassword } from '../support/ui';
+import { askForLink, challengeScreen, signInWithPassword } from '../support/ui';
 import { Meta, answerChallenge } from '../support/signin';
 
 /**
@@ -10,11 +9,10 @@ import { Meta, answerChallenge } from '../support/signin';
  *
  * `two-factor.spec.ts` proves a code arrives and a wrong one runs out. These
  * are the limits and rules around it: the account's own lock across attempts,
- * a code of the app used twice, the code that turned the app on, an attempt
- * key nobody issued, the e-mail code's own life, the link rule both ways, the
- * roles the step is asked of, the methods the site offers, and the two doors
- * with no screen — application passwords and XML-RPC — closed for whoever it
- * applies to.
+ * an attempt key nobody issued, the e-mail code's own life, a site whose only
+ * method was Users+ Pro's app with Pro off, the link rule both ways, roles and
+ * days Pro left behind read as nothing, and the two doors with no screen —
+ * application passwords and XML-RPC — closed for whoever it applies to.
  */
 
 const PASSWORD = 'e2e-Second-Ways-1!';
@@ -39,7 +37,6 @@ test.describe('The account’s own lock, across attempts', () => {
 			diluxone_users_login_method: 'both',
 			diluxone_users_2fa_mode: 'required',
 			diluxone_users_2fa_methods: ['email'],
-			diluxone_users_2fa_remember_days: 0,
 		});
 	});
 
@@ -145,108 +142,25 @@ test.describe('The account’s own lock, across attempts', () => {
 	});
 });
 
-test.describe('The authenticator app’s codes', () => {
-	test.beforeEach(async ({ options }) => {
+test.describe('The app, with Users+ Pro off', () => {
+	test('a site whose only method was the app asks the e-mail code in its place, and somebody with only the app gets in', async ({ page, site, pages, options }) => {
 		await options.set({
 			diluxone_users_login_method: 'both',
-			diluxone_users_2fa_mode: 'optional',
-			diluxone_users_2fa_methods: ['totp', 'email'],
-			diluxone_users_2fa_remember_days: 30,
+			diluxone_users_2fa_mode: 'required',
+			diluxone_users_2fa_methods: ['totp'],
 		});
-	});
 
-	test('a code of the app that already opened a session is refused the second time; the next one gets in', async ({ page, site, pages }) => {
-		const email = freshEmail('totp-replay');
+		const email = freshEmail('app-gone');
 
-		await site.makeUser({ email, password: PASSWORD, meta: { diluxone_users_totp: SECRET, diluxone_users_2fa_on: 1 } });
-
-		await avoidWindowEdge(20_000);
-		const code = totp(SECRET);
-
-		await withPassword(page, pages.login.url, email);
-		await expect(challengeScreen(page)).toBeVisible();
-		await answerChallenge(page, code);
-		await expectSignedIn(page, email);
-
-		await page.context().clearCookies();
-		await withPassword(page, pages.login.url, email);
-		await expect(challengeScreen(page)).toBeVisible();
-		await answerChallenge(page, code);
-
-		expect(stateOf(page.url()), 'the same six digits, inside the same thirty seconds').toBe('code');
-		await expectSignedOut(page);
-
-		await answerChallenge(page, totp(SECRET, Date.now() + 30_000));
-		await expectSignedIn(page, email);
-	});
-
-	test('the code that turned the app on is spent: it is not the first sign-in code', async ({ page, site, pages }) => {
-		const email = freshEmail('totp-activation');
-
-		await site.makeUser({ email, password: PASSWORD });
-		await withPassword(page, pages.login.url, email);
-		await expectSignedIn(page, email);
-
-		await page.goto(accountSection(pages.account.url, 'security'));
-		await openPanel(page, '.diluxone-users-totp__key');
-		const secret = (await page.locator('.diluxone-users-totp__key').innerText()).replace(/\s+/g, '');
-
-		await avoidWindowEdge(20_000);
-		const activation = totp(secret);
-
-		const setup = page.locator('form').filter({ has: page.locator('input[name="diluxone_users_security"][value="totp"]') });
-		await setup.locator('input[name="diluxone_users_code"]').fill(activation);
-		await Promise.all([page.waitForURL(/diluxone-users=/), setup.locator('button[type="submit"]').click()]);
-		expect((await site.user(email)).meta.diluxone_users_totp, 'the app is on').not.toBe('');
-
-		await page.context().clearCookies();
-		await withPassword(page, pages.login.url, email);
-		await expect(challengeScreen(page)).toBeVisible();
-		await answerChallenge(page, activation);
-
-		expect(stateOf(page.url()), 'whoever watched it typed cannot sign in with it').toBe('code');
-		await expectSignedOut(page);
-	});
-
-	test('“Or use:” switches the attempt to the e-mail code, which arrives and gets in', async ({ page, site, pages }) => {
-		const email = freshEmail('2fa-switch');
-
+		// What Users+ Pro left: the app set up, the step on.
 		await site.makeUser({ email, password: PASSWORD, meta: { diluxone_users_totp: SECRET, diluxone_users_2fa_on: 1 } });
 		await withPassword(page, pages.login.url, email);
 
-		await expect(challengeScreen(page)).toBeVisible();
-		expect(new URL(page.url()).searchParams.get('diluxone_users_method'), 'the app first').toBe('totp');
-		expect(await site.mail(email), 'the app sends nothing').toEqual([]);
-		await expect(challengeScreen(page).locator('button[name="diluxone_users_2fa_resend"]'), 'nothing to send again for the app').toHaveCount(0);
-
-		const other = challengeScreen(page).locator(`a[href*="diluxone_users_method=email"]`);
-		await other.click();
-		await page.waitForURL(/diluxone_users_method=email/);
-
-		// On the e-mail method the code goes out when asked for.
-		await page.locator('button[name="diluxone_users_2fa_resend"]').click();
-		await page.waitForURL(/diluxone-users=sent/);
-		await expect(page.locator('[data-diluxone-users-message="two_step_sent"]')).toHaveClass(/diluxone-users-notice--ok/);
+		await expect(challengeScreen(page), 'the step is still asked').toBeVisible();
+		await expectSignedOut(page);
+		expect(new URL(page.url()).searchParams.get('diluxone_users_method')).toBe('email');
 
 		await answerChallenge(page, codeIn(await waitForMail(site, email)));
-		await expectSignedIn(page, email);
-	});
-
-	test('with the app the only method the site offers, nothing is mailed and nothing else is offered', async ({ page, site, pages, options }) => {
-		await options.set({ diluxone_users_2fa_methods: ['totp'] });
-
-		const email = freshEmail('2fa-totponly');
-
-		await site.makeUser({ email, password: PASSWORD, meta: { diluxone_users_totp: SECRET, diluxone_users_2fa_on: 1 } });
-		await withPassword(page, pages.login.url, email);
-
-		await expect(challengeScreen(page)).toBeVisible();
-		await expect(challengeScreen(page).locator('button[name="diluxone_users_2fa_resend"]')).toHaveCount(0);
-		await expect(challengeScreen(page).locator('a[href*="diluxone_users_method="]'), 'no “Or use:”').toHaveCount(0);
-		expect(await site.mail(email)).toEqual([]);
-
-		await avoidWindowEdge();
-		await answerChallenge(page, totp(SECRET));
 		await expectSignedIn(page, email);
 	});
 });
@@ -255,17 +169,16 @@ test.describe('Who is asked, and on which door', () => {
 	test.beforeEach(async ({ options }) => {
 		await options.set({
 			diluxone_users_login_method: 'both',
-			diluxone_users_2fa_methods: ['totp', 'email'],
-			diluxone_users_2fa_remember_days: 0,
+			diluxone_users_2fa_methods: ['email'],
 		});
 	});
 
-	test('with the link rule on “never”, the e-mail link is never asked for the step, app or not', async ({ page, site, pages, options }) => {
+	test('with the link rule on “never”, the e-mail link is never asked for the step', async ({ page, site, pages, options }) => {
 		await options.set({ diluxone_users_2fa_mode: 'required', diluxone_users_2fa_link: 'never' });
 
 		const email = freshEmail('2fa-never');
 
-		await site.makeUser({ email, password: PASSWORD, meta: { diluxone_users_totp: SECRET, diluxone_users_2fa_on: 1 } });
+		await site.makeUser({ email, password: PASSWORD, meta: { diluxone_users_2fa_on: 1 } });
 		await withLink(page, site, pages.login.url, email);
 
 		await expect(challengeScreen(page)).toHaveCount(0);
@@ -277,57 +190,34 @@ test.describe('Who is asked, and on which door', () => {
 		await expect(challengeScreen(page)).toBeVisible();
 	});
 
-	test('on “auto”, the e-mail link of somebody with the app asks for the app, and mails no code', async ({ page, site, pages, options }) => {
-		await options.set({ diluxone_users_2fa_mode: 'optional', diluxone_users_2fa_link: 'auto' });
-
-		const email = freshEmail('2fa-auto-app');
-
-		await site.makeUser({ email, password: PASSWORD, meta: { diluxone_users_totp: SECRET, diluxone_users_2fa_on: 1 } });
-		await withLink(page, site, pages.login.url, email);
-
-		await expect(challengeScreen(page)).toBeVisible();
-		expect(new URL(page.url()).searchParams.get('diluxone_users_method')).toBe('totp');
-		await expectSignedOut(page);
-		expect((await site.mail(email)).length, 'the link and nothing after it').toBe(1);
-
-		await avoidWindowEdge();
-		await answerChallenge(page, totp(SECRET));
-		await expectSignedIn(page, email);
-	});
-
 	test('with the step off, somebody who turned it on goes straight in', async ({ page, site, pages, options }) => {
 		await options.set({ diluxone_users_2fa_mode: 'off' });
 
 		const email = freshEmail('2fa-off');
 
-		await site.makeUser({ email, password: PASSWORD, meta: { diluxone_users_totp: SECRET, diluxone_users_2fa_on: 1 } });
+		await site.makeUser({ email, password: PASSWORD, meta: { diluxone_users_2fa_on: 1 } });
 		await withPassword(page, pages.login.url, email);
 
 		await expect(challengeScreen(page)).toHaveCount(0);
 		await expectSignedIn(page, email);
 	});
 
-	test('required for chosen roles only: the editor is asked, the subscriber is not', async ({ page, site, pages, options }) => {
+	test('roles chosen while Users+ Pro was on are not read: required, it is asked of the subscriber too', async ({ page, site, pages, options }) => {
+		// Users+ Pro's two settings, as it left them.
 		await options.set({ diluxone_users_2fa_mode: 'required', diluxone_users_2fa_scope: 'some', diluxone_users_2fa_roles: ['editor'] });
 
 		const subscriber = freshEmail('2fa-role-sub');
-		const editor = freshEmail('2fa-role-ed');
 
 		await site.makeUser({ email: subscriber, password: PASSWORD, role: 'subscriber' });
-		await site.makeUser({ email: editor, password: PASSWORD, role: 'editor' });
 
 		await withPassword(page, pages.login.url, subscriber);
-		await expect(challengeScreen(page)).toHaveCount(0);
-		await expectSignedIn(page, subscriber);
-
-		await page.context().clearCookies();
-		await withPassword(page, pages.login.url, editor);
 		await expect(challengeScreen(page)).toBeVisible();
 		await expectSignedOut(page);
 	});
 
-	test('the trust box is not offered when the site remembers no browser', async ({ page, site, pages, options }) => {
-		await options.set({ diluxone_users_2fa_mode: 'required', diluxone_users_2fa_remember_days: 0 });
+	test('there is no box to tick: without Users+ Pro no browser is remembered, whatever days were stored', async ({ page, site, pages, options }) => {
+		// Users+ Pro's setting, as it left it.
+		await options.set({ diluxone_users_2fa_mode: 'required', diluxone_users_2fa_remember_days: 7 });
 
 		const email = freshEmail('2fa-notrust');
 
@@ -335,11 +225,7 @@ test.describe('Who is asked, and on which door', () => {
 		await withPassword(page, pages.login.url, email);
 
 		await expect(challengeScreen(page)).toBeVisible();
-		await expect(page.locator('input[name="diluxone_users_2fa_trust"]')).toHaveCount(0);
-
-		await options.set({ diluxone_users_2fa_remember_days: 7 });
-		await page.reload();
-		await expect(page.locator('input[name="diluxone_users_2fa_trust"]'), 'and is, once it does').toHaveCount(1);
+		await expect(challengeScreen(page).locator('input[type="checkbox"]')).toHaveCount(0);
 	});
 
 	test('the code mail is the site’s own rewrite when there is one, and its code works', async ({ page, site, pages, options }) => {
@@ -372,7 +258,6 @@ test.describe('The doors with no screen, when the second step applies', () => {
 		await options.set({
 			diluxone_users_login_method: 'both',
 			diluxone_users_2fa_methods: ['email'],
-			diluxone_users_2fa_remember_days: 0,
 		});
 	});
 

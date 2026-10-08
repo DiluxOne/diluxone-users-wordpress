@@ -23,13 +23,13 @@ test('the hub’s sign-in words and accent are what somebody sent from /alpha/ m
 
 	await page.goto(`${hub.url}wp-admin/admin.php?page=diluxone-users-design&tab=brand`);
 	await page.locator('input[name="diluxone_users_look"][value="own"]').check({ force: true });
-	await page.locator('#diluxone_users_style_accent').fill('#7b2d8e');
+	await page.locator('input[name="diluxone_users_style_accent"][value="#6d28d9"]').check({ force: true });
 	await savePanel(page);
 
 	await guest.goto(alpha.pages.login.url);
-	expect(await resolvedColour(guest, '--diluxone-users-accent'), '/alpha/’s door is painted with the hub’s accent').toBe(rgb('#7b2d8e'));
+	expect(await resolvedColour(guest, '--diluxone-users-accent'), '/alpha/’s door is painted with the hub’s accent').toBe(rgb('#6d28d9'));
 
 	await toTheHub(guest, alpha, hub);
 	await expect(guest.locator('.diluxone-users-login__title')).toHaveText(heading);
-	expect(await resolvedColour(guest, '--diluxone-users-accent')).toBe(rgb('#7b2d8e'));
+	expect(await resolvedColour(guest, '--diluxone-users-accent')).toBe(rgb('#6d28d9'));
 });

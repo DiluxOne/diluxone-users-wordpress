@@ -5,8 +5,8 @@
  *
  * Almost nothing this plugin does fails with a visible error. The account
  * page loses the shortcode and shows the raw text; the mail stops going out
- * and the sign-in links reach nobody; the site drops to HTTP and the passkeys
- * disappear with no explanation; somebody switches the permalinks to "plain"
+ * and the sign-in links reach nobody; the site drops to HTTP and its cookies
+ * travel in the clear; somebody switches the permalinks to "plain"
  * and the account area starts returning 404. All of those are discovered when
  * somebody complains, not when they happen.
  *
@@ -251,32 +251,22 @@ function diluxone_users_checks(): array {
 	// Mail. Without it nobody comes in by link and nobody passes a second step.
 	$checks[] = diluxone_users_check_mail();
 
-	// HTTPS. Passkeys are WebAuthn, and WebAuthn does not exist outside HTTPS.
+	// HTTPS. The sign-in links, the session cookies and the codes of the
+	// second step all cross the wire, and outside HTTPS anybody on the way
+	// reads them.
 	//
 	// wp_is_using_https() is what is looked at and not is_ssl(): is_ssl() says
 	// whether *this* request arrived over TLS, which is false in WP-CLI and can
 	// be false behind a proxy terminating TLS earlier. What decides whether the
-	// browser speaks HTTPS — and therefore whether WebAuthn exists — is the
-	// scheme of home_url().
-	$passkeys = (int) diluxone_users_option( 'diluxone_users_passkey_enabled' );
-
-	if ( wp_is_using_https() ) {
-		$checks[] = diluxone_users_check( 'HTTPS', 'active', __( 'The site is served over HTTPS.', 'diluxone-users' ) );
-	} elseif ( $passkeys ) {
-		// Off and not pending: a door is advertised that nobody can open.
-		$checks[] = diluxone_users_check(
-			'HTTPS',
-			'off',
-			__( 'Passkeys are on, but WebAuthn does not work outside HTTPS: nobody can register or use one.', 'diluxone-users' )
-		);
-	} else {
-		$checks[] = diluxone_users_check(
+	// browser speaks HTTPS is the scheme of home_url().
+	$checks[] = wp_is_using_https()
+		? diluxone_users_check( 'HTTPS', 'active', __( 'The site is served over HTTPS.', 'diluxone-users' ) )
+		: diluxone_users_check(
 			'HTTPS',
 			'pending',
-			__( 'Passkeys will not work if you turn them on.', 'diluxone-users' ),
+			__( 'Sign-in links, session cookies and codes travel in the clear until it is.', 'diluxone-users' ),
 			__( 'The site is not served over HTTPS.', 'diluxone-users' )
 		);
-	}
 
 	// Permalinks. The account area hangs off a rewrite rule.
 	$permalinks = (string) get_option( 'permalink_structure' );
@@ -313,7 +303,37 @@ function diluxone_users_checks(): array {
 		$checks[] = $social;
 	}
 
-	return $checks;
+	/**
+	 * Filters the checks on Maintenance › Status.
+	 *
+	 * Each one in the shape `diluxone_users_check()` returns. An add-on whose
+	 * feature can be broken by the site around it — a missing certificate, a
+	 * setting somewhere else — adds a check of its own, in order of how much
+	 * it hurts. A check without a label or a state is dropped.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param array<int, array<string, string>> $checks The plugin's own.
+	 */
+	$checks = (array) apply_filters( 'diluxone_users_checks', $checks );
+
+	return array_values(
+		array_map(
+			static fn( array $check ): array => diluxone_users_check(
+				(string) $check['label'],
+				(string) $check['state'],
+				(string) ( $check['detail'] ?? '' ),
+				(string) ( $check['why'] ?? '' ),
+				(string) ( $check['url'] ?? '' ),
+				(string) ( $check['change'] ?? '' ),
+				(string) ( $check['word'] ?? '' )
+			),
+			array_filter(
+				$checks,
+				static fn( $check ): bool => is_array( $check ) && isset( $check['label'], $check['state'] )
+			)
+		)
+	);
 }
 
 /**
@@ -445,13 +465,79 @@ function diluxone_users_stats(): array {
 		);
 	};
 
-	return array(
-		'users'    => (int) count_users()['total_users'],
-		'totp'     => $count_meta( 'diluxone_users_totp' ),
-		'passkeys' => $count_meta( 'diluxone_users_passkeys' ),
-		'social'   => $count_prefix( 'diluxone_users_sso_' ),
-		'handles'  => $count_meta( 'diluxone_users_handle' ),
+	$stats = array(
+		'users'   => (int) count_users()['total_users'],
+		'social'  => $count_prefix( 'diluxone_users_sso_' ),
+		'handles' => $count_meta( 'diluxone_users_handle' ),
 	);
+
+	/**
+	 * Filters the counts of this site's accounts.
+	 *
+	 * An add-on that keeps something about people adds how many of this
+	 * site's accounts have it, under a key of its own; the plugin's own keys
+	 * are kept as they are. Counted now, not cached: these are read on the
+	 * screens that report on the site.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param array<string, int> $stats users, social and handles.
+	 */
+	$more = (array) apply_filters( 'diluxone_users_stats', $stats );
+
+	return array_map( 'intval', $stats + array_filter( $more, 'is_numeric' ) );
+}
+
+/**
+ * What people chose, as rows: what each thing is, in a line, and how many.
+ *
+ * Drawn on Overview › Usage, with a bar each, and on Maintenance › Status,
+ * as a table.
+ *
+ * @param array<string, int> $stats As diluxone_users_stats() counts them.
+ * @return array<int, array{label: string, detail: string, value: int}>
+ */
+function diluxone_users_usage_rows( array $stats ): array {
+	$rows = array(
+		array(
+			'label'  => __( 'Have a public name', 'diluxone-users' ),
+			'detail' => __( 'The short name that goes in the address of their profile. Without one, the site falls back to their first and last name.', 'diluxone-users' ),
+			'value'  => (int) ( $stats['handles'] ?? 0 ),
+		),
+		array(
+			'label'  => __( 'Linked a social account', 'diluxone-users' ),
+			'detail' => __( 'They can get in with Google, Microsoft or whichever provider is enabled, instead of waiting for the e-mail.', 'diluxone-users' ),
+			'value'  => (int) ( $stats['social'] ?? 0 ),
+		),
+	);
+
+	/**
+	 * Filters what people chose, as the usage screens draw it.
+	 *
+	 * An add-on that counts something in `diluxone_users_stats` adds its row
+	 * here: a label, a line saying what it is, and the count.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param array<int, array<string, mixed>> $rows  The plugin's own: label, detail and value.
+	 * @param array<string, int>               $stats The counts.
+	 */
+	$rows  = (array) apply_filters( 'diluxone_users_usage', $rows, $stats );
+	$clean = array();
+
+	foreach ( $rows as $row ) {
+		if ( ! is_array( $row ) || ! isset( $row['label'] ) ) {
+			continue;
+		}
+
+		$clean[] = array(
+			'label'  => (string) $row['label'],
+			'detail' => (string) ( $row['detail'] ?? '' ),
+			'value'  => (int) ( $row['value'] ?? 0 ),
+		);
+	}
+
+	return $clean;
 }
 
 /**
@@ -508,13 +594,11 @@ function diluxone_users_screen_status_checks(): void {
 	diluxone_users_ui_section( __( 'Usage', 'diluxone-users' ) );
 	echo '<table class="widefat striped diluxone-users-summary"><tbody>';
 
-	$rows = array(
-		__( 'Accounts', 'diluxone-users' )           => $stats['users'],
-		__( 'With an authenticator app', 'diluxone-users' ) => $stats['totp'],
-		__( 'With a passkey', 'diluxone-users' )     => $stats['passkeys'],
-		__( 'With a social account linked', 'diluxone-users' ) => $stats['social'],
-		__( 'With a public name', 'diluxone-users' ) => $stats['handles'],
-	);
+	$rows = array( __( 'Accounts', 'diluxone-users' ) => $stats['users'] );
+
+	foreach ( diluxone_users_usage_rows( $stats ) as $row ) {
+		$rows[ $row['label'] ] = $row['value'];
+	}
 
 	foreach ( $rows as $label => $value ) {
 		printf(

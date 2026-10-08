@@ -18,9 +18,31 @@ class CoverAccountSecurityTest extends IntegrationTestCase {
 		parent::setUp();
 
 		diluxone_users_update_option( 'diluxone_users_2fa_mode', 'optional' );
-		diluxone_users_update_option( 'diluxone_users_2fa_methods', array( 'totp', 'email' ) );
+		diluxone_users_update_option( 'diluxone_users_2fa_methods', array( 'email' ) );
 
 		$this->user = $this->make_user();
+	}
+
+	/**
+	 * A method of an add-on's that does not arrive by e-mail, which nobody
+	 * has set up: what Users+ Pro's app is to somebody who has not scanned it.
+	 */
+	private function a_device_method(): void {
+		$this->hook(
+			'diluxone_users_2fa_methods',
+			static function ( array $methods ): array {
+				$methods['device'] = array(
+					'channel'  => 'device',
+					'label'    => 'A device',
+					'help'     => '',
+					'ready'    => '__return_false',
+					'verify'   => '__return_false',
+					'position' => 10,
+				);
+
+				return $methods;
+			}
+		);
 	}
 
 	protected function tearDown(): void {
@@ -95,24 +117,15 @@ class CoverAccountSecurityTest extends IntegrationTestCase {
 		diluxone_users_update_option( 'diluxone_users_2fa_mode', 'off' );
 
 		$this->assertSame( 'notoffered', $this->redirectState( $this->submit( 'on' ) ) );
-		$this->assertSame( 'notoffered', $this->redirectState( $this->submit( 'totp', '123456' ) ) );
 		$this->assertSame( '', get_user_meta( $this->user, 'diluxone_users_2fa_on', true ) );
-		$this->assertSame( '', get_user_meta( $this->user, 'diluxone_users_totp', true ) );
 	}
 
 	public function test_turning_it_on_with_nothing_to_answer_it_with_is_refused(): void {
-		// The app is the only method and it is not set up yet.
-		diluxone_users_update_option( 'diluxone_users_2fa_methods', array( 'totp' ) );
+		// An add-on's method is the only one, and it is not set up yet.
+		$this->a_device_method();
+		diluxone_users_update_option( 'diluxone_users_2fa_methods', array( 'device' ) );
 
 		$this->assertSame( 'nomethod', $this->redirectState( $this->submit( 'on' ) ) );
-		$this->assertSame( '', get_user_meta( $this->user, 'diluxone_users_2fa_on', true ) );
-	}
-
-	public function test_a_wrong_code_from_the_app_sets_nothing_up(): void {
-		diluxone_users_totp_pending( $this->user );
-
-		$this->assertSame( 'badcode', $this->redirectState( $this->submit( 'totp', '000000' ) ) );
-		$this->assertSame( '', get_user_meta( $this->user, 'diluxone_users_totp', true ) );
 		$this->assertSame( '', get_user_meta( $this->user, 'diluxone_users_2fa_on', true ) );
 	}
 
@@ -148,39 +161,29 @@ class CoverAccountSecurityTest extends IntegrationTestCase {
 		$this->assertTrue( diluxone_users_backup_use( $this->user, $codes[0] ), 'The codes written down still work' );
 	}
 
-	public function test_the_app_is_set_up_with_the_code_it_shows(): void {
-		$secret = diluxone_users_totp_pending( $this->user );
-
-		$this->assertSame( 'totp', $this->redirectState( $this->submit( 'totp', diluxone_users_totp_code( $secret, time() ) ) ) );
-		$this->assertSame( $secret, diluxone_users_totp_secret( $this->user ) );
-		$this->assertSame( '1', get_user_meta( $this->user, 'diluxone_users_2fa_on', true ) );
-		$this->assertGreaterThan( 0, diluxone_users_backup_left( $this->user ) );
-		$this->assertStringContainsString( 'An authenticator app was set up.', (string) $this->lastMail()['message'] );
-	}
-
-	public function test_setting_up_the_app_with_codes_left_does_not_replace_them(): void {
-		diluxone_users_backup_generate( $this->user, 2 );
-		$secret = diluxone_users_totp_pending( $this->user );
-
-		$this->assertSame( 'totp', $this->redirectState( $this->submit( 'totp', diluxone_users_totp_code( $secret, time() ) ) ) );
-		$this->assertSame( 2, diluxone_users_backup_left( $this->user ) );
-	}
-
 	/* ── The screen ────────────────────────────────────────────────── */
 
-	public function test_the_screen_with_the_step_off_offers_to_turn_it_on_and_the_app(): void {
-		$html = $this->screen( array( 'diluxone-users' => 'badcode' ) );
+	public function test_the_screen_with_the_step_off_offers_to_turn_it_on_and_an_add_ons_panel(): void {
+		$this->hook(
+			'diluxone_users_account_security_2fa',
+			static function ( \WP_User $user ): void {
+				echo '<p id="addon-2fa">' . (int) $user->ID . '</p>';
+			}
+		);
+
+		$html = $this->screen( array( 'diluxone-users' => 'nomethod' ) );
 
 		$this->assertStringContainsString( 'diluxone-users-notice--error', $html );
-		$this->assertStringContainsString( 'That code is not right.', $html );
+		$this->assertStringContainsString( 'First set up a way to receive the second step.', $html );
 		$this->assertStringContainsString( '<span class="diluxone-users-chip">', $html );
 		$this->assertMatchesRegularExpression( '#diluxone-users-chip">\s*Off\s*</span>#', $html );
 		$this->assertStringContainsString( 'value="on"', $html );
 		$this->assertStringNotContainsString( 'value="off"', $html );
 		$this->assertStringNotContainsString( 'New backup codes', $html );
-		$this->assertStringContainsString( 'name="diluxone_users_security" value="totp"', $html, 'The app’s set-up form' );
-		$this->assertStringContainsString( 'diluxone-users-totp__key', $html );
+		$this->assertStringContainsString( '<p id="addon-2fa">' . $this->user . '</p>', $html, 'an add-on draws after the second step' );
+		$this->assertStringNotContainsString( 'diluxone-users-totp', $html, 'no app without Users+ Pro' );
 		$this->assertStringNotContainsString( 'This site requires it.', $html );
+		$this->assertLessThan( strpos( $html, 'addon-2fa' ), strpos( $html, 'value="on"' ), 'after the second step’s panel' );
 	}
 
 	public function test_the_screen_with_the_step_on_through_the_link_alone(): void {
@@ -194,7 +197,7 @@ class CoverAccountSecurityTest extends IntegrationTestCase {
 		$this->assertStringContainsString( 'diluxone-users-notice--ok', $html );
 		$this->assertStringContainsString( 'You do not have one.', $html, 'No password on a site of links' );
 		$this->assertStringContainsString( 'Right now it is not being asked anywhere', $html );
-		$this->assertStringContainsString( 'Set up the authenticator app below', $html );
+		$this->assertStringNotContainsString( 'Set up a way of getting the code', $html, 'nothing else to set up' );
 		$this->assertMatchesRegularExpression( '#diluxone-users-chip">\s*On\s*</span>#', $html );
 		$this->assertStringContainsString( 'Ready to use: A code by email.', $html );
 		$this->assertStringContainsString( 'id="diluxone-users-reauth-code"', $html, 'Turning it off asks for a code' );
@@ -202,23 +205,24 @@ class CoverAccountSecurityTest extends IntegrationTestCase {
 		$this->assertStringContainsString( 'value="off"', $html );
 		$this->assertStringContainsString( 'New backup codes (4 left)', $html );
 		$this->assertStringNotContainsString( 'value="on"', $html );
+
+		// With an add-on's method that does not arrive by e-mail, not set up:
+		// the way to be asked on the link too.
+		$this->a_device_method();
+		diluxone_users_update_option( 'diluxone_users_2fa_methods', array( 'email', 'device' ) );
+		$this->assertStringContainsString( 'Set up a way of getting the code that is not an email, below', $this->screen() );
 	}
 
-	public function test_the_screen_where_the_site_requires_it_and_the_app_is_set_up(): void {
+	public function test_the_screen_where_the_site_requires_it(): void {
 		diluxone_users_update_option( 'diluxone_users_2fa_mode', 'required' );
 		diluxone_users_update_option( 'diluxone_users_2fa_link', 'never' );
-		update_user_meta( $this->user, 'diluxone_users_totp', diluxone_users_totp_secret_new() );
 
 		$html = $this->screen();
 
 		$this->assertStringContainsString( 'The one on your WordPress account.', $html );
 		$this->assertStringContainsString( 'It is asked when you get in with your password', $html );
-		$this->assertStringNotContainsString( 'Set up the authenticator app below', $html, 'It is set up' );
 		$this->assertStringContainsString( 'This site requires it.', $html );
 		$this->assertStringNotContainsString( 'value="off"', $html, 'Required cannot be turned off' );
-		$this->assertStringContainsString( 'value="totp_off"', $html, 'The app can be removed, with a code' );
-		$this->assertStringContainsString( 'Set up. When you sign in, we ask for the six-digit code from the app.', $html );
-		$this->assertStringNotContainsString( 'diluxone-users-totp__key', $html, 'No secret is printed once it is set up' );
 	}
 
 	public function test_the_screen_shows_the_fresh_codes_once(): void {
@@ -233,39 +237,6 @@ class CoverAccountSecurityTest extends IntegrationTestCase {
 		$this->assertStringNotContainsString( 'AAAA-1111', $this->screen(), 'A reload shows them no more' );
 	}
 
-	public function test_the_screen_lists_the_passkeys_with_their_forms(): void {
-		diluxone_users_update_option( 'diluxone_users_passkey_enabled', 1 );
-		diluxone_users_passkeys_save(
-			$this->user,
-			array(
-				array(
-					'id'      => 'cred-<one>',
-					'label'   => 'Work <laptop>',
-					'created' => time() - WEEK_IN_SECONDS,
-					'used'    => time() - HOUR_IN_SECONDS,
-				),
-				array(
-					'id'      => 'cred-two',
-					'label'   => 'Phone',
-					'created' => time() - DAY_IN_SECONDS,
-					'used'    => 0,
-				),
-			)
-		);
-
-		$html = $this->screen( array( 'diluxone-users' => 'passkeyname' ) );
-
-		$this->assertStringContainsString( 'The passkey has a new name.', $html );
-		$this->assertSame( 2, substr_count( $html, '<details class="diluxone-users-key">' ) );
-		$this->assertStringContainsString( '<strong>Work &lt;laptop&gt;</strong>', $html, 'The name is escaped' );
-		$this->assertStringContainsString( 'value="cred-&lt;one&gt;"', $html );
-		$this->assertStringContainsString( 'used 1 hour ago', $html );
-		$this->assertSame( 1, preg_match_all( '/used [^<]+ ago/', $html ), 'A key never used says nothing about it' );
-		$this->assertSame( 2, substr_count( $html, 'value="delete"' ) );
-		$this->assertSame( 2, substr_count( $html, 'value="rename"' ) );
-		$this->assertStringContainsString( 'data-diluxone-users-passkey="register"', $html );
-	}
-
 	public function test_the_screen_draws_no_second_step_where_the_site_has_none(): void {
 		diluxone_users_update_option( 'diluxone_users_2fa_mode', 'off' );
 		diluxone_users_update_option( 'diluxone_users_sessions_show', 0 );
@@ -276,5 +247,19 @@ class CoverAccountSecurityTest extends IntegrationTestCase {
 		$this->assertStringNotContainsString( 'Authenticator app', $html );
 		$this->assertStringNotContainsString( 'Where you are signed in', $html, 'What the administrator turns off disappears' );
 		$this->assertStringContainsString( 'How you get in', $html );
+	}
+
+	public function test_keys_an_addon_kept_draw_nothing_while_it_is_off(): void {
+		// What Users+ Pro stores, with Pro off: the switch and one person's keys.
+		update_option( 'diluxone_users_passkey_enabled', 1 );
+		update_user_meta( $this->user, 'diluxone_users_passkeys', array( array( 'id' => 'kept', 'label' => 'Laptop' ) ) );
+
+		$html = $this->screen( array( 'diluxone-users' => 'passkeyname' ) );
+
+		$this->assertStringNotContainsStringIgnoringCase( 'passkey', $html, 'without the add-on the section says nothing about them' );
+		$this->assertStringNotContainsString( 'Laptop', $html );
+		$this->assertSame( array( array( 'id' => 'kept', 'label' => 'Laptop' ) ), get_user_meta( $this->user, 'diluxone_users_passkeys', true ), 'and loses nothing' );
+
+		delete_option( 'diluxone_users_passkey_enabled' );
 	}
 }

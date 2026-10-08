@@ -7,7 +7,7 @@
  * detail of storage but of meaning:
  *
  * - 'network': one value for the whole network. What decides who gets in and
- *   how safely — the second step, passkeys, how long a session lasts, which
+ *   how safely — the second step, how long a session lasts, which
  *   proxy to believe, the social credentials and the rules about linking an
  *   identity, the fields a person has, the log's retention. People are
  *   network-wide, and a person's second factor or the field holding their
@@ -55,9 +55,6 @@ function diluxone_users_option_scopes(): array {
 		'diluxone_users_2fa_link'               => 'network',
 		'diluxone_users_2fa_methods'            => 'network',
 		'diluxone_users_2fa_mode'               => 'network',
-		'diluxone_users_2fa_remember_days'      => 'network',
-		'diluxone_users_2fa_roles'              => 'network',
-		'diluxone_users_2fa_scope'              => 'network',
 		'diluxone_users_fields'                 => 'network',
 		'diluxone_users_ip_header'              => 'network',
 		'diluxone_users_log_days'               => 'network',
@@ -68,9 +65,6 @@ function diluxone_users_option_scopes(): array {
 		// See includes/membership.php.
 		'diluxone_users_membership_queue'       => 'network',
 		'diluxone_users_log_levels'             => 'network',
-		'diluxone_users_passkey_enabled'        => 'network',
-		'diluxone_users_passkey_verify'         => 'network',
-		'diluxone_users_passkey_where'          => 'network',
 		'diluxone_users_session_long_days'      => 'network',
 		'diluxone_users_session_short_days'     => 'network',
 		'diluxone_users_sessions_show'          => 'network',
@@ -109,9 +103,6 @@ function diluxone_users_option_scopes(): array {
 		'diluxone_users_account_avatar'         => 'hub',
 		'diluxone_users_account_bar_gap'        => 'hub',
 		'diluxone_users_account_body_pad'       => 'hub',
-		'diluxone_users_account_cover'          => 'hub',
-		'diluxone_users_account_cover_image'    => 'hub',
-		'diluxone_users_account_cover_kind'     => 'hub',
 		'diluxone_users_account_ground'         => 'hub',
 		'diluxone_users_account_header'         => 'hub',
 		'diluxone_users_account_layout'         => 'hub',
@@ -135,7 +126,6 @@ function diluxone_users_option_scopes(): array {
 		'diluxone_users_avatar_upload'          => 'hub',
 		'diluxone_users_button_icons'           => 'hub',
 		'diluxone_users_button_style'           => 'hub',
-		'diluxone_users_color_map'              => 'hub',
 		'diluxone_users_colors'                 => 'hub',
 		'diluxone_users_handle_cooldown'        => 'hub',
 		'diluxone_users_handle_enabled'         => 'hub',
@@ -146,7 +136,6 @@ function diluxone_users_option_scopes(): array {
 		'diluxone_users_handle_spaces'          => 'hub',
 		'diluxone_users_home_cards_off'         => 'hub',
 		'diluxone_users_login_expiry'           => 'hub',
-		'diluxone_users_login_image'            => 'hub',
 		'diluxone_users_login_intro'            => 'hub',
 		'diluxone_users_login_layout'           => 'hub',
 		'diluxone_users_login_legal'            => 'hub',
@@ -156,14 +145,8 @@ function diluxone_users_option_scopes(): array {
 		'diluxone_users_login_open'             => 'hub',
 		'diluxone_users_login_order'            => 'hub',
 		'diluxone_users_login_page'             => 'hub',
-		'diluxone_users_login_panel_foot'       => 'hub',
-		'diluxone_users_login_panel_logo'       => 'hub',
-		'diluxone_users_login_panel_points'     => 'hub',
-		'diluxone_users_login_panel_text'       => 'hub',
-		'diluxone_users_login_panel_title'      => 'hub',
 		'diluxone_users_login_register'         => 'hub',
 		'diluxone_users_login_role'             => 'hub',
-		'diluxone_users_login_side'             => 'hub',
 		'diluxone_users_login_template'         => 'hub',
 		'diluxone_users_login_throttle'         => 'hub',
 		'diluxone_users_login_title'            => 'hub',

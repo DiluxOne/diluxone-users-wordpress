@@ -10,15 +10,15 @@ import { ADMIN_STATE } from '../../../playwright.config';
  * questions, which is what it was. Now it is one — where the plugin's look
  * comes from — and everything else is a child of the answer that needs it.
  * That shape is only true if the browser actually shows and hides the right
- * things, and if the thing shown is in a state somebody can act on: an accent
- * picker that stays switched off after the answer changed, or a row of colour
- * squares with nothing in them, is a screen that answers 200 and still cannot
- * be used.
+ * things, and if the thing shown is in a state somebody can act on: a row of
+ * colour squares with nothing in them is a screen that answers 200 and still
+ * cannot be used.
  *
  * Nothing in here is found by its words. The site this runs against is in
  * Spanish and the plugin ships eight locales, so every hold is a name, an id
- * or a class: the radio posts `diluxone_users_look`, the fine tuning carries
- * `data-diluxone-users-brand-map`, and the squares are
+ * or a class: the radio posts `diluxone_users_look`, the accent's swatches
+ * carry `data-diluxone-users-swatches`, the picture of Users+ Pro's map of the
+ * theme's colours `data-diluxone-users-pro`, and its squares are
  * `.diluxone-users-palette__chip`.
  */
 
@@ -38,14 +38,14 @@ function branch(page: Page, answer: Look): Locator {
 	return page.locator('.du-choice-group').filter({ has: look(page, answer) });
 }
 
-/** What belongs to "I choose it here". */
+/** What belongs to "I choose it here": the accent's swatches. */
 function accent(page: Page): Locator {
-	return page.locator('#diluxone_users_style_accent');
+	return page.locator('[data-diluxone-users-swatches="diluxone_users_style_accent"]');
 }
 
-/** What belongs to "from your theme": the fine tuning, folded. */
+/** What belongs to "from your theme": the picture of which colour does what. */
 function fineTuning(page: Page): Locator {
-	return page.locator('details[data-diluxone-users-brand-map]');
+	return page.locator('[data-diluxone-users-pro="design/brand/color-map"]');
 }
 
 /** What belongs to "the site writes it": the properties, to copy. */
@@ -79,40 +79,6 @@ test.describe('Your brand › one question, and what hangs off the answer', () =
 		await expect(fineTuning(page)).toBeHidden();
 	});
 
-	/*
-	 * Which colour of a theme's palette plays which part is not a question the
-	 * screen is asking: it is the answer to "the guess was wrong", and on a
-	 * theme that names its colours the guess is right. Drawn open it reads as
-	 * seven things left undone.
-	 */
-	test('the fine tuning starts folded away', async ({ page, options }) => {
-		await options.set({ diluxone_users_styles: 1, diluxone_users_colors: 'theme' });
-
-		await page.goto(BRAND);
-
-		await expect(fineTuning(page)).toBeVisible();
-		expect(await fineTuning(page).evaluate((box: HTMLDetailsElement) => box.open)).toBe(false);
-	});
-
-	test('with the theme’s colours the accent is not editable, and pressing the other answer frees it', async ({
-		page,
-		options,
-	}) => {
-		await options.set({ diluxone_users_styles: 1, diluxone_users_colors: 'theme' });
-
-		await page.goto(BRAND);
-
-		await expect(look(page, 'theme')).toBeChecked();
-		await expect(accent(page)).toBeDisabled();
-
-		// The server drew it switched off because of the saved answer, and
-		// that answer has just stopped being true. Waiting for the save to
-		// free the picker would be a screen that has to be saved to be used.
-		await look(page, 'own').check();
-
-		await expect(accent(page)).toBeEnabled();
-	});
-
 	/**
 	 * The squares beside the seven parts, which is where the screen was worst.
 	 *
@@ -125,28 +91,14 @@ test.describe('Your brand › one question, and what hangs off the answer', () =
 		await options.set({
 			diluxone_users_styles: 1,
 			diluxone_users_colors: 'theme',
-			// The guess and nothing else, so the parts a theme says nothing
-			// about are genuinely left to the plugin — which is the case that
-			// used to come out blank.
-			diluxone_users_color_map: [],
+			diluxone_users_pro_previews: 1,
 		});
 
 		await page.goto(BRAND);
-		await fineTuning(page).locator('summary').click();
 
-		const chips = page.locator('.diluxone-users-palette__chip');
+		const chips = fineTuning(page).locator('.diluxone-users-palette__chip');
 
 		await expect(chips.first()).toBeVisible();
-
-		// The case this test exists for has to actually be on screen: at least
-		// one part with no colour of the theme's chosen for it.
-		const unmapped = await page
-			.locator('.diluxone-users-palette__row select')
-			.evaluateAll((boxes: Element[]) =>
-				boxes.filter((box) => (box as HTMLSelectElement).value === '').length
-			);
-
-		expect(unmapped).toBeGreaterThan(0);
 
 		const painted = await chips.evaluateAll((squares: Element[]) =>
 			squares.map((square) => window.getComputedStyle(square).backgroundColor)
@@ -205,7 +157,7 @@ test.describe('Your brand › what the one question is kept as', () => {
 	 * as "no colour" and wrote the accent away. Whoever went back to choosing
 	 * it here found the plugin's blue and no way of knowing what had happened.
 	 */
-	test('the accent survives a save made while the theme’s palette is in use', async ({
+	test('the accent, a colour kept from Users+ Pro included, survives a save made while the theme’s palette is in use', async ({
 		page,
 		site,
 		options,
@@ -218,7 +170,7 @@ test.describe('Your brand › what the one question is kept as', () => {
 
 		await page.goto(BRAND);
 
-		await expect(accent(page)).toBeDisabled();
+		await expect(accent(page)).toBeHidden();
 
 		await savePanel(page);
 

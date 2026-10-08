@@ -242,28 +242,21 @@ class NetworkSettingsTest extends IntegrationTestCase {
 	/* ── What each save writes, from where ─────────────────────────── */
 
 	/**
-	 * Passkeys and social sign-in are switched on Access on a single site; on
-	 * a network there is no Access in Network Admin, so their own tabs carry
-	 * the switch — and only there.
+	 * Social sign-in is switched on Access on a single site; on a network
+	 * there is no Access in Network Admin, so its own tab carries the switch —
+	 * and only there.
 	 */
 	public function test_the_networks_doors_are_switched_on_their_own_tabs_in_network_admin(): void {
-		diluxone_users_update_option( 'diluxone_users_passkey_enabled', 0 );
 		diluxone_users_update_option( 'diluxone_users_sso_login', 1 );
 
-		$this->postPanel( DILUXONE_USERS_SECURITY, array( 'diluxone_users_passkey_enabled' => '1' ) );
-		diluxone_users_passkeys_settings_save();
 		$this->postPanel( 'diluxone-users-social', array() );
 		diluxone_users_social_rules_save();
-		$this->assertSame( 0, (int) diluxone_users_raw_get( 'diluxone_users_passkey_enabled' ), 'Not from a site' );
 		$this->assertSame( 1, (int) diluxone_users_raw_get( 'diluxone_users_sso_login' ), 'Not from a site' );
 
 		$this->in_network_admin();
 
-		$this->postPanel( DILUXONE_USERS_SECURITY, array( 'diluxone_users_passkey_enabled' => '1' ) );
-		diluxone_users_passkeys_settings_save();
 		$this->postPanel( 'diluxone-users-social', array() );
 		diluxone_users_social_rules_save();
-		$this->assertSame( 1, (int) diluxone_users_raw_get( 'diluxone_users_passkey_enabled' ) );
 		$this->assertSame( 0, (int) diluxone_users_raw_get( 'diluxone_users_sso_login' ), 'Unticked, it is off' );
 
 		$_POST = array();

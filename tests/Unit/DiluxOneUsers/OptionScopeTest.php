@@ -101,7 +101,6 @@ class OptionScopeTest extends TestCase {
 	public function test_who_gets_in_and_how_safely_is_the_networks(): void {
 		foreach ( array(
 			'diluxone_users_2fa_mode',
-			'diluxone_users_passkey_enabled',
 			'diluxone_users_session_long_days',
 			'diluxone_users_trusted_proxies',
 			'diluxone_users_sso',

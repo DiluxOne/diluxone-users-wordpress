@@ -422,7 +422,8 @@ class CoverAccountMenuPagesTest extends IntegrationTestCase {
 		$this->assertStringContainsString( 'diluxone-users-menu__avatar', implode( '', (array) wp_styles()->get_data( 'diluxone-users-menu', 'after' ) ) );
 	}
 
-	public function test_on_a_network_a_site_to_join_is_offered_in_the_menu(): void {
+	/** "Join this site" is Users+ Pro's: without it, a Pro answer stored says by invitation in the menu. */
+	public function test_on_a_network_a_site_somebody_is_not_a_member_of_is_by_invitation_in_the_menu(): void {
 		if ( ! is_multisite() ) {
 			$this->markTestSkipped( 'A single site has nobody who is not a member; the single-site menu is test_whoever_can_write_gets_the_dashboard_and_a_member_does_not.' );
 		}
@@ -436,26 +437,14 @@ class CoverAccountMenuPagesTest extends IntegrationTestCase {
 		$menu = $this->chosen_menu();
 		wp_set_current_user( $user );
 
-		$said = $this->menu_said( $menu );
+		foreach ( array( 'click', 'invite' ) as $stored ) {
+			diluxone_users_update_option( 'diluxone_users_membership', $stored );
+			$said = $this->menu_said( $menu );
 
-		$this->assertArrayHasKey( 'Join this site', $said );
-		$this->assertStringContainsString( 'diluxone-users-menu--join', $said['Join this site'] );
-		$this->assertArrayNotHasKey( 'This site is by invitation', $said );
-
-		$join = '';
-		foreach ( diluxone_users_menu_items( array(), (object) array( 'menu' => $menu ) ) as $item ) {
-			if ( 'Join this site' === $item->title ) {
-				$join = (string) $item->url;
-			}
+			$this->assertArrayHasKey( 'This site is by invitation', $said, $stored );
+			$this->assertStringContainsString( 'diluxone-users-menu--invite', $said['This site is by invitation'], $stored );
+			$this->assertArrayNotHasKey( 'Join this site', $said, $stored );
 		}
-		$this->assertSame( 'diluxone_users_join', $this->queryArg( $join, 'action' ) );
-		$this->assertSame( wp_create_nonce( 'diluxone_users_join' ), $this->queryArg( $join, '_wpnonce' ) );
-
-		diluxone_users_update_option( 'diluxone_users_membership', 'invite' );
-		$said = $this->menu_said( $menu );
-
-		$this->assertArrayHasKey( 'This site is by invitation', $said );
-		$this->assertArrayNotHasKey( 'Join this site', $said );
 	}
 
 	/* ── Joining, around the edges ─────────────────────────────────── */

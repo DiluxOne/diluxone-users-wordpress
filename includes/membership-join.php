@@ -1,18 +1,20 @@
 <?php
 /**
- * "Join this site", and "This site is by invitation".
+ * "This site is by invitation", and what an add-on offers instead.
  *
- * Under the "click" policy a signed-in person who is not a member of a site
- * of the network is offered to join it; under "invite" they are told that
- * only its administrators add people. Both are said in three places: the
- * site's menu (site-menu.php), the `[diluxone_users_join]` shortcode, and a
- * notice at the top of the page the hub sends them back to after signing in.
- * Somebody an administrator took off a site hears "by invitation" whatever
- * the policy: pressing a button is not how that decision is undone.
+ * A signed-in person who is not a member of a site of the network, where the
+ * policy does not add them, is told that only its administrators add people.
+ * It is said in three places: the site's menu (site-menu.php), the
+ * `[diluxone_users_join]` shortcode, and a notice at the top of the page the
+ * hub sends them back to after signing in. Somebody an administrator took off
+ * a site hears it whatever the policy: nothing but an administrator undoes
+ * that decision.
  *
- * The press is a request to admin-post.php with a nonce, on the site being
- * joined, and it is answered by the same function every other addition goes
- * through (diluxone_users_membership_add()), with the site's own role.
+ * An add-on whose policy lets people join on their own (Users+ Pro's "whoever
+ * asks") answers a state of its own for them through
+ * `diluxone_users_join_state`, and draws it: the box through
+ * `diluxone_users_join_box`, the menu's link through `diluxone_users_join_link`.
+ * It adds the person through diluxone_users_membership_add(), with 'click'.
  *
  * On a single site everybody with an account is a member already: the
  * shortcode draws nothing, and there is no handler.
@@ -23,7 +25,7 @@
 defined( 'ABSPATH' ) || exit;
 
 /**
- * What a person can do about the current site: 'click', 'invite' or ''.
+ * What a person can do about the current site: 'invite', '' or an add-on's.
  *
  * '' for nobody signed in, a member, a super admin, a site that takes nobody,
  * and under "every site" for anybody who has not been taken off it: they are
@@ -50,19 +52,25 @@ function diluxone_users_join_state( int $user_id = 0 ): string {
 		return '';
 	}
 
-	if ( 'click' === $policy ) {
-		return diluxone_users_membership_may_join( $user_id, $site_id ) ? 'click' : 'invite';
-	}
+	/**
+	 * Filters what somebody signed in, not a member of this site and not
+	 * taken off it, can do about it under a policy that is not "every site".
+	 *
+	 * The plugin answers 'invite': an administrator adds people. An add-on
+	 * whose policy lets them join on their own answers a state of its own
+	 * (Users+ Pro's 'click'), and draws it through `diluxone_users_join_box`
+	 * and `diluxone_users_join_link`.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param string $state   'invite'.
+	 * @param string $policy  The network's policy, as read ('hub' for one nothing offers).
+	 * @param int    $user_id Who.
+	 * @param int    $site_id Which site.
+	 */
+	$state = apply_filters( 'diluxone_users_join_state', 'invite', $policy, $user_id, $site_id );
 
-	// Any other policy — and the hub only, which is what a policy nothing
-	// applies today is read as — gives nothing to press: an administrator
-	// adds people, which is what "by invitation" says.
-	return 'invite';
-}
-
-/** Where "Join this site" is pressed from a link: the current site's handler, with its nonce. */
-function diluxone_users_join_url(): string {
-	return wp_nonce_url( admin_url( 'admin-post.php?action=diluxone_users_join' ), 'diluxone_users_join' );
+	return is_string( $state ) && '' !== $state ? sanitize_key( $state ) : 'invite';
 }
 
 /**
@@ -98,39 +106,12 @@ function diluxone_users_join_mark_password( $redirect, $requested = '', $user = 
 	return $user instanceof WP_User ? diluxone_users_join_mark( (string) $redirect, (int) $user->ID ) : (string) $redirect;
 }
 
-/**
- * Joins the current site, when the policy lets whoever presses it.
- *
- * @return never
- */
-function diluxone_users_join_request(): void {
-	// wp_get_referer() answers false for a page elsewhere or none at all, and
-	// an empty address is a "valid" redirect: the answer landed on a bare
-	// "?diluxone-users=joined". Back to this site's front page instead.
-	$back = wp_get_referer();
-	$back = remove_query_arg( 'diluxone-users', false !== $back ? $back : home_url( '/' ) );
-
-	if ( ! is_user_logged_in() ) {
-		wp_safe_redirect( diluxone_users_login_url() );
-		exit;
-	}
-
-	check_admin_referer( 'diluxone_users_join' );
-
-	$joined = 'click' === diluxone_users_join_state() && diluxone_users_membership_add( get_current_user_id(), get_current_blog_id(), 'click' );
-
-	wp_safe_redirect( add_query_arg( 'diluxone-users', $joined ? 'joined' : 'join-refused', $back ) );
-	exit;
-}
-
 if ( is_multisite() ) {
 	add_filter( 'login_redirect', 'diluxone_users_join_mark_password', 20, 3 );
-	add_action( 'admin_post_diluxone_users_join', 'diluxone_users_join_request' );
-	add_action( 'admin_post_nopriv_diluxone_users_join', 'diluxone_users_join_request' );
 }
 
 /**
- * The box that says it: to join, by invitation, or joined.
+ * The box that says it: by invitation, joined, or an add-on's.
  *
  * @param bool $notice Drawn at the top of the page rather than where a shortcode is.
  */
@@ -147,6 +128,28 @@ function diluxone_users_join_box( bool $notice ): string {
 	}
 
 	diluxone_users_enqueue_styles();
+
+	if ( ! in_array( $state, array( 'invite', 'joined' ), true ) ) {
+		/**
+		 * Filters the box for a state an add-on answered through
+		 * `diluxone_users_join_state`: Users+ Pro's "Join this site".
+		 *
+		 * Left empty, the person is told the site is by invitation.
+		 *
+		 * @since 1.0.0
+		 *
+		 * @param string $box    The box's markup.
+		 * @param string $state  The add-on's state.
+		 * @param bool   $notice Drawn at the top of the page rather than where a shortcode is.
+		 */
+		$box = (string) apply_filters( 'diluxone_users_join_box', '', $state, $notice );
+
+		if ( '' !== $box ) {
+			return $box;
+		}
+
+		$state = 'invite';
+	}
 
 	return diluxone_users_render(
 		'join',

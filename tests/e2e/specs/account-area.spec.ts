@@ -3,7 +3,6 @@ import { test, expect, expectSignedIn, expectSignedOut, stateOf } from '../suppo
 import { Site, codeIn, freshEmail, linkIn, waitForMail } from '../support/api';
 import { accountSection, askForLink, navigated, notice, signInWithPassword } from '../support/ui';
 import { ADMIN_STATE } from '../../../playwright.config';
-import { avoidWindowEdge, totp } from '../support/totp';
 
 /**
  * The account area, section by section, as the person whose account it is.
@@ -810,40 +809,6 @@ test.describe('Security', () => {
 		await page.locator('#diluxone-users-reauth-code').fill(code);
 		expect(await send(page, page.locator('button[name="diluxone_users_security"][value="off"]'))).toBe('off');
 		expect((await site.user(email)).meta.diluxone_users_2fa_on).toBe('');
-	});
-
-	test('the authenticator app: set up, then removed with one of the backup codes it came with', async ({
-		page,
-		site,
-		pages,
-		options,
-	}) => {
-		await options.set({ diluxone_users_2fa_methods: ['totp', 'email'] });
-
-		const { email } = await signedIn(page, site, pages.login.url, 'totp-off');
-
-		await page.goto(accountSection(pages.account.url, 'security'));
-		await reveal(page, '.diluxone-users-totp__key');
-
-		const secret = (await page.locator('.diluxone-users-totp__key').innerText()).replace(/\s+/g, '');
-
-		await avoidWindowEdge();
-
-		const setup = page.locator('form').filter({ has: page.locator('input[name="diluxone_users_security"][value="totp"]') });
-
-		await setup.locator('input[name="diluxone_users_code"]').fill(totp(secret));
-		expect(await send(page, setup.locator('button[type="submit"]'))).toBe('totp');
-
-		// Handed over once, on the way in: a code for the day the phone is lost.
-		const backup = (await page.locator('.diluxone-users-backup__list code').allInnerTexts()).map((one) => one.trim());
-
-		expect(backup.length).toBeGreaterThan(0);
-
-		await reveal(page, '#diluxone-users-totp-off-code');
-		await page.locator('#diluxone-users-totp-off-code').fill(backup[0]);
-		expect(await send(page, page.locator('button[name="diluxone_users_security"][value="totp_off"]'))).toBe('totpoff');
-
-		expect((await site.user(email)).meta.diluxone_users_totp, 'the app is gone from the account').toBe('');
 	});
 
 	test('new backup codes are handed over only for a code, and the old ones stop working', async ({

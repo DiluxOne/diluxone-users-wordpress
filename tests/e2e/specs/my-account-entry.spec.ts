@@ -202,7 +202,7 @@ test.describe('The person in the site menu', () => {
 });
 
 test.describe('Join, templates and WP-CLI on a single site', () => {
-	test('“Join this site” posted by hand on a single site has no door to knock on', async ({ page, site, pages }) => {
+	test('“Join this site”, Users+ Pro’s, posted by hand on a single site has no door to knock on', async ({ page, site, pages }) => {
 		const { email } = await signedIn(page, site, pages.login.url, 'j-single');
 		const before = await site.user(email);
 		const answer = await postByHand(page, { action: 'diluxone_users_join' });

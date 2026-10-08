@@ -26,10 +26,13 @@ class CoverSettingsSocialTest extends IntegrationTestCase {
 
 		$this->referer = $_SERVER['HTTP_REFERER'] ?? null;
 
+		add_filter( 'diluxone_users_sso_providers', array( $this, 'networks' ) );
 		do_action( 'diluxone_users_register_panels' );
 	}
 
 	protected function tearDown(): void {
+		remove_filter( 'diluxone_users_sso_providers', array( $this, 'networks' ) );
+		remove_filter( 'diluxone_users_upsell', '__return_false' );
 		$this->cover_settings_reset();
 
 		if ( null === $this->referer ) {
@@ -44,8 +47,31 @@ class CoverSettingsSocialTest extends IntegrationTestCase {
 	}
 
 	/**
-	 * The four states at once: Google working and shown, GitHub working and
-	 * hidden, Microsoft with its app and no test, the rest with nothing.
+	 * Two networks an add-on registers, beside the plugin's own two: the
+	 * screen draws them the same way, and four states need four networks.
+	 *
+	 * @param array<string, array<string, mixed>> $providers
+	 * @return array<string, array<string, mixed>>
+	 */
+	public function networks( array $providers ): array {
+		foreach ( array( 'elsewhere' => 'Elsewhere', 'another' => 'Another' ) as $id => $name ) {
+			$providers[ $id ] = array(
+				'name'      => $name,
+				'authorize' => 'https://' . $id . '.example/authorize',
+				'token'     => 'https://' . $id . '.example/token',
+				'profile'   => 'https://' . $id . '.example/userinfo',
+				'scope'     => 'openid email profile',
+				'console'   => 'https://' . $id . '.example/console',
+				'guide'     => 'https://' . $id . '.example/docs',
+			);
+		}
+
+		return $providers;
+	}
+
+	/**
+	 * The four states at once: Google working and shown, Elsewhere working
+	 * and hidden, Microsoft with its app and no test, the rest with nothing.
 	 */
 	private function four_states(): void {
 		diluxone_users_update_option(
@@ -57,10 +83,10 @@ class CoverSettingsSocialTest extends IntegrationTestCase {
 					'secret' => 'g-secret',
 					'tested' => 1,
 				),
-				'github'    => array(
+				'elsewhere' => array(
 					'active' => 0,
-					'id'     => 'gh-id',
-					'secret' => 'gh-secret',
+					'id'     => 'el-id',
+					'secret' => 'el-secret',
 					'tested' => 1,
 				),
 				'microsoft' => array(
@@ -203,10 +229,85 @@ class CoverSettingsSocialTest extends IntegrationTestCase {
 		$this->assertStringContainsString( 'Turn it off', $html );
 		$this->assertStringContainsString( 'Turn it on', $html );
 		$this->assertStringContainsString( esc_attr( diluxone_users_sso_off_warning( 'Google' ) ), $html, 'taking one down is asked first' );
-		$this->assertStringContainsString( 'red=github', $html );
+		$this->assertStringContainsString( 'red=elsewhere', $html );
 		$this->assertStringContainsString( 'diluxone_users_action=on', $html );
 		$this->assertStringContainsString( 'Not included, on purpose', $html );
 		$this->assertSame( 1, substr_count( $html, 'diluxone_users_action=off' ), 'only the working one is offered off' );
+	}
+
+	public function test_after_the_networks_one_card_says_what_users_pro_adds(): void {
+		$this->where_the_network_is_set();
+		$this->the_admin();
+
+		$_GET = array( 'page' => 'diluxone-users-social' );
+		$html = $this->draw( 'diluxone_users_screen_social' );
+
+		$card = strpos( $html, 'data-diluxone-users-pro="social/providers/more"' );
+
+		$this->assertNotFalse( $card, 'the Pro card is on the grid' );
+		$this->assertGreaterThan( (int) strrpos( $html, '<h3>Another</h3>' ), $card, 'after the last real network' );
+		$this->assertLessThan( (int) strpos( $html, 'Not included, on purpose' ), $card, 'and inside the grid' );
+		$this->assertStringContainsString( 'Ten more networks', $html );
+		$this->assertStringContainsString( 'Users+ Pro adds LinkedIn, X, Facebook, GitHub', $html );
+		$this->assertStringContainsString( 'href="https://diluxone.com/users-pro/?utm_source=diluxone-users&amp;utm_medium=social&amp;utm_campaign=free"', $html );
+		$this->assertSame( 1, substr_count( $html, 'data-diluxone-users-pro=' ), 'one card, not one per network' );
+	}
+
+	public function test_the_pro_card_goes_when_the_add_on_or_the_site_says_so(): void {
+		$this->where_the_network_is_set();
+		$this->the_admin();
+		$_GET = array( 'page' => 'diluxone-users-social' );
+
+		add_filter( 'diluxone_users_upsell', '__return_false' );
+		$this->assertStringNotContainsString( 'data-diluxone-users-pro=', $this->draw( 'diluxone_users_screen_social' ), 'Users+ Pro brings them' );
+		remove_filter( 'diluxone_users_upsell', '__return_false' );
+
+		diluxone_users_update_option( 'diluxone_users_pro_previews', 0 );
+		$this->assertStringNotContainsString( 'data-diluxone-users-pro=', $this->draw( 'diluxone_users_screen_social' ), 'the previews are off' );
+		diluxone_users_update_option( 'diluxone_users_pro_previews', 1 );
+
+		$this->assertStringContainsString( '<h3>Elsewhere</h3>', $this->draw( 'diluxone_users_screen_social' ), 'the networks stay either way' );
+	}
+
+	/**
+	 * A network set up while its add-on was running, and the add-on is not
+	 * now: its row is not one the plugin knows, and turning the add-on off
+	 * must lose none of it.
+	 */
+	public function test_a_network_nobody_registers_now_is_shown_inactive_and_kept_through_every_save(): void {
+		$this->where_the_network_is_set();
+		$this->the_admin();
+		$this->four_states();
+
+		$gone = array(
+			'active' => 1,
+			'id'     => 'gone-id',
+			'secret' => 'gone-secret',
+			'tested' => 1,
+			'extra'  => 'kept',
+		);
+		$all  = (array) diluxone_users_raw_get( 'diluxone_users_sso', array() );
+
+		$all['gone'] = $gone;
+		diluxone_users_update_option( 'diluxone_users_sso', $all, false );
+
+		$_GET = array( 'page' => 'diluxone-users-social' );
+		$html = $this->draw( 'diluxone_users_screen_social' );
+
+		$this->assertStringContainsString( '<h3>gone</h3>', $html );
+		$this->assertStringContainsString( 'Your Pro choice (inactive)', $html );
+		$this->assertStringNotContainsString( 'gone-secret', $html, 'its secret is not printed' );
+		$this->assertStringNotContainsString( 'provider=gone', $html, 'nothing to open: nothing here draws it' );
+		$this->assertLessThan( (int) strpos( $html, 'data-diluxone-users-pro=' ), (int) strpos( $html, '<h3>gone</h3>' ), 'before the Pro card' );
+		$this->assertSame( 'not-configured', diluxone_users_sso_state( 'missing' ), 'a network with no row is no card' );
+		$this->assertArrayNotHasKey( 'gone', diluxone_users_sso_available(), 'nobody signs in with it' );
+
+		// Every save the screen has: another network's credentials, a switch, forgetting one.
+		$this->send_provider( 'another', array( 'diluxone_users_client_id' => 'an-id', 'diluxone_users_client_secret' => 'an-secret' ) );
+		$this->press( 'google', 'off' );
+		$this->press( 'elsewhere', 'forget' );
+
+		$this->assertSame( $gone, ( (array) diluxone_users_raw_get( 'diluxone_users_sso', array() ) )['gone'] ?? null, 'kept as it was' );
 	}
 
 	public function test_a_provider_that_does_not_exist_shows_the_grid(): void {
@@ -237,13 +338,13 @@ class CoverSettingsSocialTest extends IntegrationTestCase {
 	}
 
 	/**
-	 * Every provider has its own guide, drawn step by step with its warning
-	 * and what it asks for.
+	 * Every provider of the plugin's own has its guide, drawn step by step
+	 * with its warning and what it asks for.
 	 *
 	 * @return array<string, array{0: string}>
 	 */
 	public static function providers(): array {
-		$ids = array( 'google', 'microsoft', 'linkedin', 'twitter', 'facebook', 'github', 'gitlab', 'discord', 'twitch', 'amazon', 'yahoo', 'wordpress' );
+		$ids = array( 'google', 'microsoft' );
 
 		return array_combine( $ids, array_map( static fn( string $id ): array => array( $id ), $ids ) );
 	}
@@ -286,7 +387,7 @@ class CoverSettingsSocialTest extends IntegrationTestCase {
 		$this->where_the_network_is_set();
 		$this->the_admin();
 
-		$this->assertStringNotContainsString( 'Watch out:', $this->provider( 'github', 'start' ) );
+		$this->assertStringNotContainsString( 'Watch out:', $this->provider( 'google', 'start' ) );
 		$this->assertSame(
 			array(
 				'steps'  => array(),
@@ -313,7 +414,7 @@ class CoverSettingsSocialTest extends IntegrationTestCase {
 		$this->assertStringContainsString( 'Delete its settings', $html );
 
 		// A provider with nothing saved asks for both, with no promise.
-		$html = $this->provider( 'gitlab', 'settings' );
+		$html = $this->provider( 'another', 'settings' );
 
 		$this->assertStringNotContainsString( 'A secret is saved.', $html );
 		$this->assertStringNotContainsString( 'Run the live test', $html, 'nothing to test yet' );
@@ -330,12 +431,12 @@ class CoverSettingsSocialTest extends IntegrationTestCase {
 		$this->assertStringContainsString( 'Turn it off', $html );
 		$this->assertStringNotContainsString( 'This provider has not passed the live test', $html );
 
-		$html = $this->provider( 'github', 'usage' );
+		$html = $this->provider( 'elsewhere', 'usage' );
 
 		$this->assertStringContainsString( 'Turn it on', $html );
 		$this->assertStringContainsString( '[diluxone_users_login]', $html );
 		$this->assertStringContainsString( '[diluxone_users_accounts]', $html );
-		$this->assertStringContainsString( esc_html( diluxone_users_sso_login_url( 'github' ) ), $html );
+		$this->assertStringContainsString( esc_html( diluxone_users_sso_login_url( 'elsewhere' ) ), $html );
 		$this->assertStringNotContainsString( 'documentation', $html, 'their documentation is on the first tab' );
 	}
 
@@ -365,10 +466,10 @@ class CoverSettingsSocialTest extends IntegrationTestCase {
 		$this->the_admin();
 
 		$html = $this->send_provider(
-			'gitlab',
+			'another',
 			array(
-				'diluxone_users_client_id'     => ' gl-<b>id</b> ',
-				'diluxone_users_client_secret' => 'gl-secret',
+				'diluxone_users_client_id'     => ' an-<b>id</b> ',
+				'diluxone_users_client_secret' => 'an-secret',
 				'diluxone_users_active'        => '1',
 			)
 		);
@@ -377,13 +478,13 @@ class CoverSettingsSocialTest extends IntegrationTestCase {
 		$this->assertSame(
 			array(
 				'active' => false,
-				'id'     => 'gl-id',
-				'secret' => 'gl-secret',
+				'id'     => 'an-id',
+				'secret' => 'an-secret',
 			),
-			diluxone_users_sso_credentials( 'gitlab' ),
+			diluxone_users_sso_credentials( 'another' ),
 			'untested, it cannot be shown however it is ticked'
 		);
-		$this->assertSame( 'not-tested', diluxone_users_sso_state( 'gitlab' ) );
+		$this->assertSame( 'not-tested', diluxone_users_sso_state( 'another' ) );
 	}
 
 	public function test_an_empty_secret_keeps_the_saved_one_and_a_new_id_asks_for_the_test_again(): void {
@@ -419,14 +520,14 @@ class CoverSettingsSocialTest extends IntegrationTestCase {
 			'diluxone_users_client_secret' => 'evil-secret',
 		);
 
-		$html = $this->send_provider( 'gitlab', $post, 'not-a-nonce' );
+		$html = $this->send_provider( 'another', $post, 'not-a-nonce' );
 		$this->assertStringNotContainsString( 'Provider saved.', $html );
 
 		$this->not_allowed( true );
-		$html = $this->send_provider( 'gitlab', $post );
+		$html = $this->send_provider( 'another', $post );
 		$this->assertStringNotContainsString( 'Provider saved.', $html );
 
-		$this->assertSame( 'not-configured', diluxone_users_sso_state( 'gitlab' ) );
+		$this->assertSame( 'not-configured', diluxone_users_sso_state( 'another' ) );
 	}
 
 	public function test_credentials_are_not_saved_from_the_hubs_own_dashboard(): void {
@@ -435,15 +536,15 @@ class CoverSettingsSocialTest extends IntegrationTestCase {
 		$this->the_admin();
 
 		$html = $this->send_provider(
-			'gitlab',
+			'another',
 			array(
-				'diluxone_users_client_id'     => 'gl-id',
-				'diluxone_users_client_secret' => 'gl-secret',
+				'diluxone_users_client_id'     => 'an-id',
+				'diluxone_users_client_secret' => 'an-secret',
 			)
 		);
 
 		$this->assertStringNotContainsString( 'Provider saved.', $html );
-		$this->assertSame( 'not-configured', diluxone_users_sso_state( 'gitlab' ) );
+		$this->assertSame( 'not-configured', diluxone_users_sso_state( 'another' ) );
 	}
 
 	/* ── On, off, forget ───────────────────────────────────────────── */
@@ -480,19 +581,19 @@ class CoverSettingsSocialTest extends IntegrationTestCase {
 		$this->the_admin();
 		$this->four_states();
 
-		$from                    = diluxone_users_admin_url( 'diluxone-users-social', array( 'provider' => 'github' ) );
+		$from                    = diluxone_users_admin_url( 'diluxone-users-social', array( 'provider' => 'elsewhere' ) );
 		$_SERVER['HTTP_REFERER'] = $from;
 
-		list( $how, $to ) = $this->press( 'github', 'on' );
+		list( $how, $to ) = $this->press( 'elsewhere', 'on' );
 
 		$this->assertSame( 'redirect', $how );
 		$this->assertSame( $from, $to, 'back to the provider’s own screen' );
-		$this->assertSame( 'enabled', diluxone_users_sso_state( 'github' ) );
+		$this->assertSame( 'enabled', diluxone_users_sso_state( 'elsewhere' ) );
 
-		list( , $to ) = $this->press( 'github', 'forget' );
+		list( , $to ) = $this->press( 'elsewhere', 'forget' );
 
 		$this->assertSame( diluxone_users_admin_url( 'diluxone-users-social' ), $to, 'the settings are gone: the grid' );
-		$this->assertSame( 'not-configured', diluxone_users_sso_state( 'github' ) );
+		$this->assertSame( 'not-configured', diluxone_users_sso_state( 'elsewhere' ) );
 		$this->assertSame( 'enabled', diluxone_users_sso_state( 'google' ), 'the others are untouched' );
 	}
 

@@ -1018,7 +1018,7 @@ function diluxone_users_screen_fields_usage(): void {
 			</tr>
 			<tr>
 				<td><code>[diluxone_users_login]</code></td>
-				<td><?php esc_html_e( 'The way in: the box that asks for an e-mail address, and under it whichever buttons are switched on — the social networks, the password, the passkey. Somebody already signed in is told so instead.', 'diluxone-users' ); ?></td>
+				<td><?php esc_html_e( 'The way in: the box that asks for an e-mail address, and under it whichever buttons are switched on — the social networks, the password. Somebody already signed in is told so instead.', 'diluxone-users' ); ?></td>
 			</tr>
 			<tr>
 				<td><code>[diluxone_users_login title="yes"]</code></td>

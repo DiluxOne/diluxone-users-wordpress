@@ -1,7 +1,7 @@
 import { Page } from '@playwright/test';
 import { test, expect } from '../support/fixtures';
 import { accountSection, navigated } from '../support/ui';
-import { PIXEL, anotherBrowser, formOf, reveal, send, signedIn } from '../support/my-account';
+import { anotherBrowser, reveal, signedIn } from '../support/my-account';
 
 /**
  * The account page as a whole: which section opens for which address, what
@@ -229,42 +229,15 @@ test.describe('The header and the look', () => {
 		await expect(root.locator('.diluxone-users-account__header')).toHaveCount(0);
 	});
 
-	test('the cover carries its colour, and a picture only once one is chosen', async ({ page, site, pages, options }) => {
-		const { email } = await signedIn(page, site, pages.login.url, 'look-cover');
+	test('a cover stored while Users+ Pro was on is the simple area, with nothing of the cover on it', async ({ page, site, pages, options }) => {
+		await signedIn(page, site, pages.login.url, 'look-cover');
 		const root = page.locator('.diluxone-users-account');
 
 		await options.set({ diluxone_users_account_template: 'cover', diluxone_users_account_cover: '#123456', diluxone_users_account_cover_kind: 'color' });
 		await page.goto(pages.account.url);
-		await expect(root).toHaveClass(/diluxone-users-account--cover(\s|$)/);
-		await expect(root).toHaveAttribute('style', /--diluxone-users-cover:#123456/);
-
-		// A picture asked for and none chosen: the colour, not an empty band.
-		await options.set({ diluxone_users_account_cover_kind: 'image', diluxone_users_account_cover_image: 0 });
-		await page.goto(pages.account.url);
-		await expect(root).not.toHaveClass(/--cover-image|--cover-dim/);
-
-		// A real picture: uploaded as the person's photo, then chosen as the cover.
-		await options.set({ diluxone_users_avatar_upload: 1 });
-		await page.goto(accountSection(pages.account.url, 'details'));
-		await reveal(page, 'form.diluxone-users-avatar__form');
-		await page.locator('input[name="diluxone_users_avatar_file"]').setInputFiles({ name: 'cover.png', mimeType: 'image/png', buffer: PIXEL });
-		expect(await send(page, formOf(page, 'diluxone_users_avatar').locator('button[type="submit"]').first())).toBe('saved');
-
-		const picture = Number((await site.user(email, ['diluxone_users_avatar'])).fields.diluxone_users_avatar);
-
-		await options.set({ diluxone_users_account_cover_image: picture });
-		await page.goto(pages.account.url);
-		await expect(root).toHaveClass(/diluxone-users-account--cover-image/);
-		await expect(root).toHaveAttribute('style', /--diluxone-users-cover-image:url\(/);
-
-		await options.set({ diluxone_users_account_cover_kind: 'dim' });
-		await page.goto(pages.account.url);
-		await expect(root).toHaveClass(/diluxone-users-account--cover-dim/);
-
-		// The plain shape carries no cover style at all.
-		await options.set({ diluxone_users_account_template: 'plain' });
-		await page.goto(pages.account.url);
-		await expect(root).not.toHaveAttribute('style', /.+/);
+		await expect(root).toHaveClass(/diluxone-users-account--plain/);
+		await expect(root).not.toHaveClass(/--cover/);
+		await expect(root, 'the plain shape carries no properties of its own').not.toHaveAttribute('style', /.+/);
 	});
 
 	test('the width and the menu’s look and alignment are classes the stylesheet reads; an unknown value is the default', async ({
@@ -360,7 +333,7 @@ test.describe('What the site writes into a section', () => {
 		await expect(page.locator('input[name="action"][value="diluxone_users_fields_save"]'), 'the fields are replaced').toHaveCount(0);
 	});
 
-	test('a section of the site’s own for some roles: an editor has it, a subscriber does not, and with no role ticked nobody does', async ({
+	test('a section for some roles: an editor has it, a subscriber does not, and with no role ticked nobody does', async ({
 		page,
 		browser,
 		baseURL,
@@ -368,14 +341,14 @@ test.describe('What the site writes into a section', () => {
 		pages,
 		options,
 	}) => {
-		const mine = { custom: 1, label: 'Staff room', content: '<p id="e2e-staff">For staff</p>', position: 80 };
+		const mine = { label: 'Staff room', content: '<p id="e2e-staff">For staff</p>', placement: 'replace' };
 
-		await options.set({ diluxone_users_account_sections: { staff: { ...mine, visibility: 'some', roles: ['editor'] } } });
+		await options.set({ diluxone_users_account_sections: { security: { ...mine, visibility: 'some', roles: ['editor'] } } });
 
 		await signedIn(page, site, pages.login.url, 'own-role-sub');
 		await page.goto(pages.account.url);
-		await expect(page.locator('a.diluxone-users-account__tab[href*="/staff/"]')).toHaveCount(0);
-		await page.goto(accountSection(pages.account.url, 'staff'));
+		await expect(page.locator('a.diluxone-users-account__tab[href*="/security/"]')).toHaveCount(0);
+		await page.goto(accountSection(pages.account.url, 'security'));
 		await expect(page.locator('#e2e-staff')).toHaveCount(0);
 
 		const editor = await browser.newContext({ baseURL, storageState: undefined });
@@ -384,15 +357,15 @@ test.describe('What the site writes into a section', () => {
 		await signedIn(other, site, pages.login.url, 'own-role-ed', { role: 'editor' });
 		await other.goto(pages.account.url);
 
-		const tab = other.locator('a.diluxone-users-account__tab[href*="/staff/"]');
+		const tab = other.locator('a.diluxone-users-account__tab[href*="/security/"]');
 
 		await expect(tab).toHaveText('Staff room');
 		await navigated(other, () => tab.click());
 		await expect(other.locator('#e2e-staff')).toBeVisible();
 
-		await options.set({ diluxone_users_account_sections: { staff: { ...mine, visibility: 'some', roles: [] } } });
+		await options.set({ diluxone_users_account_sections: { security: { ...mine, visibility: 'some', roles: [] } } });
 		await other.goto(pages.account.url);
-		await expect(other.locator('a.diluxone-users-account__tab[href*="/staff/"]'), 'some roles, none ticked: nobody').toHaveCount(0);
+		await expect(other.locator('a.diluxone-users-account__tab[href*="/security/"]'), 'some roles, none ticked: nobody').toHaveCount(0);
 		await editor.close();
 	});
 

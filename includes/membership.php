@@ -5,20 +5,20 @@
  * On a network an account is the network's and a role is each site's, so an
  * account that exists is not yet a member of anything but the site it was
  * made on. Which sites it becomes a member of is one decision for the whole
- * network, taken in Network Admin › Membership, with three answers:
+ * network, taken in Network Admin › Membership. The plugin's answer is
  *
  *   - 'all' (the default): every account is a member of every live site of
  *     the network. A new account is added to every site, a new site gets
  *     every account, and signing in is the safety net that adds the person to
  *     the site they are on and to the hub, for whatever the first two missed.
- *   - 'click': an account is a member of the hub, where it lives; on any other
- *     site the person, signed in, presses "Join this site".
- *   - 'invite': an account is a member of the hub; only an administrator adds
- *     somebody to any other site.
  *
- * A stored policy that is none of these — one an add-on offered and is not
- * running to apply — is read as 'hub': the hub only, nothing queued, nobody
- * added anywhere else, until a policy is chosen again.
+ * An add-on offers more through `diluxone_users_membership_policies` — Users+
+ * Pro's "whoever asks" and "by invitation" — and applies what its answers
+ * mean itself. Under any policy but 'all' the plugin adds nobody on its own:
+ * an account is a member of the hub, where it lives. A stored policy nothing
+ * offers — one an add-on offered and is not running to apply — is read as
+ * 'hub': the hub only, nothing queued, nobody added anywhere else, until a
+ * policy is chosen again.
  *
  * The role on each site is that site's: on the hub the one the plugin gives
  * whoever registers, on any other site that site's own "New User Default
@@ -54,7 +54,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-/** The network setting: 'all', 'click' or 'invite'. */
+/** The network setting: 'all', or a policy an add-on offers. */
 const DILUXONE_USERS_MEMBERSHIP = 'diluxone_users_membership';
 
 /** The network setting that says the policy was confirmed. */
@@ -80,7 +80,22 @@ const DILUXONE_USERS_MEMBERSHIP_LOCK = 'diluxone_users_membership_lock';
  * @return array<int, string>
  */
 function diluxone_users_membership_policies(): array {
-	return array( 'all', 'click', 'invite' );
+	/**
+	 * Filters the network's membership policies, after 'all'.
+	 *
+	 * An add-on that offers a policy adds its value here, its card on the
+	 * Membership screen through `diluxone_users_membership_choices`, and what
+	 * it means through the seams it needs (`diluxone_users_join_state` for
+	 * the person on a site they are not a member of). Under any policy but
+	 * 'all' the plugin adds nobody on its own.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param array<int, string> $policies The policies there are, 'all' first.
+	 */
+	$more = (array) apply_filters( 'diluxone_users_membership_policies', array() );
+
+	return array_values( array_unique( array_merge( array( 'all' ), array_filter( array_map( 'sanitize_key', array_map( 'strval', $more ) ) ) ) ) );
 }
 
 /**
@@ -357,7 +372,8 @@ function diluxone_users_membership_quiet( ?bool $set = null ): bool {
  */
 function diluxone_users_membership_add( int $user_id, int $site_id, string $how ): bool {
 	// Until the network confirms its policy, the policy adds nobody. A person
-	// pressing "Join this site" is not the policy acting on its own.
+	// asking to join ('click': an add-on's "Join this site") is not the
+	// policy acting on its own.
 	if ( 'click' !== $how && ! diluxone_users_membership_confirmed() ) {
 		return false;
 	}

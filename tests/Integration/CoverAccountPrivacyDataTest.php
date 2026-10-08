@@ -128,7 +128,7 @@ class CoverAccountPrivacyDataTest extends IntegrationTestCase {
 		$export = ( $this->exporter() )( get_userdata( $user )->user_email, 1 );
 
 		$this->assertTrue( $export['done'] );
-		$this->assertSame( array( 'diluxone-users-access' ), array_column( $export['data'], 'item_id' ), 'No details, no passkeys: only how they sign in' );
+		$this->assertSame( array( 'diluxone-users-access' ), array_column( $export['data'], 'item_id' ), 'No details, nothing an add-on kept: only how they sign in' );
 		$this->assertSame( array( 'Two-step verification' => 'Off' ), $this->rows( $export['data'], 'diluxone-users-access' ) );
 	}
 
@@ -161,18 +161,20 @@ class CoverAccountPrivacyDataTest extends IntegrationTestCase {
 		update_user_meta( $user, DILUXONE_USERS_MEMBERSHIP_REMOVED, array( 987654 ) );
 		$avatar = $this->give_avatar( $user );
 
-		diluxone_users_passkeys_save(
+		// What an add-on that is not running now kept about them: a list of
+		// keys and an index row per key, under the plugin's namespace.
+		update_user_meta(
 			$user,
+			'diluxone_users_addon_keys',
 			array(
 				array(
-					'id'      => 'cred-one',
-					'label'   => 'Laptop',
-					'key'     => 'PUBLIC-KEY-BYTES',
-					'created' => 1700000000,
-					'used'    => 0,
+					'id'    => 'cred-one',
+					'label' => 'Laptop',
+					'key'   => 'PUBLIC-KEY-BYTES',
 				),
 			)
 		);
+		update_user_meta( $user, 'diluxone_users_addon_ix_abc', 1 );
 
 		$export = ( $this->exporter() )( $email, 1 );
 		$this->assertTrue( $export['done'] );
@@ -189,17 +191,17 @@ class CoverAccountPrivacyDataTest extends IntegrationTestCase {
 		$access = $this->rows( $export['data'], 'diluxone-users-access' );
 		$this->assertSame( 'Google', $access['Linked account'] ?? null, 'The network, not the id it gave' );
 		$this->assertSame( 'On', $access['Two-step verification'] ?? null );
-		$this->assertSame( 'Set up', $access['Authenticator app'] ?? null );
+		$this->assertArrayNotHasKey( 'Authenticator app', $access, 'the app is Users+ Pro’s to explain' );
 		$this->assertSame( '#987654', $access['Sites an administrator removed you from'] ?? null, 'A site that does not exist is named by its number' );
 		$this->assertSame( '2', $access['Devices recognised'] ?? null, 'The count, not the hashes' );
 
-		$key = $this->rows( $export['data'], 'diluxone-users-passkey-0' );
-		$this->assertSame( 'Laptop', $key['Name'] ?? null );
-		$this->assertSame( (string) wp_date( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), 1700000000 ), $key['Added'] ?? null );
-		$this->assertSame( '—', $key['Last used'] ?? null, 'Never used reads as a dash, not a 1970 date' );
+		$other = $this->rows( $export['data'], 'diluxone-users-other' );
+		$this->assertSame( 'Kept, and not shown here', $other['diluxone_users_addon_keys'] ?? null, 'Named, so the person knows it is there' );
+		$this->assertSame( 'Kept, and not shown here', $other['diluxone_users_addon_ix_abc'] ?? null );
+		$this->assertSame( 'Kept, and not shown here', $other['diluxone_users_totp'] ?? null, 'and so is the app’s secret, with Pro off' );
 
 		$flat = (string) wp_json_encode( $export );
-		$this->assertStringNotContainsString( 'SECRETSECRETSECRET', $flat, 'The TOTP secret is a key to the account, not a fact about the person' );
+		$this->assertStringNotContainsString( 'SECRETSECRETSECRET', $flat, 'The app’s secret is a key to the account, not a fact about the person' );
 		$this->assertStringNotContainsString( 'PUBLIC-KEY-BYTES', $flat );
 		$this->assertStringNotContainsString( 'google-sub-123', $flat );
 		$this->assertStringNotContainsString( 'hash-a', $flat );
@@ -219,7 +221,7 @@ class CoverAccountPrivacyDataTest extends IntegrationTestCase {
 		$this->assertSame( (string) get_site( get_main_site_id() )->blogname, $access['Sites an administrator removed you from'] ?? null );
 	}
 
-	public function test_the_eraser_removes_every_key_the_picture_and_the_passkeys(): void {
+	public function test_the_eraser_removes_every_key_the_picture_and_what_an_addon_kept(): void {
 		$this->extra_fields = array(
 			array(
 				'key'   => 'diluxone_users_cover_phone',
@@ -239,8 +241,11 @@ class CoverAccountPrivacyDataTest extends IntegrationTestCase {
 			'diluxone_users_2fa_on'                   => '1',
 			'diluxone_users_totp'                     => 'SECRET',
 			'diluxone_users_backup_codes'             => array( 'x' ),
-			'diluxone_users_sso_github'               => '42',
+			'diluxone_users_sso_elsewhere'            => '42',
 			'diluxone_users_notify_login'             => '1',
+			// An add-on's, kept while it is not running: a list and its index.
+			'diluxone_users_addon_keys'               => array( array( 'id' => 'cred-erase' ) ),
+			'diluxone_users_addon_ix_abc'             => '1',
 		);
 
 		foreach ( $meta as $key => $value ) {
@@ -250,7 +255,6 @@ class CoverAccountPrivacyDataTest extends IntegrationTestCase {
 		update_user_meta( $bystander, 'diluxone_users_handle', 'bystander' );
 
 		$avatar = $this->give_avatar( $user );
-		diluxone_users_passkeys_save( $user, array( array( 'id' => 'cred-erase', 'label' => 'Phone' ) ) );
 
 		// A list among the meta (the devices, the backup codes) is read as it
 		// is: no warning on the way.
@@ -287,8 +291,6 @@ class CoverAccountPrivacyDataTest extends IntegrationTestCase {
 
 		$this->assertNull( get_post( $avatar ), 'The photograph itself is deleted, not just unlinked' );
 		$this->assertSame( '', get_user_meta( $user, 'diluxone_users_avatar', true ) );
-		$this->assertSame( array(), diluxone_users_passkeys( $user ) );
-		$this->assertSame( '', get_user_meta( $user, diluxone_users_passkey_index_key( 'cred-erase' ), true ), 'No index row still says whose credential it was' );
 		$this->assertSame( 'bystander', get_user_meta( $bystander, 'diluxone_users_handle', true ), 'Only that person’s data' );
 	}
 

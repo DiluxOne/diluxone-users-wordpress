@@ -11,7 +11,7 @@
 - [ ] `make check` passes locally
 - [ ] Integration on a network (`make env-multisite && make test-integration`), if it touches WordPress behaviour
 - [ ] End-to-end on a single site (`make test-e2e`) and on a network (`make test-e2e-network`), if a person can see or do it
-- [ ] Ways in exercised (e-mail link, password, social provider, passkey, second factor), if sign-in is involved
+- [ ] Ways in exercised (e-mail link, password, social provider, an add-on's way in, second factor), if sign-in is involved
 
 ## 📸 Screenshots
 

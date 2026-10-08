@@ -55,14 +55,11 @@
  *
  * Colours were tokens from the first day; measurements were not, and every
  * site that wanted its own spacing had to write a selector for it. That is
- * what broke the account menu: ConoSurTech wrote
- *
- *     .diluxone-users-account--cover .diluxone-users-account__nav { gap: 36px }
- *
- * meaning "the tab bar under the cover", because at the time a cover implied
- * a row of tabs. When the menu learnt to go down the side, the rule was still
- * true to the letter and no longer true to the intention: 36px of gap and
- * 20px of padding, stacked, is a hundred pixels between items.
+ * what broke the account menu: a site wrote a gap for the menu under one
+ * shape of the area, meaning "the tab bar", because at the time that shape
+ * implied a row of tabs. When the menu learnt to go down the side, the rule
+ * was still true to the letter and no longer true to the intention: 36px of
+ * gap and 20px of padding, stacked, is a hundred pixels between items.
  *
  * A value applies in every state. A selector makes a claim about which states
  * exist, and that claim expires the next time the plugin grows one. So:
@@ -75,7 +72,6 @@
  * the plugin's own defaults can differ per shape while a site that sets the
  * property once wins in all of them. Declaring them here would shadow that.
  *
- *   --diluxone-users-body-end    Under the content, on a cover.        64px
  *   --diluxone-users-read        The reading column, when the content is
  *                                held to one.                          980px
  *
@@ -85,12 +81,12 @@
  * with a neutral default would beat a site that had already lined those rows
  * up with its own grid, because this sheet loads after the site's and
  * `padding-inline: 0` is a value like any other.
- *   --diluxone-users-bleed       How far the cover breaks out of the theme's
- *                                column. Set it to 0 on a site that is
- *                                already full width.       calc(50% - 50vw)
- *   --diluxone-users-cover-pad   The air inside the cover band.         40px
- *   --diluxone-users-header-gap  Between the picture and the name.  18 / 24px
- *   --diluxone-users-avatar      The picture.                       64 / 96px
+ *   --diluxone-users-bleed       How far a frame that takes the page over
+ *                                breaks out of the theme's column. Set it
+ *                                to 0 on a site that is already full
+ *                                width.                    calc(50% - 50vw)
+ *   --diluxone-users-header-gap  Between the picture and the name.      18px
+ *   --diluxone-users-avatar      The picture.                           64px
  *   --diluxone-users-bar-bg      Behind the menu's strip.        transparent
  *   --diluxone-users-bar-rule    Its rule, whole: `1px solid #ddd`.    none
  *   --diluxone-users-bar-gap     Under the strip.                       28px
@@ -357,8 +353,8 @@ details.diluxone-users-panel[open] > .diluxone-users-panel__head .diluxone-users
 }
 .diluxone-users-button--soft:hover { background: var(--diluxone-users-surface-alt); color: var(--diluxone-users-text); filter: none; }
 
-/* Used by the passkey button and by the way out of "check your email", and
-   until now it was a class on the markup with no rule behind it. */
+/* Used by a door that is one button and by the way out of "check your
+   email", and until now it was a class on the markup with no rule behind it. */
 .diluxone-users-button--wide { display: flex; width: 100%; }
 
 .diluxone-users-button--danger { background: var(--diluxone-users-danger); color: #fff; }
@@ -493,113 +489,23 @@ details.diluxone-users-panel[open] > .diluxone-users-panel__head .diluxone-users
 	.diluxone-users-session__what { flex: 1 1 100%; order: 2; }
 }
 
-/* ── Las passkeys ───────────────────────────────────────────────────── */
-
-/* Each key is a box that opens, the same as the screen panels: closed you
-   read the name, open you change it or remove the key. A text field always
-   open on every row looks like a half-filled form. */
-.diluxone-users-keys {
-	list-style: none;
-	margin: 0 0 var(--diluxone-users-gap);
-	padding: 0;
-	border: 1px solid var(--diluxone-users-border);
-	border-radius: var(--diluxone-users-radius);
-	overflow: hidden;
-	background: var(--diluxone-users-surface);
-}
-.diluxone-users-keys > li + li { border-top: 1px solid var(--diluxone-users-border); }
-
-.diluxone-users-key__row {
-	display: flex;
-	align-items: center;
-	gap: 14px;
-	padding: 12px 16px;
-	cursor: pointer;
-	list-style: none;
-}
-.diluxone-users-key__row::-webkit-details-marker { display: none; }
-.diluxone-users-key__row::marker { content: ''; }
-.diluxone-users-key__row:focus-visible { outline: 2px solid var(--diluxone-users-accent); outline-offset: -3px; }
-
-.diluxone-users-key__logo {
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-	width: 38px;
-	height: 38px;
-	flex: 0 0 38px;
-	border-radius: 50%;
-	background: var(--diluxone-users-accent-bg);
-	color: var(--diluxone-users-accent-ink);
-}
-.diluxone-users-key__who { display: flex; flex-direction: column; gap: 2px; flex: 1 1 auto; min-width: 0; }
-.diluxone-users-key__who > span { font-size: 0.9em; color: var(--diluxone-users-muted); }
-
-/* The same tip as the panels, in miniature: it is the same gesture. */
-.diluxone-users-key__arrow {
-	position: relative;
-	flex: 0 0 auto;
-	width: 30px;
-	height: 30px;
-	border-radius: 50%;
-	background: var(--diluxone-users-surface-alt);
-	transition: transform .18s ease, background-color .18s ease;
-}
-.diluxone-users-key__arrow::before {
-	content: '';
-	position: absolute;
-	top: 50%;
-	left: 50%;
-	width: 8px;
-	height: 8px;
-	border-right: 2px solid var(--diluxone-users-text);
-	border-bottom: 2px solid var(--diluxone-users-text);
-	transform: translate(-50%, -70%) rotate(45deg);
-}
-details.diluxone-users-key[open] > .diluxone-users-key__row .diluxone-users-key__arrow { transform: rotate(180deg); }
-.diluxone-users-key__row:hover .diluxone-users-key__arrow { background-color: color-mix( in srgb, var(--diluxone-users-accent) 16%, var(--diluxone-users-surface-alt) ); }
-
-.diluxone-users-key__edit {
-	display: flex;
-	flex-direction: column;
-	align-items: flex-start;
-	gap: 8px;
-	margin: 0;
-	padding: 4px 16px 18px 68px;
-}
-.diluxone-users-key__edit label { font-weight: 600; font-size: 0.9em; }
-.diluxone-users-key__edit input[type="text"] { width: 100%; max-width: 22rem; }
-.diluxone-users-key__actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
-.diluxone-users-key__actions .diluxone-users-button { min-height: 38px; padding: 0 16px; font-size: 0.9em; }
-
-.diluxone-users-key-add { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px; margin: 0; }
-.diluxone-users-key-add .diluxone-users-key__field { display: flex; flex-direction: column; gap: 6px; flex: 0 1 22rem; min-width: 0; }
-.diluxone-users-key-add label { font-weight: 600; }
-
-@media (max-width: 640px) {
-	.diluxone-users-key__edit { padding-left: 16px; }
-}
-
 /* ── The shape of the sign-in page ──────────────────────────────────
-   Three of the four take over the page. They break out of the theme's column
-   with the same full-bleed margin the account cover uses — a sign-in screen
-   that stops halfway across the window reads as broken rather than as a
-   choice. 'plain' has no rules at all: the form stays where the theme put it,
-   which is the whole point of that answer. */
+   Every shape but 'plain' takes the page over: the frame breaks out of the
+   theme's column with a full-bleed margin — a sign-in screen that stops
+   halfway across the window reads as broken rather than as a choice. 'plain'
+   has no frame at all: the form stays where the theme put it, which is the
+   whole point of that answer. A shape an add-on brings starts from this frame
+   and styles `.diluxone-users-login-frame--<id>` in its own stylesheet. */
 /* Breaking out of the theme's column.
    The frame is a grandchild on purpose (see diluxone_users_login_frame_open):
    a block theme constrains its direct children with !important on both the
    margin and the max-width, so nothing declared on a child can get out. One
-   level down, the ordinary full-bleed margin works — the same way the account
-   cover does it. */
-.diluxone-users-login-frame--card,
-.diluxone-users-login-frame--split,
-.diluxone-users-login-frame--backdrop {
-	/* The same property the account cover breaks out with, and the same
-	   reason it is one number: a site that is already full width sets
-	   `--diluxone-users-bleed: 0px` once and every full-bleed piece the
-	   plugin has stops breaking out together. Two of them to keep in step
-	   would be one to forget. */
+   level down, the ordinary full-bleed margin works. */
+.diluxone-users-login-frame {
+	/* One number for every full-bleed piece: a site that is already full
+	   width sets `--diluxone-users-bleed: 0px` once and every piece that
+	   breaks out stops together. Two of them to keep in step would be one to
+	   forget. */
 	margin-inline: var(--diluxone-users-bleed, calc(50% - 50vw));
 	padding: 48px max(20px, calc(-1 * var(--diluxone-users-bleed, calc(50% - 50vw))));
 }
@@ -632,207 +538,11 @@ details.diluxone-users-key[open] > .diluxone-users-key__row .diluxone-users-key_
    labels onto three lines each. One per row. */
 .diluxone-users-login-frame__box .diluxone-users-socials--cols-2 { grid-template-columns: minmax(0, 1fr); }
 
-/* Split: the picture takes half the window and the form the other half. The
-   picture is a background and not an <img> because it is decoration — it is
-   hidden from screen readers and carries no alt text to invent.
-
-   How tall the two of them are is ONE decision and not two. The row is at
-   least a screen — a split that is a stripe across the middle of the window is
-   not a split — and after that it is as tall as whichever column is taller,
-   which is the form. `svh` and not `vh`: on a phone `vh` is the window with
-   the browser's own bars pretended away, and the screen this describes is the
-   one with them. */
-.diluxone-users-login-frame.diluxone-users-login-frame--split {
-	display: grid;
-	grid-template-columns: 1fr 1fr;
-	gap: 0;
-	padding: 0;
-	align-items: stretch;
-	min-height: var(--diluxone-users-login-min, min(720px, 100svh));
-}
-/* The panel is never taller than the window, and stays put while the form
-   goes past it.
-
-   A form with twelve networks, a passkey, an address and a password on it is
-   genuinely longer than a laptop screen, and stretching the panel to match was
-   putting the one sentence this page came to say — the heading — at the middle
-   of a column twice the height of the window, which is to say below the fold.
-   Nothing is deformed to fix that: the panel keeps its cell and its colour,
-   it is simply as tall as a screen and it holds while the other column
-   scrolls. That is the same answer the dashboard's rail gives, and the same
-   one property to move it: a site whose header is fixed over the top of the
-   page says where the panel comes to rest, once. */
-.diluxone-users-login-frame--split .diluxone-users-login-frame__picture {
-	position: sticky;
-	top: var(--diluxone-users-login-stick, 0px);
-	align-self: start;
-	height: 100%;
-	max-height: 100svh;
-	overflow: hidden;
-	background-image: var(--diluxone-users-login-image);
-	background-size: cover;
-	background-position: center;
-	background-color: var(--diluxone-users-login-panel-bg, var(--diluxone-users-accent));
-}
-/* A drawing over the panel's colour: rings, a pattern, a corner of a logo.
-   It travels as one value — image, position, size, repeat — the way the
-   menu's rule does, because half a background declared in four properties is
-   four properties to keep in step. Unset it draws nothing. */
-.diluxone-users-login-frame--split .diluxone-users-login-frame__picture::after {
-	content: "";
-	position: absolute;
-	inset: 0;
-	pointer-events: none;
-	background: var(--diluxone-users-login-panel-art, none);
-	opacity: var(--diluxone-users-login-panel-art-opacity, 1);
-}
-.diluxone-users-login-frame--split .diluxone-users-login-frame__box {
-	border: 0;
-	border-radius: 0;
-	display: flex;
-	flex-direction: column;
-	justify-content: center;
-	/* `safe` is the difference between a form that is centred and a form whose
-	   first field is above the top of the screen: when the content is taller
-	   than the box, centring overflows in BOTH directions and the half that
-	   goes up cannot be scrolled to. Declared twice on purpose — a browser
-	   that does not know the keyword keeps the line before it. */
-	justify-content: safe center;
-	padding: var(--diluxone-users-login-box-pad, clamp(24px, 5vh, 48px));
-	max-width: var(--diluxone-users-login-box-w, 520px);
-}
-
-/* ── What the panel says ──────────────────────────────────────────────
-   Three rows, so the mark holds the top and the closing line holds the
-   bottom however much is written between them. The rows that are empty are
-   still there and empty: laying out three things and drawing two is how a
-   panel ends up with its heading against the ceiling.
-
-   The three rows share the panel's height rather than running past the bottom
-   of it, and the air between them and around them is measured against the
-   window: a laptop 768 pixels tall was spending 112 of them on padding that
-   was chosen for a desk monitor. It is still one value per site — the same
-   two properties that were here, with a floor, a preference and a ceiling
-   instead of a single number. */
-.diluxone-users-login-frame__words {
-	position: relative;
-	z-index: 1;
-	height: 100%;
-	display: flex;
-	flex-direction: column;
-	justify-content: space-between;
-	gap: var(--diluxone-users-login-panel-gap, clamp(20px, 4vh, 32px));
-	padding: var(--diluxone-users-login-panel-pad, clamp(28px, 6vh, 56px));
-	color: var(--diluxone-users-login-panel-ink, #fff);
-	/* A panel with more written on it than fits a short window reads itself
-	   rather than losing its last line. It only ever appears when there is
-	   genuinely too much. */
-	overflow-y: auto;
-}
-/* A photograph is not a background until something separates it from the
-   words on top. Only when there is both: a panel that is just a colour needs
-   nothing laid over it, and laying something anyway darkens the colour the
-   site chose. */
-.diluxone-users-login-frame__picture--over::before {
-	content: "";
-	position: absolute;
-	inset: 0;
-	background: var(--diluxone-users-login-panel-over, rgba(0, 0, 0, .45));
-}
-.diluxone-users-login-frame__mark img { display: block; max-height: var(--diluxone-users-login-panel-mark, 42px); width: auto; }
-.diluxone-users-login-frame__mark { margin: 0; }
-.diluxone-users-login-frame__say { max-width: var(--diluxone-users-login-panel-w, 480px); }
-/* The one heading the plugin does give a size to, and the reason it differs
-   from the account area's is that this one is not in the theme's page: it is
-   the plugin's own panel, edge to edge, and a theme's h2 dropped onto it
-   comes out as body copy in a block of colour. It is still a value and not a
-   selector, so a site that has a scale of its own says so once. */
-.diluxone-users-login-frame__title {
-	margin: 0 0 20px;
-	font-family: var(--diluxone-users-display-font, inherit);
-	font-size: var(--diluxone-users-login-panel-title, clamp(30px, 3.4vw, 50px));
-	font-weight: var(--diluxone-users-login-panel-title-weight, 800);
-	line-height: 1.06;
-	color: inherit;
-}
-/* Each line of the heading is a line. Somebody who writes two lines means two
-   lines, not one sentence that breaks where the column ends. */
-.diluxone-users-login-frame__title span { display: block; }
-.diluxone-users-login-frame__text { margin: 0; font-size: 1.1em; line-height: 1.6; opacity: .86; }
-.diluxone-users-login-frame__points {
-	list-style: none;
-	margin: var(--diluxone-users-login-points-top, clamp(16px, 3vh, 36px)) 0 0;
-	padding: 0;
-	display: flex;
-	flex-direction: column;
-	gap: 14px;
-}
-.diluxone-users-login-frame__points li { display: flex; align-items: center; gap: 12px; }
-/* The mark before each point is drawn as a mask and not as a picture, so it
-   takes the panel's ink instead of arriving painted: white on a dark panel,
-   dark on a light one, and neither of them a second colour to set. */
-.diluxone-users-login-frame__points li::before {
-	content: "";
-	flex: 0 0 20px;
-	width: 20px;
-	height: 20px;
-	background: currentColor;
-	-webkit-mask: var(--diluxone-users-login-point-mark, url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 12.5 9.5 18 20 6.5'/%3E%3C/svg%3E")) center / contain no-repeat;
-	mask: var(--diluxone-users-login-point-mark, url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 12.5 9.5 18 20 6.5'/%3E%3C/svg%3E")) center / contain no-repeat;
-}
-.diluxone-users-login-frame__foot { margin: 0; font-size: 0.95em; opacity: .62; }
-/* Which side the picture is on: the box moves, the picture keeps its cell. */
-.diluxone-users-login-frame--split.diluxone-users-login-frame--right .diluxone-users-login-frame__picture { order: 2; }
-
-/* Backdrop: the picture behind everything, the box on top of it. */
-.diluxone-users-login-frame--backdrop {
-	background-image: var(--diluxone-users-login-image);
-	background-size: cover;
-	background-position: center;
-	background-color: var(--diluxone-users-accent);
-	padding-block: 64px;
-}
-/* A photograph is not a background until something separates it from the text
-   on top. Without this the box floats on a picture and neither is readable. */
-.diluxone-users-login-frame--backdrop::before {
-	content: "";
-	position: absolute;
-	inset: 0;
-	background: rgba(0, 0, 0, .45);
-}
-.diluxone-users-login-frame--backdrop { position: relative; }
-.diluxone-users-login-frame--backdrop .diluxone-users-login-frame__box {
-	position: relative;
-	box-shadow: 0 20px 60px rgba(0, 0, 0, .35);
-}
-
 /* The site's mark above the form. */
 .diluxone-users-login__logo { margin: 0 0 20px; text-align: center; }
 .diluxone-users-login__logo img { max-height: 56px; width: auto; }
 
 @media (max-width: 782px) {
-	/* The picture is the first thing that goes: on a phone, half a screen of
-	   photograph is half a screen not spent signing in. */
-	/* The doubled class is not decoration: the rule that lays the two columns
-	   out carries it, and one class in here loses to two out there however
-	   far down the sheet it sits. A phone got a half-width form. */
-	.diluxone-users-login-frame.diluxone-users-login-frame--split { grid-template-columns: minmax(0, 1fr); min-height: 0; }
-	/* Stacked, the panel is the first thing on the page and not a column
-	   beside anything, so it goes back to being as tall as what is written on
-	   it. Left sticky it would hold the top of a phone screen while the form
-	   slid underneath it. */
-	.diluxone-users-login-frame--split .diluxone-users-login-frame__picture {
-		display: none;
-		position: static;
-		height: auto;
-		max-height: none;
-	}
-	/* Unless something is written on it. A sentence the site wrote is not
-	   decoration, and taking it away on a phone takes away what the page came
-	   to say — it stacks above the form instead, with less air in it. */
-	.diluxone-users-login-frame--split .diluxone-users-login-frame__picture--words { display: block; }
-	.diluxone-users-login-frame__words { padding: var(--diluxone-users-login-panel-pad-sm, 36px 20px); gap: 24px; overflow: visible; }
-	.diluxone-users-login-frame--split .diluxone-users-login-frame__box { padding: 32px 20px; max-width: none; }
 	.diluxone-users-login-frame__box { padding: 28px 20px; }
 	.diluxone-users-login-frame { padding-block: 24px; }
 }
@@ -843,8 +553,8 @@ details.diluxone-users-key[open] > .diluxone-users-key__row .diluxone-users-key_
 
 /* The sign-in block itself. A reading column is the right measure for a form
    in a page and the wrong one for the one thing a screen exists to do, so in
-   here the form takes the room the frame gives it and the two doors — the
-   passkey and the link — go the whole way across. How wide "the whole way"
+   here the form takes the room the frame gives it and the doors — the link,
+   and any that is one button — go the whole way across. How wide "the whole way"
    is, is the frame's business, and a site that wants a narrower column than
    the frame says so once. */
 .diluxone-users-login { width: 100%; max-width: var(--diluxone-users-login-w, none); margin-inline: auto; }
@@ -951,7 +661,7 @@ details.diluxone-users-key[open] > .diluxone-users-key__row .diluxone-users-key_
 /* ── The menu ────────────────────────────────────────────────────────────
    Two questions, asked separately and answered separately: where it goes —
    across the top or down the side — and what it looks like. They used to be
-   one: the cover template quietly turned the pills into underlined tabs, and
+   one: a header shape quietly turned the pills into underlined tabs, and
    down the side that underline came out as a line across the whole menu
    under every item, with sixteen pixels of air above and below each one.
    Nobody could have predicted either from the control they pressed.
@@ -1035,77 +745,10 @@ details.diluxone-users-key[open] > .diluxone-users-key__row .diluxone-users-key_
 
 .diluxone-users-account__title { margin: 0 0 6px; }
 
-/* ── The cover ──────────────────────────────────────────────────────
-   The header becomes a coloured band the full width of whatever the theme
-   gives the shortcode, and the tabs get a strip of their own under it. The
-   band breaks out of a theme's content column with a negative margin the
-   width of the viewport: a profile header that stops halfway across the page
-   is the one thing that reads as broken rather than as a choice. Inside the
-   band the content lines back up with the rest of the page. */
-.diluxone-users-account--cover .diluxone-users-account__header {
-	--diluxone-users-cover-ink: #fff;
-	background: var(--diluxone-users-cover, var(--diluxone-users-accent));
-	color: var(--diluxone-users-cover-ink);
-	border-bottom: 0;
-	margin-bottom: 0;
-	padding-block: var(--diluxone-users-cover-pad, 40px);
-	/* The breakout and the padding that undoes it are one number, so a site
-	   already running full width sets `--diluxone-users-bleed: 0px` and both
-	   stop together. Two properties to keep in step would be one to forget. */
-	margin-inline: var(--diluxone-users-bleed, calc(50% - 50vw));
-	/* The gutter the band keeps once the breakout is off. It falls back to
-	   the gutter the rows were given, because it is the same gutter: the
-	   band's edge and the row inside it line up or the header is the one
-	   thing on the page that does not. */
-	padding-inline: max(var(--diluxone-users-pad, var(--diluxone-users-row-pad, 20px)), calc(-1 * var(--diluxone-users-bleed, calc(50% - 50vw))));
-}
-/* The band already carries the gutter, so the row inside it does not add a
-   second one: they are the same gutter seen from two elements. */
-.diluxone-users-account--cover .diluxone-users-account__header-inner {
-	gap: var(--diluxone-users-header-gap, 24px);
-	padding-inline: 0;
-}
-.diluxone-users-account--cover .diluxone-users-account__avatar {
-	width: var(--diluxone-users-avatar, 96px);
-	height: var(--diluxone-users-avatar, 96px);
-	flex-basis: var(--diluxone-users-avatar, 96px);
-	background: var(--diluxone-users-surface);
-	/* The initials, when that is what the picture is. The base rule writes
-	   them in the ink that reads on the accent — and here the disc is the
-	   surface, so that ink is white on white and the initials are gone. */
-	color: var(--diluxone-users-accent);
-	border: var(--diluxone-users-avatar-ring, 3px solid rgba(255, 255, 255, .35));
-}
-/* A picture instead of the colour, and a picture with the colour laid over
-   it. The second is not decoration: white letters on somebody's holiday photo
-   are unreadable, and a band you cannot read your own name on is worse than
-   no band. The overlay is the cover colour at three quarters, so it is still
-   the site's colour and not a grey wash. */
-.diluxone-users-account--cover-image .diluxone-users-account__header,
-.diluxone-users-account--cover-dim .diluxone-users-account__header {
-	background-image: var(--diluxone-users-cover-image);
-	background-size: cover;
-	background-position: var(--diluxone-users-cover-at, center);
-	background-repeat: no-repeat;
-}
-.diluxone-users-account--cover-dim .diluxone-users-account__header {
-	background-image:
-		linear-gradient(
-			var(--diluxone-users-cover-over, color-mix(in srgb, var(--diluxone-users-cover, var(--diluxone-users-accent)) 78%, transparent)),
-			var(--diluxone-users-cover-over, color-mix(in srgb, var(--diluxone-users-cover, var(--diluxone-users-accent)) 78%, transparent))
-		),
-		var(--diluxone-users-cover-image);
-}
-
-/* The heading takes its colour from the theme, and on a coloured band that
-   comes out as near-black on blue. It follows the band. */
-.diluxone-users-account--cover .diluxone-users-account__name { color: inherit; }
-.diluxone-users-account--cover .diluxone-users-account__since { color: inherit; opacity: .85; }
-
-/* The bar under the cover is a strip across the area. What the menu inside it
-   looks like is not decided here: that is its own setting, and the cover
-   deciding it was how pressing "with a cover" silently changed the shape of
-   every button in the menu. */
+/* The bar is a strip across the area. What the menu inside it looks like is
+   not decided here: that is its own setting, and a header shape deciding it
+   was how pressing a shape silently changed the shape of every button in the
+   menu. */
 /* The rule is the whole value and not a colour, because a transparent border
    is still a pixel: unset, there is no border and the bar takes no height it
    did not take before. A site asks for one with
@@ -1138,15 +781,7 @@ details.diluxone-users-key[open] > .diluxone-users-key__row .diluxone-users-key_
    not to the strip: on the strip it would push the menu off centre. */
 .diluxone-users-account--bare { padding-top: var(--diluxone-users-bare-top, 24px); }
 
-/* With a cover the area runs edge to edge and stops being a block inside the
-   page: it is the page. So it has to end somewhere. Without this the last
-   card sits flush against the footer, which is the difference between a
-   screen that is finished and one that stops. */
-.diluxone-users-account--cover .diluxone-users-account__body { padding-bottom: var(--diluxone-users-body-end, 64px); }
-
 @media (max-width: 640px) {
-	.diluxone-users-account--cover .diluxone-users-account__header { padding-block: var(--diluxone-users-cover-pad, 28px); }
-	.diluxone-users-account--cover .diluxone-users-account__header-inner { flex-wrap: wrap; gap: var(--diluxone-users-header-gap, 16px); }
 	/* Two answers and the site picks one. With eight sections a sideways
 	   scroller hides half of them and you have to drag to find out they are
 	   there; wrapped, they are all visible and the bar is three lines tall.
@@ -1402,28 +1037,6 @@ details.diluxone-users-key[open] > .diluxone-users-key__row .diluxone-users-key_
 	font: inherit;
 	font-weight: 600;
 	cursor: pointer;
-}
-
-/* ── Segundo factor ─────────────────────────────────────────────────── */
-
-.diluxone-users-totp { display: flex; gap: 24px; flex-wrap: wrap; align-items: flex-start; }
-.diluxone-users-totp__qr {
-	flex: 0 0 auto;
-	padding: 10px;
-	background: #fff;
-	border: 1px solid var(--diluxone-users-border);
-	border-radius: var(--diluxone-users-radius-sm);
-	line-height: 0;
-}
-.diluxone-users-totp__manual { flex: 1 1 260px; min-width: 0; }
-.diluxone-users-totp__key {
-	display: inline-block;
-	padding: 8px 12px;
-	background: var(--diluxone-users-surface-alt);
-	border-radius: var(--diluxone-users-radius-sm);
-	font-size: 1.05em;
-	letter-spacing: .08em;
-	word-break: break-all;
 }
 
 /* Backup codes are shown only once: they are seen as what they are,

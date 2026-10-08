@@ -8,8 +8,6 @@ import {
 	challengeScreen,
 	emailField,
 	linkForm,
-	openPanel,
-	accountSection,
 	registerForm,
 	signInWithPassword,
 	ssoButton,
@@ -24,7 +22,7 @@ import {
  * sign-in on /beta/ is a button to the hub's, /beta/wp-login.php is the hub's
  * wp-login.php, the account link in /beta/'s menu is the account on the hub.
  * Whichever way the person gets in there — a password, the e-mail link, a
- * social account, a passkey, with the second step or without it — they land
+ * social account, with the second step or without it — they land
  * back on the page of /beta/ they started from, signed in, and — under the
  * network's "every site" membership, the default — a member of /beta/ (the
  * other policies are membership.spec.ts's).
@@ -42,16 +40,6 @@ const PLAIN_FIELDS = [
 	{ key: 'first_name', label: 'First name', type: 'text', required: 0, active: 1, group: 'main', edit: 'always' },
 	{ key: 'last_name', label: 'Last name', type: 'text', required: 0, active: 1, group: 'main', edit: 'always' },
 ];
-
-/** The same key the single-site passkey spec uses: a laptop with a fingerprint reader. */
-const VIRTUAL_KEY = {
-	protocol: 'ctap2' as const,
-	transport: 'internal' as const,
-	hasResidentKey: true,
-	hasUserVerification: true,
-	isUserVerified: true,
-	automaticPresenceSimulation: true,
-};
 
 /** Waits to be back on a page of `one`, anywhere under its address. */
 async function backOn(page: Page, one: SiteHandle, what: string): Promise<void> {
@@ -189,53 +177,10 @@ test.describe('A site of the network has no sign-in of its own: its doors are th
 		expect((await beta.site.user(email)).member).toBe(true);
 	});
 
-	test('from /beta/: by passkey, on the hub’s domain, back on /beta/', async ({ page, browserName, hub, alpha, beta }) => {
-		test.skip(browserName !== 'chromium', 'the virtual authenticator is a Chromium protocol');
-
-		await hub.set({
-			diluxone_users_passkey_enabled: 1,
-			diluxone_users_passkey_where: 'any',
-			diluxone_users_passkey_verify: 1,
-			diluxone_users_login_method: 'both',
-			diluxone_users_2fa_mode: 'optional',
-		});
-
-		const email = freshEmail('hub-passkey');
-
-		await alpha.site.makeUser({ email, password: PASSWORD });
-
-		const cdp = await page.context().newCDPSession(page);
-
-		await cdp.send('WebAuthn.enable', { enableUI: false });
-
-		const { authenticatorId } = await cdp.send('WebAuthn.addVirtualAuthenticator', { options: VIRTUAL_KEY });
-
-		// Made on the account, which is the hub's.
-		await signInFrom(page, alpha, hub, email, PASSWORD);
-		await page.goto(accountSection(hub.pages.account.url, 'security'));
-
-		const panel = await openPanel(page, '[data-diluxone-users-passkey="register"]');
-
-		await panel.locator('[data-diluxone-users-passkey-label]').fill('Network laptop');
-		await panel.locator('[data-diluxone-users-passkey="register"]').click();
-		await expect(page.locator('input[name="diluxone_users_passkey_label"]')).toHaveValue('Network laptop', { timeout: 20_000 });
-
-		// Out, and in again from /beta/ with the key alone.
-		await page.context().clearCookies();
-		await toTheHub(page, beta, hub);
-		await page.locator('[data-diluxone-users-passkey="login"]').click();
-		await backOn(page, beta, 'the passkey lands back on /beta/');
-		expect(await whoOn(page, beta.url)).toBe(email);
-
-		await cdp.send('WebAuthn.removeVirtualAuthenticator', { authenticatorId });
-	});
-
 	test('from /beta/: a password and the second step, both on the hub, back on /beta/', async ({ page, hub, alpha, beta }) => {
 		await hub.set({
 			diluxone_users_2fa_mode: 'required',
 			diluxone_users_2fa_methods: ['email'],
-			diluxone_users_2fa_scope: 'all',
-			diluxone_users_2fa_remember_days: 0,
 			diluxone_users_login_method: 'both',
 		});
 

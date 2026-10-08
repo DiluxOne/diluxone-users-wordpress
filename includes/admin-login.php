@@ -28,8 +28,9 @@ function diluxone_users_screen_login(): void {
 /**
  * Its tabs. Registration registers its own from its own file, onto this
  * screen; two-step verification lives on Security and is shown here only as
- * state. Passkeys are switched on here, with the other ways in, and set up on
- * Security: turning a door on is a question about doors.
+ * state. An add-on's way in is switched on here, with the other ways in
+ * (`diluxone_users_way_switches`), and set up where the feature lives:
+ * turning a door on is a question about doors.
  */
 function diluxone_users_login_panels(): void {
 	diluxone_users_register_panel(
@@ -117,6 +118,58 @@ function diluxone_users_login_page_save(): void {
 }
 
 /**
+ * The boxes an add-on's way in puts on Access › Ways in.
+ *
+ * Keyed by the setting each one writes — 1 ticked, 0 not — which the add-on
+ * has added through `diluxone_users_option_defaults` and given a scope. A key
+ * the plugin does not know as a setting is left out: the box would save
+ * nothing.
+ *
+ * @return array<string, array{title: string, help: string, state: string, note: string, settings: array<string, string>}>
+ */
+function diluxone_users_way_switches(): array {
+	/**
+	 * Filters the boxes of the ways in an add-on brings.
+	 *
+	 * Each one under the key of its setting: `title` and `help` (what the box
+	 * says), optionally `state` (`pending`) and `note` (why), and `settings`
+	 * (`url`, `label`, `help`: where the rest of the feature is set up, listed
+	 * beside the boxes).
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param array<string, array<string, mixed>> $switches Nothing, from the plugin.
+	 */
+	$switches = (array) apply_filters( 'diluxone_users_way_switches', array() );
+	$known    = diluxone_users_option_defaults();
+	$clean    = array();
+
+	foreach ( $switches as $key => $switch ) {
+		if ( ! is_string( $key ) || ! array_key_exists( $key, $known ) || ! is_array( $switch ) || ! isset( $switch['title'] ) ) {
+			continue;
+		}
+
+		$settings = (array) ( $switch['settings'] ?? array() );
+
+		$clean[ $key ] = array(
+			'title'    => (string) $switch['title'],
+			'help'     => (string) ( $switch['help'] ?? '' ),
+			'state'    => (string) ( $switch['state'] ?? '' ),
+			'note'     => (string) ( $switch['note'] ?? '' ),
+			'settings' => isset( $settings['url'], $settings['label'] )
+				? array(
+					'url'   => (string) $settings['url'],
+					'label' => (string) $settings['label'],
+					'help'  => (string) ( $settings['help'] ?? '' ),
+				)
+				: array(),
+		);
+	}
+
+	return $clean;
+}
+
+/**
  * What a site with no way into it is told.
  *
  * One sentence in one place, said twice: beside the boxes while the form is
@@ -167,14 +220,13 @@ function diluxone_users_login_ways_save(): bool {
 	);
 
 	/*
-	 * Passkeys are switched on here, with the other ways in, and set up on
-	 * Security, where the feature lives. Only when the feature is installed:
-	 * an install without it never draws the box, and writing a 0 for a box
-	 * nobody drew is how a setting gets turned off by somebody who came to
-	 * change something else.
+	 * An add-on's way in is switched on here, with the other ways in, and set
+	 * up where its feature lives. Only the boxes that are drawn: an add-on
+	 * that is off draws none, and writing a 0 for a box nobody drew is how a
+	 * setting gets turned off by somebody who came to change something else.
 	 */
-	if ( function_exists( 'diluxone_users_passkeys_enabled' ) ) {
-		$saved['diluxone_users_passkey_enabled'] = isset( $_POST['diluxone_users_passkey_enabled'] ) ? 1 : 0;
+	foreach ( array_keys( diluxone_users_way_switches() ) as $key ) {
+		$saved[ $key ] = isset( $_POST[ $key ] ) ? 1 : 0;
 	}
 
 	/*
@@ -264,14 +316,18 @@ function diluxone_users_doors(): array {
 		'url'    => diluxone_users_admin_url( 'diluxone-users-social' ),
 	);
 
-	$rows[] = array(
-		'label'  => __( 'A passkey', 'diluxone-users' ),
-		'state'  => diluxone_users_has_passkeys() ? 'active' : 'off',
-		'detail' => diluxone_users_has_passkeys()
-			? esc_html__( 'For whoever added one. It counts as both steps at once.', 'diluxone-users' )
-			: esc_html__( 'Not offered.', 'diluxone-users' ),
-		'url'    => $tab( 'ways' ),
-	);
+	/**
+	 * Filters the ways in on Access › Summary, before how an account is made.
+	 *
+	 * An add-on's way in says here whether it is open, in the shape of a
+	 * summary row (label, state, and optionally why, word, detail, url and
+	 * change), read from the settings it writes.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param array<int, array<string, string>> $rows The page and the plugin's own ways in.
+	 */
+	$rows = array_values( (array) apply_filters( 'diluxone_users_doors', $rows ) );
 
 	// The same reading the registration tab does, and the same one it calls
 	// open or closed: this row is that answer said in a line.
@@ -349,7 +405,7 @@ function diluxone_users_screen_login_summary(): void {
 					array(
 						'url'   => diluxone_users_admin_url( 'diluxone-users-security' ),
 						'label' => __( 'Security', 'diluxone-users' ),
-						'help'  => __( 'The second step asked for after the door, and what a passkey has to prove.', 'diluxone-users' ),
+						'help'  => __( 'Whether a second step is asked for after the door.', 'diluxone-users' ),
 					),
 					array(
 						'url'   => diluxone_users_admin_url( DILUXONE_USERS_NOTICES, array( 'tab' => 'templates' ) ),
@@ -572,7 +628,7 @@ function diluxone_users_screen_login_ways(): void {
 
 	$social   = diluxone_users_sso_working_names();
 	$handles  = (bool) diluxone_users_option( 'diluxone_users_handle_enabled' );
-	$passkeys = function_exists( 'diluxone_users_passkeys_enabled' );
+	$switches = diluxone_users_way_switches();
 
 	diluxone_users_intro( __( 'With what somebody who already has an account gets in. Every way in is a box: tick the ones this site offers. What each one does once it is on is set where that feature lives, and who gets an account at all is the Registration tab.', 'diluxone-users' ) );
 
@@ -660,10 +716,10 @@ function diluxone_users_screen_login_ways(): void {
 
 	/*
 	 * Switching a way in on belongs with the other ways in; what it does once
-	 * it is on belongs where the feature lives. So both boxes are here and
-	 * both cards carry the way to the rest of their settings — the passkeys
-	 * box used to be on Security, which is why nobody found it from the one
-	 * screen that lists the doors.
+	 * it is on belongs where the feature lives. So every box is here, an
+	 * add-on's too, and the rail carries the way to the rest of their
+	 * settings — a box that lived with its feature was a box nobody found
+	 * from the one screen that lists the doors.
 	 */
 	diluxone_users_ui_section( __( 'Other ways in', 'diluxone-users' ), __( 'Switched on here, one by one, and none of them is needed: they are buttons under the form above, not a replacement for it.', 'diluxone-users' ) );
 
@@ -690,35 +746,49 @@ function diluxone_users_screen_login_ways(): void {
 		),
 	);
 
-	if ( $passkeys ) {
-		$diluxone_users_insecure = ! is_ssl() && 'local' !== wp_get_environment_type();
-
+	foreach ( $switches as $key => $switch ) {
 		$diluxone_users_ways[] = array(
 			'type'    => 'checkbox',
-			'name'    => 'diluxone_users_passkey_enabled',
+			'name'    => $key,
 			'value'   => '1',
-			'checked' => (bool) diluxone_users_option( 'diluxone_users_passkey_enabled' ),
-			'title'   => __( 'A passkey', 'diluxone-users' ),
-			'help'    => __( 'A key that stays on the person’s device or keychain: nothing to type, nothing to phish, and it counts as both steps at once.', 'diluxone-users' ),
-			'state'   => $diluxone_users_insecure ? 'pending' : '',
-			'note'    => $diluxone_users_insecure ? __( 'this site is not on HTTPS, and browsers refuse passkeys until it is', 'diluxone-users' ) : '',
+			'checked' => (bool) diluxone_users_option( $key ),
+			'title'   => $switch['title'],
+			'help'    => $switch['help'],
+			'state'   => $switch['state'],
+			'note'    => $switch['note'],
 		);
 	}
 
 	/*
-	 * On a network these two are the network's: they decide how people get
-	 * into every site, so they are switched in Network Admin and drawn here
-	 * as they stand, not as boxes this site could untick.
+	 * On a network these are the network's: they decide how people get into
+	 * every site, so they are switched in Network Admin and drawn here as
+	 * they stand, not as boxes this site could untick.
 	 */
-	if ( ! diluxone_users_option_editable_here( 'diluxone_users_sso_login' ) ) {
-		foreach ( $diluxone_users_ways as $i => $way ) {
-			$diluxone_users_ways[ $i ]['disabled'] = true;
-		}
+	$diluxone_users_fixed = false;
 
-		diluxone_users_ui_notice( esc_html__( 'On this network these are switched on or off for every site at once, in Network Admin: social accounts under Social login › Rules, passkeys under Security › Passkeys.', 'diluxone-users' ) );
+	foreach ( $diluxone_users_ways as $i => $way ) {
+		if ( ! diluxone_users_option_editable_here( (string) $way['name'] ) ) {
+			$diluxone_users_ways[ $i ]['disabled'] = true;
+			$diluxone_users_fixed                  = true;
+		}
+	}
+
+	if ( $diluxone_users_fixed ) {
+		diluxone_users_ui_notice( esc_html__( 'On this network these are switched on or off for every site at once, in Network Admin, where each feature lives: social accounts under Social login › Rules.', 'diluxone-users' ) );
 	}
 
 	diluxone_users_ui_choices( $diluxone_users_ways );
+
+	// After the real ways in, a card of its own and not one more box that
+	// cannot be ticked. Users+ Pro answers false to it once it brings them.
+	diluxone_users_ui_pro_card(
+		array(
+			'where'  => 'login/ways/more',
+			'screen' => 'login',
+			'title'  => __( 'Sign in with a passkey', 'diluxone-users' ),
+			'text'   => __( 'Users+ Pro adds passkeys: the fingerprint, the face or the PIN of the person’s own device, nothing to type and nothing to phish, and it counts as both steps at once.', 'diluxone-users' ),
+		)
+	);
 
 	/*
 	 * The way to the rest of each feature used to hang off the end of that
@@ -728,10 +798,10 @@ function diluxone_users_screen_login_ways(): void {
 	 * have finished ticking.
 	 */
 	diluxone_users_ui_aside_close(
-		static function () use ( $passkeys ): void {
+		static function () use ( $switches ): void {
 			diluxone_users_ui_note(
 				__( 'What this tab does not decide', 'diluxone-users' ),
-				__( 'A way in is switched on here, with the other ways in. What it does once it is on — which providers the buttons offer, what a passkey has to prove — is set where that feature lives.', 'diluxone-users' )
+				__( 'A way in is switched on here, with the other ways in. What it does once it is on — which providers the buttons offer, for one — is set where that feature lives.', 'diluxone-users' )
 			);
 
 			$links = array(
@@ -742,12 +812,10 @@ function diluxone_users_screen_login_ways(): void {
 				),
 			);
 
-			if ( $passkeys ) {
-				$links[] = array(
-					'url'   => diluxone_users_admin_url( 'diluxone-users-security', array( 'tab' => 'passkeys' ) ),
-					'label' => __( 'Passkeys', 'diluxone-users' ),
-					'help'  => __( 'Which passkeys are accepted, and whether a fingerprint, a face or a PIN is required.', 'diluxone-users' ),
-				);
+			foreach ( $switches as $switch ) {
+				if ( array() !== $switch['settings'] ) {
+					$links[] = $switch['settings'];
+				}
 			}
 
 			$links[] = array(
@@ -1026,46 +1094,40 @@ function diluxone_users_screen_login_words(): void {
  * The shapes the sign-in page comes in.
  *
  * Only the first leaves the page alone, and it is the default: a site that
- * designed its own page does not want a plugin taking it over. The other
- * three are for the sites that would otherwise install a second plugin to get
- * a sign-in screen that does not look like a form dropped into a blog post.
+ * designed its own page does not want a plugin taking it over. The card is
+ * for the sites that would otherwise install a second plugin to get a
+ * sign-in screen that does not look like a form dropped into a blog post.
  *
- * @return array<string, array{label: string, help: string, picture: bool}>
+ * @return array<string, array<string, mixed>>
  */
 function diluxone_users_login_templates(): array {
 	$templates = array(
-		'plain'    => array(
-			'label'   => __( 'In the page', 'diluxone-users' ),
-			'help'    => __( 'The form where the theme put it, with nothing around it. For a site that already designed this page.', 'diluxone-users' ),
-			'picture' => false,
+		'plain' => array(
+			'label' => __( 'In the page', 'diluxone-users' ),
+			'help'  => __( 'The form where the theme put it, with nothing around it. For a site that already designed this page.', 'diluxone-users' ),
 		),
-		'card'     => array(
-			'label'   => __( 'A centred card', 'diluxone-users' ),
-			'help'    => __( 'The form in a box in the middle of the page. The safe answer when there is no design for this screen.', 'diluxone-users' ),
-			'picture' => false,
-		),
-		'split'    => array(
-			'label'   => __( 'Split with a picture', 'diluxone-users' ),
-			'help'    => __( 'Half the window is a picture and the other half is the form. On a phone the picture goes and the form stays.', 'diluxone-users' ),
-			'picture' => true,
-		),
-		'backdrop' => array(
-			'label'   => __( 'On a full background', 'diluxone-users' ),
-			'help'    => __( 'The picture behind everything and the form on top of it, darkened enough to stay readable.', 'diluxone-users' ),
-			'picture' => true,
+		'card'  => array(
+			'label' => __( 'A centred card', 'diluxone-users' ),
+			'help'  => __( 'The form in a box in the middle of the page. The safe answer when there is no design for this screen.', 'diluxone-users' ),
 		),
 	);
 
 	/**
 	 * Filters the shapes the sign-in page comes in.
 	 *
-	 * A shape added here needs its own CSS: the plugin prints the id as a
-	 * class on the frame — `diluxone-users-login-frame--<id>` — and stops
-	 * there. Set `picture` to true and it gets the picture field.
+	 * Every shape but `plain` takes the page over: the form goes in a box,
+	 * inside a frame that breaks out of the theme's column. The plugin prints
+	 * the id as a class on the frame — `diluxone-users-login-frame--<id>` —
+	 * and a shape brings its own CSS. A row is `label` and `help` (its card on
+	 * Design › The sign-in page), and optionally `classes` (a callable giving
+	 * more classes for the frame), `properties` (a callable giving custom
+	 * properties, name => value, for the frame's style attribute) and
+	 * `inside` (a callable printing what the frame holds before the form's
+	 * box: a picture, a panel).
 	 *
 	 * @since 1.0.0
 	 *
-	 * @param array<string, array{label: string, help: string, picture: bool}> $templates
+	 * @param array<string, array<string, mixed>> $templates
 	 */
 	return (array) apply_filters( 'diluxone_users_login_templates', $templates );
 }
@@ -1076,7 +1138,7 @@ function diluxone_users_screen_login_shape(): void {
 	$kept     = diluxone_users_unknown_choice( 'diluxone_users_login_template', array_keys( $shapes ) );
 	$template = '' !== $kept ? $kept : diluxone_users_login_template();
 
-	diluxone_users_intro( __( 'What surrounds the form. Three of the four take over the page, edge to edge; the first leaves it exactly where your theme put it.', 'diluxone-users' ) );
+	diluxone_users_intro( __( 'What surrounds the form. In the page leaves it exactly where your theme put it; a card takes the page over, edge to edge.', 'diluxone-users' ) );
 
 	diluxone_users_ui_section( __( 'The shape of the page', 'diluxone-users' ) );
 
@@ -1087,8 +1149,8 @@ function diluxone_users_screen_login_shape(): void {
 			<label class="diluxone-users-templates__one <?php echo $id === $template ? 'is-chosen' : ''; ?>">
 				<input type="radio" name="diluxone_users_login_template" value="<?php echo esc_attr( $id ); ?>" <?php checked( $id, $template ); ?>>
 				<span class="diluxone-users-templates__art diluxone-users-templates__art--login-<?php echo esc_attr( $id ); ?>" aria-hidden="true"></span>
-				<span class="diluxone-users-templates__name"><?php echo esc_html( $shape['label'] ); ?></span>
-				<span class="diluxone-users-templates__help"><?php echo esc_html( $shape['help'] ); ?></span>
+				<span class="diluxone-users-templates__name"><?php echo esc_html( (string) ( $shape['label'] ?? $id ) ); ?></span>
+				<span class="diluxone-users-templates__help"><?php echo esc_html( (string) ( $shape['help'] ?? '' ) ); ?></span>
 			</label>
 		<?php endforeach; ?>
 		<?php
@@ -1100,72 +1162,30 @@ function diluxone_users_screen_login_shape(): void {
 	<?php
 	diluxone_users_ui_field_close();
 
-	diluxone_users_ui_field_open( __( 'The picture', 'diluxone-users' ) );
-	diluxone_users_image_field( 'diluxone_users_login_image' );
-	diluxone_users_ui_field_close( __( 'Used by the two templates that have one. It is decoration, so it carries no alternative text: nothing that has to be read should live in it.', 'diluxone-users' ) );
-
-	diluxone_users_ui_inline_choices(
-		__( 'Which side', 'diluxone-users' ),
+	/*
+	 * After the real answers and never among them: a card with nothing to
+	 * pick, saying what Users+ Pro adds.
+	 */
+	diluxone_users_ui_pro_card(
 		array(
-			array(
-				'name'    => 'diluxone_users_login_side',
-				'value'   => 'left',
-				'checked' => 'right' !== (string) diluxone_users_option( 'diluxone_users_login_side' ),
-				'title'   => __( 'Picture on the left, form on the right', 'diluxone-users' ),
-			),
-			array(
-				'name'    => 'diluxone_users_login_side',
-				'value'   => 'right',
-				'checked' => 'right' === (string) diluxone_users_option( 'diluxone_users_login_side' ),
-				'title'   => __( 'Picture on the right, form on the left', 'diluxone-users' ),
-			),
-		),
-		__( 'Only the split template uses this.', 'diluxone-users' )
+			'where'  => 'design/login/shapes',
+			'screen' => 'design',
+			'title'  => __( 'Split with a picture, and on a full background', 'diluxone-users' ),
+			'text'   => __( 'Users+ Pro adds two shapes that take the page over with a picture: half the window with words of your own on it, or the picture behind everything.', 'diluxone-users' ),
+		)
 	);
 
-	diluxone_users_ui_section(
-		__( 'What the panel says', 'diluxone-users' ),
-		__( 'Half the window, with something written on it. Leave it all empty and the panel is the picture on its own, which is what it was. With a picture behind them the words get a shade over it so they stay readable, and with no picture they sit on the colour.', 'diluxone-users' )
-	);
-
-	if ( 'split' !== $template ) {
-		diluxone_users_not_now( __( 'Only the split template has a panel. What is written here waits for the day that is the shape chosen above.', 'diluxone-users' ) );
-	}
-
-	diluxone_users_ui_field_open( __( 'The mark on it', 'diluxone-users' ) );
-	diluxone_users_image_field( 'diluxone_users_login_panel_logo' );
-	diluxone_users_ui_field_close( __( 'It sits at the top of the panel. Rarely the same file as the one above the form: this one lands on a block of colour and usually has to be the light version.', 'diluxone-users' ) );
-
-	diluxone_users_ui_words_area(
-		'diluxone_users_login_panel_title',
-		__( 'The heading', 'diluxone-users' ),
-		__( "One account.\nNo passwords.", 'diluxone-users' ),
-		__( 'One line per line. A heading on a panel is written in deliberate lines, not broken wherever the column happens to end.', 'diluxone-users' ),
-		2
-	);
-
-	diluxone_users_ui_words_area(
-		'diluxone_users_login_panel_text',
-		__( 'The paragraph under it', 'diluxone-users' ),
-		__( 'Sign in with the account you already have, or with a link we email you.', 'diluxone-users' ),
-		'',
-		3
-	);
-
-	diluxone_users_ui_words_area(
-		'diluxone_users_login_panel_points',
-		__( 'What they get', 'diluxone-users' ),
-		__( "Everything on the site\nYour certificates\nWord when we go live", 'diluxone-users' ),
-		__( 'One per line, each with a tick beside it. Three or four: a panel is not a features page.', 'diluxone-users' ),
-		4
-	);
-
-	diluxone_users_ui_words(
-		'diluxone_users_login_panel_foot',
-		__( 'The line at the foot', 'diluxone-users' ),
-		__( 'Already 25,000 of us.', 'diluxone-users' ),
-		__( 'It holds the bottom of the panel. Somewhere for the one fact that makes signing up feel less like a form.', 'diluxone-users' )
-	);
+	/**
+	 * Fires under the shapes of the sign-in page, on Design › The sign-in page.
+	 *
+	 * Where the settings a shape brings go — its picture, its words — drawn
+	 * with the screen's pieces and saved on `diluxone_users_panel_saved`.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param string $template The shape chosen, a kept one included.
+	 */
+	do_action( 'diluxone_users_design_login_shape', $template );
 
 	diluxone_users_ui_section( __( 'Your mark', 'diluxone-users' ) );
 
@@ -1203,11 +1223,16 @@ function diluxone_users_screen_login_wp(): void {
 					diluxone_users_image_field( 'diluxone_users_wp_login_logo' );
 					diluxone_users_ui_field_close( __( 'Replaces the WordPress logo above the box. Without one, the site’s name is written there instead — which is still better than somebody else’s logo.', 'diluxone-users' ) );
 
-					diluxone_users_ui_field_open( __( 'The colour there', 'diluxone-users' ), 'diluxone_users_wp_login_bg' );
-					?>
-					<input type="color" id="diluxone_users_wp_login_bg" name="diluxone_users_wp_login_bg" value="<?php echo esc_attr( diluxone_users_wp_login_bg() ); ?>">
-					<?php
-					diluxone_users_ui_field_close( __( 'Left as the accent colour it follows the accent, instead of becoming a second colour that drifts from the first.', 'diluxone-users' ) );
+					diluxone_users_ui_swatches(
+						array(
+							'label'   => __( 'The colour there', 'diluxone-users' ),
+							'name'    => 'diluxone_users_wp_login_bg',
+							'value'   => (string) diluxone_users_option( 'diluxone_users_wp_login_bg' ),
+							'palette' => diluxone_users_accent_palette(),
+							'none'    => __( 'The accent colour', 'diluxone-users' ),
+							'help'    => __( 'The accent colour follows the accent, instead of becoming a second colour that drifts from the first. The links on it are white, so each of the others is a colour white reads on.', 'diluxone-users' ),
+						)
+					);
 				},
 			),
 		)

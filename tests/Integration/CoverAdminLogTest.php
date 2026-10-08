@@ -196,7 +196,7 @@ class CoverAdminLogTest extends IntegrationTestCase {
 		$this->assertSame( 'a@x.test → b@x.test', diluxone_users_log_says( $row( 'email_changed', array( 'was' => 'a@x.test', 'now' => 'b@x.test' ) ) ) );
 		$this->assertSame( 'Ana', diluxone_users_log_says( $row( 'name_changed', array( 'now' => 'Ana' ) ) ) );
 		$this->assertSame( 'phone, country', diluxone_users_log_says( $row( 'profile_saved', array( 'fields' => 'phone, country' ) ) ) );
-		$this->assertSame( '2 on the account now', diluxone_users_log_says( $row( 'passkey_removed', array( 'keys' => 2 ) ) ) );
+		$this->assertSame( '', diluxone_users_log_says( $row( 'added_by_nobody', array( 'keys' => 2 ) ) ), 'an event nothing explains says nothing more than its name' );
 		$this->assertSame( '3 closed', diluxone_users_log_says( $row( 'sessions_closed', array( 'closed' => 3 ) ) ) );
 	}
 

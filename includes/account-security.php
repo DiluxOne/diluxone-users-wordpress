@@ -2,8 +2,8 @@
 /**
  * What the person can do with their own security.
  *
- * Turning the second factor on, registering their authenticator app, writing
- * down their backup codes and closing sessions. All from the front end, on
+ * Turning the second factor on, writing down their backup codes and closing
+ * sessions. All from the front end, on
  * the page the site has chosen, without going through the WordPress dashboard
  * — which most people on a site like this never see.
  *
@@ -25,9 +25,8 @@ function diluxone_users_2fa_offered( int $user_id ): bool {
 	}
 
 	// The same question the sign-in asks, in the same words: who is in the
-	// scope. Reading the list of roles directly disagreed with it whenever the
-	// scope was "everybody" with roles still ticked from before.
-	return diluxone_users_scope_includes( $user_id, 'diluxone_users_2fa' );
+	// scope (diluxone_users_2fa_in_scope()).
+	return diluxone_users_2fa_in_scope( $user_id );
 }
 
 /** Do they have it turned on? With the required mode, always. */
@@ -111,42 +110,31 @@ function diluxone_users_security_submit(): void {
 			wp_safe_redirect( add_query_arg( 'diluxone-users', 'off', $target ) );
 			exit;
 
-		case 'totp':
-			if ( ! diluxone_users_2fa_offered( $user_id ) ) {
-				wp_safe_redirect( add_query_arg( 'diluxone-users', 'notoffered', $target ) );
-				exit;
-			}
-
-			if ( ! diluxone_users_totp_activate( $user_id, $code ) ) {
-				wp_safe_redirect( add_query_arg( 'diluxone-users', 'badcode', $target ) );
-				exit;
-			}
-
-			update_user_meta( $user_id, 'diluxone_users_2fa_on', 1 );
-			diluxone_users_notify_security( $user_id, static fn (): string => __( 'An authenticator app was set up.', 'diluxone-users' ) );
-
-			if ( 0 === diluxone_users_backup_left( $user_id ) ) {
-				diluxone_users_backup_stash( $user_id, diluxone_users_backup_generate( $user_id ) );
-			}
-
-			wp_safe_redirect( add_query_arg( 'diluxone-users', 'totp', $target ) );
-			exit;
-
-		case 'totp_off':
-			diluxone_users_security_confirm( $user_id, $code, $target );
-
-			diluxone_users_totp_forget( $user_id );
-			diluxone_users_2fa_forget_browsers( $user_id );
-			diluxone_users_notify_security( $user_id, static fn (): string => __( 'The authenticator app was removed.', 'diluxone-users' ) );
-			wp_safe_redirect( add_query_arg( 'diluxone-users', 'totpoff', $target ) );
-			exit;
-
 		case 'backup':
 			diluxone_users_security_confirm( $user_id, $code, $target );
 
 			diluxone_users_backup_stash( $user_id, diluxone_users_backup_generate( $user_id ) );
 			wp_safe_redirect( add_query_arg( 'diluxone-users', 'backup', $target ) );
 			exit;
+
+		default:
+			/**
+			 * Fires for a word of the Security section the plugin does not
+			 * know.
+			 *
+			 * The nonce and the session are already checked. An add-on whose
+			 * panel posts here with a word of its own reads the rest of the
+			 * request, does what it does and redirects (with a word of
+			 * `diluxone_users_security_notices`, if it has one); one that does
+			 * not redirect sends the person back to the section.
+			 *
+			 * @since 1.0.0
+			 *
+			 * @param string $action  The word that was posted.
+			 * @param int    $user_id Whose account it is.
+			 * @param string $target  The Security section's address.
+			 */
+			do_action( 'diluxone_users_security_action', $action, $user_id, $target );
 	}
 
 	wp_safe_redirect( $target );

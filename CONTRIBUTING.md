@@ -4,7 +4,7 @@ Thanks for helping. This page covers issues, pull requests and what CI enforces.
 
 ## Bugs, ideas and questions
 
-- **A bug or a feature request:** open a [new issue](https://github.com/DiluxOne/diluxone-users-wordpress/issues/new/choose) with the matching template. Say which WordPress and PHP, single site or network, and which way in (e-mail link, password, a social provider, a passkey, a second factor): most sign-in bugs depend on the combination.
+- **A bug or a feature request:** open a [new issue](https://github.com/DiluxOne/diluxone-users-wordpress/issues/new/choose) with the matching template. Say which WordPress and PHP, single site or network, and which way in (e-mail link, password, a social provider, a second factor): most sign-in bugs depend on the combination.
 - **Using the plugin** (how do I…?, my sign-in link does not arrive): the [wordpress.org support forum](https://wordpress.org/support/plugin/diluxone-users/), once the plugin is published, where answers stay public for the next person.
 - **A security vulnerability:** [SECURITY.md](SECURITY.md), never a public issue. A plugin that decides who gets into a site is worth reporting privately even when you are not sure.
 
@@ -37,7 +37,7 @@ Every one of them is a required check on `main`.
 
 ### The review
 
-Claude reviews every pull request from a branch of this repository, guided by [`docs/architecture.md`](docs/architecture.md), [`AGENTS.md`](AGENTS.md) and the organisation's WordPress review profile. It comments inline on blockers and majors, lists minor findings in its summary, labels the risk, the complexity and the type of the change (`type:*`, read from the diff; a `type:*` label a person sets wins), and checks that the description matches the code. Fix the code and push, or answer in the thread mentioning `@dilux-bot`; every conversation must be resolved before merging. Changes to sign-in, two-step, passkeys, social login, sessions, privacy, the templates and the other paths in [`.github/review-policy.yml`](.github/review-policy.yml) are always high risk and always merged by a person. Pull requests from forks are not reviewed automatically; the maintainer reviews them. Details: [`docs/ai.md`](docs/ai.md).
+Claude reviews every pull request from a branch of this repository, guided by [`docs/architecture.md`](docs/architecture.md), [`AGENTS.md`](AGENTS.md) and the organisation's WordPress review profile. It comments inline on blockers and majors, lists minor findings in its summary, labels the risk, the complexity and the type of the change (`type:*`, read from the diff; a `type:*` label a person sets wins), and checks that the description matches the code. Fix the code and push, or answer in the thread mentioning `@dilux-bot`; every conversation must be resolved before merging. Changes to sign-in, two-step, social login, sessions, privacy, the templates and the other paths in [`.github/review-policy.yml`](.github/review-policy.yml) are always high risk and always merged by a person. Pull requests from forks are not reviewed automatically; the maintainer reviews them. Details: [`docs/ai.md`](docs/ai.md).
 
 ## Coding rules the linters cannot express
 

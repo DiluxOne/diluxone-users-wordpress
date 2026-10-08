@@ -2,19 +2,20 @@
 /**
  * The social-login screen: the networks, the rules, and each one's detail.
  *
- * Twelve networks are a set to be looked over, not a list to be read down.
- * They were a grid of cards and became a strip of twelve rows, and that put
- * the whole set into one narrow column with half a window empty beside it:
- * finding one network meant reading the eleven above it. A card in a grid is
- * found by where it is; a row is found by reading.
+ * The networks are a set to be looked over, not a list to be read down. They
+ * were a grid of cards and became a strip of rows, and that put the whole set
+ * into one narrow column with half a window empty beside it: finding one
+ * network meant reading every one above it. A card in a grid is found by
+ * where it is; a row is found by reading.
  *
  * So the grid is back, and it is the grid this admin already has rather than
  * the one that used to be here: the same card the home screen is built out
- * of, taking all the width WordPress gives, because a set of twelve things is
- * what `diluxone_users_ui_wide_open()` is for. What the old grid had and this
- * one does not is twelve brand colours shouting at once — those stay where
- * they earn their keep, on the buttons people meet on the sign-in page, and
- * here a network is told apart by its logo.
+ * of, taking all the width WordPress gives, because a set of things is what
+ * `diluxone_users_ui_wide_open()` is for — two here, and as many more as an
+ * add-on registers. What the old grid had and this one does not is a brand
+ * colour per card shouting at once — those stay where they earn their keep,
+ * on the buttons people meet on the sign-in page, and here a network is told
+ * apart by its logo.
  *
  * The rules and each provider's own screen are settings with something to
  * say beside them, so they are the other shape: a column of options at the
@@ -281,8 +282,8 @@ function diluxone_users_sso_card( string $id, array $provider ): void {
  * Every network, as a grid.
  *
  * The grid is the one block on this screen with columns of its own, so it is
- * the one block that takes the window: twelve cards come out four and five
- * across instead of two, and nobody scrolls to find the eleventh. The prose
+ * the one block that takes the window: a dozen cards come out four and five
+ * across instead of two, and nobody scrolls to find the last. The prose
  * around it does not — an introduction read at 1600 pixels is not read — and
  * keeps the measure on its own, which is what `du-wide` wrapping the grid
  * alone rather than the whole screen buys.
@@ -298,9 +299,40 @@ function diluxone_users_screen_social_providers(): void {
 	diluxone_users_ui_wide_open();
 	diluxone_users_ui_cards_open();
 
-	foreach ( diluxone_users_sso_providers() as $slug => $provider ) {
+	$providers = diluxone_users_sso_providers();
+
+	foreach ( $providers as $slug => $provider ) {
 		diluxone_users_sso_card( (string) $slug, $provider );
 	}
+
+	// A network an add-on registered, set up here, while the add-on is not
+	// running: its row is kept as it is and nobody signs in with it. It is
+	// shown for what it is, after the ones that work, so its credentials are
+	// not a surprise the day the add-on comes back.
+	$stored = array_keys( array_filter( (array) diluxone_users_raw_get( 'diluxone_users_sso', array() ), 'is_array' ) );
+
+	foreach ( diluxone_users_unknown_entries( array_map( 'strval', $stored ), array_keys( $providers ) ) as $kept ) {
+		diluxone_users_ui_card(
+			array(
+				'mark'   => diluxone_users_sso_icon( $kept ),
+				'title'  => $kept,
+				'state'  => 'pro',
+				'detail' => __( 'Your Pro choice (inactive): set up while an add-on that is not active now offered it. Nobody signs in with it until the add-on is back, and its settings are kept as they are.', 'diluxone-users' ),
+			)
+		);
+	}
+
+	// After the real networks, a card of its own and not one more network
+	// that cannot be opened: what Users+ Pro adds here, and where to read
+	// about it. Users+ Pro answers false to it once it brings them.
+	diluxone_users_ui_pro_card(
+		array(
+			'where'  => 'social/providers/more',
+			'screen' => 'social',
+			'title'  => __( 'Ten more networks', 'diluxone-users' ),
+			'text'   => __( 'Users+ Pro adds LinkedIn, X, Facebook, GitHub, WordPress.com, Yahoo, Twitch, Discord, GitLab and Amazon, each with its guide and its live test.', 'diluxone-users' ),
+		)
+	);
 
 	diluxone_users_ui_cards_close();
 	diluxone_users_ui_wide_close();
@@ -490,7 +522,7 @@ function diluxone_users_screen_social_general(): void {
 				'value'   => '1',
 				'checked' => (bool) diluxone_users_option( 'diluxone_users_sso_link_by_email' ),
 				'title'   => __( 'If the email already exists, link the network to that account', 'diluxone-users' ),
-				'help'    => __( 'This is what makes signing in with Google today and with GitHub tomorrow land on the same account instead of creating two. Each network the person uses gets added to their account, and any of them works from then on.', 'diluxone-users' ),
+				'help'    => __( 'This is what makes signing in with Google today and with Microsoft tomorrow land on the same account instead of creating two. Each network the person uses gets added to their account, and any of them works from then on.', 'diluxone-users' ),
 			),
 			array(
 				'type'    => 'checkbox',

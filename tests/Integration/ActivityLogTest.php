@@ -553,26 +553,6 @@ class ActivityLogTest extends IntegrationTestCase {
 		$this->assertSame( array(), $this->events() );
 	}
 
-	public function test_a_passkey_arriving_and_leaving_are_told_apart(): void {
-		$user = $this->make_user();
-
-		diluxone_users_passkeys_save( $user, array( array( 'id' => 'una', 'counter' => 0 ) ) );
-		diluxone_users_passkeys_save(
-			$user,
-			array( array( 'id' => 'una', 'counter' => 0 ), array( 'id' => 'otra', 'counter' => 0 ) )
-		);
-		// The counter going up on a sign-in rewrites the same list. It is not
-		// a passkey arriving and it must not read as one.
-		diluxone_users_passkeys_save(
-			$user,
-			array( array( 'id' => 'una', 'counter' => 7 ), array( 'id' => 'otra', 'counter' => 0 ) )
-		);
-		diluxone_users_passkeys_save( $user, array() );
-
-		$this->assertSame( array( 'passkey_removed', 'passkey_added', 'passkey_added' ), $this->events() );
-		$this->assertSame( '0', $this->rows()[0]['detail']['keys'] );
-	}
-
 	public function test_sessions_closed_by_hand_are_a_row_and_sessions_that_expired_are_not(): void {
 		$user = $this->make_user();
 
@@ -935,18 +915,16 @@ class ActivityLogTest extends IntegrationTestCase {
 		$this->assertSame( 'diluxone_users_phone', $rows[0]['detail']['fields'] );
 	}
 
-	/** Taking the second step off or the passkeys away by deleting the meta is a row too. */
-	public function test_deleting_the_switch_or_the_passkeys_is_a_row(): void {
+	/** Taking the second step off by deleting the meta is a row too. */
+	public function test_deleting_the_switch_is_a_row(): void {
 		$user = $this->make_user();
 		update_user_meta( $user, 'diluxone_users_2fa_on', 1 );
-		diluxone_users_passkeys_save( $user, array( array( 'id' => 'a', 'key' => 'k' ), array( 'id' => 'b', 'key' => 'k' ) ) );
 		$this->empty_table();
 
 		delete_user_meta( $user, 'diluxone_users_2fa_on' );
-		delete_user_meta( $user, 'diluxone_users_passkeys' );
 		delete_metadata( 'user', 0, 'diluxone_users_2fa_on', '', true );
 
-		$this->assertSame( array( 'passkey_removed', '2fa_off' ), $this->events() );
+		$this->assertSame( array( '2fa_off' ), $this->events() );
 	}
 
 	/** Signing out is not "sessions closed"; closing the others is, once, with how many. */

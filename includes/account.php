@@ -8,10 +8,11 @@
  * LifterLMS adds its own, the site adds its own, and neither has to edit this
  * file.
  *
- * What decides what is seen and in what order is the sum of three things:
- *   1. what each party registers with diluxone_users_register_section(),
- *   2. what whoever administers turned on, turned off, renamed or reordered,
- *   3. the site's own sections, added from the admin.
+ * What decides what is seen and in what order is the sum of two things:
+ *   1. what each party registers with diluxone_users_register_section() —
+ *      the plugin, another plugin, or an add-on registering the sections a
+ *      site makes of its own from the admin (Users+ Pro's),
+ *   2. what whoever administers turned on, turned off, renamed or reordered.
  *
  * @package DiluxOneUsers
  */
@@ -54,7 +55,8 @@ function diluxone_users_section_shape( string $id, array $args ): array {
 			'capability' => '',
 			// Where it came from, so the admin screen can say so.
 			'source'     => __( 'System', 'diluxone-users' ),
-			// The site's own can be deleted; the ones from code cannot.
+			// A section of the site's own, made from the admin by an add-on
+			// and deleted there; one from code cannot be.
 			'custom'     => false,
 			// Content written from the admin. In a section of the site's own it is
 			// all there is; in a system one it adds to what the code draws.
@@ -107,23 +109,6 @@ function diluxone_users_sections( bool $all = false ): array {
 	do_action( 'diluxone_users_register_sections' );
 
 	$sections = is_array( $diluxone_users_sections ) ? $diluxone_users_sections : array();
-
-	// The site's own sections are in no code: they live in the option, and
-	// are read from it on every call. Kept in the registry, one deleted
-	// earlier in the request would still be listed, and its address taken.
-	foreach ( (array) diluxone_users_option( 'diluxone_users_account_sections' ) as $id => $config ) {
-		if ( ! isset( $sections[ $id ] ) && ! empty( $config['custom'] ) ) {
-			$sections[ (string) $id ] = diluxone_users_section_shape(
-				(string) $id,
-				array(
-					'label'   => (string) ( $config['label'] ?? $id ),
-					'source'  => __( 'Yours', 'diluxone-users' ),
-					'custom'  => true,
-					'content' => (string) ( $config['content'] ?? '' ),
-				)
-			);
-		}
-	}
 
 	foreach ( $sections as $id => $section ) {
 		$config = diluxone_users_section_config( $id );
@@ -532,11 +517,11 @@ function diluxone_users_account_nav( ?array $sections = null, string $current = 
 }
 
 /**
- * The shape of the account area: a panel in the page, or a cover.
+ * The shape of the account area: the simple one, or one an add-on brings.
  *
- * Anything that is not one of the two answers is the plain one. A template
- * name arriving from a filter that no longer exists should come out as the
- * area that works everywhere, not as a class nothing has styles for.
+ * Anything that is not one of the shapes there are is the plain one. A
+ * template name arriving from a filter that no longer exists should come out
+ * as the area that works everywhere, not as a class nothing has styles for.
  */
 function diluxone_users_account_template(): string {
 	$template = (string) diluxone_users_option( 'diluxone_users_account_template' );
@@ -546,7 +531,7 @@ function diluxone_users_account_template(): string {
 	// back to the one that works everywhere.
 	$known = function_exists( 'diluxone_users_account_templates' )
 		? array_keys( diluxone_users_account_templates() )
-		: array( 'plain', 'cover' );
+		: array( 'plain' );
 
 	return in_array( $template, $known, true ) ? $template : 'plain';
 }
@@ -652,43 +637,82 @@ function diluxone_users_account_width(): string {
 }
 
 /**
- * The colour behind the cover.
+ * The classes on the account area: one per axis, so a site styles what a
+ * thing is and not what a template implies it is.
  *
- * Empty means the accent colour, and it is left empty rather than copied into
- * the option: a site that later changes its accent gets a cover that follows
- * instead of a second colour, set once, drifting from the first.
+ * @return array<int, string>
  */
-function diluxone_users_account_cover(): string {
-	$cover = (string) diluxone_users_option( 'diluxone_users_account_cover' );
+function diluxone_users_account_classes( string $template, string $layout, string $width, bool $header ): array {
+	$classes = array(
+		'diluxone-users-account',
+		'diluxone-users-account--' . $layout,
+		'diluxone-users-account--' . $template,
+		'diluxone-users-account--' . $width,
+		// What the menu does on a phone when it does not fit. It rides on the
+		// area and not on the menu because the menu is also placed on its own
+		// with the shortcode, where the site decides.
+		'diluxone-users-account--nav-' . ( 'wrap' === (string) diluxone_users_option( 'diluxone_users_account_nav_small' ) ? 'wrap' : 'scroll' ),
+	);
 
-	return '' === $cover ? '' : (string) sanitize_hex_color( $cover );
+	// With no header the area opens with the menu, against whatever the site
+	// has above it. That is a different shape and it needs its own air.
+	if ( ! $header ) {
+		$classes[] = 'diluxone-users-account--bare';
+	}
+
+	/**
+	 * Filters the classes on the account area.
+	 *
+	 * A shape an add-on brings names what it is made of here — a class per
+	 * thing a stylesheet needs to tell apart.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param array<int, string> $classes
+	 * @param string             $template The shape in force.
+	 */
+	$classes = (array) apply_filters( 'diluxone_users_account_classes', $classes, $template );
+
+	return array_values( array_unique( array_filter( array_map( 'sanitize_html_class', array_map( 'strval', $classes ) ) ) ) );
 }
 
 /**
- * What the cover is made of: a colour, a picture, or a picture under it.
- *
- * Three and not a tick box, because "a picture" and "a picture you can read a
- * name on top of" are different answers and a site should not have to find
- * that out by uploading a bright one. The third lays the colour over the
- * picture, so the header keeps the contrast the white text needs whatever was
- * uploaded.
- *
- * Asking for a picture and not choosing one falls back to the colour: a band
- * that came out empty because a step was missed is worse than a band.
+ * The custom properties on the account area's own element, as a style
+ * attribute's declarations, or ''.
  */
-function diluxone_users_account_cover_kind(): string {
-	$kind = (string) diluxone_users_option( 'diluxone_users_account_cover_kind' );
-
-	if ( ! in_array( $kind, array( 'image', 'dim' ), true ) ) {
-		return 'color';
-	}
-
-	return '' === diluxone_users_account_cover_image() ? 'color' : $kind;
+function diluxone_users_account_style( string $template ): string {
+	/**
+	 * Filters the custom properties printed on the account area.
+	 *
+	 * Name => value: a property a shape's stylesheet reads, such as the
+	 * colour or the picture of a band. Only `--` names are printed, and no
+	 * value that could close the declaration.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param array<string, string> $properties
+	 * @param string                $template The shape in force.
+	 */
+	return diluxone_users_css_properties( (array) apply_filters( 'diluxone_users_account_style', array(), $template ) );
 }
 
-/** The picture behind the cover, at full size: it is a band across the window. */
-function diluxone_users_account_cover_image(): string {
-	return diluxone_users_hub_image_url( (int) diluxone_users_option( 'diluxone_users_account_cover_image' ), 'full' );
+/** How big the person's picture is asked for in the header, in pixels. */
+function diluxone_users_account_avatar_size( string $template ): int {
+	/**
+	 * Filters the size the header's picture is asked for.
+	 *
+	 * The stylesheet decides how big it is drawn (`--diluxone-users-avatar`);
+	 * this is the image fetched, so a shape that draws it bigger asks for
+	 * one that stays sharp.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param int    $size     Pixels, 64 by default.
+	 * @param string $template The shape in force.
+	 */
+	$size = (int) apply_filters( 'diluxone_users_account_avatar_size', 64, $template );
+
+	return max( 16, min( 512, $size ) );
 }
 
 /** Draws the whole account area. */
@@ -707,24 +731,28 @@ function diluxone_users_account_area(): void {
 
 	diluxone_users_enqueue_styles();
 
-	$current = diluxone_users_current_section();
+	$current  = diluxone_users_current_section();
+	$template = diluxone_users_account_template();
+	$layout   = diluxone_users_account_layout();
+	$width    = diluxone_users_account_width();
+	$header   = (bool) diluxone_users_option( 'diluxone_users_account_header' );
 
 	diluxone_users_template_part(
 		'account',
 		array(
-			'user'     => wp_get_current_user(),
-			'sections' => $sections,
-			'current'  => $current,
-			'layout'   => diluxone_users_account_layout(),
-			'header'   => (bool) diluxone_users_option( 'diluxone_users_account_header' ),
-			'template' => diluxone_users_account_template(),
-			'avatar'   => (bool) diluxone_users_option( 'diluxone_users_account_avatar' ),
-			'since'    => (bool) diluxone_users_option( 'diluxone_users_account_since' ),
-			'action'   => (bool) diluxone_users_option( 'diluxone_users_account_action' ),
-			'cover'    => diluxone_users_account_cover(),
-			'picture'  => diluxone_users_account_cover_image(),
-			'kind'     => diluxone_users_account_cover_kind(),
-			'width'    => diluxone_users_account_width(),
+			'user'        => wp_get_current_user(),
+			'sections'    => $sections,
+			'current'     => $current,
+			'layout'      => $layout,
+			'header'      => $header,
+			'template'    => $template,
+			'avatar'      => (bool) diluxone_users_option( 'diluxone_users_account_avatar' ),
+			'since'       => (bool) diluxone_users_option( 'diluxone_users_account_since' ),
+			'action'      => (bool) diluxone_users_option( 'diluxone_users_account_action' ),
+			'width'       => $width,
+			'classes'     => diluxone_users_account_classes( $template, $layout, $width, $header ),
+			'style'       => diluxone_users_account_style( $template ),
+			'avatar_size' => diluxone_users_account_avatar_size( $template ),
 		)
 	);
 }

@@ -91,7 +91,6 @@ class SecuritySummaryTest extends IntegrationTestCase {
 		$this->assertSame( 'off', $this->rows_for( '2fa' )[0]['state'] );
 
 		diluxone_users_update_option( 'diluxone_users_2fa_mode', 'required' );
-		diluxone_users_update_option( 'diluxone_users_2fa_scope', 'all' );
 		$this->assertSame( 'active', $this->rows_for( '2fa' )[0]['state'] );
 
 		diluxone_users_update_option( 'diluxone_users_2fa_mode', 'optional' );
@@ -101,13 +100,12 @@ class SecuritySummaryTest extends IntegrationTestCase {
 	/**
 	 * The state the tab that sets it cannot see.
 	 *
-	 * Required, of a list of roles nobody filled in, is a site that believes
-	 * it asks for a code and asks nobody for anything.
+	 * Required, of nobody — an add-on's list of roles nobody filled in — is a
+	 * site that believes it asks for a code and asks nobody for anything.
 	 */
 	public function test_required_of_nobody_is_pending_and_says_so(): void {
 		diluxone_users_update_option( 'diluxone_users_2fa_mode', 'required' );
-		diluxone_users_update_option( 'diluxone_users_2fa_scope', 'some' );
-		diluxone_users_update_option( 'diluxone_users_2fa_roles', array() );
+		$this->hook( 'diluxone_users_2fa_who', '__return_empty_string' );
 
 		$row = $this->rows_for( '2fa' )[0];
 
@@ -115,21 +113,35 @@ class SecuritySummaryTest extends IntegrationTestCase {
 		$this->assertNotSame( '', $row['why'], 'A pending pill is never shown bare.' );
 	}
 
-	public function test_the_second_step_row_names_the_roles_it_reaches(): void {
+	/** Whom it reaches, in the add-on's words when one narrows it, and everybody's when none does. */
+	public function test_the_second_step_row_names_whom_it_reaches(): void {
 		diluxone_users_update_option( 'diluxone_users_2fa_mode', 'required' );
-		diluxone_users_update_option( 'diluxone_users_2fa_scope', 'some' );
-		diluxone_users_update_option( 'diluxone_users_2fa_roles', array( 'editor' ) );
 
-		$this->assertStringContainsString(
-			translate_user_role( wp_roles()->get_names()['editor'] ),
-			$this->rows_for( '2fa' )[0]['detail']
-		);
+		$this->assertStringContainsString( 'everybody with an account', $this->rows_for( '2fa' )[0]['detail'] );
+
+		$this->hook( 'diluxone_users_2fa_who', static fn(): string => 'Editor' );
+
+		$this->assertStringContainsString( 'Editor', $this->rows_for( '2fa' )[0]['detail'] );
 	}
 
 	/** What carries the code is read from what is ticked, not from the default. */
 	public function test_the_method_row_follows_the_methods_that_are_on(): void {
+		$this->hook(
+			'diluxone_users_2fa_methods',
+			static function ( array $methods ): array {
+				$methods['device'] = array(
+					'channel'  => 'device',
+					'label'    => 'A device',
+					'ready'    => '__return_true',
+					'verify'   => '__return_false',
+					'position' => 10,
+				);
+
+				return $methods;
+			}
+		);
 		diluxone_users_update_option( 'diluxone_users_2fa_mode', 'optional' );
-		diluxone_users_update_option( 'diluxone_users_2fa_methods', array( 'totp' ) );
+		diluxone_users_update_option( 'diluxone_users_2fa_methods', array( 'device' ) );
 
 		$one = $this->rows_for( '2fa' )[1];
 
@@ -138,7 +150,7 @@ class SecuritySummaryTest extends IntegrationTestCase {
 		// The words are translated eight ways, so what is asserted is that
 		// the line moves when the ticks move: one method reads differently
 		// from two, whatever language the site is in.
-		diluxone_users_update_option( 'diluxone_users_2fa_methods', array( 'totp', 'email' ) );
+		diluxone_users_update_option( 'diluxone_users_2fa_methods', array( 'device', 'email' ) );
 
 		$this->assertNotSame( $one['detail'], $this->rows_for( '2fa' )[1]['detail'] );
 
@@ -177,82 +189,6 @@ class SecuritySummaryTest extends IntegrationTestCase {
 
 		$this->assertCount( 1, $row );
 		$this->assertStringContainsString( 'tab=sessions', $row[0]['url'] );
-	}
-
-	public function test_the_passkey_rows_say_they_are_not_in_force_when_they_are_not(): void {
-		diluxone_users_update_option( 'diluxone_users_passkey_enabled', 0 );
-		diluxone_users_update_option( 'diluxone_users_passkey_verify', 1 );
-
-		$rows = $this->rows_for( 'passkeys' );
-
-		$this->assertSame( 'off', $rows[0]['state'], 'What is accepted cannot be active while nothing is offered.' );
-		$this->assertNotSame( '', $rows[0]['why'] );
-		$this->assertSame( 'off', $rows[1]['state'] );
-
-		diluxone_users_update_option( 'diluxone_users_passkey_enabled', 1 );
-
-		$rows = $this->rows_for( 'passkeys' );
-
-		$this->assertSame( 'active', $rows[0]['state'] );
-		$this->assertSame( 'active', $rows[1]['state'] );
-	}
-
-	/** Turning the fingerprint off is one row moving, not two. */
-	public function test_the_fingerprint_row_is_its_own_setting(): void {
-		diluxone_users_update_option( 'diluxone_users_passkey_enabled', 1 );
-		diluxone_users_update_option( 'diluxone_users_passkey_verify', 0 );
-
-		$rows = $this->rows_for( 'passkeys' );
-
-		$this->assertSame( 'active', $rows[0]['state'] );
-		$this->assertSame( 'off', $rows[1]['state'] );
-	}
-
-	/** The count is of accounts that have one, and it is counted, not guessed. */
-	public function test_the_passkey_count_is_the_number_of_accounts_holding_one(): void {
-		$before = diluxone_users_passkeys_count();
-
-		$user = $this->make_user( 'subscriber' );
-
-		update_user_meta(
-			$user,
-			'diluxone_users_passkeys',
-			array( array( 'id' => 'abc', 'key' => 'x' ) )
-		);
-
-		$this->assertSame( $before + 1, diluxone_users_passkeys_count() );
-
-		delete_user_meta( $user, 'diluxone_users_passkeys' );
-
-		$this->assertSame( $before, diluxone_users_passkeys_count(), 'Somebody who took their last key off no longer counts.' );
-	}
-
-	/**
-	 * A count of keys nobody can use is not good news.
-	 *
-	 * The row exists to answer "how many are there"; with passkeys switched
-	 * off on Access, every one of them opens nothing, and a green pill beside
-	 * that number would be the summary congratulating the site on a door that
-	 * is shut.
-	 */
-	public function test_the_count_is_not_active_while_passkeys_are_off(): void {
-		diluxone_users_update_option( 'diluxone_users_passkey_enabled', 0 );
-
-		$user = $this->make_user( 'subscriber' );
-
-		update_user_meta( $user, 'diluxone_users_passkeys', array( array( 'id' => 'abc' ) ) );
-
-		$rows = array_values(
-			array_filter(
-				diluxone_users_security_rows(),
-				static fn( array $one ): bool => false !== strpos( $one['url'], 'page=diluxone-users&tab=usage' )
-			)
-		);
-
-		$this->assertCount( 1, $rows );
-		$this->assertSame( 'off', $rows[0]['state'] );
-
-		delete_user_meta( $user, 'diluxone_users_passkeys' );
 	}
 
 	public function test_the_proxy_row_names_the_header_that_is_read(): void {

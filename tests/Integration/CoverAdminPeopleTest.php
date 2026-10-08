@@ -30,15 +30,11 @@ class CoverAdminPeopleTest extends IntegrationTestCase {
 		$user = $this->make_user();
 
 		update_user_meta( $user, 'diluxone_users_handle', 'river_song' );
-		update_user_meta( $user, 'diluxone_users_totp', 'JBSWY3DPEHPK3PXP' );
 		update_user_meta( $user, 'diluxone_users_sso_google', 'g-123' );
-		diluxone_users_passkeys_save(
-			$user,
-			array(
-				array( 'id' => 'key-one', 'label' => 'Laptop', 'created' => 1700000000 ),
-				array( 'id' => 'key-two', 'label' => 'Phone', 'created' => 1700000000 ),
-			)
-		);
+		// What an add-on that is off keeps about them — Users+ Pro's app and
+		// passkeys: nothing here draws it, and nothing here takes it off.
+		update_user_meta( $user, 'diluxone_users_totp', 'JBSWY3DPEHPK3PXP' );
+		update_user_meta( $user, 'diluxone_users_passkeys', array( array( 'id' => 'key-one', 'label' => 'Laptop' ) ) );
 
 		$_SERVER['HTTP_USER_AGENT'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36';
 		\WP_Session_Tokens::get_instance( $user )->create( time() + HOUR_IN_SECONDS );
@@ -82,8 +78,8 @@ class CoverAdminPeopleTest extends IntegrationTestCase {
 		$html = diluxone_users_users_column_row( '', 'diluxone_users', $user );
 
 		$this->assertStringContainsString( '>2FA</span>', $html );
-		$this->assertStringContainsString( '>App</span>', $html );
-		$this->assertStringContainsString( '>2 passkeys</span>', $html );
+		$this->assertStringNotContainsString( '>App</span>', $html, 'the app is Users+ Pro’s' );
+		$this->assertStringNotContainsStringIgnoringCase( 'passkey', $html, 'what an add-on that is off keeps is not in the column' );
 		$this->assertStringContainsString( 'diluxone-users-pill--blank">Google</span>', $html );
 	}
 
@@ -97,12 +93,11 @@ class CoverAdminPeopleTest extends IntegrationTestCase {
 
 		$this->assertStringContainsString( '<code>river_song</code>', $html );
 		$this->assertStringContainsString( 'ago, from', $html, 'the last session' );
-		$this->assertStringContainsString( 'An authenticator app is set up.', $html );
-		$this->assertStringContainsString( '2 passkeys on this account.', $html );
+		$this->assertStringContainsString( 'Not asked when they sign in.', $html );
 		$this->assertStringContainsString( 'Google', $html );
-		$this->assertStringContainsString( 'name="diluxone_users_forget_totp"', $html );
-		$this->assertStringContainsString( 'value="key-one"', $html );
-		$this->assertStringContainsString( 'Remove “Laptop”', $html );
+		$this->assertStringNotContainsString( 'name="diluxone_users_forget_totp"', $html, 'the app is Users+ Pro’s to take off' );
+		$this->assertStringNotContainsStringIgnoringCase( 'authenticator', $html );
+		$this->assertStringNotContainsString( 'value="key-one"', $html, 'nor on the block' );
 		$this->assertStringContainsString( 'name="diluxone_users_unlink[]"', $html );
 		$this->assertStringContainsString( 'Take a way in off this account', $html );
 		$this->assertStringContainsString( 'tab=sessions', $html );
@@ -116,7 +111,7 @@ class CoverAdminPeopleTest extends IntegrationTestCase {
 		$html = $this->draw( 'diluxone_users_profile_block', get_userdata( $user ) );
 
 		$this->assertStringContainsString( 'No open session.', $html );
-		$this->assertStringContainsString( 'No authenticator app.', $html );
+		$this->assertStringContainsString( 'Not asked when they sign in.', $html );
 		$this->assertStringNotContainsString( 'Take a way in off this account', $html );
 		$this->assertStringNotContainsString( 'type="checkbox"', $html );
 		$this->assertStringContainsString( 'What this block does', $html, 'the rail says why there is no adding' );
@@ -133,7 +128,9 @@ class CoverAdminPeopleTest extends IntegrationTestCase {
 
 	public function test_what_is_ticked_is_taken_off_and_nothing_else(): void {
 		$user = $this->equipped();
-		update_user_meta( $user, 'diluxone_users_sso_github', 'gh-1' );
+		update_user_meta( $user, 'diluxone_users_sso_microsoft', 'ms-1' );
+		// A network nothing registers today (its add-on is off): not offered, not touched.
+		update_user_meta( $user, 'diluxone_users_sso_elsewhere', 'el-1' );
 		$admin = $this->the_admin();
 
 		$this->postAs(
@@ -141,17 +138,19 @@ class CoverAdminPeopleTest extends IntegrationTestCase {
 			array(
 				'_wpnonce'                      => wp_create_nonce( 'update-user_' . $user ),
 				'diluxone_users_forget_totp'    => '1',
+				// A name the block never drew: the free plugin takes nothing off with it.
 				'diluxone_users_forget_passkey' => array( 'key-one' ),
-				'diluxone_users_unlink'         => array( 'google', 'not-a-provider', 'session_tokens' ),
+				'diluxone_users_unlink'         => array( 'google', 'not-a-provider', 'session_tokens', 'elsewhere' ),
 			)
 		);
 
 		$this->assertSame( 'returned', $this->ended( fn() => diluxone_users_profile_block_save( $user ) )[0] );
 
-		$this->assertFalse( diluxone_users_totp_ready( $user ) );
-		$this->assertSame( array( 'key-two' ), array_column( diluxone_users_passkeys( $user ), 'id' ) );
+		$this->assertSame( 'JBSWY3DPEHPK3PXP', get_user_meta( $user, 'diluxone_users_totp', true ), 'a name the block never drew takes nothing off' );
+		$this->assertSame( array( 'key-one' ), array_column( (array) get_user_meta( $user, 'diluxone_users_passkeys', true ), 'id' ), 'an add-on’s keys are its own to take off' );
 		$this->assertSame( '', get_user_meta( $user, 'diluxone_users_sso_google', true ) );
-		$this->assertSame( 'gh-1', get_user_meta( $user, 'diluxone_users_sso_github', true ), 'what was not ticked stays' );
+		$this->assertSame( 'ms-1', get_user_meta( $user, 'diluxone_users_sso_microsoft', true ), 'what was not ticked stays' );
+		$this->assertSame( 'el-1', get_user_meta( $user, 'diluxone_users_sso_elsewhere', true ), 'and a network nothing registers is not one this block takes off' );
 		$this->assertNotEmpty( get_user_meta( $user, 'session_tokens', true ), 'only providers are unlinked: a name that is not one deletes nothing' );
 	}
 
@@ -162,13 +161,13 @@ class CoverAdminPeopleTest extends IntegrationTestCase {
 		$this->postAs(
 			$admin,
 			array(
-				'_wpnonce'                   => wp_create_nonce( 'update-user_' . ( $user + 1 ) ),
-				'diluxone_users_forget_totp' => '1',
+				'_wpnonce'              => wp_create_nonce( 'update-user_' . ( $user + 1 ) ),
+				'diluxone_users_unlink' => array( 'google' ),
 			)
 		);
 
 		$this->assertSame( array( 'died', self::EXPIRED ), $this->ended( fn() => diluxone_users_profile_block_save( $user ) ) );
-		$this->assertTrue( diluxone_users_totp_ready( $user ) );
+		$this->assertSame( 'g-123', get_user_meta( $user, 'diluxone_users_sso_google', true ) );
 	}
 
 	public function test_somebody_who_may_not_edit_the_account_takes_nothing(): void {
@@ -187,8 +186,6 @@ class CoverAdminPeopleTest extends IntegrationTestCase {
 		);
 
 		$this->assertSame( 'returned', $this->ended( fn() => diluxone_users_profile_block_save( $user ) )[0] );
-		$this->assertTrue( diluxone_users_totp_ready( $user ) );
-		$this->assertCount( 2, diluxone_users_passkeys( $user ) );
 		$this->assertSame( 'g-123', get_user_meta( $user, 'diluxone_users_sso_google', true ) );
 	}
 }

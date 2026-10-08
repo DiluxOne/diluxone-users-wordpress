@@ -21,11 +21,6 @@ test.use({ storageState: ADMIN_STATE });
 const PASSWORD = 'e2e-Wp-Screens-1!';
 const SECRET = 'JBSWY3DPEHPK3PXP';
 
-/** A passkey as the plugin stores it on the account. */
-function passkey(label: string) {
-	return { id: `e2e-${randomBytes(6).toString('hex')}`, label, created: Math.floor(Date.now() / 1000), rp: '' };
-}
-
 /** One session of a day, as WordPress keeps it. */
 function session() {
 	const now = Math.floor(Date.now() / 1000);
@@ -39,7 +34,7 @@ function accessCell(page: Page, email: string) {
 }
 
 test.describe('Users › All users: the Access column', () => {
-	test('each person’s ways in, as pills: only the link, the second step and the app, passkeys counted, a network by name', async ({
+	test('each person’s ways in, as pills: only the link, the second step, a network by name — and no pill for what Users+ Pro kept', async ({
 		page,
 		site,
 	}) => {
@@ -48,31 +43,28 @@ test.describe('Users › All users: the Access column', () => {
 		const tag = `ac${Date.now().toString(36)}`;
 		const plain = freshEmail(`${tag}-plain`);
 		const twoStep = freshEmail(`${tag}-two`);
-		const keys = freshEmail(`${tag}-keys`);
 		const social = freshEmail(`${tag}-social`);
 
 		await site.makeUser({ email: plain });
+		// The app is Users+ Pro's: kept on the account, no pill without it.
 		await site.makeUser({ email: twoStep, meta: { diluxone_users_2fa_on: 1, diluxone_users_totp: SECRET } });
-		await site.makeUser({ email: keys, meta: { diluxone_users_passkeys: [passkey('one'), passkey('two')] } });
-		await site.makeUser({ email: social, meta: { diluxone_users_sso_github: 'github|e2e-column' } });
+		await site.makeUser({ email: social, meta: { diluxone_users_sso_microsoft: 'microsoft|e2e-column' } });
 
 		await page.goto(`/wp-admin/users.php?s=${encodeURIComponent(tag)}`);
 
 		await expect(accessCell(page, plain).locator('.diluxone-users-pill')).toHaveCount(1);
 		await expect(accessCell(page, plain).locator('.diluxone-users-pill--off')).toHaveCount(1);
 
-		await expect(accessCell(page, twoStep).locator('.diluxone-users-pill--on')).toHaveCount(2);
+		await expect(accessCell(page, twoStep).locator('.diluxone-users-pill--on')).toHaveCount(1);
+		await expect(accessCell(page, twoStep)).not.toContainText('App');
 		await expect(accessCell(page, twoStep).locator('.diluxone-users-pill--off')).toHaveCount(0);
 
-		await expect(accessCell(page, keys).locator('.diluxone-users-pill--on')).toHaveCount(1);
-		await expect(accessCell(page, keys).locator('.diluxone-users-pill--on')).toContainText('2');
-
-		await expect(accessCell(page, social).locator('.diluxone-users-pill--blank')).toHaveText('GitHub');
+		await expect(accessCell(page, social).locator('.diluxone-users-pill--blank')).toHaveText('Microsoft');
 	});
 });
 
 test.describe('Users › somebody’s profile: the plugin’s block', () => {
-	test('it reads the public name, the last session, the second step, the passkeys and the networks, and leads to their sessions', async ({
+	test('it reads the public name, the last session, the second step and the networks, and leads to their sessions', async ({
 		page,
 		site,
 	}) => {
@@ -84,9 +76,7 @@ test.describe('Users › somebody’s profile: the plugin’s block', () => {
 				diluxone_users_handle: handle,
 				session_tokens: session(),
 				diluxone_users_2fa_on: 1,
-				diluxone_users_totp: SECRET,
-				diluxone_users_passkeys: [passkey('Laptop')],
-				diluxone_users_sso_github: 'github|e2e-profile',
+				diluxone_users_sso_microsoft: 'microsoft|e2e-profile',
 			},
 		});
 
@@ -97,9 +87,10 @@ test.describe('Users › somebody’s profile: the plugin’s block', () => {
 			all.map((row) => (row.querySelector('.diluxone-users-state')?.className.match(/--([a-z]+)/) ?? [])[1])
 		);
 
-		expect(states, 'public name, last seen, second step, passkeys, networks').toEqual(['active', 'active', 'active', 'active', 'active']);
+		expect(states, 'public name, last seen, second step, networks').toEqual(['active', 'active', 'active', 'active']);
 		await expect(summary.locator('code').filter({ hasText: handle })).toHaveCount(1);
-		await expect(summary).toContainText('GitHub');
+		await expect(summary).toContainText('Microsoft');
+		await expect(summary, 'passkeys are Users+ Pro’s: no row about them').not.toContainText(/passkey/i);
 
 		// Every one of their sessions, on the report.
 		const every = summary.locator(`a[href*="page=diluxone-users-reports"][href*="tab=sessions"]`);
@@ -125,8 +116,8 @@ test.describe('Users › somebody’s profile: the plugin’s block', () => {
 			.locator('table.diluxone-users-summary tbody > tr')
 			.evaluateAll((all: Element[]) => all.map((row) => (row.querySelector('.diluxone-users-state')?.className.match(/--([a-z]+)/) ?? [])[1]));
 
-		expect(states.slice(1), 'last seen, second step, passkeys, networks').toEqual(['unknown', 'off', 'off', 'off']);
-		await expect(page.locator('input[name="diluxone_users_forget_totp"], input[name="diluxone_users_forget_passkey[]"], input[name="diluxone_users_unlink[]"]')).toHaveCount(0);
+		expect(states.slice(1), 'last seen, second step, networks').toEqual(['unknown', 'off', 'off']);
+		await expect(page.locator('input[name="diluxone_users_forget_totp"], input[name="diluxone_users_unlink[]"]')).toHaveCount(0);
 
 		await page.goto('/wp-admin/profile.php');
 		await expect(page.locator('table.diluxone-users-summary')).toHaveCount(0);
@@ -146,24 +137,6 @@ test.describe('Users › somebody’s profile: the plugin’s block', () => {
 		await expect(first.locator('code')).toHaveCount(0);
 	});
 
-	test('a passkey ticked and the profile saved is gone from the account; the one not ticked stays', async ({ page, site }) => {
-		const email = freshEmail('profile-passkey');
-		const gone = passkey('Lost phone');
-		const kept = passkey('Desk key');
-		const person = await site.makeUser({ email, meta: { diluxone_users_passkeys: [gone, kept] } });
-
-		await page.goto(`/wp-admin/user-edit.php?user_id=${person.id}`);
-		await expect(page.locator('input[name="diluxone_users_forget_passkey[]"]')).toHaveCount(2);
-		await page.locator(`input[name="diluxone_users_forget_passkey[]"][value="${gone.id}"]`).check();
-		await navigated(page, () => page.locator('#submit').click());
-
-		await expect(page.locator('input[name="diluxone_users_forget_passkey[]"]')).toHaveCount(1);
-		await expect(page.locator(`input[name="diluxone_users_forget_passkey[]"][value="${kept.id}"]`)).toHaveCount(1);
-
-		// And the list on users.php counts one.
-		await page.goto(`/wp-admin/users.php?s=${encodeURIComponent(email)}`);
-		await expect(accessCell(page, email).locator('.diluxone-users-pill--on')).toContainText('1');
-	});
 });
 
 test.describe('Users › Add New User', () => {

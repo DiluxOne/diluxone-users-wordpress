@@ -65,7 +65,7 @@ class CoverFieldsStyleTest extends IntegrationTestCase {
 	public function test_each_answer_is_the_property_the_sheet_reads(): void {
 		$this->set(
 			array(
-				'diluxone_users_style_accent'  => '#008671',
+				'diluxone_users_style_accent'  => '#0f766e',
 				'diluxone_users_style_radius'  => '3',
 				'diluxone_users_style_border'  => '1.5',
 				'diluxone_users_style_control' => '44',
@@ -75,7 +75,13 @@ class CoverFieldsStyleTest extends IntegrationTestCase {
 
 		$tokens = diluxone_users_style_tokens();
 
-		$this->assertStringContainsString( '--diluxone-users-accent:#008671;--diluxone-users-accent-bg:#008671;', $tokens );
+		$this->assertStringContainsString( '--diluxone-users-accent:#0f766e;--diluxone-users-accent-bg:#0f766e;', $tokens );
+
+		// A colour the palette does not have, kept from a time it was an
+		// answer, is printed as the palette's nearest.
+		diluxone_users_update_option( 'diluxone_users_style_accent', '#008671' );
+		$this->assertStringContainsString( '--diluxone-users-accent:#0f766e;', diluxone_users_style_tokens() );
+		diluxone_users_update_option( 'diluxone_users_style_accent', '#0f766e' );
 		$this->assertStringContainsString( '--diluxone-users-radius:3px;--diluxone-users-radius-sm:0px;', $tokens, 'The small corner never goes below zero' );
 		$this->assertStringContainsString( '--diluxone-users-border-w:1.5px;', $tokens, 'A half pixel is a real answer' );
 		$this->assertStringContainsString( '--diluxone-users-control-h:44px;', $tokens );
@@ -107,7 +113,7 @@ class CoverFieldsStyleTest extends IntegrationTestCase {
 			array(
 				'diluxone_users_account_row_w'      => '1100',
 				'diluxone_users_account_row_pad'    => '24',
-				'diluxone_users_account_ground'     => '#f6f7f7',
+				'diluxone_users_account_ground'     => '#eef6f1',
 				'diluxone_users_account_nav_top'    => '8',
 				'diluxone_users_account_bar_gap'    => '12',
 				'diluxone_users_account_nav_left'   => '16',
@@ -118,12 +124,12 @@ class CoverFieldsStyleTest extends IntegrationTestCase {
 		$css = diluxone_users_account_css();
 
 		$this->assertStringContainsString( '.diluxone-users-account .diluxone-users-account__body{max-width:var(--diluxone-users-row-w,1100px);margin-inline:auto;padding-inline:var(--diluxone-users-row-pad,24px);}', $css, 'as strong as the sheet\'s rule for a contained area' );
-		$this->assertStringContainsString( '.diluxone-users-account{background:var(--diluxone-users-ground,#f6f7f7);}', $css );
+		$this->assertStringContainsString( '.diluxone-users-account{background:var(--diluxone-users-ground,#eef6f1);}', $css );
 		$this->assertStringContainsString( ':root{--diluxone-users-nav-top:8px;--diluxone-users-bar-gap:12px;}', $css );
 		$this->assertStringNotContainsString( 'nav-bottom', $css, 'Unanswered, unprinted' );
 		$this->assertStringContainsString( '.diluxone-users-account__bar .diluxone-users-account__nav{padding-inline:16px 0px;}', $css );
 		$this->assertStringContainsString( 'padding-top:var(--diluxone-users-body-top,32px);', $css );
-		$this->assertStringContainsString( 'padding-bottom:var(--diluxone-users-body-end,32px);', $css );
+		$this->assertStringNotContainsString( 'padding-bottom', $css, 'the air under the content is a shape’s, and no shape of the plugin’s own runs edge to edge' );
 
 		diluxone_users_update_option( 'diluxone_users_account_nav_left', '' );
 		diluxone_users_update_option( 'diluxone_users_account_nav_right', '20' );

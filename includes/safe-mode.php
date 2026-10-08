@@ -13,7 +13,8 @@
  * nothing redirects (wp-login.php is WordPress's again, on every site of a
  * network; the hub's doors, the forms posted to the hub, the dashboard profile
  * sent to the account area), nobody is asked for the second step, and the
- * passkey and social sign-in doors are shut. WordPress's own wp-login.php,
+ * social sign-in door is shut, and so is every door an add-on put up
+ * (diluxone_users_safe_mode() is asked). WordPress's own wp-login.php,
  * with a username and a password, works the way it does without the plugin.
  * Everything else — the account area, the fields, the settings — is left as
  * it was, and every dashboard page says the switch is on until it is taken
@@ -65,7 +66,7 @@ function diluxone_users_safe_mode_notice(): void {
 		esc_html__( 'DiluxOne Users+ is in safe mode.', 'diluxone-users' ),
 		sprintf(
 			/* translators: %s: the line in wp-config.php that turns safe mode on */
-			esc_html__( 'Nothing redirects, nobody is asked for the second step, and passkeys and social sign-in are off: WordPress’s own wp-login.php is the way in. Once you are back in and the cause is fixed, remove %s from wp-config.php.', 'diluxone-users' ),
+			esc_html__( 'Nothing redirects, nobody is asked for the second step, and social sign-in and every other door of the plugin and its add-ons are shut: WordPress’s own wp-login.php is the way in. Once you are back in and the cause is fixed, remove %s from wp-config.php.', 'diluxone-users' ),
 			'<code>define( \'DILUXONE_USERS_SAFE_MODE\', true );</code>'
 		)
 	);

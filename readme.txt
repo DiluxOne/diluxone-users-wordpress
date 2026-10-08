@@ -1,6 +1,6 @@
 === DiluxOne Users+ ===
 Contributors: pablodiloreto
-Tags: users, login, passwordless, two-factor, passkeys
+Tags: users, login, passwordless, two-factor, account
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 8.0
@@ -8,7 +8,7 @@ Stable tag: 1.0.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Custom user fields, a front-end account area, passwordless sign-in, social login, 2FA, passkeys and session control.
+Custom user fields, a front-end account area, passwordless sign-in, social login, 2FA and session control.
 
 == Description ==
 
@@ -20,16 +20,22 @@ Everything about the people who use your site, in one place.
   gender and a phone are suggested, one tick away.
 * **An account area on the front end**: Home, Your details, Linked accounts,
   Security, Notifications and Your data, as tabs or a side menu. Sections can
-  be renamed, reordered, turned off and added.
+  be renamed, reordered and turned off, and take the site's own words or
+  another plugin's shortcode before, after or instead of what they show.
 * **How people get in**: a link sent to their e-mail with no password, username
   and password, or both, plus control over WordPress's own registration and
   profile screens.
-* **Social login** with twelve providers, a step-by-step guide for each console
-  and a live test before one is turned on.
-* **Two-step verification**: a code by e-mail, an authenticator app with a QR
-  code, and backup codes, with a policy per role and a rule of its own for
-  sign-ins by e-mail link.
-* **Passkeys** (WebAuthn), each one with a name of its own.
+* **Social login** with Google and Microsoft, a step-by-step guide for each
+  console and a live test before one is turned on. DiluxOne Users+ Pro, a
+  separate add-on, adds ten more providers.
+* **Two-step verification**: a code by e-mail and backup codes, optional or
+  required, with a rule of its own for sign-ins by e-mail link. DiluxOne
+  Users+ Pro adds an authenticator app, asking it of some roles only, and
+  not asking again on a browser that passed it.
+* **Design**: the sign-in page left in your page or in a centred card, a
+  simple account area, the colours from your theme or from a short palette
+  that always reads, and the sizes and spacing — or no stylesheet at all, for
+  a site that styles everything itself.
 * **Sessions**: how long they last (WordPress's length until you choose one), where they are open, and how to close them. A new password closes every one of them.
 * **An activity log** of its own: who signed in, who was refused and what
   changed. It records IP addresses; see Privacy below.
@@ -47,25 +53,15 @@ their account — or an administrator runs its live test. With no provider on,
 it makes no outbound request at all.
 
 What is sent: the client ID and secret you registered with the provider, the
-authorisation code the browser came back with and your site's redirect URL
-(and, for X, a PKCE verifier); then the access token the provider issued, to
-read the person's profile. What comes back: the person's identifier at that
-provider, their name and their e-mail address (X does not provide one).
+authorisation code the browser came back with and your site's redirect URL;
+then the access token the provider issued, to read the person's profile. What
+comes back: the person's identifier at that provider, their name and their
+e-mail address.
 The requests carry WordPress's usual user-agent, which names your site's
 address; nothing else about your site or its visitors is sent.
 
 * **Google** — accounts.google.com, oauth2.googleapis.com, openidconnect.googleapis.com. [Terms](https://policies.google.com/terms), [Privacy](https://policies.google.com/privacy)
 * **Microsoft** — login.microsoftonline.com, graph.microsoft.com. [Terms](https://www.microsoft.com/servicesagreement), [Privacy](https://privacy.microsoft.com/privacystatement)
-* **LinkedIn** — www.linkedin.com, api.linkedin.com. [Terms](https://www.linkedin.com/legal/user-agreement), [Privacy](https://www.linkedin.com/legal/privacy-policy)
-* **X (Twitter)** — twitter.com, api.twitter.com. [Terms](https://x.com/en/tos), [Privacy](https://x.com/en/privacy)
-* **Facebook** — www.facebook.com, graph.facebook.com. [Terms](https://www.facebook.com/terms.php), [Privacy](https://www.facebook.com/privacy/policy)
-* **GitHub** — github.com, api.github.com. [Terms](https://docs.github.com/en/site-policy/github-terms/github-terms-of-service), [Privacy](https://docs.github.com/en/site-policy/privacy-policies/github-privacy-statement)
-* **WordPress.com** — public-api.wordpress.com. [Terms](https://wordpress.com/tos/), [Privacy](https://automattic.com/privacy/)
-* **Yahoo** — api.login.yahoo.com. [Terms](https://legal.yahoo.com/us/en/yahoo/terms/otos/index.html), [Privacy](https://legal.yahoo.com/us/en/yahoo/privacy/index.html)
-* **Twitch** — id.twitch.tv. [Terms](https://www.twitch.tv/p/legal/terms-of-service/), [Privacy](https://www.twitch.tv/p/legal/privacy-notice/)
-* **Discord** — discord.com. [Terms](https://discord.com/terms), [Privacy](https://discord.com/privacy)
-* **GitLab** — gitlab.com. [Terms](https://handbook.gitlab.com/handbook/legal/subscription-agreement/), [Privacy](https://handbook.gitlab.com/handbook/legal/privacy/)
-* **Amazon** — www.amazon.com, api.amazon.com. [Terms](https://www.amazon.com/gp/help/customer/display.html?nodeId=508088), [Privacy](https://www.amazon.com/gp/help/customer/display.html?nodeId=468496)
 
 The settings screens link to each provider's console and docs (links, not requests).
 
@@ -91,8 +87,8 @@ network's setting); change it on **Access → Registration**.
 = What it stores =
 
 In each person's profile: the answers to your fields, their public name and
-picture, which social accounts are linked, their passkeys, whether two-step
-verification is on, a hash of each browser they signed in from (so "a new
+picture, which social accounts are linked, whether two-step verification is
+on, a hash of each browser they signed in from (so "a new
 device signed in" is said once), their notification choices and, on a
 network, the sites an administrator removed them from.
 
@@ -114,8 +110,8 @@ The plugin itself sends nothing anywhere: no telemetry, no licence check.
 = Export and erasure =
 
 **Tools → Export / Erase Personal Data** answer for all of the above. The
-export leaves out credentials (authenticator secret, backup-code hashes,
-passkey keys); the erasure removes them. Refused sign-ins that typed a name are
+export leaves out credentials (backup-code hashes, an add-on's keys); the erasure removes them, and everything an add-on kept under
+the plugin's prefix with them. Refused sign-ins that typed a name are
 exported, and kept on erasure as security evidence until the log removes them.
 On a network, the sites an administrator removed somebody from are exported
 and kept on erasure: that list is what keeps them from being added back.
@@ -142,11 +138,8 @@ ticked it takes everything, on every site. The pages it created for you
 The social buttons show each network's logo as inline SVG
 (`includes/sso-icons.php`). The logos are trademarks of their owners, shown
 only to identify the button that signs in with that service, as their brand
-guidelines allow; the GitLab drawing comes from Simple Icons
-(https://simpleicons.org/, CC0 1.0). Everything else is original work under
-GPLv2 or later; no
-third-party library is bundled (the QR encoder, TOTP and WebAuthn verification
-are written for this plugin).
+guidelines allow. Everything else is original work under GPLv2 or later; no
+third-party library is bundled.
 
 == Frequently Asked Questions ==
 
@@ -160,14 +153,13 @@ their own too: `[diluxone_users_fields]`, `[diluxone_users_avatar]`,
 `[diluxone_users_sessions]` and `[diluxone_users_notifications]`. On a
 network they are the main site's: placed on another site, each one draws a
 button to the main site's page, which brings people back afterwards. On a
-network, `[diluxone_users_join]` offers "Join this site" to somebody signed in
-who is not a member (or says the site is by invitation); it draws nothing on a
-single site.
+network, `[diluxone_users_join]` tells somebody signed in who is not a member
+that the site is by invitation; it draws nothing on a single site.
 
 = Does it work on multisite? =
 
 Yes. Activated for the whole network, the plugin applies one set of rules to
-every site: the second step, passkeys, sessions, the proxy, the social sign-in
+every site: the second step, sessions, the proxy, the social sign-in
 apps and their rules, the user fields and what the activity log keeps are set
 once, in **Network Admin → DiluxOne Users+**, and a site administrator cannot
 change them for their own site. "Only some roles" means a role on any of the
@@ -184,12 +176,12 @@ migrate`), and each old table is dropped once all its rows are in.
 People sign in, register and keep their account on the main site. On every
 other site the doors lead there — the "Sign in" in its menu, the plugin's
 shortcodes, its wp-login.php, WordPress's own sign-in links — and, whichever
-way the person gets in (e-mail link, password, social account, passkey,
-second step), they are sent back to the page they started from. The way back
+way the person gets in (e-mail link, password, social account, second
+step), they are sent back to the page they started from. The way back
 is only ever an address on a site of the network, kept for twenty minutes in
 a cookie of the main site and used once; a sign-in link opened on another
-device lands on the main site, signed in. Social sign-in and passkeys work on
-the main site only: register one redirect address per network in the
+device lands on the main site, signed in. Social sign-in works on the main
+site only: register one redirect address per network in the
 providers' consoles. Whether new accounts may be created at all is the
 network's **Allow new registrations**. Which sites an account is a member of
 is one decision for the network, on **Network Admin → DiluxOne Users+ →
@@ -197,9 +189,8 @@ Membership**, and nothing is added until you confirm it there (Network Admin
 says so; until then WordPress's own memberships stand): every live site (the default: a new account joins every site, a
 new site gets every account, big networks in the background, and "Sync
 everyone now" or `wp diluxone-users network membership sync` for what was
-there before), whoever asks (a "Join this site" button in the menu, in the
-`[diluxone_users_join]` shortcode and on the page people come back to), or by
-invitation (only administrators add people). The role is each site's own New
+there before). DiluxOne Users+ Pro adds two more answers: whoever asks (a "Join
+this site" button) and by invitation (only administrators add people). The role is each site's own New
 User Default Role, and on the main site the role new accounts get. Somebody an
 administrator removed from a site is not added back until an administrator
 does. Each site's Reports › Activity also lists the sign-ins on the main site
@@ -223,7 +214,7 @@ the whole network.
 Add `define( 'DILUXONE_USERS_SAFE_MODE', true );` to `wp-config.php`. While it
 is there the plugin steps aside: nothing redirects, wp-login.php signs people
 in the way WordPress does on every site, nobody is asked for the second step, and
-passkeys and social sign-in are off, so your username and password get you in.
+social sign-in and every add-on's door are off, so your username and password get you in.
 Every dashboard page says safe mode is on; fix the cause and remove the line.
 With no sign-in page chosen, the second step is asked on wp-login.php itself.
 
@@ -242,14 +233,14 @@ can write.
 
 == Screenshots ==
 
-1. The sign-in page: a passkey, a social account, a link by email, or the WordPress password — whichever ones the site turned on.
+1. The sign-in page: a social account, a link by email, or the WordPress password — whichever ones the site turned on.
 2. The account area on the front end, in the site's own theme.
-3. Security: passkeys, two-step verification and every browser that is signed in.
+3. Security: two-step verification and every browser that is signed in.
 4. The second step at sign-in, for whoever turned it on.
 5. Overview: how many accounts, how they get in, and the first steps until there are none left.
 6. Every way into the site in one table, read from the settings the other tabs write.
 7. Two-step verification: when it is asked for, with what, and to whom.
-8. Social login: twelve networks, each with its own credentials and a live test.
+8. Social login: each network with its own credentials and a live test.
 9. User fields: what is asked of a person, where it shows and who can change it.
 10. How the account area looks, with a live preview of the real markup.
 11. Open sessions across the site, with the button to close them.

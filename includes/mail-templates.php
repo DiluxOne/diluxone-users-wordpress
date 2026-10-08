@@ -129,7 +129,7 @@ function diluxone_users_mail_templates(): array {
 		'help'     => __( 'Sent the first time a browser or a phone gets into somebody’s account. Whether it goes out at all is decided on the Notices tab.', 'diluxone-users' ),
 		'vars'     => array(
 			'{device}'  => __( 'the device, the browser and the system, in one line', 'diluxone-users' ),
-			'{via}'     => __( 'how they got in: a link, a password, a social account, a passkey', 'diluxone-users' ),
+			'{via}'     => __( 'how they got in: a link, a password, a social account', 'diluxone-users' ),
 			'{when}'    => $when,
 			'{account}' => $area,
 			'{site}'    => $site,
@@ -157,7 +157,7 @@ function diluxone_users_mail_templates(): array {
 
 	$templates['security_changed'] = array(
 		'label'    => __( 'A change in their security', 'diluxone-users' ),
-		'help'     => __( 'Sent when a passkey, the second step or a linked social account changes. Whether it goes out at all is decided on the Notices tab.', 'diluxone-users' ),
+		'help'     => __( 'Sent when the second step, a linked social account or another way in changes. Whether it goes out at all is decided on the Notices tab.', 'diluxone-users' ),
 		'vars'     => array(
 			'{event}'   => __( 'what changed, in one line', 'diluxone-users' ),
 			'{when}'    => $when,

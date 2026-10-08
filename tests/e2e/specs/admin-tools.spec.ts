@@ -85,15 +85,16 @@ test.describe('Status › Tools', () => {
 		site,
 		options,
 	}) => {
-		// Two settings that hold lists of lists: the sections of the account
-		// area and the colour map.
+		// Two settings that hold more than one value: the sections of the
+		// account area, a list of lists, and the notices' rules, a map.
 		await options.set({
 			diluxone_users_account_sections: {
 				privacy: { enabled: 1, label: 'Your data, e2e', slug: 'privacy', position: 70 },
 			},
+			diluxone_users_notice_rules: { expired: 'quiet' },
 		});
 
-		const nested = ['diluxone_users_account_sections', 'diluxone_users_color_map'];
+		const nested = ['diluxone_users_account_sections', 'diluxone_users_notice_rules'];
 		const before = await site.getOptions(nested);
 
 		await page.goto(adminUrl('diluxone-users-status', 'tools'));
@@ -107,7 +108,7 @@ test.describe('Status › Tools', () => {
 		// Changed after the export, so that only the import can bring them back.
 		await options.set({
 			diluxone_users_account_sections: { privacy: { enabled: 0, label: 'Changed since', slug: 'changed', position: 10 } },
-			diluxone_users_color_map: { accent: 'changed-since' },
+			diluxone_users_notice_rules: { expired: 'changedsince' },
 		});
 
 		await tool(page, 'import').locator('input[type="file"]').setInputFiles(path);
@@ -269,7 +270,7 @@ test.describe('WordPress’s own Users screens', () => {
 		await expect(page.locator('th#diluxone_users, th.column-diluxone_users').first()).toBeVisible();
 	});
 
-	test('on somebody’s profile: forgetting their authenticator app and unlinking a network', async ({ page, site }) => {
+	test('on somebody’s profile: unlinking a network, and no box for Users+ Pro’s app', async ({ page, site }) => {
 		const email = freshEmail('people');
 		const person = await site.makeUser({
 			email,
@@ -277,20 +278,19 @@ test.describe('WordPress’s own Users screens', () => {
 			meta: {
 				diluxone_users_totp: 'JBSWY3DPEHPK3PXP',
 				diluxone_users_2fa_on: 1,
-				diluxone_users_sso_github: 'github|e2e',
+				diluxone_users_sso_microsoft: 'microsoft|e2e',
 			},
 		});
 
 		await page.goto(`/wp-admin/user-edit.php?user_id=${person.id}`);
 
-		await page.locator('input[name="diluxone_users_forget_totp"]').check();
-		await page.locator('input[name="diluxone_users_unlink[]"][value="github"]').check();
+		await expect(page.locator('input[name="diluxone_users_forget_totp"]'), 'the app is Users+ Pro’s to take off').toHaveCount(0);
+		await page.locator('input[name="diluxone_users_unlink[]"][value="microsoft"]').check();
 		await navigated(page, () => page.locator('#submit').click());
 
-		const after = await site.user(email, ['diluxone_users_sso_github']);
+		const after = await site.user(email, ['diluxone_users_sso_microsoft']);
 
-		expect(after.meta.diluxone_users_totp, 'the app is forgotten').toBe('');
-		expect(after.fields.diluxone_users_sso_github, 'the network is unlinked').toBe('');
+		expect(after.fields.diluxone_users_sso_microsoft, 'the network is unlinked').toBe('');
 	});
 
 	test('Add New User: the e-mail is the username', async ({ page, site }) => {
@@ -372,57 +372,6 @@ test.describe('User fields', () => {
 });
 
 test.describe('Account area › Sections', () => {
-	test('a section of the site’s own: added, it is in the menu with its words; deleted, it is gone', async ({
-		page,
-		guest,
-		site,
-		pages,
-		options,
-	}) => {
-		await options.keep(['diluxone_users_account_sections']);
-
-		const label = `Courses ${Date.now().toString(36)}`;
-		const intro = `Everything you are enrolled in, ${label}.`;
-
-		await page.goto(adminUrl('diluxone-users-account', 'sections') + '&section=diluxone-users-new');
-		await page.locator('[name="diluxone_users_section_form[label]"]').fill(label);
-		await page.locator('[name="diluxone_users_section_form[intro]"]').fill(intro);
-		await navigated(page, () => saveButton(page).click());
-
-		const email = freshEmail('sections-own');
-
-		await site.makeUser({ email, password: PASSWORD });
-		await guest.goto(pages.login.url);
-		await signInWithPassword(guest, email, PASSWORD);
-		await expectSignedIn(guest, email);
-
-		await guest.goto(pages.account.url);
-
-		const tab = guest.locator('a.diluxone-users-account__tab', { hasText: label });
-
-		await expect(tab).toHaveCount(1);
-		await navigated(guest, () => tab.click());
-		await expect(guest.locator('.diluxone-users-account')).toContainText(intro);
-
-		const sections = (await site.getOptions(['diluxone_users_account_sections'])).diluxone_users_account_sections as Record<
-			string,
-			{ label?: string }
-		>;
-		const id = Object.entries(sections).find(([, one]) => one.label === label)?.[0];
-
-		expect(id, 'the section was saved').toBeTruthy();
-
-		await page.goto(adminUrl('diluxone-users-account', 'sections') + `&section=${id}`);
-
-		const remove = page.locator(`a[href*="diluxone_users_action=delete"][href*="section=${id}"]`);
-
-		page.on('dialog', (dialog) => dialog.accept());
-		await navigated(page, () => remove.first().click());
-
-		await guest.goto(pages.account.url);
-		await expect(guest.locator('a.diluxone-users-account__tab', { hasText: label })).toHaveCount(0);
-	});
-
 	test('what people can do with their data: the switches decide whether “Your data” exists', async ({
 		page,
 		guest,

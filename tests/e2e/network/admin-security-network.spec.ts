@@ -1,7 +1,7 @@
-import type { Browser, Page, Response } from '@playwright/test';
+import type { Browser, Page } from '@playwright/test';
 import { test, expect, signInFrom, toTheHub, whoOn, SiteHandle } from './support';
-import { codeIn, freshEmail, linkIn, waitForMail } from '../support/api';
-import { accountSection, adminError, askForLink, challengeCode, challengeScreen, navigated, needsOne, openPanel, savePanel, submitPanelWithoutScript } from '../support/ui';
+import { freshEmail, linkIn, waitForMail } from '../support/api';
+import { accountSection, adminError, askForLink, challengeScreen, needsOne, savePanel, submitPanelWithoutScript } from '../support/ui';
 import { rail, sessionValueDays, siteScreen, stateIn, networkScreen } from '../support/admin-ops';
 import { NETWORK_ADMIN_STATE, NETWORK_URL } from '../../../playwright.network.config';
 
@@ -9,7 +9,7 @@ import { NETWORK_ADMIN_STATE, NETWORK_URL } from '../../../playwright.network.co
  * Security in Network Admin, driven through its own controls, and its effect
  * on whoever signs in from a site of the network.
  *
- * On a network the second step, passkeys, sessions and the proxy are one
+ * On a network the second step, sessions and the proxy are one
  * decision for every site, taken in Network Admin. Each test here presses the
  * control there, reads what was stored through a site's side door — the value
  * every site reads — and then signs somebody in the way a person on /alpha/
@@ -43,44 +43,32 @@ async function personFrom(
 	return { email, context, page };
 }
 
-/** One step of the passkey dialogue a page has with the site. */
-function passkeyStep(step: string) {
-	return (response: Response) => response.url().includes('admin-ajax.php') && (response.request().postData() ?? '').includes(`step=${step}`);
-}
-
 test.describe('Network Admin › Security › Two-step verification', () => {
 	test.beforeEach(async ({ hub }) => {
-		await hub.keep(['diluxone_users_2fa_mode', 'diluxone_users_2fa_methods', 'diluxone_users_2fa_scope', 'diluxone_users_2fa_roles', 'diluxone_users_2fa_link', 'diluxone_users_2fa_remember_days']);
+		await hub.keep(['diluxone_users_2fa_mode', 'diluxone_users_2fa_methods', 'diluxone_users_2fa_link']);
 		await hub.set({ diluxone_users_login_method: 'both' });
 	});
 
-	test('“only some roles”, administrator ticked: an administrator of /alpha/ is asked, a subscriber of /beta/ is not', async ({
+	test('“required” saved in Network Admin is asked of everybody, from /alpha/ and from /beta/, and Users+ Pro’s cards sit on the tab', async ({
 		page,
 		browser,
 		hub,
 		alpha,
 		beta,
 	}) => {
-		await hub.set({ diluxone_users_2fa_mode: 'optional', diluxone_users_2fa_methods: ['email'], diluxone_users_2fa_scope: 'all' });
+		await hub.set({ diluxone_users_2fa_mode: 'optional', diluxone_users_2fa_methods: ['email'] });
 
 		await page.goto(tab('2fa'));
-		await page.locator('input[name="diluxone_users_2fa_mode"][value="required"]').check();
-		await page.locator('input[name="diluxone_users_2fa_scope"][value="some"]').check();
 
-		for (const box of await page.locator('input[name="diluxone_users_2fa_roles[]"]').all()) {
-			await box.uncheck();
+		for (const where of ['security/2fa/roles', 'security/2fa/app', 'security/2fa/remember']) {
+			await expect(page.locator(`[data-diluxone-users-pro="${where}"]`), where).toBeVisible();
 		}
 
-		await page.locator('input[name="diluxone_users_2fa_roles[]"][value="administrator"]').check();
+		await page.locator('input[name="diluxone_users_2fa_mode"][value="required"]').check();
 		await savePanel(page);
-		await page.reload();
-		await expect(page.locator('input[name="diluxone_users_2fa_scope"][value="some"]')).toBeChecked();
 
 		for (const one of [alpha, beta]) {
-			expect(await one.site.getOptions(['diluxone_users_2fa_scope', 'diluxone_users_2fa_roles']), `/${one.slug}/ reads it`).toEqual({
-				diluxone_users_2fa_scope: 'some',
-				diluxone_users_2fa_roles: ['administrator'],
-			});
+			expect((await one.site.getOptions(['diluxone_users_2fa_mode'])).diluxone_users_2fa_mode, `/${one.slug}/ reads it`).toBe('required');
 		}
 
 		const admin = await personFrom(browser, alpha, hub, 'n2fa-admin', { role: 'administrator' });
@@ -95,8 +83,8 @@ test.describe('Network Admin › Security › Two-step verification', () => {
 		const subscriber = await personFrom(browser, beta, hub, 'n2fa-sub');
 
 		try {
-			await expect(challengeScreen(subscriber.page)).toHaveCount(0);
-			expect(await whoOn(subscriber.page, beta.url)).toBe(subscriber.email);
+			await expect(challengeScreen(subscriber.page)).toBeVisible();
+			expect(await whoOn(subscriber.page, beta.url)).toBeNull();
 		} finally {
 			await subscriber.context.close();
 		}
@@ -122,21 +110,8 @@ test.describe('Network Admin › Security › Two-step verification', () => {
 		expect(await alpha.site.getOptions(['diluxone_users_2fa_methods'])).toEqual(before);
 	});
 
-	test('the app ticked in Network Admin is the method every site offers', async ({ page, hub, alpha }) => {
-		await hub.set({ diluxone_users_2fa_mode: 'optional', diluxone_users_2fa_methods: ['email'] });
-
-		await page.goto(tab('2fa'));
-		await page.locator('input[name="diluxone_users_2fa_methods[]"][value="totp"]').check();
-		await savePanel(page);
-
-		expect(
-			((await alpha.site.getOptions(['diluxone_users_2fa_methods'])).diluxone_users_2fa_methods as string[]).sort(),
-			'bug: includes/admin-2fa.php:76 intersects the ticked methods with diluxone_users_2fa_methods(), which only lists the methods already on, so the app ticked beside the e-mail is dropped without a word'
-		).toEqual(['email', 'totp']);
-	});
-
 	test('somebody who came by link: “never” lets them in from /beta/, “always” asks', async ({ page, guest, hub, beta }) => {
-		await hub.set({ diluxone_users_2fa_mode: 'optional', diluxone_users_2fa_methods: ['email'], diluxone_users_2fa_scope: 'all', diluxone_users_2fa_link: 'auto' });
+		await hub.set({ diluxone_users_2fa_mode: 'optional', diluxone_users_2fa_methods: ['email'], diluxone_users_2fa_link: 'auto' });
 
 		// One person per round: a second link to the same address within a
 		// minute is refused on purpose (the per-address wait), and that is
@@ -176,34 +151,6 @@ test.describe('Network Admin › Security › Two-step verification', () => {
 		expect(await whoOn(guest, beta.url)).toBe(email);
 	});
 
-	test('remembering a browser: 0 saved in Network Admin offers no “do not ask again” on the hub’s second step', async ({
-		page,
-		browser,
-		hub,
-		alpha,
-	}) => {
-		await hub.set({ diluxone_users_2fa_mode: 'optional', diluxone_users_2fa_methods: ['email'], diluxone_users_2fa_scope: 'all', diluxone_users_2fa_remember_days: 30 });
-
-		await page.goto(tab('2fa'));
-		await page.locator('input[name="diluxone_users_2fa_remember_days"]').fill('0');
-		await savePanel(page);
-		expect(Number((await alpha.site.getOptions(['diluxone_users_2fa_remember_days'])).diluxone_users_2fa_remember_days)).toBe(0);
-
-		const person = await personFrom(browser, alpha, hub, 'nremember', { meta: { diluxone_users_2fa_on: 1 } });
-
-		try {
-			await expect(challengeScreen(person.page)).toBeVisible();
-			await expect(person.page.locator('input[name="diluxone_users_2fa_trust"]')).toHaveCount(0);
-
-			await challengeCode(person.page).fill(codeIn(await waitForMail(hub.site, person.email)));
-			await navigated(person.page, () => person.page.locator('form.diluxone-users-form button[type="submit"]').first().click());
-			expect(await whoOn(person.page, alpha.url)).toBe(person.email);
-			expect((await person.context.cookies()).filter((cookie) => cookie.name.startsWith('diluxone_users_2fa_'))).toHaveLength(0);
-		} finally {
-			await person.context.close();
-		}
-	});
-
 	test('the Summary in Network Admin reads the network’s settings, and its rail stays on Network Admin', async ({ page, hub }) => {
 		await hub.set({ diluxone_users_2fa_mode: 'off' });
 		await page.goto(tab('summary'));
@@ -213,63 +160,37 @@ test.describe('Network Admin › Security › Two-step verification', () => {
 		expect(await stateIn(row)).toBe('off');
 		await expect(row.locator('a')).toHaveAttribute('href', /\/wp-admin\/network\//);
 
-		await hub.set({ diluxone_users_2fa_mode: 'required', diluxone_users_2fa_methods: ['email'], diluxone_users_2fa_scope: 'all' });
+		await hub.set({ diluxone_users_2fa_mode: 'required', diluxone_users_2fa_methods: ['email'] });
 		await page.reload();
 		expect(await stateIn(row)).toBe('active');
 	});
 });
 
-test.describe('Network Admin › Security › Passkeys', () => {
-	test.beforeEach(async ({ hub }) => {
-		await hub.keep(['diluxone_users_passkey_enabled', 'diluxone_users_passkey_where', 'diluxone_users_passkey_verify']);
-		await hub.set({ diluxone_users_passkey_enabled: 1, diluxone_users_login_method: 'both', diluxone_users_2fa_mode: 'optional' });
-	});
+/*
+ * Passkeys are Users+ Pro's: no tab of their own in Network Admin, and under
+ * the Summary's table a picture of what it adds, which the network's own
+ * previews setting takes away.
+ */
+test.describe('Network Admin › Security › Summary: what Users+ Pro adds', () => {
+	test('no Passkeys tab, and a picture of them under the table while the previews are on', async ({ page, hub }) => {
+		await hub.keep(['diluxone_users_pro_previews']);
+		await hub.set({ diluxone_users_pro_previews: 1 });
 
-	test('the fingerprint required and “only the device” saved there are what the hub tells a browser, and the rail names the hub', async ({
-		page,
-		guest,
-		browser,
-		hub,
-		alpha,
-	}) => {
-		await hub.set({ diluxone_users_passkey_verify: 0, diluxone_users_passkey_where: 'any' });
+		await page.goto(tab('summary'));
 
-		await page.goto(tab('passkeys'));
-		await page.locator('input[name="diluxone_users_passkey_verify"]').check();
-		await page.locator('input[name="diluxone_users_passkey_where"][value="device"]').check();
-		await savePanel(page);
-		const saved = await alpha.site.getOptions(['diluxone_users_passkey_verify', 'diluxone_users_passkey_where']);
+		await expect(page.locator('.nav-tab[href*="tab=passkeys"]')).toHaveCount(0);
 
-		expect(Number(saved.diluxone_users_passkey_verify)).toBe(1);
-		expect(saved.diluxone_users_passkey_where).toBe('device');
-		expect(await stateIn(rail(page))).toBe('active');
-		await expect(rail(page).locator('.du-note').first().locator('code')).toHaveText(new URL(NETWORK_URL).hostname);
+		const pro = page.locator('[data-diluxone-users-pro="security/summary/more"]');
 
-		// A stranger on the hub's sign-in page.
-		await toTheHub(guest, alpha, hub);
+		await expect(pro).toHaveCount(1);
+		await expect(pro.locator('.du-pro__picture')).toHaveAttribute('inert', '');
+		await expect(pro.locator('[name]'), 'nothing in the picture is sent').toHaveCount(0);
+		await expect(page.locator('table.diluxone-users-summary').first().locator('xpath=ancestor::*[@inert]'), 'the real table comes first').toHaveCount(0);
 
-		const [login] = await Promise.all([guest.waitForResponse(passkeyStep('login-options')), guest.locator('[data-diluxone-users-passkey="login"]').click()]);
-
-		expect((await login.json()).data.userVerification).toBe('required');
-
-		// A member adding one on the hub's account.
-		const person = await personFrom(browser, alpha, hub, 'npk');
-
-		try {
-			await person.page.goto(accountSection(hub.pages.account.url, 'security'));
-
-			const panel = await openPanel(person.page, '[data-diluxone-users-passkey="register"]');
-			const [register] = await Promise.all([
-				person.page.waitForResponse(passkeyStep('register-options')),
-				panel.locator('[data-diluxone-users-passkey="register"]').click(),
-			]);
-			const data = (await register.json()).data;
-
-			expect(data.userVerification).toBe('required');
-			expect(data.authenticatorAttachment).toBe('platform');
-		} finally {
-			await person.context.close();
-		}
+		await hub.set({ diluxone_users_pro_previews: 0 });
+		await page.reload();
+		await expect(page.locator('[data-diluxone-users-pro]')).toHaveCount(0);
+		await expect(page.locator('#wpbody-content')).not.toContainText(/passkey/i);
 	});
 });
 

@@ -11,7 +11,7 @@ import { MOCK_ON } from '../support/signin';
  * Every door of the network is the hub's (`doors.spec.ts`). These are the
  * answers that door gives when something goes wrong or is asked from the wrong
  * place: a spent link and a failed social trip said on the hub's page, the
- * passkey dialogue and the plugin's forms asked of another site, an old
+ * plugin's forms asked of another site, an old
  * social address on another site, WordPress's registration and lost-password
  * screens of another site, a password reset on the hub's page for a person of
  * another site — and a site on a domain of its own, whose door is its own
@@ -69,23 +69,6 @@ test.describe('Answers said on the hub’s page', () => {
 });
 
 test.describe('The hub’s doors asked of another site', () => {
-	test('the passkey dialogue asked of /beta/ answers 403 and names the hub’s sign-in page', async ({ page, hub, beta }) => {
-		await hub.set({ diluxone_users_passkey_enabled: 1, diluxone_users_login_method: 'both' });
-
-		await page.goto(hub.pages.login.url);
-		const nonce = await page.evaluate(() => (window as any).diluxOneUsersPasskeys?.nonce as string);
-		expect(nonce).toBeTruthy();
-
-		const answer = await page.request.post(`${beta.url}wp-admin/admin-ajax.php`, {
-			form: { action: 'diluxone_users_passkeys', nonce, step: 'login-options' },
-			failOnStatusCode: false,
-		});
-
-		expect(answer.status()).toBe(403);
-		const json = await answer.json();
-		expect(json.success).toBe(false);
-		expect(String(json.data.redirect).startsWith(hub.pages.login.url), 'told where passkeys are used').toBe(true);
-	});
 
 	test('the plugin’s forms posted to /beta/ are sent to the hub and do nothing there', async ({ page, hub, beta }) => {
 		await hub.set({ diluxone_users_login_method: 'both', diluxone_users_login_register: 1, diluxone_users_register_form: 1, diluxone_users_2fa_mode: 'off' });
@@ -268,8 +251,6 @@ test.describe('The second step after a social sign-in, on a network', () => {
 			diluxone_users_sso_login: 1,
 			diluxone_users_2fa_mode: 'required',
 			diluxone_users_2fa_methods: ['email'],
-			diluxone_users_2fa_scope: 'all',
-			diluxone_users_2fa_remember_days: 0,
 		});
 
 		const email = freshEmail('net-sso-2fa');

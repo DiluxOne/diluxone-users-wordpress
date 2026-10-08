@@ -285,7 +285,7 @@ function diluxone_users_field_key_allowed( string $key ): bool {
 	 * a loop with no way out.
 	 *
 	 * The prefixes are prefixes: everything under them is generated, one row
-	 * per passkey, per provider, per notice, per field counter, so no exact
+	 * per provider, per notice, per field counter, so no exact
 	 * list of them can be written down.
 	 */
 	$taken = array_merge(
@@ -293,16 +293,11 @@ function diluxone_users_field_key_allowed( string $key ): bool {
 		array(
 			'diluxone_users_2fa_on',
 			'diluxone_users_2fa_pending',
-			'diluxone_users_2fa_epoch',
 			'diluxone_users_2fa_email',
 			'diluxone_users_2fa_fails',
 			'diluxone_users_2fa_lock',
 			'diluxone_users_2fa_lock_at',
-			'diluxone_users_totp',
-			'diluxone_users_totp_pending',
-			'diluxone_users_totp_step',
 			'diluxone_users_backup_codes',
-			'diluxone_users_passkeys',
 			'diluxone_users_handle',
 			'diluxone_users_handle_changed',
 			'diluxone_users_avatar',
@@ -315,6 +310,19 @@ function diluxone_users_field_key_allowed( string $key ): bool {
 		)
 	);
 
+	/**
+	 * Filters the user meta keys no field may be named after.
+	 *
+	 * An add-on that keeps something about a person under the plugin's
+	 * namespace names its keys here, so a field — made on the screen, brought
+	 * by a settings file or by a filter — can never write them.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param array<int, string> $taken WordPress's own and the plugin's.
+	 */
+	$taken = array_map( 'strval', (array) apply_filters( 'diluxone_users_reserved_meta_keys', $taken ) );
+
 	if ( in_array( $key, $taken, true ) ) {
 		return false;
 	}
@@ -324,7 +332,21 @@ function diluxone_users_field_key_allowed( string $key ): bool {
 	// network — so the prefix is read, not assumed.
 	global $wpdb;
 
-	foreach ( array( 'wp_', $wpdb->base_prefix, '_diluxone_users', 'diluxone_users_pk_', 'diluxone_users_sso_', 'diluxone_users_notify_', 'diluxone_users_edits_' ) as $start ) {
+	$prefixes = array( 'wp_', $wpdb->base_prefix, '_diluxone_users', 'diluxone_users_sso_', 'diluxone_users_notify_', 'diluxone_users_edits_' );
+
+	/**
+	 * Filters the user meta prefixes no field may be named under.
+	 *
+	 * The same, for the keys an add-on makes one per thing — one per key a
+	 * person registered, say — whose exact names cannot be listed.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param array<int, string> $prefixes WordPress's own and the plugin's.
+	 */
+	$prefixes = array_map( 'strval', (array) apply_filters( 'diluxone_users_reserved_meta_prefixes', $prefixes ) );
+
+	foreach ( array_filter( $prefixes ) as $start ) {
 		if ( 0 === strpos( $key, $start ) ) {
 			return false;
 		}
@@ -761,7 +783,7 @@ function diluxone_users_save( int $user_id, array $input, string $group = '' ): 
 
 		// A field reaches this list from a filter or from an option, and
 		// neither went through the screen that refuses a key WordPress or the
-		// plugin keeps for itself (`wp_capabilities`, a session, a passkey).
+		// plugin keeps for itself (`wp_capabilities`, a session, a second factor).
 		// The save asks again: a field is never the way to write one.
 		if ( ! diluxone_users_field_key_allowed( (string) $key ) ) {
 			continue;

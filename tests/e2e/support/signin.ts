@@ -1,10 +1,10 @@
-import { APIRequestContext, Browser, BrowserContext, CDPSession, Page, expect } from '@playwright/test';
+import { APIRequestContext, Browser, BrowserContext, Page, expect } from '@playwright/test';
 import { E2E_HEADER, E2E_NS, sitePrefix } from './api';
 
 /**
  * What the specs about the ways in share (`signin-*.spec.ts`, single site and
  * network): a side door on a person's stored meta, the fake network's
- * credentials, the virtual passkey and the few steps every one of them takes.
+ * credentials and the few steps every one of them takes.
  */
 
 /** The fake network, configured, tested and on. */
@@ -12,16 +12,6 @@ export const MOCK_ON = { mock: { active: 1, id: 'e2e-client-id', secret: 'e2e-cl
 
 /** The same network with its credentials kept but switched off. */
 export const MOCK_OFF = { mock: { active: 0, id: 'e2e-client-id', secret: 'e2e-client-secret', tested: 1 } };
-
-/** A laptop with a fingerprint reader, as Chrome's virtual authenticator. */
-export const VIRTUAL_KEY = {
-	protocol: 'ctap2' as const,
-	transport: 'internal' as const,
-	hasResidentKey: true,
-	hasUserVerification: true,
-	isUserVerified: true,
-	automaticPresenceSimulation: true,
-};
 
 /**
  * A person's meta as stored, read and written through the mu-plugin's
@@ -65,17 +55,6 @@ export async function answerChallenge(page: Page, code: string): Promise<void> {
 		page.locator('.diluxone-users-login--2fa form.diluxone-users-form button[type="submit"]').first().click(),
 	]);
 	await page.waitForLoadState('domcontentloaded');
-}
-
-/** A virtual authenticator on this page, and the CDP session that holds it. */
-export async function virtualKey(page: Page): Promise<{ cdp: CDPSession; authenticatorId: string }> {
-	const cdp = await page.context().newCDPSession(page);
-
-	await cdp.send('WebAuthn.enable', { enableUI: false });
-
-	const { authenticatorId } = await cdp.send('WebAuthn.addVirtualAuthenticator', { options: VIRTUAL_KEY });
-
-	return { cdp, authenticatorId };
 }
 
 /**

@@ -40,8 +40,7 @@ import { NETWORK_ADMIN_STATE, NETWORK_URL } from '../../../playwright.network.co
  *     refused to a site's administrator against a super admin;
  *   - the account forms posted to /beta/ instead of the hub: sent to the hub,
  *     nothing written on the way;
- *   - "Join this site" forged: without a nonce, by invitation, by somebody
- *     the site's administrator removed, and by somebody signed out.
+ *   - "Join this site", Users+ Pro's, posted without Pro: nothing answers it.
  *
  * Every test asserts the answer AND that nothing changed, read back through
  * the side door of the site the setting or the person lives on.
@@ -50,7 +49,6 @@ import { NETWORK_ADMIN_STATE, NETWORK_URL } from '../../../playwright.network.co
 test.use({ storageState: NETWORK_ADMIN_STATE });
 
 const PASSWORD = 'e2e-NetRefusals-1!';
-const TOTP = 'JBSWY3DPEHPK3PXP';
 
 const VICTIM_TOKEN = 'e2e3'.repeat(16);
 
@@ -102,7 +100,7 @@ test.beforeAll(async ({ browser }) => {
 		email: victim,
 		password: PASSWORD,
 		role: 'administrator',
-		meta: { session_tokens: { ...token(VICTIM_TOKEN), ...token('e2e4'.repeat(16)) }, diluxone_users_totp: TOTP },
+		meta: { session_tokens: { ...token(VICTIM_TOKEN), ...token('e2e4'.repeat(16)) }, diluxone_users_sso_google: 'g-victim' },
 	});
 
 	wp(['super-admin', 'add', victim]);
@@ -165,7 +163,7 @@ async function mails(site: Site, email: string): Promise<number> {
 
 async function victimState(w: World): Promise<unknown> {
 	return {
-		meta: await metaOf(w.door, w.victim.email, ['diluxone_users_totp']),
+		meta: await metaOf(w.door, w.victim.email, ['diluxone_users_sso_google']),
 		sessions: (await w.hubSite.user(w.victim.email)).sessions,
 		mail: await mails(w.hubSite, w.victim.email),
 	};
@@ -509,10 +507,10 @@ const ROWS: Row[] = [
 		probe: victimState,
 	},
 	{
-		id: 'Users › a super admin’s second factor removed on /alpha/’s Edit user (user-edit.php)',
+		id: 'Users › a super admin’s network unlinked on /alpha/’s Edit user (user-edit.php)',
 		method: 'POST',
 		url: () => ON('alpha', 'user-edit.php'),
-		fields: (w) => ({ action: 'update', user_id: String(w.victim.id), email: w.victim.email, nickname: 'victim', diluxone_users_forget_totp: '1' }),
+		fields: (w) => ({ action: 'update', user_id: String(w.victim.id), email: w.victim.email, nickname: 'victim', 'diluxone_users_unlink[]': 'google' }),
 		nonce: { field: '_wpnonce', action: (w) => `update-user_${w.victim.id}` },
 		actor: 'super',
 		lacking: 'siteAdmin',
@@ -520,22 +518,6 @@ const ROWS: Row[] = [
 		// user-edit.php stops with wp_die() and no status, which is a 500.
 		expect: { 'no nonce': 'nonce', 'forged nonce': 'nonce', 'without the right': { status: 500 }, 'signed out': 'to-login' },
 		probe: victimState,
-	},
-
-	/* ── Passkeys are the hub's ────────────────────────────────────── */
-	{
-		id: 'a passkey registered on /beta/ (wp_ajax_diluxone_users_passkeys)',
-		method: 'POST',
-		url: () => ON('beta', 'admin-ajax.php'),
-		fields: () => ({ action: 'diluxone_users_passkeys', step: 'register-options' }),
-		nonce: { field: 'nonce', action: 'diluxone_users_passkeys' },
-		actor: 'member',
-		other: { who: 'member' },
-		// With the member's own valid nonce: told the passkeys are the hub's.
-		expect: { 'forged nonce': { status: 403 }, 'as somebody else': { status: 403 } },
-		prepare: async ({ hub }: { hub: SiteHandle }) => hub.set({ diluxone_users_passkey_enabled: 1 }),
-		probe: async (w) => metaOf(w.door, w.member.email, ['diluxone_users_passkeys']),
-		leaks: (answer) => expect(answer.body, 'no challenge handed out off the hub').not.toContain('challenge'),
 	},
 ];
 
@@ -580,7 +562,6 @@ const HUB_POSTS: Array<{ action: string; nonce: string; field?: string; fields: 
 	{ action: 'diluxone_users_sessions', nonce: 'diluxone_users_sessions', fields: {} },
 	{ action: 'diluxone_users_notifications', nonce: 'diluxone_users_notifications', fields: {} },
 	{ action: 'diluxone_users_data_request', nonce: 'diluxone_users_data_request', fields: { diluxone_users_request: 'export' } },
-	{ action: 'diluxone_users_passkey', nonce: 'diluxone_users_passkey', fields: { diluxone_users_passkey: 'x', diluxone_users_passkey_do: 'delete' } },
 ];
 
 async function memberState(w: World): Promise<unknown> {
@@ -659,84 +640,28 @@ test.describe('A form that needs a session, posted signed out to the hub, is ref
 	}
 });
 
-/* ── "Join this site", forged ──────────────────────────────────────── */
+/* ── "Join this site" without Users+ Pro ───────────────────────────── */
 
-test.describe('"Join this site" refuses what it should', () => {
-	/** Somebody of the hub alone: under "whoever asks" a member of nothing else. */
-	async function joiner(hub: SiteHandle, policy: 'click' | 'invite', meta: Record<string, unknown> = {}): Promise<string> {
-		await hub.set({ diluxone_users_membership: policy, diluxone_users_membership_confirmed: 1 });
+test.describe('"Join this site" is Users+ Pro’s: without it, nothing answers it', () => {
+	test('a valid form under a Pro answer stored without Pro: WordPress’s 400, and not a member', async ({ browser, hub }) => {
+		await hub.set({ diluxone_users_membership: 'click', diluxone_users_membership_confirmed: 1 });
 
 		const email = freshEmail('net-refused-join');
 
-		await world.hubSite.makeUser({ email, password: PASSWORD, meta });
+		await world.hubSite.makeUser({ email, password: PASSWORD });
 
-		return email;
-	}
-
-	async function join(api: APIRequestContext, nonce: string | null): Promise<Answer> {
-		return send(api, 'POST', ON('beta', 'admin-post.php'), { action: 'diluxone_users_join', ...(nonce === null ? {} : { _wpnonce: nonce }) });
-	}
-
-	test('without a nonce, and with one WordPress never made: 403, and not a member', async ({ browser, hub }) => {
-		const email = await joiner(hub, 'click');
 		const context = await signedInContext(browser, NETWORK_URL, email, PASSWORD);
 
 		try {
-			expectRefused(await join(context.request, null), 'nonce', 'join without a nonce');
-			expectRefused(await join(context.request, FORGED), 'nonce', 'join with a forged nonce');
-			expect((await world.betaSite.user(email)).member, 'not a member of /beta/').toBe(false);
+			const nonce = (await nonceFor(context.request, 'diluxone_users_join')).nonce;
+			const answer = await send(context.request, 'POST', ON('beta', 'admin-post.php'), { action: 'diluxone_users_join', _wpnonce: nonce });
 
-			// The same person, the same form, with their own nonce: the
-			// policy lets them, so it goes through — the refusals above were
-			// the nonce's.
-			const answer = await join(context.request, (await nonceFor(context.request, 'diluxone_users_join')).nonce);
-
-			expectRefused(answer, { state: 'joined' }, 'join with a valid nonce');
-			expect((await world.betaSite.user(email)).member, 'a member now').toBe(true);
-		} finally {
-			await context.close();
-			await world.hubSite.deleteUser(email);
-		}
-	});
-
-	test('by invitation, a valid form is answered join-refused and makes nobody a member', async ({ browser, hub }) => {
-		const email = await joiner(hub, 'invite');
-		const context = await signedInContext(browser, NETWORK_URL, email, PASSWORD);
-
-		try {
-			const answer = await join(context.request, (await nonceFor(context.request, 'diluxone_users_join')).nonce);
-
-			expectRefused(answer, { state: 'join-refused' }, 'join by invitation');
+			expectRefused(answer, 'bad', 'join with no handler');
 			expect((await world.betaSite.user(email)).member, 'not a member of /beta/').toBe(false);
 		} finally {
 			await context.close();
 			await world.hubSite.deleteUser(email);
 		}
-	});
-
-	test('somebody /beta/’s administrator removed cannot join back by themselves, even under “whoever asks”', async ({ browser, hub }) => {
-		const email = await joiner(hub, 'click', { diluxone_users_removed_from: [world.ids.beta] });
-		const context = await signedInContext(browser, NETWORK_URL, email, PASSWORD);
-
-		try {
-			const answer = await join(context.request, (await nonceFor(context.request, 'diluxone_users_join')).nonce);
-
-			expectRefused(answer, { state: 'join-refused' }, 'join after a removal');
-			expect((await world.betaSite.user(email)).member, 'not a member of /beta/').toBe(false);
-			expect((await metaOf(world.door, email, ['diluxone_users_removed_from'])).diluxone_users_removed_from, 'the removal still written').toEqual([world.ids.beta]);
-		} finally {
-			await context.close();
-			await world.hubSite.deleteUser(email);
-		}
-	});
-
-	test('signed out, the form is sent to the hub’s sign-in page and joins nobody', async ({ hub }) => {
-		await hub.set({ diluxone_users_membership: 'click', diluxone_users_membership_confirmed: 1 });
-
-		const answer = await join(world.guest, (await nonceFor(world.guest, 'diluxone_users_join')).nonce);
-
-		expectRefused(answer, 'to-login', 'join signed out');
-		expect(answer.location, 'the hub’s sign-in page').toContain(hub.pages.login.url.replace(/\/$/, ''));
 	});
 });
 
@@ -751,9 +676,8 @@ interface PanelRow {
 
 const PANELS: PanelRow[] = [
 	{ screen: 'diluxone-users', tab: 'uninstall', change: { diluxone_users_uninstall_wipe: '1' }, options: ['diluxone_users_uninstall_wipe'] },
-	{ screen: 'diluxone-users-membership', tab: 'policy', change: { diluxone_users_membership: 'invite' }, options: ['diluxone_users_membership', 'diluxone_users_membership_confirmed'] },
+	{ screen: 'diluxone-users-membership', tab: 'policy', change: { diluxone_users_membership: 'all' }, options: ['diluxone_users_membership', 'diluxone_users_membership_confirmed'] },
 	{ screen: 'diluxone-users-security', tab: '2fa', change: { diluxone_users_2fa_mode: 'off' }, options: ['diluxone_users_2fa_mode', 'diluxone_users_2fa_methods'] },
-	{ screen: 'diluxone-users-security', tab: 'passkeys', change: { diluxone_users_passkey_where: 'device' }, options: ['diluxone_users_passkey_where', 'diluxone_users_passkey_verify'] },
 	{ screen: 'diluxone-users-security', tab: 'sessions', change: { diluxone_users_session_long_days: '99' }, options: ['diluxone_users_session_long_days', 'diluxone_users_sessions_show'] },
 	{ screen: 'diluxone-users-security', tab: 'proxy', change: { diluxone_users_trusted_proxies: '10.9.9.9' }, options: ['diluxone_users_trusted_proxies', 'diluxone_users_ip_header'] },
 	{ screen: 'diluxone-users-social', tab: 'general', change: { diluxone_users_sso_verified_only: '1' }, options: ['diluxone_users_sso_verified_only', 'diluxone_users_sso_link_by_email'] },
@@ -842,9 +766,8 @@ test.describe('Every network panel refuses a save it should not take', () => {
 
 test.describe('The hub’s Access › Ways in draws the network’s doors and saves none of them', () => {
 	/**
-	 * The passkey box of this form is forced in network-admin.spec.ts; this is
-	 * the other network key the same form draws: social sign-in, unticked and
-	 * sent anyway by a super admin. The hub's own setting in the form saves,
+	 * A network key the hub's Access › Ways in draws: social sign-in, unticked
+	 * and sent anyway by a super admin. The hub's own setting in the form saves,
 	 * so the save ran; the network's was left out.
 	 */
 	test('social sign-in forced off and sent from the hub’s screen stays on', async ({ page, hub }) => {

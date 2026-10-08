@@ -26,7 +26,6 @@ class TwoFactorPolicyTest extends TestCase {
 		require_once DILUXONE_USERS_DIR . 'includes/options.php';
 		require_once DILUXONE_USERS_DIR . 'includes/safe-mode.php';
 		require_once DILUXONE_USERS_DIR . 'includes/options-scope.php';
-		require_once DILUXONE_USERS_DIR . 'includes/auth-totp.php';
 		require_once DILUXONE_USERS_DIR . 'includes/auth-email.php';
 		require_once DILUXONE_USERS_DIR . 'includes/auth.php';
 		require_once DILUXONE_USERS_DIR . 'includes/login.php';
@@ -49,9 +48,7 @@ class TwoFactorPolicyTest extends TestCase {
 		$base = array(
 			'diluxone_users_2fa_mode'          => 'required',
 			'diluxone_users_2fa_methods'       => array( 'email' ),
-			'diluxone_users_2fa_roles'         => array(),
 			'diluxone_users_2fa_link'          => 'auto',
-			'diluxone_users_2fa_remember_days' => 0,
 		);
 
 		foreach ( array_merge( $base, $values ) as $key => $value ) {
@@ -105,27 +102,44 @@ class TwoFactorPolicyTest extends TestCase {
 		$this->assertFalse( diluxone_users_2fa_required( self::USER_ID, 'link' ) );
 	}
 
-	public function test_with_an_app_available_the_link_does_ask_for_it(): void {
-		$this->settings( array( 'diluxone_users_2fa_methods' => array( 'email', 'totp' ) ) );
-		update_user_meta( self::USER_ID, 'diluxone_users_totp', 'GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ' );
+	/**
+	 * A site whose only ticked method is one nothing registers — Users+ Pro's
+	 * app, with Pro gone — still asks the second step: the e-mail code stands
+	 * in, so nobody it protected signs in with the password alone, and nobody
+	 * who had only the app is locked out.
+	 */
+	public function test_a_method_nothing_registers_leaves_the_email_code_in_its_place(): void {
+		$this->settings( array( 'diluxone_users_2fa_methods' => array( 'totp' ) ) );
 
-		$this->assertTrue( diluxone_users_2fa_required( self::USER_ID, 'link' ) );
+		$this->assertSame( array( 'email' ), array_keys( diluxone_users_2fa_methods() ) );
+		$this->assertTrue( diluxone_users_2fa_required( self::USER_ID, 'password' ) );
+
+		// Ticked beside one there is, it changes nothing.
+		$this->settings( array( 'diluxone_users_2fa_methods' => array( 'totp', 'email' ) ) );
+		$this->assertSame( array( 'email' ), array_keys( diluxone_users_2fa_methods() ) );
+
+		// And nothing ticked is still nothing: the site chose that.
+		$this->settings( array( 'diluxone_users_2fa_methods' => array() ) );
+		$this->assertSame( array(), diluxone_users_2fa_methods() );
 	}
 
 	public function test_the_site_can_force_both_answers(): void {
 		$this->settings( array( 'diluxone_users_2fa_link' => 'always' ) );
 		$this->assertTrue( diluxone_users_2fa_required( self::USER_ID, 'link' ) );
 
-		$this->settings( array( 'diluxone_users_2fa_link' => 'never', 'diluxone_users_2fa_methods' => array( 'email', 'totp' ) ) );
-		update_user_meta( self::USER_ID, 'diluxone_users_totp', 'GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ' );
+		$this->settings( array( 'diluxone_users_2fa_link' => 'never' ) );
 		$this->assertFalse( diluxone_users_2fa_required( self::USER_ID, 'link' ) );
 	}
 
-	public function test_with_chosen_roles_only_those(): void {
+	/**
+	 * Roles chosen while Users+ Pro was on are not read: the plugin asks it of
+	 * everybody, and nobody it was required of goes without it.
+	 */
+	public function test_roles_chosen_with_pro_are_not_read_and_everybody_is_asked(): void {
 		$this->settings( array( 'diluxone_users_2fa_scope' => 'some', 'diluxone_users_2fa_roles' => array( 'administrator' ) ) );
 
 		$this->make_person( 'subscriber' );
-		$this->assertFalse( diluxone_users_2fa_required( self::USER_ID, 'password' ) );
+		$this->assertTrue( diluxone_users_2fa_required( self::USER_ID, 'password' ) );
 
 		$this->make_person( 'administrator' );
 		$this->assertTrue( diluxone_users_2fa_required( self::USER_ID, 'password' ) );
@@ -159,8 +173,10 @@ class TwoFactorPolicyTest extends TestCase {
 		$this->assertSame( array( 'your password' ), diluxone_users_2fa_ways_asked( self::USER_ID ) );
 	}
 
-	public function test_with_no_days_of_memory_no_browser_is_trusted(): void {
-		$this->assertFalse( diluxone_users_2fa_trusted( self::USER_ID ) );
+	/** Nothing remembered lets anybody past the second step: that is an add-on's to answer. */
+	public function test_nothing_skips_the_second_step(): void {
+		$this->assertFalse( diluxone_users_2fa_skip( self::USER_ID, 'password' ) );
+		$this->assertTrue( diluxone_users_2fa_required( self::USER_ID, 'password' ), 'and the step is asked' );
 	}
 
 	public function test_backup_codes_are_not_stored_in_the_clear(): void {

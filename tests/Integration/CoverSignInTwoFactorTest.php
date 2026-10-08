@@ -2,10 +2,10 @@
 /**
  * The second step's refusals that the other suites leave out, and the two
  * of its doors that only a race or a ticked box reach: the account's count
- * running out without a lock, a backup code, the trust cookie and its
- * signature, the attempt spent by another request between the right code and
- * the session, and an e-mail link starting with the app rather than another
- * e-mail. Then the codes kept sealed for one redirect, and the edges of the
+ * running out without a lock, a backup code, nothing remembered unless an
+ * add-on says so, the attempt spent by another request between the right code
+ * and the session, and an e-mail link starting with a method that is not
+ * another e-mail. Then the codes kept sealed for one redirect, and the edges of the
  * code generators and of the machine counts.
  */
 
@@ -25,7 +25,6 @@ class CoverSignInTwoFactorTest extends IntegrationTestCase {
 
 		diluxone_users_update_option( 'diluxone_users_2fa_mode', 'required' );
 		diluxone_users_update_option( 'diluxone_users_2fa_methods', array( 'email' ) );
-		diluxone_users_update_option( 'diluxone_users_2fa_remember_days', 0 );
 
 		$this->user = $this->make_user();
 
@@ -74,7 +73,7 @@ class CoverSignInTwoFactorTest extends IntegrationTestCase {
 		);
 	}
 
-	/** @param array<string, string> $extra */
+	/** @param array<string, mixed> $extra */
 	private function answer( string $key, string $code, array $extra = array() ): string {
 		$this->postAs(
 			0,
@@ -119,51 +118,56 @@ class CoverSignInTwoFactorTest extends IntegrationTestCase {
 		$this->assertFalse( diluxone_users_2fa_verify( $this->user, 'totp', $codes[2] ), 'spent' );
 	}
 
-	/* ── The trust cookie ────────────────────────────────────────────── */
+	/* ── Nothing remembered ─────────────────────────────────────────── */
 
-	public function test_with_no_days_to_remember_no_browser_is_trusted_or_marked(): void {
-		diluxone_users_2fa_trust( $this->user );
+	/**
+	 * A browser is remembered by an add-on (Users+ Pro), not by the plugin: a
+	 * cookie that looks like one skips nothing, and only an add-on's answer
+	 * through `diluxone_users_2fa_skip` lets a sign-in past the step.
+	 */
+	public function test_nothing_remembered_skips_the_step_but_an_add_ons_answer(): void {
+		$_COOKIE[ 'diluxone_users_2fa_' . COOKIEHASH ] = $this->user . '|' . ( time() + 3600 ) . '|' . wp_hash( 'anything', 'secure_auth' );
 
-		$this->assertSame( array(), self::$cookies );
-		$this->assertFalse( diluxone_users_2fa_trusted( $this->user ) );
-	}
+		$this->assertFalse( diluxone_users_2fa_skip( $this->user, 'password' ) );
 
-	public function test_a_browser_is_trusted_only_with_its_own_signed_cookie(): void {
-		diluxone_users_update_option( 'diluxone_users_2fa_remember_days', 7 );
-		$name = 'diluxone_users_2fa_' . COOKIEHASH;
+		$asked = $this->expectRedirect( fn() => diluxone_users_complete_login( $this->user, 'sso', false, home_url( '/after/' ) ) );
+		$this->assertNotSame( '', $this->queryArg( $asked, 'diluxone_users_key' ), 'asked' );
+		$this->assertSame( 0, get_current_user_id() );
 
-		$this->assertFalse( diluxone_users_2fa_trusted( $this->user ), 'no cookie' );
+		$this->hook(
+			'diluxone_users_2fa_skip',
+			fn( bool $skip, int $user_id, string $via ): bool => $user_id === $this->user && 'sso' === $via,
+			10,
+			3
+		);
 
-		diluxone_users_2fa_trust( $this->user );
-		$this->assertArrayHasKey( $name, self::$cookies );
-		$_COOKIE[ $name ] = self::$cookies[ $name ]['value'];
-
-		$this->assertTrue( diluxone_users_2fa_trusted( $this->user ) );
-		$this->assertFalse( diluxone_users_2fa_trusted( $this->make_user() ), 'somebody else\'s' );
-
-		[ $id, $expires ] = explode( '|', $_COOKIE[ $name ] );
-		$_COOKIE[ $name ] = $id . '|' . ( (int) $expires + DAY_IN_SECONDS ) . '|' . diluxone_users_2fa_trust_hash( (int) $id, (int) $expires );
-		$this->assertFalse( diluxone_users_2fa_trusted( $this->user ), 'a longer life than it was signed for' );
-
-		$_COOKIE[ $name ] = diluxone_users_2fa_trust_value( $this->user, time() - 1 );
-		$this->assertFalse( diluxone_users_2fa_trusted( $this->user ), 'expired' );
-
-		$_COOKIE[ $name ] = self::$cookies[ $name ]['value'];
-		diluxone_users_2fa_forget_browsers( $this->user );
-		$this->assertFalse( diluxone_users_2fa_trusted( $this->user ), 'revoked' );
+		$this->assertSame( home_url( '/after/' ), $this->expectRedirect( fn() => diluxone_users_complete_login( $this->user, 'sso', false, home_url( '/after/' ) ) ) );
+		$this->assertSame( $this->user, get_current_user_id(), 'straight in' );
 	}
 
 	/* ── The second step's form ──────────────────────────────────────── */
 
-	public function test_the_right_code_with_the_box_ticked_signs_in_and_marks_the_browser(): void {
-		diluxone_users_update_option( 'diluxone_users_2fa_remember_days', 14 );
-		$attempt = $this->halfway();
+	/** The right code signs in, and what an add-on's fields sent reaches it, cleaned, once the code is right. */
+	public function test_the_right_code_signs_in_and_hands_an_add_on_what_its_fields_sent(): void {
+		$heard = array();
+		$this->hook(
+			'diluxone_users_2fa_passed',
+			static function ( int $user_id, array $extra, string $via ) use ( &$heard ): void {
+				$heard[] = array( $user_id, $extra, $via );
+			},
+			10,
+			3
+		);
 
-		$url = $this->answer( $attempt['key'], $attempt['code'], array( 'diluxone_users_2fa_trust' => '1' ) );
+		$attempt = $this->halfway();
+		$this->answer( $attempt['key'], 'wrong!', array( 'diluxone_users_2fa_extra' => array( 'trust' => '1' ) ) );
+		$this->assertSame( array(), $heard, 'a wrong code hands over nothing' );
+
+		$url = $this->answer( $attempt['key'], $attempt['code'], array( 'diluxone_users_2fa_extra' => array( 'trust' => '<b>1</b>' ) ) );
 
 		$this->assertSame( home_url( '/after/' ), $url );
 		$this->assertSame( $this->user, get_current_user_id() );
-		$this->assertArrayHasKey( 'diluxone_users_2fa_' . COOKIEHASH, self::$cookies );
+		$this->assertSame( array( array( $this->user, array( 'trust' => '1' ), 'password' ) ), $heard );
 		$this->assertSame( array(), $this->announced, 'a password sign-in already announced itself' );
 	}
 
@@ -177,13 +181,28 @@ class CoverSignInTwoFactorTest extends IntegrationTestCase {
 		$this->assertSame( 0, get_current_user_id() );
 	}
 
-	public function test_coming_in_by_link_the_app_is_asked_before_another_email(): void {
-		diluxone_users_update_option( 'diluxone_users_2fa_methods', array( 'email', 'totp' ) );
-		update_user_meta( $this->user, 'diluxone_users_totp', diluxone_users_totp_secret_new() );
+	/** By link, a method that does not arrive by e-mail — an add-on's — is asked before another e-mail. */
+	public function test_coming_in_by_link_a_method_that_is_not_an_email_is_asked_first(): void {
+		$this->hook(
+			'diluxone_users_2fa_methods',
+			static function ( array $methods ): array {
+				$methods['device'] = array(
+					'channel'  => 'device',
+					'label'    => 'A device',
+					'help'     => '',
+					'ready'    => '__return_true',
+					'verify'   => '__return_false',
+					'position' => 30,
+				);
+
+				return $methods;
+			}
+		);
+		diluxone_users_update_option( 'diluxone_users_2fa_methods', array( 'email', 'device' ) );
 
 		$by_link = $this->halfway( 'link' );
 
-		$this->assertSame( 'totp', $by_link['method'] );
+		$this->assertSame( 'device', $by_link['method'] );
 		$this->assertSame( array(), $this->lastMail(), 'and no code was mailed to the inbox the link came from' );
 	}
 
@@ -250,27 +269,6 @@ class CoverSignInTwoFactorTest extends IntegrationTestCase {
 			)
 		);
 		$this->assertFalse( diluxone_users_2fa_email_verify( $this->user, 'no digits' ), 'empty' );
-	}
-
-	public function test_an_app_is_activated_only_by_a_code_from_the_secret_being_tried(): void {
-		$this->assertFalse( diluxone_users_totp_activate( $this->user, '123456' ), 'nothing being tried' );
-
-		$secret = diluxone_users_totp_pending( $this->user );
-		$wrong  = str_pad( (string) ( ( (int) diluxone_users_totp_code( $secret ) + 1 ) % 1000000 ), 6, '0', STR_PAD_LEFT );
-
-		$this->assertFalse( diluxone_users_totp_activate( $this->user, $wrong ) );
-		$this->assertFalse( diluxone_users_totp_ready( $this->user ) );
-		$this->assertFalse( diluxone_users_totp_verify( $this->user, diluxone_users_totp_code( $secret ) ), 'nothing active to verify against' );
-
-		$this->assertTrue( diluxone_users_totp_activate( $this->user, diluxone_users_totp_code( $secret ) ) );
-		$this->assertSame( $secret, diluxone_users_totp_secret( $this->user ) );
-		$this->assertSame( '', get_user_meta( $this->user, 'diluxone_users_totp_pending', true ) );
-	}
-
-	public function test_a_secret_with_nothing_in_it_makes_no_code(): void {
-		$this->assertSame( '', diluxone_users_base32_decode( '!!!' ) );
-		$this->assertSame( '', diluxone_users_totp_code( '' ) );
-		$this->assertFalse( diluxone_users_totp_check( '', '000000' ) );
 	}
 
 	public function test_the_edges_of_the_machine_checks(): void {

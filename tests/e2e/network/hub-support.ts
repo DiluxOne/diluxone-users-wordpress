@@ -5,7 +5,7 @@ import { NETWORK_URL } from '../../../playwright.network.config';
 
 /**
  * What the hub-* specs share: the network's screens, the membership queue and
- * the "Join this site" box, said once.
+ * the box for a site somebody is not a member of, said once.
  */
 
 /** An address of Network Admin. */
@@ -39,7 +39,7 @@ export function drain(): void {
 	expect(queued(), 'the queue is worked to the end').toBe(0);
 }
 
-/** The signed-in person's box on a page of a site: 'click', 'invite', 'joined', or null. */
+/** The signed-in person's box on a page of a site: 'invite', 'joined', or null. */
 export async function joinBox(page: Page): Promise<string | null> {
 	const box = page.locator('[data-diluxone-users-join]').first();
 

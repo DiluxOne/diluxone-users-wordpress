@@ -28,17 +28,23 @@ function diluxone_users_wp_login_branded(): bool {
  *
  * Empty means the accent colour, and it stays empty rather than being copied:
  * a site that later changes its accent gets this screen following along
- * instead of a second colour, set once, drifting away from the first.
+ * instead of a second colour, set once, drifting away from the first. A colour
+ * of its own is one of the accent palette's — the links on it are white, so it
+ * has to be a colour white reads on — or any colour while any colour is an
+ * answer; one stored that is neither is drawn as the palette's nearest.
  */
 function diluxone_users_wp_login_bg(): string {
-	$own = (string) diluxone_users_option( 'diluxone_users_wp_login_bg' );
-	$hex = '' === $own ? diluxone_users_style_accent() : $own;
+	$own = diluxone_users_hex( (string) diluxone_users_option( 'diluxone_users_wp_login_bg' ) );
 
-	// Both branches are sanitised on the way out and not only the explicit
-	// one. What comes back from the accent is sanitised where it is saved,
-	// which is a different file and a promise this one cannot check — and
-	// what this returns is printed into a stylesheet.
-	return (string) sanitize_hex_color( $hex );
+	if ( '' === $own ) {
+		return diluxone_users_style_accent();
+	}
+
+	if ( diluxone_users_any_color() ) {
+		return $own;
+	}
+
+	return diluxone_users_palette_color( $own, diluxone_users_accent_palette(), diluxone_users_style_accent(), true );
 }
 
 /**

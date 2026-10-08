@@ -40,6 +40,11 @@ class MembershipTest extends IntegrationTestCase {
 		diluxone_users_join_drawn( false );
 
 		add_action( 'diluxone_users_member_added', array( $this, 'heard' ), 10, 4 );
+
+		// Users+ Pro's two policies, offered as an add-on offers them: what the
+		// plugin itself does under a policy that is not "every site".
+		$this->hook( 'diluxone_users_membership_policies', static fn( array $policies ): array => array_merge( $policies, array( 'click', 'invite' ) ) );
+
 		if ( is_multisite() ) {
 			$this->alpha = $this->site( 'author' );
 			$this->beta  = $this->site( 'editor' );
@@ -1159,81 +1164,6 @@ class MembershipTest extends IntegrationTestCase {
 		}
 	}
 
-	public function test_under_click_a_person_joins_a_site_with_its_role(): void {
-		$this->network_only();
-
-		diluxone_users_update_option( 'diluxone_users_membership', 'click' );
-		$user = $this->make_user();
-
-		switch_to_blog( $this->alpha );
-		wp_set_current_user( $user );
-		$this->assertSame( 'click', diluxone_users_join_state() );
-		$box = diluxone_users_shortcode_join();
-		$this->assertStringContainsString( 'data-diluxone-users-join="click"', $box );
-		$this->assertStringContainsString( 'value="diluxone_users_join"', $box );
-		restore_current_blog();
-
-		$landed = $this->press_join( $this->alpha, $user );
-
-		$this->assertSame( 'joined', $this->redirectState( $landed ) );
-		$this->assertSame( 'author', $this->role_on( $user, $this->alpha ) );
-		$this->assertSame(
-			array(
-				'user' => $user,
-				'site' => $this->alpha,
-				'role' => 'author',
-				'how'  => 'click',
-			),
-			end( $this->added ),
-			'diluxone_users_member_added, with how it happened'
-		);
-
-		// A member now: nothing more to press, and a welcome after the press.
-		switch_to_blog( $this->alpha );
-		$this->assertSame( '', diluxone_users_join_state() );
-		diluxone_users_join_drawn( false ); // Another page.
-		$_GET = array( 'diluxone-users' => 'joined' );
-		$this->assertStringContainsString( 'data-diluxone-users-join="joined"', diluxone_users_shortcode_join() );
-		$_GET = array();
-		$this->assertSame( '', diluxone_users_shortcode_join() );
-		restore_current_blog();
-	}
-
-	public function test_join_refuses_without_the_nonce_under_another_policy_or_signed_out(): void {
-		$this->network_only();
-
-		diluxone_users_update_option( 'diluxone_users_membership', 'click' );
-		$user = $this->make_user();
-
-		// Without the nonce.
-		switch_to_blog( $this->alpha );
-		wp_set_current_user( $user );
-		$_REQUEST = array( '_wpnonce' => 'nope' );
-		$this->assertTrue( $this->dies( 'diluxone_users_join_request' ), 'no nonce, no join' );
-		restore_current_blog();
-		$this->assertFalse( is_user_member_of_blog( $user, $this->alpha ) );
-
-		// Under "by invitation" and "every site", pressing it does nothing.
-		foreach ( array( 'invite', 'all' ) as $policy ) {
-			diluxone_users_update_option( 'diluxone_users_membership', $policy );
-			$this->assertSame( 'join-refused', $this->redirectState( $this->press_join( $this->alpha, $user ) ), $policy );
-			$this->assertFalse( is_user_member_of_blog( $user, $this->alpha ), $policy );
-		}
-
-		// Nobody signed in: to the sign-in.
-		diluxone_users_update_option( 'diluxone_users_membership', 'click' );
-		switch_to_blog( $this->alpha );
-		wp_set_current_user( 0 );
-		$landed = $this->expectRedirect( 'diluxone_users_join_request' );
-		$this->assertSame( strtok( diluxone_users_login_url(), '?' ), strtok( $landed, '?' ) );
-		restore_current_blog();
-
-		// A site that takes nobody.
-		$archived = $this->site( 'author', array( 'archived' => 1 ) );
-		$this->assertSame( 'join-refused', $this->redirectState( $this->press_join( $archived, $user ) ) );
-		$this->assertFalse( is_user_member_of_blog( $user, $archived ) );
-	}
-
 	public function test_under_invite_the_site_says_it_is_by_invitation(): void {
 		$this->network_only();
 
@@ -1273,6 +1203,110 @@ class MembershipTest extends IntegrationTestCase {
 		diluxone_users_join_notice();
 		$this->assertSame( '', (string) ob_get_clean(), 'said once on the page, the other way round' );
 		$_GET = array();
+		restore_current_blog();
+	}
+
+	/**
+	 * A way to join an add-on offers: its state, its box and its menu link,
+	 * through the plugin's seams; left undrawn, the site is by invitation.
+	 */
+	public function test_an_add_ons_way_to_join_is_its_state_box_and_link(): void {
+		$this->network_only();
+
+		diluxone_users_update_option( 'diluxone_users_membership', 'click' );
+		$user = $this->make_user();
+
+		$this->hook(
+			'diluxone_users_join_state',
+			static fn( string $state, string $policy ): string => 'click' === $policy ? 'Click' : $state,
+			10,
+			2
+		);
+
+		switch_to_blog( $this->alpha );
+		wp_set_current_user( $user );
+
+		$this->assertSame( 'click', diluxone_users_join_state(), 'the add-on\'s, cleaned' );
+		$this->assertStringContainsString( 'data-diluxone-users-join="invite"', diluxone_users_shortcode_join(), 'with no box of its own, by invitation' );
+
+		$this->hook( 'diluxone_users_join_box', static fn( string $box, string $state, bool $notice ): string => '<p id="addon-join" data-state="' . $state . '" data-notice="' . ( $notice ? '1' : '0' ) . '">Join</p>', 10, 3 );
+		diluxone_users_join_drawn( false );
+
+		$this->assertSame( '<p id="addon-join" data-state="click" data-notice="0">Join</p>', diluxone_users_shortcode_join() );
+		restore_current_blog();
+
+		// Under "every site" nobody asks it: there is nothing to do.
+		diluxone_users_update_option( 'diluxone_users_membership', 'all' );
+		switch_to_blog( $this->alpha );
+		$this->assertSame( '', diluxone_users_join_state() );
+		restore_current_blog();
+
+		// Taken off the site by an administrator: by invitation, whatever the add-on says.
+		diluxone_users_update_option( 'diluxone_users_membership', 'click' );
+		update_user_meta( $user, DILUXONE_USERS_MEMBERSHIP_REMOVED, array( $this->alpha ) );
+		switch_to_blog( $this->alpha );
+		$this->assertSame( 'invite', diluxone_users_join_state() );
+		restore_current_blog();
+		$_GET = array();
+	}
+
+	/** The menu carries the add-on's link to join, or says the site is by invitation. */
+	public function test_the_menu_draws_an_add_ons_link_to_join(): void {
+		$this->network_only();
+
+		diluxone_users_update_option( 'diluxone_users_membership', 'click' );
+		$user = $this->make_user();
+		$this->hook( 'diluxone_users_join_state', static fn(): string => 'click' );
+
+		switch_to_blog( $this->alpha );
+		wp_set_current_user( $user );
+
+		$menu = wp_create_nav_menu( 'Join test menu ' . wp_generate_password( 4, false ) );
+		$this->assertIsInt( $menu );
+		set_theme_mod( 'nav_menu_locations', array( 'join-test' => $menu ) );
+		diluxone_users_update_option( 'diluxone_users_menu_location', 'join-test' );
+
+		$titles = static function () use ( $menu ): array {
+			$items = diluxone_users_menu_items( array(), (object) array( 'menu' => get_term( $menu, 'nav_menu' ) ) );
+
+			return array_map( static fn( $item ): string => wp_strip_all_tags( (string) $item->title ) . ' ' . (string) $item->url, $items );
+		};
+
+		$said = implode( '|', $titles() );
+		$this->assertStringContainsString( 'This site is by invitation', $said, 'no link of its own: by invitation' );
+
+		$this->hook(
+			'diluxone_users_join_link',
+			static fn( array $link, string $state ): array => array(
+				'label' => 'Join <b>' . $state . '</b>',
+				'url'   => 'https://example.test/join',
+			),
+			10,
+			2
+		);
+
+		$said = implode( '|', $titles() );
+		$this->assertStringContainsString( 'Join &lt;b&gt;click&lt;/b&gt; https://example.test/join', $said, 'its label is text' );
+		$this->assertStringNotContainsString( 'This site is by invitation', $said );
+
+		wp_delete_nav_menu( $menu );
+		restore_current_blog();
+	}
+
+	/** Without the add-on that offers it, a stored "whoever asks" is the hub only, and the site is by invitation. */
+	public function test_a_policy_nothing_offers_is_by_invitation(): void {
+		$this->network_only();
+
+		remove_all_filters( 'diluxone_users_membership_policies' );
+		diluxone_users_update_option( 'diluxone_users_membership', 'click' );
+		$user = $this->make_user();
+
+		$this->assertSame( array( 'all' ), diluxone_users_membership_policies() );
+		$this->assertSame( 'hub', diluxone_users_membership() );
+
+		switch_to_blog( $this->alpha );
+		wp_set_current_user( $user );
+		$this->assertSame( 'invite', diluxone_users_join_state() );
 		restore_current_blog();
 	}
 
@@ -1500,56 +1534,5 @@ class MembershipTest extends IntegrationTestCase {
 		$this->assertFalse( is_user_member_of_blog( $spam, $site ), 'a new site does not take them' );
 		$this->assertSame( array(), array_filter( $this->added, static fn( array $one ): bool => $spam === $one['user'] ) );
 		$this->assertNotContains( $spam, array_map( 'intval', (array) diluxone_users_membership_people( 0, 100000 ) ) );
-	}
-
-	/** "Join this site" goes back where it was pressed, on this site, and never anywhere else. */
-	public function test_joining_goes_back_to_the_page_and_never_off_the_site(): void {
-		$this->network_only();
-
-		diluxone_users_update_option( 'diluxone_users_membership', 'click' );
-		$user = $this->make_user();
-
-		$_SERVER['HTTP_REFERER'] = 'https://evil.test/x';
-		$landed                  = $this->press_join( $this->alpha, $user );
-
-		$this->assertStringStartsWith( get_home_url( $this->alpha, '/' ), $landed );
-		$this->assertSame( 'joined', $this->redirectState( $landed ) );
-
-		$user2                   = $this->make_user();
-		$_SERVER['HTTP_REFERER'] = get_home_url( $this->alpha, '/p/?diluxone-users=join' );
-		$landed                  = $this->press_join( $this->alpha, $user2 );
-
-		$this->assertSame( get_home_url( $this->alpha, '/p/?diluxone-users=joined' ), $landed, 'one answer in the address, the new one' );
-	}
-
-	/**
-	 * A forged "Join this site" does nothing for whoever the policy keeps
-	 * out: somebody an administrator took off it, a super admin, an existing
-	 * member (whose role stays), a closed account.
-	 */
-	public function test_a_forged_join_changes_nothing_for_those_it_does_not_apply_to(): void {
-		$this->network_only();
-
-		diluxone_users_update_option( 'diluxone_users_membership', 'click' );
-
-		$removed = $this->make_user();
-		add_user_to_blog( $this->alpha, $removed, 'subscriber' );
-		remove_user_from_blog( $removed, $this->alpha );
-
-		$super  = $this->super_admin();
-		$editor = $this->make_user();
-		add_user_to_blog( $this->alpha, $editor, 'editor' );
-		$closed = $this->make_user();
-		update_user_meta( $closed, 'diluxone_users_closed', time() );
-		$this->added = array();
-
-		foreach ( array( $removed, $super, $editor, $closed ) as $who ) {
-			$this->assertSame( 'join-refused', $this->redirectState( $this->press_join( $this->alpha, $who ) ), (string) $who );
-		}
-
-		$this->assertFalse( is_user_member_of_blog( $removed, $this->alpha ) );
-		$this->assertSame( 'editor', $this->role_on( $editor, $this->alpha ), 'the member keeps their role' );
-		$this->assertFalse( is_user_member_of_blog( $closed, $this->alpha ) );
-		$this->assertSame( array(), $this->added, 'nobody was added' );
 	}
 }

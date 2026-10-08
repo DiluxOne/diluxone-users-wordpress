@@ -44,13 +44,9 @@ test('the doors on Access › Ways in are this site’s to switch', async ({ pag
 	await page.goto(adminUrl('diluxone-users-login', 'ways'));
 
 	await expect(page.locator('input[name="diluxone_users_sso_login"]')).toBeEnabled();
-	await expect(page.locator('input[name="diluxone_users_passkey_enabled"]')).toBeEnabled();
 });
 
-test('Security › Passkeys and Social login › Rules do not repeat the switches Access has', async ({ page }) => {
-	await page.goto(adminUrl('diluxone-users-security', 'passkeys'));
-	await expect(page.locator('input[name="diluxone_users_passkey_enabled"]')).toHaveCount(0);
-
+test('Social login › Rules does not repeat the switch Access has', async ({ page }) => {
 	await page.goto(adminUrl('diluxone-users-social', 'general'));
 	await expect(page.locator('input[name="diluxone_users_sso_login"]')).toHaveCount(0);
 });

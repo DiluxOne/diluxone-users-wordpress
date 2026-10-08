@@ -3,7 +3,7 @@
  * Where each screen lives on a network, and the screens the network has.
  *
  * On a network the settings stopped being one site's. Who gets in and how
- * safely — the second step, passkeys, sessions, the proxy, the social
+ * safely — the second step, sessions, the proxy, the social
  * credentials, the fields a person has, what the log keeps — is one decision
  * for every site, because the person it is about is one person on every site
  * and the session they open reaches all of them. A site administrator cannot
@@ -398,7 +398,7 @@ function diluxone_users_screen_network_overview(): void {
 			diluxone_users_ui_note(
 				__( 'What a site can no longer change', 'diluxone-users' ),
 				array(
-					__( 'The second step, passkeys, how long a session lasts, the proxy, the social sign-in apps and their rules, the fields a person has and what the log keeps. A site administrator does not see these screens, and nothing sent to their own site writes them.', 'diluxone-users' ),
+					__( 'The second step, how long a session lasts, the proxy, the social sign-in apps and their rules, the fields a person has and what the log keeps. A site administrator does not see these screens, and nothing sent to their own site writes them.', 'diluxone-users' ),
 					__( 'What fits into each site’s theme is still that site’s: where the account link goes in its menus, its admin bar and its dashboard profile.', 'diluxone-users' ),
 				)
 			);
@@ -588,7 +588,7 @@ function diluxone_users_network_uninstall_save(): void {
 function diluxone_users_screen_network_uninstall(): void {
 	diluxone_users_ui_aside_open();
 
-	diluxone_users_intro( __( 'By default, deleting the plugin removes nothing. The settings stay, every site’s activity log stays, and so does everything in people’s profiles — their details, their public names, their passkeys and their second factors. A plugin deleted by accident, or deleted to be installed again, should not be what loses somebody their account.', 'diluxone-users' ) );
+	diluxone_users_intro( __( 'By default, deleting the plugin removes nothing. The settings stay, every site’s activity log stays, and so does everything in people’s profiles — their details, their public names, the ways in they set up and their second factors. A plugin deleted by accident, or deleted to be installed again, should not be what loses somebody their account.', 'diluxone-users' ) );
 
 	diluxone_users_ui_choices(
 		array(

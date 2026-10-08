@@ -2,7 +2,7 @@
 /**
  * The second-factor screen.
  *
- * Deliberately its own file, next to auth.php and auth-totp.php: the second
+ * Deliberately its own file, next to auth.php: the second
  * factor is one feature and it lives in one place, so it can be moved, turned
  * off or replaced without editing a screen that belongs to something else.
  *
@@ -72,10 +72,6 @@ function diluxone_users_2fa_methods_offered(): array {
 				'label' => __( 'A code by email', 'diluxone-users' ),
 				'help'  => __( 'Six digits to the address on the account. Nothing to install, which is why it is the one people actually turn on.', 'diluxone-users' ),
 			),
-			'totp'  => array(
-				'label' => __( 'An authenticator app', 'diluxone-users' ),
-				'help'  => __( 'Six digits that change every thirty seconds, from Google Authenticator, 1Password or Aegis. The stronger one: the code never travels.', 'diluxone-users' ),
-			),
 		)
 	);
 }
@@ -105,7 +101,6 @@ function diluxone_users_2fa_save(): bool {
 	// that is not running now is not one this screen drew, so it is not one
 	// it can take away — and it sends no code today, so it answers nothing.
 	$kept = diluxone_users_unknown_entries( (array) diluxone_users_raw_get( 'diluxone_users_2fa_methods', array() ), array_keys( diluxone_users_2fa_methods_offered() ) );
-	$days = ( isset( $_POST['diluxone_users_2fa_remember_days'] ) && is_scalar( $_POST['diluxone_users_2fa_remember_days'] ) ? absint( wp_unslash( $_POST['diluxone_users_2fa_remember_days'] ) ) : 30 );
 
 	/*
 	 * Off is the one mode where none of them is an answer: nothing is asked,
@@ -131,14 +126,10 @@ function diluxone_users_2fa_save(): bool {
 	}
 
 	diluxone_users_save_options(
-		array_merge(
-			diluxone_users_scope_posted( 'diluxone_users_2fa', DILUXONE_USERS_SECURITY ),
-			array(
-				'diluxone_users_2fa_mode'          => $mode,
-				'diluxone_users_2fa_methods'       => array_values( array_unique( array_merge( $methods, $kept ) ) ),
-				'diluxone_users_2fa_link'          => $link,
-				'diluxone_users_2fa_remember_days' => $days,
-			)
+		array(
+			'diluxone_users_2fa_mode'    => $mode,
+			'diluxone_users_2fa_methods' => array_values( array_unique( array_merge( $methods, $kept ) ) ),
+			'diluxone_users_2fa_link'    => $link,
 		)
 	);
 
@@ -276,9 +267,16 @@ function diluxone_users_screen_login_2fa(): void {
 		);
 	}
 
-	diluxone_users_ui_field_open( __( 'To whom', 'diluxone-users' ) );
-	diluxone_users_scope_control( 'diluxone_users_2fa' );
-	diluxone_users_ui_field_close( __( 'Asking only the roles that can change things is the usual middle ground: the second step where the friction is worth it.', 'diluxone-users' ) );
+	diluxone_users_ui_pro_card(
+		array(
+			'where'  => 'security/2fa/roles',
+			'screen' => 'security-2fa',
+			'title'  => __( 'Only some roles', 'diluxone-users' ),
+			'text'   => __( 'Users+ Pro asks the second step of the roles you choose — the ones that can change things — and not of everybody with an account.', 'diluxone-users' ),
+		)
+	);
+
+	diluxone_users_2fa_screen_place( 'who' );
 
 	diluxone_users_ui_section( __( 'With what', 'diluxone-users' ) );
 
@@ -297,7 +295,7 @@ function diluxone_users_screen_login_2fa(): void {
 
 	// Kept by the save, so shown: ticked, switched off, after the real ones.
 	foreach ( diluxone_users_unknown_entries( (array) diluxone_users_raw_get( 'diluxone_users_2fa_methods', array() ), array_keys( $all ) ) as $key ) {
-		$cards[] = diluxone_users_ui_kept( 'diluxone_users_2fa_methods[]', $key, __( 'no code from it', 'diluxone-users' ), 'checkbox' );
+		$cards[] = diluxone_users_ui_kept( 'diluxone_users_2fa_methods[]', $key, __( 'no code from it, and the code by email in its place when nothing else is ticked', 'diluxone-users' ), 'checkbox' );
 	}
 
 	/*
@@ -314,6 +312,17 @@ function diluxone_users_screen_login_2fa(): void {
 			'is'   => array( 'optional', 'required' ),
 		)
 	);
+
+	diluxone_users_ui_pro_card(
+		array(
+			'where'  => 'security/2fa/app',
+			'screen' => 'security-2fa',
+			'title'  => __( 'An authenticator app', 'diluxone-users' ),
+			'text'   => __( 'Users+ Pro adds the six digits that change every thirty seconds, from Google Authenticator, 1Password or Aegis: the code never travels, so it is asked on the e-mail link too.', 'diluxone-users' ),
+		)
+	);
+
+	diluxone_users_2fa_screen_place( 'methods' );
 
 	diluxone_users_ui_section(
 		__( 'Asking it of somebody who came in by link', 'diluxone-users' ),
@@ -354,21 +363,16 @@ function diluxone_users_screen_login_2fa(): void {
 		)
 	);
 
-	diluxone_users_ui_section(
-		__( 'Remembering a browser', 'diluxone-users' ),
-		__( 'A signed cookie, no more: it does not let anybody in, it only saves repeating the step on a browser that already passed it.', 'diluxone-users' )
-	);
-
-	diluxone_users_ui_number(
+	diluxone_users_ui_pro_card(
 		array(
-			'label'  => __( 'For how long', 'diluxone-users' ),
-			'name'   => 'diluxone_users_2fa_remember_days',
-			'value'  => (string) diluxone_users_option( 'diluxone_users_2fa_remember_days' ),
-			'suffix' => __( 'days', 'diluxone-users' ),
-			'min'    => 0,
-			'help'   => __( '0 to ask every time.', 'diluxone-users' ),
+			'where'  => 'security/2fa/remember',
+			'screen' => 'security-2fa',
+			'title'  => __( 'Remember a browser', 'diluxone-users' ),
+			'text'   => __( 'Users+ Pro lets people skip the second step for a few days on a browser that already passed it, with a signed cookie that lets nobody in on its own.', 'diluxone-users' ),
 		)
 	);
+
+	diluxone_users_2fa_screen_place( 'end' );
 
 	/*
 	 * What the three answers above come to is worth saying and is not a
@@ -408,29 +412,41 @@ function diluxone_users_screen_login_2fa(): void {
 }
 
 /**
+ * A place on the tab where an add-on draws settings of its own.
+ *
+ * `who` under the three answers (who it is asked of), `methods` under the
+ * methods, `end` after the e-mail link's rule. What it draws is saved with
+ * the tab: it listens on `diluxone_users_panel_saved` for this screen and the
+ * `2fa` tab.
+ */
+function diluxone_users_2fa_screen_place( string $place ): void {
+	/**
+	 * Fires at a place of the Two-step verification tab.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param string $place 'who', 'methods' or 'end'.
+	 */
+	do_action( 'diluxone_users_2fa_screen', $place );
+}
+
+/**
  * Who the second step reaches, in words.
  *
- * The control is two settings — all, or a list of roles — and the summary has
- * to say the result in a line. "Some roles" with nothing ticked reaches
- * nobody, and it says so: that is a site that thinks it asks for a code and
- * does not.
+ * Everybody with an account, as far as the plugin goes. An add-on that
+ * narrows it says the result in its own line through `diluxone_users_2fa_who`,
+ * and an empty answer is a site that reaches nobody — one that thinks it asks
+ * for a code and does not — which the summary says out loud.
  */
 function diluxone_users_2fa_who(): string {
-	if ( 'all' === diluxone_users_scope( 'diluxone_users_2fa' ) ) {
-		return __( 'everybody with an account', 'diluxone-users' );
-	}
-
-	$names = wp_roles()->get_names();
-	$roles = array();
-
-	foreach ( (array) diluxone_users_option( 'diluxone_users_2fa_roles' ) as $role ) {
-		$role    = (string) $role;
-		$roles[] = translate_user_role( (string) ( $names[ $role ] ?? $role ) );
-	}
-
-	return array() === $roles
-		? __( 'nobody: it is set to some roles and none of them is ticked', 'diluxone-users' )
-		: implode( ', ', $roles );
+	/**
+	 * Filters who the second step reaches, in a line of the summary.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param string $who A list of roles or "everybody with an account"; '' for nobody.
+	 */
+	return (string) apply_filters( 'diluxone_users_2fa_who', __( 'everybody with an account', 'diluxone-users' ) );
 }
 
 /**
@@ -449,7 +465,8 @@ function diluxone_users_2fa_summary_rows( array $rows ): array {
 	$mode    = (string) diluxone_users_option( 'diluxone_users_2fa_mode' );
 	$on      = 'off' !== $mode;
 	$who     = diluxone_users_2fa_who();
-	$none    = 'some' === diluxone_users_scope( 'diluxone_users_2fa' ) && array() === (array) diluxone_users_option( 'diluxone_users_2fa_roles' );
+	$none    = '' === $who;
+	$who     = $none ? __( 'nobody: none of the roles it is meant for is ticked', 'diluxone-users' ) : $who;
 	$nowhere = '' === diluxone_users_2fa_surface();
 	$today   = diluxone_users_2fa_link_today();
 	$tab     = diluxone_users_admin_url( DILUXONE_USERS_SECURITY, array( 'tab' => '2fa' ) );

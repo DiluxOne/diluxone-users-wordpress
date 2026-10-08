@@ -48,7 +48,6 @@ body:
         - Registration and password reset
         - Social login
         - Two-step verification
-        - Passkeys
         - Sessions
         - Privacy (export and erasure)
         - Notifications and e-mails

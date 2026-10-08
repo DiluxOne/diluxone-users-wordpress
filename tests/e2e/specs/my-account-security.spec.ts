@@ -1,12 +1,11 @@
 import { Browser, Page } from '@playwright/test';
 import { test, expect, expectSignedIn, expectSignedOut } from '../support/fixtures';
-import { Site, codeIn, freshEmail, waitForMail } from '../support/api';
-import { accountSection, challengeCode, challengeScreen, notice, openAllPanels, openPanel, signInWithPassword } from '../support/ui';
-import { avoidWindowEdge, totp } from '../support/totp';
+import { Site, codeIn, waitForMail } from '../support/api';
+import { accountSection, challengeScreen, notice, openAllPanels, signInWithPassword } from '../support/ui';
 import { PASSWORD, anotherBrowser, formOf, nonceOf, postByHand, reveal, send, signedIn } from '../support/my-account';
 
 /**
- * Notifications, the list of sessions, the second step and the passkeys, as
+ * Notifications, the list of sessions and the second step, as
  * the person whose account it is — and, where it matters, as somebody else
  * trying to reach into it.
  *
@@ -17,16 +16,12 @@ import { PASSWORD, anotherBrowser, formOf, nonceOf, postByHand, reveal, send, si
  * different from each other, never by a sentence.
  */
 
-const SECRET = 'JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP';
-
 test.beforeEach(async ({ options }) => {
 	await options.set({
 		diluxone_users_fields: [{ key: 'first_name', label: 'First name', type: 'text', required: 0, active: 1, group: 'main', edit: 'always' }],
 		diluxone_users_login_method: 'both',
 		diluxone_users_2fa_mode: 'optional',
-		diluxone_users_2fa_methods: ['email', 'totp'],
-		diluxone_users_2fa_scope: 'all',
-		diluxone_users_2fa_remember_days: 30,
+		diluxone_users_2fa_methods: ['email'],
 		diluxone_users_notice_rules: {},
 		diluxone_users_sessions_show: 1,
 	});
@@ -209,43 +204,6 @@ test.describe('Sessions', () => {
 		await expectSignedOut(other);
 		await other.context().close();
 	});
-
-	test('“close the others” also forgets the browsers trusted to skip the second step', async ({ page, browser, baseURL, site, pages }) => {
-		const email = freshEmail('s-trust');
-
-		await site.makeUser({ email, password: PASSWORD, meta: { diluxone_users_totp: SECRET, diluxone_users_2fa_on: 1 } });
-
-		// One browser, trusted.
-		const trusted = await device(browser, baseURL, 'E2E-Trusted Chrome/1');
-
-		await trusted.goto(pages.login.url);
-		await signInWithPassword(trusted, email, PASSWORD);
-		await expect(challengeScreen(trusted)).toBeVisible();
-		await avoidWindowEdge();
-		await challengeCode(trusted).fill(totp(SECRET));
-		await trusted.locator('input[name="diluxone_users_2fa_trust"]').check();
-		await trusted.locator('form.diluxone-users-form button[type="submit"]').first().click();
-		await expectSignedIn(trusted, email);
-
-		// Another one, signed in with the next code, closes the others.
-		await page.goto(pages.login.url);
-		await signInWithPassword(page, email, PASSWORD);
-		await expect(challengeScreen(page)).toBeVisible();
-		await challengeCode(page).fill(totp(SECRET, Date.now() + 30_000));
-		await page.locator('form.diluxone-users-form button[type="submit"]').first().click();
-		await expectSignedIn(page, email);
-
-		await page.goto(accountSection(pages.account.url, 'security'));
-		await reveal(page, 'form.diluxone-users-sessions__all');
-		expect(await send(page, page.locator('form.diluxone-users-sessions__all button[type="submit"]'))).toBe('sessions');
-		await expectSignedOut(trusted);
-
-		// The trusted browser, back with its cookie: asked again.
-		await trusted.goto(pages.login.url);
-		await signInWithPassword(trusted, email, PASSWORD);
-		await expect(challengeScreen(trusted), 'the trust went with the sessions').toBeVisible();
-		await trusted.context().close();
-	});
 });
 
 test.describe('Two-step verification', () => {
@@ -265,37 +223,17 @@ test.describe('Two-step verification', () => {
 		expect(await password.innerText()).not.toBe(withPassword);
 	});
 
-	test('a wrong app code does not set the app up', async ({ page, site, pages }) => {
-		const { email } = await signedIn(page, site, pages.login.url, 't-bad');
-
-		await page.goto(accountSection(pages.account.url, 'security'));
-		await reveal(page, '#diluxone-users-totp-code');
-		await page.locator('#diluxone-users-totp-code').fill('000000');
-		expect(await send(page, page.locator('form:has(input[name="diluxone_users_security"][value="totp"]) button[type="submit"]'))).toBe('badcode');
-		await expect(notice(page, 'error').first()).toBeVisible();
-
-		const after = await site.user(email);
-
-		expect(after.meta.diluxone_users_totp).toBe('');
-		expect(after.meta.diluxone_users_2fa_on).toBe('');
-	});
-
-	test('the app set up and removed with a live code; each change is mailed, and the backup codes are shown only once', async ({
+	test('turned on, renewed and turned off with an e-mailed code; each change is mailed, and the backup codes are shown only once', async ({
 		page,
 		site,
 		pages,
 	}) => {
-		const { email } = await signedIn(page, site, pages.login.url, 't-app');
-
-		await page.goto(accountSection(pages.account.url, 'security'));
-		await reveal(page, '.diluxone-users-totp__key');
-
-		const secret = (await page.locator('.diluxone-users-totp__key').innerText()).replace(/\s+/g, '');
+		const { email } = await signedIn(page, site, pages.login.url, 't-cycle');
 
 		await site.clearMail();
-		await avoidWindowEdge();
-		await page.locator('#diluxone-users-totp-code').fill(totp(secret));
-		expect(await send(page, page.locator('form:has(input[name="diluxone_users_security"][value="totp"]) button[type="submit"]'))).toBe('totp');
+		await page.goto(accountSection(pages.account.url, 'security'));
+		await reveal(page, 'button[name="diluxone_users_security"][value="on"]');
+		expect(await send(page, twoStep(page, 'on'))).toBe('on');
 
 		const codes = page.locator('.diluxone-users-backup__list code');
 
@@ -307,25 +245,12 @@ test.describe('Two-step verification', () => {
 		await reveal(page, 'button[name="diluxone_users_security"][value="backup"]');
 		await expect(twoStep(page, 'backup')).toContainText(String(handed));
 
-		const setUp = await noticesFor(site, email);
-
-		expect(setUp.length, 'setting the app up is mailed').toBe(1);
+		expect((await noticesFor(site, email)).length, 'turning it on is mailed').toBe(1);
 
 		await page.reload();
 		await expect(codes, 'shown once: gone on reload').toHaveCount(0);
 
-		// Removed with the next code the app shows, not a backup code.
-		await reveal(page, '#diluxone-users-totp-off-code');
-		await page.locator('#diluxone-users-totp-off-code').fill(totp(secret, Date.now() + 30_000));
-		expect(await send(page, twoStep(page, 'totp_off'))).toBe('totpoff');
-		expect((await site.user(email)).meta.diluxone_users_totp).toBe('');
-
-		const removed = await noticesFor(site, email);
-
-		expect(removed.length, 'removing it is mailed too').toBe(2);
-		expect(removed[1].body, 'a different message from the set-up one').not.toBe(removed[0].body);
-
-		// And off, with a code by e-mail: a third message, different again.
+		// Off, with a code by e-mail: a second message, different from the first.
 		await reveal(page, 'button[name="diluxone_users_security"][value="code"]');
 
 		const asked = Date.now() / 1000;
@@ -340,8 +265,9 @@ test.describe('Two-step verification', () => {
 
 		const off = await noticesFor(site, email);
 
-		expect(off.length).toBe(3);
-		expect(new Set(off.map((one) => one.body)).size, 'three changes, three different messages').toBe(3);
+		expect(off.length).toBe(2);
+		expect(new Set(off.map((one) => one.body)).size, 'two changes, two different messages').toBe(2);
+		await expect(page.locator('.diluxone-users-totp__key'), 'and no app without Users+ Pro').toHaveCount(0);
 	});
 
 	test('the e-mail method that is ready is named, with turning on', async ({ page, site, pages, options }) => {
@@ -383,7 +309,7 @@ test.describe('Two-step verification', () => {
 		await expect(challengeScreen(page)).toBeVisible();
 	});
 
-	test('not offered — the site switched it off, or the person’s role is left out — no panel, and an “on” posted anyway is refused', async ({
+	test('not offered — the site switched it off — no panel, and an “on” posted anyway is refused', async ({
 		page,
 		site,
 		pages,
@@ -395,26 +321,20 @@ test.describe('Two-step verification', () => {
 
 		const nonce = await nonceOf(page, 'diluxone_users_security');
 
-		for (const rule of [{ diluxone_users_2fa_mode: 'off' }, { diluxone_users_2fa_mode: 'optional', diluxone_users_2fa_scope: 'some', diluxone_users_2fa_roles: ['editor'] }]) {
-			await options.set(rule);
-			await page.goto(accountSection(pages.account.url, 'security'));
-			await expect(twoStep(page, 'on'), JSON.stringify(rule)).toHaveCount(0);
-			await expect(page.locator('#diluxone-users-totp-code'), JSON.stringify(rule)).toHaveCount(0);
+		await options.set({ diluxone_users_2fa_mode: 'off' });
+		await page.goto(accountSection(pages.account.url, 'security'));
+		await expect(twoStep(page, 'on')).toHaveCount(0);
 
-			for (const action of ['on', 'totp']) {
-				const answer = await postByHand(page, { action: 'diluxone_users_security', _wpnonce: nonce, diluxone_users_security: action, diluxone_users_code: '123456' });
+		const answer = await postByHand(page, { action: 'diluxone_users_security', _wpnonce: nonce, diluxone_users_security: 'on', diluxone_users_code: '123456' });
 
-				expect(answer.state, `${action} under ${JSON.stringify(rule)}`).toBe('notoffered');
-			}
-
-			expect((await site.user(email)).meta.diluxone_users_2fa_on).toBe('');
-		}
+		expect(answer.state).toBe('notoffered');
+		expect((await site.user(email)).meta.diluxone_users_2fa_on).toBe('');
 	});
 
-	test('with only the app offered and no app set up, turning it on says to set one up first', async ({ page, site, pages, options }) => {
+	test('with only Users+ Pro’s app stored and Pro off, turning it on works: the e-mail code stands in', async ({ page, site, pages, options }) => {
 		await options.set({ diluxone_users_2fa_methods: ['totp'] });
 
-		const { email } = await signedIn(page, site, pages.login.url, 't-nomethod');
+		const { email } = await signedIn(page, site, pages.login.url, 't-appgone');
 
 		await page.goto(accountSection(pages.account.url, 'security'));
 
@@ -424,40 +344,8 @@ test.describe('Two-step verification', () => {
 			diluxone_users_security: 'on',
 		});
 
-		expect(answer.state).toBe('nomethod');
-		expect((await site.user(email)).meta.diluxone_users_2fa_on).toBe('');
-	});
-
-	test('turning it off forgets the browsers trusted to skip it', async ({ page, site, pages }) => {
-		const email = freshEmail('t-forget');
-
-		await site.makeUser({ email, password: PASSWORD, meta: { diluxone_users_2fa_on: 1 } });
-
-		// In, trusting this browser, with a code by e-mail.
-		await page.goto(pages.login.url);
-		await signInWithPassword(page, email, PASSWORD);
-		await expect(challengeScreen(page)).toBeVisible();
-		await challengeCode(page).fill(codeIn(await waitForMail(site, email)));
-		await page.locator('input[name="diluxone_users_2fa_trust"]').check();
-		await page.locator('form.diluxone-users-form button[type="submit"]').first().click();
-		await expectSignedIn(page, email);
-
-		// Off, with a code, and on again.
-		await site.clearMail();
-		await page.goto(accountSection(pages.account.url, 'security'));
-		await reveal(page, 'button[name="diluxone_users_security"][value="code"]');
-		expect(await send(page, twoStep(page, 'code'))).toBe('codesent');
-		await reveal(page, '#diluxone-users-reauth-code');
-		await page.locator('#diluxone-users-reauth-code').fill(codeIn(await waitForMail(site, email)));
-		expect(await send(page, twoStep(page, 'off'))).toBe('off');
-		await reveal(page, 'button[name="diluxone_users_security"][value="on"]');
-		expect(await send(page, twoStep(page, 'on'))).toBe('on');
-
-		// Out, keeping the trust cookie, and back: asked again.
-		await page.context().clearCookies({ name: /^wordpress/ });
-		await page.goto(pages.login.url);
-		await signInWithPassword(page, email, PASSWORD);
-		await expect(challengeScreen(page), 'the trusted browser was forgotten').toBeVisible();
+		expect(answer.state).toBe('on');
+		expect((await site.user(email)).meta.diluxone_users_2fa_on).toBe('1');
 	});
 
 	test('with the e-mail link a way in, the panel says where the second step is asked', async ({ page, site, pages, options }) => {
@@ -487,116 +375,28 @@ test.describe('Two-step verification', () => {
 	});
 });
 
-test.describe('Passkeys', () => {
-	test.skip(({ browserName }) => browserName !== 'chromium', 'the virtual authenticator is a Chromium protocol');
-
-	const VIRTUAL_KEY = {
-		protocol: 'ctap2' as const,
-		transport: 'internal' as const,
-		hasResidentKey: true,
-		hasUserVerification: true,
-		isUserVerified: true,
-		automaticPresenceSimulation: true,
-	};
-
-	test.beforeEach(async ({ options }) => {
-		await options.set({
-			diluxone_users_passkey_enabled: 1,
-			diluxone_users_passkey_where: 'any',
-			diluxone_users_passkey_verify: 1,
-		});
-	});
-
-	/** A key in this browser, registered from the account. */
-	async function register(page: Page, accountUrl: string, label: string): Promise<void> {
-		const cdp = await page.context().newCDPSession(page);
-
-		await cdp.send('WebAuthn.enable', { enableUI: false });
-		await cdp.send('WebAuthn.addVirtualAuthenticator', { options: VIRTUAL_KEY });
-
-		await page.goto(accountSection(accountUrl, 'security'));
-
-		const panel = await openPanel(page, '[data-diluxone-users-passkey="register"]');
-
-		await panel.locator('[data-diluxone-users-passkey-label]').fill(label);
-		await panel.locator('[data-diluxone-users-passkey="register"]').click();
-		await expect(page.locator('input[name="diluxone_users_passkey_label"]').first()).toHaveValue(label, { timeout: 20_000 });
-	}
-
-	test('with passkeys off on the site, the account has no passkey panel', async ({ page, site, pages, options }) => {
-		await options.set({ diluxone_users_passkey_enabled: 0 });
-		await signedIn(page, site, pages.login.url, 'pk-off');
-
+/*
+ * Passkeys are Users+ Pro's. Without it, the place an add-on draws its panel
+ * in — between how somebody gets in and the second step — holds nothing,
+ * and nothing on the section offers or names a passkey.
+ */
+test.describe('Without an add-on', () => {
+	test('the second step comes right after “How you get in”, and there is no passkey anywhere on the section', async ({ page, site, pages }) => {
+		await signedIn(page, site, pages.login.url, 'no-addon');
 		await page.goto(accountSection(pages.account.url, 'security'));
-		await expect(page.locator('[data-diluxone-users-passkey="register"]')).toHaveCount(0);
-	});
 
-	test('adding and removing a key are each mailed, and the removal is said on the page', async ({ page, site, pages }) => {
-		const { email } = await signedIn(page, site, pages.login.url, 'pk-mail');
+		const howIn = page.locator('details.diluxone-users-panel').filter({ has: page.locator('.diluxone-users-data') });
 
-		await site.clearMail();
-		await register(page, pages.account.url, 'E2E laptop');
+		await expect(howIn).toHaveCount(1);
 
-		expect((await noticesFor(site, email)).length, 'adding a key is mailed').toBe(1);
+		const next = howIn.locator('xpath=following-sibling::*[1]');
 
+		await expect(next, 'the panel after it is the second step').toHaveClass(/diluxone-users-panel/);
+		await expect(next.locator('input[name="action"][value="diluxone_users_security"]').first()).toBeAttached();
+
+		await expect(page.locator('[data-diluxone-users-passkey]')).toHaveCount(0);
+		await expect(page.locator('input[name^="diluxone_users_passkey"]')).toHaveCount(0);
 		await openAllPanels(page);
-		expect(await send(page, page.locator('button[name="diluxone_users_passkey_do"][value="delete"]').first())).toBe('passkeyoff');
-		await expect(notice(page, 'ok').first()).toBeVisible();
-		await expect(page.locator('input[name="diluxone_users_passkey_label"]')).toHaveCount(0);
-
-		const mails = await noticesFor(site, email);
-
-		expect(mails.length, 'removing it is mailed').toBe(2);
-		expect(mails[1].body).not.toBe(mails[0].body);
-	});
-
-	test('the same authenticator a second time is refused on the page, without a reload', async ({ page, site, pages }) => {
-		await signedIn(page, site, pages.login.url, 'pk-twice');
-		await register(page, pages.account.url, 'Only one');
-
-		const panel = await openPanel(page, '[data-diluxone-users-passkey="register"]');
-		const url = page.url();
-
-		await panel.locator('[data-diluxone-users-passkey="register"]').click();
-
-		const said = page.locator('[data-diluxone-users-passkey-notice]');
-
-		await expect(said).toBeVisible({ timeout: 20_000 });
-		await expect(said).toHaveClass(/diluxone-users-notice--error/);
-		expect(page.url()).toBe(url);
-		await expect(page.locator('input[name="diluxone_users_passkey_label"]'), 'still one key').toHaveCount(1);
-	});
-
-	test('a key of another account can be neither renamed nor removed, and nobody is mailed', async ({ page, browser, baseURL, site, pages }) => {
-		const { email: owner } = await signedIn(page, site, pages.login.url, 'pk-owner');
-
-		await register(page, pages.account.url, 'Owner key');
-
-		const theirs = await page.locator('input[name="diluxone_users_passkey"]').first().inputValue();
-
-		const context = await browser.newContext({ baseURL, storageState: undefined });
-		const stranger = await context.newPage();
-		const { email: other } = await signedIn(stranger, site, pages.login.url, 'pk-stranger');
-
-		await register(stranger, pages.account.url, 'Stranger key');
-		await site.clearMail();
-
-		const nonce = await nonceOf(stranger, 'diluxone_users_passkey');
-
-		await postByHand(stranger, { action: 'diluxone_users_passkey', _wpnonce: nonce, diluxone_users_passkey: theirs, diluxone_users_passkey_do: 'rename', diluxone_users_passkey_label: 'Stolen' });
-
-		const removed = await postByHand(stranger, { action: 'diluxone_users_passkey', _wpnonce: nonce, diluxone_users_passkey: theirs, diluxone_users_passkey_do: 'delete' });
-
-		expect(removed.state).not.toBe('passkeyoff');
-
-		await page.reload();
-		await expect(page.locator('input[name="diluxone_users_passkey_label"]'), 'the owner keeps the key, with its name').toHaveValue('Owner key');
-		await stranger.reload();
-		await expect(stranger.locator('input[name="diluxone_users_passkey_label"]'), 'and the stranger keeps theirs').toHaveValue('Stranger key');
-
-		expect(await site.mail(owner)).toEqual([]);
-		expect(await site.mail(other)).toEqual([]);
-		await context.close();
+		await expect(page.locator('.diluxone-users-account__section, main').first()).not.toContainText(/passkey/i);
 	});
 });
-

@@ -53,7 +53,6 @@ import { ADMIN_STATE } from '../../../playwright.config';
 test.use({ storageState: ADMIN_STATE });
 
 const PASSWORD = 'e2e-Refusals-1!';
-const TOTP = 'JBSWY3DPEHPK3PXP';
 
 /** The fields the details form saves, pinned so the site's own list decides nothing here. */
 const FIELDS = [
@@ -108,8 +107,7 @@ test.beforeAll(async ({ browser }, info) => {
 		role: 'administrator',
 		meta: {
 			session_tokens: { ...token(VICTIM_TOKEN), ...token('e2e2'.repeat(16)) },
-			diluxone_users_totp: TOTP,
-			diluxone_users_passkeys: [{ id: 'e2e-victim-key', label: 'Theirs', public: '', alg: -7, sign: 0 }],
+			diluxone_users_sso_google: 'g-victim',
 		},
 	});
 
@@ -121,7 +119,6 @@ test.beforeAll(async ({ browser }, info) => {
 		meta: {
 			first_name: 'Before',
 			session_tokens: token(SUBSCRIBER_TOKEN),
-			diluxone_users_passkeys: [{ id: 'e2e-refusal-key', label: 'Before', public: '', alg: -7, sign: 0 }],
 			diluxone_users_sso_mock: 'e2e-linked',
 			diluxone_users_avatar: 999999,
 		},
@@ -183,7 +180,6 @@ const SUBSCRIBER_META = [
 	'diluxone_users_notify_login',
 	'diluxone_users_notify_security',
 	'diluxone_users_2fa_on',
-	'diluxone_users_passkeys',
 	'diluxone_users_sso_mock',
 ];
 
@@ -197,7 +193,7 @@ async function subscriberState(w: World): Promise<unknown> {
 
 async function victimState(w: World): Promise<unknown> {
 	return {
-		meta: await metaOf(w.door, w.victim.email, ['diluxone_users_totp', 'diluxone_users_passkeys']),
+		meta: await metaOf(w.door, w.victim.email, ['diluxone_users_sso_google']),
 		sessions: (await w.site.user(w.victim.email)).sessions,
 		mail: await mails(w, w.victim.email),
 	};
@@ -309,42 +305,6 @@ const ROWS: Row[] = [
 		probe: async (w) => ({ mine: await subscriberState(w), theirs: await victimState(w) }),
 	},
 	{
-		id: 'a passkey removed (admin_post_diluxone_users_passkey, delete)',
-		method: 'POST',
-		url: () => ADMIN_POST,
-		fields: () => ({ action: 'diluxone_users_passkey', diluxone_users_passkey: 'e2e-refusal-key', diluxone_users_passkey_do: 'delete' }),
-		nonce: { field: '_wpnonce', action: 'diluxone_users_passkey' },
-		actor: 'subscriber',
-		// (e): the victim's key, from the subscriber's own form: back to the
-		// security section with no notice, nothing removed, nobody mailed.
-		other: { fields: () => ({ action: 'diluxone_users_passkey', diluxone_users_passkey: 'e2e-victim-key', diluxone_users_passkey_do: 'delete' }) },
-		expect: { ...FRONT, 'as somebody else': { status: 302, to: /\/security\/?$/ } },
-		probe: async (w) => ({ mine: await subscriberState(w), theirs: await victimState(w) }),
-	},
-	{
-		id: 'a passkey renamed (admin_post_diluxone_users_passkey, rename)',
-		method: 'POST',
-		url: () => ADMIN_POST,
-		fields: () => ({
-			action: 'diluxone_users_passkey',
-			diluxone_users_passkey: 'e2e-refusal-key',
-			diluxone_users_passkey_do: 'rename',
-			diluxone_users_passkey_label: 'Hacked',
-		}),
-		nonce: { field: '_wpnonce', action: 'diluxone_users_passkey' },
-		actor: 'subscriber',
-		other: {
-			fields: () => ({
-				action: 'diluxone_users_passkey',
-				diluxone_users_passkey: 'e2e-victim-key',
-				diluxone_users_passkey_do: 'rename',
-				diluxone_users_passkey_label: 'Hacked',
-			}),
-		},
-		expect: { ...FRONT, 'as somebody else': { state: 'passkeyname' } },
-		probe: async (w) => ({ mine: await subscriberState(w), theirs: await victimState(w) }),
-	},
-	{
 		id: 'a copy of my data asked for (admin_post_diluxone_users_data_request)',
 		method: 'POST',
 		url: () => ADMIN_POST,
@@ -401,72 +361,6 @@ const ROWS: Row[] = [
 		probe: subscriberState,
 		leaks: (answer) => expect(answer.body, 'whether a name is taken is not told').not.toContain('"free"'),
 	},
-	{
-		id: 'a passkey registered: its options (wp_ajax_diluxone_users_passkeys, register-options)',
-		method: 'POST',
-		url: () => ADMIN_AJAX,
-		fields: () => ({ action: 'diluxone_users_passkeys', step: 'register-options' }),
-		nonce: { field: 'nonce', action: 'diluxone_users_passkeys' },
-		actor: 'subscriber',
-		// The guest carries a nonce valid for a stranger — the one the
-		// sign-in page hands out — and is still refused: registering needs a
-		// session.
-		expect: { 'no nonce': { status: 403 }, 'forged nonce': { status: 403 }, 'signed out': { status: 403 } },
-		prepare: async (options) => options.set({ diluxone_users_passkey_enabled: 1 }),
-		probe: subscriberState,
-		leaks: (answer) => expect(answer.body, 'no challenge handed out').not.toContain('challenge'),
-	},
-	{
-		id: 'a passkey registered: the key (wp_ajax_diluxone_users_passkeys, register)',
-		method: 'POST',
-		url: () => ADMIN_AJAX,
-		fields: () => ({
-			action: 'diluxone_users_passkeys',
-			step: 'register',
-			id: 'aGFja2Vk',
-			publicKey: 'aGFja2Vk',
-			clientDataJSON: 'e30',
-			authenticatorData: 'aGFja2Vk',
-			algorithm: '-7',
-			label: 'Hacked',
-		}),
-		nonce: { field: 'nonce', action: 'diluxone_users_passkeys' },
-		actor: 'subscriber',
-		expect: { 'no nonce': { status: 403 }, 'forged nonce': { status: 403 }, 'signed out': { status: 403 } },
-		prepare: async (options) => options.set({ diluxone_users_passkey_enabled: 1 }),
-		probe: subscriberState,
-	},
-	{
-		id: 'a passkey sign-in: the challenge (wp_ajax_nopriv_diluxone_users_passkeys, login-options)',
-		method: 'POST',
-		url: () => ADMIN_AJAX,
-		fields: () => ({ action: 'diluxone_users_passkeys', step: 'login-options' }),
-		nonce: { field: 'nonce', action: 'diluxone_users_passkeys' },
-		actor: 'guest',
-		expect: { 'no nonce': { status: 403 }, 'forged nonce': { status: 403 } },
-		prepare: async (options) => options.set({ diluxone_users_passkey_enabled: 1 }),
-		probe: subscriberState,
-		leaks: (answer) => expect(answer.body, 'no challenge handed out').not.toContain('challenge'),
-	},
-	{
-		id: 'a passkey sign-in: the assertion (wp_ajax_nopriv_diluxone_users_passkeys, login)',
-		method: 'POST',
-		url: () => ADMIN_AJAX,
-		fields: () => ({
-			action: 'diluxone_users_passkeys',
-			step: 'login',
-			id: 'ZTJlLXJlZnVzYWwta2V5',
-			clientDataJSON: 'e30',
-			authenticatorData: 'aGFja2Vk',
-			signature: 'aGFja2Vk',
-		}),
-		nonce: { field: 'nonce', action: 'diluxone_users_passkeys' },
-		actor: 'guest',
-		expect: { 'no nonce': { status: 403 }, 'forged nonce': { status: 403 } },
-		prepare: async (options) => options.set({ diluxone_users_passkey_enabled: 1 }),
-		probe: subscriberState,
-		leaks: (answer) => expect(answer.body, 'no session handed out').not.toContain('"success":true'),
-	},
 
 	/* ── The public forms with a nonce of their own (nopriv) ───────── */
 	{
@@ -501,7 +395,7 @@ const ROWS: Row[] = [
 		probe: subscriberState,
 	},
 	{
-		id: '"Join this site" on a single site (admin_post_diluxone_users_join is a network’s only)',
+		id: '"Join this site" on a single site (admin_post_diluxone_users_join is Users+ Pro’s, and a network’s only)',
 		method: 'POST',
 		url: () => ADMIN_POST,
 		fields: () => ({ action: 'diluxone_users_join' }),
@@ -820,7 +714,7 @@ const ROWS: Row[] = [
 		leaks: (answer) => expect(answer.body, 'the stored secret is never printed').not.toContain('e2e-secret'),
 	},
 	{
-		id: 'Users › Edit user: the plugin’s block, a second factor removed (user-edit.php)',
+		id: 'Users › Edit user: the plugin’s block, a network unlinked (user-edit.php)',
 		method: 'POST',
 		url: () => '/wp-admin/user-edit.php',
 		fields: (w) => ({
@@ -828,8 +722,7 @@ const ROWS: Row[] = [
 			user_id: String(w.victim.id),
 			email: w.victim.email,
 			nickname: 'victim',
-			diluxone_users_forget_totp: '1',
-			'diluxone_users_forget_passkey[]': 'e2e-victim-key',
+			'diluxone_users_unlink[]': 'google',
 		}),
 		nonce: { field: '_wpnonce', action: (w) => `update-user_${w.victim.id}` },
 		actor: 'admin',
@@ -986,7 +879,6 @@ const PANELS: PanelRow[] = [
 	{ screen: 'diluxone-users-login', tab: 'register', change: { diluxone_users_register_form: '1' }, options: ['diluxone_users_register_form', 'diluxone_users_login_register'] },
 	{ screen: 'diluxone-users-login', tab: 'messages', change: { 'diluxone_users_message[login_error]': 'Hacked' }, options: ['diluxone_users_login_messages'] },
 	{ screen: 'diluxone-users-security', tab: '2fa', change: { diluxone_users_2fa_mode: 'off' }, options: ['diluxone_users_2fa_mode', 'diluxone_users_2fa_methods'] },
-	{ screen: 'diluxone-users-security', tab: 'passkeys', change: { diluxone_users_passkey_where: 'device' }, options: ['diluxone_users_passkey_where', 'diluxone_users_passkey_verify'] },
 	{ screen: 'diluxone-users-security', tab: 'sessions', change: { diluxone_users_session_long_days: '99' }, options: ['diluxone_users_session_long_days', 'diluxone_users_sessions_show'] },
 	{ screen: 'diluxone-users-security', tab: 'proxy', change: { diluxone_users_trusted_proxies: '10.9.9.9' }, options: ['diluxone_users_trusted_proxies', 'diluxone_users_ip_header'] },
 	{ screen: 'diluxone-users-reports', tab: 'logging', change: { diluxone_users_log_days: '7' }, options: ['diluxone_users_log_days', 'diluxone_users_log_levels'] },

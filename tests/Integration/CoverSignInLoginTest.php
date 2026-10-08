@@ -347,82 +347,15 @@ class CoverSignInLoginTest extends IntegrationTestCase {
 		$this->set(
 			array(
 				'diluxone_users_login_template' => 'card',
-				'diluxone_users_login_image'    => $this->image( 'card' ),
+				'diluxone_users_login_logo'     => $this->image( 'card' ),
 			)
 		);
 
 		$html = $this->frame();
 
-		$this->assertStringStartsWith( '<div class="diluxone-users-login-page"><div class="diluxone-users-login-frame diluxone-users-login-frame--card diluxone-users-login-frame--left">', $html );
+		$this->assertStringStartsWith( '<div class="diluxone-users-login-page"><div class="diluxone-users-login-frame diluxone-users-login-frame--card">', $html );
 		$this->assertStringNotContainsString( 'style=', $html );
 		$this->assertStringEndsWith( '<div class="diluxone-users-login-frame__box">FORM</div></div></div>', $html );
-	}
-
-	public function test_a_backdrop_carries_its_picture_as_a_property_on_the_side_chosen(): void {
-		$this->set(
-			array(
-				'diluxone_users_login_template' => 'backdrop',
-				'diluxone_users_login_side'     => 'right',
-				'diluxone_users_login_image'    => $this->image( 'backdrop' ),
-			)
-		);
-
-		$html = $this->frame();
-
-		$this->assertStringContainsString( 'diluxone-users-login-frame--right', $html );
-		$this->assertMatchesRegularExpression( '#style="--diluxone-users-login-image: url\([^)]*backdrop\.jpg\)"#', $html );
-		$this->assertStringNotContainsString( '__picture', $html );
-	}
-
-	public function test_a_split_with_nothing_written_is_a_picture_hidden_from_screen_readers(): void {
-		$this->set( array( 'diluxone_users_login_template' => 'split' ) );
-
-		$html = $this->frame();
-
-		$this->assertStringContainsString( '<div class="diluxone-users-login-frame__picture" aria-hidden="true"></div>', $html );
-		$this->assertStringNotContainsString( 'style=', $html );
-	}
-
-	public function test_a_split_with_words_draws_every_piece_escaped_over_the_picture(): void {
-		$this->set(
-			array(
-				'diluxone_users_login_template'     => 'split',
-				'diluxone_users_login_image'        => $this->image( 'split' ),
-				'diluxone_users_login_panel_logo'   => $this->image( 'mark' ),
-				'diluxone_users_login_panel_title'  => "First line\n\n  Second <em>line</em>  \r\n",
-				'diluxone_users_login_panel_text'   => '  Some text & more ',
-				'diluxone_users_login_panel_points' => "One\nTwo",
-				'diluxone_users_login_panel_foot'   => 'The foot',
-			)
-		);
-
-		$html = $this->frame();
-
-		$this->assertStringContainsString( 'diluxone-users-login-frame__picture diluxone-users-login-frame__picture--words diluxone-users-login-frame__picture--over">', $html );
-		$this->assertMatchesRegularExpression( '#<p class="diluxone-users-login-frame__mark"><img src="[^"]*mark\.jpg" alt="[^"]*"></p>#', $html );
-		$this->assertStringContainsString( '<h2 class="diluxone-users-login-frame__title"><span>First line</span><span>Second &lt;em&gt;line&lt;/em&gt;</span></h2>', $html );
-		$this->assertStringContainsString( '<p class="diluxone-users-login-frame__text">Some text &amp; more</p>', $html );
-		$this->assertStringContainsString( '<ul class="diluxone-users-login-frame__points"><li>One</li><li>Two</li></ul>', $html );
-		$this->assertStringContainsString( '<p class="diluxone-users-login-frame__foot">The foot</p>', $html );
-		$this->assertStringNotContainsString( 'aria-hidden', $html );
-	}
-
-	public function test_a_split_with_words_and_no_picture_keeps_the_empty_rows(): void {
-		$this->set(
-			array(
-				'diluxone_users_login_template'    => 'split',
-				'diluxone_users_login_panel_text'  => 'Only text',
-			)
-		);
-
-		$html = $this->frame();
-
-		$this->assertStringContainsString( 'diluxone-users-login-frame__picture diluxone-users-login-frame__picture--words">', $html );
-		$this->assertStringNotContainsString( '__picture--over', $html );
-		// The mark's row and the foot's row are held by empty spans.
-		$this->assertSame( 2, substr_count( $html, '<span aria-hidden="true"></span>' ) );
-		$this->assertStringNotContainsString( '__title', $html );
-		$this->assertStringNotContainsString( '__points', $html );
 	}
 
 	public function test_the_site_s_mark_is_drawn_above_the_form_only_when_chosen(): void {

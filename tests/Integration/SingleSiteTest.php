@@ -153,13 +153,11 @@ class SingleSiteTest extends IntegrationTestCase {
 
 	/** "Only some roles" reaches whoever holds one of them here. */
 	public function test_a_chosen_role_puts_somebody_in_scope(): void {
-		diluxone_users_update_option( 'diluxone_users_2fa_mode', 'required' );
-		diluxone_users_update_option( 'diluxone_users_2fa_methods', array( 'email' ) );
-		diluxone_users_update_option( 'diluxone_users_2fa_scope', 'some' );
-		diluxone_users_update_option( 'diluxone_users_2fa_roles', array( 'administrator' ) );
+		diluxone_users_update_option( 'diluxone_users_sso_scope', 'some' );
+		diluxone_users_update_option( 'diluxone_users_sso_roles', array( 'administrator' ) );
 
-		$this->assertTrue( diluxone_users_2fa_required( $this->make_user( 'administrator' ), 'password' ) );
-		$this->assertFalse( diluxone_users_2fa_required( $this->make_user( 'subscriber' ), 'password' ) );
+		$this->assertTrue( diluxone_users_scope_includes( $this->make_user( 'administrator' ), 'diluxone_users_sso' ) );
+		$this->assertFalse( diluxone_users_scope_includes( $this->make_user( 'subscriber' ), 'diluxone_users_sso' ) );
 	}
 
 	/** Add New User takes the e-mail as the username, as every other door does. */
@@ -289,20 +287,16 @@ class SingleSiteTest extends IntegrationTestCase {
 	}
 
 	/**
-	 * Passkeys and social sign-in are switched on Access › Ways in: their own
-	 * tabs do not carry the switch, so saving them does not flip it.
+	 * Social sign-in is switched on Access › Ways in: its own tab does not
+	 * carry the switch, so saving it does not flip it.
 	 */
 	public function test_the_doors_are_switched_on_access_and_not_on_their_own_tabs(): void {
-		diluxone_users_update_option( 'diluxone_users_passkey_enabled', 0 );
 		diluxone_users_update_option( 'diluxone_users_sso_login', 1 );
 
-		$this->postPanel( DILUXONE_USERS_SECURITY, array( 'diluxone_users_passkey_enabled' => '1' ) );
-		diluxone_users_passkeys_settings_save();
 		$this->postPanel( 'diluxone-users-social', array() );
 		diluxone_users_social_rules_save();
 		$_POST = array();
 
-		$this->assertSame( 0, (int) diluxone_users_raw_get( 'diluxone_users_passkey_enabled' ) );
 		$this->assertSame( 1, (int) diluxone_users_raw_get( 'diluxone_users_sso_login' ) );
 	}
 

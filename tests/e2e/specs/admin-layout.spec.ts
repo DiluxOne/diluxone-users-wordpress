@@ -137,7 +137,7 @@ test.describe('The public pages hold together', () => {
 	});
 
 	test('the sign-in page in tabs, at every width', async ({ page, pages, options }) => {
-		await options.set({ diluxone_users_login_layout: 'tabs', diluxone_users_sso_login: 1, diluxone_users_passkey_enabled: 1 });
+		await options.set({ diluxone_users_login_layout: 'tabs', diluxone_users_sso_login: 1 });
 		await page.goto(pages.login.url);
 
 		await expectSoundLayout(page, FRONT_RULES, FRONT_WIDTHS);

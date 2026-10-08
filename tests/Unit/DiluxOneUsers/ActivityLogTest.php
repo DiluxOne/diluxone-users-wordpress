@@ -72,7 +72,7 @@ class ActivityLogTest extends TestCase {
 		$this->assertFalse( diluxone_users_log_records( 'email_changed' ) );
 		$this->assertFalse( diluxone_users_log_records( 'password_changed' ) );
 		$this->assertFalse( diluxone_users_log_records( '2fa_on' ) );
-		$this->assertFalse( diluxone_users_log_records( 'passkey_added' ) );
+		$this->assertFalse( diluxone_users_log_records( 'sessions_closed' ) );
 	}
 
 	public function test_each_group_opens_its_own_events_and_no_others(): void {

@@ -9,8 +9,7 @@ import { MOCK_ON } from '../support/signin';
  * The ways in on a phone, 390 pixels wide.
  *
  * The stylesheets change below 782, 640, 560 and 480 pixels and no other spec
- * draws anything that narrow: the split shape stacks and drops its picture,
- * the tab labels give way to their icons, two social buttons a row become one,
+ * draws anything that narrow: the card takes the width, the tab labels give way to their icons, two social buttons a row become one,
  * and the registration form, the second step and the reset screen have to fit.
  * Behaviour, not pictures: what is hidden, what is stacked, what still works,
  * and that nothing scrolls sideways.
@@ -27,34 +26,14 @@ async function fitsTheWidth(page: Page): Promise<void> {
 }
 
 test.describe('The sign-in page on a phone', () => {
-	test('the split shape stacks: no picture beside the form, the form as wide as the screen allows', async ({ page, pages, options }) => {
-		await options.set({ diluxone_users_login_template: 'split', diluxone_users_login_panel_title: '', diluxone_users_login_panel_text: '', diluxone_users_login_panel_points: '', diluxone_users_login_panel_foot: '' });
+	test('the card takes the width of the screen', async ({ page, pages, options }) => {
+		await options.set({ diluxone_users_login_template: 'card' });
 
-		// On a laptop the panel is there, beside the form.
-		await page.setViewportSize({ width: 1280, height: 900 });
 		await page.goto(pages.login.url);
-		await expect(page.locator('.diluxone-users-login-frame__picture')).toBeVisible();
-
-		await page.setViewportSize(PHONE);
-		await expect(page.locator('.diluxone-users-login-frame--split')).toBeVisible();
-		await expect(page.locator('.diluxone-users-login-frame__picture'), 'the picture is the first thing to go').toBeHidden();
+		await expect(page.locator('.diluxone-users-login-frame--card')).toBeVisible();
 
 		const box = await page.locator('.diluxone-users-login-frame__box').boundingBox();
-		expect(box!.width, 'the form takes the width, not half of it').toBeGreaterThan(PHONE.width * 0.8);
-		await fitsTheWidth(page);
-	});
-
-	test('the split shape with words on its panel keeps them, above the form', async ({ page, pages, options }) => {
-		await options.set({ diluxone_users_login_template: 'split', diluxone_users_login_panel_title: 'E2E one account', diluxone_users_login_panel_text: 'E2E no passwords' });
-
-		await page.goto(pages.login.url);
-
-		const words = page.locator('.diluxone-users-login-frame__picture--words');
-		await expect(words).toBeVisible();
-
-		const wordsBox = await words.boundingBox();
-		const formBox = await page.locator('.diluxone-users-login-frame__box').boundingBox();
-		expect(wordsBox!.y + wordsBox!.height, 'stacked above the form, not beside it').toBeLessThanOrEqual(formBox!.y + 1);
+		expect(box!.width, 'the form takes the width').toBeGreaterThan(PHONE.width * 0.8);
 		await fitsTheWidth(page);
 	});
 
@@ -62,7 +41,6 @@ test.describe('The sign-in page on a phone', () => {
 		await options.set({
 			diluxone_users_login_layout: 'tabs',
 			diluxone_users_login_method: 'both',
-			diluxone_users_passkey_enabled: 1,
 			diluxone_users_sso_login: 1,
 			diluxone_e2e_sso: 1,
 			diluxone_users_sso: MOCK_ON,
@@ -141,7 +119,7 @@ test.describe('The other screens of the ways in on a phone', () => {
 	});
 
 	test('the second step fits and holds together, and its code gets in', async ({ page, site, pages, options }) => {
-		await options.set({ diluxone_users_2fa_mode: 'required', diluxone_users_2fa_methods: ['email'], diluxone_users_2fa_remember_days: 30 });
+		await options.set({ diluxone_users_2fa_mode: 'required', diluxone_users_2fa_methods: ['email'] });
 
 		const email = freshEmail('phone-2fa');
 		await site.makeUser({ email, password: PASSWORD });

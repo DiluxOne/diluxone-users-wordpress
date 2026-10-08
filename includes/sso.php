@@ -284,7 +284,7 @@ function diluxone_users_sso_verified_claim( $claim ): ?bool {
 }
 
 /**
- * OpenID Connect (Google, Microsoft, LinkedIn, Yahoo, Twitch, GitLab): the
+ * OpenID Connect (Google, Microsoft, and any provider that speaks it): the
  * profile already comes with standard names.
  *
  * `email_verified` is a standard claim, and not every one of them sends it:
@@ -305,162 +305,6 @@ function diluxone_users_sso_map_oidc( array $data, string $token ): array {
 	);
 }
 
-/**
- * Facebook uses first_name / last_name.
- *
- * It sends no claim because it needs none: an e-mail only appears in the
- * profile once Facebook has confirmed it, and an unconfirmed one is left out.
- *
- * @param array<string, mixed> $data
- * @return array<string, mixed>
- */
-function diluxone_users_sso_map_facebook( array $data, string $token ): array {
-	$email = (string) ( $data['email'] ?? '' );
-
-	return array(
-		'id'        => (string) ( $data['id'] ?? '' ),
-		'email'     => $email,
-		'name'      => (string) ( $data['first_name'] ?? '' ),
-		'last_name' => (string) ( $data['last_name'] ?? '' ),
-		'verified'  => '' !== $email ? true : null,
-	);
-}
-
-/**
- * GitHub sends a single `name` field and hides the e-mail when it is private:
- * it has to be asked for separately, keeping the verified primary one.
- *
- * The list is always asked for and not only when the profile has no e-mail:
- * the one in the profile is the public address, which GitHub lets anybody
- * write and confirms nothing about. The list is the only place that says
- * which ones were confirmed.
- *
- * @param array<string, mixed> $data
- * @return array<string, mixed>
- */
-function diluxone_users_sso_map_github( array $data, string $token ): array {
-	$email    = '';
-	$verified = null;
-
-	foreach ( (array) diluxone_users_sso_get( 'https://api.github.com/user/emails', $token ) as $row ) {
-		if ( is_array( $row ) && ! empty( $row['primary'] ) && ! empty( $row['verified'] ) ) {
-			$email    = (string) $row['email'];
-			$verified = true;
-			break;
-		}
-	}
-
-	if ( '' === $email ) {
-		$email = (string) ( $data['email'] ?? '' );
-	}
-
-	return array_merge(
-		diluxone_users_sso_split_name( (string) ( $data['name'] ?? '' ) ),
-		array(
-			'id'       => (string) ( $data['id'] ?? '' ),
-			'email'    => $email,
-			'verified' => $verified,
-		)
-	);
-}
-
-/**
- * WordPress.com returns the profile under keys of its own.
- *
- * @param array<string, mixed> $data
- * @return array<string, mixed>
- */
-function diluxone_users_sso_map_wordpress( array $data, string $token ): array {
-	return array_merge(
-		diluxone_users_sso_split_name( (string) ( $data['display_name'] ?? '' ) ),
-		array(
-			'id'       => (string) ( $data['ID'] ?? '' ),
-			'email'    => (string) ( $data['email'] ?? '' ),
-			'verified' => diluxone_users_sso_verified_claim( $data['email_verified'] ?? null ),
-		)
-	);
-}
-
-/**
- * Discord: the e-mail only comes if the `email` scope was asked for.
- *
- * And it comes whether or not the person confirmed it — `verified` says
- * which. This is the provider that made the question unavoidable.
- *
- * @param array<string, mixed> $data
- * @return array<string, mixed>
- */
-function diluxone_users_sso_map_discord( array $data, string $token ): array {
-	return array_merge(
-		diluxone_users_sso_split_name( (string) ( $data['global_name'] ?? $data['username'] ?? '' ) ),
-		array(
-			'id'       => (string) ( $data['id'] ?? '' ),
-			'email'    => (string) ( $data['email'] ?? '' ),
-			'verified' => diluxone_users_sso_verified_claim( $data['verified'] ?? null ),
-		)
-	);
-}
-
-/**
- * Amazon: name / email / user_id.
- *
- * Login with Amazon only hands over the address of the Amazon account, which
- * Amazon confirmed before the account could be used.
- *
- * @param array<string, mixed> $data
- * @return array<string, mixed>
- */
-function diluxone_users_sso_map_amazon( array $data, string $token ): array {
-	$email = (string) ( $data['email'] ?? '' );
-
-	return array_merge(
-		diluxone_users_sso_split_name( (string) ( $data['name'] ?? '' ) ),
-		array(
-			'id'       => (string) ( $data['user_id'] ?? '' ),
-			'email'    => $email,
-			'verified' => '' !== $email ? true : null,
-		)
-	);
-}
-
-/**
- * X (Twitter) does not return the e-mail, no matter what scope it is asked for.
- *
- * It is left empty on purpose: the flow above knows what to do with that —
- * linking to an account that is already in is fine, creating a new account is
- * not, because the e-mail is the site's notion of identity.
- *
- * @param array<string, mixed> $data
- * @return array<string, mixed>
- */
-function diluxone_users_sso_map_twitter( array $data, string $token ): array {
-	$user = (array) ( $data['data'] ?? array() );
-
-	return array_merge(
-		diluxone_users_sso_split_name( (string) ( $user['name'] ?? '' ) ),
-		array(
-			'id'       => (string) ( $user['id'] ?? '' ),
-			'email'    => '',
-			'verified' => null,
-		)
-	);
-}
-
-/**
- * Splits a full name into first name and last name.
- *
- * @return array{name: string, last_name: string}
- */
-function diluxone_users_sso_split_name( string $full ): array {
-	$parts = preg_split( '/\s+/u', trim( $full ) );
-	$parts = is_array( $parts ) ? $parts : array();
-
-	return array(
-		'name'      => (string) ( $parts[0] ?? '' ),
-		'last_name' => trim( implode( ' ', array_slice( $parts, 1 ) ) ),
-	);
-}
-
 /* ── The round trip ────────────────────────────────────────────────── */
 
 /**
@@ -476,7 +320,7 @@ function diluxone_users_sso_get( string $url, string $token ): array {
 			'headers' => array(
 				'Authorization' => 'Bearer ' . $token,
 				'Accept'        => 'application/json',
-				// GitHub rejects requests with no user agent.
+				// Some providers' APIs refuse a request with no user agent.
 				'User-Agent'    => 'diluxone-users',
 			),
 		)
@@ -520,7 +364,7 @@ function diluxone_users_sso_authorize( string $id, array $provider, bool $test =
 
 	// PKCE: instead of the secret, the hash of a random value is sent, and the
 	// value itself is sent on the exchange. That way a code stolen on the way
-	// back is no use to anyone. X requires it; the rest do not mind.
+	// back is no use to anyone. Some providers require it; the rest do not mind.
 	$verifier = empty( $provider['pkce'] ) ? '' : wp_generate_password( 64, false, false );
 
 	if ( '' !== $verifier ) {
@@ -587,8 +431,9 @@ function diluxone_users_sso_token( string $id, array $provider, string $code, st
 
 	$headers = array( 'Accept' => 'application/json' );
 
-	// X wants the secret in Basic auth and not in the body.
-	if ( 'twitter' === $id ) {
+	// A provider whose row says `basic` wants the secret in an HTTP Basic
+	// header and not in the body.
+	if ( 'basic' === ( $provider['token_auth'] ?? 'post' ) ) {
 		$headers['Authorization'] = 'Basic ' . base64_encode( $credentials['id'] . ':' . $credentials['secret'] );
 		unset( $body['client_secret'] );
 	}
@@ -711,7 +556,7 @@ function diluxone_users_sso_user( string $id, array $identity ): int {
 
 	// The account already exists with that e-mail but without this network
 	// linked: it is the same person, and the network is added to it. That is
-	// what makes signing in with Google today and GitHub tomorrow one account.
+	// what makes signing in with Google today and Microsoft tomorrow one account.
 	if ( $known ) {
 		if ( ! diluxone_users_option( 'diluxone_users_sso_link_by_email' ) || ! diluxone_users_sso_email_trusted( $identity, true ) ) {
 			return 0;

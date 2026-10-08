@@ -1,6 +1,6 @@
 # DiluxOne Users+
 
-WordPress plugin for everything about the people who use a site: custom fields, a front-end account area, passwordless sign-in, social login, two-step verification, passkeys and session control, in one plugin that depends on no other.
+WordPress plugin for everything about the people who use a site: custom fields, a front-end account area, passwordless sign-in, social login, two-step verification and session control, in one plugin that depends on no other.
 
 [![License: GPL v2+](https://img.shields.io/badge/license-GPL--2.0--or--later-blue.svg)](LICENSE)
 
@@ -11,11 +11,10 @@ Sites where people have accounts: memberships, courses, communities, client area
 ## What it does
 
 - **User fields** defined from the dashboard: name, type, whether it is required, where it goes, and who can change it and how many times. The ones WordPress already has (first and last name) are in the same list and follow the same rules.
-- **An account area on the front end**: Home, Your details, Linked accounts, Security, Privacy and Notifications, with tabs on top or a menu down the side. Sections can be renamed, reordered, turned off and added; one of your own is a name, an address and a shortcode.
+- **An account area on the front end**: Home, Your details, Linked accounts, Security, Privacy and Notifications, with tabs on top or a menu down the side. Sections can be renamed, reordered and turned off, and take the site's own words or another plugin's shortcode before, after or instead of what they show.
 - **How people get in**: a link sent to their e-mail with no password at all, username and password, or both, with control over what happens to WordPress's own registration and profile screens.
-- **Social login** with twelve providers, a step-by-step guide for each console, buttons with the real brand marks, and a live test before you turn one on.
-- **Two-step verification**: a code by e-mail, an authenticator app with a QR code, and backup codes, with a policy per role and per way in.
-- **Passkeys** (WebAuthn), each one with a name of its own.
+- **Social login** with Google and Microsoft, a step-by-step guide for each console, buttons with the real brand marks, and a live test before you turn one on. Any other OAuth 2 provider is one filter away ([`docs/extending.md`](docs/extending.md#social-login-providers)); DiluxOne Users+ Pro adds ten more.
+- **Two-step verification**: a code by e-mail and backup codes, off, offered or required, and per way in. DiluxOne Users+ Pro adds an authenticator app, the step per role and remembered browsers.
 - **Sessions**: how long they last, where they are open and how to close them.
 - **Privacy**: the export and erasure requests WordPress already knows how to handle, put where people look for them.
 

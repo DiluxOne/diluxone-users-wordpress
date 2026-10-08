@@ -335,49 +335,37 @@ class CoverFieldsAccountTest extends IntegrationTestCase {
 		$this->assertStringContainsString( 'Edit profile', $html );
 		$this->assertStringContainsString( 'diluxone-users-account__bar', $html );
 		$this->assertStringContainsString( 'Hello, Ana', $html );
-		$this->assertStringNotContainsString( 'style="', substr( $html, 0, (int) strpos( $html, '>' ) ), 'A plain area carries no cover' );
+		$this->assertStringNotContainsString( 'style="', substr( $html, 0, (int) strpos( $html, '>' ) ), 'A plain area carries no properties of its own' );
 
 		$this->assertStringContainsString( 'diluxone-users-account__nav', diluxone_users_shortcode_account_nav() );
 	}
 
-	public function test_the_cover_without_a_header_and_with_the_menu_down_the_side(): void {
+	public function test_without_a_header_and_with_the_menu_down_the_side(): void {
 		$this->signed_in();
-		$picture = (int) wp_insert_attachment(
-			array(
-				'post_title'     => 'band',
-				'post_mime_type' => 'image/jpeg',
-				'post_status'    => 'inherit',
-			),
-			'2026/10/band.jpg'
-		);
 
-		diluxone_users_update_option( 'diluxone_users_account_template', 'cover' );
 		diluxone_users_update_option( 'diluxone_users_account_layout', 'side' );
 		diluxone_users_update_option( 'diluxone_users_account_header', 0 );
 		diluxone_users_update_option( 'diluxone_users_account_width', 'full' );
-		diluxone_users_update_option( 'diluxone_users_account_cover', '#123abc' );
-		diluxone_users_update_option( 'diluxone_users_account_cover_kind', 'dim' );
-
-		// A picture asked for and none chosen is the colour.
-		$this->assertSame( 'color', diluxone_users_account_cover_kind() );
-
-		diluxone_users_update_option( 'diluxone_users_account_cover_image', $picture );
-		$this->assertSame( 'dim', diluxone_users_account_cover_kind() );
 
 		$html = $this->area();
 
-		$this->assertStringContainsString( 'diluxone-users-account--side diluxone-users-account--cover diluxone-users-account--full', $html );
+		$this->assertStringContainsString( 'diluxone-users-account--side diluxone-users-account--plain diluxone-users-account--full', $html );
 		$this->assertStringContainsString( 'diluxone-users-account--bare', $html );
-		$this->assertStringContainsString( 'diluxone-users-account--cover-dim', $html );
-		$this->assertStringContainsString( '--diluxone-users-cover:#123abc;', $html );
-		$this->assertStringContainsString( '--diluxone-users-cover-image:url(', $html );
-		$this->assertStringContainsString( '2026/10/band.jpg', $html );
 		$this->assertStringNotContainsString( 'diluxone-users-account__header', $html );
 		$this->assertStringNotContainsString( 'diluxone-users-account__bar', $html );
 		$this->assertStringContainsString( 'diluxone-users-account__nav--column', $html, 'The menu sits in the body, down the side' );
 
-		diluxone_users_update_option( 'diluxone_users_account_cover_kind', 'image' );
-		$this->assertStringContainsString( 'diluxone-users-account--cover-image', $this->area() );
+		// A cover stored while Users+ Pro offered it is the simple area, with
+		// nothing of the cover on it.
+		diluxone_users_update_option( 'diluxone_users_account_template', 'cover' );
+		update_option( 'diluxone_users_account_cover', '#123abc' );
+
+		$html = $this->area();
+
+		$this->assertStringContainsString( 'diluxone-users-account--plain', $html );
+		$this->assertStringNotContainsString( 'diluxone-users-account--cover', $html );
+		$this->assertStringNotContainsString( '--diluxone-users-cover', $html );
+		delete_option( 'diluxone_users_account_cover' );
 	}
 
 	/* ── Notifications ───────────────────────────────────────────────── */
@@ -560,41 +548,52 @@ class CoverFieldsAccountTest extends IntegrationTestCase {
 	}
 
 	/** A section of the site's own that was deleted is gone at once, not at the next request. */
-	public function test_a_deleted_section_of_the_sites_own_is_gone_in_the_same_request(): void {
-		diluxone_users_update_option(
-			'diluxone_users_account_sections',
-			array(
-				'gone-soon' => array(
-					'label'  => 'Gone soon',
-					'custom' => true,
-				),
-			)
-		);
-		$this->assertArrayHasKey( 'gone-soon', diluxone_users_sections( true ) );
-
-		diluxone_users_update_option( 'diluxone_users_account_sections', array() );
-
-		$this->assertArrayNotHasKey( 'gone-soon', diluxone_users_sections( true ) );
-	}
-
-	/** What the site writes in a section of its own keeps its links and loses its scripts and handlers. */
-	public function test_a_sections_own_words_keep_links_and_lose_scripts(): void {
+	/** A section of the site's own stored, with nothing registering it, is not drawn: making and drawing them is an add-on's. */
+	public function test_a_section_of_the_sites_own_stored_is_not_drawn_without_its_add_on(): void {
 		$this->signed_in();
 		diluxone_users_update_option(
 			'diluxone_users_account_sections',
 			array(
-				'mine' => array(
-					'label'   => 'Mine',
+				'kept' => array(
+					'label'   => 'Kept',
 					'custom'  => true,
-					'slug'    => 'mine',
-					'content' => '<p>x</p><script>alert(1)</script><a onclick="x" href="javascript:y">l</a><a href="https://example.test/">ok</a>',
+					'content' => '<p>kept</p>',
 				),
 			)
 		);
 
-		ob_start();
-		diluxone_users_account_section_own( diluxone_users_sections()['mine'] );
-		$html = (string) ob_get_clean();
+		$this->assertArrayNotHasKey( 'kept', diluxone_users_sections( true ) );
+		$this->assertArrayNotHasKey( 'kept', diluxone_users_sections() );
+	}
+
+	/** What a section of the site's own carries keeps its links and loses its scripts and handlers. */
+	public function test_a_sections_own_words_keep_links_and_lose_scripts(): void {
+		$this->signed_in();
+		$this->hook(
+			'diluxone_users_register_sections',
+			static function (): void {
+				diluxone_users_register_section(
+					'mine',
+					array(
+						'label'   => 'Mine',
+						'custom'  => true,
+						'content' => '<p>x</p><script>alert(1)</script><a onclick="x" href="javascript:y">l</a><a href="https://example.test/">ok</a>',
+					)
+				);
+			},
+			10,
+			0
+		);
+
+		$registry = $GLOBALS['diluxone_users_sections'] ?? null;
+
+		try {
+			ob_start();
+			diluxone_users_account_section_own( diluxone_users_sections()['mine'] );
+			$html = (string) ob_get_clean();
+		} finally {
+			$GLOBALS['diluxone_users_sections'] = $registry;
+		}
 
 		$this->assertStringContainsString( '<p>x</p>', $html );
 		$this->assertStringContainsString( 'href="https://example.test/"', $html );

@@ -2,7 +2,7 @@
 /**
  * The plugin's own doors announce a sign-in the way WordPress does.
  *
- * The e-mail link, a social account and a passkey open the session without
+ * The e-mail link, a social account and an add-on's door open the session without
  * wp_signon(), so `wp_login` — the action half the plugins of a site listen
  * on — never fired for them. Now each fires it once, with the login and the
  * account, and the plugin's own listeners on it (the second step, the
@@ -88,10 +88,10 @@ class OwnDoorsWpLoginTest extends IntegrationTestCase {
 		$this->assertSame( '', diluxone_users_own_door(), 'The plugin\'s own listeners are back for the next password' );
 	}
 
-	public function test_a_passkey_fires_wp_login_once(): void {
-		// The passkey handler ends in this call once the signature is checked
-		// (diluxone_users_passkey_login()); the signature is PasskeyTest's.
-		diluxone_users_open_session( $this->user, 'passkey', true );
+	public function test_an_addons_door_fires_wp_login_once(): void {
+		// An add-on's way in ends in this call once it has proved who it is
+		// (Users+ Pro's passkeys, once the signature is checked).
+		diluxone_users_open_session( $this->user, 'addon', true );
 
 		$this->assertSame( $this->user, get_current_user_id() );
 		$this->assertCount( 1, $this->heard );
