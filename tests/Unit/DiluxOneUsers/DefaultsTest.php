@@ -111,15 +111,15 @@ class DefaultsTest extends TestCase {
 		$this->assertArrayNotHasKey( 'diluxone_users_network_hub', $before, 'a single site has no hub' );
 	}
 
-	/** On a network the hub is an old answer, and WordPress's registration form, which has no control there, is not. */
-	public function test_on_a_network_the_old_answers_have_the_hub_and_not_the_form(): void {
+	/** On a network the hub is an old answer too, beside the registration form's fields. */
+	public function test_on_a_network_the_old_answers_have_the_hub(): void {
 		$GLOBALS['_test_multisite'] = true;
 		Functions\when( 'diluxone_users_network_takes_accounts' )->justReturn( false );
 
 		$before = diluxone_users_defaults_before();
 
 		$this->assertSame( 1, $before['diluxone_users_network_hub'] );
-		$this->assertArrayNotHasKey( 'diluxone_users_wp_register_fields', $before );
+		$this->assertSame( 1, $before['diluxone_users_wp_register_fields'] );
 		$this->assertSame( 0, $before['diluxone_users_login_register'] );
 	}
 

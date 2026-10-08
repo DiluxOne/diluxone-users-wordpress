@@ -428,6 +428,7 @@ class CoverFieldsSaveTest extends IntegrationTestCase {
 	}
 
 	public function test_registration_with_our_fields_needs_their_nonce_and_every_required_one(): void {
+		diluxone_users_update_option( 'diluxone_users_wp_register_fields', 1 );
 		$this->define(
 			array(
 				$this->field( 'diluxone_test_city', 'text', array( 'required' => 1, 'label' => 'City' ) ),
@@ -455,6 +456,7 @@ class CoverFieldsSaveTest extends IntegrationTestCase {
 	}
 
 	public function test_the_registration_answers_are_saved_only_with_the_forms_nonce(): void {
+		diluxone_users_update_option( 'diluxone_users_wp_register_fields', 1 );
 		$this->define( array( $this->field( 'diluxone_test_city' ) ) );
 		$user = $this->make_user();
 

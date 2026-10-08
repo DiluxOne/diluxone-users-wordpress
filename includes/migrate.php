@@ -467,16 +467,13 @@ function diluxone_users_defaults_before(): array {
 		'diluxone_users_privacy_delete'      => 1,
 		'diluxone_users_avatar_upload'       => 1,
 		'diluxone_users_reset_ends_sessions' => 1,
+		'diluxone_users_wp_register_fields'  => 1,
 		'diluxone_users_login_register'      => (int) diluxone_users_takes_accounts_before(),
 		'diluxone_users_sso_register'        => (int) diluxone_users_takes_accounts_before(),
 	);
 
-	// WordPress's registration form takes the fields on a single site only:
-	// on a network it has no control, so nothing would ever turn it off.
 	if ( is_multisite() ) {
 		$before['diluxone_users_network_hub'] = 1;
-	} else {
-		$before['diluxone_users_wp_register_fields'] = 1;
 	}
 
 	return $before;
