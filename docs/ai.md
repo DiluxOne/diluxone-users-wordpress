@@ -8,7 +8,7 @@ The maintainer writes most changes with Claude Code, reads every diff, runs the 
 
 ## The review on every pull request
 
-Every pull request from a branch of this repository is reviewed by Claude, through the shared [`claude-review`](https://github.com/DiluxOne/.github/blob/main/.github/workflows/claude-review.yml) workflow in `DiluxOne/.github`. It runs after the conventions and the fast quality gates pass, so it never reviews code that does not build.
+Every pull request from a branch of this repository is reviewed by Claude, in the organisation's pipeline (`org-pull-request.yml` in `DiluxOne/.github`, required by its ruleset on every repository), after the conventions and the accepted-issue gate pass.
 
 - **What it reads:** the organisation's review profiles ([`general.md`](https://github.com/DiluxOne/.github/blob/main/review-profiles/general.md) and [`review-profile.md`](https://github.com/DiluxOne/.github/blob/main/kinds/wordpress-plugin/review-profile.md) of the `wordpress-plugin` pack, with the lessons of the wordpress.org review), this repository's [`docs/architecture.md`](architecture.md) and [`AGENTS.md`](../AGENTS.md), and the diff.
 - **What it does:** leaves one inline comment per blocker or major problem (minor ones stay in the summary), labels the pull request `risk:*`, `complexity:*` and `type:*`, and writes one summary comment with what the run cost. The check fails when it finds a blocking problem.
@@ -25,7 +25,7 @@ A pull request merges without a human only when all of these hold: the policy ha
 
 ## Issues
 
-When an issue opens, Claude classifies it from the README, `readme.txt` and the docs: a bug to reproduce, a report missing information, something that works as documented, a feature request, a usage question, a duplicate or a vulnerability posted in public. It applies one label and posts one reply; it never closes an issue, never promises a fix and never gives a date. A bug report with enough detail gets a reproduction attempt as a unit test under `tests/Unit/Repro/`, run on a runner with no secrets.
+When an issue opens, Claude classifies it from the README, `readme.txt`, the docs and the add-on's roadmap, which it reads and never quotes: a bug to reproduce, a report missing information, something that works as documented, a feature request (planned for the free plugin or not), a usage question, a duplicate or a vulnerability posted in public. It applies one label and posts one reply; it never closes an issue, never promises a fix and never gives a date. Nothing is worked on until the maintainer accepts the issue (the `accepted` label). When a maintainer labels a bug `repro:run`, it gets a reproduction attempt as a unit test under `tests/Unit/Repro/`, run in a container with no network and no secrets.
 
 ## What is never automated
 

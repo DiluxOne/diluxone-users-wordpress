@@ -61,7 +61,7 @@ The checkout is mounted as `wp-content/plugins/diluxone-users-wordpress/`; activ
 | [`docs/ai.md`](docs/ai.md) | How AI is used here, and the rules for AI-assisted contributions |
 | [`docs/release.md`](docs/release.md) | Versions, the first submission, and the release flow after it |
 | [`AGENTS.md`](AGENTS.md) | The short rules any coding agent must follow |
-| [`SECURITY.md`](SECURITY.md) | Private vulnerability reporting |
+| [DiluxOne security policy](https://github.com/DiluxOne/.github/blob/main/SECURITY.md) | Private vulnerability reporting |
 
 ## About
 

@@ -1,5 +1,32 @@
 # AGENTS.md
 
+<!-- dx:org:start (kept in step by DiluxOne/.github, scripts/sync-repos.py; edit it there) -->
+## The organisation's rules (the same in every DiluxOne repository)
+
+You are working in a DiluxOne repository. Whoever you work for (the
+maintainer, or someone contributing from a fork), these hold here, and the
+step-by-step flow with its commands is in
+[DiluxOne/.github, `docs/agents.md`](https://github.com/DiluxOne/.github/blob/main/docs/agents.md):
+
+1. **Nothing starts without an accepted issue.** Find the issue, or open one
+   with the form that fits (it sets the issue's Type: Bug, Feature, Docs or
+   Task), and wait until a maintainer adds the `accepted` label. Never add it
+   yourself. The pull request says `Closes #<number>`; CI fails it otherwise.
+2. **The pull request's type fits the issue's Type**: `feat` (or any `!`)
+   closes a Feature, `fix` a Bug; other types close any accepted issue.
+3. **Branch** `<type>/<number>-<short-kebab>`; **commit and title** as a
+   Conventional Commit of 72 characters or fewer (CI rejects more than 100);
+   bodies are plain paragraphs, never hard-wrapped; no `Claude-Session:`.
+4. **Check before the pull request** (`dx check`, or the repository's
+   `make pre-pr`) and open it (`dx pr`) only when the person you work for
+   says so.
+5. **Never** push to `main`, create or move a tag, or approve a release.
+6. **Say AI took part** with one line at the end of what you write on GitHub:
+   `🤖 AI-generated · <model> (<maker>)` when you wrote it,
+   `🤖 AI-assisted · <model> (<maker>)` when a person did with your help.
+   Never "Generated with …".
+<!-- dx:org:end -->
+
 Instructions for any coding agent working in this repository (Claude Code,
 Codex, Cursor, …). Humans: the same rules live in
 [`CONTRIBUTING.md`](CONTRIBUTING.md) and [`docs/ai.md`](docs/ai.md);
@@ -21,25 +48,10 @@ two it needs ([`docs/development.md`](docs/development.md#the-repository-name-is
 
 ## How work reaches `main`
 
-Only through a pull request, squash-merged. Nobody pushes to `main`, admins
-included. CI enforces every rule in this section (the shared `conventions`
-workflow from `DiluxOne/.github`) and a PR that breaks one cannot merge.
-
-- **Branch:** `<type>/<kebab-case>`, e.g. `fix/totp-replay-window`.
-- **PR title:** a Conventional Commit header, `type(scope): subject`, at most
-  100 characters, no trailing period. It becomes the commit on `main`.
-- **Every commit on the branch:** the same header format.
-- **Types:** `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`,
-  `build`, `ci`, `chore`, `revert`.
-- **Trailers:** `Co-Authored-By:` is fine. `Claude-Session:` and other
-  session links are rejected.
-- **Messages** say what the change does and why, not who or what wrote it.
-  The body is plain paragraphs, one line each, never hard-wrapped.
-- **PR description:** fill the template's "📝 What changes" and "💡 Why"
-  sections; CI fails when either is empty. It becomes the commit body.
-- **AI line:** end every PR, issue or comment you write with
-  `🤖 AI-generated · <model> (Anthropic)` (`AI-assisted` when a person wrote
-  it with your help). Never "Generated with …": CI rejects it.
+The organisation's block above holds: an accepted issue first, then a pull
+request, squash-merged. Nobody pushes to `main`, admins included. The
+organisation's pipeline enforces it (`org-pull-request.yml`, required by its
+ruleset) and this repository adds its own checks (`plugin-checks.yml`).
 
 ## Before you push
 
