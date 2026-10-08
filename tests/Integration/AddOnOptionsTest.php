@@ -54,6 +54,20 @@ class AddOnOptionsTest extends IntegrationTestCase {
 		$this->assertArrayNotHasKey( 'blogdescription', $defaults, 'a key outside the namespace is not the plugin’s' );
 	}
 
+	/** A callback of the defaults filter that reads a setting gets the plugin's own defaults, not an endless loop. */
+	public function test_a_callback_that_reads_a_setting_does_not_loop(): void {
+		$this->hook(
+			'diluxone_users_option_defaults',
+			static function ( array $defaults ): array {
+				$defaults['diluxone_users_addon_loop'] = diluxone_users_option( 'diluxone_users_login_method' );
+
+				return $defaults;
+			}
+		);
+
+		$this->assertContains( diluxone_users_option_defaults()['diluxone_users_addon_loop'], array( 'link', 'password', 'both' ), 'the setting, read once, and back' );
+	}
+
 	public function test_a_key_added_is_saved_and_one_outside_the_namespace_is_not(): void {
 		$before = get_option( 'blogdescription' );
 

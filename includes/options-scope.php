@@ -227,14 +227,22 @@ function diluxone_users_option_scopes(): array {
  * @param string $key Option name, with its prefix.
  */
 function diluxone_users_option_scope( string $key ): string {
-	$scope = diluxone_users_option_scopes()[ $key ] ?? 'site';
+	$own = diluxone_users_option_scopes();
+
+	// The plugin's own settings keep the scope written above: moved from
+	// outside, one would be read from a table it was never saved to.
+	if ( isset( $own[ $key ] ) ) {
+		return $own[ $key ];
+	}
+
+	$scope = 'site';
 
 	/**
 	 * Filters where one setting is stored on a network.
 	 *
 	 * An add-on that stores settings of its own through the plugin's helpers
-	 * gives them a scope here. Anything other than 'network', 'hub' or 'site'
-	 * is read as 'site'.
+	 * gives them a scope here; the plugin's own keep theirs. Anything other
+	 * than 'network', 'hub' or 'site' is read as 'site'.
 	 *
 	 * @since 1.0.0
 	 *

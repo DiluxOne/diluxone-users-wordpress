@@ -22,7 +22,17 @@ defined( 'ABSPATH' ) || exit;
  * @return array<string, mixed>
  */
 function diluxone_users_option_defaults(): array {
+	static $reading = false;
+
 	$defaults = diluxone_users_option_defaults_own();
+
+	// A callback of the filter below that reads a setting lands here again:
+	// it gets the plugin's own defaults instead of an endless loop.
+	if ( $reading ) {
+		return $defaults;
+	}
+
+	$reading = true;
 
 	/**
 	 * Filters the settings the plugin knows, with their defaults.
@@ -39,7 +49,11 @@ function diluxone_users_option_defaults(): array {
 	 *
 	 * @param array<string, mixed> $defaults Option name => default.
 	 */
-	$filtered = (array) apply_filters( 'diluxone_users_option_defaults', $defaults );
+	try {
+		$filtered = (array) apply_filters( 'diluxone_users_option_defaults', $defaults );
+	} finally {
+		$reading = false;
+	}
 
 	foreach ( $filtered as $key => $value ) {
 		if ( is_string( $key ) && 0 === strpos( $key, 'diluxone_users_' ) && ! array_key_exists( $key, $defaults ) ) {

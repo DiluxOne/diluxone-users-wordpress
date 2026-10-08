@@ -159,16 +159,23 @@ class OptionScopeTest extends IntegrationTestCase {
 		restore_current_blog();
 	}
 
-	public function test_the_scope_filter_is_heard_and_nonsense_is_the_site(): void {
+	public function test_the_scope_filter_is_heard_for_an_add_ons_keys_only_and_nonsense_is_the_site(): void {
+		$own = diluxone_users_option_scope( 'diluxone_users_login_title' );
+
 		add_filter(
 			'diluxone_users_option_scope',
-			static fn( string $scope, string $key ): string => 'diluxone_users_addon_thing' === $key ? 'network' : ( 'diluxone_users_login_title' === $key ? 'everywhere' : $scope ),
+			static fn( string $scope, string $key ): string => match ( $key ) {
+				'diluxone_users_addon_thing' => 'network',
+				'diluxone_users_addon_odd'   => 'everywhere',
+				default                      => 'network',
+			},
 			10,
 			2
 		);
 
 		$this->assertSame( 'network', diluxone_users_option_scope( 'diluxone_users_addon_thing' ) );
-		$this->assertSame( 'site', diluxone_users_option_scope( 'diluxone_users_login_title' ) );
+		$this->assertSame( 'site', diluxone_users_option_scope( 'diluxone_users_addon_odd' ) );
+		$this->assertSame( $own, diluxone_users_option_scope( 'diluxone_users_login_title' ), 'the plugin\'s own keep theirs' );
 	}
 
 	/** A network is always routed by scope: there is no per-site way to fall back to. */
