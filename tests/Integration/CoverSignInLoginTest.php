@@ -414,11 +414,11 @@ class CoverSignInLoginTest extends IntegrationTestCase {
 		$this->assertSame( home_url( '/welcome/?u=' . $user ), $this->expectRedirect( 'diluxone_users_login_consume' ) );
 	}
 
-	/** A way in nobody chose is both ways. */
-	public function test_a_way_in_nobody_chose_is_both(): void {
+	/** A way in nobody chose is WordPress's own, the password. */
+	public function test_a_way_in_nobody_chose_is_the_password(): void {
 		diluxone_users_update_option( 'diluxone_users_login_method', 'nonsense' );
 
-		$this->assertTrue( diluxone_users_login_has_link() );
+		$this->assertFalse( diluxone_users_login_has_link() );
 		$this->assertTrue( diluxone_users_login_has_password() );
 	}
 

@@ -79,6 +79,7 @@ function diluxone_users_network_moved_keys(): array {
 		'diluxone_users_log_moved',
 		'diluxone_users_log_moving',
 		'diluxone_users_log_kept',
+		DILUXONE_USERS_DEFAULTS_VERSION_OPTION,
 	);
 
 	return array_values(
@@ -98,7 +99,14 @@ function diluxone_users_network_secret_keys(): array {
 	return array( 'diluxone_users_sso' );
 }
 
-/** Whether the network's settings are already where they belong. */
+/**
+ * Whether the network's settings are already where they belong.
+ *
+ * A network that never ran an older version has nothing on its sites to
+ * move: settling its defaults records the move as done
+ * (diluxone_users_defaults_settle()). A single site that settled and is made a
+ * network later did not, and moves its settings like any other.
+ */
 function diluxone_users_network_migrated(): bool {
 	return (int) diluxone_users_raw_get( DILUXONE_USERS_NETWORK_VERSION_OPTION, 0 ) >= DILUXONE_USERS_NETWORK_VERSION;
 }
@@ -188,8 +196,15 @@ function diluxone_users_network_migrate_when_needed(): void {
 		return;
 	}
 
+	// A new install says so first, and then has nothing to move.
+	diluxone_users_defaults_settle();
+
 	diluxone_users_network_settings_when_needed();
 	diluxone_users_log_move_when_needed();
+
+	// An older install's defaults wait for both moves: written before them,
+	// they would stand in for the main site's own answers.
+	diluxone_users_defaults_settle();
 }
 add_action( 'init', 'diluxone_users_network_migrate_when_needed', 0 );
 
@@ -402,3 +417,133 @@ function diluxone_users_network_conflict( array $conflict ): void {
 
 	diluxone_users_update_option( DILUXONE_USERS_NETWORK_CONFLICTS, $all );
 }
+
+/* ── The defaults ──────────────────────────────────────────────────── */
+
+/*
+ * Activating the plugin changes nothing on the site: every feature starts off
+ * and waits for an administrator. Version 1.0.0 did not work that way — the
+ * activity log recorded every sign-in, the e-mail link was a way in, people
+ * were offered a second step, their sessions, their data and a photo of
+ * their own, and so on — and a site that has been running it never saved
+ * those answers, because they were the defaults. Changing the defaults under
+ * it would switch all of that off without anybody deciding to.
+ *
+ * So a site that ran the older version gets those answers written down, as
+ * its own, for every setting it never saved, and goes on exactly as it was.
+ * A site that never did starts on the defaults. One option says which of the
+ * two has happened; it is the only thing the plugin writes on its own
+ * account before an administrator saves anything.
+ */
+
+/** The defaults this install is on. Raised when a default changes again. */
+const DILUXONE_USERS_DEFAULTS_VERSION = 1;
+
+/** Which defaults the install has settled on. */
+const DILUXONE_USERS_DEFAULTS_VERSION_OPTION = 'diluxone_users_defaults_version';
+
+/** Whether this install has settled its defaults. */
+function diluxone_users_defaults_settled(): bool {
+	return (int) diluxone_users_raw_get( DILUXONE_USERS_DEFAULTS_VERSION_OPTION, 0 ) >= DILUXONE_USERS_DEFAULTS_VERSION;
+}
+
+/**
+ * What version 1.0.0 did without being asked, as settings.
+ *
+ * Every default that changed, with the value it had. The two doors to
+ * self-registration were seeded on activation from WordPress's own answer, so
+ * a site missing them gets that answer, as it would have then.
+ *
+ * @return array<string, mixed>
+ */
+function diluxone_users_defaults_before(): array {
+	$before = array(
+		'diluxone_users_login_method'        => 'both',
+		'diluxone_users_log_levels'          => array( 'access' ),
+		'diluxone_users_notice_rules'        => array(),
+		'diluxone_users_2fa_mode'            => 'optional',
+		'diluxone_users_sessions_show'       => 1,
+		'diluxone_users_privacy_export'      => 1,
+		'diluxone_users_privacy_delete'      => 1,
+		'diluxone_users_avatar_upload'       => 1,
+		'diluxone_users_reset_ends_sessions' => 1,
+		'diluxone_users_wp_register_fields'  => 1,
+		'diluxone_users_login_register'      => (int) diluxone_users_takes_accounts_before(),
+		'diluxone_users_sso_register'        => (int) diluxone_users_takes_accounts_before(),
+	);
+
+	if ( is_multisite() ) {
+		$before['diluxone_users_network_hub'] = 1;
+	}
+
+	return $before;
+}
+
+/** Whether WordPress lets people create their own accounts here. */
+function diluxone_users_takes_accounts_before(): bool {
+	return is_multisite() ? diluxone_users_network_takes_accounts() : (bool) get_option( 'users_can_register' );
+}
+
+/**
+ * Did an older version of the plugin run here?
+ *
+ * Version 1.0.0 wrote the list of fields and the log's table the moment it
+ * was activated, and nothing since does either before an administrator asks
+ * for it. On a network that has not moved its settings yet, they are still
+ * on the main site.
+ */
+function diluxone_users_ran_before(): bool {
+	$marks = array( 'diluxone_users_fields', 'diluxone_users_log_schema' );
+
+	foreach ( $marks as $mark ) {
+		if ( null !== diluxone_users_raw_get( $mark, null ) ) {
+			return true;
+		}
+
+		if ( diluxone_users_scoped_storage_active() && null !== get_blog_option( (int) get_main_site_id(), $mark, null ) ) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+/**
+ * Settles which defaults this install is on, once.
+ *
+ * A new install is on today's, and only says so. One that ran an older
+ * version gets that version's answers written for every setting it never
+ * saved — never over one it did — and, on a network, only once its settings
+ * and its log have moved to the network: until then the main site's own
+ * answers are not where this would look for them.
+ *
+ * Every step asks before it writes and the version goes last, so it can run
+ * on every request until it is done and does nothing after.
+ */
+function diluxone_users_defaults_settle(): void {
+	if ( diluxone_users_defaults_settled() ) {
+		return;
+	}
+
+	if ( ! diluxone_users_ran_before() ) {
+		// A new network has no site holding settings to move.
+		if ( diluxone_users_scoped_storage_active() ) {
+			diluxone_users_update_option( DILUXONE_USERS_NETWORK_VERSION_OPTION, DILUXONE_USERS_NETWORK_VERSION );
+		}
+	} else {
+		if ( diluxone_users_scoped_storage_active()
+			&& ( (int) diluxone_users_raw_get( DILUXONE_USERS_NETWORK_VERSION_OPTION, 0 ) < DILUXONE_USERS_NETWORK_VERSION
+				|| (int) diluxone_users_raw_get( 'diluxone_users_log_moved', 0 ) < 1 ) ) {
+			return;
+		}
+
+		foreach ( diluxone_users_defaults_before() as $key => $value ) {
+			if ( null === diluxone_users_raw_get( $key, null ) ) {
+				diluxone_users_update_option( $key, $value );
+			}
+		}
+	}
+
+	diluxone_users_update_option( DILUXONE_USERS_DEFAULTS_VERSION_OPTION, DILUXONE_USERS_DEFAULTS_VERSION );
+}
+add_action( 'init', 'diluxone_users_defaults_settle', 0 );

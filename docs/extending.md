@@ -557,6 +557,10 @@ account has. An add-on that keeps a way in on it adds to both:
 - `diluxone_users_person_saved` (action, `( int $user_id )`) — the profile was
   saved; the profile's nonce and `edit_user` are checked. Read your boxes
   here, checking both again first.
+- `diluxone_users_access_features_on` (filter, `( bool $on )`) — whether the
+  column and the block are drawn at all when the plugin's own ways in (the
+  second step, a social provider) are off. Answer true while a way in of
+  yours is on; otherwise Users and the profile stay WordPress's.
 
 ## Reports
 

@@ -33,6 +33,7 @@ class CoverSignInCliTest extends IntegrationTestCase {
 
 	protected function setUp(): void {
 		parent::setUp();
+		$this->from_before_the_settled_defaults();
 
 		require_once __DIR__ . '/Support/CoverSignInCli.php';
 

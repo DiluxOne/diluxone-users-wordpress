@@ -192,6 +192,8 @@ test.describe('Status › Tools', () => {
 			diluxone_users_sso: { mock: { active: 1, id: 'e2e-client-id', secret: 'e2e-export-secret', tested: 1 } },
 			diluxone_users_uninstall_wipe: 0,
 			diluxone_users_login_expiry: 17,
+			// A saved list of fields: one never saved is a default and stays out of the file.
+			diluxone_users_fields: [{ key: 'first_name', label: 'First name', type: 'text' }],
 		});
 
 		await page.goto(TOOLS);

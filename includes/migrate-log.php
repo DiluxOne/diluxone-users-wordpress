@@ -46,9 +46,14 @@ const DILUXONE_USERS_LOG_MOVE_EVENT = 'diluxone_users_log_move';
 /** How many rows one batch copies. */
 const DILUXONE_USERS_LOG_MOVE_ROWS = 5000;
 
-/** Whether every site's old log is already in the network's table. */
+/**
+ * Whether every site's old log is already in the network's table.
+ *
+ * Also when the install started on settled defaults: no site of a network
+ * that never ran an older version has a log of its own.
+ */
 function diluxone_users_log_moved(): bool {
-	return (int) diluxone_users_raw_get( DILUXONE_USERS_LOG_MOVED, 0 ) >= 1;
+	return (int) diluxone_users_raw_get( DILUXONE_USERS_LOG_MOVED, 0 ) >= 1 || diluxone_users_defaults_settled();
 }
 
 /**

@@ -46,7 +46,28 @@ function diluxone_users_mail_ok(): void {
 		false
 	);
 }
-add_action( 'wp_mail_succeeded', 'diluxone_users_mail_ok' );
+
+/**
+ * Whether the plugin sends mail of its own on this site.
+ *
+ * The e-mail link, a second-step code by e-mail or one of its notices. Until
+ * one of them is on, the site's mail is none of the plugin's business and it
+ * writes nothing down about it; the test on Maintenance › Tools still answers.
+ */
+function diluxone_users_mail_watched(): bool {
+	return diluxone_users_login_has_link()
+		|| diluxone_users_notice_2fa_email()
+		|| 'never' !== diluxone_users_notice_policy( 'diluxone_users_notify_login' )
+		|| 'never' !== diluxone_users_notice_policy( 'diluxone_users_notify_security' );
+}
+
+/** A send went through, heard from WordPress. */
+function diluxone_users_mail_heard_ok(): void {
+	if ( diluxone_users_mail_watched() ) {
+		diluxone_users_mail_ok();
+	}
+}
+add_action( 'wp_mail_succeeded', 'diluxone_users_mail_heard_ok' );
 
 /**
  * Records that a send failed, with the reason.
@@ -66,7 +87,18 @@ function diluxone_users_mail_failed( $error ): void {
 		false
 	);
 }
-add_action( 'wp_mail_failed', 'diluxone_users_mail_failed' );
+
+/**
+ * A send failed, heard from WordPress.
+ *
+ * @param WP_Error $error
+ */
+function diluxone_users_mail_heard_failed( $error ): void {
+	if ( $error instanceof WP_Error && diluxone_users_mail_watched() ) {
+		diluxone_users_mail_failed( $error );
+	}
+}
+add_action( 'wp_mail_failed', 'diluxone_users_mail_heard_failed' );
 
 /**
  * What is known about outgoing mail.

@@ -113,7 +113,7 @@ function diluxone_users_screen_log_settings(): void {
 
 	diluxone_users_ui_section(
 		__( 'What is written down', 'diluxone-users' ),
-		__( 'A fresh install records the way in and the way out, and nothing else. The other two are ticked by whoever will be paying for the rows — which is why each one says roughly what it costs.', 'diluxone-users' )
+		__( 'A fresh install records nothing, and has no table to record it in until a group is ticked here. Each one is ticked by whoever will be paying for the rows — which is why each one says roughly what it costs.', 'diluxone-users' )
 	);
 
 	$choices = array();

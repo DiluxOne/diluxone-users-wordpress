@@ -262,3 +262,51 @@ export async function signInFrom(page: Page, one: SiteHandle, hub: SiteHandle, e
 export async function anonymous(baseURL: string) {
 	return playwrightRequest.newContext({ baseURL });
 }
+
+/**
+ * Makes the network one that ran 1.0.0 and has not settled its defaults.
+ *
+ * A network born on today's defaults has nothing on its sites to move, so the
+ * move from per-site settings only runs where an older version ran: one that
+ * left the main site its own copy of the field list and never recorded which
+ * defaults it is on. The network's moves are undone, the main site gets a copy
+ * of the network's list — moving it changes nothing — and the defaults'
+ * version goes; every setting the
+ * settling would write once the move is done is kept, to be put back. Returns
+ * what takes the copy away again.
+ */
+export async function asOlderInstall(hub: SiteHandle): Promise<() => void> {
+	const settled = JSON.parse(wp(['eval', 'echo wp_json_encode( array_keys( diluxone_users_defaults_before() ) );'])) as string[];
+
+	await hub.keep([...settled, 'diluxone_users_defaults_version', 'diluxone_users_fields', 'diluxone_users_network_version', 'diluxone_users_log_moved']);
+
+	const fields = wp(['eval', 'echo wp_json_encode( diluxone_users_fields_stored() );']);
+
+	// In this order, because every WP-CLI call boots WordPress and settles
+	// the defaults on the way in: the network's move undone first, so a
+	// settling that sees the old copy waits for it; the copy next; the
+	// defaults' version last, once nothing can write it back.
+	for (const key of ['diluxone_users_network_version', 'diluxone_users_log_moved']) {
+		try {
+			wp(['site', 'option', 'delete', key]);
+		} catch {
+			// Not there, which is the state being made.
+		}
+	}
+
+	wp(['option', 'update', 'diluxone_users_fields', fields, '--format=json'], hub.url);
+
+	try {
+		wp(['site', 'option', 'delete', 'diluxone_users_defaults_version']);
+	} catch {
+		// Not there, which is the state being made.
+	}
+
+	return () => {
+		try {
+			wp(['option', 'delete', 'diluxone_users_fields'], hub.url);
+		} catch {
+			// Already gone.
+		}
+	};
+}

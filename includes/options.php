@@ -22,7 +22,17 @@ defined( 'ABSPATH' ) || exit;
  * @return array<string, mixed>
  */
 function diluxone_users_option_defaults(): array {
+	static $reading = false;
+
 	$defaults = diluxone_users_option_defaults_own();
+
+	// A callback of the filter below that reads a setting lands here again:
+	// it gets the plugin's own defaults instead of an endless loop.
+	if ( $reading ) {
+		return $defaults;
+	}
+
+	$reading = true;
 
 	/**
 	 * Filters the settings the plugin knows, with their defaults.
@@ -39,7 +49,11 @@ function diluxone_users_option_defaults(): array {
 	 *
 	 * @param array<string, mixed> $defaults Option name => default.
 	 */
-	$filtered = (array) apply_filters( 'diluxone_users_option_defaults', $defaults );
+	try {
+		$filtered = (array) apply_filters( 'diluxone_users_option_defaults', $defaults );
+	} finally {
+		$reading = false;
+	}
 
 	foreach ( $filtered as $key => $value ) {
 		if ( is_string( $key ) && 0 === strpos( $key, 'diluxone_users_' ) && ! array_key_exists( $key, $defaults ) ) {
@@ -63,7 +77,9 @@ function diluxone_users_option_defaults_own(): array {
 		// wp-login.php is closed.
 		// 'password' username and password only, the usual WordPress one.
 		// 'both'     both of them, one below the other.
-		'diluxone_users_login_method'          => 'both',
+		// WordPress's own way until an administrator offers the link: turning
+		// the plugin on is not deciding how people get in.
+		'diluxone_users_login_method'          => 'password',
 		// Page holding the sign-in form (the [diluxone_users_login] shortcode,
 		// or whichever one the site puts there). At 0, wp-login.php is used.
 		'diluxone_users_login_page'            => 0,
@@ -78,6 +94,9 @@ function diluxone_users_option_defaults_own(): array {
 		// doors into an account, beside the e-mail link and the social ones:
 		// they are independent, and a site can open any of them together.
 		'diluxone_users_register_form'         => 0,
+		// Whether WordPress's own registration form, wp-login.php?action=register,
+		// asks for the fields too. Off, that form is exactly WordPress's.
+		'diluxone_users_wp_register_fields'    => 0,
 		// Role of the accounts created that way.
 		'diluxone_users_login_role'            => 'subscriber',
 
@@ -281,8 +300,9 @@ function diluxone_users_option_defaults_own(): array {
 		'diluxone_users_handle_reserved'       => '',
 
 		// ── The profile picture ───────────────────────────────────────
-		// Let the person upload their own.
-		'diluxone_users_avatar_upload'         => 1,
+		// Let the person upload their own, from their account. Off until an
+		// administrator offers it: WordPress's own avatars are left alone.
+		'diluxone_users_avatar_upload'         => 0,
 		// If they uploaded none, go and fetch it from Gravatar. Turned off, no
 		// request is made to a third party with anybody's e-mail hash.
 		'diluxone_users_avatar_gravatar'       => 1,
@@ -347,13 +367,19 @@ function diluxone_users_option_defaults_own(): array {
 		// What the site does with each notice it can send: on by default
 		// and the person can turn it off, off by default and they can turn
 		// it on, always sent, or never. Keyed by the notice's key; a notice
-		// not in the map is 'default_on', which is what it always did.
-		'diluxone_users_notice_rules'          => array(),
+		// not in the map follows the default it registered with. The
+		// plugin's own two start as never sent: a plugin being turned on is
+		// not a decision to start e-mailing the people of a site.
+		'diluxone_users_notice_rules'          => array(
+			'diluxone_users_notify_login'    => 'never',
+			'diluxone_users_notify_security' => 'never',
+		),
 
 		// ── Second factor ─────────────────────────────────────────────
 		// 'off' is never asked; 'optional' only of whoever turned it on;
-		// 'required' of everybody who can use it.
-		'diluxone_users_2fa_mode'              => 'optional',
+		// 'required' of everybody who can use it. Off until an administrator
+		// offers it: nobody is shown a second step the site never chose.
+		'diluxone_users_2fa_mode'              => 'off',
 		// The methods this site offers. Empty is equivalent to off.
 		'diluxone_users_2fa_methods'           => array( 'email' ),
 		// What to do when somebody comes in by e-mail link:
@@ -365,11 +391,11 @@ function diluxone_users_option_defaults_own(): array {
 		'diluxone_users_2fa_link'              => 'auto',
 
 		// ── Privacy ─────────────────────────────────────────────────
-		// What somebody can do with their own data without asking anyone.
-		// Both come turned on: it is the right thing, and a site that would
-		// rather handle those requests by hand turns them off.
-		'diluxone_users_privacy_export'        => 1,
-		'diluxone_users_privacy_delete'        => 1,
+		// What somebody can do with their own data without asking anyone,
+		// from their account. Both start off, like every other thing the
+		// plugin offers people: an administrator turns them on.
+		'diluxone_users_privacy_export'        => 0,
+		'diluxone_users_privacy_delete'        => 0,
 		// 'confirm': made when the person confirms; 'admin': waits in Tools.
 		'diluxone_users_privacy_export_when'   => 'confirm',
 		// 'account': the e-mail's link asks them to sign in; 'direct': it confirms by itself.
@@ -393,8 +419,13 @@ function diluxone_users_option_defaults_own(): array {
 		'diluxone_users_trusted_proxies'       => '',
 
 		// ── Sessions ────────────────────────────────────────────────
-		// Whether each person sees where their sessions are open and can close them.
-		'diluxone_users_sessions_show'         => 1,
+		// Whether each person sees where their sessions are open and can
+		// close them. Off until an administrator offers it.
+		'diluxone_users_sessions_show'         => 0,
+		// Whether choosing a new password signs the account out everywhere.
+		// WordPress keeps the other sessions open, and so does the plugin
+		// until an administrator says otherwise.
+		'diluxone_users_reset_ends_sessions'   => 0,
 
 		// What happens when somebody opens the WordPress dashboard profile:
 		// 'allow' nothing, 'redirect' sends them to the site account area,
@@ -405,11 +436,11 @@ function diluxone_users_option_defaults_own(): array {
 
 		// ── The activity log ──────────────────────────────────────────
 		// Which groups of events get a row in the plugin's own table. A fresh
-		// install records the way in and the way out and nothing else: a plugin
-		// that starts writing down every change a person makes has decided
-		// something about somebody's disk, and about somebody's privacy, that
-		// was not its to decide. The other groups are ticked by hand.
-		'diluxone_users_log_levels'            => array( 'access' ),
+		// install records nothing: a plugin that starts writing down who signs
+		// in, from which address, has decided something about somebody's disk,
+		// and about somebody's privacy, that was not its to decide. Every group
+		// is ticked by hand.
+		'diluxone_users_log_levels'            => array(),
 		// Days a row is kept before the daily purge drops it. 0 keeps
 		// everything for ever, which is the answer with no end to it.
 		'diluxone_users_log_days'              => 90,
@@ -424,6 +455,10 @@ function diluxone_users_option_defaults_own(): array {
 		// plugin being turned on is not a decision to make every account a
 		// member of every site.
 		'diluxone_users_membership_confirmed'  => 0,
+		// Whether the other sites of a network send people to the hub to sign
+		// in, register and reset a password (network-hub.php). Off, every
+		// site keeps its own wp-login.php, as WordPress has it.
+		'diluxone_users_network_hub'           => 0,
 
 		// ── Deleting the plugin ───────────────────────────────────────
 		// Whether removing the plugin also removes everything it wrote.

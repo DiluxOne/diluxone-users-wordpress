@@ -25,6 +25,7 @@ class CoverAdminLogTest extends IntegrationTestCase {
 
 	protected function setUp(): void {
 		parent::setUp();
+		$this->from_before_the_settled_defaults();
 
 		diluxone_users_log_install();
 		$this->moved = diluxone_users_raw_get( DILUXONE_USERS_LOG_MOVED, null );

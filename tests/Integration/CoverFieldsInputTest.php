@@ -264,6 +264,7 @@ class CoverFieldsInputTest extends IntegrationTestCase {
 	}
 
 	public function test_wordpresss_registration_gets_every_field_with_the_nonce_they_carry(): void {
+		diluxone_users_update_option( 'diluxone_users_wp_register_fields', 1 );
 		diluxone_users_update_option(
 			'diluxone_users_fields',
 			array(

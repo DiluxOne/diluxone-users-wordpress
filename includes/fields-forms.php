@@ -47,18 +47,23 @@ function diluxone_users_field_control( array $field, int $user_id ): void {
  * pieces get their rules and none of the numbers in them.
  */
 function diluxone_users_fields_block( int $user_id ): void {
+	// First and last name are already on this screen, drawn by WordPress
+	// under "Name" with the same input names. Drawn again here they were two
+	// fields posting under one name: the second copy won, and a name changed
+	// in WordPress's own field came back as it was. With nothing else to
+	// draw, there is no section: a heading over nothing is the plugin
+	// changing WordPress's screen for no reason.
+	$fields = diluxone_users_own_fields();
+
+	if ( array() === $fields ) {
+		return;
+	}
+
 	diluxone_users_ui_ground_open();
 
 	diluxone_users_ui_section( __( 'Additional details', 'diluxone-users' ) );
 
-	foreach ( diluxone_users_fields() as $field ) {
-		// First and last name are already on this screen, drawn by WordPress
-		// under "Name" with the same input names. Drawn again here they were
-		// two fields posting under one name: the second copy won, and a name
-		// changed in WordPress's own field came back as it was.
-		if ( diluxone_users_field_is_native( (string) $field['key'] ) ) {
-			continue;
-		}
+	foreach ( $fields as $field ) {
 		diluxone_users_field_control( $field, $user_id );
 	}
 
@@ -346,13 +351,24 @@ add_action( 'user_new_form', 'diluxone_users_new_user_fields' );
 /* ── WordPress's own registration ──────────────────────────────────── */
 
 /**
+ * Does WordPress's own registration form carry the plugin's fields?
+ *
+ * Only when an administrator asked for it on Access › Registration. Until
+ * then wp-login.php?action=register is WordPress's form, as it was before the
+ * plugin: no field drawn, none required, none saved.
+ */
+function diluxone_users_wp_register_fields_on(): bool {
+	return (bool) diluxone_users_option( 'diluxone_users_wp_register_fields' ) && array() !== diluxone_users_fields();
+}
+
+/**
  * The fields on wp-login.php?action=register.
  *
  * It is there for the site that does have open registration. On a site
  * without passwords this form is never used and this gets in nobody's way.
  */
 function diluxone_users_register_form_fields(): void {
-	if ( array() === diluxone_users_fields() ) {
+	if ( ! diluxone_users_wp_register_fields_on() ) {
 		return;
 	}
 
@@ -410,11 +426,11 @@ function diluxone_users_register_fields_posted(): bool {
  * @return WP_Error
  */
 function diluxone_users_register_validate( $errors, $login, $email ) {
-	$fields = diluxone_users_fields();
-
-	if ( array() === $fields ) {
+	if ( ! diluxone_users_wp_register_fields_on() ) {
 		return $errors;
 	}
+
+	$fields = diluxone_users_fields();
 
 	if ( ! isset( $_POST['diluxone_users_wp_register_nonce'] ) && ! diluxone_users_register_fields_posted() ) {
 		return $errors;
@@ -466,7 +482,7 @@ add_filter( 'registration_errors', 'diluxone_users_register_validate', 10, 3 );
  * registration without it.
  */
 function diluxone_users_register_save( int $user_id ): void {
-	if ( ! isset( $_POST['diluxone_users_wp_register_nonce'] ) || ! wp_verify_nonce( sanitize_key( wp_unslash( $_POST['diluxone_users_wp_register_nonce'] ) ), 'diluxone_users_wp_register' ) ) {
+	if ( ! diluxone_users_wp_register_fields_on() || ! isset( $_POST['diluxone_users_wp_register_nonce'] ) || ! wp_verify_nonce( sanitize_key( wp_unslash( $_POST['diluxone_users_wp_register_nonce'] ) ), 'diluxone_users_wp_register' ) ) {
 		return;
 	}
 

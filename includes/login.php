@@ -523,7 +523,7 @@ function diluxone_users_role_self_serve( string $role ): bool {
 function diluxone_users_login_method(): string {
 	$method = (string) diluxone_users_option( 'diluxone_users_login_method' );
 
-	return in_array( $method, array( 'link', 'password', 'both' ), true ) ? $method : 'both';
+	return in_array( $method, array( 'link', 'password', 'both' ), true ) ? $method : 'password';
 }
 
 /** Is the e-mail link offered? */

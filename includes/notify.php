@@ -152,10 +152,11 @@ function diluxone_users_notice_rules(): array {
 /**
  * The site's policy for one notice.
  *
- * A notice with no rule written down behaves as it always did: whatever it
- * registered as its default decides, and the plugin's own register as on. So
- * a site that never opens the screen sees nothing change, and an add-on that
- * ships a notice off by default is still off by default.
+ * A notice with no rule written down follows whatever it registered as its
+ * default, so an add-on that ships a notice off by default is still off by
+ * default. The plugin's own two have a rule from the start, "never", in
+ * diluxone_users_option_defaults(): a site that never opens the screen sends
+ * nothing it did not send before the plugin.
  */
 function diluxone_users_notice_policy( string $key ): string {
 	$rules = diluxone_users_notice_rules();
@@ -271,6 +272,12 @@ function diluxone_users_device_id(): string {
  * add-on's way in. Once per device.
  */
 function diluxone_users_notify_new_device( int $user_id, string $via ): void {
+	// A site that never sends this notice has no reason to keep a note of
+	// anybody's browsers either.
+	if ( 'never' === diluxone_users_notice_policy( 'diluxone_users_notify_login' ) ) {
+		return;
+	}
+
 	$id    = diluxone_users_device_id();
 	$known = diluxone_users_meta_list( $user_id, 'diluxone_users_devices' );
 	$known = array_filter( array_map( 'strval', $known ) );

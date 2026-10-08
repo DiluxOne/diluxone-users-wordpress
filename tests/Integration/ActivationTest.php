@@ -1,19 +1,22 @@
 <?php
 /**
- * Activation, again and again: what it writes the first time and never after.
+ * Activation, again and again: it settles which defaults the install is on,
+ * and writes nothing else.
  *
- * Every case runs on both topologies unless it names its counterpart. On a
- * network, activating from a site is activating for the network: every site
- * is set up, the network's fields and the hub's doors are written once, and
- * no site keeps a copy of its own. Activating again leaves an
- * administrator's answers alone, puts back WordPress's own fields without
- * losing the site's, and a site born while the plugin is not on for the
- * network is left to itself.
+ * Every case runs on both topologies unless it names its counterpart. A new
+ * install writes one option, the defaults' version, and no setting, table or
+ * event; one that ran 1.0.0 gets that version's answers written down for the
+ * settings it never saved, and a network waits for its settings and its log
+ * to move first. Activating again changes nothing, the list of fields gets
+ * WordPress's own put back only once it is a saved list, and a site born
+ * while the plugin is not on for the network is left to itself.
  */
 
 namespace Tests\Integration;
 
 class ActivationTest extends IntegrationTestCase {
+
+	protected bool $fresh = true;
 
 	/** @var array<string, mixed> The settings the test rewrites, as it found them (null: there were none). */
 	private array $kept = array();
@@ -97,70 +100,198 @@ class ActivationTest extends IntegrationTestCase {
 		return array_values( array_filter( array_column( diluxone_users_default_fields(), 'key' ), 'diluxone_users_field_is_native' ) );
 	}
 
-	public function test_activating_writes_the_fields_and_the_doors_where_they_live(): void {
+	/**
+	 * Runs a callback with these settings gone from where they live — and, on
+	 * a network, from the main site's own table — and puts them back after.
+	 *
+	 * @param array<int, string> $keys
+	 * @return mixed What the callback returned.
+	 */
+	private function without( array $keys, callable $run ) {
+		$kept = array();
+		$main = is_multisite() ? (int) get_main_site_id() : 0;
+
+		foreach ( $keys as $key ) {
+			$kept[ $key ] = array(
+				'here' => diluxone_users_raw_get( $key, null ),
+				'main' => is_multisite() ? get_blog_option( $main, $key, null ) : null,
+			);
+			diluxone_users_delete_option( $key );
+
+			if ( is_multisite() ) {
+				delete_blog_option( $main, $key );
+			}
+		}
+
+		try {
+			return $run();
+		} finally {
+			foreach ( $kept as $key => $was ) {
+				diluxone_users_delete_option( $key );
+
+				if ( null !== $was['here'] ) {
+					diluxone_users_update_option( $key, $was['here'] );
+				}
+
+				if ( is_multisite() && null !== $was['main'] ) {
+					update_blog_option( $main, $key, $was['main'] );
+				}
+			}
+		}
+	}
+
+	/** Every setting the plugin can store, and the marks an older version left. */
+	private function every_setting(): array {
+		return array_values(
+			array_unique(
+				array_merge(
+					array_keys( diluxone_users_option_defaults() ),
+					array_keys( diluxone_users_defaults_before() ),
+					array( 'diluxone_users_fields', 'diluxone_users_log_schema', DILUXONE_USERS_DEFAULTS_VERSION_OPTION )
+				)
+			)
+		);
+	}
+
+	public function test_activating_a_new_install_writes_one_option_and_nothing_else(): void {
 		global $wpdb;
 
-		$other = is_multisite() ? $this->site() : 0;
-
-		foreach ( self::KEYS as $key ) {
-			diluxone_users_delete_option( $key );
-		}
 		$this->accounts( true );
 
-		$asked = array();
-		$this->hook(
-			'query',
-			static function ( string $sql ) use ( &$asked ): string {
-				$asked[] = $sql;
+		$this->without(
+			$this->every_setting(),
+			function () use ( $wpdb ): void {
+				$written = array();
+				$note    = static function ( $option ) use ( &$written ): void {
+					if ( 0 === strpos( (string) $option, 'diluxone_users_' ) ) {
+						$written[] = (string) $option;
+					}
+				};
 
-				return $sql;
+				foreach ( array( 'added_option', 'updated_option', 'add_site_option', 'update_site_option' ) as $hook ) {
+					$this->hook( $hook, $note );
+				}
+
+				$asked = array();
+				$this->hook(
+					'query',
+					static function ( string $sql ) use ( &$asked ): string {
+						$asked[] = $sql;
+
+						return $sql;
+					}
+				);
+
+				$events = _get_cron_array();
+
+				// From a site, and not for the network: on a network that is the same thing.
+				diluxone_users_activate_now( false );
+
+				$this->assertSame( array( DILUXONE_USERS_DEFAULTS_VERSION_OPTION ), array_values( array_unique( $written ) ), 'the version of the defaults, and no setting' );
+				$this->assertSame( array(), array_filter( $asked, static fn( string $sql ): bool => (bool) preg_match( '/^\s*(CREATE|ALTER)\s+TABLE/i', $sql ) ), 'no table made' );
+				$this->assertSame( $events, _get_cron_array(), 'nothing scheduled' );
+
+				$this->assertNull( diluxone_users_raw_get( 'diluxone_users_fields', null ), 'the starter fields are a default, not a stored list' );
+				$this->assertSame( array_column( diluxone_users_default_fields(), 'key' ), array_column( diluxone_users_fields(), 'key' ) );
+				$this->assertNull( diluxone_users_raw_get( 'diluxone_users_login_register', null ), 'accounts are open on the site, and the plugin opens no door of its own' );
+				$this->assertSame( 0, (int) diluxone_users_option( 'diluxone_users_login_register' ) );
+				$this->assertSame( 0, (int) diluxone_users_option( 'diluxone_users_sso_register' ) );
+				$this->assertSame( array(), diluxone_users_log_levels(), 'nothing recorded' );
+				$this->assertTrue( diluxone_users_defaults_settled() );
+
+				// Settled once: a second activation, or any request, writes nothing.
+				$written = array();
+				diluxone_users_activate_now( false );
+				diluxone_users_defaults_settle();
+				$this->assertSame( array(), $written );
 			}
 		);
-
-		// From a site, and not for the network: on a network that is the same thing.
-		diluxone_users_activate_now( false );
-
-		$looked = array_filter( $asked, static fn( string $sql ): bool => str_contains( $sql, diluxone_users_log_table() ) );
-		$this->assertNotSame( array(), $looked, 'the log\'s table is made, or checked, on the way' );
-
-		$this->assertSame( array_column( diluxone_users_default_fields(), 'key' ), array_column( (array) diluxone_users_raw_get( 'diluxone_users_fields' ), 'key' ) );
-		$this->assertSame( 1, (int) diluxone_users_raw_get( 'diluxone_users_login_register' ), 'accounts are open, so the doors start open' );
-		$this->assertSame( 1, (int) diluxone_users_raw_get( 'diluxone_users_sso_register' ) );
-
-		$table = diluxone_users_log_table();
-		$this->assertSame( $table, $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $wpdb->esc_like( $table ) ) ) );
-
-		if ( is_multisite() ) {
-			$this->assertFalse( ms_is_switched(), 'back on the site it started on' );
-			$this->assertSame( $wpdb->base_prefix . 'diluxone_users_log', $table, 'the network\'s table' );
-
-			switch_to_blog( $other );
-			$this->assertFalse( get_option( 'diluxone_users_fields', false ), 'no copy on another site' );
-			$this->assertFalse( get_option( 'diluxone_users_login_register', false ) );
-			restore_current_blog();
-		}
 	}
 
-	public function test_activating_again_keeps_what_an_administrator_chose(): void {
+	public function test_an_install_that_ran_1_0_0_keeps_what_it_did(): void {
 		$this->accounts( true );
-		diluxone_users_update_option( 'diluxone_users_login_register', 0 );
-		diluxone_users_update_option( 'diluxone_users_sso_register', 0 );
 
-		diluxone_users_activate_now( false );
+		$this->without(
+			array_merge( $this->every_setting(), array( 'diluxone_users_network_version', 'diluxone_users_log_moved' ) ),
+			function (): void {
+				// What 1.0.0 left behind the moment it was activated, and one
+				// answer an administrator saved on top.
+				diluxone_users_update_option( 'diluxone_users_fields', diluxone_users_default_fields() );
+				diluxone_users_update_option( 'diluxone_users_log_schema', DILUXONE_USERS_LOG_SCHEMA );
+				diluxone_users_update_option( 'diluxone_users_login_method', 'password' );
+				diluxone_users_update_option( 'diluxone_users_login_register', 0 );
 
-		$this->assertSame( 0, (int) diluxone_users_raw_get( 'diluxone_users_login_register' ), 'closed on purpose stays closed' );
-		$this->assertSame( 0, (int) diluxone_users_raw_get( 'diluxone_users_sso_register' ) );
+				if ( is_multisite() ) {
+					// Its settings and its log already moved to the network.
+					diluxone_users_update_option( 'diluxone_users_network_version', DILUXONE_USERS_NETWORK_VERSION );
+					diluxone_users_update_option( 'diluxone_users_log_moved', 1 );
+				}
+
+				diluxone_users_activate_now( false );
+
+				$this->assertTrue( diluxone_users_defaults_settled() );
+				$this->assertSame( 'password', diluxone_users_raw_get( 'diluxone_users_login_method' ), 'what an administrator saved is left as it was' );
+				$this->assertSame( 0, (int) diluxone_users_raw_get( 'diluxone_users_login_register' ) );
+
+				foreach ( diluxone_users_defaults_before() as $key => $old ) {
+					if ( in_array( $key, array( 'diluxone_users_login_method', 'diluxone_users_login_register' ), true ) ) {
+						continue;
+					}
+
+					$this->assertEquals( $old, diluxone_users_raw_get( $key, null ), $key . ': written down as it was' );
+				}
+
+				$this->assertSame( array( 'access' ), diluxone_users_log_levels(), 'the log goes on recording the way in' );
+				$this->assertSame( 'optional', diluxone_users_option( 'diluxone_users_2fa_mode' ) );
+				$this->assertSame( 1, (int) diluxone_users_option( 'diluxone_users_sso_register' ), 'the door seeded from WordPress\'s open registration' );
+			}
+		);
 	}
 
-	public function test_on_a_closed_network_or_site_both_doors_start_closed(): void {
-		$this->accounts( false );
-		diluxone_users_delete_option( 'diluxone_users_login_register' );
-		diluxone_users_delete_option( 'diluxone_users_sso_register' );
+	public function test_a_network_that_has_not_moved_its_settings_waits_for_the_move(): void {
+		$this->network_only();
 
-		diluxone_users_activate_now( false );
+		$this->without(
+			array_merge( $this->every_setting(), array( 'diluxone_users_network_version', 'diluxone_users_log_moved' ) ),
+			function (): void {
+				diluxone_users_update_option( 'diluxone_users_log_schema', DILUXONE_USERS_LOG_SCHEMA );
 
-		$this->assertSame( 0, (int) diluxone_users_raw_get( 'diluxone_users_login_register' ) );
-		$this->assertSame( 0, (int) diluxone_users_raw_get( 'diluxone_users_sso_register' ) );
+				diluxone_users_defaults_settle();
+
+				$this->assertFalse( diluxone_users_defaults_settled(), 'not before the main site\'s answers are on the network' );
+				$this->assertNull( diluxone_users_raw_get( 'diluxone_users_login_method', null ) );
+
+				diluxone_users_update_option( 'diluxone_users_network_version', DILUXONE_USERS_NETWORK_VERSION );
+				diluxone_users_update_option( 'diluxone_users_log_moved', 1 );
+				diluxone_users_defaults_settle();
+
+				$this->assertTrue( diluxone_users_defaults_settled() );
+				$this->assertSame( 'both', diluxone_users_raw_get( 'diluxone_users_login_method' ) );
+				$this->assertSame( 1, (int) diluxone_users_raw_get( 'diluxone_users_network_hub' ), 'the other sites go on sending people to the hub' );
+			}
+		);
+	}
+
+	/**
+	 * A new network records its move as done when it settles; a settled
+	 * install is not, by that alone, a moved one: a single site made a network
+	 * later still moves its settings.
+	 */
+	public function test_settling_a_new_network_records_the_move_and_settling_alone_does_not(): void {
+		$this->without(
+			array_merge( $this->every_setting(), array( 'diluxone_users_network_version' ) ),
+			function (): void {
+				diluxone_users_update_option( DILUXONE_USERS_DEFAULTS_VERSION_OPTION, DILUXONE_USERS_DEFAULTS_VERSION );
+
+				$this->assertFalse( diluxone_users_network_migrated(), 'settled is not moved' );
+
+				diluxone_users_delete_option( DILUXONE_USERS_DEFAULTS_VERSION_OPTION );
+				diluxone_users_defaults_settle();
+
+				$this->assertTrue( diluxone_users_defaults_settled() );
+				$this->assertSame( is_multisite(), diluxone_users_network_migrated(), 'a new network has nothing to move; a single site moves when it becomes one' );
+			}
+		);
 	}
 
 	public function test_wordpress_own_fields_are_put_back_in_front_of_the_sites_own(): void {
@@ -170,18 +301,22 @@ class ActivationTest extends IntegrationTestCase {
 		);
 		diluxone_users_update_option( 'diluxone_users_fields', array( $team ) );
 
-		diluxone_users_seed_fields();
+		diluxone_users_seed_native_fields();
 
 		$fields = (array) diluxone_users_raw_get( 'diluxone_users_fields' );
 		$this->assertSame( array_merge( $this->natives(), array( 'diluxone_users_team' ) ), array_column( $fields, 'key' ) );
 		$this->assertSame( $team, end( $fields ), 'the site\'s own field, as it was' );
 
-		diluxone_users_seed_fields();
+		diluxone_users_seed_native_fields();
 		$this->assertSame( $fields, diluxone_users_raw_get( 'diluxone_users_fields' ), 'and only once' );
 
 		diluxone_users_update_option( 'diluxone_users_fields', array() );
-		diluxone_users_seed_fields();
+		diluxone_users_seed_native_fields();
 		$this->assertSame( $this->natives(), array_column( (array) diluxone_users_raw_get( 'diluxone_users_fields' ), 'key' ), 'an empty list still gets WordPress\'s own' );
+
+		diluxone_users_delete_option( 'diluxone_users_fields' );
+		diluxone_users_seed_native_fields();
+		$this->assertNull( diluxone_users_raw_get( 'diluxone_users_fields', null ), 'a list never saved stays unsaved' );
 	}
 
 	public function test_a_site_born_while_the_plugin_is_not_on_for_the_network_is_left_alone(): void {

@@ -267,11 +267,16 @@ function diluxone_users_log_claim_unstamped(): void {
 function diluxone_users_log_current(): bool {
 	static $refused = false;
 
-	if ( DILUXONE_USERS_LOG_SCHEMA === (int) diluxone_users_raw_get( DILUXONE_USERS_LOG_SCHEMA_OPTION ) ) {
+	$schema = (int) diluxone_users_raw_get( DILUXONE_USERS_LOG_SCHEMA_OPTION );
+
+	if ( DILUXONE_USERS_LOG_SCHEMA === $schema ) {
 		return true;
 	}
 
-	if ( $refused ) {
+	// No table yet, and nothing recorded: there is nothing to read, and a
+	// read is no reason to make one. The table comes with the first group
+	// an administrator ticks.
+	if ( $refused || ( 0 === $schema && array() === diluxone_users_log_levels() ) ) {
 		return false;
 	}
 
@@ -294,14 +299,24 @@ function diluxone_users_log_table_exists(): bool {
 	return $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $wpdb->esc_like( $table ) ) ) === $table;
 }
 
+/** Whether the table holds any row at all. */
+function diluxone_users_log_has_rows(): bool {
+	global $wpdb;
+
+	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- the plugin's own table; one row is all it asks for.
+	return null !== $wpdb->get_var( $wpdb->prepare( 'SELECT 1 FROM %i LIMIT 1', diluxone_users_log_table() ) );
+}
+
 /**
  * The table and the daily purge, both there and both current.
  *
- * On `admin_init` and not only on activation, for the same reason the prefix
- * migration is: an update over FTP or over git fires no activation hook, and a
- * site that updated that way would be writing into a table that is a version
- * behind. The check is one option read, and the option does not autoload, so
- * the cost of asking is a cached query on dashboard requests only.
+ * On `admin_init`, for the same reason the prefix migration is: an update
+ * over FTP or over git fires no activation hook, and a site that updated that
+ * way would be writing into a table that is a version behind. Neither exists
+ * before an administrator ticks a group to record. The check is one option read, and the option does not autoload, so
+ * the cost of asking is a cached query on dashboard requests only; while the
+ * log is off and a table from before is still there, one `SELECT 1 … LIMIT 1`
+ * more, until its rows age out and the purge stops.
  *
  * Where the table is the network's, so is the purge: one event, on the main
  * site, for every row. Another site that still has the event it had when its
@@ -309,11 +324,23 @@ function diluxone_users_log_table_exists(): bool {
  * until then the purge itself does nothing there.
  */
 function diluxone_users_log_ready(): void {
-	if ( DILUXONE_USERS_LOG_SCHEMA !== (int) diluxone_users_raw_get( DILUXONE_USERS_LOG_SCHEMA_OPTION ) ) {
-		diluxone_users_log_install();
+	$schema = (int) diluxone_users_raw_get( DILUXONE_USERS_LOG_SCHEMA_OPTION );
+
+	if ( DILUXONE_USERS_LOG_SCHEMA !== $schema ) {
+		// Nothing recorded and no table from before: no table, no purge.
+		if ( 0 === $schema && array() === diluxone_users_log_levels() ) {
+			return;
+		}
+
+		if ( ! diluxone_users_log_install() ) {
+			return;
+		}
 	}
 
-	if ( ! diluxone_users_log_purges_here() ) {
+	// The purge runs while something is recorded, and after that until the
+	// rows already kept have aged out: switching the log off is not a reason
+	// to keep them for ever.
+	if ( ! diluxone_users_log_purges_here() || ( array() === diluxone_users_log_levels() && ! diluxone_users_log_has_rows() ) ) {
 		if ( wp_next_scheduled( DILUXONE_USERS_LOG_PURGE ) ) {
 			wp_clear_scheduled_hook( DILUXONE_USERS_LOG_PURGE );
 		}

@@ -60,11 +60,11 @@ class UninstallNetworkTest extends IntegrationTestCase {
 				delete_option( 'diluxone_users_uninstall_wipe' );
 				delete_option( 'diluxone_users_2fa_mode' );
 				delete_option( 'diluxone_users_fields' );
-				diluxone_users_site_setup();
 				restore_current_blog();
 			}
 
 			update_site_option( DILUXONE_USERS_NETWORK_VERSION_OPTION, DILUXONE_USERS_NETWORK_VERSION );
+			diluxone_users_activate( true );
 
 			// And the network's log, which a site's setup does not make.
 			diluxone_users_log_install();

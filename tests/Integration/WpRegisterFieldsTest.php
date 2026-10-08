@@ -41,6 +41,8 @@ class WpRegisterFieldsTest extends IntegrationTestCase {
 		parent::setUp();
 
 		diluxone_users_update_option( 'diluxone_users_fields', self::FIELDS );
+		// WordPress's form takes the fields only once the site says so.
+		diluxone_users_update_option( 'diluxone_users_wp_register_fields', 1 );
 	}
 
 	public function test_an_account_made_anywhere_else_takes_nothing_from_the_request(): void {

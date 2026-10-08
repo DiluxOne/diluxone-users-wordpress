@@ -108,52 +108,28 @@ class MultisiteTest extends IntegrationTestCase {
 	}
 
 	/**
-	 * A site born on a network where the plugin is active everywhere is set
-	 * up when it is born, not the first time somebody opens its dashboard: its
-	 * visitors may sign in before that.
+	 * A site born on a network where the plugin is active everywhere has
+	 * nothing written for it: it reads the network's and the hub's settings,
+	 * which are their defaults until an administrator saves them, and keeps
+	 * no copy of its own — a copy nobody reads is a copy that goes stale.
 	 */
-	public function test_a_site_born_on_the_network_is_set_up_at_birth(): void {
-		global $wpdb;
-
+	public function test_a_site_born_on_the_network_has_nothing_written_for_it(): void {
 		$this->assertTrue( is_plugin_active_for_network( plugin_basename( DILUXONE_USERS_FILE ) ), 'The suite runs with the plugin network-activated' );
 
-		// Its log is the network's table, already there: nothing of its own.
 		$this->assertFalse( $this->log_table_exists( $this->site ), 'No table of its own' );
-		$this->assertTrue( $this->table_exists( $wpdb->base_prefix . 'diluxone_users_log' ), 'The network’s table' );
+
+		// The suite's features-on answers, taken away: what a site reads when
+		// nobody saved anything.
+		diluxone_users_delete_option( 'diluxone_users_login_register' );
 
 		switch_to_blog( $this->site );
 
-		$this->assertNotFalse( diluxone_users_raw_get( 'diluxone_users_fields', false ), 'It reads the network’s fields' );
-		$this->assertSame( 1, (int) diluxone_users_raw_get( 'diluxone_users_login_register' ), 'The network was open when the doors were set' );
-
-		// And it keeps no copy of its own of what is the network's or the
-		// hub's: a copy nobody reads is a copy that goes stale.
+		$this->assertSame( array( 'first_name', 'last_name' ), array_column( diluxone_users_fields(), 'key' ), 'It reads the network’s fields' );
+		$this->assertSame( 0, (int) diluxone_users_option( 'diluxone_users_login_register' ), 'No door of the plugin’s is open' );
 		$this->assertFalse( get_option( 'diluxone_users_fields', false ) );
 		$this->assertFalse( get_option( 'diluxone_users_login_register', false ) );
-	}
 
-	/** The doors start where the network is, closed or open. */
-	public function test_on_a_closed_network_the_doors_start_closed(): void {
-		update_site_option( 'registration', 'none' );
-
-		// Set once, the first time a site needs them: the site made in setUp
-		// set them while the network was still open.
-		diluxone_users_delete_option( 'diluxone_users_login_register' );
-		diluxone_users_delete_option( 'diluxone_users_sso_register' );
-
-		$closed = (int) wp_insert_site(
-			array(
-				'domain' => (string) get_network()->domain,
-				'path'   => '/ms-closed-' . strtolower( wp_generate_password( 6, false ) ) . '/',
-				'title'  => 'Closed',
-			)
-		);
-
-		switch_to_blog( $closed );
-		$this->assertSame( 0, (int) diluxone_users_raw_get( 'diluxone_users_login_register' ) );
 		restore_current_blog();
-
-		wp_delete_site( $closed );
 	}
 
 	/**

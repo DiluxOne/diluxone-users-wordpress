@@ -281,8 +281,8 @@ function diluxone_users_checks(): array {
 		)
 		: diluxone_users_check( __( 'Permalinks', 'diluxone-users' ), 'active', $permalinks );
 
-	// The rewrite rules, which are rewritten when the version changes.
-	$checks[] = diluxone_users_raw_get( 'diluxone_users_rewrite_version' ) === DILUXONE_USERS_VERSION
+	// The rewrite rules, which are rewritten when the plugin's own change.
+	$checks[] = (string) diluxone_users_raw_get( 'diluxone_users_rewrite_version', '' ) === diluxone_users_rewrite_stamp()
 		? diluxone_users_check( __( 'Rewrite rules', 'diluxone-users' ), 'active', __( 'Up to date.', 'diluxone-users' ) )
 		: diluxone_users_check(
 			__( 'Rewrite rules', 'diluxone-users' ),

@@ -151,7 +151,12 @@ function diluxone_users_tools_action(): void {
  */
 function diluxone_users_tool_flush(): void {
 	flush_rewrite_rules( false );
-	diluxone_users_update_option( 'diluxone_users_rewrite_version', DILUXONE_USERS_VERSION );
+
+	if ( '' === diluxone_users_rewrite_stamp() ) {
+		diluxone_users_delete_option( 'diluxone_users_rewrite_version' );
+	} else {
+		diluxone_users_update_option( 'diluxone_users_rewrite_version', diluxone_users_rewrite_stamp() );
+	}
 
 	diluxone_users_tool_done( __( 'Rewrite rules rebuilt.', 'diluxone-users' ) );
 }
@@ -262,7 +267,9 @@ function diluxone_users_tool_settings(): array {
 		}
 	}
 
-	if ( diluxone_users_option_editable_here( 'diluxone_users_fields' ) ) {
+	// A list never saved is the starter list, a default like any other: it
+	// travels when somebody saved one.
+	if ( diluxone_users_option_editable_here( 'diluxone_users_fields' ) && null !== diluxone_users_raw_get( 'diluxone_users_fields', null ) ) {
 		$out['diluxone_users_fields'] = diluxone_users_raw_get( 'diluxone_users_fields', array() );
 	}
 
@@ -533,13 +540,15 @@ function diluxone_users_mail_test(): void {
 	);
 
 	// wp_mail() only reports whether it handed the message to the server; the
-	// hook in mail.php already recorded what really happened. It is stored
-	// anyway in case nothing fired.
+	// hook in mail.php recorded what really happened when the plugin is
+	// watching the site's mail. It is stored here in either case.
 	if ( ! $ok && 'fail' !== diluxone_users_mail_status()['state'] ) {
 		diluxone_users_mail_failed( new WP_Error( 'diluxone_users_mail', __( 'wp_mail() returned false and said nothing else.', 'diluxone-users' ) ) );
 	}
 
 	if ( $ok ) {
+		diluxone_users_mail_ok();
+
 		diluxone_users_tool_done(
 			sprintf(
 				/* translators: %s: e-mail address */

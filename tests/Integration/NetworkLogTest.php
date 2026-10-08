@@ -22,6 +22,7 @@ class NetworkLogTest extends IntegrationTestCase {
 
 	protected function setUp(): void {
 		parent::setUp();
+		$this->from_before_the_settled_defaults();
 
 		if ( ! is_multisite() ) {
 			$this->markTestSkipped( 'Needs a multisite network: the single-site half is ActivityLogTest and SingleSiteTest.' );

@@ -17,6 +17,31 @@
 defined( 'ABSPATH' ) || exit;
 
 /**
+ * Does the site offer any way in this column and this block are about?
+ *
+ * A second step, a social provider that works, or an add-on's way in. Until one of them
+ * is turned on there is nothing of the plugin's to read on anybody, and
+ * WordPress's Users list and profile stay exactly as WordPress draws them.
+ */
+function diluxone_users_access_features_on(): bool {
+	if ( 'off' !== (string) diluxone_users_option( 'diluxone_users_2fa_mode' ) || array() !== diluxone_users_sso_available() ) {
+		return true;
+	}
+
+	/**
+	 * Filters whether the site offers a way in the Users list's Access column
+	 * and a person's profile block are about, when the plugin's own are off.
+	 *
+	 * An add-on whose way in is turned on answers true (Users+ Pro's passkeys).
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param bool $on Whether one is on.
+	 */
+	return (bool) apply_filters( 'diluxone_users_access_features_on', false );
+}
+
+/**
  * What this person has, in short.
  *
  * @return array{social: array<int, string>, handle: string, second_step: bool}
@@ -36,6 +61,10 @@ function diluxone_users_person( int $user_id ): array {
  * @return array<string, string>
  */
 function diluxone_users_users_column( array $columns ): array {
+	if ( ! diluxone_users_access_features_on() ) {
+		return $columns;
+	}
+
 	$columns['diluxone_users'] = __( 'Access', 'diluxone-users' );
 
 	return $columns;
@@ -131,7 +160,15 @@ function diluxone_users_profile_block( WP_User $user ): void {
 		return;
 	}
 
-	$person   = diluxone_users_person( (int) $user->ID );
+	$person = diluxone_users_person( (int) $user->ID );
+
+	// A way in this account still has — a network linked, or an add-on's (a
+	// passkey) from before the site turned it off — keeps the block, so it
+	// can be taken off; with none, the profile is WordPress's own.
+	if ( ! diluxone_users_access_features_on() && array() === $person['social'] && array() === (array) apply_filters( 'diluxone_users_person_take_off', array(), $user ) ) {
+		return;
+	}
+
 	$sessions = diluxone_users_sessions( (int) $user->ID );
 	$last     = $sessions[0] ?? null;
 	$networks = array();

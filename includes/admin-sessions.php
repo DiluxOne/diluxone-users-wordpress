@@ -137,9 +137,10 @@ function diluxone_users_sessions_save(): void {
 
 	diluxone_users_save_options(
 		array(
-			'diluxone_users_session_long_days'  => ( isset( $_POST['diluxone_users_session_long_days'] ) && is_scalar( $_POST['diluxone_users_session_long_days'] ) ? absint( wp_unslash( $_POST['diluxone_users_session_long_days'] ) ) : 0 ),
-			'diluxone_users_session_short_days' => ( isset( $_POST['diluxone_users_session_short_days'] ) && is_scalar( $_POST['diluxone_users_session_short_days'] ) ? absint( wp_unslash( $_POST['diluxone_users_session_short_days'] ) ) : 0 ),
-			'diluxone_users_sessions_show'      => isset( $_POST['diluxone_users_sessions_show'] ) ? 1 : 0,
+			'diluxone_users_session_long_days'   => ( isset( $_POST['diluxone_users_session_long_days'] ) && is_scalar( $_POST['diluxone_users_session_long_days'] ) ? absint( wp_unslash( $_POST['diluxone_users_session_long_days'] ) ) : 0 ),
+			'diluxone_users_session_short_days'  => ( isset( $_POST['diluxone_users_session_short_days'] ) && is_scalar( $_POST['diluxone_users_session_short_days'] ) ? absint( wp_unslash( $_POST['diluxone_users_session_short_days'] ) ) : 0 ),
+			'diluxone_users_sessions_show'       => isset( $_POST['diluxone_users_sessions_show'] ) ? 1 : 0,
+			'diluxone_users_reset_ends_sessions' => isset( $_POST['diluxone_users_reset_ends_sessions'] ) ? 1 : 0,
 		)
 	);
 }
@@ -192,6 +193,21 @@ function diluxone_users_screen_sessions(): void {
 				'checked' => (bool) diluxone_users_option( 'diluxone_users_sessions_show' ),
 				'title'   => __( 'Each person sees where they are signed in, and can close it', 'diluxone-users' ),
 				'help'    => __( 'A box under Security in their account area, with one line per device. Unticked, the box is not there and closing a session stays an administrator’s job, from the report of open sessions.', 'diluxone-users' ),
+			),
+		)
+	);
+
+	diluxone_users_ui_section( __( 'When a password changes', 'diluxone-users' ) );
+
+	diluxone_users_ui_choices(
+		array(
+			array(
+				'type'    => 'checkbox',
+				'name'    => 'diluxone_users_reset_ends_sessions',
+				'value'   => '1',
+				'checked' => (bool) diluxone_users_option( 'diluxone_users_reset_ends_sessions' ),
+				'title'   => __( 'A new password closes every session the account had open', 'diluxone-users' ),
+				'help'    => __( 'Whoever reset it because the old one got out signs in again everywhere, and so would anybody who was using it. Unticked, the other sessions stay open, as WordPress leaves them.', 'diluxone-users' ),
 			),
 		)
 	);

@@ -205,7 +205,7 @@ function diluxone_users_suggested_fields(): array {
  * @return int How many were added.
  */
 function diluxone_users_add_suggested_fields( array $keys ): int {
-	$stored = (array) diluxone_users_raw_get( 'diluxone_users_fields', array() );
+	$stored = diluxone_users_fields_stored();
 	$have   = array_map( 'strval', array_column( $stored, 'key' ) );
 	$added  = 0;
 
@@ -436,6 +436,22 @@ function diluxone_users_normalize_field( array $field ): array {
 }
 
 /**
+ * The list of fields as the site keeps it, raw.
+ *
+ * A site that never saved a list has the starter fields, read from
+ * diluxone_users_default_fields() like any other default and not written
+ * anywhere: activating the plugin stores nothing on the site's behalf. A list
+ * saved empty on purpose stays empty.
+ *
+ * @return array<int|string, mixed>
+ */
+function diluxone_users_fields_stored(): array {
+	$stored = diluxone_users_raw_get( 'diluxone_users_fields', null );
+
+	return null === $stored ? diluxone_users_default_fields() : (array) $stored;
+}
+
+/**
  * Every defined field.
  *
  * @param string $group 'basic', 'optional' or '' for all of them.
@@ -443,7 +459,7 @@ function diluxone_users_normalize_field( array $field ): array {
  * @return array<int, array<string, mixed>>
  */
 function diluxone_users_fields( string $group = '', bool $only_active = true ): array {
-	$fields = array_map( 'diluxone_users_normalize_field', (array) diluxone_users_raw_get( 'diluxone_users_fields', array() ) );
+	$fields = array_map( 'diluxone_users_normalize_field', diluxone_users_fields_stored() );
 
 	$fields = array_values(
 		array_filter(
@@ -476,6 +492,28 @@ function diluxone_users_fields( string $group = '', bool $only_active = true ): 
 	// adds one with a key and a label is not expected to know every setting
 	// a field has, and nothing downstream should read one that is not there.
 	return array_values( array_map( 'diluxone_users_normalize_field', array_filter( $fields, 'is_array' ) ) );
+}
+
+/**
+ * The active fields that are the site's own, not WordPress's.
+ *
+ * What the plugin adds to WordPress's profile screens: first and last name
+ * are already there, drawn by WordPress.
+ *
+ * @return array<int, array<string, mixed>>
+ */
+function diluxone_users_own_fields(): array {
+	return array_values(
+		array_filter(
+			diluxone_users_fields(),
+			static fn( array $field ): bool => ! diluxone_users_field_is_native( (string) $field['key'] )
+		)
+	);
+}
+
+/** Has the site a field of its own for WordPress's profile screens? */
+function diluxone_users_has_own_fields(): bool {
+	return array() !== diluxone_users_own_fields();
 }
 
 /**

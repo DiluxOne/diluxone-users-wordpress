@@ -44,7 +44,7 @@ class UninstallSiteTest extends IntegrationTestCase {
 
 	protected function tearDown(): void {
 		if ( ! is_multisite() ) {
-			diluxone_users_site_setup();
+			diluxone_users_activate( false );
 		}
 
 		parent::tearDown();

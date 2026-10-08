@@ -14,6 +14,12 @@ Custom user fields, a front-end account area, passwordless sign-in, social login
 
 Everything about the people who use your site, in one place.
 
+**Activating it changes nothing.** Sign-in, registration, wp-login.php, the
+e-mails WordPress sends, avatars, the toolbar, session lengths, the Users list
+and everybody's profile stay exactly as WordPress has them, nothing is recorded
+and nothing is sent anywhere, until an administrator turns each feature on.
+Only the plugin's own screens appear, in the dashboard.
+
 * **User fields** defined from the dashboard: type, whether it is required,
   where it shows and who can change it, and how many times. A new site asks
   for WordPress's own first and last name only; a country, a date of birth, a
@@ -36,9 +42,10 @@ Everything about the people who use your site, in one place.
   simple account area, the colours from your theme or from a short palette
   that always reads, and the sizes and spacing — or no stylesheet at all, for
   a site that styles everything itself.
-* **Sessions**: how long they last (WordPress's length until you choose one), where they are open, and how to close them. A new password closes every one of them.
-* **An activity log** of its own: who signed in, who was refused and what
-  changed. It records IP addresses; see Privacy below.
+* **Sessions**: how long they last (WordPress's length until you choose one), where they are open, how to close them, and, if you want it, a new password that closes every one of them.
+* **An activity log** of its own, off until you tick what to record: who
+  signed in, who was refused and what changed. It records IP addresses; see
+  Privacy below.
 * **Privacy**: WordPress's own export and erasure requests answer for
   everything this plugin stores, and people can delete their own account.
 
@@ -67,10 +74,12 @@ The settings screens link to each provider's console and docs (links, not reques
 
 = Gravatar =
 
-**Gravatar** (Automattic) is WordPress's own avatar service; the plugin's switch
-for it is on by default. While on, browsers request avatars from gravatar.com, which
-receives a hash of the e-mail address and the visitor's IP. Off, the plugin
-draws them. Switch: **DiluxOne Users+ → Design → Profile photo**.
+**Gravatar** (Automattic) is WordPress's own avatar service. Activating the
+plugin leaves it exactly as WordPress uses it (Settings → Discussion decides
+whether avatars show at all): browsers request avatars from gravatar.com, which
+receives a hash of the e-mail address and the visitor's IP. The plugin itself
+makes no request to it. Turned off on **DiluxOne Users+ → Design → Profile
+photo**, the plugin draws them instead and nobody's browser asks gravatar.com.
 [Terms](https://automattic.com/terms/), [Privacy](https://automattic.com/privacy/)
 
 == Installation ==
@@ -79,8 +88,11 @@ draws them. Switch: **DiluxOne Users+ → Design → Profile photo**.
 2. Go to **DiluxOne Users+ → Access** and pick (or create) the sign-in page.
 3. Go to **DiluxOne Users+ → Account area** and pick (or create) the account page.
 
-Self-registration starts as your site had it (**Anyone can register**, or the
-network's setting); change it on **Access → Registration**.
+Nothing changes on the site until you turn something on: WordPress's own
+sign-in and registration keep working as they did, and the plugin's ways in
+(the e-mail link, social accounts, its own registration form, two-step
+verification) all start off. Turn each one on where it lives, on
+**Access**, **Security** and **Social login**.
 
 == Privacy ==
 
@@ -96,10 +108,10 @@ In its own table, `{prefix}diluxone_users_log` (one for the whole network, on
 a network): one row per event with the date, the account, the **IP address**
 and the browser's user-agent. When a sign-in is refused, the name typed in the
 username box is kept with it; when an account changes, what changed (an old
-and a new e-mail address or public name). Out of the box it records signing
-in, signing out and refused sign-ins and second steps; other groups
-and how long rows are kept (90 days to start) are set on
-**DiluxOne Users+ → Reports → Log settings**.
+and a new e-mail address or public name). Out of the box it records nothing
+and the table does not exist: it is made when you tick the first group to
+record, on **DiluxOne Users+ → Reports → Log settings**, where how long rows
+are kept (90 days to start) is set too.
 
 Cookies: short-lived ones while somebody signs in (or signs in to confirm a
 request), one for a browser that need not be asked the second step again, and
@@ -116,7 +128,8 @@ exported, and kept on erasure as security evidence until the log removes them.
 On a network, the sites an administrator removed somebody from are exported
 and kept on erasure: that list is what keeps them from being added back.
 
-People ask on their account. The e-mail's link has them sign in, deleting asks
+Once you turn it on (**Account area → Your data**), people ask on their
+account. The e-mail's link has them sign in, deleting asks
 once more, and then it is done (or waits in **Tools**, if the site says so).
 The file is downloaded from the account, signed in. Erasing deletes the account
 too, or, if they published something or belong to another site of the network,
@@ -173,7 +186,9 @@ log** shows every site's, with the site each row happened on, and empties
 them all. On a network that used the plugin before, each site's old log is
 moved into it in the background (or at once with `wp diluxone-users network
 migrate`), and each old table is dropped once all its rows are in.
-People sign in, register and keep their account on the main site. On every
+Once you tick **Network Admin → DiluxOne Users+ → Overview → Signing in
+across the network** (until then every site keeps its own wp-login.php),
+people sign in, register and keep their account on the main site. On every
 other site the doors lead there — the "Sign in" in its menu, the plugin's
 shortcodes, its wp-login.php, WordPress's own sign-in links — and, whichever
 way the person gets in (e-mail link, password, social account, second
@@ -251,3 +266,6 @@ can write.
 
 = 1.0.0 =
 First public release.
+
+* Activating the plugin changes nothing on the site: every feature starts off, the activity log records nothing until you choose what to record, and the plugin writes no settings, tables, cron events or rewrite rules of its own until you turn something on.
+* Sites that already ran an earlier build keep behaving exactly as they did: the answers it gave by default are written down as their own on the first request after the update.

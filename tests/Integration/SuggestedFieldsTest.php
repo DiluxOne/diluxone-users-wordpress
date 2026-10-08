@@ -18,13 +18,11 @@ class SuggestedFieldsTest extends IntegrationTestCase {
 
 	/** The keys on the stored list, in order. */
 	private function keys(): array {
-		return array_values( array_map( 'strval', array_column( (array) diluxone_users_raw_get( 'diluxone_users_fields', array() ), 'key' ) ) );
+		return array_values( array_map( 'strval', array_column( diluxone_users_fields_stored(), 'key' ) ) );
 	}
 
-	public function test_a_fresh_install_seeds_only_the_two_names_and_neither_is_required(): void {
+	public function test_a_fresh_install_has_only_the_two_names_and_neither_is_required(): void {
 		$this->assertFalse( diluxone_users_raw_get( 'diluxone_users_fields', false ), 'Nothing stored yet' );
-
-		diluxone_users_seed_fields();
 
 		$this->assertSame( array( 'first_name', 'last_name' ), $this->keys() );
 
@@ -37,14 +35,12 @@ class SuggestedFieldsTest extends IntegrationTestCase {
 		$list = array_merge( diluxone_users_default_fields(), array( diluxone_users_suggested_fields()[0] ) );
 		diluxone_users_update_option( 'diluxone_users_fields', $list );
 
-		diluxone_users_seed_fields();
+		diluxone_users_seed_native_fields();
 
 		$this->assertSame( array( 'first_name', 'last_name', 'diluxone_users_country' ), $this->keys(), 'Nothing seeded over it, nothing taken away' );
 	}
 
 	public function test_the_suggested_fields_are_offered_and_added_once(): void {
-		diluxone_users_seed_fields();
-
 		$offered = array_column( diluxone_users_suggested_fields(), 'key' );
 
 		$this->assertSame( array( 'diluxone_users_country', 'diluxone_users_birthday', 'diluxone_users_gender', 'diluxone_users_phone' ), $offered );
@@ -62,8 +58,6 @@ class SuggestedFieldsTest extends IntegrationTestCase {
 	}
 
 	public function test_the_screen_adds_the_ones_ticked_behind_its_nonce(): void {
-		diluxone_users_seed_fields();
-
 		$this->in_network_admin();
 		wp_set_current_user( 1 );
 
@@ -96,7 +90,6 @@ class SuggestedFieldsTest extends IntegrationTestCase {
 			$this->markTestSkipped( 'On a single site the fields screen is the site\'s own: SuggestedFieldsTest › the screen adds the ones ticked.' );
 		}
 
-		diluxone_users_seed_fields();
 
 		// A site's dashboard, not Network Admin: the fields are the network's.
 		$this->postAs(

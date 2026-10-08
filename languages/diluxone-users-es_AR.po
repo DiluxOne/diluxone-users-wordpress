@@ -2532,12 +2532,8 @@ msgid "Or use:"
 msgstr "O usá:"
 
 #: includes/auth-wp-login.php:104 templates/login-2fa.php:93
-msgid ""
-"Lost the phone and the email? Use one of your backup codes: they go in the "
-"same box."
-msgstr ""
-"¿Perdiste el teléfono y el correo? Usá uno de tus códigos de respaldo: van "
-"en la misma caja."
+msgid "Can’t get a code? Use one of your backup codes: they go in the same box."
+msgstr "¿No te llega ningún código? Usá uno de tus códigos de respaldo: van en la misma caja."
 
 #: includes/admin-login.php:1082 templates/login.php:42
 msgid "Check your email"
@@ -6309,16 +6305,6 @@ msgstr ""
 msgid "What is written down"
 msgstr "Qué se anota"
 
-#: includes/admin-log.php:116
-msgid ""
-"A fresh install records the way in and the way out, and nothing else. The "
-"other two are ticked by whoever will be paying for the rows — which is why "
-"each one says roughly what it costs."
-msgstr ""
-"Una instalación nueva registra la entrada y la salida, y nada más. Los otros"
-" dos los tilda quien vaya a pagar por las filas: por eso cada uno dice más o"
-" menos lo que cuesta."
-
 #: includes/admin-log.php:138
 msgid "How long it is kept"
 msgstr "Cuánto tiempo se guarda"
@@ -10061,3 +10047,49 @@ msgstr "Configurá abajo una forma de recibir el código que no sea un correo, y
 #: templates/account/security.php:192
 msgid "Any code you can get for the second step: one of your backup codes, or the one we email you."
 msgstr "Cualquier código que tengas para el segundo paso: uno de tus códigos de respaldo o el que te mandamos por correo."
+
+#: includes/admin-log.php:116
+msgid "A fresh install records nothing, and has no table to record it in until a group is ticked here. Each one is ticked by whoever will be paying for the rows — which is why each one says roughly what it costs."
+msgstr "Una instalación nueva no registra nada, y no tiene tabla donde registrarlo hasta que se tilda un grupo acá. Cada uno lo tilda quien vaya a pagar por las filas: por eso cada uno dice más o menos lo que cuesta."
+
+#: includes/admin-network.php:291
+msgid "Signing in across the network"
+msgstr "Iniciar sesión en toda la red"
+
+#. translators: %s: name of the network's hub site
+#: includes/admin-network.php:566
+#, php-format
+msgid "Every site sends people to %s to sign in, register and reset a password"
+msgstr "Todos los sitios mandan a la gente a %s para iniciar sesión, registrarse y restablecer la contraseña"
+
+#: includes/admin-network.php:569
+msgid "One door for the whole network, and back to the site they came from afterwards. Unticked, every site keeps its own wp-login.php, as WordPress has it. A site on a domain of its own always keeps its own."
+msgstr "Una sola puerta para toda la red, y de vuelta al sitio del que venían después. Sin marcar, cada sitio conserva su propio wp-login.php, como lo tiene WordPress. Un sitio con un dominio propio siempre conserva el suyo."
+
+#: includes/admin-network.php:578
+msgid "Every site sends people to the hub to sign in."
+msgstr "Todos los sitios mandan a la gente al sitio principal para iniciar sesión."
+
+#: includes/admin-network.php:579
+msgid "Every site keeps its own wp-login.php."
+msgstr "Cada sitio conserva su propio wp-login.php."
+
+#: includes/admin-register.php:403
+msgid "WordPress’s own form asks for the user fields too"
+msgstr "El formulario propio de WordPress también pide los campos de usuario"
+
+#: includes/admin-register.php:404
+msgid "The active fields, under the username and the e-mail, with the required ones required. Unticked, the form is exactly WordPress’s."
+msgstr "Los campos activos, debajo del nombre de usuario y el e-mail, con los obligatorios como obligatorios. Sin marcar, el formulario es exactamente el de WordPress."
+
+#: includes/admin-sessions.php:200
+msgid "When a password changes"
+msgstr "Cuando cambia una contraseña"
+
+#: includes/admin-sessions.php:209
+msgid "A new password closes every session the account had open"
+msgstr "Una contraseña nueva cierra todas las sesiones que la cuenta tenía abiertas"
+
+#: includes/admin-sessions.php:210
+msgid "Whoever reset it because the old one got out signs in again everywhere, and so would anybody who was using it. Unticked, the other sessions stay open, as WordPress leaves them."
+msgstr "Quien la restableció porque la anterior se filtró vuelve a iniciar sesión en todos lados, y también tendría que hacerlo cualquiera que la estuviera usando. Sin marcar, las demás sesiones siguen abiertas, como las deja WordPress."

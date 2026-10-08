@@ -97,6 +97,13 @@ function diluxone_users_option_scopes(): array {
 		'diluxone_users_log_moved'              => 'network',
 		'diluxone_users_log_moving'             => 'network',
 		'diluxone_users_log_kept'               => 'network',
+		// Which defaults this install has settled on: the ones it was
+		// activated with, or the ones an older version had, written down.
+		// See diluxone_users_defaults_settle() in includes/migrate.php.
+		'diluxone_users_defaults_version'       => 'network',
+		// Whether the other sites send people to the hub (network-hub.php).
+		'diluxone_users_network_hub'            => 'network',
+		'diluxone_users_reset_ends_sessions'    => 'network',
 
 		// ── Hub: the screens people sign in, register and live on ───
 		'diluxone_users_account_action'         => 'hub',
@@ -163,6 +170,7 @@ function diluxone_users_option_scopes(): array {
 		'diluxone_users_privacy_export_when'    => 'hub',
 		'diluxone_users_register_done'          => 'hub',
 		'diluxone_users_register_form'          => 'hub',
+		'diluxone_users_wp_register_fields'     => 'hub',
 		'diluxone_users_register_intro'         => 'hub',
 		'diluxone_users_register_page'          => 'hub',
 		'diluxone_users_register_title'         => 'hub',
@@ -219,14 +227,22 @@ function diluxone_users_option_scopes(): array {
  * @param string $key Option name, with its prefix.
  */
 function diluxone_users_option_scope( string $key ): string {
-	$scope = diluxone_users_option_scopes()[ $key ] ?? 'site';
+	$own = diluxone_users_option_scopes();
+
+	// The plugin's own settings keep the scope written above: moved from
+	// outside, one would be read from a table it was never saved to.
+	if ( isset( $own[ $key ] ) ) {
+		return $own[ $key ];
+	}
+
+	$scope = 'site';
 
 	/**
 	 * Filters where one setting is stored on a network.
 	 *
 	 * An add-on that stores settings of its own through the plugin's helpers
-	 * gives them a scope here. Anything other than 'network', 'hub' or 'site'
-	 * is read as 'site'.
+	 * gives them a scope here; the plugin's own keep theirs. Anything other
+	 * than 'network', 'hub' or 'site' is read as 'site'.
 	 *
 	 * @since 1.0.0
 	 *

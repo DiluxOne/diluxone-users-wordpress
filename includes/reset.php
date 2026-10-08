@@ -145,10 +145,13 @@ add_action( 'admin_post_diluxone_users_reset', 'diluxone_users_reset_save' );
  * `after_password_reset`, which WordPress fires for the site's own reset page
  * and for wp-login.php alike. A reset signs nobody in, so every session goes.
  *
+ * Only when an administrator has asked for it on Security › Sessions:
+ * WordPress itself leaves them open, and so does a site that has not decided.
+ *
  * @param WP_User $user
  */
 function diluxone_users_reset_ends_sessions( $user ): void {
-	if ( $user instanceof WP_User ) {
+	if ( $user instanceof WP_User && diluxone_users_option( 'diluxone_users_reset_ends_sessions' ) ) {
 		WP_Session_Tokens::get_instance( $user->ID )->destroy_all();
 	}
 }
