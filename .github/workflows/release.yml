@@ -36,7 +36,7 @@ permissions:
 
 jobs:
   release:
-    uses: DiluxOne/.github/.github/workflows/plugin-release-wp.yml@aa48e0217d3a13288d5cde8c20eb670e27c943e8 # v5.3.0
+    uses: DiluxOne/.github/.github/workflows/plugin-release-wp.yml@44dcc703588f183af8b3932c251706f16860023c # v5.3.3
     with:
       # The scripts the release reads come from the same commit as the
       # workflow: without it they would follow the moving v5.
