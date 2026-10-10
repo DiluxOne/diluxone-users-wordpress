@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   check:
-    uses: DiluxOne/.github/.github/workflows/svn-auth-check.yml@aa48e0217d3a13288d5cde8c20eb670e27c943e8 # v5.3.0
+    uses: DiluxOne/.github/.github/workflows/svn-auth-check.yml@44dcc703588f183af8b3932c251706f16860023c # v5.3.3
     # An environment's secrets reach a called job only through `inherit`,
     # which also passes every repository and organisation secret; hence the
     # by-hand trigger and the pinned commit.
