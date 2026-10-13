@@ -235,8 +235,26 @@ class IntegrationTestCase extends TestCase {
 		wp_cache_flush();
 	}
 
-	/** @var mixed The defaults' mark as the test found it, while from_before_the_settled_defaults() has it away. */
-	private $settled = null;
+	/**
+	 * The features on: what a test starts with unless it is $fresh.
+	 *
+	 * Whether accounts may be created follows the site, or the network, so
+	 * those two answers are added in setUp().
+	 *
+	 * @var array<string, mixed>
+	 */
+	private const FEATURES_ON = array(
+		'diluxone_users_login_method'        => 'both',
+		'diluxone_users_log_levels'          => array( 'access' ),
+		'diluxone_users_notice_rules'        => array(),
+		'diluxone_users_2fa_mode'            => 'optional',
+		'diluxone_users_sessions_show'       => 1,
+		'diluxone_users_privacy_export'      => 1,
+		'diluxone_users_privacy_delete'      => 1,
+		'diluxone_users_avatar_upload'       => 1,
+		'diluxone_users_reset_ends_sessions' => 1,
+		'diluxone_users_wp_register_fields'  => 1,
+	);
 
 	/** Whether the test starts on a site that turned nothing on, rather than on one with the features on. */
 	protected bool $fresh = false;
@@ -263,11 +281,10 @@ class IntegrationTestCase extends TestCase {
 		}
 
 		// The suite walks what the plugin does once it is turned on, so every
-		// test starts on a site with its features on: the answers build 1.0.0
-		// gave by default, which is also what an upgraded site keeps. A test
-		// about a site that turned nothing on says so with $fresh.
+		// test starts on a site with its features on. A test about a site that
+		// turned nothing on says so with $fresh.
 		if ( ! $this->fresh ) {
-			foreach ( diluxone_users_defaults_before() as $option => $value ) {
+			foreach ( self::features_on() as $option => $value ) {
 				diluxone_users_update_option( $option, $value );
 			}
 		}
@@ -309,21 +326,27 @@ class IntegrationTestCase extends TestCase {
 	}
 
 	/**
-	 * The test is about an install from before its defaults were settled: a
-	 * network whose settings and log have not moved yet, say. Without the
-	 * mark, the moves have their work to do; it is put back after the test.
+	 * The features on, with registration following whether accounts are open:
+	 * the network's decision on a network, the site's own switch otherwise.
+	 *
+	 * @return array<string, mixed>
 	 */
-	protected function from_before_the_settled_defaults(): void {
-		$this->settled = diluxone_users_raw_get( DILUXONE_USERS_DEFAULTS_VERSION_OPTION, null );
-		diluxone_users_delete_option( DILUXONE_USERS_DEFAULTS_VERSION_OPTION );
+	private static function features_on(): array {
+		$open = is_multisite() ? diluxone_users_network_takes_accounts() : (bool) get_option( 'users_can_register' );
+
+		$on = self::FEATURES_ON;
+
+		$on['diluxone_users_login_register'] = $open ? 1 : 0;
+		$on['diluxone_users_sso_register']   = $open ? 1 : 0;
+
+		if ( is_multisite() ) {
+			$on['diluxone_users_network_hub'] = 1;
+		}
+
+		return $on;
 	}
 
 	protected function tearDown(): void {
-		if ( null !== $this->settled ) {
-			diluxone_users_update_option( DILUXONE_USERS_DEFAULTS_VERSION_OPTION, $this->settled );
-			$this->settled = null;
-		}
-
 		remove_filter( 'wp_redirect', array( $this, 'throw_redirect' ), 1 );
 		remove_filter( 'pre_wp_mail', array( $this, 'catch_mail' ), 10 );
 		remove_filter( 'diluxone_users_cookie', array( $this, 'catch_cookie' ), 10 );

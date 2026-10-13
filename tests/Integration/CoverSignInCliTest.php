@@ -9,8 +9,8 @@
  * printed. WP_CLI::error() exits in WP-CLI and throws here. Each test runs in
  * a process of its own, so the stand-in class never reaches the other tests.
  *
- * The three WP_CLI::add_command() lines are the only ones left unrun: they
- * belong to the load, which happened without WP-CLI.
+ * The WP_CLI::add_command() lines are the only ones left unrun: they belong
+ * to the load, which happened without WP-CLI.
  *
  * @runTestsInSeparateProcesses
  * @preserveGlobalState disabled
@@ -25,15 +25,8 @@ class CoverSignInCliTest extends IntegrationTestCase {
 	/** The highest user ID before the test: the membership sync is kept to the test's own accounts. */
 	private int $mark = 0;
 
-	/** @var array<string, mixed>|null What the network's moves held before the test undid them, put back after it. */
-	private ?array $moves = null;
-
-	/** @var array<int, string> Old per-site log tables the test made. */
-	private array $old_tables = array();
-
 	protected function setUp(): void {
 		parent::setUp();
-		$this->from_before_the_settled_defaults();
 
 		require_once __DIR__ . '/Support/CoverSignInCli.php';
 
@@ -46,26 +39,6 @@ class CoverSignInCliTest extends IntegrationTestCase {
 	protected function tearDown(): void {
 		remove_filter( 'pre_update_site_option_' . DILUXONE_USERS_MEMBERSHIP_QUEUE, array( $this, 'only_the_test_s_accounts' ) );
 		remove_all_filters( 'diluxone_users_membership_batch' );
-
-		if ( null !== $this->moves ) {
-			global $wpdb;
-
-			foreach ( $this->moves as $key => $value ) {
-				if ( null === $value ) {
-					delete_site_option( $key );
-				} else {
-					update_site_option( $key, $value );
-				}
-			}
-
-			foreach ( $this->old_tables as $table ) {
-				$wpdb->query( "DROP TABLE IF EXISTS {$table}" ); // phpcs:ignore WordPress.DB
-			}
-
-			wp_clear_scheduled_hook( DILUXONE_USERS_NETWORK_MIGRATE_EVENT );
-			wp_clear_scheduled_hook( DILUXONE_USERS_LOG_MOVE_EVENT );
-			$this->moves = null;
-		}
 
 		if ( function_exists( 'diluxone_users_membership_unlock' ) ) {
 			diluxone_users_membership_unlock();
@@ -169,153 +142,6 @@ class CoverSignInCliTest extends IntegrationTestCase {
 		}
 
 		$this->assertSame( array( 'log', 'The e-mail could not be sent.' ), $out['lines'][0] );
-	}
-
-	/* ── wp diluxone-users network migrate ───────────────────────────── */
-
-	public function test_migrating_a_single_site_is_refused(): void {
-		if ( is_multisite() ) {
-			$this->markTestSkipped( 'A single-site case; on a network the counterpart is test_migrating_a_network_already_moved_says_so_and_succeeds.' );
-		}
-
-		$out = $this->run_command( 'diluxone_users_cli_network_migrate' );
-
-		$this->assertSame( 'This is not a network: there is nothing to move.', $out['error'] );
-	}
-
-	public function test_migrating_a_network_already_moved_says_so_and_succeeds(): void {
-		if ( ! is_multisite() ) {
-			$this->markTestSkipped( 'A network case; on a single site the counterpart is test_migrating_a_single_site_is_refused.' );
-		}
-
-		// Moved, whatever this tests network had done before — the state this
-		// is about — and put back as found after.
-		$version = diluxone_users_raw_get( DILUXONE_USERS_NETWORK_VERSION_OPTION, null );
-		$moved   = diluxone_users_raw_get( DILUXONE_USERS_LOG_MOVED, null );
-		diluxone_users_update_option( DILUXONE_USERS_NETWORK_VERSION_OPTION, DILUXONE_USERS_NETWORK_VERSION );
-		diluxone_users_update_option( DILUXONE_USERS_LOG_MOVED, 1 );
-
-		try {
-			$out = $this->run_command( 'diluxone_users_cli_network_migrate' );
-		} finally {
-			foreach ( array( DILUXONE_USERS_NETWORK_VERSION_OPTION => $version, DILUXONE_USERS_LOG_MOVED => $moved ) as $key => $was ) {
-				if ( null === $was ) {
-					diluxone_users_delete_option( $key );
-				} else {
-					diluxone_users_update_option( $key, $was );
-				}
-			}
-		}
-
-		$this->assertSame( '', $out['error'] );
-		$this->assertSame(
-			array(
-				array( 'log', 'The network’s settings were already moved.' ),
-				array( 'log', 'The sites’ activity logs were already in the network’s table.' ),
-				array( 'success', 'The network’s settings and activity log are where they belong.' ),
-			),
-			$out['lines']
-		);
-	}
-
-	public function test_migrating_a_network_that_never_moved_moves_it_and_reports_what_it_found(): void {
-		if ( ! is_multisite() ) {
-			$this->markTestSkipped( 'A network case; on a single site the counterpart is test_migrating_a_single_site_is_refused.' );
-		}
-
-		global $wpdb;
-
-		// Undone for the test, and put back after it exactly as found.
-		$this->moves = array();
-		foreach ( array( DILUXONE_USERS_NETWORK_VERSION_OPTION, DILUXONE_USERS_NETWORK_MIGRATING, DILUXONE_USERS_NETWORK_CONFLICTS, DILUXONE_USERS_NETWORK_CONFLICTS_SEEN, DILUXONE_USERS_LOG_MOVED, DILUXONE_USERS_LOG_MOVING, DILUXONE_USERS_LOG_KEPT ) as $key ) {
-			$this->moves[ $key ] = get_site_option( $key, null );
-			delete_site_option( $key );
-		}
-
-		// A site that kept a setting of its own, different from the network's,
-		// and a log table of its own with two rows in it.
-		$site = (int) wp_insert_site(
-			array(
-				'domain' => (string) get_network()->domain,
-				'path'   => '/cover-signin-migrate-' . strtolower( wp_generate_password( 6, false ) ) . '/',
-			)
-		);
-		update_blog_option( $site, 'diluxone_users_2fa_mode', 'required' );
-
-		$old                = $wpdb->get_blog_prefix( $site ) . 'diluxone_users_log';
-		$this->old_tables[] = $old;
-		$wpdb->query( "DROP TABLE IF EXISTS {$old}" ); // phpcs:ignore WordPress.DB
-		$wpdb->query( // phpcs:ignore WordPress.DB
-			"CREATE TABLE {$old} (
-				id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-				user_id bigint(20) unsigned NOT NULL DEFAULT 0,
-				event varchar(32) NOT NULL DEFAULT '',
-				happened datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
-				ip varchar(45) NOT NULL DEFAULT '',
-				agent varchar(255) NOT NULL DEFAULT '',
-				detail text NOT NULL,
-				PRIMARY KEY  (id)
-			)"
-		);
-		$wpdb->query( "INSERT INTO {$old} (user_id, event, happened, detail) VALUES (1, 'signed_in', UTC_TIMESTAMP(), '{}'), (1, 'signed_in', UTC_TIMESTAMP(), '{}')" ); // phpcs:ignore WordPress.DB
-
-		$this->assertFalse( diluxone_users_network_migrated() );
-
-		$out   = $this->run_command( 'diluxone_users_cli_network_migrate' );
-		$lines = array_column( $out['lines'], 1 );
-
-		$this->assertSame( '', $out['error'] );
-		$this->assertContains( sprintf( 'Site %d had %s set differently.', $site, 'diluxone_users_2fa_mode' ), $lines );
-		$this->assertCount( 1, preg_grep( '/^The network’s settings were moved\. [1-9]\d* differences written down\.$/u', $lines ) );
-		$this->assertContains( sprintf( 'Site %d: 2 rows moved, its old table dropped.', $site ), $lines );
-		$this->assertContains( 'The sites’ activity logs are in the network’s table. 0 old tables kept.', $lines );
-		$this->assertSame( array( 'success', 'The network’s settings and activity log are where they belong.' ), end( $out['lines'] ) );
-		$this->assertTrue( diluxone_users_network_migrated() );
-		$this->assertTrue( diluxone_users_log_moved() );
-		$this->assertFalse( wp_next_scheduled( DILUXONE_USERS_NETWORK_MIGRATE_EVENT ) );
-	}
-
-	/** A database that keeps refusing the copy is given up on after three tries, and nothing is lost. */
-	public function test_migrating_gives_up_on_a_database_that_refuses_the_copy(): void {
-		if ( ! is_multisite() ) {
-			$this->markTestSkipped( 'A network case; on a single site the counterpart is test_migrating_a_single_site_is_refused.' );
-		}
-
-		global $wpdb;
-
-		$this->moves = array();
-		foreach ( array( DILUXONE_USERS_NETWORK_VERSION_OPTION, DILUXONE_USERS_LOG_MOVED, DILUXONE_USERS_LOG_MOVING, DILUXONE_USERS_LOG_KEPT ) as $key ) {
-			$this->moves[ $key ] = get_site_option( $key, null );
-			delete_site_option( $key );
-		}
-		update_site_option( DILUXONE_USERS_NETWORK_VERSION_OPTION, DILUXONE_USERS_NETWORK_VERSION );
-
-		$site = (int) wp_insert_site(
-			array(
-				'domain' => (string) get_network()->domain,
-				'path'   => '/cover-signin-refused-' . strtolower( wp_generate_password( 6, false ) ) . '/',
-			)
-		);
-		$old                = $wpdb->get_blog_prefix( $site ) . 'diluxone_users_log';
-		$this->old_tables[] = $old;
-		$wpdb->query( "CREATE TABLE {$old} ( id bigint(20) unsigned NOT NULL AUTO_INCREMENT, user_id bigint(20) unsigned NOT NULL DEFAULT 0, event varchar(32) NOT NULL DEFAULT '', happened datetime NOT NULL DEFAULT '0000-00-00 00:00:00', ip varchar(45) NOT NULL DEFAULT '', agent varchar(255) NOT NULL DEFAULT '', detail text NOT NULL, PRIMARY KEY  (id) )" ); // phpcs:ignore WordPress.DB
-		$wpdb->query( "INSERT INTO {$old} (user_id, event, happened, detail) VALUES (1, 'signed_in', UTC_TIMESTAMP(), '{}'), (1, 'signed_in', UTC_TIMESTAMP(), '{}')" ); // phpcs:ignore WordPress.DB
-
-		$table = diluxone_users_log_table();
-		$this->hook( 'query', static fn( $sql ) => false !== stripos( (string) $sql, 'INSERT INTO `' . $table . '`' ) ? 'INSERT INTO diluxone_users_no_such_table VALUES (1)' : $sql );
-		$suppress = $wpdb->suppress_errors( true );
-
-		try {
-			$out = $this->run_command( 'diluxone_users_cli_network_migrate' );
-		} finally {
-			remove_all_filters( 'query' );
-			$wpdb->suppress_errors( $suppress );
-		}
-
-		$this->assertStringContainsString( 'refused to copy', $out['error'] );
-		$this->assertSame( 2, (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$old}" ), 'the old rows are where they were' ); // phpcs:ignore WordPress.DB
-		$this->assertSame( 0, (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$table} WHERE site_id = %d", $site ) ) ); // phpcs:ignore WordPress.DB
-		$this->assertFalse( diluxone_users_log_moved() );
 	}
 
 	/* ── wp diluxone-users network membership sync ───────────────────── */

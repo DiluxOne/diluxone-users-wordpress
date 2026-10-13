@@ -1,13 +1,12 @@
 <?php
 /**
- * Where each screen and tab belongs on a network, and what the move compares.
+ * Where each screen and tab belongs on a network.
  *
  * The admin half of the network change is a map — which screen, which tab,
  * belongs to the network, the hub or the site — and a rule reading it from
  * four places. Both are pure, and a mistake in either is a network screen in a
  * site's menu, or a site's screen nobody can reach; so they are held here,
- * place by place. So are the two small judgements the move makes about stored
- * values: whether two are the same setting, and how one is written down.
+ * place by place.
  */
 
 namespace Tests\Unit\DiluxOneUsers;
@@ -27,7 +26,6 @@ class NetworkPlacesTest extends TestCase {
 		require_once DILUXONE_USERS_DIR . 'includes/options-scope.php';
 		require_once DILUXONE_USERS_DIR . 'includes/admin.php';
 		require_once DILUXONE_USERS_DIR . 'includes/admin-network.php';
-		require_once DILUXONE_USERS_DIR . 'includes/migrate.php';
 		$GLOBALS['_test_multisite'] = false;
 	}
 
@@ -91,33 +89,5 @@ class NetworkPlacesTest extends TestCase {
 
 		$this->assertSame( array_keys( $panels ), array_keys( diluxone_users_panels_here( $panels, 'diluxone-users' ) ) );
 		$this->assertSame( 'manage_options', diluxone_users_admin_cap() );
-	}
-
-	public function test_every_network_setting_moves_but_the_wipe_and_the_bookkeeping(): void {
-		$moved = diluxone_users_network_moved_keys();
-
-		$this->assertContains( 'diluxone_users_2fa_mode', $moved );
-		$this->assertContains( 'diluxone_users_fields', $moved );
-		$this->assertContains( 'diluxone_users_sso', $moved );
-		$this->assertNotContains( 'diluxone_users_uninstall_wipe', $moved );
-		$this->assertNotContains( DILUXONE_USERS_NETWORK_VERSION_OPTION, $moved );
-		$this->assertNotContains( DILUXONE_USERS_NETWORK_CONFLICTS, $moved );
-		$this->assertNotContains( 'diluxone_users_login_title', $moved, 'A hub setting stays on the hub' );
-	}
-
-	/** What is read back from the database is a string where a number was written. */
-	public function test_one_and_one_as_text_are_the_same_setting(): void {
-		Monkey\Functions\when( 'maybe_serialize' )->alias( 'serialize' );
-
-		$this->assertTrue( diluxone_users_network_same( 1, '1' ) );
-		$this->assertTrue( diluxone_users_network_same( array( 'a' => 1 ), array( 'a' => 1 ) ) );
-		$this->assertFalse( diluxone_users_network_same( 'off', 'required' ) );
-		$this->assertFalse( diluxone_users_network_same( array( 'totp' ), array( 'email' ) ) );
-	}
-
-	public function test_a_value_is_written_down_short_and_flat(): void {
-		$this->assertSame( 'off', diluxone_users_network_said( 'off' ) );
-		$this->assertSame( 'totp, email', diluxone_users_network_said( array( 'totp', 'email' ) ) );
-		$this->assertSame( 80, mb_strlen( diluxone_users_network_said( str_repeat( 'x', 200 ) ) ) );
 	}
 }

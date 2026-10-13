@@ -131,9 +131,9 @@ class ActivityLogTest extends TestCase {
 	}
 
 	public function test_an_option_that_is_not_a_list_records_nothing(): void {
-		// A site that came from an option written by hand, or from a migration
-		// that went wrong. The safe way round is silence: a broken setting must
-		// never be read as permission to start writing rows.
+		// An option written by hand, or by a tool that got it wrong. The safe
+		// way round is silence: a broken setting must never be read as
+		// permission to start writing rows.
 		$this->recording( array() );
 		update_option( 'diluxone_users_log_levels', 'access' );
 

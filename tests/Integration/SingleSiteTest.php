@@ -4,9 +4,9 @@
  *
  * Every rule those two prove on a network has a single-site answer, and the
  * answer is not "nothing happens": the site's own switch decides who may
- * create an account, activation sets the site up in its own table, every
- * screen and every tab is on the site's own dashboard, what its screens save
- * is its own, and there is nothing to move to a network. On a network every
+ * create an account, activation writes nothing in the site's own table, every
+ * screen and every tab is on the site's own dashboard, and what its screens
+ * save is its own. On a network every
  * test here is skipped, loudly — a single-site test that passes on a network
  * has proved nothing.
  */
@@ -74,31 +74,27 @@ class SingleSiteTest extends IntegrationTestCase {
 		$this->assertCount( 1, self::$mail, 'Switched on, the link is sent' );
 	}
 
-	/** Activation writes no setting, and the one mark it keeps is in the site's own table. */
-	public function test_activation_keeps_its_one_mark_in_the_sites_own_table(): void {
+	/** Activation writes no setting in the site's own table. */
+	public function test_activation_writes_nothing_in_the_sites_own_table(): void {
 		diluxone_users_delete_option( 'diluxone_users_login_register' );
 
 		diluxone_users_activate( false );
 
 		$this->assertFalse( get_option( 'diluxone_users_fields', false ), 'The starter fields are a default, not a stored list' );
 		$this->assertFalse( get_option( 'diluxone_users_login_register', false ), 'No door written' );
-		$this->assertSame( DILUXONE_USERS_DEFAULTS_VERSION, (int) get_option( DILUXONE_USERS_DEFAULTS_VERSION_OPTION ), 'The defaults’ version, in the site’s table' );
 	}
 
 	/**
 	 * The activity log is the site's own table, under the site's prefix, with
 	 * every row stamped as the site's: there is no network to share it with,
-	 * no network report, no network button and nothing to move.
+	 * no network report and no network button.
 	 */
-	public function test_the_log_is_the_sites_own_and_there_is_nothing_to_move(): void {
+	public function test_the_log_is_the_sites_own(): void {
 		global $wpdb;
 
 		$this->assertFalse( diluxone_users_log_network() );
 		$this->assertSame( $wpdb->prefix . 'diluxone_users_log', diluxone_users_log_table() );
 		$this->assertTrue( diluxone_users_log_purges_here() );
-
-		$this->assertTrue( diluxone_users_log_move(), 'Nothing to move' );
-		$this->assertFalse( get_option( 'diluxone_users_log_moved', false ), 'And nothing written about it' );
 
 		$this->assertArrayHasKey( 'activity', diluxone_users_panels( DILUXONE_USERS_REPORTS ) );
 		$this->assertArrayNotHasKey( 'network-activity', diluxone_users_panels( DILUXONE_USERS_REPORTS ), 'No network report' );
@@ -319,19 +315,5 @@ class SingleSiteTest extends IntegrationTestCase {
 
 		$this->assertSame( 'required', $caught['diluxone_users_2fa_mode'] ?? null );
 		$this->assertSame( 'optional', get_option( 'diluxone_users_2fa_mode' ) );
-	}
-
-	/** There is no network to move the settings to: the move is done before it starts, and writes nothing. */
-	public function test_there_is_nothing_to_move(): void {
-		$admin = $this->make_user( 'administrator' );
-		wp_set_current_user( $admin );
-
-		$this->assertTrue( diluxone_users_network_migrate() );
-		$this->assertFalse( get_option( DILUXONE_USERS_NETWORK_VERSION_OPTION ) );
-		$this->assertFalse( get_option( DILUXONE_USERS_NETWORK_MIGRATING ) );
-
-		ob_start();
-		diluxone_users_network_conflicts_notice();
-		$this->assertSame( '', (string) ob_get_clean() );
 	}
 }

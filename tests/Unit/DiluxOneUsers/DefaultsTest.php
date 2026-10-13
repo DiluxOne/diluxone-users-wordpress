@@ -1,19 +1,17 @@
 <?php
 /**
- * Activating the plugin decides nothing for the site.
+ * A fresh install decides nothing for the site.
  *
- * Every feature a person could notice starts off, and every setting that
- * changed its default on the way there has the old answer in
- * diluxone_users_defaults_before(), so a site that ran 1.0.0 keeps behaving
- * the way it did. A default changed without its old value written down here
- * would switch something off on those sites without anybody deciding to.
+ * Every feature a person could notice starts off: every setting reads its
+ * default until an administrator saves it, and every default leaves the site
+ * as WordPress has it. A default that switched something on would be the
+ * plugin deciding for a site nobody configured.
  */
 
 namespace Tests\Unit\DiluxOneUsers;
 
 use Tests\Unit\ResetsWpStubs;
 use Brain\Monkey;
-use Brain\Monkey\Functions;
 use PHPUnit\Framework\TestCase;
 
 class DefaultsTest extends TestCase {
@@ -26,7 +24,6 @@ class DefaultsTest extends TestCase {
 		require_once DILUXONE_USERS_DIR . 'includes/options.php';
 		require_once DILUXONE_USERS_DIR . 'includes/options-scope.php';
 		require_once DILUXONE_USERS_DIR . 'includes/multisite.php';
-		require_once DILUXONE_USERS_DIR . 'includes/migrate.php';
 		$GLOBALS['_test_wp_options'] = array();
 		$GLOBALS['_test_multisite']  = false;
 	}
@@ -81,58 +78,5 @@ class DefaultsTest extends TestCase {
 
 		$this->assertSame( 'never', $rules['diluxone_users_notify_login'] );
 		$this->assertSame( 'never', $rules['diluxone_users_notify_security'] );
-	}
-
-	public function test_every_old_answer_names_a_setting_that_exists(): void {
-		$defaults = diluxone_users_option_defaults();
-
-		foreach ( array_keys( diluxone_users_defaults_before() ) as $key ) {
-			$this->assertArrayHasKey( $key, $defaults, $key );
-		}
-	}
-
-	public function test_the_old_answers_are_what_1_0_0_did(): void {
-		$GLOBALS['_test_wp_options']['users_can_register'] = 1;
-
-		$before = diluxone_users_defaults_before();
-
-		$this->assertSame( 'both', $before['diluxone_users_login_method'] );
-		$this->assertSame( array( 'access' ), $before['diluxone_users_log_levels'] );
-		$this->assertSame( array(), $before['diluxone_users_notice_rules'] );
-		$this->assertSame( 'optional', $before['diluxone_users_2fa_mode'] );
-		$this->assertSame( 1, $before['diluxone_users_sessions_show'] );
-		$this->assertSame( 1, $before['diluxone_users_reset_ends_sessions'] );
-		$this->assertSame( 1, $before['diluxone_users_privacy_export'] );
-		$this->assertSame( 1, $before['diluxone_users_privacy_delete'] );
-		$this->assertSame( 1, $before['diluxone_users_avatar_upload'] );
-		$this->assertSame( 1, $before['diluxone_users_wp_register_fields'] );
-		$this->assertSame( 1, $before['diluxone_users_login_register'], 'seeded from WordPress\'s own answer' );
-		$this->assertSame( 1, $before['diluxone_users_sso_register'] );
-		$this->assertArrayNotHasKey( 'diluxone_users_network_hub', $before, 'a single site has no hub' );
-	}
-
-	/** On a network the hub is an old answer too, beside the registration form's fields. */
-	public function test_on_a_network_the_old_answers_have_the_hub(): void {
-		$GLOBALS['_test_multisite'] = true;
-		Functions\when( 'diluxone_users_network_takes_accounts' )->justReturn( false );
-
-		$before = diluxone_users_defaults_before();
-
-		$this->assertSame( 1, $before['diluxone_users_network_hub'] );
-		$this->assertSame( 1, $before['diluxone_users_wp_register_fields'] );
-		$this->assertSame( 0, $before['diluxone_users_login_register'] );
-	}
-
-	public function test_every_changed_default_has_its_old_answer(): void {
-		$before   = diluxone_users_defaults_before();
-		$defaults = diluxone_users_option_defaults();
-
-		foreach ( $before as $key => $old ) {
-			if ( in_array( $key, array( 'diluxone_users_login_register', 'diluxone_users_sso_register' ), true ) ) {
-				continue;
-			}
-
-			$this->assertNotSame( $defaults[ $key ], $old, $key . ' did not change: it has no business here' );
-		}
 	}
 }

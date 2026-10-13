@@ -599,7 +599,6 @@ function diluxone_users_log_report( bool $network ): void {
 			: __( 'What happened on this site, newest first. It shows only what was being recorded at the time: a group ticked this morning has nothing in it from yesterday.', 'diluxone-users' )
 	);
 
-	diluxone_users_log_moving_notice( $network );
 	?>
 	<form method="get" class="diluxone-users-search">
 		<input type="hidden" name="page" value="<?php echo esc_attr( DILUXONE_USERS_REPORTS ); ?>">
@@ -805,27 +804,6 @@ function diluxone_users_log_report( bool $network ): void {
 				);
 			}
 		}
-	);
-}
-
-/**
- * Says, while the sites' old logs are still being moved in, that they are.
- *
- * A report that is missing last month for an hour after an update reads as a
- * log that lost last month. It did not, and the screen says so.
- *
- * @param bool $network Whether this is the network's report.
- */
-function diluxone_users_log_moving_notice( bool $network ): void {
-	if ( ! diluxone_users_log_network() || diluxone_users_log_moved() ) {
-		return;
-	}
-
-	diluxone_users_ui_notice(
-		$network
-			? esc_html__( 'The sites’ older rows are still being moved into the network’s table, a batch every minute. Until that finishes, some sites show only their newer rows.', 'diluxone-users' )
-			: esc_html__( 'This site’s older rows are still being moved into the network’s table, a batch every minute. Until that finishes, some of them may not be here yet.', 'diluxone-users' ),
-		'info'
 	);
 }
 

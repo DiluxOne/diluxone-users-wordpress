@@ -5,9 +5,7 @@
  * Each site reads its own rows and empties its own; Network Admin reads every
  * site's, narrows them to one, and empties them all. The network's retention
  * is one purge, run from the main site over every row. A person's erasure is
- * one query. And a network that ran with a log per site gets each site's old
- * table moved in — in batches, a batch interrupted anywhere copied again and
- * never twice, and an old table dropped only once its rows are all counted in.
+ * one query.
  *
  * On a single site every test here is skipped, loudly: the single-site half is
  * ActivityLogTest (which runs on both) and SingleSiteTest.
@@ -22,7 +20,6 @@ class NetworkLogTest extends IntegrationTestCase {
 
 	protected function setUp(): void {
 		parent::setUp();
-		$this->from_before_the_settled_defaults();
 
 		if ( ! is_multisite() ) {
 			$this->markTestSkipped( 'Needs a multisite network: the single-site half is ActivityLogTest and SingleSiteTest.' );
@@ -46,12 +43,6 @@ class NetworkLogTest extends IntegrationTestCase {
 				wp_delete_site( $site );
 			}
 
-			foreach ( array( DILUXONE_USERS_LOG_MOVING, DILUXONE_USERS_LOG_KEPT ) as $key ) {
-				delete_site_option( $key );
-			}
-
-			update_site_option( DILUXONE_USERS_LOG_MOVED, 1 );
-			wp_clear_scheduled_hook( DILUXONE_USERS_LOG_MOVE_EVENT );
 			diluxone_users_log_install();
 		}
 
@@ -106,12 +97,6 @@ class NetworkLogTest extends IntegrationTestCase {
 		return $counts;
 	}
 
-	private function table_exists( string $table ): bool {
-		global $wpdb;
-
-		return $table === $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $wpdb->esc_like( $table ) ) );
-	}
-
 	/** Moves a row back in time. */
 	private function age_all( int $days ): void {
 		global $wpdb;
@@ -132,50 +117,6 @@ class NetworkLogTest extends IntegrationTestCase {
 		preg_match_all( '/data-diluxone-users-site="(\d+)"/', $html, $found );
 
 		return array_values( array_unique( $found[1] ) );
-	}
-
-	/**
-	 * A site's log table as it was before the network's: the first shape, no
-	 * site column, with rows in it.
-	 */
-	private function old_table( int $site, int $rows ): string {
-		global $wpdb;
-
-		$table = $wpdb->get_blog_prefix( $site ) . 'diluxone_users_log';
-
-		$wpdb->query( "DROP TABLE IF EXISTS {$table}" );
-		$wpdb->query(
-			"CREATE TABLE {$table} (
-				id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-				user_id bigint(20) unsigned NOT NULL DEFAULT 0,
-				event varchar(32) NOT NULL DEFAULT '',
-				happened datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
-				ip varchar(45) NOT NULL DEFAULT '',
-				agent varchar(255) NOT NULL DEFAULT '',
-				detail text NOT NULL,
-				PRIMARY KEY  (id)
-			)"
-		);
-
-		$now    = gmdate( 'Y-m-d H:i:s' );
-		$values = array();
-
-		for ( $i = 0; $i < $rows; $i++ ) {
-			$values[] = $wpdb->prepare( '(%d, %s, %s, %s, %s, %s)', 1, 'signed_in', $now, '203.0.113.9', 'old', '{"via":"password"}' );
-		}
-
-		foreach ( array_chunk( $values, 500 ) as $chunk ) {
-			$wpdb->query( "INSERT INTO {$table} (user_id, event, happened, ip, agent, detail) VALUES " . implode( ',', $chunk ) );
-		}
-
-		return $table;
-	}
-
-	/** A network that has not moved its sites' logs in yet. */
-	private function not_moved(): void {
-		delete_site_option( DILUXONE_USERS_LOG_MOVED );
-		delete_site_option( DILUXONE_USERS_LOG_MOVING );
-		delete_site_option( DILUXONE_USERS_LOG_KEPT );
 	}
 
 	/* ── One table, every row with its site ────────────────────────── */
@@ -547,208 +488,5 @@ class NetworkLogTest extends IntegrationTestCase {
 		} finally {
 			$this->forget_another_network();
 		}
-	}
-
-	/* ── The move of each site's old table ─────────────────────────── */
-
-	/**
-	 * A network that ran with a log per site: every old table's rows arrive
-	 * with their site, the first site's own rows (already in the network's
-	 * table, its prefix being the network's) are stamped with it, the old
-	 * tables go, and running it again changes nothing.
-	 */
-	public function test_the_sites_old_tables_move_in_with_their_site_and_go(): void {
-		global $wpdb;
-
-		$one = $this->site();
-		$two = $this->site();
-
-		$old_one = $this->old_table( $one, 3 );
-		$old_two = $this->old_table( $two, 2 );
-
-		// The first site's rows from before the column existed.
-		$wpdb->insert(
-			diluxone_users_log_table(),
-			array(
-				'site_id'  => 0,
-				'user_id'  => 1,
-				'event'    => 'signed_in',
-				'happened' => gmdate( 'Y-m-d H:i:s' ),
-				'detail'   => '{}',
-			)
-		);
-		diluxone_users_delete_option( DILUXONE_USERS_LOG_SCHEMA_OPTION );
-
-		$this->not_moved();
-
-		$said = array();
-
-		$this->assertTrue(
-			diluxone_users_log_move(
-				DILUXONE_USERS_LOG_MOVE_ROWS,
-				static function ( int $site, int $copied, bool $dropped ) use ( &$said ): void {
-					$said[ $site ] = array( $copied, $dropped );
-				}
-			)
-		);
-
-		$this->assertSame(
-			array(
-				1    => 1,
-				$one => 3,
-				$two => 2,
-			),
-			$this->per_site()
-		);
-		$this->assertSame(
-			array(
-				$one => array( 3, true ),
-				$two => array( 2, true ),
-			),
-			$said
-		);
-		$this->assertFalse( $this->table_exists( $old_one ), 'Each old table goes' );
-		$this->assertFalse( $this->table_exists( $old_two ) );
-		$this->assertTrue( diluxone_users_log_moved() );
-		$this->assertSame( DILUXONE_USERS_LOG_SCHEMA, (int) diluxone_users_raw_get( DILUXONE_USERS_LOG_SCHEMA_OPTION ) );
-
-		// Again: nothing to do, nothing doubled.
-		$this->assertTrue( diluxone_users_log_move() );
-		$this->not_moved();
-		$this->assertTrue( diluxone_users_log_move() );
-		$this->assertSame( 6, array_sum( $this->per_site() ) );
-	}
-
-	/** A big table goes in batches: the first here, the rest from cron. */
-	public function test_a_big_table_moves_in_batches_and_carries_on_from_cron(): void {
-		$one = $this->site();
-		$old = $this->old_table( $one, 1200 );
-
-		$this->not_moved();
-
-		$this->assertFalse( diluxone_users_log_move( 500 ), 'Not all of it in one go' );
-		$this->assertSame( array( $one => 500 ), $this->per_site() );
-		$this->assertNotFalse( wp_next_scheduled( DILUXONE_USERS_LOG_MOVE_EVENT ), 'The rest is left to cron' );
-		$this->assertTrue( $this->table_exists( $old ), 'The old table stays until every row is in' );
-
-		$this->assertFalse( diluxone_users_log_move( 500 ) );
-		$this->assertTrue( diluxone_users_log_move( 500 ) );
-
-		$this->assertSame( array( $one => 1200 ), $this->per_site() );
-		$this->assertFalse( $this->table_exists( $old ) );
-		$this->assertFalse( wp_next_scheduled( DILUXONE_USERS_LOG_MOVE_EVENT ), 'And cron has nothing left' );
-	}
-
-	/**
-	 * A batch the database refuses halfway leaves nothing behind — neither
-	 * rows nor the note that it was copied — and the next run copies it once.
-	 */
-	public function test_a_batch_that_fails_is_copied_again_and_never_twice(): void {
-		$one = $this->site();
-		$old = $this->old_table( $one, 30 );
-
-		$this->not_moved();
-
-		$this->assertFalse( diluxone_users_log_move( 10 ) );
-		$this->assertSame( array( $one => 10 ), $this->per_site() );
-
-		// The note of how far it got is refused, after the rows went in.
-		$break = static function ( $sql ) {
-			return false !== strpos( (string) $sql, DILUXONE_USERS_LOG_MOVING ) && 0 === stripos( ltrim( (string) $sql ), 'UPDATE' )
-				? 'SELECT broken FROM nowhere'
-				: $sql;
-		};
-
-		global $wpdb;
-		$suppress = $wpdb->suppress_errors( true );
-		add_filter( 'query', $break );
-		wp_cache_flush();
-		$this->assertFalse( diluxone_users_log_move( 10 ) );
-		remove_filter( 'query', $break );
-		$wpdb->suppress_errors( $suppress );
-		wp_cache_flush();
-
-		$this->assertSame( array( $one => 10 ), $this->per_site(), 'The batch that failed left no rows' );
-
-		while ( ! diluxone_users_log_move( 10 ) ) {
-			// The rest, batch by batch.
-		}
-
-		$this->assertSame( array( $one => 30 ), $this->per_site(), 'Every row once' );
-		$this->assertFalse( $this->table_exists( $old ) );
-	}
-
-	/**
-	 * A copy refused by the database is rolled back: nothing arrives, the
-	 * note of how far it got does not move, the old table stays, and a run
-	 * from cron tries ten times and stops. The next run copies every row once.
-	 */
-	public function test_a_copy_the_database_refuses_is_rolled_back_and_tried_again(): void {
-		global $wpdb;
-
-		$one = $this->site();
-		$old = $this->old_table( $one, 3 );
-		$this->not_moved();
-
-		$tries = 0;
-		$break = static function ( $sql ) use ( &$tries ) {
-			if ( 0 === stripos( ltrim( (string) $sql ), 'INSERT INTO `' . diluxone_users_log_table() . '`' ) || 0 === stripos( ltrim( (string) $sql ), 'INSERT INTO ' . diluxone_users_log_table() . ' ' ) ) {
-				++$tries;
-
-				return 'INSERT INTO diluxone_users_no_such_table VALUES (1)';
-			}
-
-			return $sql;
-		};
-
-		$suppress = $wpdb->suppress_errors( true );
-		add_filter( 'query', $break );
-
-		try {
-			$this->assertFalse( diluxone_users_log_move( 10 ) );
-			$this->assertSame( array(), $this->per_site(), 'nothing arrived' );
-			$this->assertSame( 0, (int) ( diluxone_users_raw_get( DILUXONE_USERS_LOG_MOVING, array() )['from'] ?? 0 ) );
-			$this->assertTrue( $this->table_exists( $old ) );
-
-			$tries = 0;
-			diluxone_users_log_move_run();
-			$this->assertSame( 10, $tries, 'a cron run tries ten times and stops' );
-			$this->assertNotFalse( wp_next_scheduled( DILUXONE_USERS_LOG_MOVE_EVENT ), 'and the next one is waiting' );
-		} finally {
-			remove_filter( 'query', $break );
-			$wpdb->suppress_errors( $suppress );
-		}
-
-		while ( ! diluxone_users_log_move( 10 ) ) {
-			// The rest, now that the database takes it.
-		}
-
-		$this->assertSame( array( $one => 3 ), $this->per_site(), 'every row once' );
-	}
-
-	/** An old table whose rows did not all arrive stays, and is written down. */
-	public function test_an_old_table_whose_rows_do_not_add_up_is_kept(): void {
-		$one = $this->site();
-		$old = $this->old_table( $one, 4 );
-
-		$this->assertFalse( diluxone_users_log_move_close( $one, $old, 3 ) );
-		$this->assertTrue( $this->table_exists( $old ) );
-		$this->assertSame( 4, (int) diluxone_users_raw_get( DILUXONE_USERS_LOG_KEPT, array() )[ $one ]['had'] );
-
-		$this->assertTrue( diluxone_users_log_move_close( $one, $old, 4 ), 'The same count, and it goes' );
-		$this->assertFalse( $this->table_exists( $old ) );
-	}
-
-	/** The first request after the plugin is on for the network starts it. */
-	public function test_the_first_request_starts_the_move_and_cron_is_not_asked_twice(): void {
-		$one = $this->site();
-		$this->old_table( $one, 3 );
-
-		$this->not_moved();
-
-		diluxone_users_network_migrate_when_needed();
-
-		$this->assertTrue( diluxone_users_log_moved() );
-		$this->assertSame( array( $one => 3 ), $this->per_site() );
 	}
 }

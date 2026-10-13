@@ -183,9 +183,7 @@ site keeps its own menus, admin bar, reports and maintenance. The activity
 log is one table for the whole network: each site's Reports › Activity shows
 and empties that site's rows, and **Network Admin → DiluxOne Users+ → Activity
 log** shows every site's, with the site each row happened on, and empties
-them all. On a network that used the plugin before, each site's old log is
-moved into it in the background (or at once with `wp diluxone-users network
-migrate`), and each old table is dropped once all its rows are in.
+them all.
 Once you tick **Network Admin → DiluxOne Users+ → Overview → Signing in
 across the network** (until then every site keeps its own wp-login.php),
 people sign in, register and keep their account on the main site. On every
@@ -268,4 +266,3 @@ can write.
 First public release.
 
 * Activating the plugin changes nothing on the site: every feature starts off, the activity log records nothing until you choose what to record, and the plugin writes no settings, tables, cron events or rewrite rules of its own until you turn something on.
-* Sites that already ran an earlier build keep behaving exactly as they did: the answers it gave by default are written down as their own on the first request after the update.

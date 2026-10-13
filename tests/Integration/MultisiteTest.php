@@ -133,9 +133,9 @@ class MultisiteTest extends IntegrationTestCase {
 	}
 
 	/**
-	 * A deleted site takes its rows out of the network's table, and a table of
-	 * its own it kept from before, if it still has one; the rest of the
-	 * network's rows stay.
+	 * A deleted site takes its rows out of the network's table, and a table
+	 * under its own prefix, if one is there; the rest of the network's rows
+	 * stay.
 	 */
 	public function test_a_deleted_site_takes_its_rows_and_its_old_table_with_it(): void {
 		global $wpdb;
@@ -156,7 +156,8 @@ class MultisiteTest extends IntegrationTestCase {
 			restore_current_blog();
 		}
 
-		// A table of its own from before the network's, not moved in yet.
+		// A table under the site's own prefix: WordPress is asked to drop it
+		// with the site's, and the network's table is never on that list.
 		$old = $wpdb->get_blog_prefix( $gone ) . 'diluxone_users_log';
 		$wpdb->query( "CREATE TABLE IF NOT EXISTS {$old} ( id bigint(20) unsigned NOT NULL AUTO_INCREMENT, PRIMARY KEY  (id) )" );
 
@@ -177,7 +178,6 @@ class MultisiteTest extends IntegrationTestCase {
 		update_option( 'rewrite_rules', array( 'account/(.+)/?$' => 'index.php' ) );
 		update_option( 'diluxone_users_rewrite_version', DILUXONE_USERS_VERSION );
 		restore_current_blog();
-		wp_schedule_single_event( time() + MINUTE_IN_SECONDS, DILUXONE_USERS_NETWORK_MIGRATE_EVENT );
 
 		diluxone_users_log_unschedule( true );
 
@@ -188,7 +188,6 @@ class MultisiteTest extends IntegrationTestCase {
 		restore_current_blog();
 
 		$this->assertFalse( wp_next_scheduled( DILUXONE_USERS_LOG_PURGE ) );
-		$this->assertFalse( wp_next_scheduled( DILUXONE_USERS_NETWORK_MIGRATE_EVENT ), 'nor the move of the old logs' );
 	}
 
 	/**

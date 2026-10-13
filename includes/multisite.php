@@ -66,18 +66,14 @@ function diluxone_users_join_site( int $user_id ): void {
 /**
  * Activation.
  *
- * It decides nothing for the site. No setting is written, no table made, no
- * event scheduled: every setting reads its default until an administrator
- * saves it, and every default leaves the site as WordPress has it. What is
- * settled is which defaults those are — today's, or, on a site that ran an
- * older version, that version's answers written down as its own (see
- * diluxone_users_defaults_settle()). On a network that is the network's,
- * once, for every site: a site born later has nothing of its own to set up.
+ * It decides nothing for the site, and writes nothing. No setting, no table,
+ * no event: every setting reads its default until an administrator saves it,
+ * and every default leaves the site as WordPress has it. The hook stays so
+ * that WordPress has one to call and the tests have one to prove.
  *
  * @param bool $network_wide Whether it was activated for the whole network.
  */
 function diluxone_users_activate( $network_wide = false ): void {
-	diluxone_users_defaults_settle();
 }
 
 /**

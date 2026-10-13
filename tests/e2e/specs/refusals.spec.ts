@@ -1009,18 +1009,17 @@ test.describe('Every settings panel refuses a save it should not take', () => {
 	}
 });
 
-/* ── The network's commands, on a single site ──────────────────────── */
+/* ── The network's command, on a single site ───────────────────────── */
 
-test.describe('The network’s WP-CLI commands refuse a single site', () => {
+test.describe('The network’s WP-CLI command refuses a single site', () => {
 	for (const command of [
-		['diluxone-users', 'network', 'migrate'],
 		['diluxone-users', 'network', 'membership', 'sync'],
 	]) {
 		test(`wp ${command.join(' ')} › errors, and writes nothing`, async ({ site }) => {
-			const before = await site.getOptions(['diluxone_users_network_version', 'diluxone_users_membership']);
+			const before = await site.getOptions(['diluxone_users_membership']);
 
 			expect(() => devWp(command), 'refused: this is not a network').toThrow(/not a network/i);
-			expect(await site.getOptions(['diluxone_users_network_version', 'diluxone_users_membership'])).toEqual(before);
+			expect(await site.getOptions(['diluxone_users_membership'])).toEqual(before);
 		});
 	}
 });
