@@ -85,8 +85,9 @@ into [`tests/e2e/COVERAGE.md`](tests/e2e/COVERAGE.md).
 
 ## How a change becomes a release
 
-The plugin has not been published yet; the first version goes to wordpress.org
-as a zip for review, by the maintainer. After the approval, the
+The plugin has not been published yet. wordpress.org approved it on 4 October
+2026, from a zip the maintainer uploaded, and `readme.txt` holds 1.0.0 with
+the line `Unreleased.` until the maintainer decides to publish; from there the
 organisation's release pipeline takes over. The whole flow, and what applies
 when: [`docs/release.md`](docs/release.md). What you must do, and never do, in
 a change:
@@ -96,9 +97,10 @@ a change:
   `diluxone-users.php`, `Stable tag:` in `readme.txt`); today that is `1.0.0`.
 - **Write the changelog in the same pull request.** A change a user notices
   adds one bullet under the newest `= X.Y.Z =` entry of `readme.txt`, written
-  for users. Once the release pipeline is in place, that entry starts with the
-  line `Unreleased.`, and that line is the maintainer's release switch: never
-  remove it as part of another change.
+  for users. That entry starts with the line `Unreleased.`, the maintainer's
+  release switch: while it is there the release workflow ends as "Not ready"
+  and asks nobody for anything. Today it holds `1.0.0`. Never remove it as
+  part of another change.
 
 ## Rules you must not break
 
