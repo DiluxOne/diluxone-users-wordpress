@@ -36,11 +36,11 @@ permissions:
 
 jobs:
   release:
-    uses: DiluxOne/.github/.github/workflows/plugin-release-wp.yml@aa48e0217d3a13288d5cde8c20eb670e27c943e8 # v5.3.0
+    uses: DiluxOne/.github/.github/workflows/plugin-release-wp.yml@01837f9da2b980374c9c37748a533d0a2d623cd8 # v5.4.0
     with:
       # The scripts the release reads come from the same commit as the
       # workflow: without it they would follow the moving v5.
-      central-ref: aa48e0217d3a13288d5cde8c20eb670e27c943e8
+      central-ref: 01837f9da2b980374c9c37748a533d0a2d623cd8
       slug: diluxone-users
       main-file: diluxone-users.php
       version-constant: DILUXONE_USERS_VERSION
