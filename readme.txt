@@ -265,6 +265,8 @@ can write.
 == Changelog ==
 
 = 1.0.0 =
+Unreleased.
+
 First public release.
 
 * Activating the plugin changes nothing on the site: every feature starts off, the activity log records nothing until you choose what to record, and the plugin writes no settings, tables, cron events or rewrite rules of its own until you turn something on.

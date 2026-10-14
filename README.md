@@ -29,7 +29,7 @@ What belongs to someone else (a course, a membership, a forum) comes in through 
 
 ## Install
 
-Not published yet: the first submission to wordpress.org is pending ([`docs/release.md`](docs/release.md)). Once it is approved it will be at [wordpress.org/plugins/diluxone-users](https://wordpress.org/plugins/diluxone-users/). Until then, `make zip` builds the installable `build/diluxone-users.zip` from a checkout. Requirements, FAQ, privacy and the external services it talks to are in [`readme.txt`](readme.txt), the text wordpress.org will show.
+Not published yet: wordpress.org approved the plugin on 4 October 2026, and the maintainer decides when 1.0.0 goes out ([`docs/release.md`](docs/release.md)). It will be at [wordpress.org/plugins/diluxone-users](https://wordpress.org/plugins/diluxone-users/). Until then, `make zip` builds the installable `build/diluxone-users.zip` from a checkout. Requirements, FAQ, privacy and the external services it talks to are in [`readme.txt`](readme.txt), the text wordpress.org will show.
 
 ## How it is built
 
