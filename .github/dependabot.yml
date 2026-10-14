@@ -3,9 +3,9 @@
 # Why this exists, even though the published plugin has zero production
 # dependencies: the GitHub Actions this repository's own workflows use are a
 # supply-chain surface (the deploy one holds the wordpress.org SVN
-# credentials). Dependabot watches them; after the move to DiluxOne, the
-# shared workflows in DiluxOne/.github have their own Dependabot, and the
-# pins to them are bumped here as reusable-workflow references.
+# credentials). Dependabot watches them. The shared workflows in
+# DiluxOne/.github are called at `v5`, a ref only an administrator of that
+# repository moves, so there is nothing of theirs to bump here.
 #
 # Also covers npm devDependencies (@wordpress/env, Playwright) and Composer
 # dev tooling, which run locally and in CI. None of these dependencies ever
@@ -20,9 +20,7 @@
 
 version: 2
 updates:
-  # GitHub Actions used in .github/workflows/. The shared DiluxOne/.github
-  # workflows land in a group of their own so a pin bump is never mixed with
-  # action bumps.
+  # GitHub Actions used in .github/workflows/.
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
@@ -32,9 +30,6 @@ updates:
       timezone: "America/Argentina/Buenos_Aires"
     open-pull-requests-limit: 3
     groups:
-      diluxone-central:
-        patterns:
-          - "DiluxOne/.github*"
       github-actions:
         patterns:
           - "*"
