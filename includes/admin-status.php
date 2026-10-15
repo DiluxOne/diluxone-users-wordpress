@@ -101,15 +101,25 @@ function diluxone_users_check( string $label, string $state, string $detail = ''
  * draft, or that it exists but is missing the shortcode. Each one is named
  * for what it is.
  *
+ * A fourth thing is not wrong at all: nobody has decided. "None" chosen on
+ * purpose is pending — somebody looked and left it — and nothing stored is
+ * Not configured, with what WordPress does meanwhile, because on a fresh
+ * install the difference is the whole of what the row has to say.
+ *
  * @param string $option    The option storing the page ID.
  * @param string $shortcode The shortcode that page has to contain.
  * @param string $label     What that page is called in here.
  * @param string $screen    The plugin screen where the page is chosen.
+ * @param string $meanwhile What WordPress does on its own while nobody has decided.
  * @return array{label: string, state: string, detail: string, why: string, url: string, change?: string, word?: string}
  */
-function diluxone_users_check_page( string $option, string $shortcode, string $label, string $screen ): array {
+function diluxone_users_check_page( string $option, string $shortcode, string $label, string $screen, string $meanwhile = '' ): array {
 	$id     = (int) diluxone_users_option( $option );
 	$choose = diluxone_users_admin_url( $screen );
+
+	if ( ! diluxone_users_option_is_set( $option ) ) {
+		return diluxone_users_check( $label, 'unset', $meanwhile, '', $choose, __( 'Choose it →', 'diluxone-users' ) );
+	}
 
 	if ( $id <= 0 ) {
 		return diluxone_users_check( $label, 'pending', '', __( 'No page chosen yet.', 'diluxone-users' ), $choose, __( 'Choose it →', 'diluxone-users' ) );
@@ -245,8 +255,20 @@ function diluxone_users_checks(): array {
 	$checks = array();
 	$tools  = diluxone_users_admin_url( DILUXONE_USERS_STATUS, array( 'tab' => 'tools' ) );
 
-	$checks[] = diluxone_users_check_page( 'diluxone_users_account_page', 'diluxone_users_account', __( 'Account page', 'diluxone-users' ), 'diluxone-users-account' );
-	$checks[] = diluxone_users_check_page( 'diluxone_users_login_page', 'diluxone_users_login', __( 'Sign-in page', 'diluxone-users' ), 'diluxone-users-login' );
+	$checks[] = diluxone_users_check_page(
+		'diluxone_users_account_page',
+		'diluxone_users_account',
+		__( 'Account page', 'diluxone-users' ),
+		'diluxone-users-account',
+		__( 'No account area: people edit their details on the dashboard profile, as WordPress has it.', 'diluxone-users' )
+	);
+	$checks[] = diluxone_users_check_page(
+		'diluxone_users_login_page',
+		'diluxone_users_login',
+		__( 'Sign-in page', 'diluxone-users' ),
+		'diluxone-users-login',
+		__( 'Everybody signs in on wp-login.php, as WordPress has it.', 'diluxone-users' )
+	);
 
 	// Mail. Without it nobody comes in by link and nobody passes a second step.
 	$checks[] = diluxone_users_check_mail();
@@ -350,6 +372,12 @@ function diluxone_users_check_ways_in(): array {
 	$label  = __( 'Ways in', 'diluxone-users' );
 	$access = diluxone_users_admin_url( 'diluxone-users-login' );
 	$ways   = array();
+
+	// Nobody decided a way in: the door is WordPress's own, and that is
+	// neither open nor shut by this plugin.
+	if ( ! diluxone_users_options_any_set( array( 'diluxone_users_login_method', 'diluxone_users_sso_login' ) ) ) {
+		return diluxone_users_check( $label, 'unset', __( 'WordPress’s own form: a username and a password on wp-login.php.', 'diluxone-users' ), '', $access, __( 'Access →', 'diluxone-users' ) );
+	}
 
 	if ( diluxone_users_login_has_password() ) {
 		$ways[] = __( 'password', 'diluxone-users' );

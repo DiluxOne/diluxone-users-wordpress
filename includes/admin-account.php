@@ -389,23 +389,38 @@ function diluxone_users_account_dashboard_save(): void {
 	check_admin_referer( 'diluxone_users_panel_diluxone-users-account', 'diluxone_users_panel_nonce' );
 	diluxone_users_panel_allowed();
 
-	$bar     = sanitize_key( wp_unslash( $_POST['diluxone_users_admin_bar'] ?? 'wp' ) );
-	$profile = sanitize_key( wp_unslash( $_POST['diluxone_users_wp_profile'] ?? 'allow' ) );
+	$bar = sanitize_key( wp_unslash( $_POST['diluxone_users_admin_bar'] ?? 'wp' ) );
 
-	diluxone_users_save_options(
-		array(
-			// One of the three answers on the screen; anything else is the
-			// one WordPress has, which leaves the profile screen alone.
-			'diluxone_users_wp_profile'            => in_array( $profile, array( 'allow', 'redirect', 'block' ), true ) ? $profile : 'allow',
-			// One radio with three answers on the screen, two options
-			// underneath: whether it is hidden, and from whom.
-			'diluxone_users_admin_bar'             => 'wp' === $bar ? 'wp' : 'hide',
-			'diluxone_users_admin_bar_scope'       => 'hide-some' === $bar ? 'some' : 'all',
-			'diluxone_users_admin_bar_roles'       => array_values( array_filter( array_map( 'sanitize_key', (array) wp_unslash( $_POST['diluxone_users_admin_bar_roles'] ?? array() ) ) ) ),
-			'diluxone_users_admin_bar_keep_admins' => isset( $_POST['diluxone_users_admin_bar_keep_admins'] ) ? 1 : 0,
-			'diluxone_users_bar_account'           => isset( $_POST['diluxone_users_bar_account'] ) ? 1 : 0,
-		) + diluxone_users_scope_posted( 'diluxone_users_wp_profile', 'diluxone-users-account' )
+	$saved = array(
+		// One radio with three answers on the screen, two options
+		// underneath: whether it is hidden, and from whom.
+		'diluxone_users_admin_bar'             => 'wp' === $bar ? 'wp' : 'hide',
+		'diluxone_users_admin_bar_scope'       => 'hide-some' === $bar ? 'some' : 'all',
+		'diluxone_users_admin_bar_roles'       => array_values( array_filter( array_map( 'sanitize_key', (array) wp_unslash( $_POST['diluxone_users_admin_bar_roles'] ?? array() ) ) ) ),
+		'diluxone_users_admin_bar_keep_admins' => isset( $_POST['diluxone_users_admin_bar_keep_admins'] ) ? 1 : 0,
+		'diluxone_users_bar_account'           => isset( $_POST['diluxone_users_bar_account'] ) ? 1 : 0,
 	);
+
+	/*
+	 * Only what the form asked. Nothing chosen for the profile — a fresh
+	 * install, saved before anybody picked — is not a choice of "leave it",
+	 * and "for whom" waits for that answer: while the profile is left as
+	 * WordPress ships it the control is drawn disabled, and a disabled
+	 * control sends nothing. A key that did not arrive keeps what it had.
+	 */
+	if ( isset( $_POST['diluxone_users_wp_profile'] ) ) {
+		$profile = sanitize_key( wp_unslash( $_POST['diluxone_users_wp_profile'] ) );
+
+		// One of the three answers on the screen; anything else is the one
+		// WordPress has, which leaves the profile screen alone.
+		$saved['diluxone_users_wp_profile'] = in_array( $profile, array( 'allow', 'redirect', 'block' ), true ) ? $profile : 'allow';
+	}
+
+	if ( isset( $_POST['diluxone_users_wp_profile_scope'] ) ) {
+		$saved += diluxone_users_scope_posted( 'diluxone_users_wp_profile', 'diluxone-users-account' );
+	}
+
+	diluxone_users_save_options( $saved );
 }
 
 /**
@@ -1001,40 +1016,58 @@ function diluxone_users_screen_account_summary(): void {
 
 	diluxone_users_intro( __( 'What the account area is and where it lives, read from the settings the other tabs write. Nothing is edited here.', 'diluxone-users' ) );
 
+	/*
+	 * Every row goes through diluxone_users_summary_row(): a setting nobody
+	 * decided reads Not configured, with what WordPress does on its own in
+	 * the detail, and the Active/Off/Pending logic is for the rows somebody
+	 * did decide.
+	 */
 	diluxone_users_summary_table(
 		array(
-			array(
-				'label'  => __( 'The page', 'diluxone-users' ),
-				// Pending and not off, which is the word the status screen has
-				// always used for a page nobody has chosen yet: off says
-				// somebody turned it off, and there is no switch to turn.
-				'state'  => $page > 0 ? 'active' : 'pending',
-				'why'    => $page > 0 ? '' : __( 'No page chosen yet.', 'diluxone-users' ),
-				'detail' => $page > 0
-					? sprintf( '<a href="%s">%s</a>', esc_url( (string) get_permalink( $page ) ), esc_html( (string) get_the_title( $page ) ) )
-					: esc_html__( 'This site has no account area.', 'diluxone-users' ),
-				'url'    => $tab( 'page' ),
-			),
-			array(
-				'label'  => __( 'Sections', 'diluxone-users' ),
-				'state'  => array() !== $on ? 'active' : 'off',
-				'detail' => esc_html(
-					sprintf(
-					/* translators: 1: sections shown, 2: sections there are */
-						__( '%1$d of %2$d shown.', 'diluxone-users' ),
-						count( $on ),
-						count( $sections )
-					)
+			diluxone_users_summary_row(
+				'diluxone_users_account_page',
+				array(
+					'label'  => __( 'The page', 'diluxone-users' ),
+					// Pending and not off, which is the word the status screen has
+					// always used for a page nobody has chosen yet: off says
+					// somebody turned it off, and there is no switch to turn.
+					'state'  => $page > 0 ? 'active' : 'pending',
+					'why'    => $page > 0 ? '' : __( 'No page chosen yet.', 'diluxone-users' ),
+					'detail' => $page > 0
+						? sprintf( '<a href="%s">%s</a>', esc_url( (string) get_permalink( $page ) ), esc_html( (string) get_the_title( $page ) ) )
+						: esc_html__( 'This site has no account area.', 'diluxone-users' ),
+					'url'    => $tab( 'page' ),
 				),
-				'url'    => $tab( 'sections' ),
+				esc_html__( 'No account area: people edit their details on the dashboard profile, as WordPress has it.', 'diluxone-users' )
 			),
-			array(
-				'label'  => __( 'Public name', 'diluxone-users' ),
-				'state'  => diluxone_users_option( 'diluxone_users_handle_enabled' ) ? 'active' : 'off',
-				'detail' => diluxone_users_option( 'diluxone_users_handle_enabled' )
-					? esc_html__( 'People choose the short name they appear under.', 'diluxone-users' )
-					: esc_html__( 'The name comes from their first and last name.', 'diluxone-users' ),
-				'url'    => $tab( 'handle' ),
+			diluxone_users_summary_row(
+				'diluxone_users_account_sections',
+				array(
+					'label'  => __( 'Sections', 'diluxone-users' ),
+					'state'  => array() !== $on ? 'active' : 'off',
+					'detail' => esc_html(
+						sprintf(
+						/* translators: 1: sections shown, 2: sections there are */
+							__( '%1$d of %2$d shown.', 'diluxone-users' ),
+							count( $on ),
+							count( $sections )
+						)
+					),
+					'url'    => $tab( 'sections' ),
+				),
+				esc_html__( 'As the plugin ships them, in an account area this site has not made yet: WordPress has none.', 'diluxone-users' )
+			),
+			diluxone_users_summary_row(
+				'diluxone_users_handle_enabled',
+				array(
+					'label'  => __( 'Public name', 'diluxone-users' ),
+					'state'  => diluxone_users_option( 'diluxone_users_handle_enabled' ) ? 'active' : 'off',
+					'detail' => diluxone_users_option( 'diluxone_users_handle_enabled' )
+						? esc_html__( 'People choose the short name they appear under.', 'diluxone-users' )
+						: esc_html__( 'The name comes from their first and last name.', 'diluxone-users' ),
+					'url'    => $tab( 'handle' ),
+				),
+				esc_html__( 'The name comes from their first and last name, as WordPress has it.', 'diluxone-users' )
 			),
 
 			/*
@@ -1047,45 +1080,57 @@ function diluxone_users_screen_account_summary(): void {
 			 * too, and the word says which way, because neither of them is a
 			 * switch of this plugin's.
 			 */
-			array(
-				'label'  => __( 'The dashboard profile', 'diluxone-users' ),
-				'state'  => 'allow' === $profile ? 'active' : 'off',
-				'word'   => 'allow' === $profile ? __( 'Reachable', 'diluxone-users' ) : __( 'Kept out', 'diluxone-users' ),
-				'detail' => esc_html( $profiles[ $profile ] ?? $profiles['allow'] ),
-				'url'    => $tab( 'dashboard' ),
+			diluxone_users_summary_row(
+				'diluxone_users_wp_profile',
+				array(
+					'label'  => __( 'The dashboard profile', 'diluxone-users' ),
+					'state'  => 'allow' === $profile ? 'active' : 'off',
+					'word'   => 'allow' === $profile ? __( 'Reachable', 'diluxone-users' ) : __( 'Kept out', 'diluxone-users' ),
+					'detail' => esc_html( $profiles[ $profile ] ?? $profiles['allow'] ),
+					'url'    => $tab( 'dashboard' ),
+				),
+				esc_html__( 'Left as WordPress ships it: anybody who can reach the dashboard edits their details there.', 'diluxone-users' )
 			),
-			array(
-				'label'  => __( 'The WordPress toolbar', 'diluxone-users' ),
-				'state'  => 'hide' === $bar ? 'off' : 'active',
-				'word'   => 'hide' === $bar
-					? _x( 'Hidden', 'the WordPress toolbar, on the summary of the account area', 'diluxone-users' )
-					: _x( 'Shown', 'the WordPress toolbar, on the summary of the account area', 'diluxone-users' ),
-				'detail' => 'hide' === $bar
-					? ( 'some' === (string) diluxone_users_option( 'diluxone_users_admin_bar_scope' ) ? esc_html__( 'Hidden on the site for some roles.', 'diluxone-users' ) : esc_html__( 'Hidden on the site for everybody.', 'diluxone-users' ) )
-					: esc_html__( 'Shown, as WordPress does.', 'diluxone-users' ),
-				'url'    => $tab( 'dashboard' ),
+			diluxone_users_summary_row(
+				'diluxone_users_admin_bar',
+				array(
+					'label'  => __( 'The WordPress toolbar', 'diluxone-users' ),
+					'state'  => 'hide' === $bar ? 'off' : 'active',
+					'word'   => 'hide' === $bar
+						? _x( 'Hidden', 'the WordPress toolbar, on the summary of the account area', 'diluxone-users' )
+						: _x( 'Shown', 'the WordPress toolbar, on the summary of the account area', 'diluxone-users' ),
+					'detail' => 'hide' === $bar
+						? ( 'some' === (string) diluxone_users_option( 'diluxone_users_admin_bar_scope' ) ? esc_html__( 'Hidden on the site for some roles.', 'diluxone-users' ) : esc_html__( 'Hidden on the site for everybody.', 'diluxone-users' ) )
+						: esc_html__( 'Shown, as WordPress does.', 'diluxone-users' ),
+					'url'    => $tab( 'dashboard' ),
+				),
+				esc_html__( 'Shown to everybody signed in, as WordPress does.', 'diluxone-users' )
 			),
-			array(
-				'label'  => __( 'Their data', 'diluxone-users' ),
-				'state'  => ( diluxone_users_option( 'diluxone_users_privacy_export' ) || diluxone_users_option( 'diluxone_users_privacy_delete' ) ) ? 'active' : 'off',
-				'detail' => esc_html(
-					implode(
-						' · ',
-						array_filter(
-							array(
-								diluxone_users_option( 'diluxone_users_privacy_export' ) ? __( 'can ask for a copy', 'diluxone-users' ) : '',
-								diluxone_users_option( 'diluxone_users_privacy_delete' ) ? __( 'can ask to be deleted', 'diluxone-users' ) : '',
+			diluxone_users_summary_row(
+				array( 'diluxone_users_privacy_export', 'diluxone_users_privacy_delete' ),
+				array(
+					'label'  => __( 'Their data', 'diluxone-users' ),
+					'state'  => ( diluxone_users_option( 'diluxone_users_privacy_export' ) || diluxone_users_option( 'diluxone_users_privacy_delete' ) ) ? 'active' : 'off',
+					'detail' => esc_html(
+						implode(
+							' · ',
+							array_filter(
+								array(
+									diluxone_users_option( 'diluxone_users_privacy_export' ) ? __( 'can ask for a copy', 'diluxone-users' ) : '',
+									diluxone_users_option( 'diluxone_users_privacy_delete' ) ? __( 'can ask to be deleted', 'diluxone-users' ) : '',
+								)
 							)
 						)
-					)
+					),
+					'url'    => diluxone_users_admin_url(
+						'diluxone-users-account',
+						array(
+							'tab'     => 'sections',
+							'section' => 'privacy',
+						)
+					),
 				),
-				'url'    => diluxone_users_admin_url(
-					'diluxone-users-account',
-					array(
-						'tab'     => 'sections',
-						'section' => 'privacy',
-					)
-				),
+				esc_html__( 'Nothing is offered on the site: WordPress’s own tools under Users do it, by an administrator’s hand.', 'diluxone-users' )
 			),
 		)
 	);
@@ -1188,6 +1233,7 @@ function diluxone_users_screen_account_page(): void {
 function diluxone_users_screen_account_dashboard(): void {
 	$page    = (int) diluxone_users_account_page_id();
 	$profile = (string) diluxone_users_option( 'diluxone_users_wp_profile' );
+	$decided = diluxone_users_option_is_set( 'diluxone_users_wp_profile' );
 	$bar     = 'hide' === (string) diluxone_users_option( 'diluxone_users_admin_bar' )
 		? ( 'some' === (string) diluxone_users_option( 'diluxone_users_admin_bar_scope' ) ? 'hide-some' : 'hide-all' )
 		: 'wp';
@@ -1206,21 +1252,21 @@ function diluxone_users_screen_account_dashboard(): void {
 			array(
 				'name'    => 'diluxone_users_wp_profile',
 				'value'   => 'allow',
-				'checked' => 'allow' === $profile,
+				'checked' => $decided && 'allow' === $profile,
 				'title'   => __( 'Leave it as WordPress ships it', 'diluxone-users' ),
 				'help'    => __( 'Anybody who can reach the dashboard edits their details there as well as on the site.', 'diluxone-users' ),
 			),
 			array(
 				'name'    => 'diluxone_users_wp_profile',
 				'value'   => 'redirect',
-				'checked' => 'redirect' === $profile,
+				'checked' => $decided && 'redirect' === $profile,
 				'title'   => __( 'Send people to their account on the site instead', 'diluxone-users' ),
 				'help'    => __( 'Opening it lands them on the account page. One screen for their details, and it is the one this plugin knows the rules of.', 'diluxone-users' ),
 			),
 			array(
 				'name'    => 'diluxone_users_wp_profile',
 				'value'   => 'block',
-				'checked' => 'block' === $profile,
+				'checked' => $decided && 'block' === $profile,
 				'title'   => __( 'Close it — their details are edited on the site only', 'diluxone-users' ),
 				'help'    => __( 'The screen answers that it is not available. For a site where the dashboard is not part of what people were given.', 'diluxone-users' ),
 			),
@@ -1229,14 +1275,23 @@ function diluxone_users_screen_account_dashboard(): void {
 
 	diluxone_users_ui_field_open( __( 'For whom', 'diluxone-users' ) );
 
-	if ( 'allow' === $profile ) {
-		diluxone_users_not_now( __( 'The profile is left as WordPress ships it, so nobody is sent anywhere. Who this reaches applies the day it sends people to the site or closes the screen.', 'diluxone-users' ) );
-	}
-
+	/*
+	 * Who it reaches waits for an answer that reaches anybody: while the
+	 * profile is left as WordPress ships it — or nothing is chosen yet —
+	 * the control is drawn disabled with nothing chosen, under the line
+	 * saying so, and let go the moment the answer above sends people to the
+	 * site or closes the screen.
+	 */
 	diluxone_users_scope_control(
 		'diluxone_users_wp_profile',
 		'',
-		__( 'Whoever can edit users is never reached: they are the person who has to be able to fix what broke, and the dashboard profile is where it gets fixed.', 'diluxone-users' )
+		__( 'Whoever can edit users is never reached: they are the person who has to be able to fix what broke, and the dashboard profile is where it gets fixed.', 'diluxone-users' ),
+		array(
+			'why'     => __( 'The profile is left as WordPress ships it, so nobody is sent anywhere. Choose above to send people to the site or to close the screen, and who it reaches applies.', 'diluxone-users' ),
+			'name'    => 'diluxone_users_wp_profile',
+			'is'      => array( 'redirect', 'block' ),
+			'waiting' => ! $decided || 'allow' === $profile,
+		)
 	);
 	diluxone_users_ui_field_close();
 

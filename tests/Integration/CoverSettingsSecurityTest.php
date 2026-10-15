@@ -194,7 +194,9 @@ class CoverSettingsSecurityTest extends IntegrationTestCase {
 
 		$this->assertTrue( diluxone_users_2fa_save() );
 		$this->assertSame( 'off', diluxone_users_option( 'diluxone_users_2fa_mode' ) );
-		$this->assertSame( array(), diluxone_users_option( 'diluxone_users_2fa_methods' ) );
+		// The boxes under "off" wait for it, disabled, so none was drawn:
+		// the methods are left as they were rather than emptied.
+		$this->assertFalse( diluxone_users_option_is_set( 'diluxone_users_2fa_methods' ), 'not asked, not written' );
 		$this->assertSame( 'never', diluxone_users_option( 'diluxone_users_2fa_link' ) );
 	}
 

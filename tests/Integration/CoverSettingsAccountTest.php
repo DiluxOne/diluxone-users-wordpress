@@ -686,7 +686,8 @@ class CoverSettingsAccountTest extends IntegrationTestCase {
 		$this->send_panel( 'diluxone-users-account', array() );
 		diluxone_users_account_dashboard_save();
 		$this->assertSame( 'wp', diluxone_users_option( 'diluxone_users_admin_bar' ), 'nothing sent is WordPress’s own' );
-		$this->assertSame( 'allow', diluxone_users_option( 'diluxone_users_wp_profile' ) );
+		$this->assertSame( 'redirect', diluxone_users_option( 'diluxone_users_wp_profile' ), 'a question the form did not ask keeps its answer' );
+		$this->assertSame( 'some', diluxone_users_option( 'diluxone_users_wp_profile_scope' ) );
 
 		// Answers that are none of the screen's, and roles that are lists.
 		$this->send_panel(
@@ -739,6 +740,14 @@ class CoverSettingsAccountTest extends IntegrationTestCase {
 
 	public function test_the_summary_reads_back_what_the_other_tabs_wrote(): void {
 		$this->the_admin();
+
+		// Written at their defaults: a setting nobody saved reads Not
+		// configured instead (NotConfiguredTest), and this is about what the
+		// tabs wrote.
+		diluxone_users_update_option( 'diluxone_users_account_page', 0 );
+		diluxone_users_update_option( 'diluxone_users_wp_profile', 'allow' );
+		diluxone_users_update_option( 'diluxone_users_admin_bar', 'wp' );
+		diluxone_users_update_option( 'diluxone_users_handle_enabled', 0 );
 
 		$html = $this->screen( 'summary' );
 

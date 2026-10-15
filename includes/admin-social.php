@@ -497,13 +497,17 @@ function diluxone_users_screen_social_general(): void {
 
 		diluxone_users_ui_choices(
 			array(
+				// Ticked once somebody decided it; until then the box says so,
+				// and the sign-in forms have no buttons, as WordPress has it.
 				array(
 					'type'    => 'checkbox',
 					'name'    => 'diluxone_users_sso_login',
 					'value'   => '1',
-					'checked' => (bool) diluxone_users_option( 'diluxone_users_sso_login' ),
+					'checked' => diluxone_users_option_is_set( 'diluxone_users_sso_login' ) && diluxone_users_option( 'diluxone_users_sso_login' ),
 					'title'   => __( 'People can sign in with a social account', 'diluxone-users' ),
 					'help'    => __( 'The buttons under the sign-in form of every site, for the providers that are working. Off, they go, and whoever already linked a social account keeps it and can unlink it from their account.', 'diluxone-users' ),
+					'state'   => diluxone_users_option_is_set( 'diluxone_users_sso_login' ) ? '' : 'unset',
+					'note'    => diluxone_users_option_is_set( 'diluxone_users_sso_login' ) ? '' : __( 'no buttons on any site until this is ticked and saved', 'diluxone-users' ),
 				),
 			)
 		);

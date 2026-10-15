@@ -2,7 +2,7 @@ import type { Page } from '@playwright/test';
 import { test, expect, expectSignedIn } from '../support/fixtures';
 import { freshEmail, linkIn, waitForMail } from '../support/api';
 import { accountSection, registerScreen, resetScreen, savePanel, signInWithPassword } from '../support/ui';
-import { accessTab, control, expectPill, notNow, rail, summaryRow } from '../support/admin-access';
+import { accessTab, control, expectPill, notNow, rail, summaryRow, waitingBlocks, waits } from '../support/admin-access';
 import { ADMIN_STATE } from '../../../playwright.config';
 
 /**
@@ -68,8 +68,9 @@ test.describe('Access › The sign-in page', () => {
 
 			expect(Number((await site.getOptions(['diluxone_users_login_page'])).diluxone_users_login_page)).toBe(0);
 
-			// The tab says the choice below waits for a page, and offers to make one.
-			await expect(notNow(page).first()).toBeVisible();
+			// The two groups below wait for a page, disabled, and the tab offers to make one.
+			await expect(waits(page)).toHaveCount(2);
+			await expect(waitingBlocks(page)).toHaveCount(2);
 			await expect(page.locator('a.button[href*="action=diluxone_users_create_page"][href*="diluxone_users_login_page"]')).toHaveCount(1);
 
 			await guest.goto('/wp-login.php');
@@ -179,9 +180,25 @@ test.describe('Access › The sign-in page', () => {
 		await options.set({ diluxone_users_login_page: 0, diluxone_users_login_method: 'both', diluxone_users_wp_login_brand: 0 });
 
 		await page.goto(accessTab('page'));
-		// No page: the choice waits for one, and so does "this site's screen" for a reset.
-		await expect(notNow(page)).toHaveCount(1);
-		await expectPill(page.locator('label.du-choice').filter({ has: control(page, 'diluxone_users_lost_password', 'site') }), 'pending');
+		// No page: both groups wait for one, disabled with nothing chosen and
+		// no pending pill on any option, and nothing else is excused.
+		await expect(notNow(page)).toHaveCount(0);
+		await expect(waits(page)).toHaveCount(2);
+		await expect(control(page, 'diluxone_users_wp_screens', 'mine')).toBeDisabled();
+		await expect(control(page, 'diluxone_users_lost_password', 'site')).toBeDisabled();
+		await expect(page.locator('[name="diluxone_users_wp_screens"]:checked, [name="diluxone_users_lost_password"]:checked')).toHaveCount(0);
+		await expect(page.locator('label.du-choice').filter({ has: control(page, 'diluxone_users_lost_password', 'site') }).locator('.diluxone-users-state')).toHaveCount(0);
+
+		// A page picked in the drop-down lets both groups go on the spot, and
+		// "None" picked again takes them back.
+		await page.locator('#diluxone_users_login_page').selectOption(String(pages.login.id));
+		await expect(waits(page)).toHaveCount(0);
+		await expect(control(page, 'diluxone_users_wp_screens', 'mine')).toBeEnabled();
+		await control(page, 'diluxone_users_wp_screens', 'mine').check({ force: true });
+		await page.locator('#diluxone_users_login_page').selectOption('0');
+		await expect(waits(page)).toHaveCount(2);
+		await expect(control(page, 'diluxone_users_wp_screens', 'mine')).toBeDisabled();
+		await expect(control(page, 'diluxone_users_wp_screens', 'mine')).not.toBeChecked();
 		// wp-login.php is the only screen: the rail says how it looks — plain.
 		await expectPill(rail(page).locator('.du-note').filter({ has: page.locator('.du-note__title .diluxone-users-state') }), 'off');
 

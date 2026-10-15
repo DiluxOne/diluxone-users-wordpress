@@ -151,9 +151,13 @@ function diluxone_users_screen_sessions(): void {
 
 	diluxone_users_intro( __( 'A session is what keeps somebody signed in after they close the tab. Here is how long one lasts on this site, and whether each person can see their own.', 'diluxone-users' ) );
 
+	$long  = (int) diluxone_users_option( 'diluxone_users_session_long_days' );
+	$short = (int) diluxone_users_option( 'diluxone_users_session_short_days' );
+	$today = diluxone_users_sessions_today( $long, $short );
+
 	diluxone_users_ui_section(
 		__( 'How long a session lasts', 'diluxone-users' ),
-		__( 'Left at 0, WordPress decides: 2 days, or 14 with “remember me”. On a site people come into by e-mail link that is the inbox again every other day, so a number here sets a length of the site’s own.', 'diluxone-users' )
+		__( 'Left at 0, WordPress decides — 2 days, or 14 with “remember me” — and the plugin changes nothing. On a site people come into by e-mail link that is the inbox again every other day, so a number here sets a length of the site’s own.', 'diluxone-users' )
 	);
 
 	diluxone_users_ui_fields_open();
@@ -220,7 +224,9 @@ function diluxone_users_screen_sessions(): void {
 	 * the settings they are what somebody looks up after changing something.
 	 */
 	diluxone_users_ui_aside_close(
-		static function (): void {
+		static function () use ( $today ): void {
+			diluxone_users_ui_aside_state( $today['line'], $today['state'], '', $today['word'] );
+
 			diluxone_users_ui_note(
 				__( 'What a change here reaches', 'diluxone-users' ),
 				__( 'A session is given its length at the moment it starts, so the two numbers apply to whoever signs in from now on. The sessions already open keep the length they were given and end when they were going to.', 'diluxone-users' )
@@ -459,6 +465,41 @@ function diluxone_users_session_days_words( int $days ): string {
 }
 
 /**
+ * How long a session lasts on this site today, as a state and a sentence.
+ *
+ * Read by the tab's rail and by the summary's row, so the two cannot
+ * disagree. With both numbers at 0 WordPress decides and the plugin changes
+ * nothing — which is Not configured while nobody saved the numbers, and Off
+ * ("WordPress decides") once somebody saved 0 and 0 on purpose.
+ *
+ * @param int $long  With "remember me".
+ * @param int $short Without it.
+ * @return array{state: string, word: string, line: string}
+ */
+function diluxone_users_sessions_today( int $long, int $short ): array {
+	$decided = diluxone_users_options_any_set( array( 'diluxone_users_session_long_days', 'diluxone_users_session_short_days' ) );
+
+	if ( $long <= 0 && $short <= 0 ) {
+		return array(
+			'state' => $decided ? 'off' : 'unset',
+			'word'  => $decided ? __( 'WordPress decides', 'diluxone-users' ) : '',
+			'line'  => __( 'WordPress decides how long a session lasts: 2 days, or 14 with “remember me”. The plugin changes nothing.', 'diluxone-users' ),
+		);
+	}
+
+	return array(
+		'state' => 'active',
+		'word'  => '',
+		'line'  => sprintf(
+			/* translators: 1: how long with "remember me" (a number of days, or what WordPress decides), 2: the same without it */
+			__( '%1$s with “remember me”, %2$s without. The e-mail link always counts as “remember me”.', 'diluxone-users' ),
+			diluxone_users_session_days_words( $long ),
+			diluxone_users_session_days_words( $short )
+		),
+	);
+}
+
+/**
  * Sessions and the proxy, as four lines of the security summary.
  *
  * They come from one file because one file owns them, and they go in at the
@@ -478,27 +519,34 @@ function diluxone_users_sessions_summary_rows( array $rows ): array {
 	$show  = (bool) diluxone_users_option( 'diluxone_users_sessions_show' );
 	$tab   = diluxone_users_admin_url( DILUXONE_USERS_SECURITY, array( 'tab' => 'sessions' ) );
 
-	$rows[] = array(
+	$today = diluxone_users_sessions_today( $long, $short );
+
+	$row = array(
 		'label'  => __( 'How long a session lasts', 'diluxone-users' ),
-		'state'  => 'active',
-		'detail' => $long <= 0 && $short <= 0
-			? esc_html__( 'What WordPress decides: 14 days with “remember me”, 2 without. The e-mail link always counts as “remember me”.', 'diluxone-users' )
-			: sprintf(
-				/* translators: 1: how long with "remember me" (a number of days, or what WordPress decides), 2: the same without it */
-				esc_html__( '%1$s with “remember me”, %2$s without. The e-mail link always counts as “remember me”.', 'diluxone-users' ),
-				esc_html( diluxone_users_session_days_words( $long ) ),
-				esc_html( diluxone_users_session_days_words( $short ) )
-			),
+		'state'  => $today['state'],
+		'detail' => esc_html( $today['line'] ),
 		'url'    => $tab,
 	);
 
-	$rows[] = array(
-		'label'  => __( 'Their own sessions', 'diluxone-users' ),
-		'state'  => $show ? 'active' : 'off',
-		'detail' => $show
-			? esc_html__( 'Each person sees where they are signed in, from their account, and can close it.', 'diluxone-users' )
-			: esc_html__( 'They see nothing: closing somebody’s session is an administrator’s job, from the report.', 'diluxone-users' ),
-		'url'    => $tab,
+	// Left out rather than emptied: the table falls back to the state's own
+	// word only when the key is missing.
+	if ( '' !== $today['word'] ) {
+		$row['word'] = $today['word'];
+	}
+
+	$rows[] = $row;
+
+	$rows[] = diluxone_users_summary_row(
+		'diluxone_users_sessions_show',
+		array(
+			'label'  => __( 'Their own sessions', 'diluxone-users' ),
+			'state'  => $show ? 'active' : 'off',
+			'detail' => $show
+				? esc_html__( 'Each person sees where they are signed in, from their account, and can close it.', 'diluxone-users' )
+				: esc_html__( 'They see nothing: closing somebody’s session is an administrator’s job, from the report.', 'diluxone-users' ),
+			'url'    => $tab,
+		),
+		esc_html__( 'They see nothing: WordPress shows nobody where they are signed in.', 'diluxone-users' )
 	);
 
 	// One row asked for, not a page of them: what is wanted here is the
