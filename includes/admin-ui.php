@@ -602,19 +602,24 @@ function diluxone_users_ui_svg_tags(): array {
  *
  * A choice with no name sends nothing, whatever is done to it in the browser:
  * that is what a Pro answer is drawn with (`pro`, the placeholder's id, marks
- * it), and it leaves no line for the save either.
+ * it), and it leaves no line for the save either. Nor does a wait reach it:
+ * it is disabled whether or not the group waits, so the script never lets it
+ * go, and its badge stays.
  *
  * @param array<string, mixed> $choice name, value, title and optionally type,
  *                                     help, checked, disabled, state, note,
  *                                     piece, data, id, waiting and pro.
  */
 function diluxone_users_ui_choice( array $choice ): void {
-	$type     = ( $choice['type'] ?? 'radio' ) === 'checkbox' ? 'checkbox' : 'radio';
-	$waiting  = ! empty( $choice['waiting'] );
+	$type = ( $choice['type'] ?? 'radio' ) === 'checkbox' ? 'checkbox' : 'radio';
+	$pro  = (string) ( $choice['pro'] ?? '' );
+	// A Pro answer is never part of the wait: it is disabled for a reason of
+	// its own, keeps its badge while the group waits, and is not marked for
+	// the script to let go when the wait ends.
+	$waiting  = '' === $pro && ! empty( $choice['waiting'] );
 	$checked  = ! $waiting && ! empty( $choice['checked'] );
 	$disabled = $waiting || ! empty( $choice['disabled'] );
 	$name     = (string) ( $choice['name'] ?? '' );
-	$pro      = (string) ( $choice['pro'] ?? '' );
 	$classes  = array( 'du-choice' );
 
 	if ( $checked ) {

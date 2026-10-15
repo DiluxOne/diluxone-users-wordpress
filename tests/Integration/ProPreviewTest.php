@@ -122,6 +122,43 @@ class ProPreviewTest extends IntegrationTestCase {
 		$this->assertStringContainsString( 'Two more shapes', $html );
 	}
 
+	public function test_a_wait_on_the_group_does_not_reach_the_pro_choice(): void {
+		$this->the_admin();
+
+		$html = $this->draw(
+			'diluxone_users_ui_choices',
+			diluxone_users_ui_pro_choices(
+				array(
+					array(
+						'type'    => 'checkbox',
+						'name'    => 'diluxone_users_real[]',
+						'value'   => 'yes',
+						'checked' => true,
+						'title'   => 'A real answer',
+					),
+				),
+				array( array( 'type' => 'checkbox' ) + self::ARGS )
+			),
+			'',
+			array(),
+			array(
+				'why'     => 'Waiting for another answer.',
+				'name'    => 'diluxone_users_elsewhere',
+				'is'      => array( 'yes' ),
+				'waiting' => true,
+			)
+		);
+
+		$real = substr( $html, (int) strpos( $html, 'name="diluxone_users_real[]"' ), 400 );
+		$pro  = substr( $html, (int) strpos( $html, 'data-diluxone-users-pro="design/login/shapes"' ) );
+
+		$this->assertStringContainsString( 'data-diluxone-users-waited', $real, 'the real box waits: disabled, unticked, marked for the script to let go' );
+		$this->assertStringNotContainsString( 'checked', $real );
+		$this->assertStringNotContainsString( 'data-diluxone-users-waited', $pro, 'the wait never reaches the Pro box' );
+		$this->assertMatchesRegularExpression( '/<input\s+type="checkbox"[^>]*\sdisabled/', $pro, 'disabled for a reason of its own' );
+		$this->assertStringContainsString( 'diluxone-users-state--pro', $pro, 'and its badge stays while the group waits' );
+	}
+
 	public function test_a_checkbox_is_a_checkbox_and_a_shape_a_radio_in_a_grid(): void {
 		$this->the_admin();
 

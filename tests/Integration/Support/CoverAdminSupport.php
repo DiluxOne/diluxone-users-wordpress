@@ -58,6 +58,11 @@ trait CoverAdminSupport {
 	 * single site, the super admin of a network.
 	 */
 	protected function the_admin(): int {
+		// What an admin page has loaded before a screen draws: the screens
+		// call submit_button() and its kin, and a test draws them without the
+		// admin bootstrap, in whatever order the suite happens to run.
+		require_once ABSPATH . 'wp-admin/includes/template.php';
+
 		$user = $this->make_user( 'administrator' );
 
 		if ( is_multisite() ) {
