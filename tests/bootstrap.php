@@ -6,8 +6,10 @@
  * WordPress. Nothing here touches the database or the running dev stack.
  */
 
-// Composer autoload (PHPUnit, Brain Monkey, Mockery)
-require_once __DIR__ . '/../vendor/autoload.php';
+// Composer autoload (PHPUnit, Brain Monkey, Mockery). The vendor that is
+// running: `make test-unit-min` resolves the dependencies for the oldest PHP
+// in a vendor of its own and names it this way.
+require_once (getenv('COMPOSER_VENDOR_DIR') ?: __DIR__ . '/../vendor') . '/autoload.php';
 
 // Define WordPress constants that plugins expect
 if (!defined('ABSPATH')) {
