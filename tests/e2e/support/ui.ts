@@ -400,4 +400,11 @@ export async function savePanel(page: Page): Promise<void> {
 
 	await expect(adminSaved(page)).toBeVisible();
 	await expect(adminError(page)).toHaveCount(0);
+
+	// And settled: once WordPress's own script runs, after the DOM is ready, it
+	// moves every notice under the heading and gives it its dismiss button,
+	// and everything below moves by the notice's height. A click placed
+	// before that lands one notice lower, on whatever card is there (a slow
+	// runner found it). The button is the sign the script has had its say.
+	await expect(page.locator('.wrap .notice-success .notice-dismiss')).toBeVisible();
 }

@@ -1553,7 +1553,7 @@ span.diluxone-users-state {
 .diluxone-users-state--unknown { background: #e3edf7; color: #1d4f80; }
 /* Nobody decided this: no colour, because a colour is a verdict, and a
    dashed edge, which is the shape of a place something could go. */
-.diluxone-users-state--unset   { background: transparent; color: #50575e; outline: 1px dashed #8c8f94; outline-offset: -1px; }
+.diluxone-users-state--unset   { background: transparent; color: var(--du-muted); outline: 1px dashed currentColor; outline-offset: -1px; }
 .diluxone-users-state--pro     { background: var(--du-pro-wash, #efe7fb); color: var(--du-pro, #5b2a99); }
 .diluxone-users-state__why { color: #50575e; }
 
