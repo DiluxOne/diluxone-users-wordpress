@@ -118,6 +118,8 @@ make stan
 
 `WP_DEBUG` and `COOKIEHASH` are declared `dynamicConstantNames`, so PHPStan does not collapse `if ( WP_DEBUG )` into "always false" on the stub's value; their real values come from `wp-config.php`.
 
+`treatPhpDocTypesAsCertain` is `false`. The arguments a WordPress hook passes are typed only in its PHPDoc, and another plugin can pass anything, so the defensive `is_array()` and `instanceof` checks on them are kept and PHPStan does not report them as always true. `earlyTerminatingMethodCalls` names `WP_CLI::error()`, which ends the command but is not marked as never returning in the WP-CLI stubs.
+
 If PHPStan cannot see a real type (a missing extension stub), use `// @phpstan-ignore-next-line <identifier>` with a comment saying why. Never a baseline.
 
 ## Psalm taint analysis
