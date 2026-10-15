@@ -12,8 +12,8 @@ The checks run from the shared workflows in [`DiluxOne/.github`](https://github.
 | Syntax | `php -l` on PHP 8.0 to 8.5 | Syntax the minimum PHP can't parse. | (runs on PR) |
 | Unit tests | PHPUnit + brain/monkey + mockery, same PHP matrix | Logic regressions in pure-PHP units: social identity, the two-step policy, the client's address. | `make test`, `make test-unit-min` |
 | Coding style | PHP_CodeSniffer + WordPress Coding Standards + PHPCompatibilityWP | Style, naming, prefixes, escaping, sanitisation, prepared statements, syntax above PHP 8.0. | `make lint` |
-| Static analysis | PHPStan level 8 + szepeviktor/phpstan-wordpress | Type safety, unreachable code, undefined functions, missing return types. **No baseline.** | `make stan` |
-| Security taint analysis | Psalm + humanmade/psalm-plugin-wordpress (taint-only mode) | XSS, SQL injection, command injection, file-system traversal: user input flowing into dangerous sinks. | `make psalm` |
+| Static analysis | PHPStan 2, level 8 + szepeviktor/phpstan-wordpress | Type safety, unreachable code, undefined functions, missing return types. **No baseline.** | `make stan` |
+| Security taint analysis | Psalm 6 + humanmade/psalm-plugin-wordpress (taint-only mode) | XSS, SQL injection, command injection, file-system traversal: user input flowing into dangerous sinks. | `make psalm` |
 | i18n | `wp i18n make-pot` + `msgfmt` | Missing translator comments, dynamic text domains, conflicting translator hints, concatenated strings; and whether the eight shipped locales are complete. | `make i18n`, `make i18n-check` |
 | Plugin Check (wp.org) | wordpress/plugin-check, `strict` | The checks the wp.org plugin team runs at submission and review; a warning fails, since nearly every security finding is a warning. | `make plugin-check` |
 | Review rules | the organisation's rule engine, `wordpress-plugin` pack | What the wp.org review flags and Plugin Check misses: `EscapeOutput` suppressions, a menu position among WordPress's own, a handler that reads the request before its nonce or capability, a nonce action built from input, and any security suppression not listed with its reason in [`.github/review-suppressions.yml`](../.github/review-suppressions.yml). | `make review-rules` |
@@ -28,6 +28,8 @@ The checks run from the shared workflows in [`DiluxOne/.github`](https://github.
 | Coverage | PCOV + phpcov (unit, integration on both topologies, merged); a script for the browser suites | Lines, functions and classes per file of `includes/` and `templates/` no test runs; a screen, tab, shortcode, action, address, command or template no spec walks. | `make coverage`, `make coverage-e2e-map` |
 | JS supply chain | CodeQL (JS) | Common JS vulnerability patterns in the admin and front-end scripts. | (runs on PR) |
 | Claude review | the organisation's pipeline (`org-pull-request.yml`) | Everything in [`architecture.md`](architecture.md) and the organisation's WordPress review profile; rates risk and complexity. | (runs on PR) |
+
+**The tools and their PHP.** Every development dependency is on its latest version, majors included (`npx npm-check-updates` and `composer outdated --direct` report nothing). The analysis tools (PHPStan 2, Psalm 6, PHPCS) run on the newest PHP and analyse for the plugin's minimum (`phpVersion` in `phpstan.neon`, `testVersion` in `phpcs.xml.dist`), so `composer.json` has no `config.platform.php` holding them back, and `make psalm` runs on `PHP_IMAGE`, the newest. The unit suite runs on every PHP from the minimum to the newest; on the older ones the analysis tools cannot even install (Psalm 6 needs PHP 8.1), so CI leaves out the pack's `analysis-only` packages and resolves the rest for that PHP (DiluxOne/.github#85). `make test-unit-min` does the same for PHP 8.0, in a vendor of its own under `build/unit-min/`, which `tests/bootstrap.php` loads when `COMPOSER_VENDOR_DIR` names it. What the unit tests execute stays on the latest version that runs on the minimum: PHPUnit 9.6 (10 needs PHP 8.1) and `phpunit/phpcov` 8, the one for PHPUnit 9. On the npm side, `package.json` carries `overrides` for the vulnerable packages `@wordpress/env` pulls in and has not updated itself (`qs`, `http-cache-semantics`); `simple-git` stays on 3 because wp-env 11.17 calls it as 3 exports it and breaks with 4 (Gutenberg moved to 4 for the next release), and `sprintf-js` has no fixed version.
 
 ## The rule: tests at every layer a change touches
 
@@ -51,7 +53,7 @@ Located in [`tests/Unit/DiluxOneUsers/`](../tests/Unit/DiluxOneUsers/). They run
 
 ```bash
 make test            # unit tests, on the newest PHP
-make test-unit-min   # the same on PHP 8.0, the minimum; CI runs every version in between
+make test-unit-min   # the same on PHP 8.0, the minimum, without the analysis tools, as CI; CI runs every version in between
 ```
 
 When you add one:

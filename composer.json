@@ -23,7 +23,7 @@
         "phpunit/phpcov": "^8.2",
         "phpunit/phpunit": "^9.6",
         "szepeviktor/phpstan-wordpress": "^2.0",
-        "vimeo/psalm": "^5.26",
+        "vimeo/psalm": "^6.20",
         "wp-coding-standards/wpcs": "^3.1"
     },
     "autoload-dev": {
@@ -33,9 +33,6 @@
     },
     "config": {
         "sort-packages": true,
-        "platform": {
-            "php": "7.4.30"
-        },
         "allow-plugins": {
             "dealerdirect/phpcodesniffer-composer-installer": true,
             "phpstan/extension-installer": true

@@ -26,7 +26,6 @@
     "@wordpress/env": "^11.17.0"
   },
   "overrides": {
-    "simple-git": "4.0.2",
     "qs": "6.16.1",
     "http-cache-semantics": "4.3.0"
   }
