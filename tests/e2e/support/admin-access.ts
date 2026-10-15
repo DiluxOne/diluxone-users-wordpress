@@ -40,14 +40,24 @@ export function pill(scope: Locator): Locator {
 	return scope.locator('.diluxone-users-state').first();
 }
 
-/** Asserts a pill's state by its class: active, pending, off, unknown. */
-export async function expectPill(scope: Locator, state: 'active' | 'pending' | 'off' | 'unknown'): Promise<void> {
+/** Asserts a pill's state by its class: active, pending, off, unknown, unset. */
+export async function expectPill(scope: Locator, state: 'active' | 'pending' | 'off' | 'unknown' | 'unset'): Promise<void> {
 	await expect(pill(scope)).toHaveClass(new RegExp(`diluxone-users-state--${state}\\b`));
 }
 
 /** The "not now" notes a tab prints in its main column. */
 export function notNow(page: Page): Locator {
 	return page.locator('.diluxone-users-studio__fields .diluxone-users-not-now');
+}
+
+/** The lines above a block that waits for another answer, shown only while it waits. */
+export function waits(page: Page): Locator {
+	return page.locator('.diluxone-users-studio__fields .du-waits:visible');
+}
+
+/** The blocks that wait for another answer, as the server drew them or the script left them. */
+export function waitingBlocks(page: Page): Locator {
+	return page.locator('.du-waits-on.is-waiting');
 }
 
 /** The rail beside the settings. */

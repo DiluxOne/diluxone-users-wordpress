@@ -854,6 +854,12 @@ function diluxoneUsersChoiceGroups( root ) {
 			return false;
 		}
 
+		// A group waiting for another answer has nothing ticked and nobody
+		// to blame for it: the rule does not apply until the wait ends.
+		if ( group.closest( '.du-waits-on.is-waiting' ) ) {
+			return false;
+		}
+
 		var on = group.dataset.diluxoneUsersWhile;
 
 		if ( ! on ) {
@@ -925,6 +931,103 @@ function diluxoneUsersChoiceGroups( root ) {
 		if ( group ) {
 			say( group, asked( group ) && ! ticked( group ) );
 		}
+	} );
+}() );
+
+/**
+ * A block that waits for another answer on the same tab.
+ *
+ * The server draws it waiting or not from the stored answer
+ * (`diluxone_users_ui_choices()`, `$waits`): disabled with nothing chosen
+ * under the line that says what it waits for. This is the live half. The
+ * moment the control it names is given one of the values that end the wait,
+ * the block is let go — enabled, still with nothing chosen, for the person
+ * to answer — and if that answer is taken back before the save, the block
+ * waits again, with whatever was picked in the meantime unticked: a choice
+ * about a page that no longer exists is not kept.
+ *
+ * Only what the wait disabled is touched, which is what the mark on each
+ * control is for: a card disabled for a reason of its own, a role that is
+ * never reached, stays as the server drew it.
+ */
+( function () {
+	'use strict';
+
+	function values( block, key ) {
+		var list = block.dataset[ key ];
+
+		return typeof list === 'string' ? list.split( ' ' ) : null;
+	}
+
+	function waiting( block, control ) {
+		var value = control ? control.value : '';
+		var is = values( block, 'diluxoneUsersWaitsIs' );
+		var not = values( block, 'diluxoneUsersWaitsNot' );
+
+		if ( is ) {
+			return is.indexOf( value ) === -1;
+		}
+
+		return not ? not.indexOf( value ) !== -1 : false;
+	}
+
+	function settle( block, now ) {
+		block.classList.toggle( 'is-waiting', now );
+
+		var line = block.querySelector( '.du-waits' );
+
+		if ( line ) {
+			line.hidden = ! now;
+		}
+
+		if ( now ) {
+			// Everything the wait can hold: the controls, and the hidden line a
+			// tick box leaves for the save. A control already disabled for a
+			// reason of its own is not marked, so it is not let go later.
+			block.querySelectorAll( 'input, select, textarea' ).forEach( function ( input ) {
+				if ( input.disabled && ! input.hasAttribute( 'data-diluxone-users-waited' ) ) {
+					return;
+				}
+
+				input.setAttribute( 'data-diluxone-users-waited', '' );
+				input.disabled = true;
+
+				if ( input.type === 'radio' || input.type === 'checkbox' ) {
+					input.checked = false;
+				}
+			} );
+
+			return;
+		}
+
+		block.querySelectorAll( '[data-diluxone-users-waited]' ).forEach( function ( input ) {
+			input.disabled = false;
+			input.removeAttribute( 'data-diluxone-users-waited' );
+		} );
+	}
+
+	// On the document, like the rest of this file: a form can arrive after
+	// the page did.
+	document.addEventListener( 'change', function ( event ) {
+		var control = event.target;
+
+		if ( ! control.name ) {
+			return;
+		}
+
+		var form = control.closest( 'form' );
+
+		// The control's value as the form sees it: for a group of radios
+		// that is the checked one, or nothing.
+		var named = ( form && form.elements[ control.name ] ) || control;
+
+		( form || document ).querySelectorAll( '[data-diluxone-users-waits]' ).forEach( function ( block ) {
+			if ( block.dataset.diluxoneUsersWaits !== control.name || block.contains( control ) ) {
+				return;
+			}
+
+			settle( block, waiting( block, named ) );
+		} );
 	} );
 }() );
 

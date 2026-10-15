@@ -435,7 +435,9 @@ test.describe('A screen that refuses what it cannot save', () => {
 		await page.goto(adminUrl('diluxone-users-security', '2fa'));
 		await page.locator('input[name="diluxone_users_2fa_mode"][value="off"]').check();
 
-		await untickAll(needsOne(page, 'diluxone_users_2fa_methods[]'));
+		// Off, the methods wait for the step: disabled, unticked, and not
+		// the browser's to complain about.
+		await expect(needsOne(page, 'diluxone_users_2fa_methods[]').locator('input[type="checkbox"]:enabled')).toHaveCount(0);
 		await savePanel(page);
 
 		await expect(adminError(page)).toHaveCount(0);

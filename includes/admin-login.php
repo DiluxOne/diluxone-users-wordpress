@@ -96,25 +96,38 @@ function diluxone_users_login_page_save(): void {
 	check_admin_referer( 'diluxone_users_panel_diluxone-users-login', 'diluxone_users_panel_nonce' );
 	diluxone_users_panel_allowed();
 
-	$screens = sanitize_key( wp_unslash( $_POST['diluxone_users_wp_screens'] ?? '' ) );
-	$screens = in_array( $screens, array( 'auto', 'mine', 'wp' ), true ) ? $screens : 'auto';
+	$saved = array(
+		'diluxone_users_login_page' => ( isset( $_POST['diluxone_users_login_page'] ) && is_scalar( $_POST['diluxone_users_login_page'] ) ? absint( wp_unslash( $_POST['diluxone_users_login_page'] ) ) : 0 ),
+	);
 
-	// The second door is not an answer on a site with no password: the screen
-	// does not offer it, and a request that sends it anyway gets the answer
-	// in force instead.
-	if ( 'wp' === $screens && ! diluxone_users_login_has_password() ) {
-		$screens = 'auto';
+	/*
+	 * The two groups under the page wait for one: while none is chosen they
+	 * are drawn disabled with nothing picked, and a disabled control sends
+	 * nothing. A key that did not arrive is a question that was not asked,
+	 * and the setting keeps what it had — stored or not — rather than
+	 * getting the default written as though somebody had picked it.
+	 */
+	if ( isset( $_POST['diluxone_users_wp_screens'] ) ) {
+		$screens = sanitize_key( wp_unslash( $_POST['diluxone_users_wp_screens'] ) );
+		$screens = in_array( $screens, array( 'auto', 'mine', 'wp' ), true ) ? $screens : 'auto';
+
+		// The second door is not an answer on a site with no password: the
+		// screen does not offer it, and a request that sends it anyway gets
+		// the answer in force instead.
+		if ( 'wp' === $screens && ! diluxone_users_login_has_password() ) {
+			$screens = 'auto';
+		}
+
+		$saved['diluxone_users_wp_screens'] = $screens;
 	}
 
-	$lost = sanitize_key( wp_unslash( $_POST['diluxone_users_lost_password'] ?? '' ) );
+	if ( isset( $_POST['diluxone_users_lost_password'] ) ) {
+		$lost = sanitize_key( wp_unslash( $_POST['diluxone_users_lost_password'] ) );
 
-	diluxone_users_save_options(
-		array(
-			'diluxone_users_login_page'    => ( isset( $_POST['diluxone_users_login_page'] ) && is_scalar( $_POST['diluxone_users_login_page'] ) ? absint( wp_unslash( $_POST['diluxone_users_login_page'] ) ) : 0 ),
-			'diluxone_users_wp_screens'    => $screens,
-			'diluxone_users_lost_password' => in_array( $lost, array( 'wp', 'site', 'link' ), true ) ? $lost : 'wp',
-		)
-	);
+		$saved['diluxone_users_lost_password'] = in_array( $lost, array( 'wp', 'site', 'link' ), true ) ? $lost : 'wp';
+	}
+
+	diluxone_users_save_options( $saved );
 }
 
 /**
@@ -272,48 +285,70 @@ function diluxone_users_doors(): array {
 
 	$rows = array();
 
-	$rows[] = array(
-		'label'  => __( 'The sign-in page', 'diluxone-users' ),
-		// Pending and not off: nobody switched this page off, it was never
-		// chosen — which is the answer the status screen already gives.
-		'state'  => $page > 0 ? 'active' : 'pending',
-		'why'    => $page > 0 ? '' : __( 'No page chosen yet.', 'diluxone-users' ),
-		'detail' => $page > 0
-			? sprintf( '<a href="%s">%s</a>', esc_url( (string) get_permalink( $page ) ), esc_html( $title ) )
-			: esc_html__( 'None: wp-login.php does the job.', 'diluxone-users' ),
-		'url'    => $tab( 'page' ),
+	/*
+	 * Every row goes through diluxone_users_summary_row(): a setting nobody
+	 * decided reads Not configured, with what WordPress does on its own in
+	 * the detail, and the Active/Off/Pending logic below is for the rows
+	 * somebody did decide.
+	 */
+	$rows[] = diluxone_users_summary_row(
+		'diluxone_users_login_page',
+		array(
+			'label'  => __( 'The sign-in page', 'diluxone-users' ),
+			// Pending and not off: nobody switched this page off, it was never
+			// chosen — which is the answer the status screen already gives.
+			'state'  => $page > 0 ? 'active' : 'pending',
+			'why'    => $page > 0 ? '' : __( 'No page chosen yet.', 'diluxone-users' ),
+			'detail' => $page > 0
+				? sprintf( '<a href="%s">%s</a>', esc_url( (string) get_permalink( $page ) ), esc_html( $title ) )
+				: esc_html__( 'None: wp-login.php does the job.', 'diluxone-users' ),
+			'url'    => $tab( 'page' ),
+		),
+		esc_html__( 'Everybody signs in on wp-login.php, as WordPress has it.', 'diluxone-users' )
 	);
 
-	$rows[] = array(
-		'label'  => __( 'The e-mail link', 'diluxone-users' ),
-		'state'  => diluxone_users_login_has_link() ? 'active' : 'off',
-		'detail' => diluxone_users_login_has_link()
-			? sprintf(
-				/* translators: %d: minutes */
-				esc_html__( 'A single-use link, good for %d minutes.', 'diluxone-users' ),
-				(int) diluxone_users_login_expiry()
-			)
-			: esc_html__( 'Nobody can ask for a link.', 'diluxone-users' ),
-		'url'    => $tab( 'ways' ),
+	$rows[] = diluxone_users_summary_row(
+		'diluxone_users_login_method',
+		array(
+			'label'  => __( 'The e-mail link', 'diluxone-users' ),
+			'state'  => diluxone_users_login_has_link() ? 'active' : 'off',
+			'detail' => diluxone_users_login_has_link()
+				? sprintf(
+					/* translators: %d: minutes */
+					esc_html__( 'A single-use link, good for %d minutes.', 'diluxone-users' ),
+					(int) diluxone_users_login_expiry()
+				)
+				: esc_html__( 'Nobody can ask for a link.', 'diluxone-users' ),
+			'url'    => $tab( 'ways' ),
+		),
+		esc_html__( 'Not offered: WordPress has no sign-in link of its own.', 'diluxone-users' )
 	);
 
-	$rows[] = array(
-		'label'  => __( 'Username and password', 'diluxone-users' ),
-		'state'  => diluxone_users_login_has_password() ? 'active' : 'off',
-		'detail' => diluxone_users_login_has_password()
-			? esc_html__( 'WordPress’s own form, underneath the link.', 'diluxone-users' )
-			: esc_html__( 'Closed: on this site a password opens nothing.', 'diluxone-users' ),
-		'url'    => $tab( 'ways' ),
+	$rows[] = diluxone_users_summary_row(
+		'diluxone_users_login_method',
+		array(
+			'label'  => __( 'Username and password', 'diluxone-users' ),
+			'state'  => diluxone_users_login_has_password() ? 'active' : 'off',
+			'detail' => diluxone_users_login_has_password()
+				? esc_html__( 'WordPress’s own form, underneath the link.', 'diluxone-users' )
+				: esc_html__( 'Closed: on this site a password opens nothing.', 'diluxone-users' ),
+			'url'    => $tab( 'ways' ),
+		),
+		esc_html__( 'WordPress’s own form, on wp-login.php.', 'diluxone-users' )
 	);
 
-	$rows[] = array(
-		'label'  => __( 'A social account', 'diluxone-users' ),
-		'state'  => ! diluxone_users_option( 'diluxone_users_sso_login' ) ? 'off' : ( array() !== $social ? 'active' : 'pending' ),
-		'why'    => diluxone_users_option( 'diluxone_users_sso_login' ) && array() === $social ? __( 'no provider is working yet', 'diluxone-users' ) : '',
-		'detail' => array() !== $social
-			? esc_html( implode( ', ', $social ) )
-			: esc_html__( 'The buttons are switched on but there is nothing to show.', 'diluxone-users' ),
-		'url'    => diluxone_users_admin_url( 'diluxone-users-social' ),
+	$rows[] = diluxone_users_summary_row(
+		'diluxone_users_sso_login',
+		array(
+			'label'  => __( 'A social account', 'diluxone-users' ),
+			'state'  => ! diluxone_users_option( 'diluxone_users_sso_login' ) ? 'off' : ( array() !== $social ? 'active' : 'pending' ),
+			'why'    => diluxone_users_option( 'diluxone_users_sso_login' ) && array() === $social ? __( 'no provider is working yet', 'diluxone-users' ) : '',
+			'detail' => array() !== $social
+				? esc_html( implode( ', ', $social ) )
+				: esc_html__( 'The buttons are switched on but there is nothing to show.', 'diluxone-users' ),
+			'url'    => diluxone_users_admin_url( 'diluxone-users-social' ),
+		),
+		esc_html__( 'No buttons: WordPress has none of its own.', 'diluxone-users' )
 	);
 
 	/**
@@ -333,30 +368,43 @@ function diluxone_users_doors(): array {
 	// open or closed: this row is that answer said in a line.
 	$made = diluxone_users_register_doors_open();
 
-	$rows[] = array(
-		'label'  => __( 'Creating an account', 'diluxone-users' ),
-		'state'  => array() !== $made ? ( 'form' === $mode && '' === diluxone_users_register_url() ? 'pending' : 'active' ) : 'off',
-		'why'    => 'form' === $mode && '' === diluxone_users_register_url() ? __( 'the form has no page yet', 'diluxone-users' ) : '',
-		'detail' => array() !== $made
-			? esc_html(
-				sprintf(
-				/* translators: %s: the ways an account gets created, comma separated */
-					__( 'Accounts are created by: %s.', 'diluxone-users' ),
-					implode( ', ', $made )
+	// WordPress's own door is WordPress's own switch, and it is always
+	// decided: the row is about the plugin's three, and reads as decided
+	// once any of them is.
+	$rows[] = diluxone_users_summary_row(
+		array( 'diluxone_users_login_register', 'diluxone_users_sso_register', 'diluxone_users_register_form' ),
+		array(
+			'label'  => __( 'Creating an account', 'diluxone-users' ),
+			'state'  => array() !== $made ? ( 'form' === $mode && '' === diluxone_users_register_url() ? 'pending' : 'active' ) : 'off',
+			'why'    => 'form' === $mode && '' === diluxone_users_register_url() ? __( 'the form has no page yet', 'diluxone-users' ) : '',
+			'detail' => array() !== $made
+				? esc_html(
+					sprintf(
+					/* translators: %s: the ways an account gets created, comma separated */
+						__( 'Accounts are created by: %s.', 'diluxone-users' ),
+						implode( ', ', $made )
+					)
 				)
-			)
-			: esc_html__( 'Nobody registers themselves: accounts are made under Users.', 'diluxone-users' ),
-		'url'    => $tab( 'register' ),
+				: esc_html__( 'Nobody registers themselves: accounts are made under Users.', 'diluxone-users' ),
+			'url'    => $tab( 'register' ),
+		),
+		get_option( 'users_can_register' )
+			? esc_html__( 'WordPress’s own form, open as Settings › General has it; the plugin opens no door of its own.', 'diluxone-users' )
+			: esc_html__( 'WordPress’s own form, closed as Settings › General has it; the plugin opens no door of its own.', 'diluxone-users' )
 	);
 
-	$rows[] = array(
-		'label'  => __( 'After the door', 'diluxone-users' ),
-		'state'  => 'off' !== (string) diluxone_users_option( 'diluxone_users_2fa_mode' ) ? 'active' : 'off',
-		'detail' => 'off' !== (string) diluxone_users_option( 'diluxone_users_2fa_mode' )
-			? esc_html__( 'A second step is asked, as set on Security.', 'diluxone-users' )
-			: esc_html__( 'No second step.', 'diluxone-users' ),
-		'url'    => diluxone_users_admin_url( 'diluxone-users-security' ),
-		'change' => __( 'Security →', 'diluxone-users' ),
+	$rows[] = diluxone_users_summary_row(
+		'diluxone_users_2fa_mode',
+		array(
+			'label'  => __( 'After the door', 'diluxone-users' ),
+			'state'  => 'off' !== (string) diluxone_users_option( 'diluxone_users_2fa_mode' ) ? 'active' : 'off',
+			'detail' => 'off' !== (string) diluxone_users_option( 'diluxone_users_2fa_mode' )
+				? esc_html__( 'A second step is asked, as set on Security.', 'diluxone-users' )
+				: esc_html__( 'No second step.', 'diluxone-users' ),
+			'url'    => diluxone_users_admin_url( 'diluxone-users-security' ),
+			'change' => __( 'Security →', 'diluxone-users' ),
+		),
+		esc_html__( 'No second step: WordPress asks for none.', 'diluxone-users' )
 	);
 
 	return $rows;
@@ -489,9 +537,22 @@ function diluxone_users_screen_login_page(): void {
 		$chosen = 'auto';
 	}
 
-	if ( $page <= 0 ) {
-		diluxone_users_not_now( __( 'There is no sign-in page to send anybody to. What is chosen here waits for one.', 'diluxone-users' ) );
-	} elseif ( ! $password ) {
+	/*
+	 * Both groups below wait for the page: with none chosen there is nowhere
+	 * to send anybody and nowhere for a reset to land, so they are drawn
+	 * disabled with nothing picked under one line each, and the script lets
+	 * them go the moment a page is picked in the drop-down above. A choice
+	 * drawn as made about a page that does not exist was how a fresh install
+	 * read as set up by somebody.
+	 */
+	$waits = static fn( string $why ): array => array(
+		'why'     => $why,
+		'name'    => 'diluxone_users_login_page',
+		'not'     => array( '0', '' ),
+		'waiting' => $page <= 0,
+	);
+
+	if ( $page > 0 && ! $password ) {
 		diluxone_users_not_now(
 			__( 'Nobody signs in with a password on this site, so wp-login.php has nothing left to offer and everybody is sent to the sign-in page. What is chosen here applies the day a password is a way in again.', 'diluxone-users' ),
 			diluxone_users_admin_url( 'diluxone-users-login', array( 'tab' => 'ways' ) ),
@@ -525,7 +586,10 @@ function diluxone_users_screen_login_page(): void {
 				'title'   => __( 'Send people to the page only while the e-mail link is the only way in', 'diluxone-users' ),
 				'help'    => __( 'While a password still opens something here, wp-login.php is left alone. The day the link is the only way in, its form could not work anyway.', 'diluxone-users' ),
 			),
-		)
+		),
+		'',
+		array(),
+		$waits( __( 'There is no sign-in page to send anybody to: wp-login.php is the sign-in screen, as WordPress has it. Choose a page above and this applies.', 'diluxone-users' ) )
 	);
 
 	diluxone_users_ui_section(
@@ -533,7 +597,7 @@ function diluxone_users_screen_login_page(): void {
 		__( 'Forgetting a password is about changing it, not about getting in. This is where the new one is typed — or whether one is typed at all.', 'diluxone-users' )
 	);
 
-	if ( ! diluxone_users_login_has_password() ) {
+	if ( $page > 0 && ! $password ) {
 		diluxone_users_not_now( __( 'There is no password on this site, so there is nothing to forget. What is chosen here waits for one.', 'diluxone-users' ) );
 	}
 
@@ -552,8 +616,6 @@ function diluxone_users_screen_login_page(): void {
 				'checked' => 'site' === $lost,
 				'title'   => __( 'This site’s screen', 'diluxone-users' ),
 				'help'    => __( 'They still ask on WordPress’s form — it is the only place that sends the e-mail — but the link lands on your sign-in page, and the new password is typed there, in your design.', 'diluxone-users' ),
-				'state'   => $page > 0 ? '' : 'pending',
-				'note'    => $page > 0 ? '' : __( 'there is no sign-in page to land on yet', 'diluxone-users' ),
 			),
 			array(
 				'name'    => 'diluxone_users_lost_password',
@@ -564,15 +626,19 @@ function diluxone_users_screen_login_page(): void {
 				'state'   => $link ? '' : 'pending',
 				'note'    => $link ? '' : __( 'the e-mail link is not one of the ways in, so this sends them nowhere they can use', 'diluxone-users' ),
 			),
-		)
+		),
+		'',
+		array(),
+		$waits( __( 'There is no sign-in page for a reset to land on: a new password is typed on wp-login.php, as WordPress has it. Choose a page above and this applies.', 'diluxone-users' ) )
 	);
 
 	/*
-	 * Both pills above are pending and not off, which is the same answer the
+	 * The pill above is pending and not off, which is the same answer the
 	 * ways-in tab already gives to the same shape: a choice waiting on
-	 * something missing somewhere else — a page nobody has made, a way in
-	 * nobody switched on — and saying so in the note beside it. Off is for a
-	 * thing somebody turned off, and neither of these was ever on.
+	 * something missing somewhere else — a way in nobody switched on — and
+	 * saying so in the note beside it. Off is for a thing somebody turned
+	 * off, and this was never on. The page is not a note on one option: the
+	 * whole group waits for it, above.
 	 *
 	 * How wp-login.php looks is worth saying only while somebody still lands
 	 * on it, and it is never a decision taken here — it is taken on Design,
@@ -630,7 +696,25 @@ function diluxone_users_screen_login_ways(): void {
 	$handles  = (bool) diluxone_users_option( 'diluxone_users_handle_enabled' );
 	$switches = diluxone_users_way_switches();
 
+	/*
+	 * A box is ticked only once somebody decided it. Read through the default
+	 * every box said what the plugin would do, which on a fresh install is a
+	 * screen of choices nobody made: the password ticked, the social account
+	 * ticked with a pending pill. Until a way in is decided the form is
+	 * WordPress's own, and the tab says so above the boxes.
+	 */
+	$decided = static fn( string $key ): bool => diluxone_users_option_is_set( $key );
+	$nothing = ! $decided( 'diluxone_users_login_method' ) && ! $decided( 'diluxone_users_sso_login' );
+
+	foreach ( array_keys( $switches ) as $key ) {
+		$nothing = $nothing && ! $decided( $key );
+	}
+
 	diluxone_users_intro( __( 'With what somebody who already has an account gets in. Every way in is a box: tick the ones this site offers. What each one does once it is on is set where that feature lives, and who gets an account at all is the Registration tab.', 'diluxone-users' ) );
+
+	if ( $nothing ) {
+		diluxone_users_ui_waits( __( 'No way in is chosen yet: the sign-in form is WordPress’s own, a username and a password on wp-login.php, until one is ticked here and saved.', 'diluxone-users' ) );
+	}
 
 	/*
 	 * The two the form draws itself are one question — what the box accepts —
@@ -648,7 +732,7 @@ function diluxone_users_screen_login_ways(): void {
 				'type'     => 'checkbox',
 				'name'     => 'diluxone_users_login_method[]',
 				'value'    => 'link',
-				'checked'  => diluxone_users_login_has_link(),
+				'checked'  => $decided( 'diluxone_users_login_method' ) && diluxone_users_login_has_link(),
 				'title'    => __( 'A link e-mailed to the address on the account', 'diluxone-users' ),
 				'help'     => __( 'The form takes an address and sends a single-use link. Nothing to remember, and nothing on the site worth stealing.', 'diluxone-users' ),
 				// What the link does belongs to the link, and appears with it.
@@ -706,7 +790,7 @@ function diluxone_users_screen_login_ways(): void {
 				'type'    => 'checkbox',
 				'name'    => 'diluxone_users_login_method[]',
 				'value'   => 'password',
-				'checked' => diluxone_users_login_has_password(),
+				'checked' => $decided( 'diluxone_users_login_method' ) && diluxone_users_login_has_password(),
 				'title'   => __( 'A username and a password', 'diluxone-users' ),
 				'help'    => __( 'WordPress’s own form, under the link. Off, a password opens nothing here: wp-login.php stops showing its form and WordPress’s own registration is locked shut, because the account it hands out a password for could not use one.', 'diluxone-users' ),
 			),
@@ -733,16 +817,18 @@ function diluxone_users_screen_login_ways(): void {
 		);
 	}
 
+	// A pending pill says a box is ticked and waiting on something; a box
+	// nobody ticked waits on nothing.
 	$diluxone_users_ways = array(
 		array(
 			'type'    => 'checkbox',
 			'name'    => 'diluxone_users_sso_login',
 			'value'   => '1',
-			'checked' => (bool) diluxone_users_option( 'diluxone_users_sso_login' ),
+			'checked' => $decided( 'diluxone_users_sso_login' ) && diluxone_users_option( 'diluxone_users_sso_login' ),
 			'title'   => __( 'A social account', 'diluxone-users' ),
 			'help'    => $diluxone_users_social_help,
-			'state'   => array() === $social ? 'pending' : '',
-			'note'    => array() === $social ? __( 'no provider is working yet', 'diluxone-users' ) : '',
+			'state'   => $decided( 'diluxone_users_sso_login' ) && array() === $social ? 'pending' : '',
+			'note'    => $decided( 'diluxone_users_sso_login' ) && array() === $social ? __( 'no provider is working yet', 'diluxone-users' ) : '',
 		),
 	);
 
@@ -751,11 +837,11 @@ function diluxone_users_screen_login_ways(): void {
 			'type'    => 'checkbox',
 			'name'    => $key,
 			'value'   => '1',
-			'checked' => (bool) diluxone_users_option( $key ),
+			'checked' => $decided( $key ) && diluxone_users_option( $key ),
 			'title'   => $switch['title'],
 			'help'    => $switch['help'],
-			'state'   => $switch['state'],
-			'note'    => $switch['note'],
+			'state'   => $decided( $key ) ? $switch['state'] : '',
+			'note'    => $decided( $key ) ? $switch['note'] : '',
 		);
 	}
 

@@ -645,8 +645,17 @@ class CoverSettingsAccessTest extends IntegrationTestCase {
 
 		$html = $this->screen( 'summary' );
 
-		$this->assertStringContainsString( 'None: wp-login.php does the job.', $html );
+		$this->assertStringContainsString( 'Everybody signs in on wp-login.php, as WordPress has it.', $html, 'no page decided' );
+		$this->assertStringContainsString( 'No buttons: WordPress has none of its own.', $html, 'the buttons not decided' );
 		$this->assertStringNotContainsStringIgnoringCase( 'passkey', $html, 'a door the plugin does not have is not a row' );
+
+		// "None" chosen, and the buttons on with nothing to show.
+		diluxone_users_update_option( 'diluxone_users_login_page', 0 );
+		diluxone_users_update_option( 'diluxone_users_sso_login', 1 );
+
+		$html = $this->screen( 'summary' );
+
+		$this->assertStringContainsString( 'None: wp-login.php does the job.', $html );
 		$this->assertStringContainsString( 'no provider is working yet', $html, 'the buttons are on and have nothing to show' );
 	}
 
@@ -683,7 +692,7 @@ class CoverSettingsAccessTest extends IntegrationTestCase {
 
 		$html = $this->screen( 'page' );
 
-		$this->assertStringContainsString( 'There is no sign-in page to send anybody to.', $html );
+		$this->assertStringContainsString( 'There is no sign-in page to send anybody to: wp-login.php is the sign-in screen, as WordPress has it.', $html );
 		$this->assertStringContainsString( 'with the site’s logo and colour on it', $html );
 	}
 

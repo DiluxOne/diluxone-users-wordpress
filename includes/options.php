@@ -689,6 +689,42 @@ function diluxone_users_option_forced( string $key ): bool {
 }
 
 /**
+ * Has anybody decided this setting?
+ *
+ * `diluxone_users_option()` answers with the default when nothing is stored,
+ * so a value nobody saved and a value saved equal to the default read the
+ * same — and on a screen that is the difference between "the plugin is doing
+ * nothing here" and "somebody chose this". A setting is decided when a value
+ * is stored for it, or when the site pins it from code through the
+ * `diluxone_users_option` filter: either way, what the screen shows is
+ * somebody's answer. Saving a tab with every value at its default counts:
+ * the save is the decision.
+ *
+ * @param string $key Option name, with prefix.
+ */
+function diluxone_users_option_is_set( string $key ): bool {
+	return null !== diluxone_users_raw_get( $key, null ) || diluxone_users_option_forced( $key );
+}
+
+/**
+ * Has any of these settings been decided?
+ *
+ * For a row of a summary that reads several settings — the two boxes that
+ * are one `diluxone_users_login_method`, the three doors to an account.
+ *
+ * @param array<int, string> $keys Option names, with prefix.
+ */
+function diluxone_users_options_any_set( array $keys ): bool {
+	foreach ( $keys as $key ) {
+		if ( diluxone_users_option_is_set( $key ) ) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+/**
  * Who is pinning a setting from code.
  *
  * "Something on the site decided this" helps nobody: whoever reads that wants

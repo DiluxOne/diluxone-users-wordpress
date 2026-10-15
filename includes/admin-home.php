@@ -349,12 +349,22 @@ function diluxone_users_panel_doors(): void {
 
 	diluxone_users_summary_table(
 		array(
-			diluxone_users_check_page( 'diluxone_users_login_page', 'diluxone_users_login', __( 'Sign-in page', 'diluxone-users' ), 'diluxone-users-login' ),
-			array(
-				'label'  => __( 'Sign-in method', 'diluxone-users' ),
-				'state'  => 'active',
-				'detail' => $methods[ diluxone_users_login_method() ],
-				'url'    => diluxone_users_admin_url( 'diluxone-users-login', array( 'tab' => 'ways' ) ),
+			diluxone_users_check_page(
+				'diluxone_users_login_page',
+				'diluxone_users_login',
+				__( 'Sign-in page', 'diluxone-users' ),
+				'diluxone-users-login',
+				__( 'Everybody signs in on wp-login.php, as WordPress has it.', 'diluxone-users' )
+			),
+			diluxone_users_summary_row(
+				'diluxone_users_login_method',
+				array(
+					'label'  => __( 'Sign-in method', 'diluxone-users' ),
+					'state'  => 'active',
+					'detail' => $methods[ diluxone_users_login_method() ],
+					'url'    => diluxone_users_admin_url( 'diluxone-users-login', array( 'tab' => 'ways' ) ),
+				),
+				__( 'WordPress’s own form: a username and a password on wp-login.php.', 'diluxone-users' )
 			),
 			diluxone_users_check_mail(),
 			array(

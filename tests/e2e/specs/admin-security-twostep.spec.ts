@@ -11,6 +11,7 @@ import {
 	signInWithPassword,
 } from '../support/ui';
 import { notNow, rail, saveSaying, stateIn, summaryRow } from '../support/admin-ops';
+import { waitingBlocks, waits } from '../support/admin-access';
 import { ADMIN_STATE } from '../../../playwright.config';
 
 /**
@@ -106,15 +107,18 @@ test.describe('Security › Two-step verification: each control writes what the 
 		await page.goto(adminUrl(SECURITY, 'summary'));
 		expect(await stateIn(summaryRow(page, SECURITY, '2fa', 1)), 'how the code arrives: one method on').toBe('active');
 
-		// Off, with nothing ticked: saved, and the summary row says nothing carries a code.
+		// Off: the boxes wait for the step, disabled, so the save leaves them
+		// as they were, and the summary row says the code is carried while
+		// the second step is off.
 		await openTab(page);
 		await mode(page, 'off').check();
-		await method(page, 'email').uncheck();
+		await expect(method(page, 'email')).toBeDisabled();
+		await expect(method(page, 'email')).not.toBeChecked();
 		await savePanel(page);
 
 		expect(await site.getOptions(['diluxone_users_2fa_mode', 'diluxone_users_2fa_methods'])).toEqual({
 			diluxone_users_2fa_mode: 'off',
-			diluxone_users_2fa_methods: [],
+			diluxone_users_2fa_methods: ['email'],
 		});
 		await page.goto(adminUrl(SECURITY, 'summary'));
 		expect(await stateIn(summaryRow(page, SECURITY, '2fa', 1))).toBe('off');
@@ -189,7 +193,7 @@ test.describe('Security › Two-step verification: what the screen says about it
 		await expect(page.locator('input[name="diluxone_users_2fa_remember_days"]')).toHaveCount(0);
 	});
 
-	test('“not now”: under “Off” while it is saved off, and above the link rule while the link is not a way in', async ({
+	test('the groups wait while it is saved off, and the link rule is excused while the link is not a way in', async ({
 		page,
 		options,
 	}) => {
@@ -197,21 +201,39 @@ test.describe('Security › Two-step verification: what the screen says about it
 
 		await openTab(page);
 		await expect(notNow(page), 'nothing to excuse while it is on and the link is a way in').toHaveCount(0);
+		await expect(waits(page)).toHaveCount(0);
 
+		// Off: "with what" and the link rule wait for the step, disabled
+		// with nothing chosen, each under its own line and with no pending
+		// line of their own.
 		await options.set({ diluxone_users_2fa_mode: 'off' });
 		await openTab(page);
-		await expect(notNow(page)).toHaveCount(1);
-		await expect(notNow(page).locator('a')).toHaveCount(0);
+		await expect(notNow(page)).toHaveCount(0);
+		await expect(waits(page)).toHaveCount(2);
+		await expect(waitingBlocks(page)).toHaveCount(2);
+		await expect(method(page, 'email')).toBeDisabled();
+		await expect(page.locator('input[name="diluxone_users_2fa_link"]:checked')).toHaveCount(0);
+
+		// Turned on from the screen, both go on the spot, with nothing
+		// chosen in them yet; off again, they wait again.
+		await mode(page, 'optional').check();
+		await expect(waits(page)).toHaveCount(0);
+		await expect(method(page, 'email')).toBeEnabled();
+		await expect(method(page, 'email')).not.toBeChecked();
+		await mode(page, 'off').check();
+		await expect(waits(page)).toHaveCount(2);
 
 		await options.set({ diluxone_users_2fa_mode: 'optional', diluxone_users_login_method: 'password' });
 		await openTab(page);
 		await expect(notNow(page)).toHaveCount(1);
 		await expect(notNow(page).locator('a')).toHaveAttribute('href', /page=diluxone-users-login&tab=ways/);
 
-		// Both at once: two lines, each under what it is about.
+		// Both at once: the wait alone, since a second reason under a line
+		// that says the group waits is noise.
 		await options.set({ diluxone_users_2fa_mode: 'off' });
 		await openTab(page);
-		await expect(notNow(page)).toHaveCount(2);
+		await expect(notNow(page)).toHaveCount(0);
+		await expect(waits(page)).toHaveCount(2);
 	});
 
 	test('the rail’s links lead to Access › Ways in and to the e-mails', async ({ page }) => {

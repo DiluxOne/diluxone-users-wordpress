@@ -116,7 +116,11 @@ class CoverAdminStatusTest extends IntegrationTestCase {
 		$this->the_admin();
 		$this->shortcode( 'diluxone_users_account' );
 
-		$this->assertSame( 'pending', $this->account_check()['state'], 'none chosen' );
+		$this->assertSame( 'unset', $this->account_check()['state'], 'nobody decided' );
+		$this->assertSame( '', $this->account_check()['why'] );
+
+		diluxone_users_update_option( 'diluxone_users_account_page', 0 );
+		$this->assertSame( 'pending', $this->account_check()['state'], 'none chosen, on purpose' );
 		$this->assertSame( 'No page chosen yet.', $this->account_check()['why'] );
 
 		diluxone_users_update_option( 'diluxone_users_account_page', 999999 );

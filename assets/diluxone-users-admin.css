@@ -1489,6 +1489,14 @@
    this belongs to the box three lines below it. */
 .diluxone-users-not-now { margin: 0 0 var(--du-2); color: var(--du-muted); }
 
+/* A block that waits for another answer: the line above it says what for,
+   with no pill (nothing in it is doing anything yet), and the controls under
+   it are disabled with nothing chosen. The dimming is theirs — every disabled
+   card and row already draws itself that way — so the wrapper adds nothing
+   but the line, and the room under it. */
+.du-waits { margin: 0 0 var(--du-2); color: var(--du-muted); }
+.du-waits[hidden] { display: none; }
+
 /* The "everybody / only some roles" control keeps WordPress's plain radios:
    it is a qualifier on the question above it, not a question of its own, and
    drawing it as cards would give it the same weight as the thing it
@@ -1543,6 +1551,9 @@ span.diluxone-users-state {
 .diluxone-users-state--pending { background: #fdf0d5; color: #7a5200; }
 .diluxone-users-state--off     { background: #f0f0f1; color: #50575e; }
 .diluxone-users-state--unknown { background: #e3edf7; color: #1d4f80; }
+/* Nobody decided this: no colour, because a colour is a verdict, and a
+   dashed edge, which is the shape of a place something could go. */
+.diluxone-users-state--unset   { background: transparent; color: #50575e; outline: 1px dashed #8c8f94; outline-offset: -1px; }
 .diluxone-users-state--pro     { background: var(--du-pro-wash, #efe7fb); color: var(--du-pro, #5b2a99); }
 .diluxone-users-state__why { color: #50575e; }
 

@@ -105,6 +105,11 @@ function diluxone_users_security_rows(): array {
 			$one['change'] = (string) $row['change'];
 		}
 
+		// The same for the pill's word: left out, the state's own is drawn.
+		if ( '' !== (string) ( $row['word'] ?? '' ) ) {
+			$one['word'] = (string) $row['word'];
+		}
+
 		$clean[] = $one;
 	}
 
