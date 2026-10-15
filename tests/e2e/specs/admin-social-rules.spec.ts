@@ -157,7 +157,7 @@ test.describe('Social login › Rules', () => {
 		await expectSignedIn(guest, subscriber);
 	});
 
-	test('the rail says whether a social sign-in creates the account, as Registration decides, and leads there', async ({
+	test('the rail says whether a social sign-in creates the account, as Registration decides, and nothing else', async ({
 		page,
 		options,
 	}) => {
@@ -168,12 +168,6 @@ test.describe('Social login › Rules', () => {
 		await options.set({ diluxone_users_sso_register: 1 });
 		await page.goto(RULES);
 		expect(await stateIn(rail(page))).toBe('active');
-
-		await navigated(page, () => rail(page).locator('a[href*="page=diluxone-users-login&tab=register"]').click());
-		expect(new URL(page.url()).searchParams.get('tab')).toBe('register');
-
-		await page.goto(RULES);
-		await navigated(page, () => rail(page).locator('a[href*="page=diluxone-users-design&tab=social"]').click());
-		expect(new URL(page.url()).searchParams.get('page')).toBe('diluxone-users-design');
+		await expect(rail(page).locator('.du-note, .du-links, .du-notice'), 'no manual beside the form').toHaveCount(0);
 	});
 });

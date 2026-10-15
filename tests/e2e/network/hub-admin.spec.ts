@@ -1,7 +1,6 @@
 import { test, expect } from './support';
 import { Site, freshEmail } from '../support/api';
 import { wp, PLUGIN_DIR } from '../support/cli';
-import { NETWORK_SCREENS } from '../support/screens';
 import { fillCredentials, navigated, savePanel } from '../support/ui';
 import { NETWORK_ADMIN_STATE, NETWORK_URL } from '../../../playwright.network.config';
 import { network, railState, throwawaySite } from './hub-support';
@@ -18,7 +17,7 @@ const PASSWORD = 'e2e-HubAdmin-1!';
 test.use({ storageState: NETWORK_ADMIN_STATE });
 
 test.describe('Network Admin › DiluxOne Users+ › The network', () => {
-	test('names the hub with the way to its dashboard, how the sites are addressed and how many, and links every screen of the network', async ({ page }) => {
+	test('names the hub with the way to its dashboard, and how the sites are addressed and how many', async ({ page }) => {
 		await page.goto(network('admin.php?page=diluxone-users&tab=network'));
 
 		const cards = page.locator('.diluxone-users-card');
@@ -27,14 +26,7 @@ test.describe('Network Admin › DiluxOne Users+ › The network', () => {
 		await expect(cards.first().locator('.diluxone-users-card__links a')).toHaveAttribute('href', `${NETWORK_URL}/wp-admin/admin.php?page=diluxone-users`);
 
 		await expect(cards.nth(1).locator('.diluxone-users-card__detail'), 'the sites, counted').toContainText(wp(['site', 'list', '--format=count']));
-
-		const linked = await page.locator('.du-links a').evaluateAll((all: Element[]) =>
-			all.map((a) => new URLSearchParams((a.getAttribute('href') ?? '').split('?')[1] ?? '').get('page') ?? '')
-		);
-
-		for (const screen of Object.keys(NETWORK_SCREENS).filter((one) => one !== 'diluxone-users')) {
-			expect(linked, `the rail links ${screen}`).toContain(screen);
-		}
+		await expect(page.locator('.diluxone-users-studio__aside'), 'no rail: the cards are the whole of it').toHaveCount(0);
 	});
 
 	test('the uninstall tab’s rail follows the box, saved and read back', async ({ page, hub }) => {

@@ -292,6 +292,6 @@ test.describe('Network Admin › Security › Sessions and the proxy', () => {
 		// The rail of the tab says what the network sees for whoever reads it.
 		await page.setExtraHTTPHeaders({ 'X-Forwarded-For': '198.51.100.11, 203.0.113.12' });
 		await page.goto(tab('proxy'));
-		await expect(rail(page).locator('.du-note').first().locator('code')).toHaveText('198.51.100.11');
+		await expect(rail(page).locator('.du-state').first().locator('code')).toHaveText('198.51.100.11');
 	});
 });

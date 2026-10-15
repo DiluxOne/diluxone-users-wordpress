@@ -244,7 +244,7 @@ test.describe('The measuring itself can fail', () => {
 	test('two blocks with nothing between them', async ({ page }) => {
 		const findings = await bend(
 			page,
-			'.diluxone-users-admin .diluxone-users-studio__aside > * { margin-bottom: 0; }'
+			'.diluxone-users-admin .diluxone-users-studio__fields > * { margin-bottom: 0; margin-top: 0; }'
 		);
 
 		expect(kinds(findings)).toContain('air');
@@ -287,11 +287,14 @@ test.describe('The measuring itself can fail', () => {
 		await page.goto(WAYS);
 		await page.evaluate(() => {
 			const rail = document.querySelector('.diluxone-users-studio__aside');
+			const note = document.createElement('div');
 			const state = document.createElement('div');
 
+			note.className = 'du-note';
+			note.textContent = 'the manual, said first';
 			state.className = 'du-state';
 			state.textContent = 'right now, said last';
-			rail?.append(state);
+			rail?.append(note, state);
 		});
 
 		expect(kinds(await layoutFindings(page, ADMIN_RULES))).toContain('shape');

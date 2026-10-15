@@ -514,9 +514,7 @@ function diluxone_users_screen_social_general(): void {
 	 * be a tick box in both places for the same option, and a person could
 	 * change it here and find it "changed by itself" over there.
 	 */
-	$creates   = (bool) diluxone_users_option( 'diluxone_users_sso_register' );
-	$role      = (string) diluxone_users_option( 'diluxone_users_login_role' );
-	$role_name = translate_user_role( wp_roles()->get_names()[ $role ] ?? $role );
+	$creates = (bool) diluxone_users_option( 'diluxone_users_sso_register' );
 
 	diluxone_users_ui_aside_open();
 
@@ -594,51 +592,15 @@ function diluxone_users_screen_social_general(): void {
 
 	diluxone_users_ui_field_close();
 
+	// The rail reports the one thing the rules come to on this site: whether
+	// a network creates an account or only opens one.
 	diluxone_users_ui_aside_close(
-		static function () use ( $creates, $role_name ): void {
-			diluxone_users_ui_note(
-				__( 'Creating accounts', 'diluxone-users' ),
+		static function () use ( $creates ): void {
+			diluxone_users_ui_aside_state(
 				$creates
 					? __( 'Signing in with a social account creates the account when there is none.', 'diluxone-users' )
 					: __( 'A social account only signs in people who already have one here.', 'diluxone-users' ),
 				$creates ? 'active' : 'off'
-			);
-
-			diluxone_users_ui_note(
-				__( 'How an account ends up', 'diluxone-users' ),
-				array(
-					sprintf(
-						/* translators: 1: name of the role accounts are created with, 2: name of the screen where it is chosen */
-						esc_html__( 'There is nothing to choose here, and that is on purpose: a new account gets the email address as its username, no password at all —not even one nobody knows how to use— and the role %1$s, which is set once for the whole site on the %2$s screen. A role per provider would be a quiet way of handing out privileges.', 'diluxone-users' ),
-						esc_html( $role_name ),
-						'«' . esc_html__( 'Registration', 'diluxone-users' ) . '»'
-					),
-					esc_html__( 'The name comes from the provider, and it only fills in what the person has not written themselves.', 'diluxone-users' ),
-					esc_html__( 'Each linked network is stored on the person, so anybody can add a second and a third from their profile and unlink them again, and from then on any of them opens the same account.', 'diluxone-users' ),
-				)
-			);
-
-			diluxone_users_ui_notice( esc_html__( 'Nobody is locked out by the list of roles: the email link is always there.', 'diluxone-users' ) );
-
-			diluxone_users_ui_links(
-				__( 'Where the rest of this lives', 'diluxone-users' ),
-				array(
-					array(
-						'url'   => diluxone_users_admin_url( 'diluxone-users-login', array( 'tab' => 'register' ) ),
-						'label' => __( 'Whether an account gets created', 'diluxone-users' ),
-						'help'  => __( 'Registration answers it once, for the email form and for the networks alike.', 'diluxone-users' ),
-					),
-					array(
-						'url'   => diluxone_users_admin_url( DILUXONE_USERS_DESIGN, array( 'tab' => 'social' ) ),
-						'label' => __( 'What the buttons look like', 'diluxone-users' ),
-						'help'  => __( 'Their finish, their shape and what they say, with the rest of what the plugin draws.', 'diluxone-users' ),
-					),
-					array(
-						'url'   => diluxone_users_admin_url( 'diluxone-users-social' ),
-						'label' => __( 'The networks themselves', 'diluxone-users' ),
-						'help'  => __( 'Each one’s app, its credentials and its live test.', 'diluxone-users' ),
-					),
-				)
 			);
 		}
 	);
@@ -961,24 +923,27 @@ function diluxone_users_screen_provider_actions( string $id, string $state ): vo
 }
 
 /**
- * Everything about this provider that is not something to do.
+ * Where this provider stands, and what is in the way of it.
  *
- * Where it stands, what is in the way of it, what the app it needs actually
- * asks for, and the way to the two screens that decide the rest. It used to be
- * a summary table of one row plus a warning above the tab and four boxes under
- * it, which is the same content arranged so that the instructions were read
- * last.
- *
- * The technical detail only comes out on "Getting started": beside the steps
- * for creating the app it answers the question those steps raise, and beside
- * the credentials or the shortcodes it is trivia.
+ * The rail reports: how the network stands today, and the one thing to do
+ * about it while something is in the way — create the app, run the test, mind
+ * the gotcha of its console. What the app asks for and where the rest of the
+ * subject lives are the guide's and the documentation's.
  *
  * @param array<string, mixed> $provider
  */
 function diluxone_users_provider_rail( string $id, array $provider, string $state, string $tab ): void {
 	$name = (string) $provider['name'];
 
-	diluxone_users_ui_note( $name, diluxone_users_sso_says( $state ), diluxone_users_sso_pill_state( $state ) );
+	diluxone_users_ui_aside_state(
+		sprintf(
+			/* translators: 1: provider name, 2: how it stands, in a sentence */
+			__( '%1$s: %2$s', 'diluxone-users' ),
+			'<strong>' . esc_html( $name ) . '</strong>',
+			diluxone_users_sso_says( $state )
+		),
+		diluxone_users_sso_pill_state( $state )
+	);
 
 	if ( 'not-configured' === $state ) {
 		diluxone_users_ui_notice( esc_html__( 'Create the app, load the redirect URL and paste the client ID and the secret in Settings.', 'diluxone-users' ) );
@@ -1004,59 +969,7 @@ function diluxone_users_provider_rail( string $id, array $provider, string $stat
 				'warning'
 			);
 		}
-
-		$asks = array(
-			sprintf(
-				/* translators: %s: the permissions the app asks for, as code */
-				esc_html__( 'Permissions requested: %s', 'diluxone-users' ),
-				'<code>' . esc_html( (string) $provider['scope'] ) . '</code>'
-			),
-			sprintf(
-				/* translators: %s: the authorization URL, as code */
-				esc_html__( 'People are sent to authorise at %s', 'diluxone-users' ),
-				'<code>' . esc_html( (string) $provider['authorize'] ) . '</code>'
-			),
-		);
-
-		if ( ! empty( $provider['pkce'] ) ) {
-			$asks[] = esc_html__( 'It requires PKCE. The plugin does that part; there is nothing to configure.', 'diluxone-users' );
-		}
-
-		diluxone_users_ui_note( __( 'What this provider asks for', 'diluxone-users' ), $asks );
 	}
-
-	$links = array(
-		array(
-			'url'   => diluxone_users_admin_url( DILUXONE_USERS_DESIGN, array( 'tab' => 'social' ) ),
-			'label' => __( 'What its button looks like', 'diluxone-users' ),
-			'help'  => __( 'One finish for all the networks at once, with the rest of what the plugin draws.', 'diluxone-users' ),
-		),
-		array(
-			'url'   => diluxone_users_admin_url( 'diluxone-users-social', array( 'tab' => 'general' ) ),
-			'label' => __( 'The rules for every network', 'diluxone-users' ),
-			'help'  => __( 'Who gets recognised, who is refused, and which roles may not use a network at all.', 'diluxone-users' ),
-		),
-	);
-
-	if ( 'start' === $tab ) {
-		array_unshift(
-			$links,
-			array(
-				'url'      => (string) $provider['guide'],
-				'label'    => sprintf(
-					/* translators: %s: provider name */
-					__( '%s’s own documentation', 'diluxone-users' ),
-					$name
-				),
-				'help'     => __( 'For the day their console moves a button and the steps here no longer match.', 'diluxone-users' ),
-				// Somebody halfway through the steps on this screen should
-				// still have them when they come back from reading those.
-				'external' => true,
-			)
-		);
-	}
-
-	diluxone_users_ui_links( __( 'Where the rest of this lives', 'diluxone-users' ), $links );
 }
 
 /**

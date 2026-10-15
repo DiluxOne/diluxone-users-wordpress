@@ -320,41 +320,9 @@ function diluxone_users_profile_block( WP_User $user ): void {
 	 * this account is living under are written. They are not on WordPress's
 	 * own profile screen and nothing here suggests they are.
 	 */
-	diluxone_users_ui_aside_close(
-		static function () use ( $user ): void {
-			diluxone_users_ui_note(
-				__( 'What this block does', 'diluxone-users' ),
-				__( 'It reads what this account has, and it can take a way in off it. It cannot add one: only the owner of an account can do that, from their own account area.', 'diluxone-users' )
-			);
-
-			diluxone_users_ui_links(
-				__( 'The rules this account lives under', 'diluxone-users' ),
-				array(
-					array(
-						'url'   => diluxone_users_admin_url( 'diluxone-users-login' ),
-						'label' => __( 'Access', 'diluxone-users' ),
-						'help'  => __( 'Which ways in the site offers at all. Nothing above can give this account one the site does not have.', 'diluxone-users' ),
-					),
-					array(
-						'url'   => diluxone_users_admin_url( 'diluxone-users-security' ),
-						'label' => __( 'Security', 'diluxone-users' ),
-						'help'  => __( 'Whether a second step is asked for after the door.', 'diluxone-users' ),
-					),
-					array(
-						'url'   => diluxone_users_admin_url(
-							DILUXONE_USERS_REPORTS,
-							array(
-								'tab' => 'sessions',
-								's'   => $user->user_email,
-							)
-						),
-						'label' => __( 'Every session this account has open', 'diluxone-users' ),
-						'help'  => __( 'Where it signed in from, on what, and the button that closes them all.', 'diluxone-users' ),
-					),
-				)
-			);
-		}
-	);
+	// No rail: the block reads what the account has and can take a way in
+	// off it, and the sentence under each group says so.
+	diluxone_users_ui_aside_close( static function (): void {} );
 
 	diluxone_users_ui_ground_close();
 }

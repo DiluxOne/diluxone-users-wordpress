@@ -146,7 +146,7 @@ class CoverAdminNetworkTest extends IntegrationTestCase {
 
 		$this->assertStringContainsString( 'These sites have a domain of their own', $html );
 		$this->assertMatchesRegularExpression( '#<code>cover-[a-z0-9]+\.example\.org</code>#', $html );
-		$this->assertStringContainsString( 'page=diluxone-users-security', $html, 'the way to every network screen' );
+		$this->assertStringNotContainsString( 'diluxone-users-studio__aside', $html, 'no rail: the cards and the table are the whole of it' );
 	}
 
 	/* ── Deleting the plugin ───────────────────────────────────────── */

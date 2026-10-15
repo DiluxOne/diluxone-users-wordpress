@@ -809,28 +809,11 @@ function diluxone_users_screen_appearance_photo(): void {
 	 */
 	diluxone_users_ui_aside_close(
 		static function () use ( $gravatar ): void {
-			diluxone_users_ui_note(
-				__( 'Gravatar', 'diluxone-users' ),
+			diluxone_users_ui_aside_state(
 				$gravatar
-					? esc_html__( 'A hash of every visitor’s e-mail address is sent to a third party to ask whether it has a picture for them.', 'diluxone-users' )
-					: esc_html__( 'Nothing leaves the site: no address is sent anywhere to ask whether there is a picture for it.', 'diluxone-users' ),
+					? __( 'Gravatar is asked: a hash of every visitor’s e-mail address is sent to a third party to ask whether it has a picture for them.', 'diluxone-users' )
+					: __( 'Gravatar is not asked: no address is sent anywhere to ask whether there is a picture for it.', 'diluxone-users' ),
 				$gravatar ? 'active' : 'off'
-			);
-
-			diluxone_users_ui_links(
-				__( 'Where the picture turns up', 'diluxone-users' ),
-				array(
-					array(
-						'url'   => diluxone_users_admin_url( DILUXONE_USERS_DESIGN, array( 'tab' => 'account' ) ),
-						'label' => __( 'The account header', 'diluxone-users' ),
-						'help'  => __( 'Whether the header shows it at all, and how big the band behind it is.', 'diluxone-users' ),
-					),
-					array(
-						'url'   => diluxone_users_admin_url( DILUXONE_USERS_DESIGN, array( 'tab' => 'brand' ) ),
-						'label' => __( 'The accent colour', 'diluxone-users' ),
-						'help'  => __( 'What the initials are drawn on, for whoever has no photo of their own.', 'diluxone-users' ),
-					),
-				)
 			);
 		}
 	);

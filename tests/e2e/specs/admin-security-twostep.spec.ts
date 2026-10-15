@@ -251,27 +251,15 @@ test.describe('Security › Two-step verification: what the screen says about it
 		await expect(waits(page)).toHaveCount(2);
 	});
 
-	test('the rail’s links lead to Access › Ways in and to the e-mails', async ({ page }) => {
+	test('the rail is the button and the second step on a link sign-in, and nothing else', async ({ page }) => {
 		await openTab(page);
 
-		await navigated(page, () => rail(page).locator('a[href*="page=diluxone-users-login&tab=ways"]').click());
-		expect(new URL(page.url()).searchParams.get('page')).toBe('diluxone-users-login');
-		expect(new URL(page.url()).searchParams.get('tab')).toBe('ways');
-
-		await openTab(page);
-		await navigated(page, () => rail(page).locator('a[href*="page=diluxone-users-notices&tab=templates"]').click());
-		expect(new URL(page.url()).searchParams.get('tab')).toBe('templates');
+		await expect(rail(page).locator('.du-state')).toHaveCount(1);
+		await expect(rail(page).locator('.du-note, .du-links'), 'no manual beside the form').toHaveCount(0);
 	});
 
-	test('the Summary’s rail leads to Access › Ways in and to Access’s own summary', async ({ page }) => {
+	test('the Summary has no rail: the table is the whole of it', async ({ page }) => {
 		await page.goto(adminUrl(SECURITY, 'summary'));
-		await navigated(page, () => rail(page).locator('a[href*="page=diluxone-users-login&tab=ways"]').click());
-		expect(new URL(page.url()).searchParams.get('page')).toBe('diluxone-users-login');
-		expect(new URL(page.url()).searchParams.get('tab')).toBe('ways');
-
-		await page.goto(adminUrl(SECURITY, 'summary'));
-		await navigated(page, () => rail(page).locator('a[href$="page=diluxone-users-login"]').click());
-		expect(new URL(page.url()).searchParams.get('page')).toBe('diluxone-users-login');
-		expect(new URL(page.url()).searchParams.get('tab')).toBeNull();
+		await expect(rail(page)).toHaveCount(0);
 	});
 });

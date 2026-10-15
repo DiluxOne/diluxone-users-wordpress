@@ -377,7 +377,6 @@ class CoverAdminFieldsTest extends IntegrationTestCase {
 		$this->assertStringContainsString( 'diluxone-users-pill--off', $html, 'a hidden field says so' );
 		$this->assertStringContainsString( 'Add suggested fields', $html, 'the suggestions are still to add' );
 		$this->assertStringContainsString( 'data-diluxone-users-dialog', $html, 'the dialog is on the page' );
-		$this->assertStringContainsString( 'diluxone_users_fields</code>', $html, 'where it all lives' );
 		$this->assertStringNotContainsString( 'registration closed', $html, 'a door is open' );
 
 		// One delete link per field of the site's own, none for WordPress's.
@@ -509,8 +508,7 @@ class CoverAdminFieldsTest extends IntegrationTestCase {
 			$this->assertStringContainsString( $code, $html );
 		}
 
-		$this->assertStringContainsString( '<code>templates/</code>', $html );
-		$this->assertStringContainsString( 'page=diluxone-users-design', $html );
+		$this->assertStringNotContainsString( 'diluxone-users-studio__aside', $html, 'no rail: the table is the whole of it' );
 	}
 
 	/**

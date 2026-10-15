@@ -159,12 +159,10 @@ test.describe('Overview › what your people use', () => {
 		}
 	});
 
-	test('its rail leads to social login, Access and the list of people', async ({ page }) => {
+	test('it has no rail: the counts are the whole of it', async ({ page }) => {
 		await page.goto(adminUrl('diluxone-users', 'usage'));
 
-		for (const href of ['page=diluxone-users-social', 'page=diluxone-users-login', 'users.php']) {
-			await expect(rail(page).locator(`a[href*="${href}"]`), href).toHaveCount(1);
-		}
+		await expect(rail(page)).toHaveCount(0);
 	});
 });
 
@@ -207,9 +205,7 @@ test.describe('Overview › how your people get in', () => {
 		await page.reload();
 		await expectPill(rows.nth(0), 'pending');
 
-		for (const href of ['page=diluxone-users-login', 'page=diluxone-users-notices']) {
-			await expect(rail(page).locator(`a[href*="${href}"]`), href).toHaveCount(1);
-		}
+		await expect(rail(page), 'no rail: the table is the whole of it').toHaveCount(0);
 	});
 });
 
@@ -231,10 +227,7 @@ test.describe('Overview › what is asked of them', () => {
 		await expect(table.locator('tr')).toHaveCount(1);
 		await expect(table.locator('td')).toHaveText('E2E Town');
 		await expect(table, 'an inactive field is listed').not.toContainText('E2E Hidden');
-
-		for (const href of ['page=diluxone-users-fields', 'page=diluxone-users-account']) {
-			await expect(rail(page).locator(`a[href*="${href}"]`), href).toHaveCount(1);
-		}
+		await expect(rail(page), 'no rail: the table is the whole of it').toHaveCount(0);
 
 		await options.set({
 			diluxone_users_fields: [

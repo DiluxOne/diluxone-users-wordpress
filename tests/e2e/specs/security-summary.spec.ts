@@ -234,9 +234,9 @@ test.describe('Security › Summary', () => {
 test.describe('Security › Two-step verification: the rail beside it', () => {
 	const ACCESS = 'diluxone-users-login';
 
-	/** The one note in that rail, and the pill on it. */
+	/** The one "Right now" in that rail, and the pill on it. */
 	function railPill(page: Page): Locator {
-		return page.locator('.diluxone-users-studio__aside .du-note').first().locator('.diluxone-users-state');
+		return page.locator('.diluxone-users-studio__aside .du-state').first().locator('.diluxone-users-state');
 	}
 
 	test('the pill answers about the second step, never about the link', async ({

@@ -98,7 +98,7 @@ test.describe('A site’s Overview on a network', () => {
 		expect(await accounts(page)).toBe(onBeta + 1);
 	});
 
-	test('on a site with nobody on it: nothing to count, and the ways out are still there', async ({ page }) => {
+	test('on a site with nobody on it: nothing to count, and no rail to say more', async ({ page }) => {
 		const slug = `e2e-empty-${Date.now().toString(36)}`;
 		const id = wp(['site', 'create', `--slug=${slug}`, '--title=Empty', '--porcelain']);
 
@@ -110,7 +110,7 @@ test.describe('A site’s Overview on a network', () => {
 
 			await expect(page.locator('.diluxone-users-panel .du-notice')).toHaveCount(1);
 			await expect(page.locator('.diluxone-users-usage')).toHaveCount(0);
-			await expect(page.locator('.diluxone-users-studio__aside a[href*="users.php"]')).toHaveCount(1);
+			await expect(page.locator('.diluxone-users-studio__aside'), 'no rail: the notice is the whole of it').toHaveCount(0);
 		} finally {
 			wp(['site', 'delete', id, '--yes']);
 		}
@@ -118,7 +118,7 @@ test.describe('A site’s Overview on a network', () => {
 });
 
 test.describe('Network Admin’s Overview', () => {
-	test('names the hub with the way to its dashboard, says how the sites are addressed and how many, and lists every network screen', async ({ page, hub }) => {
+	test('names the hub with the way to its dashboard, and says how the sites are addressed and how many', async ({ page, hub }) => {
 		await page.goto(network('admin.php?page=diluxone-users&tab=network'));
 
 		const cards = page.locator('.diluxone-users-card');
@@ -129,10 +129,7 @@ test.describe('Network Admin’s Overview', () => {
 		const count = Number(wp(['site', 'list', '--format=count']));
 
 		expect(numbersIn(await cards.filter({ has: page.locator('.dashicons-networking') }).locator('.diluxone-users-card__detail').innerText())[0]).toBe(count);
-
-		for (const screen of ['diluxone-users-membership', 'diluxone-users-security', 'diluxone-users-social', 'diluxone-users-fields', 'diluxone-users-reports']) {
-			await expect(page.locator(`.diluxone-users-studio__aside a[href$="/wp-admin/network/admin.php?page=${screen}"]`), screen).toHaveCount(1);
-		}
+		await expect(page.locator('.diluxone-users-studio__aside'), 'no rail: the cards and the table are the whole of it').toHaveCount(0);
 	});
 
 	test('the answer about deleting the plugin is said in the rail as it is saved', async ({ page, hub }) => {

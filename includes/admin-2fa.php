@@ -457,33 +457,15 @@ function diluxone_users_screen_login_2fa(): void {
 	 * fourth question, and in the column of settings that is what it looked
 	 * like: a row with a pill in it, between two groups that are asking for
 	 * something. Beside them it is what it is — the screen reading itself
-	 * back — and the same goes for the two screens the code and the link
-	 * come from.
+	 * back.
 	 */
 	diluxone_users_ui_aside_close(
 		static function () use ( $today ): void {
-			diluxone_users_ui_note(
-				__( 'The second step, for somebody who came in by link', 'diluxone-users' ),
-				$today['line'],
+			diluxone_users_ui_aside_state(
+				'<strong>' . esc_html__( 'The second step, for somebody who came in by link.', 'diluxone-users' ) . '</strong> ' . $today['line'],
 				$today['state'],
 				'',
 				diluxone_users_2fa_link_word( $today['state'] )
-			);
-
-			diluxone_users_ui_links(
-				__( 'What this leans on', 'diluxone-users' ),
-				array(
-					array(
-						'url'   => diluxone_users_admin_url( 'diluxone-users-notices', array( 'tab' => 'templates' ) ),
-						'label' => __( 'E-mail notices › The e-mails', 'diluxone-users' ),
-						'help'  => __( 'The subject and the words of the message that carries the six digits are written there, not here.', 'diluxone-users' ),
-					),
-					array(
-						'url'   => diluxone_users_admin_url( 'diluxone-users-login', array( 'tab' => 'ways' ) ),
-						'label' => __( 'Access › Ways in', 'diluxone-users' ),
-						'help'  => __( 'Whether there is a sign-in link at all — the arrival the rule above is about — is decided there.', 'diluxone-users' ),
-					),
-				)
 			);
 		}
 	);

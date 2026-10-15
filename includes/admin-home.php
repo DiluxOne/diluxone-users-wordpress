@@ -240,9 +240,7 @@ function diluxone_users_panel_usage(): void {
 		// them in a row drew two rules with a band of white between.
 		diluxone_users_ui_notice( esc_html__( 'There are no accounts yet, so there is nothing to count.', 'diluxone-users' ) );
 
-		// The ways out are worth more on an empty site than on a full one:
-		// nothing has been counted yet because nothing has been set up yet.
-		diluxone_users_ui_aside_close( 'diluxone_users_panel_usage_aside' );
+		diluxone_users_ui_aside_close( static function (): void {} );
 
 		return;
 	}
@@ -284,38 +282,8 @@ function diluxone_users_panel_usage(): void {
 
 	echo '</ul>';
 
-	diluxone_users_ui_aside_close( 'diluxone_users_panel_usage_aside' );
-}
-
-/**
- * What sits beside the counts.
- *
- * A named function because the panel returns early on a site with no accounts
- * and the rail belongs on both sides of that return. Three buttons in a row at
- * the foot said where each one went and never why; out here each of them gets
- * the line that makes it worth leaving this screen for.
- */
-function diluxone_users_panel_usage_aside(): void {
-	diluxone_users_ui_links(
-		__( 'Where each of these is turned on', 'diluxone-users' ),
-		array(
-			array(
-				'url'   => diluxone_users_admin_url( 'diluxone-users-social' ),
-				'label' => __( 'Social login', 'diluxone-users' ),
-				'help'  => __( 'Nobody links an account the site does not offer: this is where the providers are.', 'diluxone-users' ),
-			),
-			array(
-				'url'   => diluxone_users_admin_url( 'diluxone-users-login' ),
-				'label' => __( 'Access', 'diluxone-users' ),
-				'help'  => __( 'Which ways in exist at all, and who may create an account.', 'diluxone-users' ),
-			),
-			array(
-				'url'   => admin_url( 'users.php' ),
-				'label' => __( 'See every person', 'diluxone-users' ),
-				'help'  => __( 'The same four things, one account at a time, in the column WordPress’s own list carries.', 'diluxone-users' ),
-			),
-		)
-	);
+	// No rail: the counts are the whole of what this tab reports.
+	diluxone_users_ui_aside_close( static function (): void {} );
 }
 
 /**
@@ -377,28 +345,9 @@ function diluxone_users_panel_doors(): void {
 		)
 	);
 
-	// “Every door is on the Access screen” used to be the second half of the
-	// sentence introducing this table, which is a tab telling somebody to
-	// leave before it has shown them anything.
-	diluxone_users_ui_aside_close(
-		static function () use ( $access ): void {
-			diluxone_users_ui_links(
-				__( 'The long version', 'diluxone-users' ),
-				array(
-					array(
-						'url'   => $access,
-						'label' => __( 'Access', 'diluxone-users' ),
-						'help'  => __( 'Every door with its own state, and the tab that changes each of them.', 'diluxone-users' ),
-					),
-					array(
-						'url'   => diluxone_users_admin_url( DILUXONE_USERS_NOTICES ),
-						'label' => __( 'Notifications', 'diluxone-users' ),
-						'help'  => __( 'What this site puts in an inbox, starting with the link that opens the door.', 'diluxone-users' ),
-					),
-				)
-			);
-		}
-	);
+	// No rail: the table is the whole of what this tab reports, and every
+	// door's own tab is the row's link.
+	diluxone_users_ui_aside_close( static function (): void {} );
 }
 
 /** The fields in use, grouped the way the account area groups them. */
@@ -435,25 +384,8 @@ function diluxone_users_panel_asked(): void {
 		<?php
 	}
 
-	diluxone_users_ui_aside_close(
-		static function () use ( $screens ): void {
-			diluxone_users_ui_links(
-				__( 'Where this is decided', 'diluxone-users' ),
-				array(
-					array(
-						'url'   => diluxone_users_admin_url( 'diluxone-users-fields' ),
-						'label' => (string) $screens['diluxone-users-fields'],
-						'help'  => __( 'Which fields exist, what each one is, and which of them a form will not go through without.', 'diluxone-users' ),
-					),
-					array(
-						'url'   => diluxone_users_admin_url( 'diluxone-users-account' ),
-						'label' => (string) $screens['diluxone-users-account'],
-						'help'  => __( 'The sections they land in, and what the person meets when they open their own account.', 'diluxone-users' ),
-					),
-				)
-			);
-		}
-	);
+	// No rail: the table is the whole of what this tab reports.
+	diluxone_users_ui_aside_close( static function (): void {} );
 }
 
 /**

@@ -419,51 +419,10 @@ function diluxone_users_screen_login_summary(): void {
 	diluxone_users_summary_table( diluxone_users_doors() );
 
 	/*
-	 * The way back in is not one of the doors: it is there whatever the table
-	 * says, and it cannot be switched off. Under the table it read as an
-	 * eighth row somebody had forgotten to draw a pill for, so it goes beside
-	 * it, where the rest of what this screen does not decide already is.
+	 * No rail: the table is the whole of what this tab says about the site,
+	 * and the way back in when locked out is the lockout tab of Maintenance.
 	 */
-	diluxone_users_ui_aside_close(
-		static function (): void {
-			diluxone_users_ui_note(
-				__( 'If you get locked out', 'diluxone-users' ),
-				array(
-					sprintf(
-						/* translators: %s: the emergency URL */
-						esc_html__( 'Whoever can administer the site always has a way in through %s, whatever is chosen on the other tabs.', 'diluxone-users' ),
-						'<code>' . esc_html( wp_login_url() ) . '?diluxone-users-admin=1</code>'
-					),
-					sprintf(
-						/* translators: %s: the WP-CLI command */
-						esc_html__( 'With a shell, %s prints a single-use link and needs no e-mail to work.', 'diluxone-users' ),
-						'<code>wp diluxone-users login ' . esc_html( wp_get_current_user()->user_email ) . '</code>'
-					),
-				)
-			);
-
-			diluxone_users_ui_links(
-				__( 'Decided somewhere else', 'diluxone-users' ),
-				array(
-					array(
-						'url'   => diluxone_users_admin_url( 'diluxone-users-social' ),
-						'label' => __( 'Social login', 'diluxone-users' ),
-						'help'  => __( 'Which providers the buttons offer, and the keys each one needs before it works.', 'diluxone-users' ),
-					),
-					array(
-						'url'   => diluxone_users_admin_url( 'diluxone-users-security' ),
-						'label' => __( 'Security', 'diluxone-users' ),
-						'help'  => __( 'Whether a second step is asked for after the door.', 'diluxone-users' ),
-					),
-					array(
-						'url'   => diluxone_users_admin_url( DILUXONE_USERS_NOTICES, array( 'tab' => 'templates' ) ),
-						'label' => __( 'The e-mail that carries the link', 'diluxone-users' ),
-						'help'  => __( 'Its subject and its words live with the rest of what this site sends.', 'diluxone-users' ),
-					),
-				)
-			);
-		}
-	);
+	diluxone_users_ui_aside_close( static function (): void {} );
 }
 
 /**
@@ -633,56 +592,26 @@ function diluxone_users_screen_login_page(): void {
 	);
 
 	/*
-	 * The pill above is pending and not off, which is the same answer the
-	 * ways-in tab already gives to the same shape: a choice waiting on
-	 * something missing somewhere else — a way in nobody switched on — and
-	 * saying so in the note beside it. Off is for a thing somebody turned
-	 * off, and this was never on. The page is not a note on one option: the
-	 * whole group waits for it, above.
-	 *
 	 * How wp-login.php looks is worth saying only while somebody still lands
 	 * on it, and it is never a decision taken here — it is taken on Design,
-	 * beside a preview of the screen it is about. As a section in the middle
-	 * of these options it was a heading, a sentence and a link interrupting
-	 * the one question this tab asks; beside them it is the answer to “and
-	 * what does that screen look like, then”.
+	 * beside a preview of the screen it is about. So it is the one thing the
+	 * rail reports: how that screen stands today.
 	 */
 	diluxone_users_ui_aside_close(
 		static function () use ( $seen, $brand ): void {
-			if ( $seen ) {
-				diluxone_users_ui_note(
-					__( 'How wp-login.php looks', 'diluxone-users' ),
-					__( 'People still land on that screen, so it is worth it looking like the rest of the site.', 'diluxone-users' ),
-					$brand ? 'active' : 'off',
-					$brand
-						? __( 'with the site’s logo and colour on it', 'diluxone-users' )
-						: __( 'as WordPress ships it', 'diluxone-users' ),
-					// The title names a look, and a look is not a switch: "Off"
-					// beside it reads as though that screen had been turned
-					// off, which is the one thing it can never be.
-					$brand ? __( 'Dressed', 'diluxone-users' ) : __( 'Plain', 'diluxone-users' )
-				);
+			if ( ! $seen ) {
+				return;
 			}
 
-			diluxone_users_ui_links(
-				__( 'What these pages look like', 'diluxone-users' ),
-				array(
-					array(
-						'url'   => diluxone_users_admin_url( 'diluxone-users-design', array( 'tab' => 'login' ) ),
-						'label' => __( 'The sign-in page', 'diluxone-users' ),
-						'help'  => __( 'Its shape, its picture and every sentence on it, with a preview beside them.', 'diluxone-users' ),
-					),
-					array(
-						'url'   => diluxone_users_admin_url( 'diluxone-users-design', array( 'tab' => 'wp' ) ),
-						'label' => 'wp-login.php',
-						'help'  => __( 'The site’s name, mark and colour on the screen WordPress brings with it.', 'diluxone-users' ),
-					),
-					array(
-						'url'   => diluxone_users_admin_url( 'diluxone-users-login', array( 'tab' => 'ways' ) ),
-						'label' => __( 'What the form takes', 'diluxone-users' ),
-						'help'  => __( 'Whether a password opens anything here, which is what decides if a reset has anywhere to go.', 'diluxone-users' ),
-					),
-				)
+			diluxone_users_ui_aside_state(
+				$brand
+					? __( 'People still land on wp-login.php, and it has the site’s logo and colour on it.', 'diluxone-users' )
+					: __( 'People still land on wp-login.php, and it looks as WordPress ships it.', 'diluxone-users' ),
+				$brand ? 'active' : 'off',
+				'',
+				// A look is not a switch: "Off" beside it reads as though that
+				// screen had been turned off, the one thing it can never be.
+				$brand ? __( 'Dressed', 'diluxone-users' ) : __( 'Plain', 'diluxone-users' )
 			);
 		}
 	);
@@ -881,26 +810,15 @@ function diluxone_users_screen_login_ways(): void {
 	);
 
 	/*
-	 * The way to the rest of each feature used to hang off the end of that
-	 * card’s own sentence, which made every card read as an invitation to
-	 * leave it. Out here the cards say what the box does and nothing else,
-	 * and the ways out are one list, in the place somebody looks once they
-	 * have finished ticking.
+	 * The rail holds the button and, on a site with an add-on's way in, the
+	 * way to that add-on's own settings: what is installed here is a fact
+	 * about this site, and the add-on registered the link for this place.
+	 * What the plugin's own ways do once they are on is set where each
+	 * feature lives, and the boxes say what each one is.
 	 */
 	diluxone_users_ui_aside_close(
 		static function () use ( $switches ): void {
-			diluxone_users_ui_note(
-				__( 'What this tab does not decide', 'diluxone-users' ),
-				__( 'A way in is switched on here, with the other ways in. What it does once it is on — which providers the buttons offer, for one — is set where that feature lives.', 'diluxone-users' )
-			);
-
-			$links = array(
-				array(
-					'url'   => diluxone_users_admin_url( 'diluxone-users-social' ),
-					'label' => __( 'Social login', 'diluxone-users' ),
-					'help'  => __( 'Which providers the buttons offer, and the keys each one needs before it works.', 'diluxone-users' ),
-				),
-			);
+			$links = array();
 
 			foreach ( $switches as $switch ) {
 				if ( array() !== $switch['settings'] ) {
@@ -908,13 +826,7 @@ function diluxone_users_screen_login_ways(): void {
 				}
 			}
 
-			$links[] = array(
-				'url'   => diluxone_users_admin_url( 'diluxone-users-login', array( 'tab' => 'register' ) ),
-				'label' => __( 'Registration', 'diluxone-users' ),
-				'help'  => __( 'Who gets an account at all. These boxes only say how somebody who has one gets in.', 'diluxone-users' ),
-			);
-
-			diluxone_users_ui_links( __( 'Where the rest of each one is', 'diluxone-users' ), $links );
+			diluxone_users_ui_links( __( 'The add-ons’ own settings', 'diluxone-users' ), $links );
 		}
 	);
 }

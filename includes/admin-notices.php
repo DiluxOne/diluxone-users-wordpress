@@ -179,12 +179,9 @@ function diluxone_users_screen_notices_summary(): void {
 
 	diluxone_users_summary_table( $rows );
 
-	/*
-	 * A row of buttons at the foot said where to go and not why, and it sat
-	 * under a table long enough that nobody scrolled to it. Beside the table
-	 * each way out carries its own line, which is the difference between a
-	 * button and a reason to press it.
-	 */
+	// The one thing worth saying beside the table, and only while it is true:
+	// that the last e-mail did not go out, so none of the rows can be counted on.
+
 	diluxone_users_ui_aside_close(
 		static function () use ( $delivery ): void {
 			// Only while it matters: a site whose last e-mail went out has
@@ -195,27 +192,6 @@ function diluxone_users_screen_notices_summary(): void {
 					'warning'
 				);
 			}
-
-			diluxone_users_ui_links(
-				__( 'Where each of these is changed', 'diluxone-users' ),
-				array(
-					array(
-						'url'   => diluxone_users_admin_url( DILUXONE_USERS_NOTICES, array( 'tab' => 'rules' ) ),
-						'label' => __( 'The rules', 'diluxone-users' ),
-						'help'  => __( 'Who decides each notice: the site on everybody’s behalf, or each person from their own account.', 'diluxone-users' ),
-					),
-					array(
-						'url'   => diluxone_users_admin_url( DILUXONE_USERS_NOTICES, array( 'tab' => 'templates' ) ),
-						'label' => __( 'The e-mails', 'diluxone-users' ),
-						'help'  => __( 'The subject and the words of every one of them, language by language.', 'diluxone-users' ),
-					),
-					array(
-						'url'   => diluxone_users_admin_url( 'diluxone-users-status', array( 'tab' => 'tools' ) ),
-						'label' => __( 'Send myself a test', 'diluxone-users' ),
-						'help'  => __( 'The only way to know this site can reach an inbox is to make it reach yours.', 'diluxone-users' ),
-					),
-				)
-			);
 		}
 	);
 }
@@ -241,7 +217,7 @@ function diluxone_users_screen_notices_rules(): void {
 	if ( array() === $prefs ) {
 		echo '<p>' . esc_html__( 'Nothing is registered: beyond the sign-in e-mail, this site tells nobody anything.', 'diluxone-users' ) . '</p>';
 
-		diluxone_users_ui_aside_close( 'diluxone_users_notices_rules_aside' );
+		diluxone_users_ui_aside_close( static function (): void {} );
 
 		return;
 	}
@@ -276,41 +252,7 @@ function diluxone_users_screen_notices_rules(): void {
 		?>
 	</div>
 	<?php
-	diluxone_users_ui_aside_close( 'diluxone_users_notices_rules_aside' );
-}
-
-/**
- * What sits beside the rules.
- *
- * A named function and not a closure because the early return above needs the
- * same rail: a site with no notice registered still has an e-mail going out
- * and still has somewhere to change its words, and a screen that says
- * “nothing is registered” and then ends is a dead end.
- */
-function diluxone_users_notices_rules_aside(): void {
-	diluxone_users_ui_note(
-		__( 'Who the switch belongs to', 'diluxone-users' ),
-		array(
-			esc_html__( 'Two of the four answers settle it for everybody, and the other two leave the person a switch and only decide which way it starts. Nobody is ever subscribed to something they turned off.', 'diluxone-users' ),
-			esc_html__( 'The two e-mails nobody can refuse — the sign-in link and the second-step code — have no rule at all: they go out because somebody asked for them a second ago.', 'diluxone-users' ),
-		)
-	);
-
-	diluxone_users_ui_links(
-		__( 'The other half of this', 'diluxone-users' ),
-		array(
-			array(
-				'url'   => diluxone_users_admin_url( DILUXONE_USERS_NOTICES, array( 'tab' => 'templates' ) ),
-				'label' => __( 'The e-mails', 'diluxone-users' ),
-				'help'  => __( 'A rule decides whether one goes out; this is what it says when it does.', 'diluxone-users' ),
-			),
-			array(
-				'url'   => diluxone_users_admin_url( 'diluxone-users-account' ),
-				'label' => __( 'Account area', 'diluxone-users' ),
-				'help'  => __( 'Where a person meets the switches these rules leave them.', 'diluxone-users' ),
-			),
-		)
-	);
+	diluxone_users_ui_aside_close( static function (): void {} );
 }
 
 /**
@@ -541,22 +483,6 @@ function diluxone_users_screen_mail_templates(): void {
 	diluxone_users_ui_aside_close(
 		static function () use ( $locale ): void {
 			diluxone_users_mail_languages_note( $locale );
-
-			diluxone_users_ui_links(
-				__( 'Before and after the words', 'diluxone-users' ),
-				array(
-					array(
-						'url'   => diluxone_users_admin_url( DILUXONE_USERS_NOTICES, array( 'tab' => 'rules' ) ),
-						'label' => __( 'The rules', 'diluxone-users' ),
-						'help'  => __( 'Whether each of these goes out at all, and who gets to say so.', 'diluxone-users' ),
-					),
-					array(
-						'url'   => diluxone_users_admin_url( 'diluxone-users-status', array( 'tab' => 'tools' ) ),
-						'label' => __( 'Send myself a test', 'diluxone-users' ),
-						'help'  => __( 'Words nobody receives are still words nobody receives. This is how to find out.', 'diluxone-users' ),
-					),
-				)
-			);
 		}
 	);
 }

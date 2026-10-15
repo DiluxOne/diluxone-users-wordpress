@@ -158,22 +158,6 @@ function diluxone_users_screen_log_settings(): void {
 	diluxone_users_ui_aside_close(
 		static function (): void {
 			diluxone_users_log_aside_state();
-
-			diluxone_users_ui_note(
-				__( 'Every row is disk', 'diluxone-users' ),
-				__( 'This is the one setting in the plugin that writes to the database because of what other people do, so it grows with the traffic and not with the configuration. A busy site ticking all three groups writes tens of thousands of rows a month; the number of days above is what stops that from being for ever.', 'diluxone-users' )
-			);
-
-			diluxone_users_ui_links(
-				__( 'What this fills', 'diluxone-users' ),
-				array(
-					array(
-						'url'   => diluxone_users_admin_url( DILUXONE_USERS_REPORTS, array( 'tab' => 'network' === diluxone_users_admin_context() ? 'network-activity' : 'activity' ) ),
-						'label' => 'network' === diluxone_users_admin_context() ? __( 'Activity', 'diluxone-users' ) : __( 'Reports › Activity', 'diluxone-users' ),
-						'help'  => __( 'The rows themselves, by person, by kind and by date. It only ever shows what was already being recorded when it happened.', 'diluxone-users' ),
-					),
-				)
-			);
 		}
 	);
 }
@@ -779,30 +763,8 @@ function diluxone_users_log_report( bool $network ): void {
 	}
 
 	diluxone_users_ui_aside_close(
-		static function () use ( $network ): void {
+		static function (): void {
 			diluxone_users_log_aside_state();
-
-			diluxone_users_ui_note(
-				__( 'What is not here', 'diluxone-users' ),
-				__( 'A row exists because its group was ticked at the moment it happened. Turning a group on today fills this from today; turning one off leaves what was already written until the days above run out.', 'diluxone-users' )
-			);
-
-			// On a network the settings are the network's, and only worth a
-			// link for somebody who can open Network Admin.
-			$single = 'single' === diluxone_users_admin_context();
-
-			if ( $single || diluxone_users_admin_can_open( 'network' ) ) {
-				diluxone_users_ui_links(
-					__( 'The settings behind this report', 'diluxone-users' ),
-					array(
-						array(
-							'url'   => diluxone_users_admin_url( DILUXONE_USERS_REPORTS, array( 'tab' => 'logging' ) ),
-							'label' => $single ? __( 'Reports › Log settings', 'diluxone-users' ) : ( $network ? __( 'Log settings', 'diluxone-users' ) : __( 'Network Admin › Activity log', 'diluxone-users' ) ),
-							'help'  => __( 'Which of the three groups is written down, and how many days a row is kept before it goes on its own.', 'diluxone-users' ),
-						),
-					)
-				);
-			}
 		}
 	);
 }
