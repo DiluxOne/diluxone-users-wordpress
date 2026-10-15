@@ -90,8 +90,8 @@ class LoginWaysTest extends TestCase {
 			'tabs over two'            => ['tabs', 2, 'tabs'],
 			'stacked over four'        => ['stack', 4, 'stack'],
 			'asked for nothing'        => ['auto', 4, 'tabs'],
-			// A value from an older version, or a hand-edited row: it counts
-			// rather than drawing an arrangement that does not exist.
+			// A hand-edited row, or a value a tool wrote: it counts rather
+			// than drawing an arrangement that does not exist.
 			'a word that means nothing' => ['columns', 4, 'tabs'],
 		];
 	}

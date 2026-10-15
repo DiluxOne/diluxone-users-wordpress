@@ -60,7 +60,7 @@ export const BASELINE = (pages: { login: number; register: number; account: numb
 
 	// What the specs walk is the plugin turned on, and a fresh activation
 	// turns nothing on (`make test-noop` is the check for that). These are the
-	// answers build 1.0.0 gave by default, the ones an upgraded site keeps.
+	// answers an administrator who turns the plugin on would pick.
 	diluxone_users_log_levels: ['access'],
 	diluxone_users_notice_rules: {},
 	diluxone_users_sessions_show: 1,

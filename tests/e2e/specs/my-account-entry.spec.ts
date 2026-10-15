@@ -279,9 +279,8 @@ test.describe('Join, templates and WP-CLI on a single site', () => {
 		expect(unknown.out).toContain('There is no account with the e-mail');
 	});
 
-	test('the network commands on a single site say it is not a network', () => {
+	test('the network command on a single site says it is not a network', () => {
 		for (const command of [
-			['diluxone-users', 'network', 'migrate'],
 			['diluxone-users', 'network', 'membership', 'sync'],
 		]) {
 			const answer = wpFails('cli', command);

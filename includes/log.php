@@ -50,9 +50,10 @@ defined( 'ABSPATH' ) || exit;
  * running dbDelta on every release to discover there is nothing to do is work
  * every site pays for and nobody asked for.
  *
- * 2: every row says which site of a network it happened on (`site_id`).
+ * 1: the first release's table, every row saying which site of a network it
+ * happened on (`site_id`).
  */
-const DILUXONE_USERS_LOG_SCHEMA = 2;
+const DILUXONE_USERS_LOG_SCHEMA = 1;
 
 /**
  * Where the stored number lives.
@@ -206,51 +207,16 @@ function diluxone_users_log_install(): bool {
 
 	// dbDelta says nothing about failure: it returns the same empty array when
 	// the table is already current and when the statement was refused. Ask the
-	// database instead — for the table, and for the column this shape added,
-	// which an ALTER the database refused would have left out. Recording the
-	// schema version after a failed run would mean never trying again, and
-	// every write to the log would land on a table that is not there.
-	if ( ! diluxone_users_log_table_exists() || ! diluxone_users_log_has_sites() ) {
+	// database instead. Recording the schema version after a failed run would
+	// mean never trying again, and every write to the log would land on a
+	// table that is not there.
+	if ( ! diluxone_users_log_table_exists() ) {
 		return false;
 	}
-
-	diluxone_users_log_claim_unstamped();
 
 	diluxone_users_update_option( DILUXONE_USERS_LOG_SCHEMA_OPTION, DILUXONE_USERS_LOG_SCHEMA, false );
 
 	return true;
-}
-
-/**
- * Whether the table has the column that says which site a row is from.
- *
- * @return bool
- */
-function diluxone_users_log_has_sites(): bool {
-	global $wpdb;
-
-	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- schema check; there is no API for it and caching it would defeat the point.
-	return 'site_id' === $wpdb->get_var( $wpdb->prepare( 'SHOW COLUMNS FROM %i LIKE %s', diluxone_users_log_table(), 'site_id' ) );
-}
-
-/**
- * The rows written before rows said which site they were from, given one.
- *
- * They were all written by the site whose prefix is the base prefix: the
- * site itself on a single site, and on a network the first site — site 1
- * either way. The other sites' rows arrive stamped, when their own tables are
- * moved in (see migrate-log.php).
- *
- * Ten thousand at a time, like the purge, so a table with years in it is not
- * one long lock.
- */
-function diluxone_users_log_claim_unstamped(): void {
-	global $wpdb;
-
-	do {
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- the plugin's own table, stamped once.
-		$stamped = (int) $wpdb->query( $wpdb->prepare( 'UPDATE %i SET site_id = %d WHERE site_id = 0 LIMIT 10000', diluxone_users_log_table(), 1 ) );
-	} while ( 10000 === $stamped );
 }
 
 /**
@@ -310,18 +276,17 @@ function diluxone_users_log_has_rows(): bool {
 /**
  * The table and the daily purge, both there and both current.
  *
- * On `admin_init`, for the same reason the prefix migration is: an update
- * over FTP or over git fires no activation hook, and a site that updated that
- * way would be writing into a table that is a version behind. Neither exists
- * before an administrator ticks a group to record. The check is one option read, and the option does not autoload, so
- * the cost of asking is a cached query on dashboard requests only; while the
- * log is off and a table from before is still there, one `SELECT 1 … LIMIT 1`
- * more, until its rows age out and the purge stops.
+ * On `admin_init`, not on activation: an update over FTP or over git fires no
+ * activation hook, and a site that updated that way would be writing into a
+ * table that is a version behind. Neither exists before an administrator
+ * ticks a group to record. The check is one option read, and the option does
+ * not autoload, so the cost of asking is a cached query on dashboard requests
+ * only; while the log is off and a table from before is still there, one
+ * `SELECT 1 … LIMIT 1` more, until its rows age out and the purge stops.
  *
  * Where the table is the network's, so is the purge: one event, on the main
- * site, for every row. Another site that still has the event it had when its
- * table was its own loses it the first time its dashboard is opened, and
- * until then the purge itself does nothing there.
+ * site, for every row. On any other site the purge does nothing, and an event
+ * found there is cleared the first time its dashboard is opened.
  */
 function diluxone_users_log_ready(): void {
 	$schema = (int) diluxone_users_raw_get( DILUXONE_USERS_LOG_SCHEMA_OPTION );
@@ -363,11 +328,11 @@ function diluxone_users_log_purges_here(): bool {
 }
 
 /*
- * The table is created on activation: on a single site by its setup, and on a
- * network once, for every site, by the network's activation (see
- * diluxone_users_activate()). A site born on the network has nothing to
- * create. The check above stays as the safety net for a table that went
- * missing some other way, and for a plugin updated over FTP or git.
+ * Nothing makes the table on activation: it comes with the first group an
+ * administrator ticks (diluxone_users_log_ready()), and on a network once, for
+ * every site, under the network's prefix. The check above stays as the safety
+ * net for a table that went missing some other way, and for a plugin updated
+ * over FTP or git.
  */
 
 /**
@@ -409,8 +374,6 @@ function diluxone_users_log_unschedule( $network_wide = false ): void {
  */
 function diluxone_users_switched_off_here(): void {
 	wp_clear_scheduled_hook( DILUXONE_USERS_LOG_PURGE );
-	wp_clear_scheduled_hook( DILUXONE_USERS_LOG_MOVE_EVENT );
-	wp_clear_scheduled_hook( DILUXONE_USERS_NETWORK_MIGRATE_EVENT );
 	delete_option( 'rewrite_rules' );
 	diluxone_users_delete_option( 'diluxone_users_rewrite_version' );
 }
@@ -419,9 +382,8 @@ register_deactivation_hook( DILUXONE_USERS_FILE, 'diluxone_users_log_unschedule'
 /**
  * A site deleted from the network takes its table with it.
  *
- * WordPress drops the tables it knows about and asks for the rest here: the
- * site's own table, where it has one — or where it kept one from before the
- * network's table, and it has not been moved in yet. Never the network's,
+ * WordPress drops the tables it knows about and asks for the rest here: a
+ * table under the site's own prefix, where there is one. Never the network's,
  * which is also the name of the first site's own.
  *
  * @param array<int, string> $tables  The tables WordPress is about to drop.

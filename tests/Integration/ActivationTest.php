@@ -1,15 +1,12 @@
 <?php
 /**
- * Activation, again and again: it settles which defaults the install is on,
- * and writes nothing else.
+ * Activation, again and again: it writes nothing at all.
  *
- * Every case runs on both topologies unless it names its counterpart. A new
- * install writes one option, the defaults' version, and no setting, table or
- * event; one that ran 1.0.0 gets that version's answers written down for the
- * settings it never saved, and a network waits for its settings and its log
- * to move first. Activating again changes nothing, the list of fields gets
- * WordPress's own put back only once it is a saved list, and a site born
- * while the plugin is not on for the network is left to itself.
+ * Every case runs on both topologies unless it names its counterpart. An
+ * activation writes no option, makes no table and schedules no event, the
+ * first time and every time after; the list of fields gets WordPress's own
+ * put back only once it is a saved list, and a site born while the plugin is
+ * not on for the network is left to itself.
  */
 
 namespace Tests\Integration;
@@ -140,20 +137,19 @@ class ActivationTest extends IntegrationTestCase {
 		}
 	}
 
-	/** Every setting the plugin can store, and the marks an older version left. */
+	/** Every setting the plugin can store. */
 	private function every_setting(): array {
 		return array_values(
 			array_unique(
 				array_merge(
 					array_keys( diluxone_users_option_defaults() ),
-					array_keys( diluxone_users_defaults_before() ),
-					array( 'diluxone_users_fields', 'diluxone_users_log_schema', DILUXONE_USERS_DEFAULTS_VERSION_OPTION )
+					array( 'diluxone_users_fields', 'diluxone_users_log_schema' )
 				)
 			)
 		);
 	}
 
-	public function test_activating_a_new_install_writes_one_option_and_nothing_else(): void {
+	public function test_activating_writes_nothing_at_all(): void {
 		global $wpdb;
 
 		$this->accounts( true );
@@ -187,7 +183,7 @@ class ActivationTest extends IntegrationTestCase {
 				// From a site, and not for the network: on a network that is the same thing.
 				diluxone_users_activate_now( false );
 
-				$this->assertSame( array( DILUXONE_USERS_DEFAULTS_VERSION_OPTION ), array_values( array_unique( $written ) ), 'the version of the defaults, and no setting' );
+				$this->assertSame( array(), $written, 'no option at all' );
 				$this->assertSame( array(), array_filter( $asked, static fn( string $sql ): bool => (bool) preg_match( '/^\s*(CREATE|ALTER)\s+TABLE/i', $sql ) ), 'no table made' );
 				$this->assertSame( $events, _get_cron_array(), 'nothing scheduled' );
 
@@ -197,99 +193,10 @@ class ActivationTest extends IntegrationTestCase {
 				$this->assertSame( 0, (int) diluxone_users_option( 'diluxone_users_login_register' ) );
 				$this->assertSame( 0, (int) diluxone_users_option( 'diluxone_users_sso_register' ) );
 				$this->assertSame( array(), diluxone_users_log_levels(), 'nothing recorded' );
-				$this->assertTrue( diluxone_users_defaults_settled() );
 
-				// Settled once: a second activation, or any request, writes nothing.
-				$written = array();
+				// And a second activation writes nothing either.
 				diluxone_users_activate_now( false );
-				diluxone_users_defaults_settle();
 				$this->assertSame( array(), $written );
-			}
-		);
-	}
-
-	public function test_an_install_that_ran_1_0_0_keeps_what_it_did(): void {
-		$this->accounts( true );
-
-		$this->without(
-			array_merge( $this->every_setting(), array( 'diluxone_users_network_version', 'diluxone_users_log_moved' ) ),
-			function (): void {
-				// What 1.0.0 left behind the moment it was activated, and one
-				// answer an administrator saved on top.
-				diluxone_users_update_option( 'diluxone_users_fields', diluxone_users_default_fields() );
-				diluxone_users_update_option( 'diluxone_users_log_schema', DILUXONE_USERS_LOG_SCHEMA );
-				diluxone_users_update_option( 'diluxone_users_login_method', 'password' );
-				diluxone_users_update_option( 'diluxone_users_login_register', 0 );
-
-				if ( is_multisite() ) {
-					// Its settings and its log already moved to the network.
-					diluxone_users_update_option( 'diluxone_users_network_version', DILUXONE_USERS_NETWORK_VERSION );
-					diluxone_users_update_option( 'diluxone_users_log_moved', 1 );
-				}
-
-				diluxone_users_activate_now( false );
-
-				$this->assertTrue( diluxone_users_defaults_settled() );
-				$this->assertSame( 'password', diluxone_users_raw_get( 'diluxone_users_login_method' ), 'what an administrator saved is left as it was' );
-				$this->assertSame( 0, (int) diluxone_users_raw_get( 'diluxone_users_login_register' ) );
-
-				foreach ( diluxone_users_defaults_before() as $key => $old ) {
-					if ( in_array( $key, array( 'diluxone_users_login_method', 'diluxone_users_login_register' ), true ) ) {
-						continue;
-					}
-
-					$this->assertEquals( $old, diluxone_users_raw_get( $key, null ), $key . ': written down as it was' );
-				}
-
-				$this->assertSame( array( 'access' ), diluxone_users_log_levels(), 'the log goes on recording the way in' );
-				$this->assertSame( 'optional', diluxone_users_option( 'diluxone_users_2fa_mode' ) );
-				$this->assertSame( 1, (int) diluxone_users_option( 'diluxone_users_sso_register' ), 'the door seeded from WordPress\'s open registration' );
-			}
-		);
-	}
-
-	public function test_a_network_that_has_not_moved_its_settings_waits_for_the_move(): void {
-		$this->network_only();
-
-		$this->without(
-			array_merge( $this->every_setting(), array( 'diluxone_users_network_version', 'diluxone_users_log_moved' ) ),
-			function (): void {
-				diluxone_users_update_option( 'diluxone_users_log_schema', DILUXONE_USERS_LOG_SCHEMA );
-
-				diluxone_users_defaults_settle();
-
-				$this->assertFalse( diluxone_users_defaults_settled(), 'not before the main site\'s answers are on the network' );
-				$this->assertNull( diluxone_users_raw_get( 'diluxone_users_login_method', null ) );
-
-				diluxone_users_update_option( 'diluxone_users_network_version', DILUXONE_USERS_NETWORK_VERSION );
-				diluxone_users_update_option( 'diluxone_users_log_moved', 1 );
-				diluxone_users_defaults_settle();
-
-				$this->assertTrue( diluxone_users_defaults_settled() );
-				$this->assertSame( 'both', diluxone_users_raw_get( 'diluxone_users_login_method' ) );
-				$this->assertSame( 1, (int) diluxone_users_raw_get( 'diluxone_users_network_hub' ), 'the other sites go on sending people to the hub' );
-			}
-		);
-	}
-
-	/**
-	 * A new network records its move as done when it settles; a settled
-	 * install is not, by that alone, a moved one: a single site made a network
-	 * later still moves its settings.
-	 */
-	public function test_settling_a_new_network_records_the_move_and_settling_alone_does_not(): void {
-		$this->without(
-			array_merge( $this->every_setting(), array( 'diluxone_users_network_version' ) ),
-			function (): void {
-				diluxone_users_update_option( DILUXONE_USERS_DEFAULTS_VERSION_OPTION, DILUXONE_USERS_DEFAULTS_VERSION );
-
-				$this->assertFalse( diluxone_users_network_migrated(), 'settled is not moved' );
-
-				diluxone_users_delete_option( DILUXONE_USERS_DEFAULTS_VERSION_OPTION );
-				diluxone_users_defaults_settle();
-
-				$this->assertTrue( diluxone_users_defaults_settled() );
-				$this->assertSame( is_multisite(), diluxone_users_network_migrated(), 'a new network has nothing to move; a single site moves when it becomes one' );
 			}
 		);
 	}

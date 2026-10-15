@@ -249,17 +249,6 @@ const ROWS: Row[] = [
 		probe: async () => logCount(),
 	},
 	{
-		id: 'Overview › dismissing what the sites had set differently (?diluxone_users_conflicts_seen)',
-		method: 'GET',
-		url: () => NETWORK('admin.php?page=diluxone-users&diluxone_users_conflicts_seen=1'),
-		nonce: { field: '_wpnonce', action: 'diluxone_users_conflicts_seen' },
-		actor: 'super',
-		lacking: 'siteAdmin',
-		expect: { 'no nonce': 'nonce', 'forged nonce': 'nonce', 'without the right': 'forbidden', 'signed out': 'to-login' },
-		prepare: async ({ hub }: { hub: SiteHandle }) => hub.set({ diluxone_users_network_conflicts_seen: null }),
-		probe: async (w) => w.hubSite.getOptions(['diluxone_users_network_conflicts_seen']),
-	},
-	{
 		id: 'Fields › a field deleted in Network Admin (field action)',
 		method: 'GET',
 		url: () => NETWORK('admin.php?page=diluxone-users-fields&diluxone_users_action=delete&field=e2e_refusal'),

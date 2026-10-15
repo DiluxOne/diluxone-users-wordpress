@@ -16,14 +16,11 @@
  * including the answers to the fields the site invented.
  *
  * On a network — where the plugin only works activated for the whole network
- * — the decision is the network's, one box in Network Admin, because the data is about the
- * network's people. Ticked, everything goes: the network's settings and its
- * activity log, every site's settings — the copies each site kept from before
- * the settings moved to the network included — any log table a site still
- * kept from before the log was the network's, and what the plugin kept in
- * people's profiles.
- * A box a site ticked for itself before the settings were the network's does
- * not count: it was never the network deciding.
+ * — the decision is the network's, one box in Network Admin, because the data
+ * is about the network's people. Ticked, everything goes: the network's
+ * settings and its activity log, every site's own settings, and what the
+ * plugin kept in people's profiles. A box a site ticked for itself does not
+ * count: it was never the network deciding.
  *
  * @package DiluxOneUsers
  */
@@ -68,14 +65,11 @@ function diluxone_users_uninstall_site(): void {
 	global $wpdb;
 
 	wp_clear_scheduled_hook( 'diluxone_users_log_purge' );
-	wp_clear_scheduled_hook( 'diluxone_users_log_move' );
-	wp_clear_scheduled_hook( 'diluxone_users_network_migrate' );
 	wp_clear_scheduled_hook( 'diluxone_users_membership_drain' );
 
 	// The site's own table. On the network's first site its prefix is the
 	// network's, so this is also the network's activity log, one table for
-	// every site; on any other site it is a table kept from before the log
-	// was the network's.
+	// every site; on any other site there is none, and the statement says so.
 	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- dropping our own table is the one thing there is no API for.
 	$wpdb->query( $wpdb->prepare( 'DROP TABLE IF EXISTS %i', $wpdb->prefix . 'diluxone_users_log' ) );
 
@@ -100,9 +94,8 @@ function diluxone_users_uninstall_site(): void {
 }
 
 /**
- * The network's own options and transients — its settings, what the move to
- * the network found, the counts per machine. Only on a network, where they
- * live in their own table.
+ * The network's own options and transients — its settings, the counts per
+ * machine. Only on a network, where they live in their own table.
  */
 function diluxone_users_uninstall_network(): void {
 	global $wpdb;
@@ -257,8 +250,9 @@ if ( is_multisite() ) {
 	) as $diluxone_users_site ) {
 		switch_to_blog( (int) $diluxone_users_site );
 
-		// The copy each site kept from before the move may name a field the
-		// network's list lost since: its answers are the plugin's too.
+		// A list a site has in its own table — written by hand, or by a tool —
+		// may name a field the network's list does not: its answers are the
+		// plugin's too.
 		$diluxone_users_keys = array_merge( $diluxone_users_keys, diluxone_users_uninstall_field_keys() );
 
 		diluxone_users_uninstall_site();

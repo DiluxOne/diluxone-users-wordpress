@@ -1,4 +1,4 @@
-import { test, expect, SiteHandle, asOlderInstall } from './support';
+import { test, expect } from './support';
 import { Site, freshEmail } from '../support/api';
 import { wp, PLUGIN_DIR } from '../support/cli';
 import { NETWORK_SCREENS } from '../support/screens';
@@ -9,10 +9,8 @@ import { network, railState, throwawaySite } from './hub-support';
 /**
  * Network Admin beyond its saves: what its Overview says about the network,
  * the rail that follows the uninstall box, the network's activity log (its
- * filters, and a site deleted taking its rows), the move from per-site
- * settings (what it will not carry, the kinds of difference it writes down,
- * and the move made on a plain page load), a site born, the plugin switched
- * off for the network, and the network's own Users screens.
+ * filters, and a site deleted taking its rows), a site born, the plugin
+ * switched off for the network, and the network's own Users screens.
  */
 
 const PASSWORD = 'e2e-HubAdmin-1!';
@@ -124,109 +122,6 @@ test.describe('The network’s activity log', () => {
 		}
 
 		expect(count(), 'gone with the site').toBe(0);
-	});
-});
-
-test.describe('The move from per-site settings', () => {
-	const BOOKS = ['diluxone_users_network_version', 'diluxone_users_network_conflicts', 'diluxone_users_network_conflicts_seen'];
-
-	function forget(keys: string[]): void {
-		for (const key of keys) {
-			try {
-				wp(['site', 'option', 'delete', key]);
-			} catch {
-				// Not there, which is the state being made.
-			}
-		}
-	}
-
-	function dropCopy(key: string, one: SiteHandle): void {
-		try {
-			wp(['option', 'delete', key], one.url);
-		} catch {
-			// Already gone.
-		}
-	}
-
-	test('a wipe the main site had ticked is not carried over: the network’s starts unticked, and the Overview says so', async ({ page, hub }) => {
-		await hub.keep(['diluxone_users_uninstall_wipe', ...BOOKS]);
-		const older = await asOlderInstall(hub);
-
-		wp(['option', 'update', 'diluxone_users_uninstall_wipe', '1'], hub.url);
-		forget(['diluxone_users_uninstall_wipe', ...BOOKS]);
-
-		try {
-			wp(['diluxone-users', 'network', 'migrate']);
-
-			let wipe = '';
-
-			try {
-				wipe = wp(['site', 'option', 'get', 'diluxone_users_uninstall_wipe']);
-			} catch {
-				wipe = '';
-			}
-
-			expect(['', '0'], 'the network’s answer is not the main site’s tick').toContain(wipe);
-
-			await page.goto(network('admin.php?page=diluxone-users'));
-			await expect(page.locator('.diluxone-users-list tr').filter({ hasText: 'diluxone_users_uninstall_wipe' }), 'written down beside the rest').toHaveCount(1);
-		} finally {
-			dropCopy('diluxone_users_uninstall_wipe', hub);
-			older();
-		}
-	});
-
-	test('different credentials and a different field are written down by kind, and no secret is printed', async ({ page, hub, alpha }) => {
-		await hub.keep(['diluxone_users_sso', 'diluxone_users_fields', ...BOOKS]);
-		const older = await asOlderInstall(hub);
-
-		const mine = { mock: { active: 0, id: 'hub-id', secret: 'hub-secret-xyz' } };
-		const theirs = { mock: { active: 0, id: 'alpha-id', secret: 'alpha-secret-xyz' } };
-		const field = (label: string) => [{ key: 'e2e_moved', label, type: 'text', required: 0, active: 1, group: 'main', edit: 'always' }];
-
-		wp(['option', 'update', 'diluxone_users_sso', JSON.stringify(mine), '--format=json'], hub.url);
-		wp(['option', 'update', 'diluxone_users_sso', JSON.stringify(theirs), '--format=json'], alpha.url);
-		wp(['option', 'update', 'diluxone_users_fields', JSON.stringify(field('Hub')), '--format=json'], hub.url);
-		wp(['option', 'update', 'diluxone_users_fields', JSON.stringify(field('Alpha')), '--format=json'], alpha.url);
-		forget(['diluxone_users_sso', 'diluxone_users_fields', ...BOOKS]);
-
-		try {
-			wp(['diluxone-users', 'network', 'migrate']);
-
-			await page.goto(network('admin.php?page=diluxone-users'));
-
-			await expect(page.locator('.diluxone-users-list tr').filter({ hasText: 'diluxone_users_sso' }), 'the credentials, as a row').toHaveCount(1);
-			await expect(page.locator('.diluxone-users-list tr').filter({ hasText: 'diluxone_users_fields' }), 'the field, as a row').toContainText('e2e_moved');
-
-			const html = await page.content();
-
-			expect(html, 'neither secret is printed').not.toContain('alpha-secret-xyz');
-			expect(html).not.toContain('hub-secret-xyz');
-		} finally {
-			for (const key of ['diluxone_users_sso', 'diluxone_users_fields']) {
-				dropCopy(key, hub);
-				dropCopy(key, alpha);
-			}
-			older();
-		}
-	});
-
-	test('a network that has not moved moves on the first page anybody opens, with no WP-CLI', async ({ page, hub, alpha }) => {
-		await hub.keep(['diluxone_users_session_long_days', ...BOOKS]);
-		const older = await asOlderInstall(hub);
-
-		wp(['option', 'update', 'diluxone_users_session_long_days', '23'], hub.url);
-		forget(['diluxone_users_session_long_days', ...BOOKS]);
-
-		try {
-			await page.goto(hub.url);
-
-			await expect.poll(() => wp(['site', 'option', 'get', 'diluxone_users_network_version']), { message: 'the network is marked moved' }).not.toBe('');
-			expect(Number((await alpha.site.getOptions(['diluxone_users_session_long_days'])).diluxone_users_session_long_days), '/alpha/ reads the main site’s').toBe(23);
-		} finally {
-			dropCopy('diluxone_users_session_long_days', hub);
-			older();
-		}
 	});
 });
 
