@@ -168,16 +168,19 @@ test.describe('Account area › a section’s words, address and who sees it', (
 });
 
 test.describe('Account area › where Users+ Pro’s sections would be', () => {
-	test('there is no “Add section”: the card under the list says what Pro adds, and the new section’s address opens the first one', async ({ page }) => {
+	test('where “Add section” would be, the button Users+ Pro brings: disabled, with the badge and the link; and the new section’s address opens the first one', async ({ page }) => {
 		await page.goto(adminUrl('diluxone-users-account', 'sections'));
 
 		await expect(page.locator('.diluxone-users-endpoints__head a.button', { hasText: 'Add section' })).toHaveCount(0);
 
-		const card = page.locator('[data-diluxone-users-pro="account/sections/more"]');
+		const pro = page.locator('.diluxone-users-endpoints__head [data-diluxone-users-pro="account/sections/more"]');
 
-		await expect(card).toBeVisible();
-		await expect(card).toContainText('Sections of your own');
-		await expect(card.locator('input, select, textarea, button'), 'nothing in it posts').toHaveCount(0);
+		await expect(pro, 'beside the heading, where the real one goes').toBeVisible();
+		await expect(pro.locator('button', { hasText: 'Add a section' })).toBeDisabled();
+		await expect(pro.locator('.diluxone-users-state--pro'), 'the badge').toHaveCount(1);
+		await expect(pro.locator('a')).toHaveAttribute('href', /diluxone\.com\/users-pro\/.*utm_medium=account-sections/);
+		await expect(pro.locator('[name]'), 'nothing in it posts').toHaveCount(0);
+		await expect(page.locator('.du-pro-card'), 'and no card under the list').toHaveCount(0);
 
 		await page.goto(sectionUrl('diluxone-users-new'));
 		await expect(page.locator('.diluxone-users-endpoint-form__head h3')).toHaveText(/./);

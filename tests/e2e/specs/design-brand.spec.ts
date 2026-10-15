@@ -43,7 +43,7 @@ function accent(page: Page): Locator {
 	return page.locator('[data-diluxone-users-swatches="diluxone_users_style_accent"]');
 }
 
-/** What belongs to "from your theme": the picture of which colour does what. */
+/** What belongs to "from your theme": the rows of which colour does what, Users+ Pro's. */
 function fineTuning(page: Page): Locator {
 	return page.locator('[data-diluxone-users-pro="design/brand/color-map"]');
 }

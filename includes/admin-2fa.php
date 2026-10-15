@@ -270,32 +270,46 @@ function diluxone_users_screen_login_2fa(): void {
 
 	// An answer is drawn chosen once somebody chose it: on a fresh install
 	// none is, and the groups below wait for one.
-	diluxone_users_ui_choices(
+	$modes = array(
 		array(
+			'name'    => 'diluxone_users_2fa_mode',
+			'value'   => 'optional',
+			'checked' => $decided && 'optional' === $mode,
+			'title'   => __( 'Optional: whoever wants it turns it on from their account', 'diluxone-users' ),
+			'help'    => __( 'Nobody is made to do anything, and whoever turned it on is asked from then on.', 'diluxone-users' ),
+		),
+		array(
+			'name'     => 'diluxone_users_2fa_mode',
+			'value'    => 'required',
+			'checked'  => $decided && 'required' === $mode,
+			'disabled' => $nowhere && 'required' !== $mode,
+			'state'    => $nowhere ? 'pending' : '',
+			'note'     => $nowhere ? __( 'needs a sign-in page', 'diluxone-users' ) : '',
+			'title'    => __( 'Required: everybody it applies to has to set it up', 'diluxone-users' ),
+			'help'     => __( 'They are walked through it the next time they sign in, and there is no way past.', 'diluxone-users' ),
+		),
+		array(
+			'name'    => 'diluxone_users_2fa_mode',
+			'value'   => 'off',
+			'checked' => $decided && 'off' === $mode,
+			'title'   => __( 'Off: it is not offered at all', 'diluxone-users' ),
+			'help'    => __( 'Nobody is asked, not even whoever had it set up. What they set up is kept and works again the day this comes back on.', 'diluxone-users' ),
+		),
+	);
+
+	// After the three, the one Users+ Pro brings, as the radio it would be:
+	// switched off, and gone once Pro answers false to it.
+	diluxone_users_ui_choices(
+		diluxone_users_ui_pro_choices(
+			$modes,
 			array(
-				'name'    => 'diluxone_users_2fa_mode',
-				'value'   => 'optional',
-				'checked' => $decided && 'optional' === $mode,
-				'title'   => __( 'Optional: whoever wants it turns it on from their account', 'diluxone-users' ),
-				'help'    => __( 'Nobody is made to do anything, and whoever turned it on is asked from then on.', 'diluxone-users' ),
-			),
-			array(
-				'name'     => 'diluxone_users_2fa_mode',
-				'value'    => 'required',
-				'checked'  => $decided && 'required' === $mode,
-				'disabled' => $nowhere && 'required' !== $mode,
-				'state'    => $nowhere ? 'pending' : '',
-				'note'     => $nowhere ? __( 'needs a sign-in page', 'diluxone-users' ) : '',
-				'title'    => __( 'Required: everybody it applies to has to set it up', 'diluxone-users' ),
-				'help'     => __( 'They are walked through it the next time they sign in, and there is no way past.', 'diluxone-users' ),
-			),
-			array(
-				'name'    => 'diluxone_users_2fa_mode',
-				'value'   => 'off',
-				'checked' => $decided && 'off' === $mode,
-				'title'   => __( 'Off: it is not offered at all', 'diluxone-users' ),
-				'help'    => __( 'Nobody is asked, not even whoever had it set up. What they set up is kept and works again the day this comes back on.', 'diluxone-users' ),
-			),
+				array(
+					'where'  => 'security/2fa/roles',
+					'screen' => 'security-2fa',
+					'title'  => __( 'Only some roles', 'diluxone-users' ),
+					'text'   => __( 'Users+ Pro asks the second step of the roles you choose — the ones that can change things — and not of everybody with an account.', 'diluxone-users' ),
+				),
+			)
 		)
 	);
 
@@ -323,15 +337,6 @@ function diluxone_users_screen_login_2fa(): void {
 			__( 'The sign-in page →', 'diluxone-users' )
 		);
 	}
-
-	diluxone_users_ui_pro_card(
-		array(
-			'where'  => 'security/2fa/roles',
-			'screen' => 'security-2fa',
-			'title'  => __( 'Only some roles', 'diluxone-users' ),
-			'text'   => __( 'Users+ Pro asks the second step of the roles you choose — the ones that can change things — and not of everybody with an account.', 'diluxone-users' ),
-		)
-	);
 
 	diluxone_users_2fa_screen_place( 'who' );
 
@@ -362,22 +367,26 @@ function diluxone_users_screen_login_2fa(): void {
 	 * form with nothing wrong in it, and the browser used to refuse it.
 	 */
 	diluxone_users_ui_choices(
-		$cards,
+		// After the real methods, the one Users+ Pro brings, as the box it
+		// would be: switched off, and gone once Pro answers false to it.
+		diluxone_users_ui_pro_choices(
+			$cards,
+			array(
+				array(
+					'type'   => 'checkbox',
+					'where'  => 'security/2fa/app',
+					'screen' => 'security-2fa',
+					'title'  => __( 'An authenticator app', 'diluxone-users' ),
+					'text'   => __( 'Users+ Pro adds the six digits that change every thirty seconds, from Google Authenticator, 1Password or Aegis: the code never travels, so it is asked on the e-mail link too.', 'diluxone-users' ),
+				),
+			)
+		),
 		diluxone_users_2fa_needs_a_method(),
 		array(
 			'name' => 'diluxone_users_2fa_mode',
 			'is'   => array( 'optional', 'required' ),
 		),
 		$waits
-	);
-
-	diluxone_users_ui_pro_card(
-		array(
-			'where'  => 'security/2fa/app',
-			'screen' => 'security-2fa',
-			'title'  => __( 'An authenticator app', 'diluxone-users' ),
-			'text'   => __( 'Users+ Pro adds the six digits that change every thirty seconds, from Google Authenticator, 1Password or Aegis: the code never travels, so it is asked on the e-mail link too.', 'diluxone-users' ),
-		)
 	);
 
 	diluxone_users_2fa_screen_place( 'methods' );
@@ -397,42 +406,48 @@ function diluxone_users_screen_login_2fa(): void {
 		);
 	}
 
-	diluxone_users_ui_choices(
+	$rules = array(
 		array(
+			'name'    => 'diluxone_users_2fa_link',
+			'value'   => 'auto',
+			'checked' => 'auto' === (string) diluxone_users_option( 'diluxone_users_2fa_link' ),
+			'title'   => __( 'Work it out: ask, unless the second step is another email', 'diluxone-users' ),
+			'help'    => __( 'A code sent to the inbox the person has just opened to follow the link proves nothing the link did not prove already. An app does, so on an app it asks.', 'diluxone-users' ),
+		),
+		array(
+			'name'    => 'diluxone_users_2fa_link',
+			'value'   => 'always',
+			'checked' => 'always' === (string) diluxone_users_option( 'diluxone_users_2fa_link' ),
+			'title'   => __( 'Always ask', 'diluxone-users' ),
+			'help'    => __( 'The second step on every link, including the errand of a code going back to the same inbox.', 'diluxone-users' ),
+		),
+		array(
+			'name'    => 'diluxone_users_2fa_link',
+			'value'   => 'never',
+			'checked' => 'never' === (string) diluxone_users_option( 'diluxone_users_2fa_link' ),
+			'title'   => __( 'Never ask', 'diluxone-users' ),
+			'help'    => __( 'Following the link is the whole of it. The quickest way in, and the weakest of the three.', 'diluxone-users' ),
+		),
+	);
+
+	// After the three, the one Users+ Pro brings, as the box it would be:
+	// switched off, and gone once Pro answers false to it.
+	diluxone_users_ui_choices(
+		diluxone_users_ui_pro_choices(
+			$rules,
 			array(
-				'name'    => 'diluxone_users_2fa_link',
-				'value'   => 'auto',
-				'checked' => 'auto' === (string) diluxone_users_option( 'diluxone_users_2fa_link' ),
-				'title'   => __( 'Work it out: ask, unless the second step is another email', 'diluxone-users' ),
-				'help'    => __( 'A code sent to the inbox the person has just opened to follow the link proves nothing the link did not prove already. An app does, so on an app it asks.', 'diluxone-users' ),
-			),
-			array(
-				'name'    => 'diluxone_users_2fa_link',
-				'value'   => 'always',
-				'checked' => 'always' === (string) diluxone_users_option( 'diluxone_users_2fa_link' ),
-				'title'   => __( 'Always ask', 'diluxone-users' ),
-				'help'    => __( 'The second step on every link, including the errand of a code going back to the same inbox.', 'diluxone-users' ),
-			),
-			array(
-				'name'    => 'diluxone_users_2fa_link',
-				'value'   => 'never',
-				'checked' => 'never' === (string) diluxone_users_option( 'diluxone_users_2fa_link' ),
-				'title'   => __( 'Never ask', 'diluxone-users' ),
-				'help'    => __( 'Following the link is the whole of it. The quickest way in, and the weakest of the three.', 'diluxone-users' ),
-			),
+				array(
+					'type'   => 'checkbox',
+					'where'  => 'security/2fa/remember',
+					'screen' => 'security-2fa',
+					'title'  => __( 'Remember a browser', 'diluxone-users' ),
+					'text'   => __( 'Users+ Pro lets people skip the second step for a few days on a browser that already passed it, with a signed cookie that lets nobody in on its own.', 'diluxone-users' ),
+				),
+			)
 		),
 		'',
 		array(),
 		$waits
-	);
-
-	diluxone_users_ui_pro_card(
-		array(
-			'where'  => 'security/2fa/remember',
-			'screen' => 'security-2fa',
-			'title'  => __( 'Remember a browser', 'diluxone-users' ),
-			'text'   => __( 'Users+ Pro lets people skip the second step for a few days on a browser that already passed it, with a signed cookie that lets nobody in on its own.', 'diluxone-users' ),
-		)
 	);
 
 	diluxone_users_2fa_screen_place( 'end' );

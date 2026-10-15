@@ -242,15 +242,26 @@ class CoverSettingsSocialTest extends IntegrationTestCase {
 		$_GET = array( 'page' => 'diluxone-users-social' );
 		$html = $this->draw( 'diluxone_users_screen_social' );
 
-		$card = strpos( $html, 'data-diluxone-users-pro="social/providers/more"' );
+		$first = strpos( $html, 'data-diluxone-users-pro="social/providers/linkedin"' );
+		$last  = strpos( $html, 'data-diluxone-users-pro="social/providers/amazon"' );
 
-		$this->assertNotFalse( $card, 'the Pro card is on the grid' );
-		$this->assertGreaterThan( (int) strrpos( $html, '<h3>Another</h3>' ), $card, 'after the last real network' );
-		$this->assertLessThan( (int) strpos( $html, 'Not included, on purpose' ), $card, 'and inside the grid' );
-		$this->assertStringContainsString( 'Ten more networks', $html );
-		$this->assertStringContainsString( 'Users+ Pro adds LinkedIn, X, Facebook, GitHub', $html );
+		$this->assertNotFalse( $first, 'the Pro cards are on the grid' );
+		$this->assertGreaterThan( (int) strrpos( $html, '<h3>Another</h3>' ), $first, 'after the last real network' );
+		$this->assertLessThan( (int) strpos( $html, 'Not included, on purpose' ), $last, 'and inside the grid' );
+		$this->assertSame( 10, substr_count( $html, 'data-diluxone-users-pro="social/providers/' ), 'one card per network' );
+
+		foreach ( diluxone_users_sso_pro_networks() as $slug => $name ) {
+			$card = substr( $html, (int) strpos( $html, 'data-diluxone-users-pro="social/providers/' . $slug . '"' ), 4000 );
+
+			$this->assertStringContainsString( '<h3>' . $name . '</h3>', $card, "$slug: its name" );
+			$this->assertStringContainsString( '<svg class="diluxone-users-social__logo"', $card, "$slug: its logo" );
+			$this->assertStringContainsString( 'diluxone-users-state--pro', $card, "$slug: the badge" );
+			$this->assertStringNotContainsString( 'Get started', $card, "$slug: nothing to open" );
+			$this->assertStringNotContainsString( 'provider=' . $slug, $card );
+		}
+
 		$this->assertStringContainsString( 'href="https://diluxone.com/users-pro/?utm_source=diluxone-users&amp;utm_medium=social&amp;utm_campaign=free"', $html );
-		$this->assertSame( 1, substr_count( $html, 'data-diluxone-users-pro=' ), 'one card, not one per network' );
+		$this->assertStringNotContainsString( 'Ten more networks', $html );
 	}
 
 	public function test_the_pro_card_goes_when_the_add_on_or_the_site_says_so(): void {

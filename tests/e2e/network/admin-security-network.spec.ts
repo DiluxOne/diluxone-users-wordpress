@@ -183,9 +183,10 @@ test.describe('Network Admin › Security › Summary: what Users+ Pro adds', ()
 		const pro = page.locator('[data-diluxone-users-pro="security/summary/more"]');
 
 		await expect(pro).toHaveCount(1);
-		await expect(pro.locator('.du-pro__picture')).toHaveAttribute('inert', '');
-		await expect(pro.locator('[name]'), 'nothing in the picture is sent').toHaveCount(0);
-		await expect(page.locator('table.diluxone-users-summary').first().locator('xpath=ancestor::*[@inert]'), 'the real table comes first').toHaveCount(0);
+		await expect(pro, 'a row of the one table').toHaveClass(/du-pro--row/);
+		await expect(page.locator('table.diluxone-users-summary tr').last(), 'after the real rows').toHaveAttribute('data-diluxone-users-pro', 'security/summary/more');
+		await expect(pro.locator('[name]'), 'nothing in it is sent').toHaveCount(0);
+		await expect(page.locator('table.diluxone-users-summary'), 'one table').toHaveCount(1);
 
 		await hub.set({ diluxone_users_pro_previews: 0 });
 		await page.reload();

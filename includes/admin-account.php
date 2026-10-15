@@ -638,6 +638,17 @@ function diluxone_users_screen_account_sections(): void {
 			 * @since 1.0.0
 			 */
 			do_action( 'diluxone_users_account_sections_head' );
+
+			// Where that button goes, the button it would be: switched off,
+			// and gone once Pro answers false to it.
+			diluxone_users_ui_pro_button(
+				array(
+					'where'  => 'account/sections/more',
+					'screen' => 'account-sections',
+					'title'  => __( 'Add a section', 'diluxone-users' ),
+					'text'   => __( 'Users+ Pro adds sections of the site’s own: your text, or the shortcode of a course, a membership or a support desk, each with its name, address and who sees it.', 'diluxone-users' ),
+				)
+			);
 			?>
 		</div>
 
@@ -691,17 +702,6 @@ function diluxone_users_screen_account_sections(): void {
 				<p class="diluxone-users-endpoints__save-order">
 					<button type="submit" class="button"><?php esc_html_e( 'Save the order', 'diluxone-users' ); ?></button>
 				</p>
-
-				<?php
-				diluxone_users_ui_pro_card(
-					array(
-						'where'  => 'account/sections/more',
-						'screen' => 'account-sections',
-						'title'  => __( 'Sections of your own', 'diluxone-users' ),
-						'text'   => __( 'Users+ Pro adds sections of the site’s own to the account area: your text, or the shortcode of a course, a membership or a support desk, each with its name, address and who sees it.', 'diluxone-users' ),
-					)
-				);
-				?>
 			</form>
 
 			<div class="diluxone-users-endpoints__detail">

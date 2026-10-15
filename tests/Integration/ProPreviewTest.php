@@ -1,12 +1,14 @@
 <?php
 /**
- * Where a Users+ Pro feature would go: a picture of it, and nothing more.
+ * Where a Users+ Pro feature would go: the control it would be, switched off,
+ * and nothing more.
  *
  * Drawn only to whoever administers the plugin's screens, only on them, only
  * while the setting is on, and only while nothing — Pro itself, or a site —
- * said no for that place. The picture is out of reach and sends nothing with
- * the form it is drawn in; the way out is an escaped link to diluxone.com
- * that says which screen it came from.
+ * said no for that place. Whatever shape it takes it is disabled and has no
+ * name, so it sends nothing with the form it is drawn in; it carries the
+ * badge and one way out, an escaped link to diluxone.com that says which
+ * screen it came from.
  *
  * The setting is the network's: on a network it is set in Network Admin, on
  * a single site on Maintenance › Tools.
@@ -33,48 +35,127 @@ class ProPreviewTest extends IntegrationTestCase {
 		parent::tearDown();
 	}
 
-	/** A picture made with the screen's own pieces, a control with a name in it. */
-	public function picture(): void {
-		diluxone_users_ui_choices(
-			array(
+	/** The pattern's one choice, drawn in a group after a real answer. */
+	private function choices(): string {
+		return $this->draw(
+			'diluxone_users_ui_choices',
+			diluxone_users_ui_pro_choices(
 				array(
-					'type'    => 'checkbox',
-					'name'    => 'diluxone_users_made_up',
-					'value'   => '1',
-					'checked' => true,
-					'title'   => 'Made up for the picture',
+					array(
+						'name'  => 'diluxone_users_real',
+						'value' => 'yes',
+						'title' => 'A real answer',
+					),
 				),
+				array( self::ARGS )
 			)
 		);
-		echo '<input type="text" name="diluxone_users_other" value="x" form="elsewhere">';
 	}
 
-	private function preview(): string {
-		return $this->draw( 'diluxone_users_ui_pro', self::ARGS, array( $this, 'picture' ) );
+	/** Every shape the pattern takes, drawn. */
+	private function shapes(): array {
+		return array(
+			'choice'  => $this->choices(),
+			'button'  => $this->draw( 'diluxone_users_ui_pro_button', self::ARGS ),
+			'card'    => $this->draw( 'diluxone_users_ui_pro_card', self::ARGS + array( 'icon' => 'dashicons-admin-site' ) ),
+			'shape'   => $this->draw( 'diluxone_users_ui_pro_shape', self::ARGS + array( 'art' => 'login-split' ) ),
+			'row'     => $this->draw( 'diluxone_users_summary_table', array_filter( array( diluxone_users_ui_pro_row( self::ARGS ) ) ) ),
+			'control' => $this->draw(
+				'diluxone_users_ui_pro_control',
+				self::ARGS,
+				static function (): void {
+					echo '<select disabled><option>Made up</option></select>';
+				}
+			),
+		);
 	}
 
-	public function test_the_picture_is_out_of_reach_and_sends_nothing(): void {
+	public function test_every_shape_is_the_control_switched_off_with_the_badge_and_one_link(): void {
 		$this->the_admin();
 
-		$html = $this->preview();
+		// Printed through wp_kses() in some shapes, which writes the ampersand
+		// its own way; the address is the same.
+		$link = '/href="https:\/\/diluxone\.com\/users-pro\/\?utm_source=diluxone-users(&#038;|&amp;)utm_medium=diluxone-users-design(&#038;|&amp;)utm_campaign=free"/';
 
-		$this->assertStringContainsString( '<div class="du-pro__picture" inert aria-hidden="true">', $html );
-		$this->assertStringContainsString( 'Made up for the picture', $html, 'the picture is drawn' );
-		$this->assertStringNotContainsString( 'name=', $html, 'no control in it is posted with the form around it' );
-		$this->assertStringNotContainsString( 'form="elsewhere"', $html );
-		$this->assertStringContainsString( 'diluxone-users-state--pro', $html, 'the badge' );
-		$this->assertStringContainsString( 'A picture beside the form, or behind it.', $html );
+		foreach ( $this->shapes() as $shape => $html ) {
+			$this->assertStringContainsString( 'data-diluxone-users-pro="design/login/shapes"', $html, "$shape: marked for the filter" );
+			$this->assertStringContainsString( 'diluxone-users-state--pro', $html, "$shape: the badge" );
+			$this->assertSame( 1, substr_count( $html, 'Learn about Users+ Pro' ), "$shape: one way out" );
+			$this->assertMatchesRegularExpression( $link, $html, "$shape: the escaped link, with the screen as its medium" );
+			$this->assertStringContainsString( 'target="_blank" rel="noopener noreferrer"', $html, "$shape: leaves the dashboard and says so" );
+			$this->assertStringContainsString( '(opens in a new tab)', $html, "$shape: for a screen reader too" );
+			$this->assertStringContainsString( 'A picture beside the form, or behind it.', $html, "$shape: what Pro adds" );
+			$this->assertStringNotContainsString( 'inert', $html, "$shape: nothing is a picture" );
+		}
 	}
 
-	public function test_the_way_out_is_escaped_and_says_where_it_came_from(): void {
+	public function test_a_control_in_it_is_disabled_and_has_no_name(): void {
 		$this->the_admin();
 
-		$html = $this->preview();
+		$shapes = $this->shapes();
 
-		$this->assertStringContainsString( 'href="https://diluxone.com/users-pro/?utm_source=diluxone-users&#038;utm_medium=diluxone-users-design&#038;utm_campaign=free"', $html );
-		$this->assertStringContainsString( 'target="_blank" rel="noopener noreferrer"', $html );
-		$this->assertStringContainsString( 'Learn about Users+ Pro', $html );
+		foreach ( array( 'choice', 'button', 'shape', 'control' ) as $shape ) {
+			$pro = substr( $shapes[ $shape ], (int) strpos( $shapes[ $shape ], 'data-diluxone-users-pro=' ) );
 
+			$this->assertMatchesRegularExpression( '/<(input|button|select)[^>]*\sdisabled/', $pro, "$shape: the control it would be, switched off" );
+			$this->assertStringNotContainsString( 'name="', $pro, "$shape: nothing in it is posted with the form around it" );
+		}
+
+		$this->assertStringNotContainsString( 'diluxone_users_panel_drawn', substr( $shapes['choice'], (int) strpos( $shapes['choice'], 'data-diluxone-users-pro=' ) ), 'and no line for the save either' );
+		$this->assertStringNotContainsString( '<input', $shapes['card'], 'the card has nothing to open' );
+		$this->assertStringNotContainsString( '<button', $shapes['card'] );
+		$this->assertStringNotContainsString( '<input', $shapes['row'] );
+	}
+
+	public function test_the_choice_comes_after_the_real_answers_as_one_of_them(): void {
+		$this->the_admin();
+
+		$html = $this->choices();
+		$real = strpos( $html, 'name="diluxone_users_real"' );
+		$pro  = strpos( $html, 'data-diluxone-users-pro="design/login/shapes"' );
+
+		$this->assertNotFalse( $real );
+		$this->assertNotFalse( $pro );
+		$this->assertGreaterThan( $real, $pro, 'after the real answer' );
+		$this->assertStringContainsString( 'class="du-choice is-locked du-pro du-pro--choice"', $html, 'drawn as the real ones are, locked' );
+		$this->assertSame( 2, substr_count( $html, '<label class="du-choice' ), 'in the same group' );
+		$this->assertStringContainsString( 'Two more shapes', $html );
+	}
+
+	public function test_a_checkbox_is_a_checkbox_and_a_shape_a_radio_in_a_grid(): void {
+		$this->the_admin();
+
+		$box = diluxone_users_ui_pro_choice( array( 'type' => 'checkbox' ) + self::ARGS );
+
+		$this->assertSame( 'checkbox', $box['type'] );
+		$this->assertSame( '', $box['name'] );
+		$this->assertTrue( $box['disabled'] );
+		$this->assertSame( 'pro', $box['state'] );
+
+		$shape = $this->draw( 'diluxone_users_ui_pro_shape', self::ARGS + array( 'art' => 'login-split' ) );
+
+		$this->assertStringContainsString( 'class="diluxone-users-templates__one du-pro du-pro--shape"', $shape, 'one more card of the grid' );
+		$this->assertStringContainsString( '<input type="radio" disabled>', $shape );
+		$this->assertStringContainsString( 'diluxone-users-templates__art--login-split', $shape );
+	}
+
+	public function test_the_row_is_a_row_of_the_table_with_the_badge_where_the_state_goes(): void {
+		$this->the_admin();
+
+		$row = diluxone_users_ui_pro_row( self::ARGS );
+
+		$this->assertSame( 'pro', $row['state'] );
+		$this->assertSame( 'design/login/shapes', $row['pro'] );
+		$this->assertSame( 'Learn about Users+ Pro', $row['change'] );
+
+		$html = $this->draw( 'diluxone_users_summary_table', array( array( 'label' => 'Real', 'state' => 'active' ), $row ) );
+
+		$this->assertSame( 2, substr_count( $html, '<tr' ) );
+		$this->assertStringContainsString( '<tr class="du-pro du-pro--row" data-diluxone-users-pro="design/login/shapes">', $html );
+		$this->assertGreaterThan( strpos( $html, 'Real' ), strpos( $html, 'du-pro--row' ), 'after the real rows' );
+	}
+
+	public function test_the_address_is_escaped_and_says_where_it_came_from(): void {
 		$this->assertSame(
 			'https://diluxone.com/users-pro/?utm_source=diluxone-users&utm_medium=scriptalertxscript&utm_campaign=free',
 			diluxone_users_pro_url( '"><script>alert(x)</script>' ),
@@ -86,46 +167,42 @@ class ProPreviewTest extends IntegrationTestCase {
 		$this->the_admin();
 		diluxone_users_update_option( 'diluxone_users_pro_previews', 0 );
 
-		$this->assertSame( '', $this->preview() );
-		$this->assertSame( '', $this->draw( 'diluxone_users_ui_pro_card', self::ARGS ) );
+		$this->assertSame( array(), diluxone_users_ui_pro_choice( self::ARGS ) );
+		$this->assertSame( array(), diluxone_users_ui_pro_row( self::ARGS ) );
+
+		foreach ( $this->shapes() as $shape => $html ) {
+			$this->assertStringNotContainsString( 'du-pro', $html, $shape );
+		}
 	}
 
 	public function test_nothing_where_a_filter_says_no_and_the_rest_stays(): void {
 		$this->the_admin();
 		$this->hook( 'diluxone_users_upsell', static fn( bool $show, string $where ): bool => 'design/login/shapes' !== $where && $show, 10, 2 );
 
-		$this->assertSame( '', $this->preview(), 'Pro draws this one for real' );
-		$this->assertNotSame( '', $this->draw( 'diluxone_users_ui_pro_card', array( 'where' => 'membership/policy' ) + self::ARGS ), 'another place still says it' );
+		$this->assertSame( '', $this->draw( 'diluxone_users_ui_pro_button', self::ARGS ), 'Pro draws this one for real' );
+		$this->assertSame( array(), diluxone_users_ui_pro_choice( self::ARGS ) );
+		$this->assertNotSame( '', $this->draw( 'diluxone_users_ui_pro_button', array( 'where' => 'membership/policy' ) + self::ARGS ), 'another place still says it' );
 	}
 
 	public function test_nothing_on_the_front_end(): void {
 		$this->the_admin();
 		$this->as_front_end();
 
-		$this->assertSame( '', $this->preview() );
+		$this->assertSame( '', $this->draw( 'diluxone_users_ui_pro_button', self::ARGS ) );
 		$this->assertSame( '', $this->draw( 'diluxone_users_ui_pro_card', self::ARGS ) );
+		$this->assertSame( array(), diluxone_users_ui_pro_choice( self::ARGS ) );
 	}
 
 	public function test_nothing_for_somebody_who_does_not_administer_the_screens(): void {
 		wp_set_current_user( $this->make_user( 'editor' ) );
 
-		$this->assertSame( '', $this->preview() );
+		$this->assertSame( '', $this->draw( 'diluxone_users_ui_pro_button', self::ARGS ) );
+		$this->assertSame( array(), diluxone_users_ui_pro_choice( self::ARGS ) );
 	}
 
-	public function test_the_card_after_the_real_answers_has_no_control(): void {
-		$this->the_admin();
-
-		$html = $this->draw( 'diluxone_users_ui_pro_card', self::ARGS );
-
-		$this->assertStringContainsString( 'class="du-pro-card"', $html );
-		$this->assertStringContainsString( 'Two more shapes', $html );
-		$this->assertStringNotContainsString( '<input', $html, 'a card to read, not an answer to pick' );
-		$this->assertStringContainsString( 'utm_campaign=free', $html );
-	}
-
-	public function test_the_markup_the_plugin_prints_keeps_inert(): void {
-		$this->assertArrayHasKey( 'inert', diluxone_users_allowed_html()['div'] );
+	public function test_the_pro_state_is_the_last_one(): void {
 		$this->assertSame( 'pro', array_key_last( diluxone_users_states() ) );
+		$this->assertArrayNotHasKey( 'inert', diluxone_users_allowed_html()['div'], 'nothing the plugin prints is a picture any more' );
 	}
 
 	/* ── The setting ───────────────────────────────────────────────── */

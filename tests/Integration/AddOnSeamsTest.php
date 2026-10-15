@@ -546,18 +546,23 @@ class AddOnSeamsTest extends IntegrationTestCase {
 
 	/* ── Where Users+ Pro's passkeys would go ─────────────────────── */
 
-	public function test_the_pro_card_follows_the_ways_in_and_the_picture_sits_under_the_security_summary(): void {
+	public function test_the_pro_box_follows_the_ways_in_and_the_pro_row_ends_the_security_summary(): void {
 		$this->the_admin();
 
 		$ways = $this->draw( 'diluxone_users_screen_login_ways' );
-		$card = strpos( $ways, 'data-diluxone-users-pro="login/ways/more"' );
+		$box  = strpos( $ways, 'data-diluxone-users-pro="login/ways/more"' );
 
-		$this->assertNotFalse( $card );
-		$this->assertGreaterThan( strpos( $ways, 'name="diluxone_users_sso_login"' ), $card, 'after the real ways in' );
+		$this->assertNotFalse( $box );
+		$this->assertGreaterThan( strpos( $ways, 'name="diluxone_users_sso_login"' ), $box, 'after the real ways in' );
+		$this->assertMatchesRegularExpression( '/<input\s+type="checkbox"\s+value=""[^>]*disabled/', substr( $ways, $box ), 'the box it would be, switched off and nameless' );
 
 		$summary = $this->draw( 'diluxone_users_screen_security_summary' );
-		$this->assertStringContainsString( 'data-diluxone-users-pro="security/summary/more"', $summary );
-		$this->assertStringContainsString( 'du-pro__picture" inert aria-hidden="true"', $summary );
+		$row     = strpos( $summary, 'data-diluxone-users-pro="security/summary/more"' );
+
+		$this->assertNotFalse( $row );
+		$this->assertStringContainsString( 'class="du-pro du-pro--row"', $summary, 'a row of the table, not a picture under it' );
+		$this->assertStringNotContainsString( 'du-pro__picture', $summary );
+		$this->assertSame( 1, substr_count( $summary, '<table' ), 'one table' );
 	}
 
 	public function test_an_addon_that_brings_them_turns_both_placeholders_off(): void {

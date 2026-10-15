@@ -66,13 +66,24 @@ test.describe('Social login › a provider’s own screen', () => {
 		await page.goto(`/wp-admin/admin.php?page=${SOCIAL}`);
 
 		const grid = page.locator('.diluxone-users-cards');
-		const pro = grid.locator('[data-diluxone-users-pro="social/providers/more"]');
+		const pro = grid.locator('[data-diluxone-users-pro^="social/providers/"]');
+		const networks = ['linkedin', 'twitter', 'facebook', 'github', 'wordpress', 'yahoo', 'twitch', 'discord', 'gitlab', 'amazon'];
 
-		await expect(pro, 'one card, not one per network').toHaveCount(1);
-		await expect(grid.locator(':scope > *').last(), 'after every real network').toHaveAttribute('data-diluxone-users-pro', 'social/providers/more');
-		await expect(pro).toContainText('Ten more networks');
-		await expect(pro.locator('a')).toHaveAttribute('href', /diluxone\.com\/users-pro\/.*utm_medium=social/);
-		await expect(pro.locator('input, select, textarea, button'), 'nothing in it is a control').toHaveCount(0);
+		await expect(pro, 'one card per network').toHaveCount(networks.length);
+		await expect(grid.locator(':scope > *').last(), 'after every real network').toHaveAttribute('data-diluxone-users-pro', 'social/providers/amazon');
+
+		for (const [i, network] of networks.entries()) {
+			const one = pro.nth(i);
+
+			await expect(one, network).toHaveAttribute('data-diluxone-users-pro', `social/providers/${network}`);
+			await expect(one.locator('.diluxone-users-card__icon svg'), `${network}: its logo`).toHaveCount(1);
+			await expect(one.locator('h3'), `${network}: its name`).not.toBeEmpty();
+			await expect(one.locator('.diluxone-users-state--pro'), `${network}: the badge`).toHaveCount(1);
+			await expect(one.locator('a'), `${network}: the one way out`).toHaveCount(1);
+			await expect(one.locator('a')).toHaveAttribute('href', /diluxone\.com\/users-pro\/.*utm_medium=social/);
+			await expect(one, `${network}: nothing to get started with`).not.toContainText('Get started');
+			await expect(one.locator('input, select, textarea, button'), `${network}: nothing in it is a control`).toHaveCount(0);
+		}
 
 		const kept = grid.locator('.diluxone-users-card').filter({ has: page.locator('h3', { hasText: /^gone$/ }) });
 

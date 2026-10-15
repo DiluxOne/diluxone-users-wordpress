@@ -88,10 +88,11 @@ test.describe('Security › Two-step verification: each control writes what the 
 		await expectSignedIn(guest, email);
 
 		// The code by e-mail, the plugin's one method, ticked on the screen;
-		// the app is Users+ Pro's card after it, not a box.
+		// the app is Users+ Pro's box after it, disabled and nameless.
 		await openTab(page);
 		await expect(method(page, 'totp')).toHaveCount(0);
 		await expect(page.locator('[data-diluxone-users-pro="security/2fa/app"]')).toBeVisible();
+		await expect(page.locator('[data-diluxone-users-pro="security/2fa/app"] input'), 'a box, but not one to tick').toBeDisabled();
 		await method(page, 'email').check();
 		await saveSaying(page, METHOD_BUG);
 
@@ -179,15 +180,29 @@ test.describe('Security › Two-step verification: each control writes what the 
 });
 
 test.describe('Security › Two-step verification: what the screen says about itself', () => {
-	test('Users+ Pro’s three cards sit where the roles, the app and the remembered browser would be, and send nothing', async ({ page }) => {
+	test('Users+ Pro’s three answers sit inside their groups as the controls they would be: disabled, nameless, with the badge and the link', async ({ page }) => {
 		await openTab(page);
 
-		for (const where of ['security/2fa/roles', 'security/2fa/app', 'security/2fa/remember']) {
-			const card = page.locator(`[data-diluxone-users-pro="${where}"]`);
+		const shapes = { 'security/2fa/roles': 'radio', 'security/2fa/app': 'checkbox', 'security/2fa/remember': 'checkbox' };
 
-			await expect(card, where).toBeVisible();
-			await expect(card.locator('input, select, textarea, button'), `${where}: nothing in it posts`).toHaveCount(0);
+		for (const [where, type] of Object.entries(shapes)) {
+			const pro = page.locator(`[data-diluxone-users-pro="${where}"]`);
+
+			await expect(pro, where).toBeVisible();
+			await expect(pro, `${where}: a choice like the real ones`).toHaveClass(/du-choice/);
+			await expect(pro.locator(`input[type="${type}"]`), `${where}: the control it would be`).toBeDisabled();
+			await expect(pro.locator('[name]'), `${where}: nothing in it posts`).toHaveCount(0);
+			await expect(pro.locator('.diluxone-users-state--pro'), `${where}: the badge`).toHaveCount(1);
+			await expect(pro.locator('a'), `${where}: the one link`).toHaveAttribute('href', /diluxone\.com\/users-pro\/.*utm_medium=security-2fa/);
 		}
+
+		// Each inside the group it belongs to, after that group's real answers.
+		const groupOf = (where: string) => page.locator(`[data-diluxone-users-pro="${where}"]`).locator('xpath=ancestor::*[contains(@class, "du-choices")][1]');
+
+		await expect(groupOf('security/2fa/roles').locator('input[name="diluxone_users_2fa_mode"]'), 'with the three modes').toHaveCount(3);
+		await expect(groupOf('security/2fa/app').locator('input[name="diluxone_users_2fa_methods[]"]'), 'with the methods').toHaveCount(1);
+		await expect(groupOf('security/2fa/remember').locator('input[name="diluxone_users_2fa_link"]'), 'with the link rule').toHaveCount(3);
+		await expect(page.locator('.du-pro-card, .du-pro__picture'), 'no dashed box of text, no picture').toHaveCount(0);
 
 		await expect(page.locator('input[name="diluxone_users_2fa_scope"]')).toHaveCount(0);
 		await expect(page.locator('input[name="diluxone_users_2fa_remember_days"]')).toHaveCount(0);

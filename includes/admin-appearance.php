@@ -117,20 +117,22 @@ function diluxone_users_screen_appearance_template(): void {
 		if ( '' !== $kept ) {
 			diluxone_users_ui_kept_card( 'diluxone_users_account_template', $kept, (string) ( diluxone_users_account_templates()['plain']['label'] ?? __( 'Simple', 'diluxone-users' ) ) );
 		}
+
+		// After the real shapes, the one Users+ Pro brings, as the card it
+		// would be: nothing to pick.
+		diluxone_users_ui_pro_shape(
+			array(
+				'where'  => 'design/account/shapes',
+				'screen' => 'design',
+				'art'    => 'cover',
+				'title'  => __( 'With a cover', 'diluxone-users' ),
+				'text'   => __( 'Users+ Pro adds the account area with a cover: the person on a band the full width of the window, in a colour or a picture, with the menu in a strip of its own underneath.', 'diluxone-users' ),
+			)
+		);
 		?>
 	</div>
 	<?php
 	diluxone_users_ui_wide_close();
-
-	// After the real answers and never among them.
-	diluxone_users_ui_pro_card(
-		array(
-			'where'  => 'design/account/shapes',
-			'screen' => 'design',
-			'title'  => __( 'With a cover', 'diluxone-users' ),
-			'text'   => __( 'Users+ Pro adds the account area with a cover: the person on a band the full width of the window, in a colour or a picture, with the menu in a strip of its own underneath.', 'diluxone-users' ),
-		)
-	);
 
 	/**
 	 * Fires under the shapes of the account area, on Design › Account area.
@@ -441,16 +443,18 @@ function diluxone_users_brand_look(): string {
 }
 
 /**
- * A picture of which colour of the theme's palette plays which part.
+ * The rows that would choose which colour of the theme's palette plays which
+ * part, switched off.
  *
  * Choosing that by hand is Users+ Pro's. The plugin guesses it from the names
  * the theme gives its colours, which is right for a theme that names them the
- * way WordPress suggests; the picture is of the rows that say so, with the
- * theme's own colours in them, and nothing in it sends.
+ * way WordPress suggests; the rows say what it guessed, with the theme's own
+ * colours in them, and each select is disabled and nameless, so nothing in
+ * them can be changed or sent.
  *
  * @param array<string, array<string, string>> $palette
  */
-function diluxone_users_brand_map_picture( array $palette ): void {
+function diluxone_users_brand_map_rows( array $palette ): void {
 	$map = diluxone_users_color_map();
 
 	foreach ( diluxone_users_color_roles() as $role => $part ) {
@@ -458,7 +462,7 @@ function diluxone_users_brand_map_picture( array $palette ): void {
 		?>
 		<p class="diluxone-users-palette__row">
 			<span class="diluxone-users-palette__chip" style="background: <?php echo esc_attr( isset( $palette[ $now ] ) ? (string) $palette[ $now ]['color'] : (string) ( diluxone_users_color_own()[ $role ] ?? '#ffffff' ) ); ?>" aria-hidden="true"></span>
-			<select>
+			<select disabled>
 				<option><?php echo esc_html( isset( $palette[ $now ] ) ? (string) $palette[ $now ]['name'] : __( '— the plugin’s own', 'diluxone-users' ) ); ?></option>
 			</select>
 			<span class="description">
@@ -491,14 +495,21 @@ function diluxone_users_brand_own_colour(): void {
 		)
 	);
 
-	// After the real answers and never among them.
-	diluxone_users_ui_pro_card(
+	// After the swatches, the picker Users+ Pro brings, as the control it
+	// would be: switched off, and with no name, so nothing posts it.
+	diluxone_users_ui_pro_control(
 		array(
 			'where'  => 'design/brand/any-color',
 			'screen' => 'design',
-			'title'  => __( 'Any colour', 'diluxone-users' ),
 			'text'   => __( 'Users+ Pro adds a picker for any colour at all, here and wherever the plugin asks for one.', 'diluxone-users' ),
-		)
+		),
+		static function (): void {
+			printf(
+				'<label class="du-pro__picker"><input type="color" value="%1$s" disabled> %2$s</label>',
+				esc_attr( diluxone_users_accent_default() ),
+				esc_html__( 'Any colour', 'diluxone-users' )
+			);
+		}
 	);
 
 	diluxone_users_ui_number(
@@ -567,15 +578,14 @@ function diluxone_users_screen_design_brand(): void {
 	// setting for something that cannot happen.
 	if ( array() !== $palette ) {
 		$theme['children'] = static function () use ( $palette ): void {
-			diluxone_users_ui_pro(
+			diluxone_users_ui_pro_control(
 				array(
 					'where'  => 'design/brand/color-map',
 					'screen' => 'design',
-					'title'  => __( 'Which colour does what', 'diluxone-users' ),
 					'text'   => __( 'Users+ Pro lets you choose which colour of your theme’s palette plays each part, for a theme that numbers its colours instead of naming them.', 'diluxone-users' ),
 				),
 				static function () use ( $palette ): void {
-					diluxone_users_brand_map_picture( $palette );
+					diluxone_users_brand_map_rows( $palette );
 				}
 			);
 
