@@ -16,9 +16,9 @@ name: Release
 # The SVN credentials and the release App's key live in the environment
 # `wordpress-org`. An environment's secrets reach a called workflow only
 # through `secrets: inherit`, which passes every repository and organisation
-# secret too; that is why this workflow runs only on main and on X.Y.Z tags
-# and calls the shared workflow at a fixed commit (Dependabot keeps the pin
-# current; a bump of it is reviewed as the secret-bearing change it is).
+# secret too; that is why this workflow runs only on main and on X.Y.Z tags.
+# It calls the shared workflow at `v5`, a protected ref only an administrator
+# of DiluxOne/.github moves, like every other caller in this repository.
 #
 # It starts as a rehearsal (dry-run: true): everything but the SVN commit, the
 # tag and the release. The maintainer turns it to false after a rehearsal
@@ -33,14 +33,12 @@ on:
 permissions:
   contents: write
   pull-requests: read # the labels of what merged decide the version
+  actions: read # the environment's rules, read before a version reaches the deploy
 
 jobs:
   release:
-    uses: DiluxOne/.github/.github/workflows/plugin-release-wp.yml@01837f9da2b980374c9c37748a533d0a2d623cd8 # v5.4.0
+    uses: DiluxOne/.github/.github/workflows/plugin-release-wp.yml@v5
     with:
-      # The scripts the release reads come from the same commit as the
-      # workflow: without it they would follow the moving v5.
-      central-ref: 01837f9da2b980374c9c37748a533d0a2d623cd8
       slug: diluxone-users
       main-file: diluxone-users.php
       version-constant: DILUXONE_USERS_VERSION

@@ -4,24 +4,24 @@ For everyone who touches this repository: outside contributors, maintainers and 
 
 ## Where it stands
 
-DiluxOne Users+ is at **1.0.0 and has not been published**. The first submission to wordpress.org is pending, so there is no SVN repository, no release tag and no release yet. The three version markers are already at `1.0.0`: the `Version:` header and the `DILUXONE_USERS_VERSION` constant in `diluxone-users.php`, and `Stable tag:` in `readme.txt`, whose changelog has one entry, `= 1.0.0 =`.
+DiluxOne Users+ is at **1.0.0 and has not been published**. wordpress.org approved the plugin on 4 October 2026, so the SVN repository exists and is empty; there is no release tag and no release yet, and `readme.txt` holds 1.0.0 with the line `Unreleased.` until the maintainer decides to publish (below). The three version markers are already at `1.0.0`: the `Version:` header and the `DILUXONE_USERS_VERSION` constant in `diluxone-users.php`, and `Stable tag:` in `readme.txt`, whose changelog has one entry, `= 1.0.0 =`.
 
 Two things change how releases work, and this page says which rule applies when:
 
 1. **The move** of the repository to the DiluxOne organisation, where it takes the shared workflows every DiluxOne plugin uses.
 2. **The approval** of the plugin by the wordpress.org Plugin Review team, which creates the SVN repository a release is published to.
 
-Until both have happened, only [The first submission](#the-first-submission) applies.
+Both have happened: the repository is in DiluxOne and the approval arrived on 4 October 2026. [The first submission](#the-first-submission) stays as the record of how it was obtained; what applies now starts at [When the approval arrives](#when-the-approval-arrives).
 
 ## Versions
 
 [Semantic Versioning](https://semver.org/) for the plugin's public version: a fix is a patch (1.0.0 → 1.0.1), new functionality a minor (1.0.0 → 1.1.0), a breaking change a major (1.0.0 → 2.0.0). Changes that do not reach users (docs, tests, CI, tooling) release nothing on their own; `.distignore` keeps them out of what ships.
 
-No pull request moves the version markers. Before the approval there is nothing to move them to; after the approval the version is computed from labels (below) and stamped by the release job.
+No pull request moves the version markers. They sit at `1.0.0` until it is published; from then on the version is computed from labels (below) and stamped by the release job.
 
 ## The first submission
 
-The first version is not published by a tag. The maintainer uploads a zip, the Plugin Review team reads the code, and only their approval creates the plugin's SVN repository.
+The first version was not published by a tag. The maintainer uploaded a zip, the Plugin Review team read the code, and their approval (4 October 2026) created the plugin's SVN repository. This is what was done, kept as the record:
 
 1. **Everything green on `main`**: `make check`, `make test-unit-min`, `make env-multisite && make test-integration`, `make test-e2e`, `make test-e2e-network`, `make i18n-check` and `make plugin-check` with no errors. Plugin Check is the tool the review team runs.
 2. **Build the zip from a clean checkout of `main`**, not from a working tree with local changes, so what is reviewed is what is in the repository:
@@ -30,13 +30,13 @@ The first version is not published by a tag. The maintainer uploads a zip, the P
    ```
 3. **Upload it** at <https://wordpress.org/plugins/developers/add/>. Only the maintainer does this, never an agent.
 4. **Answer the review.** Every point the team raises is fixed in a pull request like any other change, and the next zip is built again from `main`. Their notes are not argued away: if a point does not reproduce, the answer explains what was checked.
-5. **Do not push tags** while the review is open. There is no SVN to publish to, and a tag `X.Y.Z` is permanent.
+5. **No tags** while the review was open: there was no SVN to publish to, and a tag `X.Y.Z` is permanent.
 
 ### When the approval arrives
 
 - **Check the slug wordpress.org assigned** before anything else. It is proposed from the plugin name, and the code assumes `diluxone-users`: the text domain must equal the slug or translate.wordpress.org's language packs never reach a site, and a slug cannot be changed once published. If it differs, stop and settle that first.
-- **Publish 1.0.0** from the approved commit, with the markers already at `1.0.0`, by a tag `1.0.0` the maintainer pushes, which runs the shared release job ([`release.yml`](../.github/workflows/release.yml)); it accepts an administrator's tag only as the version it computes. The job starts as a rehearsal (`dry-run: true`): the maintainer turns it off, in a pull request of its own, after a rehearsal approved in the environment. The SVN credentials and the release App's key are already in the `wordpress-org` environment.
-- **Open the next changelog entry** in the next change that deserves one, `= X.Y.Z =` with `Unreleased.` as its first line (below).
+- **1.0.0 is held until the maintainer decides.** The approval arrived on 4 October 2026 and the markers are at `1.0.0`, but `readme.txt` says `Unreleased.` under `= 1.0.0 =`, so every push to `main` ends as **Not ready** and nothing waits for approval. Publishing is the flow below: the maintainer removes that line in a pull request of its own, then approves the deployment the next push to `main` asks for in the `wordpress-org` environment. A tag `1.0.0` the maintainer pushes runs the same job ([`release.yml`](../.github/workflows/release.yml)), which refuses it while the `Unreleased.` line is there and otherwise accepts it only as the version it computes. The job starts as a rehearsal (`dry-run: true`): the maintainer turns it off, in a pull request of its own, after a rehearsal approved in the environment. The SVN credentials and the release App's key are already in the `wordpress-org` environment.
+- **Until 1.0.0 is published, a change a user notices adds its bullet under `= 1.0.0 =`**, below the `Unreleased.` line. After it, the next change that deserves a bullet opens the next entry, `= X.Y.Z =` with `Unreleased.` as its first line (below).
 
 ## After the approval
 

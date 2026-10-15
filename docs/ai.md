@@ -29,7 +29,7 @@ When an issue opens, Claude classifies it from the README, `readme.txt`, the doc
 
 ## What is never automated
 
-- **Submitting and releasing.** The first submission to wordpress.org is a zip the maintainer uploads; every release after it is a deployment only the maintainer approves ([`release.md`](release.md)). No agent tags, touches SVN or uploads anything.
+- **Submitting and releasing.** The first submission to wordpress.org was a zip the maintainer uploaded; every release is a deployment only the maintainer approves ([`release.md`](release.md)). No agent tags, touches SVN or uploads anything.
 - **Merging anything that is not low risk.** A human decides.
 - **Changing the review rules.** Every change goes through a pull request the maintainer approves.
 - **Closing a bug or shipping a fix.** The triage labels and asks; a person decides.
