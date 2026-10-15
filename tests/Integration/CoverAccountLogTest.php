@@ -1,16 +1,14 @@
 <?php
 /**
- * The activity log and the moves that brought the network's settings and logs
- * together, around their edges.
+ * The activity log, around its edges.
  *
  * A table that cannot be brought up to date records nothing and reads as
  * empty, rather than a database error on somebody's sign-in. A list of sites
  * that holds none is nothing, not everything. A site that no longer exists is
- * named by its number. The daily purge and the move's cron run do their work
- * and nothing else; a move cron is already carrying on is not started again.
- * And the settings helpers: somebody in no role is in no "some roles" scope,
- * the settings that may carry markup are stored through kses, and whoever
- * pins a setting from code is named by the file it lives in.
+ * named by its number. The daily purge does its work and nothing else. And
+ * the settings helpers: somebody in no role is in no "some roles" scope, the
+ * settings that may carry markup are stored through kses, and whoever pins a
+ * setting from code is named by the file it lives in.
  */
 
 namespace Tests\Integration;
@@ -22,7 +20,7 @@ function cover_account_pin_option( $value, string $key ) {
 
 class CoverAccountLogTest extends IntegrationTestCase {
 
-	/** @var array<string, mixed> The log's and the moves' own markers before the test. */
+	/** @var array<string, mixed> The log's own markers before the test. */
 	private array $markers = array();
 
 	/** Whether the test broke the table check. */
@@ -39,18 +37,13 @@ class CoverAccountLogTest extends IntegrationTestCase {
 
 	protected function setUp(): void {
 		parent::setUp();
-		$this->from_before_the_settled_defaults();
 
-		foreach ( array( DILUXONE_USERS_LOG_SCHEMA_OPTION, DILUXONE_USERS_LOG_MOVED, DILUXONE_USERS_LOG_MOVING, DILUXONE_USERS_NETWORK_VERSION_OPTION, DILUXONE_USERS_NETWORK_MIGRATING ) as $key ) {
-			$this->markers[ $key ] = diluxone_users_raw_get( $key, null );
-		}
+		$this->markers[ DILUXONE_USERS_LOG_SCHEMA_OPTION ] = diluxone_users_raw_get( DILUXONE_USERS_LOG_SCHEMA_OPTION, null );
 
 		$this->event = (string) array_key_first( diluxone_users_log_events() );
 		add_filter( 'diluxone_users_log_records', '__return_true' );
 
-		foreach ( array( DILUXONE_USERS_LOG_PURGE, DILUXONE_USERS_LOG_MOVE_EVENT, DILUXONE_USERS_NETWORK_MIGRATE_EVENT ) as $event ) {
-			$this->events[ $event ] = wp_next_scheduled( $event );
-		}
+		$this->events[ DILUXONE_USERS_LOG_PURGE ] = wp_next_scheduled( DILUXONE_USERS_LOG_PURGE );
 	}
 
 	protected function tearDown(): void {
@@ -129,54 +122,6 @@ class CoverAccountLogTest extends IntegrationTestCase {
 		$this->assertSame( 0, diluxone_users_log_empty_rows( get_current_blog_id() ) );
 	}
 
-	public function test_on_a_network_a_move_waits_for_a_table_to_move_into(): void {
-		if ( ! is_multisite() ) {
-			$this->markTestSkipped( 'A single site has no logs to move; its half is SingleSiteTest::test_the_log_is_the_sites_own_and_there_is_nothing_to_move.' );
-		}
-
-		diluxone_users_update_option( DILUXONE_USERS_LOG_MOVED, 0 );
-		$this->break_the_table();
-
-		$this->assertFalse( diluxone_users_log_move(), 'Nothing is moved into a table that is not there' );
-		$this->assertNull( diluxone_users_raw_get( DILUXONE_USERS_LOG_MOVING, null ), 'And nothing is started' );
-	}
-
-	public function test_on_a_network_a_move_cron_is_carrying_on_is_not_started_again(): void {
-		if ( ! is_multisite() ) {
-			$this->markTestSkipped( 'A single site has no logs to move; its half is SingleSiteTest::test_the_log_is_the_sites_own_and_there_is_nothing_to_move.' );
-		}
-
-		$moving = array(
-			'site'   => 999999,
-			'from'   => 0,
-			'copied' => 0,
-		);
-		diluxone_users_update_option( DILUXONE_USERS_LOG_MOVED, 0 );
-		diluxone_users_update_option( DILUXONE_USERS_LOG_MOVING, $moving );
-		wp_schedule_single_event( time() + HOUR_IN_SECONDS, DILUXONE_USERS_LOG_MOVE_EVENT );
-
-		diluxone_users_log_move_when_needed();
-
-		$this->assertSame( $moving, diluxone_users_raw_get( DILUXONE_USERS_LOG_MOVING, null ), 'Left to cron' );
-		$this->assertSame( 0, (int) diluxone_users_raw_get( DILUXONE_USERS_LOG_MOVED, 0 ) );
-	}
-
-	public function test_on_a_network_a_settings_move_cron_is_carrying_on_is_not_started_again(): void {
-		if ( ! is_multisite() ) {
-			$this->markTestSkipped( 'A single site has no network settings to move; its half is SingleSiteTest::test_there_is_nothing_to_move.' );
-		}
-
-		$moving = array( 'sites' => array( 999999 ) );
-		diluxone_users_delete_option( DILUXONE_USERS_NETWORK_VERSION_OPTION );
-		diluxone_users_update_option( DILUXONE_USERS_NETWORK_MIGRATING, $moving );
-		wp_schedule_single_event( time() + HOUR_IN_SECONDS, DILUXONE_USERS_NETWORK_MIGRATE_EVENT );
-
-		diluxone_users_network_settings_when_needed();
-
-		$this->assertSame( $moving, diluxone_users_raw_get( DILUXONE_USERS_NETWORK_MIGRATING, null ), 'Left to cron' );
-		$this->assertNull( diluxone_users_raw_get( DILUXONE_USERS_NETWORK_VERSION_OPTION, null ) );
-	}
-
 	/* ── The rest of the log ───────────────────────────────────────── */
 
 	public function test_the_dashboard_brings_a_table_a_shape_behind_up_to_date(): void {
@@ -234,67 +179,6 @@ class CoverAccountLogTest extends IntegrationTestCase {
 		do_action( DILUXONE_USERS_LOG_PURGE );
 
 		$this->assertNotContains( $row, array_map( 'intval', array_column( diluxone_users_log_search( array(), 1, 200 )['rows'], 'id' ) ), 'A row past every retention is gone' );
-	}
-
-	public function test_the_moves_cron_run_stops_when_there_is_nothing_to_move(): void {
-		diluxone_users_log_move_run();
-
-		$this->assertTrue( ! is_multisite() || diluxone_users_log_moved() );
-		$this->assertFalse( wp_next_scheduled( DILUXONE_USERS_LOG_MOVE_EVENT ) );
-	}
-
-	public function test_the_settings_move_from_cron_on_a_network_already_moved_changes_nothing(): void {
-		if ( ! is_multisite() ) {
-			$this->markTestSkipped( 'A single site has no network settings to move; its half is SingleSiteTest::test_there_is_nothing_to_move.' );
-		}
-
-		$version = diluxone_users_raw_get( DILUXONE_USERS_NETWORK_VERSION_OPTION, null );
-
-		// Moved, whatever the tests network had done before: that is the
-		// state this is about.
-		diluxone_users_update_option( DILUXONE_USERS_NETWORK_VERSION_OPTION, DILUXONE_USERS_NETWORK_VERSION );
-		diluxone_users_update_option( 'diluxone_users_2fa_mode', 'required' );
-		update_option( 'diluxone_users_2fa_mode', 'off' );
-
-		try {
-			diluxone_users_network_migrate_batch();
-
-			$this->assertSame( DILUXONE_USERS_NETWORK_VERSION, (int) diluxone_users_raw_get( DILUXONE_USERS_NETWORK_VERSION_OPTION ) );
-			$this->assertSame( 'required', diluxone_users_raw_get( 'diluxone_users_2fa_mode' ), 'the main site’s old copy is not taken again' );
-		} finally {
-			delete_option( 'diluxone_users_2fa_mode' );
-
-			if ( null === $version ) {
-				diluxone_users_delete_option( DILUXONE_USERS_NETWORK_VERSION_OPTION );
-			} else {
-				diluxone_users_update_option( DILUXONE_USERS_NETWORK_VERSION_OPTION, $version );
-			}
-		}
-	}
-
-	public function test_a_malformed_field_of_a_site_is_not_joined_into_the_network(): void {
-		if ( ! is_multisite() ) {
-			$this->markTestSkipped( 'A single site has no network fields; its half is SettingsFileTest::test_a_file_restored_on_a_single_site_restores_everything.' );
-		}
-
-		diluxone_users_network_join_fields(
-			get_main_site_id(),
-			array(
-				'not a field',
-				array( 'label' => 'No key' ),
-				array(
-					'key'   => '',
-					'label' => 'Empty key',
-				),
-				array(
-					'key'   => 'cover_account_city',
-					'label' => 'City',
-					'type'  => 'text',
-				),
-			)
-		);
-
-		$this->assertSame( array( 'cover_account_city' ), array_column( (array) get_site_option( 'diluxone_users_fields', array() ), 'key' ) );
 	}
 
 	/* ── The settings helpers ──────────────────────────────────────── */

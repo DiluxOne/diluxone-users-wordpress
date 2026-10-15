@@ -8,8 +8,7 @@
 # subscriber see, the dashboard's Users list and profile, every option, every
 # table, every user meta key, the rewrite rules, the cron events, and the
 # mails and outgoing HTTP requests of a registration, a password reset and a
-# sign-in. The two have to be the same, except for the one option the plugin
-# writes on its own account (ALLOWED below). Run with `make test-noop`.
+# sign-in. The two have to be the same. Run with `make test-noop`.
 
 set -euo pipefail
 
@@ -18,10 +17,6 @@ SLUG="$(basename "$ROOT")"
 ENV_DIR="$ROOT/build/noop"
 OUT="$ENV_DIR/fingerprint"
 URL="http://localhost:8884"
-
-# What activation may write. The defaults version: which defaults the install
-# settled on, today's or an older version's written down (includes/migrate.php).
-ALLOWED_OPTIONS='^diluxone_users_defaults_version$'
 
 mkdir -p "$ENV_DIR"
 cat > "$ENV_DIR/.wp-env.json" <<JSON
@@ -119,9 +114,6 @@ fingerprint "$OUT/before"
 wp plugin activate "$SLUG" >/dev/null
 curl -s -o /dev/null "$URL/"   # the first request after activation
 fingerprint "$OUT/after"
-
-# The option activation is allowed to write, and nothing else.
-grep -Ev "$ALLOWED_OPTIONS" "$OUT/after/options.txt" > "$OUT/after/options.txt.tmp" && mv "$OUT/after/options.txt.tmp" "$OUT/after/options.txt"
 
 if diff -ru "$OUT/before" "$OUT/after"; then
 	echo "✓ activating DiluxOne Users+ changed nothing (fingerprints in $OUT)"

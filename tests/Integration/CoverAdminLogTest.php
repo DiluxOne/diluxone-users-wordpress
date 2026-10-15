@@ -20,25 +20,14 @@ class CoverAdminLogTest extends IntegrationTestCase {
 
 	use CoverAdminSupport;
 
-	/** @var mixed */
-	private $moved;
-
 	protected function setUp(): void {
 		parent::setUp();
-		$this->from_before_the_settled_defaults();
 
 		diluxone_users_log_install();
-		$this->moved = diluxone_users_raw_get( DILUXONE_USERS_LOG_MOVED, null );
 	}
 
 	protected function tearDown(): void {
 		remove_filter( 'sites_pre_query', array( $this, 'a_hundred_and_one_sites' ) );
-
-		if ( null === $this->moved ) {
-			diluxone_users_delete_option( DILUXONE_USERS_LOG_MOVED );
-		} else {
-			diluxone_users_update_option( DILUXONE_USERS_LOG_MOVED, $this->moved );
-		}
 
 		$this->cover_admin_reset();
 
@@ -237,26 +226,5 @@ class CoverAdminLogTest extends IntegrationTestCase {
 		$html = $this->draw( 'diluxone_users_log_report', true );
 
 		$this->assertMatchesRegularExpression( '/<input type="number" id="diluxone-users-log-site" name="site"[^>]*value="7"/', $html );
-	}
-
-	public function test_while_old_rows_are_still_moving_both_reports_say_so(): void {
-		$this->network_only( 'test_a_long_report_is_paged_and_a_row_without_a_person_shows_nobody' );
-
-		diluxone_users_update_option( DILUXONE_USERS_LOG_MOVED, 0 );
-		$this->the_admin();
-
-		$this->assertStringContainsString( 'This site’s older rows are still being moved', $this->draw( 'diluxone_users_log_moving_notice', false ) );
-		$this->assertStringContainsString( 'The sites’ older rows are still being moved', $this->draw( 'diluxone_users_log_moving_notice', true ) );
-
-		diluxone_users_update_option( DILUXONE_USERS_LOG_MOVED, 1 );
-		$this->assertSame( '', $this->draw( 'diluxone_users_log_moving_notice', true ) );
-	}
-
-	public function test_a_single_site_has_nothing_to_move(): void {
-		$this->single_only( 'test_while_old_rows_are_still_moving_both_reports_say_so' );
-
-		$this->the_admin();
-
-		$this->assertSame( '', $this->draw( 'diluxone_users_log_moving_notice', false ) );
 	}
 }

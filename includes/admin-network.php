@@ -404,8 +404,6 @@ function diluxone_users_screen_network_overview(): void {
 		);
 	}
 
-	diluxone_users_network_conflicts_table();
-
 	diluxone_users_ui_aside_close(
 		static function (): void {
 			diluxone_users_ui_note(
@@ -431,121 +429,6 @@ function diluxone_users_screen_network_overview(): void {
 		}
 	);
 }
-
-/**
- * The settings sites had differently before they became the network's.
- *
- * Kept after the notice that announced them is dismissed: whoever looks later
- * — the day somebody on one of those sites asks why their setting changed —
- * finds the answer where the settings are.
- */
-function diluxone_users_network_conflicts_table(): void {
-	$conflicts = (array) diluxone_users_raw_get( DILUXONE_USERS_NETWORK_CONFLICTS, array() );
-
-	if ( array() === $conflicts ) {
-		return;
-	}
-
-	diluxone_users_ui_section(
-		__( 'What the sites had set differently', 'diluxone-users' ),
-		__( 'When the settings became the network’s, the main site’s were kept. These sites had something else, and now follow the network. The user fields are the exception: every site’s fields were kept.', 'diluxone-users' )
-	);
-	?>
-	<table class="wp-list-table widefat striped diluxone-users-list">
-		<thead>
-			<tr>
-				<th scope="col"><?php esc_html_e( 'Site', 'diluxone-users' ); ?></th>
-				<th scope="col"><?php esc_html_e( 'Setting', 'diluxone-users' ); ?></th>
-				<th scope="col"><?php esc_html_e( 'What it had', 'diluxone-users' ); ?></th>
-			</tr>
-		</thead>
-		<tbody>
-			<?php foreach ( $conflicts as $conflict ) : ?>
-				<tr>
-					<td><?php echo esc_html( (string) get_blog_option( (int) ( $conflict['site'] ?? 0 ), 'blogname' ) ); ?></td>
-					<td><code><?php echo esc_html( (string) ( $conflict['key'] ?? '' ) ); ?></code></td>
-					<td><?php echo esc_html( diluxone_users_network_conflict_says( (array) $conflict ) ); ?></td>
-				</tr>
-			<?php endforeach; ?>
-		</tbody>
-	</table>
-	<?php
-}
-
-/**
- * One line of that table, in words.
- *
- * @param array<string, mixed> $conflict As diluxone_users_network_migrate() records it.
- */
-function diluxone_users_network_conflict_says( array $conflict ): string {
-	switch ( (string) ( $conflict['kind'] ?? '' ) ) {
-		case 'secret':
-			return __( 'Different credentials, not shown. The main site’s are the network’s now.', 'diluxone-users' );
-		case 'wipe':
-			return __( 'Everything was to go when the plugin is deleted. The network’s answer starts unticked: it is decided on the Deleting the plugin tab.', 'diluxone-users' );
-		case 'field':
-			return sprintf(
-				/* translators: %s: the key of a user field */
-				__( 'A different definition of the field %s. The main site’s was kept.', 'diluxone-users' ),
-				(string) ( $conflict['field'] ?? '' )
-			);
-		default:
-			return (string) ( $conflict['was'] ?? '' );
-	}
-}
-
-/**
- * Says once, in Network Admin, that some sites had set things differently.
- *
- * Once: a notice that comes back on every screen until somebody reads a table
- * is a notice nobody reads. Dismissing it only stops the notice; the table
- * stays on the network's Overview.
- */
-function diluxone_users_network_conflicts_notice(): void {
-	$conflicts = (array) diluxone_users_raw_get( DILUXONE_USERS_NETWORK_CONFLICTS, array() );
-
-	if ( array() === $conflicts || diluxone_users_raw_get( DILUXONE_USERS_NETWORK_CONFLICTS_SEEN, 0 ) || ! current_user_can( DILUXONE_USERS_NETWORK_CAP ) || ! diluxone_users_notice_here() ) {
-		return;
-	}
-
-	$sites = array();
-
-	foreach ( $conflicts as $conflict ) {
-		$sites[ (int) ( $conflict['site'] ?? 0 ) ] = (string) get_blog_option( (int) ( $conflict['site'] ?? 0 ), 'blogname' );
-	}
-
-	printf(
-		'<div class="notice notice-warning"><p>%1$s</p><p><a href="%2$s">%3$s</a> &middot; <a href="%4$s">%5$s</a></p></div>',
-		esc_html(
-			sprintf(
-				/* translators: 1: plugin name, 2: the names of the sites, comma separated */
-				__( '%1$s now applies one set of settings to the whole network, taken from the main site. These sites had set some of them differently: %2$s.', 'diluxone-users' ),
-				diluxone_users_plugin_name(),
-				implode( ', ', array_filter( $sites ) )
-			)
-		),
-		esc_url( network_admin_url( 'admin.php?page=' . DILUXONE_USERS_MENU ) ),
-		esc_html__( 'See what was different', 'diluxone-users' ),
-		esc_url( wp_nonce_url( network_admin_url( 'admin.php?page=' . DILUXONE_USERS_MENU . '&diluxone_users_conflicts_seen=1' ), 'diluxone_users_conflicts_seen' ) ),
-		esc_html__( 'Dismiss', 'diluxone-users' )
-	);
-}
-add_action( 'network_admin_notices', 'diluxone_users_network_conflicts_notice' );
-
-/** Dismisses that notice, for good. */
-function diluxone_users_network_conflicts_dismiss(): void {
-	if ( ! isset( $_GET['diluxone_users_conflicts_seen'] ) || ! is_network_admin() || ! current_user_can( DILUXONE_USERS_NETWORK_CAP ) ) {
-		return;
-	}
-
-	check_admin_referer( 'diluxone_users_conflicts_seen' );
-
-	diluxone_users_update_option( DILUXONE_USERS_NETWORK_CONFLICTS_SEEN, 1 );
-
-	wp_safe_redirect( network_admin_url( 'admin.php?page=' . DILUXONE_USERS_MENU ) );
-	exit;
-}
-add_action( 'admin_init', 'diluxone_users_network_conflicts_dismiss' );
 
 /* ── Signing in across the network ─────────────────────────────────── */
 

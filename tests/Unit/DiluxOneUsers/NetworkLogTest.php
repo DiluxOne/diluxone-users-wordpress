@@ -36,7 +36,6 @@ class NetworkLogTest extends TestCase {
 		require_once DILUXONE_USERS_DIR . 'includes/log.php';
 		require_once DILUXONE_USERS_DIR . 'includes/admin.php';
 		require_once DILUXONE_USERS_DIR . 'includes/admin-network.php';
-		require_once DILUXONE_USERS_DIR . 'includes/migrate.php';
 
 		$GLOBALS['_test_wp_options'] = array();
 		$GLOBALS['_test_multisite']  = false;
@@ -186,11 +185,8 @@ class NetworkLogTest extends TestCase {
 
 	/* ── Whose bookkeeping ─────────────────────────────────────────── */
 
-	public function test_the_shape_of_the_table_and_its_move_are_the_networks_to_keep(): void {
-		foreach ( array( 'diluxone_users_log_schema', 'diluxone_users_log_moved', 'diluxone_users_log_moving', 'diluxone_users_log_kept' ) as $key ) {
-			$this->assertSame( 'network', diluxone_users_option_scope( $key ), $key );
-			$this->assertNotContains( $key, diluxone_users_network_moved_keys(), "{$key} is not a site’s setting taken by the network" );
-		}
+	public function test_the_shape_of_the_table_is_the_networks_to_keep(): void {
+		$this->assertSame( 'network', diluxone_users_option_scope( 'diluxone_users_log_schema' ) );
 	}
 
 	/* ── Which screen shows which rows ─────────────────────────────── */

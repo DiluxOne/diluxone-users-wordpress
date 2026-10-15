@@ -23,9 +23,6 @@ class CoverAdminNetworkTest extends IntegrationTestCase {
 	/** @var array<string, mixed> The admin menu's globals before the test. */
 	private array $menu_globals = array();
 
-	/** @var array<string, mixed> */
-	private array $conflicts = array();
-
 	/** @var array<int, int> Sites the test made. */
 	private array $sites = array();
 
@@ -37,10 +34,6 @@ class CoverAdminNetworkTest extends IntegrationTestCase {
 		foreach ( array( 'menu', 'submenu', '_registered_pages', '_parent_pages', 'admin_page_hooks' ) as $global ) {
 			$this->menu_globals[ $global ] = $GLOBALS[ $global ] ?? null;
 		}
-
-		foreach ( array( DILUXONE_USERS_NETWORK_CONFLICTS, DILUXONE_USERS_NETWORK_CONFLICTS_SEEN ) as $key ) {
-			$this->conflicts[ $key ] = diluxone_users_raw_get( $key, null );
-		}
 	}
 
 	protected function tearDown(): void {
@@ -49,14 +42,6 @@ class CoverAdminNetworkTest extends IntegrationTestCase {
 				unset( $GLOBALS[ $global ] );
 			} else {
 				$GLOBALS[ $global ] = $value;
-			}
-		}
-
-		foreach ( $this->conflicts as $key => $value ) {
-			if ( null === $value ) {
-				diluxone_users_delete_option( $key );
-			} else {
-				diluxone_users_update_option( $key, $value );
 			}
 		}
 
@@ -149,21 +134,10 @@ class CoverAdminNetworkTest extends IntegrationTestCase {
 
 	/* ── The network's front page ─────────────────────────────────── */
 
-	public function test_the_overview_names_the_sites_with_a_domain_of_their_own_and_what_sites_had(): void {
+	public function test_the_overview_names_the_sites_with_a_domain_of_their_own(): void {
 		$this->network_only( 'test_a_single_site_registers_none_of_the_networks_tabs' );
 
 		$this->mapped_site();
-		$main = get_main_site_id();
-
-		diluxone_users_update_option(
-			DILUXONE_USERS_NETWORK_CONFLICTS,
-			array(
-				array( 'site' => $main, 'key' => 'diluxone_users_sso', 'kind' => 'secret' ),
-				array( 'site' => $main, 'key' => 'diluxone_users_uninstall_wipe', 'kind' => 'wipe' ),
-				array( 'site' => $main, 'key' => 'diluxone_users_fields', 'kind' => 'field', 'field' => 'diluxone_users_shoe' ),
-				array( 'site' => $main, 'key' => 'diluxone_users_2fa_mode', 'kind' => 'value', 'was' => 'off' ),
-			)
-		);
 
 		$this->in_network_admin();
 		$this->the_admin();
@@ -172,47 +146,7 @@ class CoverAdminNetworkTest extends IntegrationTestCase {
 
 		$this->assertStringContainsString( 'These sites have a domain of their own', $html );
 		$this->assertMatchesRegularExpression( '#<code>cover-[a-z0-9]+\.example\.org</code>#', $html );
-		$this->assertStringContainsString( 'What the sites had set differently', $html );
-		$this->assertStringContainsString( 'Different credentials, not shown.', $html );
-		$this->assertStringContainsString( 'Everything was to go when the plugin is deleted.', $html );
-		$this->assertStringContainsString( 'A different definition of the field diluxone_users_shoe.', $html );
-		$this->assertStringContainsString( '<code>diluxone_users_2fa_mode</code>', $html );
 		$this->assertStringContainsString( 'page=diluxone-users-security', $html, 'the way to every network screen' );
-	}
-
-	public function test_the_conflicts_notice_shows_once_and_only_where_it_should(): void {
-		$this->network_only( 'test_a_single_site_registers_none_of_the_networks_tabs' );
-
-		diluxone_users_update_option(
-			DILUXONE_USERS_NETWORK_CONFLICTS,
-			array( array( 'site' => get_main_site_id(), 'key' => 'diluxone_users_2fa_mode', 'kind' => 'value', 'was' => 'off' ) )
-		);
-
-		$this->in_network_admin();
-		$this->the_admin();
-
-		$pagenow            = $GLOBALS['pagenow'] ?? null;
-		$GLOBALS['pagenow'] = 'admin.php';
-		$_GET               = array( 'page' => 'diluxone-users' );
-
-		try {
-			$html = $this->draw( 'diluxone_users_network_conflicts_notice' );
-		} finally {
-			$GLOBALS['pagenow'] = $pagenow;
-		}
-
-		$this->assertStringContainsString( 'notice-warning', $html );
-		$this->assertStringContainsString( get_blog_option( get_main_site_id(), 'blogname' ), $html );
-		$this->assertStringContainsString( 'diluxone_users_conflicts_seen=1', $html );
-
-		// The dismissal does nothing unless asked for, and nothing outside Network Admin.
-		$_GET = array();
-		$this->assertSame( 'returned', $this->ended( 'diluxone_users_network_conflicts_dismiss' )[0] );
-
-		unset( $GLOBALS['current_screen'] );
-		$_GET = array( 'diluxone_users_conflicts_seen' => '1' );
-		$this->assertSame( 'returned', $this->ended( 'diluxone_users_network_conflicts_dismiss' )[0] );
-		$this->assertNull( diluxone_users_raw_get( DILUXONE_USERS_NETWORK_CONFLICTS_SEEN, null ) );
 	}
 
 	/* ── Deleting the plugin ───────────────────────────────────────── */
