@@ -119,12 +119,15 @@ function diluxone_users_screen_proxy(): void {
 	 */
 	diluxone_users_ui_aside_close(
 		static function (): void {
-			diluxone_users_ui_note(
-				__( 'What this site sees for you', 'diluxone-users' ),
-				array(
-					'<code>' . esc_html( diluxone_users_client_ip() ) . '</code>',
-					esc_html__( 'If that is your own address, the header and the proxies are set right. If it is your proxy’s, this site is reading the connection and not the header.', 'diluxone-users' ),
-				)
+			diluxone_users_ui_aside_state(
+				sprintf(
+					/* translators: %s: the address this site sees for the person reading, as code */
+					__( 'This site sees %s for you. If that is your own address, the header and the proxies are set right; if it is your proxy’s, the site is reading the connection and not the header.', 'diluxone-users' ),
+					'<code>' . esc_html( diluxone_users_client_ip() ) . '</code>'
+				),
+				'active',
+				'',
+				_x( 'Seen', 'the address this site sees for the person reading', 'diluxone-users' )
 			);
 		}
 	);
@@ -217,36 +220,13 @@ function diluxone_users_screen_sessions(): void {
 	);
 
 	/*
-	 * Where the list went, and when the two numbers start to count. Both are
-	 * things this screen tells rather than asks, and underneath the last tick
-	 * box they read as more of the form — the aside about the report sat so
-	 * close to the box above it that the two were one block of text. Beside
-	 * the settings they are what somebody looks up after changing something.
+	 * How long a session lasts today is a thing this screen tells rather than
+	 * asks, and underneath the last tick box it read as more of the form.
+	 * Beside the settings it is what somebody looks up after changing them.
 	 */
 	diluxone_users_ui_aside_close(
 		static function () use ( $today ): void {
 			diluxone_users_ui_aside_state( $today['line'], $today['state'], '', $today['word'] );
-
-			diluxone_users_ui_note(
-				__( 'What a change here reaches', 'diluxone-users' ),
-				__( 'A session is given its length at the moment it starts, so the two numbers apply to whoever signs in from now on. The sessions already open keep the length they were given and end when they were going to.', 'diluxone-users' )
-			);
-
-			diluxone_users_ui_links(
-				__( 'The rest of the subject', 'diluxone-users' ),
-				array(
-					array(
-						'url'   => diluxone_users_admin_url( DILUXONE_USERS_REPORTS, array( 'tab' => 'sessions' ) ),
-						'label' => __( 'Reports › Open sessions', 'diluxone-users' ),
-						'help'  => __( 'Who has a session open right now, from where and until when. It is a report and not a setting: nothing there is saved, and it is where an administrator closes somebody’s sessions.', 'diluxone-users' ),
-					),
-					array(
-						'url'   => diluxone_users_admin_url( 'diluxone-users-account', array( 'tab' => 'sections' ) ),
-						'label' => __( 'Account area › Sections', 'diluxone-users' ),
-						'help'  => __( 'The box each person gets belongs to the Security section, which is turned on and ordered there.', 'diluxone-users' ),
-					),
-				)
-			);
 		}
 	);
 }
@@ -431,20 +411,8 @@ function diluxone_users_screen_sessions_list(): void {
 	<?php
 	diluxone_users_ui_wide_close();
 
-	diluxone_users_ui_aside_close(
-		static function (): void {
-			diluxone_users_ui_links(
-				__( 'The settings behind this report', 'diluxone-users' ),
-				array(
-					array(
-						'url'   => diluxone_users_admin_url( DILUXONE_USERS_SECURITY, array( 'tab' => 'sessions' ) ),
-						'label' => __( 'Security › Sessions', 'diluxone-users' ),
-						'help'  => __( 'How long a session lasts, with and without “remember me”, and whether each person can see and close their own.', 'diluxone-users' ),
-					),
-				)
-			);
-		}
-	);
+	// No rail: the table is the whole of what this report says.
+	diluxone_users_ui_aside_close( static function (): void {} );
 }
 
 /**

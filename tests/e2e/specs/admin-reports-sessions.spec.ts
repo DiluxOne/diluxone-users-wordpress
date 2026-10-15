@@ -180,9 +180,8 @@ test.describe('Reports › Open sessions', () => {
 		}
 	});
 
-	test('the rail leads to the settings behind the report', async ({ page }) => {
+	test('it has no rail: the table is the whole of it', async ({ page }) => {
 		await page.goto(adminUrl(REPORT, 'sessions'));
-		await navigated(page, () => rail(page).locator('a[href*="page=diluxone-users-security&tab=sessions"]').click());
-		expect(new URL(page.url()).searchParams.get('page')).toBe('diluxone-users-security');
+		await expect(rail(page)).toHaveCount(0);
 	});
 });

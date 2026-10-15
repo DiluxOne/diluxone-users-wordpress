@@ -380,16 +380,9 @@ class CoverSettingsSocialTest extends IntegrationTestCase {
 		$this->assertStringContainsString( 'Step by step in ' . esc_html( $provider['name'] ), $html );
 		$this->assertStringContainsString( esc_attr( diluxone_users_sso_redirect_uri( $id ) ), $html, 'the address to paste' );
 		$this->assertStringContainsString( esc_url( $provider['console'] ), $html );
-		$this->assertStringContainsString( esc_url( $provider['guide'] ), $html, 'their own documentation' );
-		$this->assertStringContainsString( '<code>' . esc_html( $provider['scope'] ) . '</code>', $html );
 		$this->assertStringContainsString( 'Create the app, load the redirect URL', $html, 'nothing created yet' );
 		$this->assertStringNotContainsString( 'Delete its settings', $html, 'nothing to delete' );
-
-		if ( ! empty( $provider['pkce'] ) ) {
-			$this->assertStringContainsString( 'It requires PKCE.', $html );
-		} else {
-			$this->assertStringNotContainsString( 'It requires PKCE.', $html );
-		}
+		$this->assertStringNotContainsString( 'du-links', $html, 'the rail is the state, the step to take and the gotcha: nothing else' );
 	}
 
 	public function test_a_guide_without_a_warning_shows_none_and_an_unknown_one_is_empty(): void {

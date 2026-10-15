@@ -693,7 +693,7 @@ class CoverSettingsAccessTest extends IntegrationTestCase {
 		$html = $this->screen( 'page' );
 
 		$this->assertStringContainsString( 'There is no sign-in page to send anybody to: wp-login.php is the sign-in screen, as WordPress has it.', $html );
-		$this->assertStringContainsString( 'with the site’s logo and colour on it', $html );
+		$this->assertStringContainsString( 'it has the site’s logo and colour on it', $html, 'the rail’s “Right now”' );
 	}
 
 	public function test_the_ways_tab_names_the_networks_that_work(): void {

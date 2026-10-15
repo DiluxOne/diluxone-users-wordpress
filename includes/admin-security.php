@@ -147,34 +147,7 @@ function diluxone_users_screen_security_summary(): void {
 		)
 	);
 
-	/*
-	 * The rail carries the one thing the table cannot: the boundary. Half of
-	 * what people look for on a screen called Security is on Access, because
-	 * it is about doors, and saying so here is quicker than letting somebody
-	 * search these four tabs for it.
-	 */
-	diluxone_users_ui_aside_close(
-		static function (): void {
-			diluxone_users_ui_note(
-				__( 'What none of this decides', 'diluxone-users' ),
-				__( 'Everything above happens to somebody who is already at the sign-in form. Which forms there are at all — the password, the e-mail link, the social buttons — is a question about doors, and it is answered on Access.', 'diluxone-users' )
-			);
-
-			diluxone_users_ui_links(
-				__( 'Decided somewhere else', 'diluxone-users' ),
-				array(
-					array(
-						'url'   => diluxone_users_admin_url( 'diluxone-users-login', array( 'tab' => 'ways' ) ),
-						'label' => __( 'Access › Ways in', 'diluxone-users' ),
-						'help'  => __( 'What the sign-in form takes: turning a door on is a question about doors.', 'diluxone-users' ),
-					),
-					array(
-						'url'   => diluxone_users_admin_url( 'diluxone-users-login' ),
-						'label' => __( 'Access › Summary', 'diluxone-users' ),
-						'help'  => __( 'The same reading for the door itself: every way into this site and the state each one is in.', 'diluxone-users' ),
-					),
-				)
-			);
-		}
-	);
+	// No rail: the table is the whole of what this tab reports. Which doors
+	// there are at all is Access's question, and its own tab says so.
+	diluxone_users_ui_aside_close( static function (): void {} );
 }

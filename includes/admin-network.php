@@ -404,30 +404,9 @@ function diluxone_users_screen_network_overview(): void {
 		);
 	}
 
-	diluxone_users_ui_aside_close(
-		static function (): void {
-			diluxone_users_ui_note(
-				__( 'What a site can no longer change', 'diluxone-users' ),
-				array(
-					__( 'The second step, how long a session lasts, the proxy, the social sign-in apps and their rules, the fields a person has and what the log keeps. A site administrator does not see these screens, and nothing sent to their own site writes them.', 'diluxone-users' ),
-					__( 'What fits into each site’s theme is still that site’s: where the account link goes in its menus, its admin bar and its dashboard profile.', 'diluxone-users' ),
-				)
-			);
-
-			$links = array();
-
-			foreach ( diluxone_users_screens() as $slug => $title ) {
-				if ( DILUXONE_USERS_MENU !== $slug && diluxone_users_screen_here( $slug, 'network' ) ) {
-					$links[] = array(
-						'url'   => network_admin_url( 'admin.php?page=' . $slug ),
-						'label' => (string) $title,
-					);
-				}
-			}
-
-			diluxone_users_ui_links( __( 'Set for the whole network', 'diluxone-users' ), $links );
-		}
-	);
+	// No rail: what a site can no longer change is the table above, row by
+	// row, and the menu beside it lists the network's screens.
+	diluxone_users_ui_aside_close( static function (): void {} );
 }
 
 /* ── Signing in across the network ─────────────────────────────────── */

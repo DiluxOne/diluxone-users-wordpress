@@ -439,36 +439,17 @@ function diluxone_users_screen_register(): void {
 			// lives with the fields screen, so the two cannot drift apart.
 			diluxone_users_nobody_registers_notice( 'register' );
 
-			diluxone_users_ui_note(
-				__( 'What the form asks for', 'diluxone-users' ),
-				array(
-					array() === $diluxone_users_asked
-						? esc_html__( 'Only the e-mail address: no field is marked as required.', 'diluxone-users' )
-						: esc_html(
-							sprintf(
-								/* translators: %s: the required fields, separated by dots */
-								__( 'The address, plus: %s', 'diluxone-users' ),
-								implode( ' · ', wp_list_pluck( $diluxone_users_asked, 'label' ) )
-							)
-						),
-					esc_html__( 'Only the required ones, on purpose: a form that asks for everything is a form nobody finishes. The rest waits in their account. The e-mail is the username and never changes; there is no password unless the person sets one.', 'diluxone-users' ),
-				)
-			);
-
-			diluxone_users_ui_links(
-				__( 'The rest of the form', 'diluxone-users' ),
-				array(
-					array(
-						'url'   => diluxone_users_admin_url( 'diluxone-users-fields' ),
-						'label' => __( 'User fields', 'diluxone-users' ),
-						'help'  => __( 'Which ones exist, and which of them a form will not go through without.', 'diluxone-users' ),
+			diluxone_users_ui_aside_state(
+				array() === $diluxone_users_asked
+					? __( 'The form asks for the e-mail address and nothing else: no field is marked as required.', 'diluxone-users' )
+					: sprintf(
+						/* translators: %s: the required fields, separated by dots */
+						__( 'The form asks for the e-mail address, plus: %s', 'diluxone-users' ),
+						esc_html( implode( ' · ', wp_list_pluck( $diluxone_users_asked, 'label' ) ) )
 					),
-					array(
-						'url'   => diluxone_users_admin_url( 'diluxone-users-design', array( 'tab' => 'register' ) ),
-						'label' => __( 'What the form says', 'diluxone-users' ),
-						'help'  => __( 'Its heading, its sentences and the terms line, with a preview beside them.', 'diluxone-users' ),
-					),
-				)
+				'active',
+				'',
+				_x( 'Asked', 'what the registration form asks for', 'diluxone-users' )
 			);
 		}
 	);

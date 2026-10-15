@@ -531,7 +531,6 @@ function diluxone_users_screen_fields_list(): void {
 	diluxone_users_ui_aside_close(
 		static function (): void {
 			diluxone_users_nobody_registers_notice();
-			diluxone_users_fields_where();
 		}
 	);
 
@@ -618,47 +617,7 @@ function diluxone_users_screen_fields_suggested(): void {
 					),
 				array() === $missing ? 'active' : 'off'
 			);
-
-			diluxone_users_ui_note(
-				__( 'Why they are not there from the start', 'diluxone-users' ),
-				array(
-					esc_html__( 'Asking for somebody’s birthday, gender or phone is a decision about their data, and it is the site’s to make — not something a plugin should do on the day it is turned on.', 'diluxone-users' ),
-					esc_html__( 'A field deleted later keeps the answers already given, the same as any other.', 'diluxone-users' ),
-				)
-			);
 		}
-	);
-}
-
-/**
- * Where the definitions and the answers actually live.
- *
- * In the rail, which is where background belongs: above the table it pushed
- * the table below the fold, and under it it was read after somebody had
- * stopped reading.
- *
- * It is a note of the design system's and not a panel of its own any more. It
- * was a box with a title, a rule down its left and an icon, drawn here by
- * hand — which is to say it was the plugin's second way of saying something
- * with no control in it, two screens away from the first.
- */
-function diluxone_users_fields_where(): void {
-	// The two names go in a paragraph of their own and not inside the sentence
-	// before them. A <code> chip is an atom the browser cannot break, so in
-	// the middle of a paragraph it jumps to the next line whole and leaves the
-	// previous one short — which reads as a line break that nobody typed.
-	diluxone_users_ui_note(
-		__( 'Where all this lives', 'diluxone-users' ),
-		array(
-			esc_html__( 'What each field IS —its name, type and behaviour— is one WordPress option. What each PERSON answered is user meta: one row per person and per field, with the field key as the name. No extra tables.', 'diluxone-users' ),
-			sprintf(
-				'%1$s <code>diluxone_users_fields</code> · %2$s <code>%3$s</code>',
-				esc_html__( 'The definition:', 'diluxone-users' ),
-				esc_html__( 'The answers:', 'diluxone-users' ),
-				esc_html( $GLOBALS['wpdb']->usermeta )
-			),
-			esc_html__( 'That is why the key cannot change once the field exists, and why deleting a field leaves the answers alone: they are two different things.', 'diluxone-users' ),
-		)
 	);
 }
 
@@ -1035,41 +994,7 @@ function diluxone_users_screen_fields_usage(): void {
 		</tbody>
 	</table>
 	<?php
-	diluxone_users_ui_aside_close(
-		static function (): void {
-			diluxone_users_ui_note(
-				__( 'None of this needs a designer', 'diluxone-users' ),
-				__( 'What these lines draw already takes the colour, the corners and the wording set on the Design screen, so a pasted shortcode looks like the rest of the site on the day it is pasted. There is nothing to style and nothing below to do.', 'diluxone-users' )
-			);
-
-			diluxone_users_ui_note(
-				__( 'For whoever writes the theme', 'diluxone-users' ),
-				array(
-					sprintf(
-						/* translators: 1: the plugin's templates folder, 2: the folder to copy it into, inside the theme */
-						esc_html__( 'The markup itself can be replaced, and it is not a step anybody else has missed: copy any file from %1$s into the theme, inside a %2$s folder, and edit it there. The plugin uses the theme’s copy from then on, and its own updates leave it alone.', 'diluxone-users' ),
-						'<code>templates/</code>',
-						'<code>diluxone-users/</code>'
-					),
-					esc_html__( 'A theme that would rather write all of it, classes included, can turn the plugin’s stylesheet off on the Design screen.', 'diluxone-users' ),
-				)
-			);
-
-			diluxone_users_ui_links(
-				__( 'Where the look is set', 'diluxone-users' ),
-				array(
-					array(
-						'url'   => diluxone_users_admin_url( 'diluxone-users-design', array( 'tab' => 'brand' ) ),
-						'label' => __( 'Your brand', 'diluxone-users' ),
-						'help'  => __( 'The colour, the corners and the switch that turns the plugin’s stylesheet off.', 'diluxone-users' ),
-					),
-					array(
-						'url'   => diluxone_users_admin_url( 'diluxone-users-account' ),
-						'label' => __( 'Account area', 'diluxone-users' ),
-						'help'  => __( 'Where these fields end up for the person they belong to, section by section.', 'diluxone-users' ),
-					),
-				)
-			);
-		}
-	);
+	// No rail: what the lines draw takes the Design screen's look on its own,
+	// and the way to replace the markup is the developer documentation's.
+	diluxone_users_ui_aside_close( static function (): void {} );
 }

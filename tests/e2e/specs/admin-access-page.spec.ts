@@ -200,11 +200,11 @@ test.describe('Access › The sign-in page', () => {
 		await expect(control(page, 'diluxone_users_wp_screens', 'mine')).toBeDisabled();
 		await expect(control(page, 'diluxone_users_wp_screens', 'mine')).not.toBeChecked();
 		// wp-login.php is the only screen: the rail says how it looks — plain.
-		await expectPill(rail(page).locator('.du-note').filter({ has: page.locator('.du-note__title .diluxone-users-state') }), 'off');
+		await expectPill(rail(page).locator('.du-state'), 'off');
 
 		await options.set({ diluxone_users_wp_login_brand: 1 });
 		await page.reload();
-		await expectPill(rail(page).locator('.du-note').filter({ has: page.locator('.du-note__title .diluxone-users-state') }), 'active');
+		await expectPill(rail(page).locator('.du-state'), 'active');
 
 		// A page, and no password: the note points to Ways in, the reset
 		// waits on a password too, and wp-login.php is nobody's screen, so the
@@ -214,7 +214,7 @@ test.describe('Access › The sign-in page', () => {
 		await expect(notNow(page).filter({ has: page.locator('a[href*="tab=ways"]') })).toHaveCount(1);
 		await expect(notNow(page)).toHaveCount(2);
 		await expect(page.locator('label.du-choice').filter({ has: control(page, 'diluxone_users_lost_password', 'site') }).locator('.diluxone-users-state')).toHaveCount(0);
-		await expect(rail(page).locator('.du-note__title .diluxone-users-state')).toHaveCount(0);
+		await expect(rail(page).locator('.du-state')).toHaveCount(0);
 	});
 });
 

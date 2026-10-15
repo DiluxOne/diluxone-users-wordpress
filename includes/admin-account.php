@@ -370,11 +370,14 @@ function diluxone_users_screen_account_menu(): void {
 	diluxone_users_ui_aside_close(
 		static function () use ( $menu ): void {
 			$term = $menu > 0 ? get_term( $menu, 'nav_menu' ) : null;
-			diluxone_users_ui_note(
-				__( 'The person in the menu', 'diluxone-users' ),
+			diluxone_users_ui_aside_state(
 				$term instanceof WP_Term
-					? esc_html( $term->name )
-					: esc_html__( 'Not shown in any menu.', 'diluxone-users' ),
+					? sprintf(
+						/* translators: %s: the name of the menu */
+						__( 'The person is in the %s menu.', 'diluxone-users' ),
+						'<strong>' . esc_html( $term->name ) . '</strong>'
+					)
+					: __( 'The person is not shown in any menu.', 'diluxone-users' ),
 				$term instanceof WP_Term ? 'active' : 'pending',
 				$term instanceof WP_Term || '' === (string) diluxone_users_option( 'diluxone_users_menu_location' )
 					? ''
@@ -1176,15 +1179,18 @@ function diluxone_users_screen_account_page(): void {
 	 */
 	diluxone_users_ui_aside_close(
 		static function () use ( $page ): void {
-			diluxone_users_ui_note(
-				__( 'The account area', 'diluxone-users' ),
+			diluxone_users_ui_aside_state(
 				$page > 0
 					? sprintf(
-						'<a href="%1$s">%2$s</a>',
-						esc_url( (string) get_permalink( $page ) ),
-						esc_html( (string) get_the_title( $page ) )
+						/* translators: %s: the account page, as a link */
+						__( 'The account area is %s.', 'diluxone-users' ),
+						sprintf(
+							'<a href="%1$s">%2$s</a>',
+							esc_url( (string) get_permalink( $page ) ),
+							esc_html( (string) get_the_title( $page ) )
+						)
 					)
-					: esc_html__( 'This site has not got one.', 'diluxone-users' ),
+					: __( 'This site has no account area yet.', 'diluxone-users' ),
 				// The same fact as the summary row and the status check, so
 				// the same answer: a page nobody chose is pending, not off.
 				$page > 0 ? 'active' : 'pending',
@@ -1202,22 +1208,6 @@ function diluxone_users_screen_account_page(): void {
 					'warning'
 				);
 			}
-
-			diluxone_users_ui_links(
-				__( 'What goes on it', 'diluxone-users' ),
-				array(
-					array(
-						'url'   => diluxone_users_admin_url( 'diluxone-users-account', array( 'tab' => 'sections' ) ),
-						'label' => __( 'The sections it is made of', 'diluxone-users' ),
-						'help'  => __( 'What people find inside, and the order they find it in.', 'diluxone-users' ),
-					),
-					array(
-						'url'   => diluxone_users_admin_url( DILUXONE_USERS_DESIGN, array( 'tab' => 'account' ) ),
-						'label' => __( 'What it looks like', 'diluxone-users' ),
-						'help'  => __( 'Its shape, its header and its menu, with the page itself beside the settings.', 'diluxone-users' ),
-					),
-				)
-			);
 		}
 	);
 }
@@ -1407,32 +1397,19 @@ function diluxone_users_screen_account_dashboard(): void {
 	 */
 	diluxone_users_ui_aside_close(
 		static function () use ( $page ): void {
-			diluxone_users_ui_note(
-				__( 'Where they are sent', 'diluxone-users' ),
+			diluxone_users_ui_aside_state(
 				$page > 0
 					? sprintf(
-						'<a href="%1$s">%2$s</a>',
-						esc_url( (string) get_permalink( $page ) ),
-						esc_html( (string) get_the_title( $page ) )
+						/* translators: %s: the account page, as a link */
+						__( 'Anybody sent to their account lands on %s.', 'diluxone-users' ),
+						sprintf(
+							'<a href="%1$s">%2$s</a>',
+							esc_url( (string) get_permalink( $page ) ),
+							esc_html( (string) get_the_title( $page ) )
+						)
 					)
-					: esc_html__( 'Nowhere yet: this site has no account area, so sending people to theirs does nothing until it has one.', 'diluxone-users' ),
+					: __( 'Nowhere yet: this site has no account area, so sending people to theirs does nothing until it has one.', 'diluxone-users' ),
 				$page > 0 ? 'active' : 'pending'
-			);
-
-			diluxone_users_ui_links(
-				__( 'The other half of this', 'diluxone-users' ),
-				array(
-					array(
-						'url'   => diluxone_users_admin_url( 'diluxone-users-account', array( 'tab' => 'page' ) ),
-						'label' => __( 'The page that is “my account”', 'diluxone-users' ),
-						'help'  => __( 'Declared once, and every redirect on this tab reads it.', 'diluxone-users' ),
-					),
-					array(
-						'url'   => diluxone_users_admin_url( DILUXONE_USERS_DESIGN, array( 'tab' => 'account' ) ),
-						'label' => __( 'What they find when they get there', 'diluxone-users' ),
-						'help'  => __( 'The account area is the screen replacing the dashboard profile, so it is worth a look.', 'diluxone-users' ),
-					),
-				)
 			);
 		}
 	);
@@ -1549,13 +1526,10 @@ function diluxone_users_screen_account_handle(): void {
 		)
 	);
 
-	/*
-	 * What is true whatever is answered above goes beside the answers and not
-	 * under the last of them. There is nothing to decide about taken names —
-	 * the site always checks both lists — and a paragraph with nothing to
-	 * decide, printed at the foot of a column of settings, reads like a
-	 * setting somebody forgot to draw a control for.
-	 */
+	// The rail says the one thing worth acting on: that nobody is choosing a
+	// name while this is off. Taken names are always checked, and a paragraph
+	// with nothing to decide is the manual's.
+
 	diluxone_users_ui_aside_close(
 		static function () use ( $offered ): void {
 			if ( ! $offered ) {
@@ -1563,32 +1537,6 @@ function diluxone_users_screen_account_handle(): void {
 					__( 'Nobody is choosing a name while this is turned off. What is set here is kept, and it applies the day it is turned on.', 'diluxone-users' )
 				);
 			}
-
-			diluxone_users_ui_note(
-				__( 'Taken names', 'diluxone-users' ),
-				sprintf(
-					/* translators: 1: user_nicename, 2: user_login */
-					esc_html__( 'Always checked, and against two things: the public names already in use (%1$s) and the usernames that came with the accounts (%2$s). The second one matters because a site that lets people sign in by public name would otherwise have two people answering to the same text, and the link would go to the wrong account.', 'diluxone-users' ),
-					'<code>user_nicename</code>',
-					'<code>user_login</code>'
-				)
-			);
-
-			diluxone_users_ui_links(
-				__( 'Where the name is used', 'diluxone-users' ),
-				array(
-					array(
-						'url'   => diluxone_users_admin_url( 'diluxone-users-login', array( 'tab' => 'ways' ) ),
-						'label' => __( 'Signing in with it', 'diluxone-users' ),
-						'help'  => __( 'Whether the sign-in box takes a public name as well as an e-mail address.', 'diluxone-users' ),
-					),
-					array(
-						'url'   => diluxone_users_admin_url( 'diluxone-users-fields' ),
-						'label' => __( 'Their first and last name', 'diluxone-users' ),
-						'help'  => __( 'Where the public name comes from while nobody is choosing one.', 'diluxone-users' ),
-					),
-				)
-			);
 		}
 	);
 }

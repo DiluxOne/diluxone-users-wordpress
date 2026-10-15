@@ -195,21 +195,26 @@ function diluxone_users_ui_ground_close(): void {
  * same order, because a rail that is a different thing on every tab is one
  * more thing to read rather than the answer to a question:
  *
- *   1. How this site stands today — `diluxone_users_ui_aside_state()`. Not
- *      what the tab can be set to: what it *is* set to, right now, in one
- *      sentence, with the pill that says whether that is good news.
- *   2. What the tab is for — `diluxone_users_ui_note()`, two or three lines.
- *      What it decides, and what it does not.
- *   3. Where the rest of it lives — `diluxone_users_ui_links()`.
+ *   1. The button that saves the tab, on a tab that saves — see
+ *      `diluxone_users_ui_save()`. It is not part of what the rail says; it
+ *      is the one thing the rail is for doing, and it goes where it is found
+ *      first.
+ *   2. How this site stands today — `diluxone_users_ui_aside_state()`, once.
+ *      Not what the tab can be set to: what it *is* set to, right now, in
+ *      one sentence, with the pill that says whether that is good news.
+ *   3. What is worth acting on, while it is true — a notice
+ *      (`diluxone_users_ui_notice()`) drawn under a condition of this site:
+ *      no account page yet, no door open, the last e-mail did not go out,
+ *      with the way to fix it.
  *
- * The first one is the part that was missing and the part that matters: the
- * rail reports on this site. It does not repeat the manual, and a sentence
- * that would read the same on a site that has never been configured belongs
- * in part two, where it is honest about being general.
- *
- * Above all three, on a tab that saves, goes the button that saves it — see
- * `diluxone_users_ui_save()`. It is not part of what the rail says; it is the
- * one thing the rail is for doing, and it goes where it is found first.
+ * Nothing else. The rail reports on this site and does not repeat the
+ * manual: a sentence that would read the same on every site that installs
+ * the plugin — what the tab is for, what it does not decide, where the rest
+ * of the subject lives — belongs in the tab's intro line or in the
+ * documentation, and a tab with nothing to report holds the button alone.
+ * `diluxone_users_ui_note()` and `diluxone_users_ui_links()` remain for a
+ * block that is about this site and fits neither shape, such as the list of
+ * the languages a site writes its messages in.
  */
 function diluxone_users_ui_aside_open(): void {
 	echo '<div class="diluxone-users-studio"><div class="diluxone-users-studio__fields">';
@@ -362,10 +367,9 @@ function diluxone_users_ui_save_box(): string {
  * would read the same on every site that installs the plugin, it is not a
  * state — it is what the tab is for, and that is the note underneath.
  *
- * It goes first in the rail and nothing enforces that, because the rail is
- * printed in the order a screen prints it. Second and third are
- * `diluxone_users_ui_note()` and `diluxone_users_ui_links()`; the three of
- * them together are the shape described on `diluxone_users_ui_aside_open()`.
+ * It goes right under the button, once per tab, and nothing enforces that,
+ * because the rail is printed in the order a screen prints it; the shape is
+ * described on `diluxone_users_ui_aside_open()`.
  *
  * @param string $line  What is true here, in one sentence, present tense.
  *                      Markup allowed: a state names things — a role, a
@@ -1766,11 +1770,13 @@ function diluxone_users_ui_steps( array $steps ): void {
 /**
  * Something the screen has to say that is not a setting.
  *
- * "Taken names" on the public-name screen is a paragraph: the site always
- * checks them and there is nothing to choose. As a row of a two-column table
- * it came out as a title beside an empty cell and a cell with a sentence in
- * it — a box with nothing in it and a box with no title — and that empty
- * label cell is one of the ghost boxes on that screen.
+ * In the rail it is for a block about this site that is neither a state nor
+ * a notice — the languages a site writes its messages in, with the way to
+ * each — and in the main column for a paragraph with nothing to choose, such
+ * as the properties a site that writes its own stylesheet copies. As a row of
+ * a two-column table such a paragraph came out as a title beside an empty
+ * cell and a cell with a sentence in it, and that empty label cell is one of
+ * the ghost boxes on that screen.
  *
  * Here it is what it is: a small title and what it says.
  *
@@ -1781,7 +1787,8 @@ function diluxone_users_ui_steps( array $steps ): void {
  * hold a list at all without inventing markup that is not allowed inside a
  * `<p>`. Hand it lines and it writes the paragraphs.
  *
- * It takes a state as well, and that is what a rail is mostly made of. "Is
+ * It takes a state as well, for a block in the main column that reports one.
+ * In the rail that is `diluxone_users_ui_aside_state()`'s job. "Is
  * this on?" was being answered by a four-column summary table with one row in
  * it, which is a table drawn for the sake of a pill; beside the settings there
  * is no room for four columns and no need for them either. A title, the pill,
@@ -1826,15 +1833,13 @@ function diluxone_users_ui_note( string $title, $body, string $state = '', strin
 }
 
 /**
- * The way to the things this screen is not about.
+ * A list of ways out, each with the sentence that makes it worth taking.
  *
- * Half of what a setting needs in order to make sense lives on another tab.
- * The second factor is decided here and the e-mail that carries the code is
- * written two screens away; the sign-in providers are configured here and how
- * their buttons look is somewhere else. Said in a paragraph in the middle of
- * the settings, that is a sentence that interrupts what somebody is doing to
- * suggest they go and do something else. Said in the rail, it is the thing
- * they come looking for after they have finished here.
+ * Not for the rail's own sake: a list of where the rest of a subject lives
+ * reads the same on every site, and the rail says what is true on this one
+ * (see `diluxone_users_ui_aside_open()`). It is for a list that is about this
+ * site — the languages it writes in, the sites of its network — wherever one
+ * is drawn.
  *
  * A list and not a run of links in a line: each one gets a sentence saying
  * what is over there, because "Appearance" on its own is not a reason to

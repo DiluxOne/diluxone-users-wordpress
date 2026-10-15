@@ -114,7 +114,7 @@ class CoverAdminPeopleTest extends IntegrationTestCase {
 		$this->assertStringContainsString( 'Not asked when they sign in.', $html );
 		$this->assertStringNotContainsString( 'Take a way in off this account', $html );
 		$this->assertStringNotContainsString( 'type="checkbox"', $html );
-		$this->assertStringContainsString( 'What this block does', $html, 'the rail says why there is no adding' );
+		$this->assertStringNotContainsString( 'diluxone-users-studio__aside', $html, 'and no rail: the block has nothing to report beyond its groups' );
 	}
 
 	public function test_somebody_who_cannot_edit_people_sees_no_block(): void {

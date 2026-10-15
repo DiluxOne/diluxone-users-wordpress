@@ -616,35 +616,6 @@ function diluxone_users_screen_login_messages(): void {
 			);
 
 			diluxone_users_login_messages_languages( $locale );
-
-			diluxone_users_ui_note(
-				__( 'What this tab decides', 'diluxone-users' ),
-				array(
-					__( 'The words, and nothing else. Whether a message ever appears is decided by the setting it reports on — which networks are on, whether registration is open, how long a link lasts.', 'diluxone-users' ),
-					__( 'A message that has to depend on something no settings screen can hold is a filter in code: <code>diluxone_users_login_message</code> runs after everything written here.', 'diluxone-users' ),
-				)
-			);
-
-			diluxone_users_ui_links(
-				__( 'What these messages are about', 'diluxone-users' ),
-				array(
-					array(
-						'url'   => diluxone_users_admin_url( 'diluxone-users-social' ),
-						'label' => __( 'Social login', 'diluxone-users' ),
-						'help'  => __( 'The networks themselves: which ones are on, and why one of them turns somebody away.', 'diluxone-users' ),
-					),
-					array(
-						'url'   => diluxone_users_admin_url( 'diluxone-users-login', array( 'tab' => 'ways' ) ),
-						'label' => __( 'Ways in', 'diluxone-users' ),
-						'help'  => __( 'Which doors are open at all, and how long a sign-in link is good for.', 'diluxone-users' ),
-					),
-					array(
-						'url'   => diluxone_users_admin_url( DILUXONE_USERS_NOTICES, array( 'tab' => 'templates' ) ),
-						'label' => __( 'The e-mails', 'diluxone-users' ),
-						'help'  => __( 'The other half of what this site says to somebody signing in, rewritten the same way.', 'diluxone-users' ),
-					),
-				)
-			);
 		}
 	);
 }

@@ -138,14 +138,10 @@ test.describe('Security › Sessions', () => {
 		}
 	});
 
-	test('the rail leads to the report of open sessions and to the account’s sections', async ({ page }) => {
+	test('the rail is the button and how long a session lasts today, and nothing else', async ({ page }) => {
 		await page.goto(adminUrl(SECURITY, 'sessions'));
-		await navigated(page, () => rail(page).locator('a[href*="page=diluxone-users-reports&tab=sessions"]').click());
-		expect(new URL(page.url()).searchParams.get('page')).toBe('diluxone-users-reports');
-
-		await page.goto(adminUrl(SECURITY, 'sessions'));
-		await navigated(page, () => rail(page).locator('a[href*="page=diluxone-users-account&tab=sections"]').click());
-		expect(new URL(page.url()).searchParams.get('tab')).toBe('sections');
+		await expect(rail(page).locator('.du-state')).toHaveCount(1);
+		await expect(rail(page).locator('.du-note, .du-links'), 'no manual beside the form').toHaveCount(0);
 	});
 });
 
@@ -278,7 +274,7 @@ test.describe('Security › Behind a proxy', () => {
 
 		await page.setExtraHTTPHeaders({ 'X-Forwarded-For': '198.51.100.23' });
 		await page.goto(adminUrl(SECURITY, 'proxy'));
-		await expect(rail(page).locator('.du-note').first().locator('code')).toHaveText('198.51.100.23');
+		await expect(rail(page).locator('.du-state').first().locator('code')).toHaveText('198.51.100.23');
 
 		// And the summary row reads the same address and the header's name.
 		await page.goto(adminUrl(SECURITY, 'summary'));

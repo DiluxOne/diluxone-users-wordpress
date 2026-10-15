@@ -129,18 +129,26 @@ A tab is drawn out of the same pieces as the plugin's, so it looks like the
 rest of the admin and follows it when the admin changes:
 
 - `diluxone_users_ui_aside_open()` and `diluxone_users_ui_aside_close( $rail )`
-  — the column of settings and the rail beside it (`$rail` prints what goes
-  there: notes, notices, links).
+  — the column of settings and the rail beside it. `$rail` prints what goes
+  there, and it is little: under the button that saves, one "Right now"
+  (`diluxone_users_ui_aside_state( $line, $state )`, what is true on this site
+  in a sentence, with its pill) and the notices that apply to this site
+  (`diluxone_users_ui_notice()` under a condition, with the way to fix it).
+  Not what the tab is for, and not where the rest of the subject lives: that
+  is the intro line's or the documentation's, and a tab with nothing to
+  report draws the button alone.
 - `diluxone_users_intro( $text )` — the sentence under the tab's title;
   `diluxone_users_ui_section( $title, $help )` — a group's heading.
 - `diluxone_users_ui_choices( $choices, $needs_one, $only_while, $waits )` —
   radios and tick boxes, each `type`, `name`, `value`, `checked`, `title`,
   `help` (and `state`, `note`, `disabled`, `children`); `$waits` for a group
   that waits for another answer.
-- `diluxone_users_ui_note( $title, $text, $state )`, `diluxone_users_ui_notice( $html, $kind )`,
-  `diluxone_users_ui_links( $title, $links )` (each `url`, `label`, `help`)
+- `diluxone_users_ui_note( $title, $text, $state )` and
+  `diluxone_users_ui_links( $title, $links )` (each `url`, `label`, `help`) —
+  a paragraph with nothing to choose, and a list of ways out, for a block
+  that is about this site; `diluxone_users_ui_notice( $html, $kind )`,
   `diluxone_users_not_now( $why, $url, $go )` and
-  `diluxone_users_ui_waits( $why, $url, $go )` — what the rail, a dimmed
+  `diluxone_users_ui_waits( $why, $url, $go )` — what a notice, a dimmed
   control and a group that waits say.
 - `diluxone_users_ui_words( $key, $label, $fallback, $help )` and
   `diluxone_users_ui_words_area( … )` — a sentence the site may rewrite;

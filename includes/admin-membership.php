@@ -321,30 +321,6 @@ function diluxone_users_screen_membership_policy(): void {
 			if ( $confirmed ) {
 				diluxone_users_ui_aside_state( $line, array() !== $queue ? 'pending' : 'active' );
 			}
-
-			diluxone_users_ui_note(
-				__( 'A removal is a decision', 'diluxone-users' ),
-				array(
-					__( 'Somebody an administrator removes from a site is not added back to it by any of this — not by the policy, not by signing in, not by asking — until an administrator adds them again.', 'diluxone-users' ),
-					__( 'Super admins reach every site already and are never added. Archived, spam and deleted sites get nobody.', 'diluxone-users' ),
-				)
-			);
-
-			diluxone_users_ui_links(
-				__( 'Where the members are', 'diluxone-users' ),
-				array(
-					array(
-						'url'   => network_admin_url( 'users.php' ),
-						'label' => __( 'Network Admin › Users', 'diluxone-users' ),
-						'help'  => __( 'Every account, and the sites each one is a member of.', 'diluxone-users' ),
-					),
-					array(
-						'url'   => network_admin_url( 'sites.php' ),
-						'label' => __( 'Network Admin › Sites', 'diluxone-users' ),
-						'help'  => __( 'Each site’s own users, and its New User Default Role under Settings.', 'diluxone-users' ),
-					),
-				)
-			);
 		}
 	);
 }

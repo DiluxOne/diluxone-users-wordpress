@@ -97,7 +97,7 @@ test.describe('Access › Summary', () => {
 		});
 	}
 
-	test('is the first tab, saves nothing, and carries the way back in for a locked-out administrator', async ({ page }) => {
+	test('is the first tab, saves nothing, and has no rail: the table is the whole of it', async ({ page }) => {
 		await page.goto(adminUrl('diluxone-users-login'));
 
 		await expect(page.locator('.nav-tab-wrapper .nav-tab').first()).toHaveClass(/nav-tab-active/);
@@ -105,22 +105,6 @@ test.describe('Access › Summary', () => {
 		await expect(page.locator('table.diluxone-users-summary')).toBeVisible();
 		await expect(saveButton(page), 'a Save button on a tab that edits nothing').toHaveCount(0);
 		await expect(page.locator('.diluxone-users-studio form[method="post"]')).toHaveCount(0);
-
-		await page.goto('/wp-admin/profile.php');
-
-		const email = await page.locator('#email').inputValue();
-
-		await page.goto(accessTab('summary'));
-
-		const codes = rail(page).locator('code');
-
-		await expect(codes.filter({ hasText: /wp-login\.php\?diluxone-users-admin=1$/ })).toHaveCount(1);
-		await expect(codes.filter({ hasText: `wp diluxone-users login ${email}` })).toHaveCount(1);
-
-		// And the emergency address it names is a real one: it draws
-		// WordPress's own form even on a site that took wp-login.php over.
-		const url = (await codes.filter({ hasText: /diluxone-users-admin=1/ }).innerText()).trim();
-
-		expect(new URL(url).origin).toBe(new URL(page.url()).origin);
+		await expect(rail(page), 'the way back in when locked out is Maintenance’s tab').toHaveCount(0);
 	});
 });

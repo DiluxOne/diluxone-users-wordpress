@@ -786,7 +786,7 @@ class CoverSettingsAccountTest extends IntegrationTestCase {
 		$html = $this->screen( 'page' );
 
 		$this->assertStringContainsString( 'name="diluxone_users_account_page"', $html );
-		$this->assertStringContainsString( 'This site has not got one.', $html );
+		$this->assertStringContainsString( 'This site has no account area yet.', $html );
 		$this->assertStringContainsString( 'Links to “my account” from the rest of the site go to the front page.', $html );
 		$this->assertStringContainsString( 'With plain permalinks the sections go as ?section=…', $html );
 		$this->assertStringContainsString( 'name="diluxone_users_panel_nonce"', $html, 'the screen carries the panel’s nonce' );
@@ -825,7 +825,7 @@ class CoverSettingsAccountTest extends IntegrationTestCase {
 		register_nav_menu( 'cover-settings-primary', 'Cover primary' );
 		$this->the_admin();
 
-		$this->assertStringContainsString( 'Not shown in any menu.', $this->screen( 'menu' ) );
+		$this->assertStringContainsString( 'The person is not shown in any menu.', $this->screen( 'menu' ) );
 
 		// A place with no menu in it.
 		diluxone_users_update_option( 'diluxone_users_menu_location', 'cover-settings-primary' );

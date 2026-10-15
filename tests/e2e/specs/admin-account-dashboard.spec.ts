@@ -42,7 +42,7 @@ test.describe('Account area › The page', () => {
 			await savePanel(page);
 
 			expect(Number((await site.getOptions(['diluxone_users_account_page'])).diluxone_users_account_page)).toBe(other.id);
-			await expect(page.locator('.du-note a[href]').filter({ hasText: /\S/ }).first(), 'the rail names the page').toHaveAttribute('href', other.url);
+			await expect(page.locator('.du-state a[href]').filter({ hasText: /\S/ }).first(), 'the rail names the page').toHaveAttribute('href', other.url);
 
 			await signInMember(guest, site, pages.login.url, 'account-page');
 
@@ -99,7 +99,7 @@ test.describe('Account area › The page', () => {
 			await savePanel(page);
 
 			expect(Number((await site.getOptions(['diluxone_users_account_page'])).diluxone_users_account_page)).toBe(0);
-			await expect(page.locator('.du-note .diluxone-users-state--pending')).toHaveCount(1);
+			await expect(page.locator('.du-state .diluxone-users-state--pending')).toHaveCount(1);
 			await expect(railNotice(page, 'warning')).toHaveCount(1);
 
 			await page.goto(adminUrl('diluxone-users-account', 'summary'));
@@ -169,7 +169,7 @@ test.describe('Account area › In the site menu', () => {
 				diluxone_users_menu_style: 'name',
 			});
 			await expect(page.locator('select[name="diluxone_users_menu_style"]')).toHaveValue('name');
-			await expect(page.locator('.du-note .diluxone-users-state--active'), 'that place has a menu').toHaveCount(1);
+			await expect(page.locator('.du-state .diluxone-users-state--active'), 'that place has a menu').toHaveCount(1);
 
 			// A look that is not on the list is not kept.
 			await page.locator('select[name="diluxone_users_menu_style"]').evaluate((select: HTMLSelectElement) => {
