@@ -12,6 +12,14 @@
  * or it is off. A fourth — unknown — exists only for the things nobody can
  * tell from inside the site, like whether e-mail is being delivered.
  *
+ * A fifth — unset, "Not configured" — is for a setting nobody has decided.
+ * Activating the plugin changes nothing, and a screen that drew the default
+ * as Active or Off was saying somebody had chosen it: on a fresh install
+ * every pill said so, and a person could not tell what the plugin was doing
+ * (nothing) from what somebody had set up. A row in that state says what
+ * WordPress does on its own meanwhile; a value saved equal to the default is
+ * a decision and reads as one (`diluxone_users_option_is_set()`).
+ *
  * Every summary tab of every screen is drawn with the table below, so the
  * first thing a screen shows is the same shape on all of them.
  *
@@ -21,7 +29,7 @@
 defined( 'ABSPATH' ) || exit;
 
 /**
- * The four states and their words.
+ * The five states and their words.
  *
  * @return array<string, string>
  */
@@ -31,6 +39,7 @@ function diluxone_users_states(): array {
 		'pending' => __( 'Pending', 'diluxone-users' ),
 		'off'     => __( 'Off', 'diluxone-users' ),
 		'unknown' => __( 'Cannot tell', 'diluxone-users' ),
+		'unset'   => __( 'Not configured', 'diluxone-users' ),
 		// Not how something here is doing: what it would take. A feature of
 		// Users+ Pro, drawn where it belongs (diluxone_users_ui_pro()).
 		'pro'     => __( 'Pro', 'diluxone-users' ),
@@ -49,7 +58,7 @@ function diluxone_users_states(): array {
  * three states stay the one vocabulary every screen speaks, and the word says
  * what the thing beside it actually does.
  *
- * @param string $state One of active|pending|off|unknown|pro.
+ * @param string $state One of active|pending|off|unknown|unset|pro.
  * @param string $why   The reason, for a pending one: it is never shown bare.
  * @param string $word  The verb of the thing, when the state's own word would
  *                      name a switch that is not there.
@@ -107,6 +116,64 @@ function diluxone_users_summary_table( array $rows ): void {
 		</tbody>
 	</table>
 	<?php
+}
+
+/**
+ * A row of the summary, read from a setting somebody may not have decided.
+ *
+ * Every row that reads a setting goes through here: the row as the caller
+ * built it when the setting is decided — stored, or pinned from code — and,
+ * when nobody has decided it, the same row saying so: Not configured, with
+ * what WordPress does on its own in the detail column and no reason beside
+ * the pill. A row that reads several settings names them all, and is decided
+ * once any of them is.
+ *
+ * It is a function over the row and not a flag on it so the caller still
+ * writes the Active/Off/Pending logic it would write anyway, and the one
+ * sentence about the default on top of it.
+ *
+ * @param string|array<int, string> $keys      The setting, or the settings, the row reads.
+ * @param array<string, string>     $row       The row, as diluxone_users_summary_table() takes it.
+ * @param string                    $meanwhile What WordPress does on its own while nobody has decided.
+ * @return array<string, string>
+ */
+function diluxone_users_summary_row( $keys, array $row, string $meanwhile ): array {
+	if ( diluxone_users_options_any_set( (array) $keys ) ) {
+		return $row;
+	}
+
+	unset( $row['word'] );
+
+	$row['state']  = 'unset';
+	$row['why']    = '';
+	$row['detail'] = $meanwhile;
+
+	return $row;
+}
+
+/**
+ * A block of controls that waits for another answer, and what it waits for.
+ *
+ * The sentence above a group that is drawn disabled with nothing chosen:
+ * what becomes of wp-login.php while no sign-in page is chosen, who the
+ * second step is asked of while it is off. No pill — a pill says how the
+ * thing is doing, and a block nobody can touch yet is not doing anything —
+ * and, like `diluxone_users_not_now()`, in the main column above what it is
+ * about. `diluxone_users_ui_choices()` prints it for a group handed `$waits`;
+ * a screen prints it by hand above a block that is not a group.
+ *
+ * @param string $why What it waits for, in the present tense.
+ * @param string $url Where to give it, if anywhere.
+ * @param string $go  What the link says.
+ */
+function diluxone_users_ui_waits( string $why, string $url = '', string $go = '' ): void {
+	echo '<p class="du-waits">' . esc_html( $why );
+
+	if ( '' !== $url ) {
+		echo ' <a href="' . esc_url( $url ) . '">' . esc_html( '' !== $go ? $go : __( 'Set it up →', 'diluxone-users' ) ) . '</a>';
+	}
+
+	echo '</p>';
 }
 
 /**

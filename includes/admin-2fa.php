@@ -86,7 +86,23 @@ function diluxone_users_2fa_save(): bool {
 	check_admin_referer( 'diluxone_users_panel_' . DILUXONE_USERS_SECURITY, 'diluxone_users_panel_nonce' );
 	diluxone_users_panel_allowed();
 
-	$mode    = sanitize_key( wp_unslash( $_POST['diluxone_users_2fa_mode'] ?? 'optional' ) );
+	/*
+	 * Only what the form asked. Nothing chosen under "when it is asked for"
+	 * — a fresh install, saved before anybody picked — is not a choice of
+	 * "optional", and the two groups under it wait for that answer: while
+	 * it is off or unset they are drawn disabled, and a disabled control
+	 * sends nothing. A key that did not arrive keeps what it had. The tick
+	 * boxes leave a line saying they were drawn (diluxone_users_ui_choice()),
+	 * disabled with them, which is how "none ticked" is told from "not
+	 * asked".
+	 */
+	$drawn = array_map( 'sanitize_key', (array) wp_unslash( $_POST['diluxone_users_panel_drawn'] ?? array() ) );
+
+	$chose_mode    = isset( $_POST['diluxone_users_2fa_mode'] );
+	$asked_methods = isset( $_POST['diluxone_users_2fa_methods'] ) || in_array( 'diluxone_users_2fa_methods', $drawn, true );
+	$asked_link    = isset( $_POST['diluxone_users_2fa_link'] );
+
+	$mode    = $chose_mode ? sanitize_key( wp_unslash( $_POST['diluxone_users_2fa_mode'] ) ) : (string) diluxone_users_option( 'diluxone_users_2fa_mode' );
 	$methods = array_map( 'sanitize_key', (array) wp_unslash( $_POST['diluxone_users_2fa_methods'] ?? array() ) );
 	$link    = sanitize_key( wp_unslash( $_POST['diluxone_users_2fa_link'] ?? 'auto' ) );
 
@@ -110,9 +126,16 @@ function diluxone_users_2fa_save(): bool {
 	 * a word, until this stood in the way.
 	 *
 	 * Before anything is written, not after: a half-saved state here is a
-	 * screen showing what was refused as though it had been kept.
+	 * screen showing what was refused as though it had been kept. A form
+	 * that did not draw the boxes — one sent with the script off, from a tab
+	 * drawn while the step was off — is judged on the methods stored: the
+	 * step cannot be turned on over an empty list either way.
 	 */
-	if ( 'off' !== $mode && ! diluxone_users_ui_needs_one( $methods, diluxone_users_2fa_needs_a_method() ) ) {
+	$carrying = $asked_methods
+		? $methods
+		: array_values( array_intersect( array_map( 'strval', (array) diluxone_users_option( 'diluxone_users_2fa_methods' ) ), array_keys( diluxone_users_2fa_methods_offered() ) ) );
+
+	if ( 'off' !== $mode && ! diluxone_users_ui_needs_one( $carrying, diluxone_users_2fa_needs_a_method() ) ) {
 		return false;
 	}
 
@@ -125,13 +148,21 @@ function diluxone_users_2fa_save(): bool {
 		return false;
 	}
 
-	diluxone_users_save_options(
-		array(
-			'diluxone_users_2fa_mode'    => $mode,
-			'diluxone_users_2fa_methods' => array_values( array_unique( array_merge( $methods, $kept ) ) ),
-			'diluxone_users_2fa_link'    => $link,
-		)
-	);
+	$saved = array();
+
+	if ( $chose_mode ) {
+		$saved['diluxone_users_2fa_mode'] = $mode;
+	}
+
+	if ( $asked_methods ) {
+		$saved['diluxone_users_2fa_methods'] = array_values( array_unique( array_merge( $methods, $kept ) ) );
+	}
+
+	if ( $asked_link ) {
+		$saved['diluxone_users_2fa_link'] = $link;
+	}
+
+	diluxone_users_save_options( $saved );
 
 	return true;
 }
@@ -150,6 +181,15 @@ function diluxone_users_2fa_save(): bool {
 function diluxone_users_2fa_link_today(): array {
 	$mode = (string) diluxone_users_option( 'diluxone_users_2fa_mode' );
 	$link = (string) diluxone_users_option( 'diluxone_users_2fa_link' );
+
+	// Nobody decided whether there is a second step: there is none, as
+	// WordPress has it, and that is not a thing somebody turned off.
+	if ( ! diluxone_users_option_is_set( 'diluxone_users_2fa_mode' ) ) {
+		return array(
+			'state' => 'unset',
+			'line'  => __( 'Nothing is asked: there is no second step on this site, as WordPress has it, until one is chosen.', 'diluxone-users' ),
+		);
+	}
 
 	if ( 'off' === $mode ) {
 		return array(
@@ -198,6 +238,11 @@ function diluxone_users_2fa_link_today(): array {
  * word says, and the state underneath it stays the plugin's own.
  */
 function diluxone_users_2fa_link_word( string $state ): string {
+	// Not configured is a word of its own, and the pill's.
+	if ( 'unset' === $state ) {
+		return '';
+	}
+
 	return 'active' === $state
 		? __( 'Asked', 'diluxone-users' )
 		: __( 'Not asked', 'diluxone-users' );
@@ -217,24 +262,27 @@ function diluxone_users_screen_login_2fa(): void {
 	$all     = diluxone_users_2fa_methods_offered();
 	$enabled = (array) diluxone_users_option( 'diluxone_users_2fa_methods' );
 	$mode    = (string) diluxone_users_option( 'diluxone_users_2fa_mode' );
+	$decided = diluxone_users_option_is_set( 'diluxone_users_2fa_mode' );
 	$today   = diluxone_users_2fa_link_today();
 	$nowhere = '' === diluxone_users_2fa_surface();
 
 	diluxone_users_ui_section( __( 'When it is asked for', 'diluxone-users' ) );
 
+	// An answer is drawn chosen once somebody chose it: on a fresh install
+	// none is, and the groups below wait for one.
 	diluxone_users_ui_choices(
 		array(
 			array(
 				'name'    => 'diluxone_users_2fa_mode',
 				'value'   => 'optional',
-				'checked' => 'optional' === $mode,
+				'checked' => $decided && 'optional' === $mode,
 				'title'   => __( 'Optional: whoever wants it turns it on from their account', 'diluxone-users' ),
 				'help'    => __( 'Nobody is made to do anything, and whoever turned it on is asked from then on.', 'diluxone-users' ),
 			),
 			array(
 				'name'     => 'diluxone_users_2fa_mode',
 				'value'    => 'required',
-				'checked'  => 'required' === $mode,
+				'checked'  => $decided && 'required' === $mode,
 				'disabled' => $nowhere && 'required' !== $mode,
 				'state'    => $nowhere ? 'pending' : '',
 				'note'     => $nowhere ? __( 'needs a sign-in page', 'diluxone-users' ) : '',
@@ -244,7 +292,7 @@ function diluxone_users_screen_login_2fa(): void {
 			array(
 				'name'    => 'diluxone_users_2fa_mode',
 				'value'   => 'off',
-				'checked' => 'off' === $mode,
+				'checked' => $decided && 'off' === $mode,
 				'title'   => __( 'Off: it is not offered at all', 'diluxone-users' ),
 				'help'    => __( 'Nobody is asked, not even whoever had it set up. What they set up is kept and works again the day this comes back on.', 'diluxone-users' ),
 			),
@@ -252,14 +300,23 @@ function diluxone_users_screen_login_2fa(): void {
 	);
 
 	/*
-	 * Off is the one answer that makes every question below it moot, and the
-	 * rest of the screen is kept on show so it can be prepared before it is
-	 * turned on. Said once, right under the answer that caused it, while that
-	 * answer is the saved one.
+	 * Off — or nothing chosen yet — is the one answer that makes every
+	 * question below it moot, so the groups below wait for it: drawn
+	 * disabled with nothing ticked, under one line saying so, until it is
+	 * turned on above (diluxone_users_ui_choices(), $waits). Nowhere to
+	 * answer the step is said the same way as before, under the answer that
+	 * caused it, while that answer is the saved one.
 	 */
-	if ( 'off' === $mode ) {
-		diluxone_users_not_now( __( 'The second step is off, so nothing below is asked of anybody. What is chosen applies the day it is turned on.', 'diluxone-users' ) );
-	} elseif ( $nowhere ) {
+	$waits = array(
+		'why'     => $decided
+			? __( 'The second step is off, so nothing below is asked of anybody. Turn it on above and this applies.', 'diluxone-users' )
+			: __( 'No second step is chosen yet: nothing is asked of anybody, as WordPress has it. Choose one above and this applies.', 'diluxone-users' ),
+		'name'    => 'diluxone_users_2fa_mode',
+		'is'      => array( 'optional', 'required' ),
+		'waiting' => ! $decided || 'off' === $mode,
+	);
+
+	if ( $decided && 'off' !== $mode && $nowhere ) {
 		diluxone_users_not_now(
 			diluxone_users_2fa_needs_a_surface(),
 			diluxone_users_admin_url( 'diluxone-users-login', array( 'tab' => 'page' ) ),
@@ -310,7 +367,8 @@ function diluxone_users_screen_login_2fa(): void {
 		array(
 			'name' => 'diluxone_users_2fa_mode',
 			'is'   => array( 'optional', 'required' ),
-		)
+		),
+		$waits
 	);
 
 	diluxone_users_ui_pro_card(
@@ -329,7 +387,9 @@ function diluxone_users_screen_login_2fa(): void {
 		__( 'Whether there is a sign-in link at all is decided on Access. This is only what happens after one is followed.', 'diluxone-users' )
 	);
 
-	if ( ! diluxone_users_login_has_link() ) {
+	// Worth saying only once the group is asked at all: under the line that
+	// says it waits, a second reason is noise.
+	if ( ! $waits['waiting'] && ! diluxone_users_login_has_link() ) {
 		diluxone_users_not_now(
 			__( 'The e-mail link is not one of the ways in on this site, so nobody follows one. What is chosen here applies the day it is.', 'diluxone-users' ),
 			diluxone_users_admin_url( 'diluxone-users-login', array( 'tab' => 'ways' ) ),
@@ -360,7 +420,10 @@ function diluxone_users_screen_login_2fa(): void {
 				'title'   => __( 'Never ask', 'diluxone-users' ),
 				'help'    => __( 'Following the link is the whole of it. The quickest way in, and the weakest of the three.', 'diluxone-users' ),
 			),
-		)
+		),
+		'',
+		array(),
+		$waits
 	);
 
 	diluxone_users_ui_pro_card(
@@ -481,14 +544,20 @@ function diluxone_users_2fa_summary_rows( array $rows ): array {
 		$detail = esc_html__( 'Nobody is asked for a second step, not even whoever has one set up. What they set up is kept.', 'diluxone-users' );
 	}
 
-	$rows[] = array(
-		'label'  => __( 'Two-step verification', 'diluxone-users' ),
-		// On, and reaching nobody, is the one answer that is neither: the
-		// site is asking for a code from a list of roles it never filled in.
-		'state'  => $on ? ( $none || $nowhere ? 'pending' : 'active' ) : 'off',
-		'why'    => $on && $nowhere ? __( 'there is nowhere to type the code', 'diluxone-users' ) : ( $on && $none ? __( 'it reaches nobody as it stands', 'diluxone-users' ) : '' ),
-		'detail' => $on && $nowhere ? esc_html( diluxone_users_2fa_needs_a_surface() ) : $detail,
-		'url'    => $tab,
+	// Both rows hang off the mode: with none chosen there is no second
+	// step, as WordPress has it, and nothing carries a code for it.
+	$rows[] = diluxone_users_summary_row(
+		'diluxone_users_2fa_mode',
+		array(
+			'label'  => __( 'Two-step verification', 'diluxone-users' ),
+			// On, and reaching nobody, is the one answer that is neither: the
+			// site is asking for a code from a list of roles it never filled in.
+			'state'  => $on ? ( $none || $nowhere ? 'pending' : 'active' ) : 'off',
+			'why'    => $on && $nowhere ? __( 'there is nowhere to type the code', 'diluxone-users' ) : ( $on && $none ? __( 'it reaches nobody as it stands', 'diluxone-users' ) : '' ),
+			'detail' => $on && $nowhere ? esc_html( diluxone_users_2fa_needs_a_surface() ) : $detail,
+			'url'    => $tab,
+		),
+		esc_html__( 'No second step: WordPress asks for none.', 'diluxone-users' )
 	);
 
 	// From the registry and not from a list written here: what is on is what
@@ -498,14 +567,18 @@ function diluxone_users_2fa_summary_rows( array $rows ): array {
 		diluxone_users_2fa_methods()
 	);
 
-	$rows[] = array(
-		'label'  => __( 'How the code arrives', 'diluxone-users' ),
-		'state'  => array() === $methods ? 'off' : ( $on ? 'active' : 'off' ),
-		'why'    => array() !== $methods && ! $on ? __( 'while the second step is off', 'diluxone-users' ) : '',
-		'detail' => array() === $methods
-			? esc_html__( 'Nothing carries it: no method is ticked, so nobody could finish signing in.', 'diluxone-users' )
-			: esc_html( implode( ', ', $methods ) ),
-		'url'    => $tab,
+	$rows[] = diluxone_users_summary_row(
+		'diluxone_users_2fa_mode',
+		array(
+			'label'  => __( 'How the code arrives', 'diluxone-users' ),
+			'state'  => array() === $methods ? 'off' : ( $on ? 'active' : 'off' ),
+			'why'    => array() !== $methods && ! $on ? __( 'while the second step is off', 'diluxone-users' ) : '',
+			'detail' => array() === $methods
+				? esc_html__( 'Nothing carries it: no method is ticked, so nobody could finish signing in.', 'diluxone-users' )
+				: esc_html( implode( ', ', $methods ) ),
+			'url'    => $tab,
+		),
+		esc_html__( 'Nothing is sent: there is no second step.', 'diluxone-users' )
 	);
 
 	$rows[] = array(

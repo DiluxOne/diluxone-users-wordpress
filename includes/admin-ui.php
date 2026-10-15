@@ -374,8 +374,10 @@ function diluxone_users_ui_save_box(): string {
  *                      takes it: active, pending, off, unknown.
  * @param string $why   The half-dozen words that qualify the pill, if the
  *                      pill on its own would leave a question.
+ * @param string $word  What to call that state here, when the line is not
+ *                      about a switch — see `diluxone_users_state_pill()`.
  */
-function diluxone_users_ui_aside_state( string $line, string $state, string $why = '' ): void {
+function diluxone_users_ui_aside_state( string $line, string $state, string $why = '', string $word = '' ): void {
 	// A pill with no sentence beside it is the thing this piece was written to
 	// replace, so a screen with nothing to report draws no box at all.
 	if ( '' === trim( $line ) ) {
@@ -386,7 +388,7 @@ function diluxone_users_ui_aside_state( string $line, string $state, string $why
 		sprintf(
 			'<div class="du-state"><span class="du-state__head"><span class="du-state__now">%1$s</span>%2$s</span><p class="du-state__line">%3$s</p></div>',
 			esc_html_x( 'Right now', 'the head of the rail: how this site stands today', 'diluxone-users' ),
-			diluxone_users_state_pill( $state, $why ),
+			diluxone_users_state_pill( $state, $why, $word ),
 			wp_kses_post( $line )
 		),
 		diluxone_users_allowed_html()
@@ -581,14 +583,24 @@ function diluxone_users_ui_svg_tags(): array {
  * with a border, an option is one thing, and what is said about it is said
  * inside it.
  *
+ * `waiting` is the one key a caller does not set by hand: it is what
+ * `diluxone_users_ui_choices()` puts on every choice of a group handed
+ * `$waits` while the answer it waits for is missing. The card is drawn
+ * disabled, with nothing chosen and no pill of its own, and marked so the
+ * script can let it go the moment that answer is given on the same tab. The
+ * hidden line a tick box leaves for the save is disabled with it: a box
+ * nobody could tick was not drawn, as far as the save is concerned, and the
+ * setting keeps what it had.
+ *
  * @param array<string, mixed> $choice name, value, title and optionally type,
  *                                     help, checked, disabled, state, note,
- *                                     piece, data and id.
+ *                                     piece, data, id and waiting.
  */
 function diluxone_users_ui_choice( array $choice ): void {
 	$type     = ( $choice['type'] ?? 'radio' ) === 'checkbox' ? 'checkbox' : 'radio';
-	$checked  = ! empty( $choice['checked'] );
-	$disabled = ! empty( $choice['disabled'] );
+	$waiting  = ! empty( $choice['waiting'] );
+	$checked  = ! $waiting && ! empty( $choice['checked'] );
+	$disabled = $waiting || ! empty( $choice['disabled'] );
 	$classes  = array( 'du-choice' );
 
 	if ( $checked ) {
@@ -603,12 +615,16 @@ function diluxone_users_ui_choice( array $choice ): void {
 	 * An unticked box sends nothing, which a save cannot tell from a box that
 	 * was never drawn. So a box says it was there, and a save that writes only
 	 * what its screen drew (diluxone_users_panel_drawn()) reads the absence
-	 * of a tick as "unticked" only when the box was on the screen.
+	 * of a tick as "unticked" only when the box was on the screen. The mark
+	 * beside `disabled` is what the script reads to know the wait disabled
+	 * this one, and not a reason of the card's own.
 	 */
 	if ( 'checkbox' === $type ) {
 		printf(
-			'<input type="hidden" name="diluxone_users_panel_drawn[]" value="%s">',
-			esc_attr( (string) strtok( (string) $choice['name'], '[' ) )
+			'<input type="hidden" name="diluxone_users_panel_drawn[]" value="%1$s"%2$s%3$s>',
+			esc_attr( (string) strtok( (string) $choice['name'], '[' ) ),
+			$waiting ? ' data-diluxone-users-waited' : '',
+			disabled( $waiting, true, false )
 		);
 	}
 	?>
@@ -620,13 +636,14 @@ function diluxone_users_ui_choice( array $choice ): void {
 			<?php echo isset( $choice['id'] ) ? 'id="' . esc_attr( (string) $choice['id'] ) . '"' : ''; ?>
 			<?php echo isset( $choice['piece'] ) ? 'data-diluxone-users-piece="' . esc_attr( (string) $choice['piece'] ) . '"' : ''; ?>
 			<?php diluxone_users_ui_print_data( (array) ( $choice['data'] ?? array() ) ); ?>
+			<?php echo $waiting ? 'data-diluxone-users-waited' : ''; ?>
 			<?php checked( $checked ); ?>
 			<?php disabled( $disabled ); ?>>
 
 		<span class="du-choice__text">
 			<span class="du-choice__title">
 				<?php echo esc_html( (string) $choice['title'] ); ?>
-				<?php if ( ! empty( $choice['state'] ) ) : ?>
+				<?php if ( ! $waiting && ! empty( $choice['state'] ) ) : ?>
 					<?php echo wp_kses( diluxone_users_state_pill( (string) $choice['state'], (string) ( $choice['note'] ?? '' ) ), diluxone_users_allowed_html() ); ?>
 				<?php endif; ?>
 			</span>
@@ -736,11 +753,37 @@ function diluxone_users_ui_kept_card( string $name, string $value, string $inste
  * moment somebody changes that answer without saving. Named here, the browser
  * reads the answer as it is now and the two screens ask in one voice.
  *
+ * `$waits` is for a group that has no answer until another one is given:
+ * what becomes of wp-login.php while no sign-in page is chosen, who the
+ * second step reaches while it is off. Such a group used to stay enabled
+ * under a pending line, with an option chosen in it — and on a fresh
+ * install that read as a choice somebody had made about a page that did not
+ * exist. Now it waits: drawn disabled with nothing chosen, under one line
+ * saying what it waits for, until the control it names on the same tab is
+ * given one of the values that end the wait (`is`), or one that is not among
+ * the values that keep it waiting (`not`). The script lets the group go the
+ * moment that happens, and takes it back if the answer goes away again; the
+ * server reads whatever was sent, and a disabled control sends nothing, so
+ * the save of that tab leaves the setting as it was. Whether the group is
+ * waiting as the page is drawn is the caller's to say (`waiting`), from the
+ * stored answer, which is the only one the server knows.
+ *
  * @param array<int, array<string, mixed>> $choices
  * @param string                           $needs_one  What to say when none of them is ticked, or '' when none is an answer.
  * @param array<string, mixed>             $only_while name of the control the rule hangs off and `is`, the values that arm it.
+ * @param array<string, mixed>             $waits      why (what it waits for), name (the control it waits on), `is` or
+ *                                                     `not` (the values of that control that end the wait, or keep it),
+ *                                                     waiting (whether it waits right now) and optionally url and go.
  */
-function diluxone_users_ui_choices( array $choices, string $needs_one = '', array $only_while = array() ): void {
+function diluxone_users_ui_choices( array $choices, string $needs_one = '', array $only_while = array(), array $waits = array() ): void {
+	$waiting = diluxone_users_ui_waits_open( $waits );
+
+	if ( $waiting ) {
+		foreach ( $choices as $i => $choice ) {
+			$choices[ $i ]['waiting'] = true;
+		}
+	}
+
 	if ( '' !== $needs_one ) {
 		$armed = array() === $only_while
 			? ''
@@ -803,6 +846,70 @@ function diluxone_users_ui_choices( array $choices, string $needs_one = '', arra
 			'<p class="du-needs-one__said" data-diluxone-users-atleast-one-said hidden>%s</p></div>',
 			esc_html( $needs_one )
 		);
+	}
+
+	diluxone_users_ui_waits_close( $waits );
+}
+
+/**
+ * Opens the wrapper of a block that waits for another answer.
+ *
+ * The wrapper names the control it waits on and the values that end the
+ * wait, so the script can hear that control; the line saying what it waits
+ * for is printed inside it, hidden while nothing is waited for, so the page
+ * is right with the script off and the script only has to show or hide it.
+ * Shared by `diluxone_users_ui_choices()` and the roles picker, which is the
+ * one block of controls that is not a group of choices.
+ *
+ * @param array<string, mixed> $waits As diluxone_users_ui_choices() takes it; empty for a block that waits for nothing.
+ * @return bool Whether the block is waiting right now.
+ */
+function diluxone_users_ui_waits_open( array $waits ): bool {
+	if ( array() === $waits ) {
+		return false;
+	}
+
+	$waiting = ! empty( $waits['waiting'] );
+	$data    = array( 'waits' => (string) ( $waits['name'] ?? '' ) );
+
+	if ( isset( $waits['is'] ) ) {
+		$data['waits-is'] = implode( ' ', array_map( 'strval', (array) $waits['is'] ) );
+	}
+
+	if ( isset( $waits['not'] ) ) {
+		$data['waits-not'] = implode( ' ', array_map( 'strval', (array) $waits['not'] ) );
+	}
+
+	echo wp_kses(
+		sprintf(
+			'<div class="du-waits-on%1$s"%2$s>',
+			$waiting ? ' is-waiting' : '',
+			diluxone_users_ui_data( $data )
+		),
+		diluxone_users_allowed_html()
+	);
+
+	ob_start();
+	diluxone_users_ui_waits( (string) ( $waits['why'] ?? '' ), (string) ( $waits['url'] ?? '' ), (string) ( $waits['go'] ?? '' ) );
+	$line = (string) ob_get_clean();
+
+	if ( ! $waiting ) {
+		$line = str_replace( '<p class="du-waits">', '<p class="du-waits" hidden>', $line );
+	}
+
+	echo wp_kses( $line, diluxone_users_allowed_html() );
+
+	return $waiting;
+}
+
+/**
+ * Closes it.
+ *
+ * @param array<string, mixed> $waits The same array the opener took.
+ */
+function diluxone_users_ui_waits_close( array $waits ): void {
+	if ( array() !== $waits ) {
+		echo '</div>';
 	}
 }
 

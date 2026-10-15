@@ -100,14 +100,25 @@ function diluxone_users_screen_notices_summary(): void {
 	$rules    = diluxone_users_admin_url( DILUXONE_USERS_NOTICES, array( 'tab' => 'rules' ) );
 	$rows     = array();
 
+	// The rules are one setting: until it is saved no notice is decided, and
+	// each row says what the plugin ships with for it meanwhile.
 	foreach ( diluxone_users_notification_prefs() as $key => $notice ) {
 		$policy = diluxone_users_notice_policy( (string) $key );
 
-		$rows[] = array(
-			'label'  => (string) $notice['label'],
-			'state'  => 'never' === $policy ? 'off' : 'active',
-			'detail' => $policies[ $policy ] . ' · ' . diluxone_users_notice_origin( (string) $key ),
-			'url'    => $rules,
+		$rows[] = diluxone_users_summary_row(
+			'diluxone_users_notice_rules',
+			array(
+				'label'  => (string) $notice['label'],
+				'state'  => 'never' === $policy ? 'off' : 'active',
+				'detail' => $policies[ $policy ] . ' · ' . diluxone_users_notice_origin( (string) $key ),
+				'url'    => $rules,
+			),
+			sprintf(
+				/* translators: 1: the rule the plugin ships with for this notice, 2: where the notice comes from */
+				__( 'Not decided on this site. As the plugin ships it: %1$s · %2$s', 'diluxone-users' ),
+				$policies[ $policy ],
+				diluxone_users_notice_origin( (string) $key )
+			)
 		);
 	}
 
@@ -118,40 +129,52 @@ function diluxone_users_screen_notices_summary(): void {
 	$why      = __( 'the last e-mail this site sent did not go out', 'diluxone-users' );
 
 	$link_on = diluxone_users_login_has_link();
-	$rows[]  = array(
-		'label'  => __( 'The sign-in link', 'diluxone-users' ),
-		'state'  => $link_on ? ( $delivery ? 'active' : 'unknown' ) : 'off',
-		'why'    => $link_on && ! $delivery ? $why : '',
-		'detail' => $link_on
-			? __( 'Sent when somebody asks to get in. Nobody can turn it off: without it there is no way in.', 'diluxone-users' )
-			: __( 'Not offered: people sign in to this site with a password only.', 'diluxone-users' ),
-		'url'    => $link_on
-			? ( $delivery ? diluxone_users_admin_url( DILUXONE_USERS_NOTICES, array( 'tab' => 'templates' ) ) : $status )
-			: diluxone_users_admin_url( 'diluxone-users-login', array( 'tab' => 'ways' ) ),
+	$rows[]  = diluxone_users_summary_row(
+		'diluxone_users_login_method',
+		array(
+			'label'  => __( 'The sign-in link', 'diluxone-users' ),
+			'state'  => $link_on ? ( $delivery ? 'active' : 'unknown' ) : 'off',
+			'why'    => $link_on && ! $delivery ? $why : '',
+			'detail' => $link_on
+				? __( 'Sent when somebody asks to get in. Nobody can turn it off: without it there is no way in.', 'diluxone-users' )
+				: __( 'Not offered: people sign in to this site with a password only.', 'diluxone-users' ),
+			'url'    => $link_on
+				? ( $delivery ? diluxone_users_admin_url( DILUXONE_USERS_NOTICES, array( 'tab' => 'templates' ) ) : $status )
+				: diluxone_users_admin_url( 'diluxone-users-login', array( 'tab' => 'ways' ) ),
+		),
+		__( 'Not offered: WordPress has no sign-in link of its own.', 'diluxone-users' )
 	);
 
 	$code_on = diluxone_users_notice_2fa_email();
-	$rows[]  = array(
-		'label'  => __( 'The second-step code', 'diluxone-users' ),
-		'state'  => $code_on ? ( $delivery ? 'active' : 'unknown' ) : 'off',
-		'why'    => $code_on && ! $delivery ? $why : '',
-		'detail' => $code_on
-			? __( 'Sent when somebody halfway through signing in is waiting for it. Nobody can turn it off: a code that does not arrive locks them out.', 'diluxone-users' )
-			: __( 'Not in use: a code by e-mail is not one of the second steps this site offers.', 'diluxone-users' ),
-		'url'    => $code_on
-			? ( $delivery ? diluxone_users_admin_url( DILUXONE_USERS_NOTICES, array( 'tab' => 'templates' ) ) : $status )
-			: diluxone_users_admin_url( DILUXONE_USERS_SECURITY, array( 'tab' => '2fa' ) ),
+	$rows[]  = diluxone_users_summary_row(
+		'diluxone_users_2fa_mode',
+		array(
+			'label'  => __( 'The second-step code', 'diluxone-users' ),
+			'state'  => $code_on ? ( $delivery ? 'active' : 'unknown' ) : 'off',
+			'why'    => $code_on && ! $delivery ? $why : '',
+			'detail' => $code_on
+				? __( 'Sent when somebody halfway through signing in is waiting for it. Nobody can turn it off: a code that does not arrive locks them out.', 'diluxone-users' )
+				: __( 'Not in use: a code by e-mail is not one of the second steps this site offers.', 'diluxone-users' ),
+			'url'    => $code_on
+				? ( $delivery ? diluxone_users_admin_url( DILUXONE_USERS_NOTICES, array( 'tab' => 'templates' ) ) : $status )
+				: diluxone_users_admin_url( DILUXONE_USERS_SECURITY, array( 'tab' => '2fa' ) ),
+		),
+		__( 'Not in use: there is no second step, as WordPress has it.', 'diluxone-users' )
 	);
 
 	// WordPress sends this one, not the plugin: the plugin only opens the
 	// door. Whether it is delivered is beyond what can be told from here.
 	$data_on = diluxone_users_privacy_any();
-	$rows[]  = array(
-		'label'  => __( 'Their own data', 'diluxone-users' ),
-		'state'  => $data_on ? 'unknown' : 'off',
-		'detail' => $data_on
-			? __( 'The confirmation WordPress sends when somebody asks to download their data or delete their account. It is WordPress that sends it, so this screen cannot tell whether it arrives.', 'diluxone-users' )
-			: __( 'Not in use: neither downloading their data nor deleting their account is offered.', 'diluxone-users' ),
+	$rows[]  = diluxone_users_summary_row(
+		array( 'diluxone_users_privacy_export', 'diluxone_users_privacy_delete' ),
+		array(
+			'label'  => __( 'Their own data', 'diluxone-users' ),
+			'state'  => $data_on ? 'unknown' : 'off',
+			'detail' => $data_on
+				? __( 'The confirmation WordPress sends when somebody asks to download their data or delete their account. It is WordPress that sends it, so this screen cannot tell whether it arrives.', 'diluxone-users' )
+				: __( 'Not in use: neither downloading their data nor deleting their account is offered.', 'diluxone-users' ),
+		),
+		__( 'Not in use: nothing is offered on the site, so WordPress has nothing to confirm.', 'diluxone-users' )
 	);
 
 	diluxone_users_summary_table( $rows );

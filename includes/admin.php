@@ -259,16 +259,23 @@ function diluxone_users_roles_that_edit_users(): array {
  * caller has one: a section of the account area is one row of an array, not
  * two options of its own.
  *
- * @param string            $scope_name Name of the radio input.
- * @param string            $roles_name Name of the checkboxes, brackets included.
- * @param string            $scope      'all' or 'some'.
- * @param array<int,string> $chosen     Roles already ticked.
- * @param string            $help       A line under the control, or '' for none.
- * @param string            $spared     Who this can never reach, or '' when it can reach anybody.
- * @param array<int,string> $exclude    Roles not offered at all.
- * @param array<int,string> $fixed      Roles shown but not choosable: they are never reached, and it says so on the row.
+ * @param string              $scope_name Name of the radio input.
+ * @param string              $roles_name Name of the checkboxes, brackets included.
+ * @param string              $scope      'all' or 'some'.
+ * @param array<int,string>   $chosen     Roles already ticked.
+ * @param string              $help       A line under the control, or '' for none.
+ * @param string              $spared     Who this can never reach, or '' when it can reach anybody.
+ * @param array<int,string>   $exclude    Roles not offered at all.
+ * @param array<int,string>   $fixed      Roles shown but not choosable: they are never reached, and it says so on the row.
+ * @param array<string,mixed> $waits      What the whole control waits for, as diluxone_users_ui_choices() takes it, or empty.
  */
-function diluxone_users_roles_picker( string $scope_name, string $roles_name, string $scope, array $chosen, string $help = '', string $spared = '', array $exclude = array(), array $fixed = array() ): void {
+function diluxone_users_roles_picker( string $scope_name, string $roles_name, string $scope, array $chosen, string $help = '', string $spared = '', array $exclude = array(), array $fixed = array(), array $waits = array() ): void {
+	/*
+	 * The wait is the whole control's — the two answers and the roles under
+	 * them — so it is opened here, once, and the group of answers inside is
+	 * told it is waiting rather than handed a wait of its own.
+	 */
+	$waiting = diluxone_users_ui_waits_open( $waits );
 	?>
 	<fieldset data-diluxone-users-scope>
 		<?php
@@ -293,6 +300,7 @@ function diluxone_users_roles_picker( string $scope_name, string $roles_name, st
 					'value'   => 'all',
 					'checked' => 'some' !== $scope,
 					'title'   => __( 'Everybody', 'diluxone-users' ),
+					'waiting' => $waiting,
 				),
 				array(
 					'name'    => $scope_name,
@@ -300,6 +308,7 @@ function diluxone_users_roles_picker( string $scope_name, string $roles_name, st
 					'checked' => 'some' === $scope,
 					'title'   => __( 'Only some roles', 'diluxone-users' ),
 					'help'    => $help,
+					'waiting' => $waiting,
 				),
 			)
 		);
@@ -323,7 +332,7 @@ function diluxone_users_roles_picker( string $scope_name, string $roles_name, st
 					</label>
 				<?php elseif ( ! in_array( (string) $role, $exclude, true ) ) : ?>
 					<label class="diluxone-users-roles__item">
-						<input type="checkbox" name="<?php echo esc_attr( $roles_name ); ?>" value="<?php echo esc_attr( $role ); ?>" <?php checked( in_array( $role, $chosen, true ) ); ?>>
+						<input type="checkbox" name="<?php echo esc_attr( $roles_name ); ?>" value="<?php echo esc_attr( $role ); ?>" <?php checked( ! $waiting && in_array( $role, $chosen, true ) ); ?><?php echo $waiting ? ' data-diluxone-users-waited' : ''; ?><?php disabled( $waiting ); ?>>
 						<?php echo esc_html( translate_user_role( $label ) ); ?>
 					</label>
 				<?php endif; ?>
@@ -335,16 +344,18 @@ function diluxone_users_roles_picker( string $scope_name, string $roles_name, st
 		<?php endif; ?>
 	</fieldset>
 	<?php
+	diluxone_users_ui_waits_close( $waits );
 }
 
 /**
  * The same control, for a setting that lives in two options of its own.
  *
- * @param string $prefix Option prefix, e.g. 'diluxone_users_2fa'.
- * @param string $help   A line under the control, or '' for none.
- * @param string $spared Who this can never reach, or '' when it can reach anybody.
+ * @param string              $prefix Option prefix, e.g. 'diluxone_users_2fa'.
+ * @param string              $help   A line under the control, or '' for none.
+ * @param string              $spared Who this can never reach, or '' when it can reach anybody.
+ * @param array<string,mixed> $waits  What the control waits for, as diluxone_users_ui_choices() takes it, or empty.
  */
-function diluxone_users_scope_control( string $prefix, string $help = '', string $spared = '' ): void {
+function diluxone_users_scope_control( string $prefix, string $help = '', string $spared = '', array $waits = array() ): void {
 	// With somebody spared, the roles that edit users are shown as fixed
 	// rows rather than left off: the rule is seen, not inferred.
 	$fixed = '' === $spared ? array() : diluxone_users_roles_that_edit_users();
@@ -357,7 +368,8 @@ function diluxone_users_scope_control( string $prefix, string $help = '', string
 		$help,
 		$spared,
 		array(),
-		$fixed
+		$fixed,
+		$waits
 	);
 }
 

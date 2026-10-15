@@ -41,7 +41,7 @@ export function statePill(scope: Locator): Locator {
 	return scope.locator('.diluxone-users-state').first();
 }
 
-/** The state a pill is in: `active`, `off`, `pending`, `unknown`. */
+/** The state a pill is in: `active`, `off`, `pending`, `unknown`, `unset`. */
 export async function stateIn(scope: Locator): Promise<string> {
 	const classes = (await statePill(scope).getAttribute('class')) ?? '';
 

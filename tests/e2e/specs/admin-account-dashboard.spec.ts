@@ -116,8 +116,11 @@ test.describe('Account area › The page', () => {
 
 test.describe('Account area › Summary', () => {
 	test('each row reads the setting its tab writes, and links to that tab', async ({ page, options }) => {
-		await options.keep([...DASHBOARD, 'diluxone_users_privacy_export', 'diluxone_users_privacy_delete', 'diluxone_users_handle_enabled']);
+		await options.keep([...DASHBOARD, 'diluxone_users_privacy_export', 'diluxone_users_privacy_delete', 'diluxone_users_handle_enabled', 'diluxone_users_account_sections']);
 		await options.set({
+			// Saved once, as the plugin ships them: a setting nobody saved reads
+			// Not configured instead (admin-fresh-install).
+			diluxone_users_account_sections: {},
 			diluxone_users_admin_bar: 'hide',
 			diluxone_users_admin_bar_scope: 'some',
 			diluxone_users_wp_profile: 'block',

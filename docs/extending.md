@@ -133,13 +133,15 @@ rest of the admin and follows it when the admin changes:
   there: notes, notices, links).
 - `diluxone_users_intro( $text )` — the sentence under the tab's title;
   `diluxone_users_ui_section( $title, $help )` — a group's heading.
-- `diluxone_users_ui_choices( $choices )` — radios and tick boxes, each
-  `type`, `name`, `value`, `checked`, `title`, `help` (and `state`, `note`,
-  `disabled`, `children`).
+- `diluxone_users_ui_choices( $choices, $needs_one, $only_while, $waits )` —
+  radios and tick boxes, each `type`, `name`, `value`, `checked`, `title`,
+  `help` (and `state`, `note`, `disabled`, `children`); `$waits` for a group
+  that waits for another answer.
 - `diluxone_users_ui_note( $title, $text, $state )`, `diluxone_users_ui_notice( $html, $kind )`,
   `diluxone_users_ui_links( $title, $links )` (each `url`, `label`, `help`)
-  and `diluxone_users_not_now( $why, $url, $go )` — what the rail and a
-  dimmed control say.
+  `diluxone_users_not_now( $why, $url, $go )` and
+  `diluxone_users_ui_waits( $why, $url, $go )` — what the rail, a dimmed
+  control and a group that waits say.
 - `diluxone_users_ui_words( $key, $label, $fallback, $help )` and
   `diluxone_users_ui_words_area( … )` — a sentence the site may rewrite;
   `diluxone_users_ui_inline_choices( $label, $choices, $help )` — a short
@@ -162,12 +164,25 @@ The first tab of a screen with settings is a **Summary**: `form => false`,
 the other tabs write and edits nothing. A row is a label, a state, one line of
 detail and a "Change it →" link to the tab that owns it.
 
-There is one vocabulary of state, four words, on every screen:
+There is one vocabulary of state, five words, on every screen:
 `active`, `pending` (half set up, or waiting on something — always with a
-reason), `off`, and `unknown` for what cannot be told from inside the site.
-`diluxone_users_state_pill( $state, $why, $word )` draws one. A fifth pill,
+reason), `off`, `unknown` for what cannot be told from inside the site, and
+`unset` ("Not configured") for a setting nobody has decided.
+`diluxone_users_state_pill( $state, $why, $word )` draws one. A sixth pill,
 `pro`, is not a state: it is the badge of a Users+ Pro placeholder (see
 [Users+ Pro on these screens](#users-pro-on-these-screens)).
+
+Activating the plugin changes nothing, and the screens say so. A setting is
+decided when a value is stored for it — the default included: saving a tab
+is the person's choice — or pinned from code through the `diluxone_users_option`
+filter (`diluxone_users_option_is_set( $key )`, `diluxone_users_options_any_set( $keys )`).
+A summary row that reads a setting goes through
+`diluxone_users_summary_row( $keys, $row, $meanwhile )`: the row as written
+once decided, and `unset` with `$meanwhile` — what WordPress does on its own —
+in the detail until then. An add-on's rows on `diluxone_users_doors` and
+`diluxone_users_security_summary` do the same, and the rail's "Right now"
+(`diluxone_users_ui_aside_state( $line, $state, $why, $word )`) takes `unset`
+like any other state.
 
 The Security screen's summary is built from what each feature says about
 itself: `diluxone_users_security_summary` (filter) receives the rows, an
@@ -190,6 +205,19 @@ agree with a masculine name and a feminine key, and it cannot do both.
 A control that does not apply right now stays on the screen and keeps saving —
 what is chosen applies the day the reason goes away — but it is dimmed and
 `diluxone_users_not_now( $why, $url )` says why, above it, with the way out.
+
+A group that has no answer until another one is given — what becomes of
+wp-login.php while no sign-in page is chosen, who the second step reaches
+while it is off — waits for it instead: `diluxone_users_ui_choices()` takes
+`$waits` (`why`, `name` of the control it waits on, `is` or `not` — the values
+of that control that end the wait, or keep it — and `waiting`, whether it waits
+as the page is drawn), and draws the group disabled with nothing chosen under
+one line saying what for (`diluxone_users_ui_waits( $why, $url, $go )`, with
+no pill). The admin script lets the group go the moment that control is given
+an answer on the same tab, and takes it back if the answer goes away. A
+disabled control sends nothing, so the tab's save skips a key that did not
+arrive and the setting keeps what it had. `diluxone_users_scope_control()`
+takes the same `$waits`.
 
 ### Doors into an account
 

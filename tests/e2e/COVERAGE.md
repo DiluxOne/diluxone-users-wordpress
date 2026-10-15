@@ -186,6 +186,7 @@ everybody, with the code by e-mail, and skips it for nobody.
 | What the pictures are drawn from: every setting they show and the ten example people, pinned before each | `support/visual-state.ts` |
 | The public pages measured at 640, 560, 480 and 390 as well (sign-in stacked and in tabs, registration, account to a stranger, every section on both menus) | `admin-layout` › The public pages hold together |
 | Access › Ways in / Registration / Messages / Arrangement saves | `admin-settings`, `login-ways`, `login-screen` |
+| A fresh install: Not configured on every summary row (overview, Access, Security, account area, notices) with what WordPress does meanwhile; Ways in ticks nothing and says the form is WordPress's; the sign-in page's two groups, the second step's methods and link rule and "for whom" wait for their answer (disabled, nothing chosen, no pending pill), go the moment it is given on the tab and come back if it is taken away; a save leaves a waiting group's setting alone; a tab saved at its defaults reads as decided; sessions at 0 and 0: WordPress decides, Off once saved so | `admin-fresh-install` · integration: `NotConfiguredTest`; unit: `OptionIsSetTest` |
 | Every tab that saves has its button in the box beside it, first in the column, in view | `admin-layout` › Every tab saves from beside itself |
 | The save box: changed back is clean, discard, leaving asks | `admin-settings` › The box that saves |
 | The tabs on a phone stay in one row | `admin-settings` › The tabs on a phone |
@@ -325,6 +326,7 @@ everybody, with the code by e-mail, and skips it for nobody.
 | The last step, the download and the confirmation link used on /beta/ close nothing and hand over nothing | `my-account-hub` › the last step, the download and the confirmation link… |
 | An administrator of /beta/ (subscriber on the hub) closing from the hub: shell, no /beta/ role, deleted mail; a super admin offered no erasure and refused by hand; a social identity linked before closing does not reopen the shell | `my-account-hub` › Closing an account on a network |
 | WP-CLI: `login --send`, its refusals, membership sync while unconfirmed or under another policy | `my-account-hub` › WP-CLI on the network |
+| A fresh network: the hub's Access and account summaries read Not configured, the hub's sign-in page tab waits for a page, Network Admin's Security summary reads Not configured for the network's second step and sessions and its two-step tab waits for a mode | `network/admin-fresh-install` |
 
 ## The hub: every door on a network leads to one site, and back
 
