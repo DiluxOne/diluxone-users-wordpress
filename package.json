@@ -22,7 +22,7 @@
     "test:e2e:network": "playwright test -c playwright.network.config.ts"
   },
   "devDependencies": {
-    "@playwright/test": "^1.63.0",
-    "@wordpress/env": "^11.16.0"
+    "@playwright/test": "^1.64.0",
+    "@wordpress/env": "^11.17.0"
   }
 }
