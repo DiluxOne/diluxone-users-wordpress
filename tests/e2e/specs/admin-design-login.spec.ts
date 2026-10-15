@@ -64,13 +64,19 @@ test.describe('Design › The sign-in page', () => {
 		await expect(frame(guest)).toHaveCount(0);
 	});
 
-	test('where Users+ Pro’s layouts would go: a card after the shapes, gone with the previews setting', async ({ page, options }) => {
+	test('where Users+ Pro’s layouts would go: two shapes after the real ones, disabled, gone with the previews setting', async ({ page, options }) => {
 		await page.goto(LOGIN_TAB);
 
 		const card = page.locator('[data-diluxone-users-pro="design/login/shapes"]');
 
-		await expect(card).toHaveCount(1);
-		await expect(card.locator('a')).toHaveAttribute('href', /diluxone\.com\/users-pro\/.*utm_medium=design/);
+		await expect(card, 'the split and the full background').toHaveCount(2);
+		await expect(card.first(), 'in the row of shapes').toHaveClass(/diluxone-users-templates__one/);
+		await expect(page.locator('.diluxone-users-templates > *').last(), 'after the real shapes').toHaveAttribute('data-diluxone-users-pro', 'design/login/shapes');
+		await expect(card.locator('input[type="radio"]'), 'nothing to pick').toHaveCount(2);
+		await expect(card.locator('input[type="radio"]:disabled')).toHaveCount(2);
+		await expect(card.locator('[name]'), 'nothing posts').toHaveCount(0);
+		await expect(card.locator('.diluxone-users-state--pro'), 'the badge on each').toHaveCount(2);
+		await expect(card.first().locator('a')).toHaveAttribute('href', /diluxone\.com\/users-pro\/.*utm_medium=design/);
 		await expect(page.locator('input[name="diluxone_users_login_side"], input[name="diluxone_users_login_panel_title"], textarea[name="diluxone_users_login_panel_title"]'), 'nothing of theirs is a control here').toHaveCount(0);
 
 		await options.set({ diluxone_users_pro_previews: 0 });

@@ -322,17 +322,21 @@ function diluxone_users_screen_social_providers(): void {
 		);
 	}
 
-	// After the real networks, a card of its own and not one more network
-	// that cannot be opened: what Users+ Pro adds here, and where to read
-	// about it. Users+ Pro answers false to it once it brings them.
-	diluxone_users_ui_pro_card(
-		array(
-			'where'  => 'social/providers/more',
-			'screen' => 'social',
-			'title'  => __( 'Ten more networks', 'diluxone-users' ),
-			'text'   => __( 'Users+ Pro adds LinkedIn, X, Facebook, GitHub, WordPress.com, Yahoo, Twitch, Discord, GitLab and Amazon, each with its guide and its live test.', 'diluxone-users' ),
-		)
-	);
+	// After the real networks, the ones Users+ Pro brings, each as the card
+	// it would be: its logo and its name, greyed, with nothing to open. Each
+	// has a placeholder of its own, so Pro turns off the ones it brings and
+	// a site turns off any of them.
+	foreach ( diluxone_users_sso_pro_networks() as $slug => $name ) {
+		diluxone_users_ui_pro_card(
+			array(
+				'where'  => 'social/providers/' . $slug,
+				'screen' => 'social',
+				'mark'   => diluxone_users_sso_icon( $slug ),
+				'title'  => $name,
+				'text'   => __( 'Users+ Pro adds it, with its guide and its live test.', 'diluxone-users' ),
+			)
+		);
+	}
 
 	diluxone_users_ui_cards_close();
 	diluxone_users_ui_wide_close();
@@ -340,6 +344,32 @@ function diluxone_users_screen_social_providers(): void {
 	diluxone_users_ui_section(
 		__( 'Not included, on purpose', 'diluxone-users' ),
 		__( 'Apple signs its client secret with a JWT that has to be regenerated every six months and answers by POST; Steam does not use OAuth 2 at all and never returns an email address. Both need their own flow, so they are not here yet: a button that does not work is worse than no button.', 'diluxone-users' )
+	);
+}
+
+/**
+ * The networks Users+ Pro brings, for the cards that say so.
+ *
+ * Names and logos and nothing else: no address, no scope, no way to sign in
+ * with any of them. The real rows come from Pro through
+ * `diluxone_users_sso_providers`, under these same slugs (X keeps the
+ * `twitter` it was registered as), and the day one is there the card for it
+ * is answered away through `diluxone_users_upsell`.
+ *
+ * @return array<string, string> Slug to name, in the order the cards are drawn.
+ */
+function diluxone_users_sso_pro_networks(): array {
+	return array(
+		'linkedin'  => 'LinkedIn',
+		'twitter'   => 'X',
+		'facebook'  => 'Facebook',
+		'github'    => 'GitHub',
+		'wordpress' => 'WordPress.com',
+		'yahoo'     => 'Yahoo',
+		'twitch'    => 'Twitch',
+		'discord'   => 'Discord',
+		'gitlab'    => 'GitLab',
+		'amazon'    => 'Amazon',
 	);
 }
 

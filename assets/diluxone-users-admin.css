@@ -1284,6 +1284,31 @@
 	background-repeat: no-repeat;
 	box-shadow: inset 0 0 0 100px #f0f0f1;
 }
+/* The shapes Users+ Pro brings, drawn the same way for the greyed cards that
+   say so: the split, the full background, the cover. */
+.diluxone-users-templates__art--login-split {
+	background:
+		linear-gradient(var(--du-muted) 0 100%),
+		linear-gradient(var(--du-ground) 0 100%),
+		linear-gradient(var(--du-line-soft) 0 100%);
+	background-position: 0 0, 62% 50%, 0 0;
+	background-size: 50% 100%, 28% 40%, 100% 100%;
+	background-repeat: no-repeat;
+}
+.diluxone-users-templates__art--login-full {
+	background: linear-gradient(var(--du-ground) 0 100%), linear-gradient(var(--du-muted) 0 100%);
+	background-position: 50% 50%, 0 0;
+	background-size: 40% 55%, 100% 100%;
+	background-repeat: no-repeat;
+}
+.diluxone-users-templates__art--cover {
+	background:
+		linear-gradient(var(--du-muted) 0 26px, transparent 26px 32px),
+		linear-gradient(90deg, var(--du-line) 0 22px, var(--du-line-soft) 22px 100%);
+	background-position: 0 0, 0 34px;
+	background-size: 100% 32px, 100% 100%;
+	background-repeat: no-repeat;
+}
 /* The picture chosen from the media library. */
 .diluxone-users-image__preview {
 	margin: 0 0 8px; padding: 6px;
@@ -1716,38 +1741,30 @@ span.diluxone-users-state {
 .diluxone-users-admin [hidden] { display: none; }
 
 /* ── Users+ Pro, where it belongs ────────────────────────────────────────
-   A part of a screen Pro brings is drawn as a picture of itself: the real
-   pieces, blurred and out of reach, with the badge, a line and the way out
-   on top. The blur is the one DiluxOne's other plugins use for "not here
-   yet", so the family says it the same way. */
-.du-pro { position: relative; margin: 0 0 var(--du-block); }
-.du-pro__picture {
-	filter: blur( 4px );
-	opacity: .45;
-	pointer-events: none;
-	user-select: none;
-}
-.du-pro__over {
-	position: absolute; inset: 0; z-index: 2;
-	display: flex; flex-direction: column; align-items: center; justify-content: center;
-	gap: var(--du-2); padding: var(--du-4); text-align: center;
-}
-.du-pro__head, .du-pro__says, .du-pro__go { margin: 0; }
-.du-pro__title { font-size: var(--du-title); font-weight: 600; color: var(--du-text); }
-.du-pro__says { max-width: 46ch; font-size: var(--du-help); font-weight: 600; color: var(--du-text); }
-
-/* The blur is decorative; without it the dimming still says "not here". */
-@media ( prefers-reduced-motion: reduce ) {
-	.du-pro__picture { filter: none; opacity: .35; }
-}
-
-/* A Pro answer after the real ones: a card with no control in it. */
-.du-pro-card {
-	display: flex; flex-direction: column; gap: var(--du-2);
-	margin: 0 0 var(--du-3); padding: var(--du-4);
-	border: 1px dashed var(--du-line); border-radius: var(--du-radius);
-	background: var(--du-ground-alt);
-}
-/* In a grid it is one more cell: the grid's gap is its room. */
-.diluxone-users-cards > .du-pro-card { margin: 0; }
-.du-pro-card .du-pro__says { max-width: none; font-weight: 400; color: var(--du-muted); }
+   A feature Pro brings is drawn as the control it would be — a radio, a tick
+   box, a button, a card, a shape, a row — switched off, with the badge and
+   one link out, the same on every screen. Nothing is blurred and nothing is
+   laid over anything: what is greyed is the control, as the dashboard greys
+   any control that cannot be used right now. */
+.du-pro__says { font-size: var(--du-help); color: var(--du-muted); }
+.du-pro__link { white-space: nowrap; }
+/* The choice is a locked choice (above); the badge in its title says why. */
+.du-pro--choice .du-choice__help { color: var(--du-muted); }
+/* A button where the real one would be, with its line beside it. */
+.du-pro--button { display: inline-flex; flex-wrap: wrap; align-items: center; gap: var(--du-2); }
+/* A card in a grid: greyed, and its logo with it. */
+.du-pro--card .diluxone-users-card { background: var(--du-ground-alt); }
+.du-pro--card .diluxone-users-card:hover { box-shadow: none; }
+.du-pro--card .diluxone-users-card__icon { background: var(--du-line-soft); color: var(--du-muted); }
+.du-pro--card .diluxone-users-card h3 { color: var(--du-muted); }
+.du-pro--card .diluxone-users-card__links .diluxone-users-card__link { font-size: var(--du-help); }
+/* A shape in a grid of shapes: nothing to pick, and its drawing dashed. */
+.du-pro--shape { cursor: default; background: var(--du-ground-alt); }
+.du-pro--shape .diluxone-users-templates__name { color: var(--du-muted); }
+.du-pro--shape .diluxone-users-templates__art { border-style: dashed; }
+/* Any other control, with its line under it; the colour picker it would be. */
+.du-pro__picker { display: inline-flex; align-items: center; gap: var(--du-2); color: var(--du-muted); }
+.du-pro--control { margin: 0 0 var(--du-block); }
+.du-pro--control .du-pro__foot { margin: var(--du-2) 0 0; }
+.du-pro--control select:disabled,
+.du-pro--control input:disabled { opacity: .65; }

@@ -1156,33 +1156,39 @@ The hooks above are the way in; these are the functions an add-on calls once it 
 
 ## Users+ Pro on these screens
 
-Where a feature of DiluxOne Users+ Pro would go, the plugin's screens draw a
-blurred, inert picture of it with a "Pro" badge, a line about what it adds and
-a link to diluxone.com — or, for an answer among others, a card after the real
-answers. Only administrators see them, only on the plugin's screens, never on
-the front end, and the setting `diluxone_users_pro_previews` (Maintenance ›
+Where a feature of DiluxOne Users+ Pro would go, the plugin's screens draw
+the control it would be, switched off: the radio or the tick box among the
+real answers, the button where the real one goes, the network's card beside
+Google and Microsoft, the shape in the row of shapes, the row of the summary.
+Each carries the "Pro" badge, a line about what it adds and one "Learn about
+Users+ Pro" link to diluxone.com, the same on every screen. Nothing in it has
+a name, so nothing posts it; being disabled, a keyboard passes over it and a
+screen reader announces it as unavailable, and the link is what the keyboard
+lands on. Only administrators see them, only on the plugin's screens, never
+on the front end, and the setting `diluxone_users_pro_previews` (Maintenance ›
 Tools on a single site, Network Admin's Users+ Pro tab on a network) turns
 them all off.
 
 `diluxone_users_upsell` (filter) decides each one: `( bool $show, string $where )`,
 where `$where` names the placeholder (`<screen>/<tab>/<feature>`). Users+ Pro
 answers false for every feature it draws for real; a site that wants none of
-them answers false for all.
+them answers false for all. Each placeholder's outer element carries
+`data-diluxone-users-pro="<where>"`.
 
 | `$where` | What it is |
 | --- | --- |
-| `social/providers/more` | A card after the networks on Social login › Providers: the ten networks Users+ Pro adds. |
-| `login/ways/more` | A card after the ways in on Access › Ways in: signing in with a passkey. |
-| `security/summary/more` | A picture under the table on Security › Summary: the lines passkeys add. |
-| `design/login/shapes` | A card after the shapes on Design › The sign-in page: the split and full-background layouts. |
-| `design/account/shapes` | A card after the shapes on Design › Account area: the account area with a cover. |
-| `design/brand/any-color` | A card after the accent's swatches on Design › Your brand: any colour. |
-| `network/membership/rules` | A card after the answers on Network Admin › Membership: "whoever asks" and "by invitation". |
-| `security/2fa/roles` | A card under the three modes on Security › Two-step verification: asking only some roles. |
-| `security/2fa/app` | A card after the methods on Security › Two-step verification: the authenticator app. |
-| `security/2fa/remember` | A card at the end of Security › Two-step verification: not asking again on a browser. |
-| `account/sections/more` | A card under the list on Account › Sections: sections of the site's own. |
-| `design/brand/color-map` | A picture under "From your theme" on Design › Your brand: which colour of the theme's palette does what. |
+| `social/providers/<network>` | One greyed card per network on Social login › Providers, after Google and Microsoft: `linkedin`, `twitter` (X), `facebook`, `github`, `wordpress`, `yahoo`, `twitch`, `discord`, `gitlab` and `amazon`, each with its logo and its name and nothing to open. Pro answers false for each one it brings. |
+| `login/ways/more` | A disabled tick box after the ways in on Access › Ways in: signing in with a passkey. |
+| `security/summary/more` | A row of the table on Security › Summary: passkeys. |
+| `design/login/shapes` | Two disabled shapes after the real ones on Design › The sign-in page: split with a picture, and on a full background. One answer turns both off. |
+| `design/account/shapes` | A disabled shape after the real ones on Design › Account area: the account area with a cover. |
+| `design/brand/any-color` | A disabled colour picker after the accent's swatches on Design › Your brand: any colour. |
+| `network/membership/rules` | Two disabled radios after the answers on Network Admin › Membership: "whoever asks" and "by invitation". One answer turns both off. |
+| `security/2fa/roles` | A disabled radio among the three modes on Security › Two-step verification: asking only some roles. |
+| `security/2fa/app` | A disabled tick box among the methods on Security › Two-step verification: the authenticator app. |
+| `security/2fa/remember` | A disabled tick box after the link rule on Security › Two-step verification: not asking again on a browser. |
+| `account/sections/more` | A disabled "Add a section" button beside the heading on Account › Sections, where `diluxone_users_account_sections_head` draws Pro's real one. |
+| `design/brand/color-map` | The rows under "From your theme" on Design › Your brand, their selects disabled: which colour of the theme's palette does what. |
 
 ## The emergency switch
 

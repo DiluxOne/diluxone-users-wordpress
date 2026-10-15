@@ -173,10 +173,22 @@ test.describe('A fresh install says nothing was chosen', () => {
 		await expect(notNow(page)).toHaveCount(0);
 		expect(await stateIn(rail(page)), 'the rail: nothing asked, nothing decided').toBe('unset');
 
+		// The two Pro answers in the waiting groups are not part of the wait:
+		// disabled for a reason of their own, badge on, nothing for the
+		// script to let go.
+		const pro = page.locator('[data-diluxone-users-pro="security/2fa/app"], [data-diluxone-users-pro="security/2fa/remember"]');
+
+		await expect(pro).toHaveCount(2);
+		await expect(pro.locator('input:disabled')).toHaveCount(2);
+		await expect(pro.locator('input[data-diluxone-users-waited]'), 'not marked as waiting').toHaveCount(0);
+		await expect(pro.locator('.diluxone-users-state--pro'), 'the badge, while the group waits').toHaveCount(2);
+
 		await control(page, 'diluxone_users_2fa_mode', 'optional').check();
 		await expect(waits(page)).toHaveCount(0);
 		await expect(control(page, 'diluxone_users_2fa_methods[]', 'email')).toBeEnabled();
 		await expect(control(page, 'diluxone_users_2fa_methods[]', 'email')).not.toBeChecked();
+		await expect(pro.locator('input:disabled'), 'and still disabled once the wait ends').toHaveCount(2);
+		await expect(pro.locator('.diluxone-users-state--pro')).toHaveCount(2);
 	});
 
 	test('Security › Sessions: at 0 and 0 the tab and the rail say WordPress decides; saved so on purpose, that reads as Off', async ({ page, site }) => {

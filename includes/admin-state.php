@@ -95,19 +95,24 @@ function diluxone_users_state_pill( string $state, string $why = '', string $wor
  * word of its own. The state, the colour and the shape stay the one
  * vocabulary; `word` only says what that state is called here.
  *
- * @param array<int, array<string, string>> $rows Each: label, state, and optionally why, word, detail, url, change.
+ * A row Users+ Pro would add (diluxone_users_ui_pro_row()) carries `pro`, the
+ * placeholder's id, and its link leaves the dashboard, which `external` says.
+ *
+ * @param array<int, array<string, string>> $rows Each: label, state, and optionally why, word, detail, url, change, external and pro.
  */
 function diluxone_users_summary_table( array $rows ): void {
 	?>
 	<table class="widefat striped diluxone-users-summary">
 		<tbody>
 			<?php foreach ( $rows as $row ) : ?>
-				<tr>
+				<tr<?php echo ! empty( $row['pro'] ) ? ' class="du-pro du-pro--row" data-diluxone-users-pro="' . esc_attr( (string) $row['pro'] ) . '"' : ''; ?>>
 					<th scope="row" class="diluxone-users-summary__what"><?php echo esc_html( (string) $row['label'] ); ?></th>
 					<td class="diluxone-users-summary__state"><?php echo wp_kses( diluxone_users_state_pill( (string) $row['state'], (string) ( $row['why'] ?? '' ), (string) ( $row['word'] ?? '' ) ), diluxone_users_allowed_html() ); ?></td>
 					<td class="diluxone-users-summary__detail"><?php echo wp_kses_post( (string) ( $row['detail'] ?? '' ) ); ?></td>
 					<td class="diluxone-users-summary__change">
-						<?php if ( ! empty( $row['url'] ) ) : ?>
+						<?php if ( ! empty( $row['url'] ) && ! empty( $row['external'] ) ) : ?>
+							<a href="<?php echo esc_url( (string) $row['url'] ); ?>" target="_blank" rel="noopener noreferrer"><?php echo esc_html( (string) ( $row['change'] ?? '' ) ); ?><span class="screen-reader-text"> <?php /* translators: Accessibility text. */ esc_html_e( '(opens in a new tab)', 'diluxone-users' ); ?></span></a>
+						<?php elseif ( ! empty( $row['url'] ) ) : ?>
 							<a href="<?php echo esc_url( (string) $row['url'] ); ?>"><?php echo esc_html( (string) ( $row['change'] ?? __( 'Change it →', 'diluxone-users' ) ) ); ?></a>
 						<?php endif; ?>
 					</td>

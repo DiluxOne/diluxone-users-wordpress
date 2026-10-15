@@ -71,7 +71,9 @@ test.describe('Network Admin › Membership', () => {
 		await expect(policy(page, 'click'), 'the stored Pro answer, chosen').toBeChecked();
 		await expect(page.locator('.diluxone-users-choice, label', { hasText: 'Your Pro choice (inactive)' }).first()).toBeVisible();
 		await expect(policy(page, 'invite'), 'no answer of Pro’s offered').toHaveCount(0);
-		await expect(page.locator('[data-diluxone-users-pro="network/membership/rules"]'), 'the card after the answers').toBeVisible();
+		await expect(page.locator('[data-diluxone-users-pro="network/membership/rules"]'), 'the two answers Pro brings, after the real ones').toHaveCount(2);
+		await expect(page.locator('[data-diluxone-users-pro="network/membership/rules"] input[type="radio"]:disabled'), 'disabled').toHaveCount(2);
+		await expect(page.locator('[data-diluxone-users-pro="network/membership/rules"] [name]'), 'nameless').toHaveCount(0);
 		await expect(page.locator('[data-diluxone-users-sync]'), 'no sync but under every site').toHaveCount(0);
 
 		await savePanel(page);

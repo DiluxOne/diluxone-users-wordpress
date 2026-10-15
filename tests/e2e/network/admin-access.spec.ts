@@ -71,7 +71,7 @@ test.describe('The hub’s Access', () => {
 		expect(Number((await hub.site.getOptions(['diluxone_users_sso_login'])).diluxone_users_sso_login), 'a site screen switched the network’s social sign-in off').toBe(1);
 	});
 
-	test('Ways in on the hub: one Users+ Pro card after the network’s doors, gone with the network’s previews', async ({ page, hub }) => {
+	test('Ways in on the hub: the passkey box Users+ Pro brings after the network’s doors, disabled, gone with the network’s previews', async ({ page, hub }) => {
 		await hub.keep(['diluxone_users_pro_previews']);
 		await hub.set({ diluxone_users_pro_previews: 1 });
 
@@ -81,7 +81,8 @@ test.describe('The hub’s Access', () => {
 
 		await expect(pro).toHaveCount(1);
 		await expect(pro.locator('a')).toHaveAttribute('href', /diluxone\.com\/users-pro\/.*utm_medium=login/);
-		await expect(pro.locator('input, select, textarea, button'), 'nothing in it is a control').toHaveCount(0);
+		await expect(pro.locator('input[type="checkbox"]'), 'the box it would be').toBeDisabled();
+		await expect(pro.locator('[name]'), 'nothing in it posts').toHaveCount(0);
 		await expect(control(page, 'diluxone_users_passkey_enabled'), 'no passkey box, drawn or switchable').toHaveCount(0);
 
 		await hub.set({ diluxone_users_pro_previews: 0 });

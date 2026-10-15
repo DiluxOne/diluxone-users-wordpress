@@ -863,16 +863,20 @@ function diluxone_users_screen_login_ways(): void {
 		diluxone_users_ui_notice( esc_html__( 'On this network these are switched on or off for every site at once, in Network Admin, where each feature lives: social accounts under Social login › Rules.', 'diluxone-users' ) );
 	}
 
-	diluxone_users_ui_choices( $diluxone_users_ways );
-
-	// After the real ways in, a card of its own and not one more box that
-	// cannot be ticked. Users+ Pro answers false to it once it brings them.
-	diluxone_users_ui_pro_card(
-		array(
-			'where'  => 'login/ways/more',
-			'screen' => 'login',
-			'title'  => __( 'Sign in with a passkey', 'diluxone-users' ),
-			'text'   => __( 'Users+ Pro adds passkeys: the fingerprint, the face or the PIN of the person’s own device, nothing to type and nothing to phish, and it counts as both steps at once.', 'diluxone-users' ),
+	// After the real ways in, the one Users+ Pro brings, as the box it would
+	// be: switched off, and gone once Pro answers false to it.
+	diluxone_users_ui_choices(
+		diluxone_users_ui_pro_choices(
+			$diluxone_users_ways,
+			array(
+				array(
+					'type'   => 'checkbox',
+					'where'  => 'login/ways/more',
+					'screen' => 'login',
+					'title'  => __( 'Sign in with a passkey', 'diluxone-users' ),
+					'text'   => __( 'Users+ Pro adds passkeys: the fingerprint, the face or the PIN of the person’s own device, nothing to type and nothing to phish, and it counts as both steps at once.', 'diluxone-users' ),
+				),
+			)
 		)
 	);
 
@@ -1243,23 +1247,34 @@ function diluxone_users_screen_login_shape(): void {
 		if ( '' !== $kept ) {
 			diluxone_users_ui_kept_card( 'diluxone_users_login_template', $kept, (string) ( $shapes['card']['label'] ?? __( 'A centred card', 'diluxone-users' ) ) );
 		}
+
+		/*
+		 * After the real shapes, the two Users+ Pro brings, as the cards they
+		 * would be: nothing to pick, and the one filter answers for both.
+		 */
+		diluxone_users_ui_pro_shape(
+			array(
+				'where'  => 'design/login/shapes',
+				'screen' => 'design',
+				'art'    => 'login-split',
+				'title'  => __( 'Split with a picture', 'diluxone-users' ),
+				'text'   => __( 'Users+ Pro adds a shape that takes half the window with a picture and words of your own on it.', 'diluxone-users' ),
+			)
+		);
+
+		diluxone_users_ui_pro_shape(
+			array(
+				'where'  => 'design/login/shapes',
+				'screen' => 'design',
+				'art'    => 'login-full',
+				'title'  => __( 'On a full background', 'diluxone-users' ),
+				'text'   => __( 'Users+ Pro adds a shape with the picture behind everything and the form over it.', 'diluxone-users' ),
+			)
+		);
 		?>
 	</div>
 	<?php
 	diluxone_users_ui_field_close();
-
-	/*
-	 * After the real answers and never among them: a card with nothing to
-	 * pick, saying what Users+ Pro adds.
-	 */
-	diluxone_users_ui_pro_card(
-		array(
-			'where'  => 'design/login/shapes',
-			'screen' => 'design',
-			'title'  => __( 'Split with a picture, and on a full background', 'diluxone-users' ),
-			'text'   => __( 'Users+ Pro adds two shapes that take the page over with a picture: half the window with words of your own on it, or the picture behind everything.', 'diluxone-users' ),
-		)
-	);
 
 	/**
 	 * Fires under the shapes of the sign-in page, on Design › The sign-in page.

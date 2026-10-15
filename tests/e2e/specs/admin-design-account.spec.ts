@@ -96,12 +96,18 @@ test.describe('Design › The account area', () => {
 		await expect(guest.locator('.diluxone-users-account__nav')).toHaveClass(new RegExp(`--${preset.nav_style}`));
 	});
 
-	test('where Users+ Pro’s cover would go: a card after the shapes, gone with the previews setting', async ({ page, options }) => {
+	test('where Users+ Pro’s cover would go: a shape after the real ones, disabled, gone with the previews setting', async ({ page, options }) => {
 		await page.goto(TAB);
 
 		const card = page.locator('[data-diluxone-users-pro="design/account/shapes"]');
 
 		await expect(card).toHaveCount(1);
+		await expect(card, 'in the row of shapes').toHaveClass(/diluxone-users-templates__one/);
+		await expect(page.locator('.diluxone-users-templates > *').last(), 'after the real shapes').toHaveAttribute('data-diluxone-users-pro', 'design/account/shapes');
+		await expect(card.locator('input[type="radio"]'), 'nothing to pick').toBeDisabled();
+		await expect(card.locator('[name]'), 'nothing posts').toHaveCount(0);
+		await expect(card.locator('.diluxone-users-state--pro'), 'the badge').toHaveCount(1);
+		await expect(card.locator('a')).toHaveAttribute('href', /diluxone\.com\/users-pro\/.*utm_medium=design/);
 		await expect(page.locator('[name="diluxone_users_account_cover"], [name="diluxone_users_account_cover_kind"]'), 'nothing of the cover is a control here').toHaveCount(0);
 
 		await options.set({ diluxone_users_pro_previews: 0 });

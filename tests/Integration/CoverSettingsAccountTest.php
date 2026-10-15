@@ -988,13 +988,17 @@ class CoverSettingsAccountTest extends IntegrationTestCase {
 	}
 
 	/** The card about sections of the site's own, under the list, and gone when an add-on says so. */
-	public function test_the_pro_card_sits_under_the_list(): void {
+	public function test_the_pro_button_sits_beside_the_heading_where_add_section_would_be(): void {
 		$this->the_admin();
 
 		$html = $this->screen( 'sections' );
+		$pro  = (int) strpos( $html, 'data-diluxone-users-pro="account/sections/more"' );
 
-		$this->assertStringContainsString( 'data-diluxone-users-pro="account/sections/more"', $html );
-		$this->assertStringContainsString( 'Sections of your own', $html );
+		$this->assertGreaterThan( (int) strpos( $html, 'diluxone-users-endpoints__head' ), $pro, 'beside the heading' );
+		$this->assertLessThan( (int) strpos( $html, 'diluxone-users-endpoints__list' ), $pro, 'and before the list' );
+		$this->assertStringContainsString( '<button type="button" class="button" disabled>Add a section</button>', $html, 'the button it would be, switched off' );
+		$this->assertStringContainsString( 'du-pro--button', $html );
+		$this->assertStringNotContainsString( 'du-pro-card', $html, 'and no card under the list' );
 
 		$this->hook( 'diluxone_users_upsell', static fn( bool $show, string $where ): bool => 'account/sections/more' !== $where && $show, 10, 2 );
 

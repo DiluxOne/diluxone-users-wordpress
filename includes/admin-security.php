@@ -122,22 +122,29 @@ function diluxone_users_screen_security_summary(): void {
 
 	diluxone_users_intro( __( 'What is being asked of somebody who already reached the sign-in form, and how long they stay in once they are. Every line is read from the settings the other tabs write, and nothing is edited here.', 'diluxone-users' ) );
 
-	diluxone_users_summary_table( diluxone_users_security_rows() );
-
 	/*
-	 * Where passkeys would add their lines, a picture of them: the summary is
-	 * where a feature of this screen says how it stands, and a tab of its own
-	 * holding nothing but a picture would be a screen of its own for an
-	 * upsell. Users+ Pro answers false to it once it brings them.
+	 * Where passkeys would add their line, the line itself: the summary is
+	 * where a feature of this screen says how it stands, so the one Users+
+	 * Pro brings is one more row of it, with the badge where the state goes,
+	 * and not a tab of its own for an upsell. Users+ Pro answers false to it
+	 * once it brings them.
 	 */
-	diluxone_users_ui_pro(
-		array(
-			'where'  => 'security/summary/more',
-			'screen' => 'security',
-			'title'  => __( 'Passkeys', 'diluxone-users' ),
-			'text'   => __( 'Users+ Pro adds passkeys: which ones are accepted, whether the fingerprint, the face or the PIN is required, and who has one.', 'diluxone-users' ),
-		),
-		'diluxone_users_security_pro_picture'
+	diluxone_users_summary_table(
+		array_merge(
+			diluxone_users_security_rows(),
+			array_filter(
+				array(
+					diluxone_users_ui_pro_row(
+						array(
+							'where'  => 'security/summary/more',
+							'screen' => 'security',
+							'title'  => __( 'Passkeys', 'diluxone-users' ),
+							'text'   => __( 'Users+ Pro adds passkeys: which ones are accepted, whether the fingerprint, the face or the PIN is required, and who has one.', 'diluxone-users' ),
+						)
+					),
+				)
+			)
+		)
 	);
 
 	/*
@@ -169,37 +176,5 @@ function diluxone_users_screen_security_summary(): void {
 				)
 			);
 		}
-	);
-}
-
-/**
- * The picture under the summary: lines a site with passkeys would read.
- *
- * Made up for the picture — but for the site's own address — and drawn with
- * the table the summary is drawn with. Nothing in it sends.
- */
-function diluxone_users_security_pro_picture(): void {
-	diluxone_users_summary_table(
-		array(
-			array(
-				'label'  => __( 'Passkeys', 'diluxone-users' ),
-				'state'  => 'active',
-				'detail' => sprintf(
-					/* translators: %s: the domain the passkeys are tied to */
-					esc_html__( 'Offered, and tied to %s: a passkey made here works here and nowhere else.', 'diluxone-users' ),
-					'<code>' . esc_html( (string) wp_parse_url( home_url(), PHP_URL_HOST ) ) . '</code>'
-				),
-			),
-			array(
-				'label'  => __( 'Which passkeys are accepted', 'diluxone-users' ),
-				'state'  => 'active',
-				'detail' => esc_html__( 'Any: the device being used, a USB key, or another phone.', 'diluxone-users' ),
-			),
-			array(
-				'label'  => __( 'The fingerprint, the face or the PIN', 'diluxone-users' ),
-				'state'  => 'active',
-				'detail' => esc_html__( 'Required, which is what makes a passkey count as two things at once.', 'diluxone-users' ),
-			),
-		)
 	);
 }

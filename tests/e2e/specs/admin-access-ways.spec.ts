@@ -162,7 +162,7 @@ test.describe('Access › Ways in', () => {
 	 * what it would add, with nothing in it that is a control, and the
 	 * setting that turns the previews off takes it away.
 	 */
-	test('after the real ways in, one card says what Users+ Pro adds, and it goes with the previews', async ({ page, options }) => {
+	test('after the real ways in, the passkey box Users+ Pro brings: disabled, nameless, with the badge and the link, and gone with the previews', async ({ page, options }) => {
 		await options.set({ diluxone_users_pro_previews: 1 });
 
 		await page.goto(accessTab('ways'));
@@ -171,8 +171,10 @@ test.describe('Access › Ways in', () => {
 
 		await expect(pro).toHaveCount(1);
 		await expect(pro).toContainText('Sign in with a passkey');
+		await expect(pro.locator('.diluxone-users-state--pro'), 'the badge').toHaveCount(1);
 		await expect(pro.locator('a')).toHaveAttribute('href', /diluxone\.com\/users-pro\/.*utm_medium=login/);
-		await expect(pro.locator('input, select, textarea, button'), 'nothing in it is a control').toHaveCount(0);
+		await expect(pro.locator('input[type="checkbox"]'), 'the box it would be').toBeDisabled();
+		await expect(pro.locator('[name]'), 'nothing in it posts').toHaveCount(0);
 		await expect(control(page, 'diluxone_users_passkey_enabled'), 'no passkey box among the real ones').toHaveCount(0);
 
 		const after = await control(page, 'diluxone_users_sso_login').evaluate(
@@ -180,7 +182,7 @@ test.describe('Access › Ways in', () => {
 			await pro.elementHandle()
 		);
 
-		expect(after, 'the card comes after the real ways in').toBe(true);
+		expect(after, 'the box comes after the real ways in').toBe(true);
 
 		await options.set({ diluxone_users_pro_previews: 0 });
 		await page.reload();

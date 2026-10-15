@@ -248,18 +248,33 @@ function diluxone_users_screen_membership_policy(): void {
 		);
 	}
 
-	diluxone_users_ui_choices( $list );
-
-	diluxone_users_ui_pro_card(
-		array(
-			'where'  => 'network/membership/rules',
-			'screen' => 'network-membership',
-			'title'  => __( 'Whoever asks, or by invitation', 'diluxone-users' ),
-			'text'   => sprintf(
-				/* translators: %s: the name of the site where the network's accounts live */
-				__( 'Users+ Pro adds two more answers: accounts are members of %s, and join any other site with a click on “Join this site” — or only its administrators add them.', 'diluxone-users' ),
-				diluxone_users_hub_name()
-			),
+	// After the real answers, the two Users+ Pro brings, as the radios they
+	// would be: switched off, and the one filter answers for both.
+	diluxone_users_ui_choices(
+		diluxone_users_ui_pro_choices(
+			$list,
+			array(
+				array(
+					'where'  => 'network/membership/rules',
+					'screen' => 'network-membership',
+					'title'  => __( 'Whoever asks', 'diluxone-users' ),
+					'text'   => sprintf(
+						/* translators: %s: the name of the site where the network's accounts live */
+						__( 'Users+ Pro adds it: accounts are members of %s, and join any other site with a click on “Join this site”.', 'diluxone-users' ),
+						diluxone_users_hub_name()
+					),
+				),
+				array(
+					'where'  => 'network/membership/rules',
+					'screen' => 'network-membership',
+					'title'  => __( 'By invitation', 'diluxone-users' ),
+					'text'   => sprintf(
+						/* translators: %s: the name of the site where the network's accounts live */
+						__( 'Users+ Pro adds it: accounts are members of %s, and only a site’s administrators add them to it.', 'diluxone-users' ),
+						diluxone_users_hub_name()
+					),
+				),
+			)
 		)
 	);
 

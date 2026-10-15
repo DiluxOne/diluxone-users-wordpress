@@ -326,16 +326,19 @@ class CoverSettingsSecurityTest extends IntegrationTestCase {
 
 	/* ── Where passkeys would go ─────────────────────────────────── */
 
-	public function test_there_is_no_passkeys_tab_and_the_summary_shows_their_picture(): void {
+	public function test_there_is_no_passkeys_tab_and_the_summary_ends_with_their_row(): void {
 		$this->where_the_network_is_set();
 		$this->the_admin();
 
-		$this->assertArrayNotHasKey( 'passkeys', diluxone_users_panel_registry( DILUXONE_USERS_SECURITY ), 'a tab holding only a picture would be a screen of its own' );
+		$this->assertArrayNotHasKey( 'passkeys', diluxone_users_panel_registry( DILUXONE_USERS_SECURITY ), 'a tab holding only an upsell would be a screen of its own' );
 
 		$html = $this->draw( 'diluxone_users_screen_security_summary' );
+		$row  = substr( $html, (int) strpos( $html, 'data-diluxone-users-pro="security/summary/more"' ) );
 
 		$this->assertStringContainsString( 'data-diluxone-users-pro="security/summary/more"', $html );
-		$this->assertStringContainsString( 'Which passkeys are accepted', $html, 'the picture is the lines they would add' );
-		$this->assertStringNotContainsString( 'name="', substr( $html, (int) strpos( $html, 'du-pro__picture' ) ), 'and nothing in it sends' );
+		$this->assertStringContainsString( 'diluxone-users-state--pro', $row, 'the badge where the state goes' );
+		$this->assertStringContainsString( 'Learn about Users+ Pro', $row );
+		$this->assertStringNotContainsString( 'name="', $row, 'and nothing in it sends' );
+		$this->assertStringNotContainsString( '<tr', $row, 'the last row' );
 	}
 }

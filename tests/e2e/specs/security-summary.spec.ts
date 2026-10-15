@@ -112,7 +112,7 @@ test.describe('Security › Summary', () => {
 	 * and gone with the setting that turns the previews off. None of the
 	 * real rows is about them.
 	 */
-	test('under the table, a picture of what Users+ Pro adds, and nothing of it in the real rows', async ({ page, options }) => {
+	test('the last row of the table is what Users+ Pro adds, with the badge and the link, and none of the real rows is about it', async ({ page, options }) => {
 		await options.keep(['diluxone_users_pro_previews']);
 		await options.set({ diluxone_users_pro_previews: 1 });
 
@@ -121,14 +121,15 @@ test.describe('Security › Summary', () => {
 		const pro = page.locator('[data-diluxone-users-pro="security/summary/more"]');
 
 		await expect(pro).toHaveCount(1);
-		await expect(pro.locator('.du-pro__picture')).toHaveAttribute('inert', '');
-		await expect(pro.locator('.du-pro__picture')).toHaveAttribute('aria-hidden', 'true');
-		await expect(pro.locator('[name]'), 'nothing in the picture is sent').toHaveCount(0);
-		await expect(pro.locator('.du-pro__over a')).toHaveAttribute('href', /diluxone\.com\/users-pro\/.*utm_medium=security/);
+		await expect(pro, 'a row of the one table').toHaveClass(/du-pro--row/);
+		await expect(summary(page).locator('tr').last(), 'after the real rows').toHaveAttribute('data-diluxone-users-pro', 'security/summary/more');
+		await expect(pro.locator('.diluxone-users-state--pro'), 'the badge where the state goes').toHaveCount(1);
+		await expect(pro.locator('[name]'), 'nothing in it is sent').toHaveCount(0);
+		await expect(pro.locator('a')).toHaveAttribute('href', /diluxone\.com\/users-pro\/.*utm_medium=security/);
+		await expect(page.locator('table.diluxone-users-summary'), 'one table, not a picture of a second').toHaveCount(1);
+		await expect(page.locator('.du-pro__picture, [inert]')).toHaveCount(0);
 
 		const real = summary(page);
-
-		await expect(real.locator('xpath=ancestor::*[@inert]'), 'the first table is the real one').toHaveCount(0);
 
 		await expect(real.locator('a[href*="tab=passkeys"]'), 'no real row points at a passkeys tab').toHaveCount(0);
 		await expect(page.locator('.nav-tab[href*="tab=passkeys"]'), 'and there is no such tab').toHaveCount(0);
@@ -138,7 +139,7 @@ test.describe('Security › Summary', () => {
 			await pro.elementHandle()
 		);
 
-		expect(below, 'the picture is under the real table').toBe(true);
+		expect(below, 'the row is in the real table, after its rows').toBe(true);
 
 		await options.set({ diluxone_users_pro_previews: 0 });
 		await page.reload();
