@@ -40,3 +40,14 @@ parameters:
   dynamicConstantNames:
     - WP_DEBUG
     - COOKIEHASH
+
+  # Los tipos de los argumentos de un hook de WordPress están solo en el
+  # PHPDoc: otro plugin puede pasar cualquier cosa, así que los `is_array()`
+  # e `instanceof` defensivos no son redundantes aunque el PHPDoc diga que sí.
+  treatPhpDocTypesAsCertain: false
+
+  # Los stubs de WP-CLI no marcan `WP_CLI::error()` como que nunca vuelve,
+  # aunque termina el comando.
+  earlyTerminatingMethodCalls:
+    WP_CLI:
+      - error

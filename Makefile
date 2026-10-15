@@ -31,7 +31,7 @@ DOCKER_RUN  := docker run --rm -u $(DOCKER_USER) -v $(CURDIR):/app -w /app
 #   make stan COMPOSER_IMAGE=composer:2.7
 COMPOSER_IMAGE ?= composer:2
 WP_CLI_IMAGE   ?= wordpress:cli
-PHP_IMAGE      ?= php:8.3-cli
+PHP_IMAGE      ?= php:8.5-cli
 
 # `--network host` lets the wordpress:cli container reach the wp-env
 # MySQL on the same host. It is unsupported on Docker Desktop for
@@ -138,12 +138,27 @@ test: test-unit ## Run the unit-test suite (default — fast, no WP needed).
 test-unit: ## Run only the unit-test suite (no WordPress runtime).
 	$(VENDOR) ./vendor/bin/phpunit --testsuite unit
 
-# The oldest PHP the plugin supports (Requires PHP: 8.0). `make test-unit`
-# runs on the composer image's PHP, which is the newest; CI runs every version
-# in between.
+# The unit suite on the oldest PHP the plugin supports (Requires PHP: 8.0), as
+# CI runs it (DiluxOne/.github#85): the analysis tools run on the newest PHP
+# alone (Psalm 6 needs 8.1), so they are left out and the rest is resolved for
+# the minimum in a vendor of its own, build/unit-min/vendor, which
+# tests/bootstrap.php loads when COMPOSER_VENDOR_DIR names it. The list is the
+# pack's `php.analysis-only` (kinds/wordpress-plugin/pack.yml in
+# DiluxOne/.github). `make test-unit` runs on the composer image's PHP, which
+# is the newest; CI runs every version in between.
+UNIT_MIN_PHP   := 8.0
+UNIT_MIN_DIR   := build/unit-min
+ANALYSIS_ONLY  := vimeo/psalm humanmade/psalm-plugin-wordpress phpstan/phpstan phpstan/extension-installer szepeviktor/phpstan-wordpress
+UNIT_MIN_ENV   := -e COMPOSER=/app/$(UNIT_MIN_DIR)/composer.json -e COMPOSER_VENDOR_DIR=/app/$(UNIT_MIN_DIR)/vendor
+UNIT_MIN_COMPOSER := $(DOCKER_RUN) $(UNIT_MIN_ENV) $(COMPOSER_IMAGE) composer
+
 .PHONY: test-unit-min
-test-unit-min: ## Unit suite on the oldest PHP the plugin supports (8.0).
-	$(DOCKER_RUN) php:8.0-cli ./vendor/bin/phpunit --testsuite unit
+test-unit-min: ## Unit suite on the oldest PHP the plugin supports (8.0), without the analysis tools, as CI.
+	@mkdir -p $(UNIT_MIN_DIR) && cp composer.json $(UNIT_MIN_DIR)/composer.json
+	$(UNIT_MIN_COMPOSER) remove --dev --no-update --no-interaction --quiet $(ANALYSIS_ONLY)
+	$(UNIT_MIN_COMPOSER) config platform.php $(UNIT_MIN_PHP).0
+	$(UNIT_MIN_COMPOSER) update --no-interaction --prefer-dist --no-progress --quiet
+	$(DOCKER_RUN) $(UNIT_MIN_ENV) php:$(UNIT_MIN_PHP)-cli ./$(UNIT_MIN_DIR)/vendor/bin/phpunit --testsuite unit
 
 .PHONY: test-integration
 test-integration: ## Integration suite on a network: the wp-env tests site (must be `make env` + `make env-multisite` first).

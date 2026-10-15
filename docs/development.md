@@ -42,7 +42,7 @@ When `make env` finishes, open <http://localhost:8892> and log in with `admin` /
 | `make stan` | PHPStan level 8, no baseline. |
 | `make psalm` | Psalm taint analysis (XSS / SQLi / RCE). |
 | `make test` / `make test-unit` | The unit suite, on the composer image's PHP (the newest). |
-| `make test-unit-min` | The unit suite on PHP 8.0, the oldest the plugin supports. |
+| `make test-unit-min` | The unit suite on PHP 8.0, the oldest the plugin supports, as CI runs it: without the analysis tools, in a vendor of its own under `build/unit-min/`. |
 | `make check` | The fast gates: lint + stan + psalm + unit tests. |
 | `make test-integration` | The integration suite on a network, in the tests site's container. Run `make env-multisite` first. |
 | `make test-integration-single` | The same suite on a single site, in a throwaway `wp-env` under `build/integration-single/` (ports 8886/8887) that it starts itself. `make test-integration-single-down` stops it, `make test-integration-single-clean` destroys it. |
@@ -128,7 +128,7 @@ To use your own WordPress instead of `wp-env`, put the checkout in `wp-content/p
 | --- | --- | --- |
 | `COMPOSER_IMAGE` | `composer:2` | `make install`, `make lint`, `make stan`, `make test*` |
 | `WP_CLI_IMAGE` | `wordpress:cli` | `make i18n*` |
-| `PHP_IMAGE` | `php:8.3-cli` | `make psalm` (Psalm needs PHP ≤ 8.3) |
+| `PHP_IMAGE` | `php:8.5-cli` | `make psalm` (the vendor is resolved on the newest PHP, so Psalm runs there) |
 | `DOCKER_NET` | `--network host` | `make i18n*` |
 
 Pin any of them for byte-for-byte reproducibility, e.g. `make stan COMPOSER_IMAGE=composer:2.7.7`. The defaults float because pinning a digest in the repository would force a Makefile change every time the upstream image moves.

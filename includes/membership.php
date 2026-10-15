@@ -142,7 +142,7 @@ function diluxone_users_membership_pick_role( bool $hub, string $hub_role, strin
  */
 function diluxone_users_membership_site_live( array $flags ): bool {
 	foreach ( array( 'archived', 'spam', 'deleted' ) as $flag ) {
-		if ( ! empty( $flags[ $flag ] ) && '0' !== (string) $flags[ $flag ] ) {
+		if ( ! empty( $flags[ $flag ] ) ) {
 			return false;
 		}
 	}
