@@ -14,8 +14,9 @@
  * between "I want an account" and "here is your link". Both of those need a
  * registration that is a step of its own, which is what this is.
  *
- * The address is still the identity and there is still no password: what
- * arrives after this form is the same sign-in link as always.
+ * The address is still the identity: what arrives after this form is the
+ * same sign-in link as always, or, on a site that signs in with a password
+ * only, the link to choose one.
  *
  * @package DiluxOneUsers
  */
@@ -130,6 +131,7 @@ function diluxone_users_shortcode_register(): string {
 			'fields'    => diluxone_users_register_fields(),
 			'open'      => diluxone_users_register_form_open(),
 			'by_link'   => 'login' === diluxone_users_register_mode(),
+			'link'      => diluxone_users_login_has_link(),
 			'providers' => diluxone_users_sso_for_login(),
 		)
 	) . $close;
@@ -275,7 +277,15 @@ function diluxone_users_register_request(): void {
 	 */
 	do_action( 'diluxone_users_registered', $user_id, $email );
 
-	diluxone_users_login_send( $user_id, $email, diluxone_users_token_create( $user_id ) );
+	// The way in has to be one the site accepts: a site that signs in with a
+	// password only refuses every link, so there the person is mailed
+	// WordPress's own single-use key to choose a password, which arrives on
+	// the site's reset screen when it has one (see passwordless.php).
+	if ( diluxone_users_login_has_link() ) {
+		diluxone_users_login_send( $user_id, $email, diluxone_users_token_create( $user_id ) );
+	} else {
+		wp_new_user_notification( $user_id, null, 'user' );
+	}
 
 	wp_safe_redirect( add_query_arg( 'diluxone-users', 'registered', $back ) );
 	exit;

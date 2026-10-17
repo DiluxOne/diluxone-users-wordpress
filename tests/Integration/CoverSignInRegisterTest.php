@@ -191,6 +191,20 @@ class CoverSignInRegisterTest extends IntegrationTestCase {
 		$this->assertSame( 0, get_current_user_id(), 'the link signs in, not the form' );
 	}
 
+	public function test_on_a_password_only_site_a_registration_mails_the_link_to_choose_a_password(): void {
+		diluxone_users_update_option( 'diluxone_users_login_method', 'password' );
+		$email = $this->email( 'password' );
+
+		$this->assertSame( 'registered', $this->send( $this->answers( $email ) ) );
+
+		$user = (int) email_exists( $email );
+		$this->assertGreaterThan( 0, $user );
+		$this->assertSame( $email, $this->lastMail()['to'] );
+		$this->assertStringContainsString( 'action=rp', (string) $this->lastMail()['message'] );
+		$this->assertStringNotContainsString( 'diluxone_users_token=', (string) $this->lastMail()['message'] );
+		$this->assertSame( '', (string) get_user_meta( $user, DILUXONE_USERS_META_HASH, true ), 'no sign-in link the site refuses' );
+	}
+
 	/* ── The form ────────────────────────────────────────────────────── */
 
 	public function test_somebody_signed_in_sees_no_form(): void {
@@ -267,6 +281,17 @@ class CoverSignInRegisterTest extends IntegrationTestCase {
 		$this->assertStringContainsString( 'All set', $html );
 		$this->assertStringContainsString( 'There is no password to choose.', $html );
 		$this->assertStringNotContainsString( '<form', $html );
+	}
+
+	public function test_on_a_password_only_site_the_form_says_a_password_is_chosen(): void {
+		diluxone_users_update_option( 'diluxone_users_login_method', 'password' );
+
+		$this->assertStringContainsString( 'a link to choose your password', $this->form() );
+		$this->assertStringNotContainsString( 'no password to choose', $this->form() );
+
+		$html = $this->form( 'registered' );
+		$this->assertStringContainsString( 'We sent you a link to choose your password.', $html );
+		$this->assertStringNotContainsString( 'There is no password to choose.', $html );
 	}
 
 	public function test_where_the_link_creates_accounts_the_closed_form_points_to_sign_in(): void {
