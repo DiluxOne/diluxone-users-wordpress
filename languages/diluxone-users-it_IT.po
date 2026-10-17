@@ -604,9 +604,9 @@ msgstr "Registrazione"
 #: templates/hub-door.php:33
 #: templates/hub-door.php:36
 #: templates/login.php:86
-#: templates/register.php:45
-#: templates/register.php:62
-#: templates/register.php:165
+#: templates/register.php:51
+#: templates/register.php:68
+#: templates/register.php:175
 msgid "Sign in"
 msgstr "Accedi"
 
@@ -1429,7 +1429,7 @@ msgstr "Testo lungo"
 
 #: includes/fields.php:32
 #: includes/login-ways.php:597
-#: templates/register.php:127
+#: templates/register.php:133
 msgid "Email address"
 msgstr "Indirizzo e-mail"
 
@@ -2252,7 +2252,7 @@ msgstr "Clicca il link e sei dentro. Scade tra %d minuti e vale una volta sola."
 
 #: includes/admin-login.php:1091
 #: templates/login.php:71
-#: templates/register.php:36
+#: templates/register.php:42
 msgid "Did not arrive? Check your spam or promotions folder."
 msgstr "Non è arrivato? Guarda nello spam o nella scheda promozioni."
 
@@ -2284,7 +2284,7 @@ msgid "or"
 msgstr "oppure"
 
 #: includes/login-ways.php:553
-#: templates/register.php:113
+#: templates/register.php:119
 msgid "or with your email"
 msgstr "oppure con la tua e-mail"
 
@@ -2297,7 +2297,7 @@ msgid "Send me the sign-in link"
 msgstr "Mandami il link di accesso"
 
 #: includes/login-ways.php:606
-#: templates/register.php:160
+#: templates/register.php:167
 msgid "You get an email with a link. Click it and you are in: no password to choose or type."
 msgstr "Ti arriva un’e-mail con un link. Clicchi e sei dentro: nessuna password da scegliere o da scrivere."
 
@@ -2452,7 +2452,7 @@ msgstr "Scollegare non cancella niente: quel social semplicemente smette di apri
 
 #: includes/login-ways.php:595
 #: includes/login-ways.php:598
-#: templates/register.php:130
+#: templates/register.php:136
 msgctxt "placeholder for the e-mail field"
 msgid "you@example.com"
 msgstr "tu@esempio.com"
@@ -2788,7 +2788,7 @@ msgstr "Copia qualunque file dalla cartella templates/ del plugin nella cartella
 #: includes/pages.php:36
 #: templates/hub-door.php:27
 #: templates/hub-door.php:30
-#: templates/register.php:69
+#: templates/register.php:75
 msgid "Create your account"
 msgstr "Crea il tuo account"
 
@@ -2801,19 +2801,19 @@ msgid "Once it is done"
 msgstr "Una volta fatto"
 
 #: includes/admin-design.php:352
-#: templates/register.php:31
+#: templates/register.php:33
 msgid "Your account is ready"
 msgstr "Il tuo account è pronto"
 
-#: templates/register.php:33
+#: templates/register.php:36
 msgid "We sent you a link to get in. There is no password to choose."
 msgstr "Ti abbiamo mandato un link per entrare. Non c'è nessuna password da scegliere."
 
-#: templates/register.php:51
+#: templates/register.php:57
 msgid "Registration is closed"
 msgstr "Le registrazioni sono chiuse"
 
-#: templates/register.php:59
+#: templates/register.php:65
 msgid "This site does not take new accounts right now. If you already have one, you can sign in."
 msgstr "Questo sito non accetta nuovi account al momento. Se ne hai già uno, puoi accedere."
 
@@ -2821,7 +2821,7 @@ msgstr "Questo sito non accetta nuovi account al momento. Se ne hai già uno, pu
 msgid "There is already an account with that address."
 msgstr "Esiste già un account con quell'indirizzo."
 
-#: templates/register.php:103
+#: templates/register.php:109
 msgid "Sign in instead"
 msgstr "Accedi invece"
 
@@ -2829,11 +2829,11 @@ msgstr "Accedi invece"
 msgid "This site does not take new accounts right now."
 msgstr "Questo sito non accetta nuovi account al momento."
 
-#: templates/register.php:155
+#: templates/register.php:161
 msgid "Create my account"
 msgstr "Crea il mio account"
 
-#: templates/register.php:164
+#: templates/register.php:174
 msgid "Already have an account?"
 msgstr "Hai già un account?"
 
@@ -3049,7 +3049,7 @@ msgstr "L’intestazione, il menu e il contenuto sono tre righe, e questa è la 
 msgid "Empty and not zero, and the difference matters: a zero is an answer, and an answer printed into the stylesheet would overrule a theme that had already lined these rows up itself."
 msgstr "Vuoto e non zero, e la differenza conta: uno zero è una risposta, e una risposta stampata nel foglio di stile passerebbe sopra a un tema che già allineava queste righe per conto suo."
 
-#: includes/admin-ui.php:1553
+#: includes/admin-ui.php:1558
 msgid "A colour of its own"
 msgstr "Un colore suo"
 
@@ -4152,12 +4152,12 @@ msgid "Each language keeps its own wording, and one nobody has touched sends the
 msgstr "Ogni lingua tiene la sua formulazione, e quella che nessuno ha toccato manda il testo che il plugin porta con sé. Passare a un’altra da qui non salva quello che c’è sullo schermo."
 
 #. translators: %s: the name of a language, e.g. Spanish (Argentina).
-#: includes/admin-ui.php:1430
+#: includes/admin-ui.php:1435
 #, php-format
 msgid "Written by this site, in %s."
 msgstr "Scritto da questo sito, in %s."
 
-#: includes/admin-ui.php:1427
+#: includes/admin-ui.php:1432
 msgid "As the plugin says it."
 msgstr "Come lo dice il plugin."
 
@@ -4179,7 +4179,7 @@ msgstr "Che cosa ci puoi mettere dentro"
 msgid "Anything the plugin does not know about is left exactly as it is typed, and one it knows but has nothing to put in comes out as nothing at all."
 msgstr "Quello che il plugin non conosce resta esattamente come è scritto, e quello che conosce ma non ha niente da metterci esce come niente."
 
-#: includes/admin-ui.php:1452
+#: includes/admin-ui.php:1457
 msgid "Put the plugin’s own words back"
 msgstr "Rimettere le parole del plugin"
 
@@ -4428,8 +4428,8 @@ msgstr "Iniziare"
 #. translators: Accessibility text.
 #: includes/admin-state.php:114
 #: includes/admin-ui.php:542
-#: includes/admin-ui.php:1882
-#: includes/admin-ui.php:2063
+#: includes/admin-ui.php:1887
+#: includes/admin-ui.php:2068
 msgid "(opens in a new tab)"
 msgstr "(si apre in una scheda nuova)"
 
@@ -4648,7 +4648,7 @@ msgctxt "the head of the rail: how this site stands today"
 msgid "Right now"
 msgstr "In questo momento"
 
-#: includes/admin-ui.php:1453
+#: includes/admin-ui.php:1458
 msgid "Tick it and save: whatever is written above is dropped and this goes back to what the plugin says in this language — which is also what an update of the plugin can go on improving."
 msgstr "Spuntalo e salva: quello che è scritto sopra viene scartato e questo torna a ciò che dice il plugin in questa lingua — che è anche ciò che un aggiornamento del plugin può continuare a migliorare."
 
@@ -5472,11 +5472,11 @@ msgstr "Ciò che questo sito conserva su di te viene cancellato: i tuoi dati, e 
 msgid "That social account already opens another account on this site, so it was not linked to this one."
 msgstr "Quell’account social apre già un altro account su questo sito, quindi non è stato collegato a questo."
 
-#: templates/register.php:41
+#: templates/register.php:47
 msgid "Sign in to create your account"
 msgstr "Accedi per creare il tuo account"
 
-#: templates/register.php:42
+#: templates/register.php:48
 msgid "There is no form to fill in: sign in with your e-mail and the account is created the first time."
 msgstr "Non c’è nessun modulo da compilare: accedi con la tua e-mail e l’account viene creato la prima volta."
 
@@ -6491,20 +6491,20 @@ msgstr "Queste schermate mostrano dove andrebbe una funzione di Users+ Pro."
 msgid "These screens show nothing of Users+ Pro."
 msgstr "Queste schermate non mostrano nulla di Users+ Pro."
 
-#: includes/admin-ui.php:709
-#: includes/admin-ui.php:745
+#: includes/admin-ui.php:714
+#: includes/admin-ui.php:750
 msgid "Your Pro choice (inactive)"
 msgstr "La tua scelta Pro (inattiva)"
 
 #. translators: 1: the stored choice, as a word in code, 2: what the site gets in its place today
-#: includes/admin-ui.php:723
+#: includes/admin-ui.php:728
 #, php-format
 msgid "Chosen while an add-on that is not active now offered it (%1$s). Until it is back, this site gets %2$s instead. It stays chosen until you pick another answer."
 msgstr "Scelta quando la offriva un componente aggiuntivo ora non attivo (%1$s). Finché non torna, questo sito riceve %2$s al suo posto. Resta scelta finché non scegli un’altra risposta."
 
-#: includes/admin-ui.php:2061
-#: includes/admin-ui.php:2195
-#: includes/admin-ui.php:2249
+#: includes/admin-ui.php:2066
+#: includes/admin-ui.php:2200
+#: includes/admin-ui.php:2254
 msgid "Learn about Users+ Pro"
 msgstr "Scopri Users+ Pro"
 
@@ -6635,17 +6635,17 @@ msgstr "Che cosa circonda il modulo. «Nella pagina» lo lascia esattamente dove
 msgid "The accent colour follows the accent, instead of becoming a second colour that drifts from the first. The links on it are white, so each of the others is a colour white reads on."
 msgstr "Il colore d’accento segue l’accento, invece di diventare un secondo colore che si allontana dal primo. I link sopra sono bianchi, quindi ognuno degli altri è un colore su cui il bianco si legge."
 
-#: includes/admin-ui.php:1619
+#: includes/admin-ui.php:1624
 msgid "Your Pro colour (inactive)"
 msgstr "Il tuo colore Pro (inattivo)"
 
 #. translators: 1: the stored colour, as a hex, 2: the name of the colour of the palette drawn instead
-#: includes/admin-ui.php:1646
+#: includes/admin-ui.php:1651
 #, php-format
 msgid "The colour %1$s was chosen while Users+ Pro offered any colour. Until it is back, this site draws %2$s instead. It stays chosen until you pick another one."
 msgstr "Il colore %1$s è stato scelto quando Users+ Pro offriva qualsiasi colore. Finché non torna, questo sito disegna %2$s al suo posto. Resta scelto finché non ne scegli un altro."
 
-#: includes/admin-ui.php:1648
+#: includes/admin-ui.php:1653
 msgid "the default"
 msgstr "quello predefinito"
 
@@ -7048,3 +7048,11 @@ msgstr "%1$s: %2$s"
 #: includes/admin-login.php:829
 msgid "The add-ons’ own settings"
 msgstr "Le impostazioni proprie degli add-on"
+
+#: templates/register.php:38
+msgid "We sent you a link to choose your password."
+msgstr "Ti abbiamo mandato un link per scegliere la tua password."
+
+#: templates/register.php:169
+msgid "You get an email with a link to choose your password, and you sign in with it."
+msgstr "Ti arriva un’e-mail con un link per scegliere la tua password, e con quella entri."
