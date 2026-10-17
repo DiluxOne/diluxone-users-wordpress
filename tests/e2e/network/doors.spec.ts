@@ -212,6 +212,21 @@ test.describe('A site of the network has no sign-in of its own: its doors are th
 		expect(await whoOn(page, beta.url)).toBe(email);
 		expect((await beta.site.user(email)).member, 'a member of the site they registered from').toBe(true);
 	});
+
+	test('register from /beta/ on a password-only network: the mail is the key to choose a password', async ({ page, hub, beta }) => {
+		await hub.set({ diluxone_users_login_method: 'password' });
+		const email = freshEmail('hub-register-pass');
+
+		await toTheHub(page, beta, hub, 'register');
+		await registerForm(page).locator('input[name="diluxone_users_email"]').fill(email);
+		expect(await submitPluginForm(page, registerForm(page))).toBe('registered');
+		await expect(page.locator('.diluxone-users-register')).toContainText('We sent you a link to choose your password.');
+
+		const mail = await waitForMail(hub.site, email);
+
+		expect(mail.body).toContain('action=rp');
+		expect(mail.body).not.toContain('diluxone_users_token=');
+	});
 });
 
 test.describe('WordPress’s own doors on /beta/ are the hub’s', () => {

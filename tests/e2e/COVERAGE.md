@@ -71,6 +71,7 @@ everybody, with the code by e-mail, and skips it for nobody.
 | Feature / state | Covered by |
 |---|---|
 | The site's form: required field, link, answers saved (`registered`) | `register` |
+| On a password-only site: the form and the done screen speak of choosing a password, and the mail is the key to choose one, never a sign-in link | `register` › on a password-only site the mail is the link to choose a password… |
 | `missing` with the browser's check off, `taken`, `closed`, `slow`, `email` | `register` |
 | A field added in the dashboard shows on the form | `admin-tools` › User fields |
 | Role a stranger becomes: no role that edits the site | `admin-settings` › the role a stranger becomes |
