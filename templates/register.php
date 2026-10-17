@@ -30,7 +30,11 @@ defined( 'ABSPATH' ) || exit;
 		<h2 class="diluxone-users-login__title">
 			<?php echo esc_html( diluxone_users_text( 'diluxone_users_register_done', __( 'Your account is ready', 'diluxone-users' ) ) ); ?>
 		</h2>
-		<p><?php esc_html_e( 'We sent you a link to get in. There is no password to choose.', 'diluxone-users' ); ?></p>
+		<?php if ( diluxone_users_login_has_link() ) : ?>
+			<p><?php esc_html_e( 'We sent you a link to get in. There is no password to choose.', 'diluxone-users' ); ?></p>
+		<?php else : ?>
+			<p><?php esc_html_e( 'We sent you an email with a link to choose your password.', 'diluxone-users' ); ?></p>
+		<?php endif; ?>
 		<p class="diluxone-users-note diluxone-users-note--icon">
 			<?php echo wp_kses( diluxone_users_icon( 'info' ), diluxone_users_allowed_html() ); ?>
 			<span><?php echo esc_html( diluxone_users_text( 'diluxone_users_sent_note', __( 'Did not arrive? Check your spam or promotions folder.', 'diluxone-users' ) ) ); ?></span>
@@ -157,7 +161,11 @@ defined( 'ABSPATH' ) || exit;
 
 		<p class="diluxone-users-note diluxone-users-note--icon">
 			<?php echo wp_kses( diluxone_users_icon( 'info' ), diluxone_users_allowed_html() ); ?>
-			<span><?php esc_html_e( 'You get an email with a link. Click it and you are in: no password to choose or type.', 'diluxone-users' ); ?></span>
+			<?php if ( diluxone_users_login_has_link() ) : ?>
+				<span><?php esc_html_e( 'You get an email with a link. Click it and you are in: no password to choose or type.', 'diluxone-users' ); ?></span>
+			<?php else : ?>
+				<span><?php esc_html_e( 'You get an email with a link to choose your password.', 'diluxone-users' ); ?></span>
+			<?php endif; ?>
 		</p>
 
 		<p class="diluxone-users-note">

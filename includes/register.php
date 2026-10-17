@@ -275,7 +275,16 @@ function diluxone_users_register_request(): void {
 	 */
 	do_action( 'diluxone_users_registered', $user_id, $email );
 
-	diluxone_users_login_send( $user_id, $email, diluxone_users_token_create( $user_id ) );
+	// The way in has to be one this site accepts. Where the sign-in link is
+	// refused, the password nobody knows is replaced through WordPress's own
+	// set-your-password e-mail: its reset link goes through the reset path the
+	// plugin already forwards, and the site rewords it with
+	// `wp_new_user_notification_email`.
+	if ( diluxone_users_login_has_link() ) {
+		diluxone_users_login_send( $user_id, $email, diluxone_users_token_create( $user_id ) );
+	} else {
+		wp_new_user_notification( $user_id, null, 'user' );
+	}
 
 	wp_safe_redirect( add_query_arg( 'diluxone-users', 'registered', $back ) );
 	exit;

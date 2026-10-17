@@ -70,7 +70,7 @@ everybody, with the code by e-mail, and skips it for nobody.
 
 | Feature / state | Covered by |
 |---|---|
-| The site's form: required field, link, answers saved (`registered`) | `register` |
+| The site's form: required field, link, answers saved (`registered`); on a password-only site, WordPress's set-your-password e-mail instead of the link | `register`; the password-only mail not in a browser yet. Integration: `CoverSignInRegisterTest` › on a password-only site… |
 | `missing` with the browser's check off, `taken`, `closed`, `slow`, `email` | `register` |
 | A field added in the dashboard shows on the form | `admin-tools` › User fields |
 | Role a stranger becomes: no role that edits the site | `admin-settings` › the role a stranger becomes |

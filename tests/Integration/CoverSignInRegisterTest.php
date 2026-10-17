@@ -177,6 +177,8 @@ class CoverSignInRegisterTest extends IntegrationTestCase {
 	}
 
 	public function test_a_registration_makes_the_account_with_its_answers_and_mails_the_link(): void {
+		diluxone_users_update_option( 'diluxone_users_login_method', 'both' );
+
 		$email = $this->email( 'new' );
 
 		$this->assertSame( 'registered', $this->send( $this->answers( $email ) ) );
@@ -189,6 +191,21 @@ class CoverSignInRegisterTest extends IntegrationTestCase {
 		$this->assertStringContainsString( 'diluxone_users_token=', (string) $this->lastMail()['message'] );
 		$this->assertNotSame( '', get_user_meta( $user, DILUXONE_USERS_META_HASH, true ) );
 		$this->assertSame( 0, get_current_user_id(), 'the link signs in, not the form' );
+	}
+
+	public function test_on_a_password_only_site_a_registration_mails_the_set_your_password_email_not_the_link(): void {
+		diluxone_users_update_option( 'diluxone_users_login_method', 'password' );
+
+		$email = $this->email( 'pass' );
+
+		$this->assertSame( 'registered', $this->send( $this->answers( $email ) ) );
+
+		$user = (int) email_exists( $email );
+		$this->assertGreaterThan( 0, $user );
+		$this->assertSame( $email, $this->lastMail()['to'] );
+		$this->assertStringNotContainsString( 'diluxone_users_token=', (string) $this->lastMail()['message'] );
+		$this->assertStringContainsString( 'action=rp', (string) $this->lastMail()['message'], 'WordPress\'s set-your-password link' );
+		$this->assertSame( '', get_user_meta( $user, DILUXONE_USERS_META_HASH, true ), 'no sign-in link was made' );
 	}
 
 	/* ── The form ────────────────────────────────────────────────────── */
@@ -260,6 +277,7 @@ class CoverSignInRegisterTest extends IntegrationTestCase {
 	}
 
 	public function test_after_registering_the_form_says_the_link_is_on_its_way(): void {
+		diluxone_users_update_option( 'diluxone_users_login_method', 'both' );
 		diluxone_users_update_option( 'diluxone_users_register_done', 'All set' );
 
 		$html = $this->form( 'registered' );
@@ -267,6 +285,18 @@ class CoverSignInRegisterTest extends IntegrationTestCase {
 		$this->assertStringContainsString( 'All set', $html );
 		$this->assertStringContainsString( 'There is no password to choose.', $html );
 		$this->assertStringNotContainsString( '<form', $html );
+	}
+
+	public function test_on_a_password_only_site_the_form_and_its_done_screen_speak_of_choosing_a_password(): void {
+		diluxone_users_update_option( 'diluxone_users_login_method', 'password' );
+
+		$form = $this->form();
+		$this->assertStringContainsString( 'You get an email with a link to choose your password.', $form );
+		$this->assertStringNotContainsString( 'no password to choose', $form );
+
+		$done = $this->form( 'registered' );
+		$this->assertStringContainsString( 'We sent you an email with a link to choose your password.', $done );
+		$this->assertStringNotContainsString( 'no password to choose', $done );
 	}
 
 	public function test_where_the_link_creates_accounts_the_closed_form_points_to_sign_in(): void {
