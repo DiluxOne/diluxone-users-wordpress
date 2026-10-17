@@ -87,6 +87,29 @@ test.describe('Registering with the site’s own form', () => {
 		await expectSignedIn(page, email);
 	});
 
+	test('on a password-only site the mail is the link to choose a password, not one the site refuses', async ({
+		page,
+		site,
+		pages,
+		options,
+	}) => {
+		await options.set({ diluxone_users_login_method: 'password' });
+
+		const email = freshEmail('regpass');
+
+		await page.goto(pages.register.url);
+		await expect(registerScreen(page)).toContainText('a link to choose your password');
+		await page.locator('input[name="diluxone_users_email"]').fill(email);
+
+		expect(await submitPluginForm(page, registerForm(page))).toBe('registered');
+		await expect(registerScreen(page)).toContainText('We sent you a link to choose your password.');
+
+		const mail = await waitForMail(site, email);
+
+		expect(mail.body).toContain('action=rp');
+		expect(mail.body).not.toContain('diluxone_users_token=');
+	});
+
 	test('a required field the browser lets through is still refused by the server', async ({
 		page,
 		site,

@@ -239,7 +239,9 @@ switch as Settings → General, read and written directly rather than copied.
 wants one: `login`, `form`, `both` or `closed`. The link's door counts as open
 only while the link is a way in (`diluxone_users_link_registers()`): on a
 site that signs in with a password only, no link is mailed and none creates
-an account.
+an account. There the site's own form mails no sign-in link either: the new
+account gets WordPress's "choose your password" mail
+(`wp_new_user_notification()`), and the form says so.
 
 While the e-mail link is the only way in, `users_can_register` reads as off
 whatever is stored (`diluxone_users_block_registration()`), and both screens

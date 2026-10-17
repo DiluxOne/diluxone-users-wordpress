@@ -11,9 +11,11 @@
  * - `fields`    What is asked for, besides the address.
  * - `open`      Whether the form takes accounts.
  * - `by_link`   Whether accounts are created by signing in with an e-mail link instead.
+ * - `link`      Whether the site accepts the sign-in link; when it does not,
+ *               the e-mail lets the person choose a password.
  * - `providers` Networks, when they can create accounts.
  *
- * @var array{state: string, fields: array<int, array<string, mixed>>, open: bool, by_link: bool, providers: array<string, array<string, mixed>>} $args
+ * @var array{state: string, fields: array<int, array<string, mixed>>, open: bool, by_link: bool, link?: bool, providers: array<string, array<string, mixed>>} $args
  *
  * @package DiluxOneUsers
  */
@@ -30,7 +32,11 @@ defined( 'ABSPATH' ) || exit;
 		<h2 class="diluxone-users-login__title">
 			<?php echo esc_html( diluxone_users_text( 'diluxone_users_register_done', __( 'Your account is ready', 'diluxone-users' ) ) ); ?>
 		</h2>
-		<p><?php esc_html_e( 'We sent you a link to get in. There is no password to choose.', 'diluxone-users' ); ?></p>
+		<?php if ( ! isset( $args['link'] ) || $args['link'] ) : ?>
+			<p><?php esc_html_e( 'We sent you a link to get in. There is no password to choose.', 'diluxone-users' ); ?></p>
+		<?php else : ?>
+			<p><?php esc_html_e( 'We sent you a link to choose your password.', 'diluxone-users' ); ?></p>
+		<?php endif; ?>
 		<p class="diluxone-users-note diluxone-users-note--icon">
 			<?php echo wp_kses( diluxone_users_icon( 'info' ), diluxone_users_allowed_html() ); ?>
 			<span><?php echo esc_html( diluxone_users_text( 'diluxone_users_sent_note', __( 'Did not arrive? Check your spam or promotions folder.', 'diluxone-users' ) ) ); ?></span>
@@ -157,7 +163,11 @@ defined( 'ABSPATH' ) || exit;
 
 		<p class="diluxone-users-note diluxone-users-note--icon">
 			<?php echo wp_kses( diluxone_users_icon( 'info' ), diluxone_users_allowed_html() ); ?>
-			<span><?php esc_html_e( 'You get an email with a link. Click it and you are in: no password to choose or type.', 'diluxone-users' ); ?></span>
+			<?php if ( ! isset( $args['link'] ) || $args['link'] ) : ?>
+				<span><?php esc_html_e( 'You get an email with a link. Click it and you are in: no password to choose or type.', 'diluxone-users' ); ?></span>
+			<?php else : ?>
+				<span><?php esc_html_e( 'You get an email with a link to choose your password, and you sign in with it.', 'diluxone-users' ); ?></span>
+			<?php endif; ?>
 		</p>
 
 		<p class="diluxone-users-note">
