@@ -45,6 +45,7 @@ permissions:
   contents: write
   pull-requests: read # the labels of what merged decide the version
   actions: read # the environment's rules, read before a version reaches the deploy
+  issues: read # the release issue a person accepted, the approval
 
 jobs:
   release:
