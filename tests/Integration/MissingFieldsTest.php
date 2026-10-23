@@ -193,6 +193,39 @@ class MissingFieldsTest extends IntegrationTestCase {
 		$this->assertSame( home_url( '/course/' ), $this->expectRedirect( fn() => diluxone_users_complete_login( $this->user, 'link', true, home_url( '/course/' ) ) ) );
 	}
 
+	/** The setting is saved from User fields, and its box is drawn only while a field is required. */
+	public function test_the_setting_is_saved_from_user_fields(): void {
+		// A network setting, saved where the network's are: Network Admin.
+		if ( is_multisite() ) {
+			$this->in_network_admin();
+		}
+
+		$this->postPanel( 'diluxone-users-fields', array( 'diluxone_users_panel_drawn' => array( 'diluxone_users_ask_missing' ) ) );
+		diluxone_users_screen_fields_missing_save();
+		$this->assertSame( 0, (int) diluxone_users_option( 'diluxone_users_ask_missing' ) );
+
+		$this->postPanel( 'diluxone-users-fields', array( 'diluxone_users_ask_missing' => '1' ) );
+		diluxone_users_screen_fields_missing_save();
+		$this->assertSame( 1, (int) diluxone_users_option( 'diluxone_users_ask_missing' ) );
+
+		ob_start();
+		diluxone_users_screen_fields_missing();
+		$this->assertStringContainsString( 'name="diluxone_users_ask_missing"', (string) ob_get_clean() );
+
+		$this->required( false );
+		ob_start();
+		diluxone_users_screen_fields_missing();
+		$html = (string) ob_get_clean();
+		$this->assertStringNotContainsString( 'name="diluxone_users_ask_missing"', $html, 'switched off while nothing is required' );
+		$this->assertStringContainsString( 'No field is required yet', $html );
+
+		$this->required( true );
+		diluxone_users_update_option( 'diluxone_users_account_page', 0 );
+		ob_start();
+		diluxone_users_screen_fields_missing();
+		$this->assertStringContainsString( 'No account page is chosen', (string) ob_get_clean() );
+	}
+
 	/** With no account page, there is nowhere to ask, and the sign-in goes on. */
 	public function test_with_no_account_page_the_sign_in_goes_on(): void {
 		diluxone_users_update_option( 'diluxone_users_account_page', 0 );

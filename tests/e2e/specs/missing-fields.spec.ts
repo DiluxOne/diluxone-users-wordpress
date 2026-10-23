@@ -111,6 +111,26 @@ test.describe('After signing in, the required fields missing', () => {
 test.describe('After signing in, turned off on User fields', () => {
 	test.use({ storageState: ADMIN_STATE });
 
+	test('the box on User fields › After sign-in turns the step off', async ({ page, guest, site, pages, options }) => {
+		await options.set({
+			diluxone_users_fields: FIRST_NAME_REQUIRED,
+			diluxone_users_login_register: 1,
+			diluxone_users_2fa_mode: 'off',
+		});
+		await options.keep(['diluxone_users_ask_missing']);
+
+		await page.goto(adminUrl('diluxone-users-fields', 'missing'));
+		const box = page.locator('input[name="diluxone_users_ask_missing"]');
+		await expect(box).toBeChecked();
+		await box.uncheck();
+		await savePanel(page);
+		await expect(page.locator('input[name="diluxone_users_ask_missing"]')).not.toBeChecked();
+
+		const email = freshEmail('missing-off');
+		await signInByLink(guest, site, pages.login.url, email);
+		expect(onStep(guest, pages.account.url), `no step, at ${guest.url()}`).toBe(false);
+	});
+
 	test('with no field required the box is switched off and says why', async ({ page, options }) => {
 		await options.set({
 			diluxone_users_fields: FIRST_NAME_REQUIRED.map((field) => ({ ...field, required: 0 })),
