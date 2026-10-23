@@ -96,4 +96,14 @@ test.describe('After signing in, the required fields missing', () => {
 		expect(onStep(page, pages.account.url), `on the step, at ${page.url()}`).toBe(true);
 		await expect(stepForm(page).locator('input[name="first_name"]')).toBeVisible();
 	});
+
+	test('an account with every required field filled goes straight on, with no step', async ({ page, site, pages }) => {
+		const email = freshEmail('missing-filled');
+
+		await site.makeUser({ email, meta: { first_name: 'Ada' } });
+		await signInByLink(page, site, pages.login.url, email);
+
+		expect(onStep(page, pages.account.url), `straight on, at ${page.url()}`).toBe(false);
+		await expect(page.locator('.diluxone-users-complete')).toHaveCount(0);
+	});
 });
