@@ -89,27 +89,31 @@ function diluxone_users_design_login_save(): void {
 	$template = sanitize_key( wp_unslash( $_POST['diluxone_users_login_template'] ?? 'plain' ) );
 	$template = diluxone_users_choice_kept( 'diluxone_users_login_template', $template, array_keys( diluxone_users_login_templates() ), 'plain' );
 
-	diluxone_users_save_options(
-		diluxone_users_panel_drawn(
-			DILUXONE_USERS_DESIGN,
-			array(
-				'diluxone_users_login_template' => $template,
-				'diluxone_users_login_title'    => sanitize_text_field( wp_unslash( $_POST['diluxone_users_login_title'] ?? '' ) ),
-				'diluxone_users_login_intro'    => sanitize_text_field( wp_unslash( $_POST['diluxone_users_login_intro'] ?? '' ) ),
-				// Links allowed, and only links: the terms and the privacy policy
-				// are pages, and a legal line that cannot point at them is not one.
-				'diluxone_users_login_legal'    => ( isset( $_POST['diluxone_users_login_legal'] ) && is_string( $_POST['diluxone_users_login_legal'] ) ? wp_kses_post( wp_unslash( $_POST['diluxone_users_login_legal'] ) ) : '' ),
-				'diluxone_users_sent_title'     => sanitize_text_field( wp_unslash( $_POST['diluxone_users_sent_title'] ?? '' ) ),
-				'diluxone_users_sent_note'      => sanitize_text_field( wp_unslash( $_POST['diluxone_users_sent_note'] ?? '' ) ),
-				// Beside the two lines it belongs with, because the screen that
-				// draws it is this one. It was read by the brand tab's save, which
-				// is a tab that never draws it — so every save of Your brand posted
-				// no answer, the save read the absence as “plain”, and a site that
-				// had chosen the circle lost it to a screen about colours.
-				'diluxone_users_sent_icon'      => 'circle' === sanitize_key( wp_unslash( $_POST['diluxone_users_sent_icon'] ?? '' ) ) ? 'circle' : 'plain',
-			)
-		)
+	$values = array(
+		'diluxone_users_login_template' => $template,
+		'diluxone_users_login_title'    => sanitize_text_field( wp_unslash( $_POST['diluxone_users_login_title'] ?? '' ) ),
+		'diluxone_users_login_intro'    => sanitize_text_field( wp_unslash( $_POST['diluxone_users_login_intro'] ?? '' ) ),
+		// Links allowed, and only links: the terms and the privacy policy
+		// are pages, and a legal line that cannot point at them is not one.
+		'diluxone_users_login_legal'    => ( isset( $_POST['diluxone_users_login_legal'] ) && is_string( $_POST['diluxone_users_login_legal'] ) ? wp_kses_post( wp_unslash( $_POST['diluxone_users_login_legal'] ) ) : '' ),
+		'diluxone_users_sent_title'     => sanitize_text_field( wp_unslash( $_POST['diluxone_users_sent_title'] ?? '' ) ),
+		'diluxone_users_sent_note'      => sanitize_text_field( wp_unslash( $_POST['diluxone_users_sent_note'] ?? '' ) ),
+		// Beside the two lines it belongs with, because the screen that
+		// draws it is this one. It was read by the brand tab's save, which
+		// is a tab that never draws it — so every save of Your brand posted
+		// no answer, the save read the absence as “plain”, and a site that
+		// had chosen the circle lost it to a screen about colours.
+		'diluxone_users_sent_icon'      => 'circle' === sanitize_key( wp_unslash( $_POST['diluxone_users_sent_icon'] ?? '' ) ) ? 'circle' : 'plain',
 	);
+
+	// Only while there is a logo. Without one the box is drawn switched off
+	// and sends no tick, and reading that as "off" would hide the logo the day
+	// one is set.
+	if ( (int) diluxone_users_option( 'diluxone_users_login_logo' ) > 0 ) {
+		$values['diluxone_users_login_logo_show'] = isset( $_POST['diluxone_users_login_logo_show'] ) ? 1 : 0;
+	}
+
+	diluxone_users_save_options( diluxone_users_panel_drawn( DILUXONE_USERS_DESIGN, $values ) );
 }
 
 /* ── The account area ──────────────────────────────────────────────── */
