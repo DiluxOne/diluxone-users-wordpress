@@ -83,6 +83,29 @@ test.describe('The account page itself', () => {
 		await expect(guest.locator('a.diluxone-users-button')).toHaveAttribute('href', /e2e-login/);
 	});
 
+	test('the way in keeps its own inner space, and its button stays plain under a theme that underlines content links', async ({
+		page,
+		pages,
+	}) => {
+		await page.goto(pages.account.url);
+
+		const guest = page.locator('.diluxone-users-account--guest');
+		const button = guest.locator('a.diluxone-users-button');
+
+		// A theme's content column, as one class and a tag, with no padding of its own.
+		await guest.evaluate((block) => block.parentElement?.classList.add('e2e-entry-content'));
+		await page.addStyleTag({
+			content: '.e2e-entry-content { padding: 0; } .e2e-entry-content a, .e2e-entry-content a:hover { text-decoration: underline; }',
+		});
+
+		const left = await guest.evaluate((block) => parseFloat(getComputedStyle(block).paddingLeft));
+		expect(left).toBeGreaterThan(0);
+		await expect(button).toHaveCSS('text-decoration-line', 'none');
+
+		await button.hover();
+		await expect(button).toHaveCSS('text-decoration-line', 'none');
+	});
+
 	test('the menu reaches every section, and each one is the current one on its own address', async ({
 		page,
 		site,

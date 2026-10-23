@@ -82,6 +82,7 @@ everybody, with the code by e-mail, and skips it for nobody.
 | Feature / state | Covered by |
 |---|---|
 | Guest view with the way in | `account-area` › a stranger is shown the way in |
+| Guest view pads itself and its button stays plain under a theme that underlines content links | `account-area` › the way in keeps its own inner space… |
 | Menu reaches every section, current tab marked | `account-area` › the menu reaches every section |
 | Your data / Linked accounts exist only while offered | `account-area` › The account page itself |
 | Details: fields saved, display name rebuilt, `missing` from the server | `account-area` › Your details |
