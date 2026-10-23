@@ -291,18 +291,21 @@ function diluxone_users_doors(): array {
 	 * the detail, and the Active/Off/Pending logic below is for the rows
 	 * somebody did decide.
 	 */
+	$own    = diluxone_users_door_on();
 	$rows[] = diluxone_users_summary_row(
 		'diluxone_users_login_page',
 		array(
 			'label'  => __( 'The sign-in page', 'diluxone-users' ),
 			// Pending and not off: nobody switched this page off, it was never
 			// chosen — which is the answer the status screen already gives.
-			'state'  => $page > 0 ? 'active' : 'pending',
-			'why'    => $page > 0 ? '' : __( 'No page chosen yet.', 'diluxone-users' ),
-			'detail' => $page > 0
-				? sprintf( '<a href="%s">%s</a>', esc_url( (string) get_permalink( $page ) ), esc_html( $title ) )
-				: esc_html__( 'None: wp-login.php does the job.', 'diluxone-users' ),
-			'url'    => $tab( 'page' ),
+			'state'  => $page > 0 || $own ? 'active' : 'pending',
+			'why'    => $page > 0 || $own ? '' : __( 'No page chosen yet.', 'diluxone-users' ),
+			'detail' => $own
+				? sprintf( '<a href="%1$s">%1$s</a>', esc_url( diluxone_users_door_url() ) )
+				: ( $page > 0
+					? sprintf( '<a href="%s">%s</a>', esc_url( (string) get_permalink( $page ) ), esc_html( $title ) )
+					: esc_html__( 'None: wp-login.php does the job.', 'diluxone-users' ) ),
+			'url'    => $own ? diluxone_users_admin_url( 'diluxone-users-design', array( 'tab' => 'login' ) ) : $tab( 'page' ),
 		),
 		esc_html__( 'Everybody signs in on wp-login.php, as WordPress has it.', 'diluxone-users' )
 	);
@@ -439,7 +442,7 @@ function diluxone_users_wp_login_seen(): bool {
 	// With no page of its own, wp-login.php is not one of the ways in: it is
 	// the only one. That is the moment how it looks matters most, so it is
 	// answered first and the rest of the rules do not get a say.
-	if ( (int) diluxone_users_option( 'diluxone_users_login_page' ) <= 0 ) {
+	if ( (int) diluxone_users_option( 'diluxone_users_login_page' ) <= 0 && ! diluxone_users_door_on() ) {
 		return true;
 	}
 
@@ -458,6 +461,22 @@ function diluxone_users_screen_login_page(): void {
 	$brand  = (bool) diluxone_users_option( 'diluxone_users_wp_login_brand' );
 
 	diluxone_users_intro( __( 'The page holding the sign-in form, and what becomes of wp-login.php. The form appears on the page you pick, below whatever the page already says.', 'diluxone-users' ) );
+
+	// The page of its own is the door while that shape is chosen: a page
+	// still picked here sends people to it, and says so here.
+	$own = diluxone_users_door_on();
+
+	if ( $own ) {
+		diluxone_users_not_now(
+			sprintf(
+				/* translators: %s: the address of the sign-in page of its own */
+				__( 'Not used while the shape of the sign-in page is “A page of its own”: people sign in at %s, and a page chosen here sends them there.', 'diluxone-users' ),
+				diluxone_users_door_url()
+			),
+			diluxone_users_admin_url( 'diluxone-users-design', array( 'tab' => 'login' ) ),
+			__( 'Design › The sign-in page →', 'diluxone-users' )
+		);
+	}
 
 	diluxone_users_ui_field_open( __( 'The sign-in page', 'diluxone-users' ), 'diluxone_users_login_page' );
 
@@ -504,14 +523,14 @@ function diluxone_users_screen_login_page(): void {
 	 * drawn as made about a page that does not exist was how a fresh install
 	 * read as set up by somebody.
 	 */
-	$waits = static fn( string $why ): array => array(
+	$waits = static fn( string $why ): array => $own ? array() : array(
 		'why'     => $why,
 		'name'    => 'diluxone_users_login_page',
 		'not'     => array( '0', '' ),
 		'waiting' => $page <= 0,
 	);
 
-	if ( $page > 0 && ! $password ) {
+	if ( ( $page > 0 || $own ) && ! $password ) {
 		diluxone_users_not_now(
 			__( 'Nobody signs in with a password on this site, so wp-login.php has nothing left to offer and everybody is sent to the sign-in page. What is chosen here applies the day a password is a way in again.', 'diluxone-users' ),
 			diluxone_users_admin_url( 'diluxone-users-login', array( 'tab' => 'ways' ) ),
@@ -556,7 +575,7 @@ function diluxone_users_screen_login_page(): void {
 		__( 'Forgetting a password is about changing it, not about getting in. This is where the new one is typed — or whether one is typed at all.', 'diluxone-users' )
 	);
 
-	if ( $page > 0 && ! $password ) {
+	if ( ( $page > 0 || $own ) && ! $password ) {
 		diluxone_users_not_now( __( 'There is no password on this site, so there is nothing to forget. What is chosen here waits for one.', 'diluxone-users' ) );
 	}
 

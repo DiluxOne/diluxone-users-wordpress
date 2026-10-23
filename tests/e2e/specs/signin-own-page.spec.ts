@@ -29,4 +29,15 @@ test.describe('Sign in › A page of its own', () => {
 		await expect(guest).toHaveTitle(/^Sign in/);
 		expect(response?.headers()['cache-control'] ?? '', 'kept out of every cache').toContain('no-store');
 	});
+
+	test('C2: the account area and the sign-in page chosen before both lead to /sign-in/', async ({ guest, pages, baseURL }) => {
+		const door = `${baseURL}/sign-in/`;
+
+		await guest.goto(pages.account.url);
+		await expect(guest.locator(`a[href="${door}"]`).first(), 'the account area, to a stranger, links to the page of its own').toBeVisible();
+
+		await guest.goto(pages.login.url);
+		expect(guest.url(), 'the page still chosen in Sign in › The page sends people there').toBe(door);
+		await expect(guest.locator('body.diluxone-users-door')).toHaveCount(1);
+	});
 });

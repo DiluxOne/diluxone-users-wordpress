@@ -804,14 +804,15 @@ function diluxone_users_login_page_live(): bool {
 /**
  * The URL of the site's sign-in screen.
  *
- * With no page configured — or one nobody can open, see
+ * With the shape "A page of its own" it is that page (login-door.php). With
+ * no page configured — or one nobody can open, see
  * diluxone_users_login_page_live() — it falls back to wp-login.php, which is
  * where WordPress expects to send somebody who is not signed in: a plugin
  * cannot leave a site with no door. On a network it is always the hub's (see
  * network-hub.php).
  */
 function diluxone_users_login_url(): string {
-	$url = diluxone_users_login_page_live() ? diluxone_users_page_url( 'diluxone_users_login_page' ) : '';
+	$url = diluxone_users_login_door_url();
 
 	if ( '' === $url ) {
 		$url = wp_login_url();

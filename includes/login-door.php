@@ -98,6 +98,53 @@ function diluxone_users_door_url( string $view = 'login' ): string {
 }
 
 /**
+ * What already has this path on this site, as a sentence's end — `the page
+ * “About us”` — or '' when nothing does.
+ *
+ * Any public type, in any status but the bin: a draft published tomorrow
+ * would otherwise lose its address to the sign-in page without a word.
+ *
+ * @param string $slug The path, without slashes.
+ */
+function diluxone_users_login_slug_taken( string $slug ): string {
+	if ( '' === $slug ) {
+		return '';
+	}
+
+	$post = get_page_by_path( $slug, OBJECT, array_values( get_post_types( array( 'public' => true ) ) ) );
+
+	if ( ! $post instanceof WP_Post || 'trash' === $post->post_status ) {
+		return '';
+	}
+
+	$type = get_post_type_object( $post->post_type );
+	$name = $type instanceof WP_Post_Type ? strtolower( (string) $type->labels->singular_name ) : $post->post_type;
+
+	return sprintf(
+		/* translators: 1: a kind of content, "page" or "post", 2: its title */
+		__( 'the %1$s “%2$s”', 'diluxone-users' ),
+		$name,
+		'' !== $post->post_title ? $post->post_title : $post->post_name
+	);
+}
+
+/**
+ * The address of the site's own sign-in screen, or '' when it has none and
+ * wp-login.php does the job.
+ *
+ * The page of its own first: while that shape is chosen it is the door,
+ * whatever page is still chosen in Sign in › The page. Then that page, when a
+ * stranger can open it (diluxone_users_login_page_live()).
+ */
+function diluxone_users_login_door_url(): string {
+	if ( diluxone_users_door_on() ) {
+		return diluxone_users_door_url();
+	}
+
+	return diluxone_users_login_page_live() ? diluxone_users_page_url( 'diluxone_users_login_page' ) : '';
+}
+
+/**
  * The rules that answer the page's addresses, on the hub only.
  *
  * At the top, so a page given the same path later does not take the door
@@ -217,6 +264,38 @@ function diluxone_users_door_serve(): void {
 	add_filter( 'redirect_canonical', '__return_false' );
 }
 add_action( 'template_redirect', 'diluxone_users_door_serve', 2 );
+
+/**
+ * A sign-in or registration page still chosen in Sign in › The page is not
+ * a second door while this shape is on: it sends people to the page of its
+ * own. A 302, so choosing another shape gives the page back at once.
+ */
+function diluxone_users_door_pages(): void {
+	if ( ! diluxone_users_door_on() || ! is_page() ) {
+		return;
+	}
+
+	$id = (int) get_queried_object_id();
+
+	$roles = array(
+		'diluxone_users_login_page'    => 'login',
+		'diluxone_users_register_page' => 'register',
+	);
+
+	foreach ( $roles as $option => $view ) {
+		$page = diluxone_users_page_here( $option );
+
+		if ( $page > 0 && $page === $id ) {
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- nothing is done with it: the query goes along to the page it was meant for.
+			$query = (array) wp_unslash( $_GET );
+			$to    = diluxone_users_door_url( $view );
+
+			wp_safe_redirect( array() === $query ? $to : add_query_arg( array_map( 'rawurlencode_deep', $query ), $to ), 302 );
+			exit;
+		}
+	}
+}
+add_action( 'template_redirect', 'diluxone_users_door_pages', 2 );
 
 /**
  * The document the plugin draws in place of the theme's template.

@@ -21,4 +21,17 @@ test.describe('A page of its own, on a network', () => {
 		await guest.goto(alpha.path('sign-in/'));
 		await expect(guest.locator('body.diluxone-users-door'), 'only the hub answers it').toHaveCount(0);
 	});
+
+	test('C2: another site’s door leads to the hub’s /sign-in/, with the way back', async ({ hub, alpha, guest }) => {
+		await hub.set(SHAPE);
+
+		await guest.goto(alpha.pages.login.url);
+
+		const button = guest.locator('.diluxone-users-hub-door[data-diluxone-users-door="login"] a.diluxone-users-button');
+
+		expect(((await button.getAttribute('href')) ?? '').startsWith(`${hub.path('sign-in/')}?redirect_to=`), 'the hub’s page of its own, carrying the way back').toBe(true);
+		await Promise.all([guest.waitForURL((url) => url.pathname === new URL(hub.path('sign-in/')).pathname), button.click()]);
+		expect(new URL(guest.url()).searchParams.get('redirect_to')).toBe(alpha.pages.login.url);
+		await expect(guest.locator('body.diluxone-users-door')).toHaveCount(1);
+	});
 });
