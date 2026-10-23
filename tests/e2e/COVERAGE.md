@@ -223,6 +223,7 @@ everybody, with the code by e-mail, and skips it for nobody.
 | Field editor dialog: open, Cancel, save, fallback to the field screen when the fetch fails; type shows only its rows | `admin-framework-more` › The field editor |
 | Account question: Escape and backdrop are "no" | `admin-framework-more` › The account area’s own question |
 | Measured theme colours kept in localStorage and painted early on the next page | `admin-framework-more` › The theme’s colours, remembered |
+| Dark mode with the theme's colours and the ground "The theme's": the area on the page's own ground, every heading at 4.5:1, measured again when the system or the theme's class switches, each scheme opening with its own kept colours (single site and the hub) | `account-dark-mode` › the ground “The theme’s”; network `account-dark-mode` |
 | E-mail notices: subject per language, put back, the mail follows; summary reads rules and the link's delivery | `admin-framework-more` › E-mail notices: the languages and the summary |
 | Overview: cards (accounts, sessions, fields, social), the 15-minute cache, card links | `admin-overview` › the cards |
 | Overview: first steps (button only on the first undone, gone when done) | `admin-overview` › first steps |
