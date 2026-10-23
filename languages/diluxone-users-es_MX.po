@@ -68,7 +68,7 @@ msgid "fields filled in"
 msgstr "campos completados"
 
 #: includes/account-sections.php:281
-#: includes/admin-fields.php:431
+#: includes/admin-fields.php:497
 msgid "Edit"
 msgstr "Editar"
 
@@ -159,7 +159,7 @@ msgid "Showing"
 msgstr "Se muestra"
 
 #: includes/admin-account.php:836
-#: includes/admin-fields.php:486
+#: includes/admin-fields.php:552
 msgid "Hidden"
 msgstr "Oculto"
 
@@ -172,8 +172,8 @@ msgid "It is on, but it is not showing"
 msgstr "Está activada, pero no se está mostrando"
 
 #: includes/admin-account.php:866
-#: includes/admin-fields.php:408
-#: includes/admin-fields.php:695
+#: includes/admin-fields.php:474
+#: includes/admin-fields.php:761
 msgid "Name"
 msgstr "Nombre"
 
@@ -268,7 +268,7 @@ msgstr "Foto de perfil"
 #: includes/admin-account.php:576
 #: includes/admin-panels.php:276
 #: templates/account/notifications.php:62
-#: templates/fields.php:34
+#: templates/fields.php:40
 msgid "Saved."
 msgstr "Listo, guardado."
 
@@ -316,12 +316,12 @@ msgstr "Foto más grande que se acepta"
 msgid "Fields"
 msgstr "Campos"
 
-#: includes/admin-fields.php:309
+#: includes/admin-fields.php:320
 msgid "How to use them"
 msgstr "Cómo se usan"
 
 #: includes/admin-fields.php:272
-#: includes/admin-fields.php:661
+#: includes/admin-fields.php:727
 #: includes/admin.php:83
 msgid "User fields"
 msgstr "Campos de usuario"
@@ -338,182 +338,182 @@ msgstr "Campo eliminado. Los datos ya cargados quedaron intactos."
 msgid "A field needs a name."
 msgstr "El campo necesita un nombre."
 
-#: includes/admin-fields.php:396
-#: includes/admin-fields.php:917
+#: includes/admin-fields.php:462
+#: includes/admin-fields.php:983
 msgid "Add field"
 msgstr "Agregar campo"
 
-#: includes/admin-fields.php:409
-#: includes/admin-fields.php:721
+#: includes/admin-fields.php:475
+#: includes/admin-fields.php:787
 msgid "Type"
 msgstr "Tipo"
 
-#: includes/admin-fields.php:410
+#: includes/admin-fields.php:476
 msgid "Where"
 msgstr "Dónde va"
 
-#: includes/admin-fields.php:411
+#: includes/admin-fields.php:477
 msgid "Required"
 msgstr "Obligatorio"
 
-#: includes/admin-fields.php:413
+#: includes/admin-fields.php:479
 #: includes/admin-sessions.php:340
 #: includes/admin-status.php:33
 #: templates/account/privacy.php:35
 msgid "Status"
 msgstr "Estado"
 
-#: includes/admin-fields.php:414
+#: includes/admin-fields.php:480
 msgid "Order"
 msgstr "Orden"
 
-#: includes/admin-fields.php:419
+#: includes/admin-fields.php:485
 msgid "No fields yet."
 msgstr "Todavía no hay campos."
 
-#: includes/admin-fields.php:459
+#: includes/admin-fields.php:525
 msgid "Delete this field? The data already stored is kept."
 msgstr "¿Eliminar este campo? Los datos ya cargados se conservan."
 
-#: includes/admin-fields.php:460
+#: includes/admin-fields.php:526
 msgid "Delete"
 msgstr "Eliminar"
 
-#: includes/admin-fields.php:468
+#: includes/admin-fields.php:534
 #: includes/privacy.php:258
 msgid "Yes"
 msgstr "Sí"
 
-#: includes/admin-fields.php:472
+#: includes/admin-fields.php:538
 msgid "Read only"
 msgstr "Sólo lectura"
 
 #. translators: %d: how many times it can be changed
-#: includes/admin-fields.php:476
+#: includes/admin-fields.php:542
 #, php-format
 msgid "%d time"
 msgid_plural "%d times"
 msgstr[0] "%d vez"
 msgstr[1] "%d veces"
 
-#: includes/admin-fields.php:486
+#: includes/admin-fields.php:552
 #: includes/admin-sessions.php:365
 #: includes/admin-state.php:38
 msgid "Active"
 msgstr "Activa"
 
-#: includes/admin-fields.php:505
+#: includes/admin-fields.php:571
 msgid "Move up"
 msgstr "Subir"
 
-#: includes/admin-fields.php:521
+#: includes/admin-fields.php:587
 msgid "Move down"
 msgstr "Bajar"
 
-#: includes/admin-fields.php:662
+#: includes/admin-fields.php:728
 msgid "That field does not exist."
 msgstr "Ese campo no existe."
 
-#: includes/admin-fields.php:395
-#: includes/admin-fields.php:671
+#: includes/admin-fields.php:461
+#: includes/admin-fields.php:737
 msgid "New field"
 msgstr "Campo nuevo"
 
 #. translators: %s: field name
-#: includes/admin-fields.php:672
+#: includes/admin-fields.php:738
 #, php-format
 msgid "Field: %s"
 msgstr "Campo: %s"
 
-#: includes/admin-fields.php:675
+#: includes/admin-fields.php:741
 msgid "Back to the list"
 msgstr "Volver al listado"
 
-#: includes/admin-fields.php:701
+#: includes/admin-fields.php:767
 msgid "The key is generated from the name."
 msgstr "La clave se genera sola a partir del nombre."
 
-#: includes/admin-fields.php:729
+#: includes/admin-fields.php:795
 msgid "This one is WordPress’s own: it can be renamed, reordered, made required or hidden, but it keeps its type and cannot be deleted."
 msgstr "Éste es propio de WordPress: se puede renombrar, reordenar, hacer obligatorio o esconder, pero conserva su tipo y no se puede borrar."
 
-#: includes/admin-fields.php:730
+#: includes/admin-fields.php:796
 msgid "“Country” shows the full list with its dial codes; “Phone with country code” splits the number in two and stores it in international format."
 msgstr "\"País\" muestra la lista completa con sus prefijos; \"Teléfono con prefijo de país\" parte el número en dos y lo guarda en formato internacional."
 
-#: includes/admin-fields.php:743
+#: includes/admin-fields.php:809
 msgid "Who can change it"
 msgstr "Quién lo puede cambiar"
 
-#: includes/admin-fields.php:753
+#: includes/admin-fields.php:819
 msgid "Whenever they want"
 msgstr "Cuando quiera"
 
-#: includes/admin-fields.php:760
+#: includes/admin-fields.php:826
 msgid "Only a few times, and then no more"
 msgstr "Sólo unas cuantas veces, y después no"
 
-#: includes/admin-fields.php:765
+#: includes/admin-fields.php:831
 msgid "How many times"
 msgstr "Cuántas veces"
 
 #: includes/admin-appearance.php:219
-#: includes/admin-fields.php:793
+#: includes/admin-fields.php:859
 #: includes/privacy.php:505
 msgid "Where it goes"
 msgstr "Dónde va"
 
-#: includes/admin-fields.php:798
+#: includes/admin-fields.php:864
 msgid "The profile form shows two blocks: the essentials first, and underneath the optional ones with their own explanation. This decides which one the field lands in."
 msgstr "El formulario del perfil muestra dos bloques: primero lo indispensable y abajo lo opcional, con su propia explicación. Esto decide en cuál cae el campo."
 
-#: includes/admin-fields.php:804
+#: includes/admin-fields.php:870
 msgid "Help text"
 msgstr "Texto de ayuda"
 
-#: includes/admin-fields.php:808
+#: includes/admin-fields.php:874
 msgid "Why we are asking. Shown under the field."
 msgstr "Por qué se lo pedimos. Se muestra debajo del campo."
 
-#: includes/admin-fields.php:825
+#: includes/admin-fields.php:891
 msgid "Placeholder text"
 msgstr "Texto de ejemplo"
 
-#: includes/admin-fields.php:829
+#: includes/admin-fields.php:895
 msgid "Shown in grey inside the empty field."
 msgstr "Se ve en gris dentro del campo vacío."
 
-#: includes/admin-fields.php:839
+#: includes/admin-fields.php:905
 msgid "Values"
 msgstr "Valores"
 
-#: includes/admin-fields.php:845
+#: includes/admin-fields.php:911
 msgid "One per line. In a fixed list they are the only accepted values; in text with suggestions they are just hints and the person can write something else."
 msgstr "Uno por línea. En una lista cerrada son los únicos valores aceptados; en el texto con sugerencias son sólo pistas y la persona puede escribir otra cosa."
 
-#: includes/admin-fields.php:852
+#: includes/admin-fields.php:918
 msgid "Countries shown first"
 msgstr "Países que van primero"
 
 #. translators: %d: number of countries
-#: includes/admin-fields.php:864
+#: includes/admin-fields.php:930
 #, php-format
 msgid "Optional. The list of %d countries comes with the plugin — there is nothing to load. These ones go on top, separated from the rest, so nobody has to scroll to find the one next door."
 msgstr "Opcional. La lista de %d países la trae el plugin — no hay nada que cargar. Éstos van arriba, separados del resto, para que nadie tenga que buscar el de al lado."
 
-#: includes/admin-fields.php:881
+#: includes/admin-fields.php:947
 msgid "Country selected by default"
 msgstr "País elegido por defecto"
 
-#: includes/admin-fields.php:873
+#: includes/admin-fields.php:939
 msgid "— None —"
 msgstr "— Ninguno —"
 
-#: includes/admin-fields.php:886
+#: includes/admin-fields.php:952
 msgid "The dial code the field comes with. The person can change it: the full list is always there."
 msgstr "El prefijo con el que viene el campo. La persona lo puede cambiar: la lista completa está siempre."
 
-#: includes/admin-fields.php:917
+#: includes/admin-fields.php:983
 msgid "Save field"
 msgstr "Guardar campo"
 
@@ -1864,7 +1864,7 @@ msgstr "El ida y vuelta con %s falló."
 msgid "The provider handed over this email: %s"
 msgstr "El proveedor entregó este correo: %s"
 
-#: includes/admin-fields.php:640
+#: includes/admin-fields.php:706
 #: includes/admin-panels.php:841
 #: includes/sso.php:1041
 #: templates/sessions.php:67
@@ -1919,7 +1919,7 @@ msgstr "Elegir una foto"
 #: templates/account/avatar.php:36
 #: templates/account/handle.php:37
 #: templates/account/notifications.php:103
-#: templates/fields.php:68
+#: templates/fields.php:77
 msgid "Save"
 msgstr "Guardar"
 
@@ -2175,7 +2175,7 @@ msgid "Link"
 msgstr "Vincular"
 
 #: includes/login-messages.php:232
-#: templates/fields.php:36
+#: templates/fields.php:42
 msgid "Some required fields are missing."
 msgstr "Faltan campos obligatorios."
 
@@ -2456,7 +2456,7 @@ msgctxt "placeholder for the e-mail field"
 msgid "you@example.com"
 msgstr "tu@ejemplo.com"
 
-#: includes/admin-fields.php:412
+#: includes/admin-fields.php:478
 msgid "They can change it"
 msgstr "La puede cambiar"
 
@@ -2533,12 +2533,12 @@ msgstr "Limitado a una columna de lectura"
 msgid "As wide as the theme allows"
 msgstr "Tan ancho como permita el tema"
 
-#: includes/admin-fields.php:636
+#: includes/admin-fields.php:702
 #: templates/account/privacy.php:178
 msgid "Cancel"
 msgstr "Cancelar"
 
-#: includes/admin-fields.php:645
+#: includes/admin-fields.php:711
 msgid "Loading…"
 msgstr "Cargando…"
 
@@ -3635,7 +3635,7 @@ msgstr "Todavía ninguno."
 msgid "It is set on Your brand →"
 msgstr "Se configura en Tu marca →"
 
-#: includes/auth.php:1196
+#: includes/auth.php:1198
 msgid "This account asks for a second step when signing in, and this way in cannot ask for it."
 msgstr "Esta cuenta pide un segundo paso al entrar, y esta forma de entrar no puede pedirlo."
 
@@ -3800,61 +3800,61 @@ msgstr "Esto es lo que contiene la sección. Sin ninguno de los dos encendido no
 msgid "Save what they can do"
 msgstr "Guardar qué pueden hacer"
 
-#: includes/admin-fields.php:690
+#: includes/admin-fields.php:756
 msgid "What it is"
 msgstr "Qué es"
 
 #. translators: %s: the key the answers are stored under
-#: includes/admin-fields.php:704
+#: includes/admin-fields.php:770
 #, php-format
 msgid "Key: <code>%s</code> — it cannot change: it is the name the data is stored under."
 msgstr "Clave: <code>%s</code> — no se puede cambiar: es el nombre con el que se guardan los datos."
 
-#: includes/admin-fields.php:744
+#: includes/admin-fields.php:810
 msgid "This is about the person the data belongs to. Whoever administers the site can always change it from that person’s profile: otherwise a field with one change in it turns into a typo nobody can fix."
 msgstr "Esto es sobre la persona dueña de los datos. Quien administra el sitio siempre puede cambiarlo desde el perfil de esa persona: si no, un campo con un solo cambio se convierte en un error de dedo que nadie puede arreglar."
 
-#: includes/admin-fields.php:754
+#: includes/admin-fields.php:820
 msgid "The field stays open in their account area, and they correct it the day it changes."
 msgstr "El campo queda abierto en su área de cuenta, y lo corrigen el día que cambia."
 
-#: includes/admin-fields.php:761
+#: includes/admin-fields.php:827
 msgid "The field closes once they have used up their goes. For what should not keep moving: a document number, a date of birth."
 msgstr "El campo se cierra cuando gastaron sus cambios. Para lo que no debería seguir moviéndose: un número de documento, una fecha de nacimiento."
 
-#: includes/admin-fields.php:772
+#: includes/admin-fields.php:838
 msgid "Counted one person at a time, and only for the changes they make themselves: saving the same thing again spends nothing, and an administrator fixing it spends nobody’s goes."
 msgstr "Se cuenta persona por persona, y solo los cambios que hace cada una: volver a guardar lo mismo no gasta nada, y un administrador que lo corrige no le gasta cambios a nadie."
 
-#: includes/admin-fields.php:781
+#: includes/admin-fields.php:847
 msgid "Never: they see it, and whoever administers changes it"
 msgstr "Nunca: lo ven, y lo cambia quien administra"
 
-#: includes/admin-fields.php:782
+#: includes/admin-fields.php:848
 msgid "It is shown to them and cannot be typed in. For what the site decides and not the person: a membership number, a category."
 msgstr "Se les muestra y no se puede escribir. Para lo que decide el sitio y no la persona: un número de socio, una categoría."
 
-#: includes/admin-fields.php:788
+#: includes/admin-fields.php:854
 msgid "What the person sees"
 msgstr "Qué ve la persona"
 
-#: includes/admin-fields.php:893
+#: includes/admin-fields.php:959
 msgid "What the form does with it"
 msgstr "Qué hace el formulario con él"
 
-#: includes/admin-fields.php:902
+#: includes/admin-fields.php:968
 msgid "Required: no form goes through without it"
 msgstr "Obligatorio: ningún formulario pasa sin él"
 
-#: includes/admin-fields.php:903
+#: includes/admin-fields.php:969
 msgid "It is also one of the things asked for on the registration form, before the account exists."
 msgstr "También es una de las cosas que se piden en el formulario de registro, antes de que la cuenta exista."
 
-#: includes/admin-fields.php:910
+#: includes/admin-fields.php:976
 msgid "Active: it shows up in the forms"
 msgstr "Activo: aparece en los formularios"
 
-#: includes/admin-fields.php:911
+#: includes/admin-fields.php:977
 msgid "Unticked it leaves every form and keeps both its definition and everything already answered, waiting for the day it comes back."
 msgstr "Desmarcado se va de todos los formularios y conserva tanto su definición como todo lo ya respondido, esperando el día que vuelva."
 
@@ -4061,27 +4061,27 @@ msgstr "Formas y bordes"
 msgid "KB"
 msgstr "KB"
 
-#: includes/admin-fields.php:343
+#: includes/admin-fields.php:409
 msgid "This site has registration closed: no door into an account is open, so nobody signs themselves up."
 msgstr "Este sitio tiene el registro cerrado: no hay ninguna puerta abierta hacia una cuenta, así que nadie se da de alta solo."
 
-#: includes/admin-fields.php:345
+#: includes/admin-fields.php:411
 msgid "Which decides the user fields as well: they are asked of nobody, and the only person who ever fills them in is whoever administers the site, creating an account by hand."
 msgstr "Lo que también decide los campos de usuario: no se le piden a nadie, y la única persona que los llena es quien administra el sitio, creando una cuenta a mano."
 
-#: includes/admin-fields.php:346
+#: includes/admin-fields.php:412
 msgid "So nothing on this screen is asked of anybody: the only person who ever fills these in is whoever administers the site, creating an account by hand."
 msgstr "Así que nada de esta pantalla se le pide a nadie: la única persona que los llena es quien administra el sitio, creando una cuenta a mano."
 
-#: includes/admin-fields.php:358
+#: includes/admin-fields.php:424
 msgid "The fields it is about →"
 msgstr "Los campos de los que habla →"
 
-#: includes/admin-fields.php:359
+#: includes/admin-fields.php:425
 msgid "Open a door →"
 msgstr "Abrir una puerta →"
 
-#: includes/admin-fields.php:769
+#: includes/admin-fields.php:835
 msgid "changes, and then it closes"
 msgstr "cambios, y después se cierra"
 
@@ -4964,63 +4964,63 @@ msgstr "Los botones tal como los dibuja la página de acceso, sobre la superfici
 msgid "wp-login.php itself, as it is saved right now — not a drawing of it. Press the button above to see it with the choices on this screen."
 msgstr "wp-login.php en persona, tal como está guardada ahora mismo: no un dibujo de ella. Presiona el botón de arriba para verla con lo elegido en esta pantalla."
 
-#: includes/admin-fields.php:942
+#: includes/admin-fields.php:1008
 msgid "Inside the dashboard the fields place themselves: they are on every profile, on the form for adding a person and on WordPress’s own registration form, with nothing to set up. On the pages visitors see, you say where they go — and that is what the lines below are for."
 msgstr "Dentro del escritorio los campos se colocan solos: están en cada perfil, en el formulario de agregar una persona y en el formulario de registro del propio WordPress, sin nada que configurar. En las páginas que ven los visitantes, dices tú dónde van, y para eso están las líneas de abajo."
 
-#: includes/admin-fields.php:945
+#: includes/admin-fields.php:1011
 msgid "What a shortcode is, if you have never used one"
 msgstr "Qué es un shortcode, si nunca has usado uno"
 
-#: includes/admin-fields.php:946
+#: includes/admin-fields.php:1012
 msgid "A word between square brackets, typed into a page. Nobody visiting the site ever sees the brackets: while the page is being drawn, WordPress swaps the line for the real thing — a form, a list, a set of buttons. Put it twice and the thing appears twice; delete the line and it is gone. Nothing else on the page is affected."
 msgstr "Una palabra entre corchetes, escrita dentro de una página. Nadie que visite el sitio ve los corchetes: mientras se dibuja la página, WordPress cambia la línea por la cosa de verdad —un formulario, una lista, un juego de botones—. Ponla dos veces y la cosa aparece dos veces; borra la línea y desaparece. Nada más de la página se ve afectado."
 
-#: includes/admin-fields.php:951
+#: includes/admin-fields.php:1017
 msgid "Open the page it belongs on, or make one: Pages › Add page."
 msgstr "Abre la página donde va, o crea una: Páginas › Añadir página."
 
-#: includes/admin-fields.php:952
+#: includes/admin-fields.php:1018
 msgid "Add a block and pick the one called “Shortcode”. Typing “shortcode” into the block search finds it."
 msgstr "Agrega un bloque y elige el que se llama «Shortcode». Escribiendo «shortcode» en el buscador de bloques aparece."
 
-#: includes/admin-fields.php:953
+#: includes/admin-fields.php:1019
 msgid "Paste one of the lines below into that block — the square brackets included, and nothing else with them."
 msgstr "Pega dentro de ese bloque una de las líneas de abajo, con los corchetes incluidos y nada más junto a ellos."
 
-#: includes/admin-fields.php:954
+#: includes/admin-fields.php:1020
 msgid "Publish the page and open it the way a visitor would. What the line stands for is what you see."
 msgstr "Publica la página y ábrela como la abriría un visitante. Lo que la línea representa es lo que verás."
 
-#: includes/admin-fields.php:959
+#: includes/admin-fields.php:1025
 msgid "If your site does not use blocks"
 msgstr "Si tu sitio no usa bloques"
 
-#: includes/admin-fields.php:960
+#: includes/admin-fields.php:1026
 msgid "With the classic editor, or inside a page builder’s text widget, there is no block to add: type the line into the text of the page and it works the same way."
 msgstr "Con el editor clásico, o dentro del widget de texto de un maquetador, no hay bloque que agregar: escribe la línea en el texto de la página y funciona igual."
 
-#: includes/admin-fields.php:964
+#: includes/admin-fields.php:1030
 msgid "The lines, and what each one puts on the page"
 msgstr "Las líneas, y qué pone cada una en la página"
 
-#: includes/admin-fields.php:965
+#: includes/admin-fields.php:1031
 msgid "One of them is enough for a page: everything each line needs — its heading, its buttons, its messages — comes with it."
 msgstr "Con una basta para una página: todo lo que cada línea necesita —su encabezado, sus botones, sus mensajes— viene con ella."
 
-#: includes/admin-fields.php:972
+#: includes/admin-fields.php:1038
 msgid "A form with every field on it, for whoever is signed in to fill in and save. Somebody who is not signed in sees nothing at all in its place."
 msgstr "Un formulario con todos los campos, para que quien haya entrado lo llene y lo guarde. Quien no haya entrado no ve absolutamente nada en su lugar."
 
-#: includes/admin-fields.php:984
+#: includes/admin-fields.php:1050
 msgid "The same box with a “Sign in” heading above it, for a page whose own title does not already say what it is for."
 msgstr "El mismo cuadro con un encabezado «Entrar» arriba, para una página cuyo propio título no diga ya para qué es."
 
-#: includes/admin-fields.php:988
+#: includes/admin-fields.php:1054
 msgid "The social networks this person signs in with, each with the button that links a new one or unlinks one they have. It belongs on the page where people look after their own account."
 msgstr "Las redes sociales con las que entra esta persona, cada una con el botón para vincular una nueva o desvincular alguna que ya tenga. Va en la página donde cada quien se ocupa de su propia cuenta."
 
-#: includes/admin-fields.php:992
+#: includes/admin-fields.php:1058
 msgid "Every browser and phone this person is still signed in on, when each one signed in, and a button that closes any of them — the page somebody wants after losing a laptop."
 msgstr "Todos los navegadores y teléfonos donde esta persona sigue con la sesión abierta, cuándo entró cada uno y un botón para cerrar cualquiera: la página que uno quiere después de perder una laptop."
 
@@ -6283,33 +6283,33 @@ msgstr "No se agregó nada: no se marcó ningún campo sugerido, o los marcados 
 msgid "Suggested fields"
 msgstr "Campos sugeridos"
 
-#: includes/admin-fields.php:399
-#: includes/admin-fields.php:575
+#: includes/admin-fields.php:465
+#: includes/admin-fields.php:641
 msgid "Add suggested fields"
 msgstr "Agregar campos sugeridos"
 
-#: includes/admin-fields.php:573
+#: includes/admin-fields.php:639
 msgid "A few questions many sites ask the people who register. None of them is asked until it is added here: tick the ones this site needs and they join the list, where each can be edited, made required, moved or deleted like any other field."
 msgstr "Algunas preguntas que muchos sitios hacen a quien se registra. Ninguna se pregunta hasta que se agrega aquí: marca las que este sitio necesita y pasan a la lista, donde cada una se puede editar, hacer obligatoria, mover o borrar como cualquier otro campo."
 
-#: includes/admin-fields.php:579
+#: includes/admin-fields.php:645
 msgid "Every suggested field is already on the list."
 msgstr "Todos los campos sugeridos ya están en la lista."
 
-#: includes/admin-fields.php:581
+#: includes/admin-fields.php:647
 msgid "The fields →"
 msgstr "Los campos →"
 
-#: includes/admin-fields.php:603
+#: includes/admin-fields.php:669
 msgid "Add the ones ticked"
 msgstr "Agregar los marcados"
 
-#: includes/admin-fields.php:610
+#: includes/admin-fields.php:676
 msgid "Every suggested field is on the list."
 msgstr "Todos los campos sugeridos están en la lista."
 
 #. translators: %s: how many suggested fields are not on the list
-#: includes/admin-fields.php:614
+#: includes/admin-fields.php:680
 #, php-format
 msgid "%s suggested field is not on the list."
 msgid_plural "%s suggested fields are not on the list."
@@ -6406,7 +6406,7 @@ msgstr "Sitios de los que un administrador te quitó"
 msgid "The list of sites an administrator removed this person from was kept: it is what keeps them from being added back to those sites."
 msgstr "Se conservó la lista de sitios de los que un administrador quitó a esta persona: es lo que impide que se le vuelva a agregar a esos sitios."
 
-#: includes/admin-fields.php:976
+#: includes/admin-fields.php:1042
 msgid "The same form with only the fields of the main block on it. With group=\"extra\" it is the other block, which is how the two end up on two pages, or one under each heading of the same page."
 msgstr "El mismo formulario solo con los campos del bloque principal. Con group=\"extra\" es el otro bloque, y así es como los dos terminan en dos páginas, o uno debajo de cada encabezado de la misma página."
 
@@ -6536,7 +6536,7 @@ msgstr "Campos de usuario propios, un área de cuenta en el sitio, acceso sin co
 msgid "An icon inside the buttons of the doors: an envelope on the link"
 msgstr "Un icono dentro de los botones de las puertas: un sobre en el enlace"
 
-#: includes/admin-fields.php:980
+#: includes/admin-fields.php:1046
 msgid "The way in: the box that asks for an e-mail address, and under it whichever buttons are switched on — the social networks, the password. Somebody already signed in is told so instead."
 msgstr "La entrada: el cuadro que pide una dirección de correo y, debajo, los botones que estén activados —las redes sociales, la contraseña—. A quien ya entró se le dice eso en su lugar."
 
@@ -7055,3 +7055,35 @@ msgstr "Te hemos enviado un enlace para elegir tu contraseña."
 #: templates/register.php:169
 msgid "You get an email with a link to choose your password, and you sign in with it."
 msgstr "Te llega un correo con un enlace para elegir tu contraseña, y con ella entras."
+
+#: includes/admin-fields.php:309
+msgid "After sign-in"
+msgstr "Después de entrar"
+
+#: includes/admin-fields.php:341
+msgid "No field is required yet, so there is nothing to ask for: it starts working when a field is marked as required."
+msgstr "Todavía no hay ningún campo obligatorio, así que no hay nada que pedir: empieza a funcionar cuando un campo se marca como obligatorio."
+
+#: includes/admin-fields.php:343
+msgid "No account page is chosen, so there is nowhere to ask: it starts working when one is chosen in Account area › The page."
+msgstr "No hay una página de cuenta elegida, así que no hay dónde pedirlos: empieza a funcionar cuando se elige una en Área de cuenta › La página."
+
+#: includes/admin-fields.php:360
+msgid "After signing in, ask for the required fields the account has no answer for"
+msgstr "Después de entrar, pedir los campos obligatorios que la cuenta no tiene llenos"
+
+#: includes/admin-fields.php:363
+msgid "Accounts made by the e-mail link or a social network were never asked for them. Once signed in, they are shown those fields alone on the account page, and then go on to where they were going. They can skip it, and are asked again at the next sign-in."
+msgstr "A las cuentas creadas con el enlace por correo o con una red social nunca se les pidieron. Al entrar, ven solo esos campos en la página de cuenta y después siguen a donde iban. Se puede omitir, y se vuelve a pedir en la siguiente entrada."
+
+#: includes/fields-missing.php:155
+msgid "Before you go on, the site needs a few details it does not have yet."
+msgstr "Antes de seguir, el sitio necesita algunos datos que todavía no tiene."
+
+#: includes/fields-missing.php:163
+msgid "Complete your details"
+msgstr "Completar los datos"
+
+#: templates/fields.php:80
+msgid "Skip for now"
+msgstr "Omitir por ahora"

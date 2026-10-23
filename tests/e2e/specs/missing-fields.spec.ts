@@ -106,6 +106,29 @@ test.describe('After signing in, the required fields missing', () => {
 		expect(onStep(page, pages.account.url), `straight on, at ${page.url()}`).toBe(false);
 		await expect(page.locator('.diluxone-users-complete')).toHaveCount(0);
 	});
+
+	test('skipped, the site is open as ever, and the next sign-in asks again', async ({ page, site, pages }) => {
+		const email = freshEmail('missing-skip');
+
+		await signInByLink(page, site, pages.login.url, email);
+		expect(onStep(page, pages.account.url)).toBe(true);
+		const going = goingTo(page);
+
+		await navigated(page, () => page.locator('.diluxone-users-fields__skip').click());
+		expect(page.url(), 'skip goes on to where it was headed').toBe(going);
+
+		// Nothing else is held up: the account area itself, and any page.
+		await page.goto(pages.account.url);
+		await expect(page.locator('.diluxone-users-complete')).toHaveCount(0);
+		await page.goto(pages.register.url);
+		expect(onStep(page, pages.account.url)).toBe(false);
+
+		// Signed out, and a minute's wait for the same address forgotten.
+		await page.context().clearCookies();
+		await site.setOptions({}, { forgetTransients: true });
+		await signInByLink(page, site, pages.login.url, email);
+		expect(onStep(page, pages.account.url), 'asked again').toBe(true);
+	});
 });
 
 test.describe('After signing in, turned off on User fields', () => {
