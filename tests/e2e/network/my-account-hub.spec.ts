@@ -102,6 +102,31 @@ test('signed in, the account page on /beta/ is a door to the account on the hub,
 	await expect(page.locator('form input[name="action"][value^="diluxone_users_"]')).toHaveCount(0);
 });
 
+test('signed out, the account page on the hub keeps its own inner space, and its button stays plain under a theme that underlines content links', async ({
+	page,
+	hub,
+}) => {
+	await page.goto(hub.pages.account.url);
+
+	const guest = page.locator('.diluxone-users-account--guest');
+	const button = guest.locator('a.diluxone-users-button');
+
+	await expect(guest).toBeVisible();
+
+	// A theme's content column, as one class and a tag, with no padding of its own.
+	await guest.evaluate((block) => block.parentElement?.classList.add('e2e-entry-content'));
+	await page.addStyleTag({
+		content: '.e2e-entry-content { padding: 0; } .e2e-entry-content a, .e2e-entry-content a:hover { text-decoration: underline; }',
+	});
+
+	const left = await guest.evaluate((block) => parseFloat(getComputedStyle(block).paddingLeft));
+	expect(left).toBeGreaterThan(0);
+	await expect(button).toHaveCSS('text-decoration-line', 'none');
+
+	await button.hover();
+	await expect(button).toHaveCSS('text-decoration-line', 'none');
+});
+
 test.describe('Forms posted to /beta/', () => {
 	/** Every form of the account, with what it would write. */
 	const POSTS: Array<{ action: string; fields: Record<string, string> }> = [
