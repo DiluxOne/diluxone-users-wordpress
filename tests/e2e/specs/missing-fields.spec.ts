@@ -107,3 +107,17 @@ test.describe('After signing in, the required fields missing', () => {
 		await expect(page.locator('.diluxone-users-complete')).toHaveCount(0);
 	});
 });
+
+test.describe('After signing in, turned off on User fields', () => {
+	test.use({ storageState: ADMIN_STATE });
+
+	test('with no field required the box is switched off and says why', async ({ page, options }) => {
+		await options.set({
+			diluxone_users_fields: FIRST_NAME_REQUIRED.map((field) => ({ ...field, required: 0 })),
+		});
+
+		await page.goto(adminUrl('diluxone-users-fields', 'missing'));
+		await expect(page.locator('.du-choice.is-locked input[type="checkbox"]')).toBeDisabled();
+		await expect(page.locator('input[name="diluxone_users_ask_missing"]')).toHaveCount(0);
+	});
+});
