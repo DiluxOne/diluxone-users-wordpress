@@ -217,4 +217,88 @@ class LoginDoorTest extends IntegrationTestCase {
 
 		$this->assertStringStartsWith( $door . '?redirect_to=', $url, 'the hub’s page, carrying the way back' );
 	}
+
+	/** Design › The sign-in page saved with this shape and this address. */
+	private function save_slug( string $slug ): bool {
+		$this->postPanel(
+			'diluxone-users-design',
+			array(
+				'diluxone_users_login_template' => 'own',
+				'diluxone_users_login_slug'     => $slug,
+			)
+		);
+
+		return diluxone_users_design_login_save();
+	}
+
+	public function test_c3_a_changed_address_keeps_the_old_one_sending_people_to_the_new(): void {
+		$this->save_slug( 'entrar' );
+
+		$this->assertSame( 'entrar', diluxone_users_login_slug() );
+		$this->assertSame( array( 'sign-in' ), diluxone_users_login_slug_old() );
+		$this->assertSame( home_url( '/entrar/' ), diluxone_users_login_url() );
+
+		$rules = $this->rules();
+
+		$this->assertSame( 'index.php?diluxone_users_door=login', $rules['^entrar/?$'] ?? '' );
+		$this->assertSame( 'index.php?diluxone_users_door=moved', $rules['^sign\\-in/?$'] ?? '', '/sign-in/ still answered' );
+		$this->assertSame( 'index.php?diluxone_users_door=moved-register', $rules['^sign\\-in/register/?$'] ?? '' );
+		$this->assertStringContainsString( 'door:entrar+sign-in', diluxone_users_rewrite_stamp(), 'the rules flushed once more' );
+
+		// Somebody opens /sign-in/, with what a link in an e-mail carried.
+		$this->as_front_end();
+		$this->on_door( 'moved' );
+		$_GET = array( 'diluxone-users' => 'expired' );
+
+		$this->assertSame( add_query_arg( 'diluxone-users', 'expired', home_url( '/entrar/' ) ), $this->expectRedirect( 'diluxone_users_door_serve' ) );
+
+		$this->on_door( 'moved-register' );
+		$_GET = array();
+
+		$this->assertSame( home_url( '/entrar/register/' ), $this->expectRedirect( 'diluxone_users_door_serve' ) );
+	}
+
+	public function test_c3_the_old_addresses_are_the_newest_ten_and_never_the_current_one(): void {
+		for ( $i = 1; $i <= 12; $i++ ) {
+			$this->save_slug( 'door-' . $i );
+		}
+
+		$old = diluxone_users_login_slug_old();
+
+		$this->assertCount( 10, $old );
+		$this->assertSame( 'door-11', $old[0], 'newest first' );
+		$this->assertNotContains( 'door-12', $old );
+
+		$this->save_slug( 'door-5' );
+
+		$this->assertSame( 'door-5', diluxone_users_login_slug() );
+		$this->assertNotContains( 'door-5', diluxone_users_login_slug_old(), 'going back takes it off the list' );
+		$this->assertSame( 'door-12', diluxone_users_login_slug_old()[0] );
+	}
+
+	public function test_c3_an_old_address_a_page_takes_later_is_the_pages(): void {
+		$this->save_slug( 'entrar' );
+
+		wp_insert_post(
+			array(
+				'post_type'   => 'page',
+				'post_status' => 'publish',
+				'post_title'  => 'Sign in',
+				'post_name'   => 'sign-in',
+			)
+		);
+
+		$this->assertSame( array(), diluxone_users_login_slug_old() );
+		$this->assertArrayNotHasKey( '^sign\\-in/?$', $this->rules() );
+	}
+
+	public function test_c3_a_save_with_no_address_keeps_the_one_stored(): void {
+		diluxone_users_update_option( 'diluxone_users_login_slug', 'entrar' );
+
+		$this->postPanel( 'diluxone-users-design', array( 'diluxone_users_login_template' => 'card' ) );
+		diluxone_users_design_login_save();
+
+		$this->assertSame( 'entrar', diluxone_users_login_slug(), 'the field waits under another shape and sends nothing' );
+		$this->assertSame( array(), diluxone_users_login_slug_old() );
+	}
 }

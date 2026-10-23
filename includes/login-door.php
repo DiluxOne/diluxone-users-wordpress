@@ -75,6 +75,51 @@ function diluxone_users_login_slug_old(): array {
 }
 
 /**
+ * Moves the page to another address, keeping the one it leaves.
+ *
+ * The address it had goes to the front of the old ones, which go on sending
+ * people to the new one: a sign-in or reset link already sent by e-mail still
+ * works. At most DILUXONE_USERS_DOOR_OLD_MAX of them, the newest kept, and
+ * never the address the page has now — going back to an old address takes it
+ * off the list.
+ *
+ * @param string $slug The new path, already sanitised.
+ */
+function diluxone_users_login_slug_move( string $slug ): void {
+	$was = diluxone_users_login_slug();
+
+	if ( $slug === $was ) {
+		return;
+	}
+
+	$old = array_values( array_diff( array_merge( array( $was ), diluxone_users_login_slug_old() ), array( $slug ) ) );
+
+	diluxone_users_update_option( 'diluxone_users_login_slug_old', array_slice( $old, 0, DILUXONE_USERS_DOOR_OLD_MAX ) );
+	diluxone_users_update_option( 'diluxone_users_login_slug', $slug );
+}
+
+/**
+ * An old address a post takes later is the post's.
+ *
+ * The old ones only redirect, and a page published at one of them is the
+ * site saying it wants that address back: it is taken off the list, and the
+ * next request's rules no longer cover it.
+ */
+function diluxone_users_login_slug_old_forget(): void {
+	if ( ! diluxone_users_on_the_hub() ) {
+		return;
+	}
+
+	$old  = diluxone_users_login_slug_old();
+	$kept = array_values( array_filter( $old, static fn( string $slug ): bool => '' === diluxone_users_login_slug_taken( $slug ) ) );
+
+	if ( $kept !== $old ) {
+		diluxone_users_update_option( 'diluxone_users_login_slug_old', $kept );
+	}
+}
+add_action( 'save_post', 'diluxone_users_login_slug_old_forget' );
+
+/**
  * The address of the page, on the hub.
  *
  * With pretty permalinks `/<slug>/` (and `/<slug>/register/`); with plain

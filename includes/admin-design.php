@@ -114,7 +114,7 @@ function diluxone_users_design_login_save(): bool {
 	);
 
 	if ( '' !== $slug ) {
-		diluxone_users_update_option( 'diluxone_users_login_slug', $slug );
+		diluxone_users_login_slug_move( $slug );
 	}
 
 	return true;

@@ -1,10 +1,15 @@
 import { test, expect } from '../support/fixtures';
+import { adminUrl, savePanel } from '../support/ui';
+import { ADMIN_STATE } from '../../../playwright.config';
 
 /**
  * The shape "A page of its own": the plugin answers an address of the site's
  * choosing and draws the whole document, with no header or footer of the
  * theme's. The address, its old ones, and the screens drawn on it.
  */
+
+// The dashboard in `page`; everything a visitor sees in `guest`.
+test.use({ storageState: ADMIN_STATE });
 
 const SHAPE_KEYS = ['diluxone_users_login_template', 'diluxone_users_login_slug', 'diluxone_users_login_slug_old'];
 
@@ -38,6 +43,23 @@ test.describe('Sign in › A page of its own', () => {
 
 		await guest.goto(pages.login.url);
 		expect(guest.url(), 'the page still chosen in Sign in › The page sends people there').toBe(door);
+		await expect(guest.locator('body.diluxone-users-door')).toHaveCount(1);
+	});
+
+	test('C3: the address changed from sign-in to entrar on the tab, /sign-in/ redirects to /entrar/', async ({ page, guest, baseURL }) => {
+		await page.goto(adminUrl('diluxone-users-design', 'login'));
+		await page.locator('input[name="diluxone_users_login_template"][value="own"]').check({ force: true });
+		await page.locator('input[name="diluxone_users_login_slug"]').fill('entrar');
+		await savePanel(page);
+		await expect(page.locator('input[name="diluxone_users_login_slug"]')).toHaveValue('entrar');
+
+		const moved = await guest.request.get(`${baseURL}/sign-in/?diluxone-users=expired`, { maxRedirects: 0 });
+
+		expect(moved.status(), 'moved for good').toBe(301);
+		expect(moved.headers().location, 'with what the address carried').toBe(`${baseURL}/entrar/?diluxone-users=expired`);
+
+		await guest.goto('/sign-in/');
+		expect(guest.url()).toBe(`${baseURL}/entrar/`);
 		await expect(guest.locator('body.diluxone-users-door')).toHaveCount(1);
 	});
 });
