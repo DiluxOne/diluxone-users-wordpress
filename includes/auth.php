@@ -484,7 +484,8 @@ function diluxone_users_complete_login( int $user_id, string $via, bool $remembe
 	if ( diluxone_users_way_strong( $via ) || ! diluxone_users_2fa_required( $user_id, $via ) || diluxone_users_2fa_skip( $user_id, $via ) ) {
 		diluxone_users_open_session( $user_id, $via, $remember );
 
-		wp_safe_redirect( $redirect );
+		// The required fields the account has no answer for, asked on the way.
+		wp_safe_redirect( diluxone_users_ask_missing_url( $user_id, $redirect ) );
 		exit;
 	}
 
@@ -1046,7 +1047,8 @@ function diluxone_users_2fa_handle(): void {
 		diluxone_users_open_session( $user_id, $via, ! empty( $pending['remember'] ) );
 	}
 
-	wp_safe_redirect( (string) $pending['redirect'] );
+	// After the second step, never instead of it: the required fields missing.
+	wp_safe_redirect( diluxone_users_ask_missing_url( $user_id, (string) $pending['redirect'] ) );
 	exit;
 }
 add_action( 'init', 'diluxone_users_2fa_handle', 5 );

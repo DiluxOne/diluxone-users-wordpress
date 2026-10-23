@@ -97,6 +97,10 @@ function diluxone_users_option_defaults_own(): array {
 		// Whether WordPress's own registration form, wp-login.php?action=register,
 		// asks for the fields too. Off, that form is exactly WordPress's.
 		'diluxone_users_wp_register_fields'    => 0,
+		// After a sign-in, ask for the required fields the account has no
+		// answer for (includes/fields-missing.php). On, and only ever acting
+		// while some field is required.
+		'diluxone_users_ask_missing'           => 1,
 		// Role of the accounts created that way.
 		'diluxone_users_login_role'            => 'subscriber',
 
