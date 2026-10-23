@@ -442,6 +442,30 @@ class DesignSeamsTest extends IntegrationTestCase {
 		$this->assertSame( '#eef6f1', diluxone_users_raw_get( 'diluxone_users_account_ground' ) );
 	}
 
+	public function test_a_fresh_install_prints_no_ground_and_offers_the_themes_first(): void {
+		$this->the_admin();
+
+		$this->assertFalse( diluxone_users_option_is_set( 'diluxone_users_account_ground' ), 'nothing stored' );
+		$this->assertSame( '', diluxone_users_account_ground() );
+
+		foreach ( array( 'own', 'theme' ) as $colours ) {
+			diluxone_users_update_option( 'diluxone_users_colors', $colours );
+
+			$css = diluxone_users_account_css();
+
+			$this->assertStringNotContainsString( '--diluxone-users-ground', $css, $colours );
+			$this->assertStringNotContainsString( '.diluxone-users-account{background', $css, $colours );
+		}
+
+		$html = $this->draw( 'diluxone_users_screen_appearance_template' );
+
+		$this->assertMatchesRegularExpression(
+			'#data-diluxone-users-swatches="diluxone_users_account_ground"><label class="du-swatch du-swatch--none is-on"><input type="radio" name="diluxone_users_account_ground" value="" checked=\'checked\'><span class="du-swatch__chip" aria-hidden="true"></span><span class="du-swatch__name">The theme’s</span>#u',
+			$html,
+			'"The theme’s" is the first swatch, and the one chosen'
+		);
+	}
+
 	/* ── Where Users+ Pro would go ────────────────────────────────────── */
 
 	public function test_each_design_placeholder_is_one_an_addon_turns_off(): void {

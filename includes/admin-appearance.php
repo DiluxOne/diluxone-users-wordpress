@@ -348,8 +348,8 @@ function diluxone_users_screen_appearance_template(): void {
 			'name'    => 'diluxone_users_account_ground',
 			'value'   => (string) diluxone_users_option( 'diluxone_users_account_ground' ),
 			'palette' => diluxone_users_ground_palette(),
-			'none'    => __( 'The page’s own', 'diluxone-users' ),
-			'help'    => __( 'The shade the area sits on. The page’s own is what it always did — and on a white page white boxes have no edge, so this is how they get one.', 'diluxone-users' ),
+			'none'    => __( 'The theme’s', 'diluxone-users' ),
+			'help'    => __( 'The shade the area sits on. The theme’s is the page’s own ground, light or dark, and prints nothing — but on a white page white boxes have no edge, so a shade is how they get one.', 'diluxone-users' ),
 		)
 	);
 
