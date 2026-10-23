@@ -370,6 +370,13 @@ class CoverSignInLoginTest extends IntegrationTestCase {
 		$html = (string) ob_get_clean();
 
 		$this->assertMatchesRegularExpression( '#^<p class="diluxone-users-login__logo"><img src="[^"]*logo\.jpg" alt="' . preg_quote( esc_attr( get_bloginfo( 'name' ) ), '#' ) . '"></p>$#', $html );
+
+		// The switch saved on draws the very same mark as the switch never touched.
+		$this->set( array( 'diluxone_users_login_logo_show' => 1 ) );
+
+		ob_start();
+		diluxone_users_login_logo();
+		$this->assertSame( $html, ob_get_clean() );
 	}
 
 	public function test_a_logo_the_site_keeps_off_the_form_is_not_drawn(): void {

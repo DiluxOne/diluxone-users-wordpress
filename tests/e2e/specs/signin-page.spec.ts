@@ -100,7 +100,7 @@ test.describe('What the sign-in page draws, and for whom', () => {
 		}
 	});
 
-	test('the site’s heading, introduction and small print are on the page, and the logo above them', async ({ browser, baseURL, page, pages, options }) => {
+	test('the site’s heading, introduction and small print are on the page, and the logo above them while it is switched on', async ({ browser, baseURL, page, pages, options }) => {
 		const image = await uploadImage(browser, baseURL!, ADMIN_STATE);
 
 		try {
@@ -109,6 +109,7 @@ test.describe('What the sign-in page draws, and for whom', () => {
 				diluxone_users_login_intro: 'E2E introduction',
 				diluxone_users_login_legal: 'E2E small print',
 				diluxone_users_login_logo: image.id,
+				diluxone_users_login_logo_show: 1,
 			});
 
 			await page.goto(pages.login.url);
