@@ -74,8 +74,8 @@ class DesignSeamsTest extends IntegrationTestCase {
 
 	/* ── The sign-in page's shapes ────────────────────────────────────── */
 
-	public function test_the_plugin_brings_two_shapes_and_reads_anything_else_as_the_card(): void {
-		$this->assertSame( array( 'plain', 'card' ), array_keys( diluxone_users_login_templates() ) );
+	public function test_the_plugin_brings_three_shapes_and_reads_anything_else_as_the_card(): void {
+		$this->assertSame( array( 'plain', 'card', 'own' ), array_keys( diluxone_users_login_templates() ) );
 
 		foreach ( array( 'split', 'backdrop', 'mystery' ) as $kept ) {
 			diluxone_users_update_option( 'diluxone_users_login_template', $kept );

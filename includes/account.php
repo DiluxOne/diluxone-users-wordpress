@@ -417,6 +417,14 @@ function diluxone_users_rewrite_stamp(): string {
 		$parts[] = 'sso';
 	}
 
+	// The sign-in page of its own, with its address: a changed slug is a
+	// changed rule (see login-door.php).
+	$door = diluxone_users_door_stamp();
+
+	if ( '' !== $door ) {
+		$parts[] = $door;
+	}
+
 	return array() === $parts ? '' : DILUXONE_USERS_VERSION . ':' . implode( ',', $parts );
 }
 

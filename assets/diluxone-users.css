@@ -534,6 +534,36 @@ details.diluxone-users-panel[open] > .diluxone-users-panel__head .diluxone-users
 /* Centred: a card on the page's own ground. */
 .diluxone-users-login-frame--card { padding-block: 32px; }
 
+/* A page of its own: the whole document is the plugin's (templates/
+   login-page.php), so there is no theme column to break out of. The frame
+   sits in the middle of the window on a ground washed with the accent, and
+   the site's name, or its mark inside the box, says whose door it is. */
+body.diluxone-users-door {
+	margin: 0;
+	min-height: 100vh;
+	background: color-mix(in srgb, var(--diluxone-users-accent) 7%, var(--diluxone-users-surface-alt));
+	color: var(--diluxone-users-text);
+	/* The theme's body face when it prints one, the system's otherwise: with
+	   no theme template around it, "inherit" is the browser's serif. */
+	font-family: var(--wp--preset--font-family--body, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif);
+	line-height: 1.5;
+}
+.diluxone-users-door__main {
+	min-height: 100vh;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	padding: 32px 20px;
+	box-sizing: border-box;
+}
+.diluxone-users-door__main > .diluxone-users-login-page { width: 100%; }
+.diluxone-users-door__site { margin: 0 0 20px; font-size: 22px; font-weight: 700; text-align: center; }
+.diluxone-users-door__site a,
+.diluxone-users-door__back a { color: inherit; text-decoration: none; }
+.diluxone-users-door__back { margin: 20px 0 0; font-size: 14px; color: var(--diluxone-users-muted); }
+.diluxone-users-login-frame--own { margin-inline: 0; padding: 0; }
+
 /* Inside a column this narrow, two social buttons side by side wrap their
    labels onto three lines each. One per row. */
 .diluxone-users-login-frame__box .diluxone-users-socials--cols-2 { grid-template-columns: minmax(0, 1fr); }

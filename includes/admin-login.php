@@ -1112,6 +1112,12 @@ function diluxone_users_login_templates(): array {
 			'label' => __( 'A centred card', 'diluxone-users' ),
 			'help'  => __( 'The form in a box in the middle of the page. The safe answer when there is no design for this screen.', 'diluxone-users' ),
 		),
+		// No page at all: the plugin answers an address of its own and draws
+		// the whole document, with no header or footer of the theme's.
+		'own'   => array(
+			'label' => __( 'A page of its own', 'diluxone-users' ),
+			'help'  => __( 'A screen of its own at an address you choose, with your mark and colours and none of the theme’s header or footer. No page to create.', 'diluxone-users' ),
+		),
 	);
 
 	/**
@@ -1188,6 +1194,8 @@ function diluxone_users_screen_login_shape(): void {
 	<?php
 	diluxone_users_ui_field_close();
 
+	diluxone_users_screen_login_door( $template );
+
 	/**
 	 * Fires under the shapes of the sign-in page, on Design › The sign-in page.
 	 *
@@ -1213,6 +1221,42 @@ function diluxone_users_screen_login_shape(): void {
 			esc_html__( 'It is set on Your brand →', 'diluxone-users' )
 		)
 	);
+}
+
+/**
+ * Where the page of its own is: the site's address and the slug after it.
+ *
+ * Waiting, as every block that depends on another answer, while another
+ * shape is chosen: drawn disabled under a line saying so, and let go the
+ * moment "A page of its own" is picked.
+ *
+ * @param string $template The shape chosen.
+ */
+function diluxone_users_screen_login_door( string $template ): void {
+	$waits = array(
+		'name'    => 'diluxone_users_login_template',
+		'is'      => array( 'own' ),
+		'waiting' => 'own' !== $template,
+		'why'     => __( 'Used when the shape is “A page of its own”.', 'diluxone-users' ),
+	);
+
+	$waiting = diluxone_users_ui_waits_open( $waits );
+
+	diluxone_users_ui_field_open( __( 'Its address', 'diluxone-users' ), 'diluxone_users_login_slug' );
+
+	echo wp_kses(
+		sprintf(
+			'<span class="du-door-address"><code>%1$s</code><input type="text" id="diluxone_users_login_slug" name="diluxone_users_login_slug" class="regular-text code" value="%2$s" required%3$s></span>',
+			esc_html( trailingslashit( (string) diluxone_users_on_hub( static fn() => home_url() ) ) ),
+			esc_attr( diluxone_users_login_slug() ),
+			$waiting ? ' disabled data-diluxone-users-waited' : ''
+		),
+		diluxone_users_allowed_html()
+	);
+
+	diluxone_users_ui_field_close( __( 'Letters, numbers and dashes. Sign in, registration, the second step and a new password are all answered there, and an address you used before keeps sending people to it.', 'diluxone-users' ) );
+
+	diluxone_users_ui_waits_close( $waits );
 }
 
 /** WordPress's own sign-in screen, which somebody still sees. */
