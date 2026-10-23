@@ -78,7 +78,12 @@ function diluxone_users_design_login(): void {
 	diluxone_users_screen_login_words();
 }
 
-/** Saves it. */
+/**
+ * Saves it.
+ *
+ * @return bool False when the address was refused, in which case nothing
+ *              was written.
+ */
 function diluxone_users_design_login_save(): bool {
 	check_admin_referer( 'diluxone_users_panel_' . DILUXONE_USERS_DESIGN, 'diluxone_users_panel_nonce' );
 	diluxone_users_panel_allowed();
@@ -90,6 +95,10 @@ function diluxone_users_design_login_save(): bool {
 	$template = diluxone_users_choice_kept( 'diluxone_users_login_template', $template, array_keys( diluxone_users_login_templates() ), 'plain' );
 
 	$slug = diluxone_users_design_login_slug();
+
+	if ( null === $slug ) {
+		return false;
+	}
 
 	diluxone_users_save_options(
 		diluxone_users_panel_drawn(
@@ -124,9 +133,11 @@ function diluxone_users_design_login_save(): bool {
  * The address the page of its own is answered at, as the form sent it.
  *
  * '' when the form did not send one (the field waits while another shape is
- * chosen, and a disabled field sends nothing), which keeps what is stored.
+ * chosen, and a disabled field sends nothing), which keeps what is stored;
+ * null when the one sent is refused, in which case the screen says why and
+ * nothing of the tab is written.
  */
-function diluxone_users_design_login_slug(): string {
+function diluxone_users_design_login_slug(): ?string {
 	check_admin_referer( 'diluxone_users_panel_' . DILUXONE_USERS_DESIGN, 'diluxone_users_panel_nonce' );
 	diluxone_users_panel_allowed();
 
@@ -134,7 +145,19 @@ function diluxone_users_design_login_slug(): string {
 		return '';
 	}
 
-	return sanitize_title( wp_unslash( $_POST['diluxone_users_login_slug'] ) );
+	$raw = sanitize_text_field( wp_unslash( $_POST['diluxone_users_login_slug'] ) );
+
+	// Asked of the hub, where the page is and where a post could already
+	// have the address.
+	$problem = (string) diluxone_users_on_hub( static fn(): string => diluxone_users_login_slug_problem( $raw ) );
+
+	if ( '' !== $problem ) {
+		diluxone_users_notice( $problem, 'error' );
+
+		return null;
+	}
+
+	return sanitize_title( trim( $raw, '/ ' ) );
 }
 
 /* ── The account area ──────────────────────────────────────────────── */

@@ -301,4 +301,100 @@ class LoginDoorTest extends IntegrationTestCase {
 		$this->assertSame( 'entrar', diluxone_users_login_slug(), 'the field waits under another shape and sends nothing' );
 		$this->assertSame( array(), diluxone_users_login_slug_old() );
 	}
+
+	/** The save, with what it printed. */
+	private function refused( string $slug ): string {
+		ob_start();
+		$saved = $this->save_slug( $slug );
+		$said  = (string) ob_get_clean();
+
+		$this->assertFalse( $saved, $slug . ' was saved' );
+
+		return $said;
+	}
+
+	public function test_c4_an_address_a_page_already_has_is_refused_naming_the_page(): void {
+		diluxone_users_update_option( 'diluxone_users_login_template', 'card' );
+
+		wp_insert_post(
+			array(
+				'post_type'   => 'page',
+				'post_status' => 'publish',
+				'post_title'  => 'About us',
+				'post_name'   => 'about',
+			)
+		);
+
+		$said = $this->refused( 'about' );
+
+		$this->assertStringContainsString( 'notice-error', $said );
+		$this->assertStringContainsString( 'The address /about/ is already the page “About us”.', $said );
+		$this->assertSame( 'card', diluxone_users_option( 'diluxone_users_login_template' ), 'nothing of the tab written' );
+		$this->assertSame( 'sign-in', diluxone_users_login_slug() );
+		$this->assertSame( array(), diluxone_users_login_slug_old() );
+	}
+
+	public function test_c4_a_draft_or_a_post_counts_and_the_bin_does_not(): void {
+		$draft = (int) wp_insert_post(
+			array(
+				'post_type'   => 'post',
+				'post_status' => 'draft',
+				'post_title'  => 'Coming soon',
+				'post_name'   => 'soon',
+			)
+		);
+
+		$this->assertStringContainsString( 'is already the post “Coming soon”', $this->refused( 'soon' ) );
+
+		wp_trash_post( $draft );
+
+		ob_start();
+		$this->assertTrue( $this->save_slug( 'soon' ), 'a post in the bin has no address' );
+		ob_end_clean();
+		$this->assertSame( 'soon', diluxone_users_login_slug() );
+	}
+
+	public function test_c4_what_wordpress_or_the_site_answers_is_refused(): void {
+		$account = (int) wp_insert_post(
+			array(
+				'post_type'   => 'page',
+				'post_status' => 'publish',
+				'post_title'  => 'My account',
+				'post_name'   => 'my-account',
+			)
+		);
+		diluxone_users_update_option( 'diluxone_users_account_page', $account );
+
+		foreach ( array( 'wp-admin', 'wp-json', 'feed', 'category', 'tag', 'search', 'my-account' ) as $slug ) {
+			$this->assertStringContainsString( 'notice-error', $this->refused( $slug ), $slug );
+		}
+
+		$this->assertStringContainsString( 'one word, with no slashes', $this->refused( 'a/b' ) );
+		$this->assertStringContainsString( 'needs an address', $this->refused( '///' ) );
+		$this->assertSame( 'sign-in', diluxone_users_login_slug(), 'nothing written' );
+	}
+
+	public function test_c4_a_site_path_of_a_subdirectory_network_is_refused(): void {
+		if ( ! is_multisite() || is_subdomain_install() ) {
+			$this->markTestSkipped( 'Only a subdirectory network has site paths; on a single site the cases above are its reserved addresses.' );
+		}
+
+		wp_insert_site(
+			array(
+				'domain' => (string) get_network()->domain,
+				'path'   => '/entrada/',
+			)
+		);
+
+		$this->assertStringContainsString( 'already answers', $this->refused( 'entrada' ) );
+		$this->assertStringContainsString( 'already answers', $this->refused( 'blog' ) );
+	}
+
+	public function test_c4_a_good_address_is_saved_clean(): void {
+		ob_start();
+		$this->assertTrue( $this->save_slug( '/Entrar/' ) );
+		ob_end_clean();
+
+		$this->assertSame( 'entrar', diluxone_users_login_slug() );
+	}
 }

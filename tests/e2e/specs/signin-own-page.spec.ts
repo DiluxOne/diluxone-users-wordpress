@@ -62,4 +62,17 @@ test.describe('Sign in › A page of its own', () => {
 		expect(guest.url()).toBe(`${baseURL}/entrar/`);
 		await expect(guest.locator('body.diluxone-users-door')).toHaveCount(1);
 	});
+
+	test('C4: an address a page already has is refused, naming the page, and nothing is written', async ({ page, pages, site }) => {
+		const taken = new URL(pages.login.url).pathname.replace(/^\/|\/$/g, '');
+
+		await page.goto(adminUrl('diluxone-users-design', 'login'));
+		await page.locator('input[name="diluxone_users_login_template"][value="own"]').check({ force: true });
+		await page.locator('input[name="diluxone_users_login_slug"]').fill(taken);
+		await page.getByRole('button', { name: /save/i }).first().click();
+
+		await expect(page.locator('.notice-error')).toContainText(`The address /${taken}/ is already the page “`);
+		await expect(page.locator('.notice-success')).toHaveCount(0);
+		expect((await site.getOptions(['diluxone_users_login_slug'])).diluxone_users_login_slug).toBe('sign-in');
+	});
 });

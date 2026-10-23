@@ -143,6 +143,106 @@ function diluxone_users_door_url( string $view = 'login' ): string {
 }
 
 /**
+ * The first segments WordPress, the server or the site already answer, which
+ * the page cannot take without taking them away.
+ *
+ * WordPress's own directories and routes, the REST API's prefix, the
+ * category and tag bases, every registered type's and taxonomy's address,
+ * the account page's, and on a subdirectory network the paths of its sites
+ * and the main site's `blog`.
+ *
+ * @return array<int, string>
+ */
+function diluxone_users_login_slug_reserved(): array {
+	$reserved = array( 'wp-admin', 'wp-content', 'wp-includes', 'wp-login.php', 'wp-json', 'feed', 'comments', 'page', 'search', 'author', 'embed', 'category', 'tag' );
+
+	$reserved[] = rest_get_url_prefix();
+	$reserved[] = (string) get_option( 'category_base' );
+	$reserved[] = (string) get_option( 'tag_base' );
+
+	foreach ( array_merge( array_values( get_post_types( array(), 'objects' ) ), array_values( get_taxonomies( array(), 'objects' ) ) ) as $object ) {
+		if ( is_array( $object->rewrite ) && isset( $object->rewrite['slug'] ) ) {
+			$reserved[] = (string) $object->rewrite['slug'];
+		}
+
+		if ( $object instanceof WP_Post_Type && is_string( $object->has_archive ) ) {
+			$reserved[] = $object->has_archive;
+		}
+	}
+
+	$account = diluxone_users_page_here( 'diluxone_users_account_page' );
+
+	if ( $account > 0 ) {
+		$reserved[] = (string) get_page_uri( $account );
+	}
+
+	if ( is_multisite() && ! is_subdomain_install() ) {
+		$reserved[] = 'blog';
+
+		foreach ( get_sites( array( 'number' => 0 ) ) as $site ) {
+			$reserved[] = (string) $site->path;
+		}
+	}
+
+	$first = static function ( string $path ): string {
+		$path = explode( '/', trim( $path, '/' ) );
+
+		return strtolower( $path[0] );
+	};
+
+	return array_values( array_unique( array_filter( array_map( $first, $reserved ) ) ) );
+}
+
+/**
+ * Why this address cannot be the page's, or '' when it can.
+ *
+ * One segment, not empty, nothing WordPress or the site already answers, and
+ * no post's: a page shadowed by the sign-in, or the sign-in shadowing
+ * wp-admin, is a site that lost something without anybody deciding it.
+ *
+ * @param string $raw What was typed, unslashed.
+ */
+function diluxone_users_login_slug_problem( string $raw ): string {
+	$raw  = trim( $raw, " \t\n\r\0\x0B/" );
+	$slug = sanitize_title( $raw );
+
+	if ( '' === $slug ) {
+		return __( 'The sign-in page needs an address: letters, numbers and dashes.', 'diluxone-users' );
+	}
+
+	if ( false !== strpos( $raw, '/' ) ) {
+		return sprintf(
+			/* translators: %s: what was typed */
+			__( 'The address “%s” has to be one word, with no slashes: letters, numbers and dashes.', 'diluxone-users' ),
+			$raw
+		);
+	}
+
+	$reserved = diluxone_users_login_slug_reserved();
+
+	if ( in_array( $slug, $reserved, true ) || in_array( strtolower( $raw ), $reserved, true ) ) {
+		return sprintf(
+			/* translators: %s: the address, as /sign-in/ */
+			__( 'The address %s is one WordPress or the site already answers. Choose another.', 'diluxone-users' ),
+			'/' . $slug . '/'
+		);
+	}
+
+	$taken = diluxone_users_login_slug_taken( $slug );
+
+	if ( '' !== $taken ) {
+		return sprintf(
+			/* translators: 1: the address, as /about/, 2: what has it, as: the page “About us” */
+			__( 'The address %1$s is already %2$s. Choose another, or give that one another address first.', 'diluxone-users' ),
+			'/' . $slug . '/',
+			$taken
+		);
+	}
+
+	return '';
+}
+
+/**
  * What already has this path on this site, as a sentence's end — `the page
  * “About us”` — or '' when nothing does.
  *
