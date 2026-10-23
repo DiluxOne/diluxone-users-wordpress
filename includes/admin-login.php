@@ -1226,7 +1226,7 @@ function diluxone_users_screen_login_shape(): void {
 		sprintf(
 			'%1$s <a href="%2$s">%3$s</a>',
 			$logo
-				? esc_html__( 'The logo is the site’s.', 'diluxone-users' )
+				? esc_html__( 'The site’s logo.', 'diluxone-users' )
 				: esc_html__( 'None yet.', 'diluxone-users' ),
 			esc_url( diluxone_users_admin_url( 'diluxone-users-design', array( 'tab' => 'brand' ) ) ),
 			esc_html__( 'It is set on Your brand →', 'diluxone-users' )
