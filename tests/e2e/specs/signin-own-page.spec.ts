@@ -1,5 +1,8 @@
-import { test, expect } from '../support/fixtures';
-import { adminUrl, savePanel } from '../support/ui';
+import { Page } from '@playwright/test';
+import { test, expect, expectSignedIn } from '../support/fixtures';
+import { codeIn, freshEmail, linkIn, waitForMail } from '../support/api';
+import { adminUrl, challengeScreen, registerScreen, resetScreen, savePanel, signInWithPassword } from '../support/ui';
+import { answerChallenge } from '../support/signin';
 import { ADMIN_STATE } from '../../../playwright.config';
 
 /**
@@ -10,6 +13,16 @@ import { ADMIN_STATE } from '../../../playwright.config';
 
 // The dashboard in `page`; everything a visitor sees in `guest`.
 test.use({ storageState: ADMIN_STATE });
+
+const PASSWORD = 'e2e-Own-Page-1!';
+const NEW_PASSWORD = 'e2e-Own-Page-New-2!';
+
+/** On the page of its own, and nowhere else. */
+async function onTheDoor(page: Page, path = '/sign-in/'): Promise<void> {
+	expect(new URL(page.url()).pathname).toBe(path);
+	await expect(page.locator('body.diluxone-users-door')).toHaveCount(1);
+	await expect(page.locator('header, footer, .wp-block-template-part')).toHaveCount(0);
+}
 
 const SHAPE_KEYS = ['diluxone_users_login_template', 'diluxone_users_login_slug', 'diluxone_users_login_slug_old'];
 
@@ -74,5 +87,57 @@ test.describe('Sign in › A page of its own', () => {
 		await expect(page.locator('.notice-error')).toContainText(`The address /${taken}/ is already the page “`);
 		await expect(page.locator('.notice-success')).toHaveCount(0);
 		expect((await site.getOptions(['diluxone_users_login_slug'])).diluxone_users_login_slug).toBe('sign-in');
+	});
+
+	test('C5: the second step is drawn on /sign-in/, and finishing it signs in', async ({ guest, site, options }) => {
+		await options.set({ diluxone_users_login_method: 'both', diluxone_users_2fa_mode: 'required', diluxone_users_2fa_methods: ['email'] });
+
+		const email = freshEmail('own-2fa');
+
+		await site.makeUser({ email, password: PASSWORD });
+		await guest.goto('/sign-in/');
+		await signInWithPassword(guest, email, PASSWORD);
+		await guest.waitForLoadState('domcontentloaded');
+
+		await expect(challengeScreen(guest)).toBeVisible();
+		await onTheDoor(guest);
+
+		await answerChallenge(guest, codeIn(await waitForMail(site, email, { subject: /./ })));
+		await expectSignedIn(guest, email);
+	});
+
+	test('C5: a password reset lands on /sign-in/ and the new password is typed there', async ({ guest, site, options }) => {
+		await options.set({ diluxone_users_lost_password: 'site', diluxone_users_login_method: 'both' });
+
+		const email = freshEmail('own-reset');
+
+		await site.makeUser({ email, password: PASSWORD });
+		await guest.goto('/wp-login.php?action=lostpassword');
+		await guest.locator('input[name="user_login"]').fill(email);
+		await guest.locator('#wp-submit').click();
+		await guest.goto(linkIn(await waitForMail(site, email, { subject: /contrase|password/i })));
+
+		await expect(resetScreen(guest)).toBeVisible();
+		await onTheDoor(guest);
+		expect(guest.url(), 'the key is not left in the address').not.toContain('diluxone_users_key');
+
+		await guest.locator('input[name="diluxone_users_pass"]').fill(NEW_PASSWORD);
+		await guest.locator('input[name="diluxone_users_pass2"]').fill(NEW_PASSWORD);
+		await Promise.all([guest.waitForURL(/diluxone-users=changed/), guest.locator('form.diluxone-users-form button[type="submit"]').click()]);
+		await onTheDoor(guest);
+
+		await signInWithPassword(guest, email, NEW_PASSWORD);
+		await expectSignedIn(guest, email);
+	});
+
+	test('C5: registration is at /sign-in/register/, on the same document', async ({ guest, options }) => {
+		await options.set({ diluxone_users_register_form: 1 });
+
+		const response = await guest.goto('/sign-in/register/');
+
+		expect(response?.status()).toBe(200);
+		await expect(registerScreen(guest)).toBeVisible();
+		await onTheDoor(guest, '/sign-in/register/');
+		await expect(guest).toHaveTitle(/^Create your account/);
 	});
 });

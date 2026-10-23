@@ -397,4 +397,85 @@ class LoginDoorTest extends IntegrationTestCase {
 
 		$this->assertSame( 'entrar', diluxone_users_login_slug() );
 	}
+
+	public function test_c5_the_second_step_is_drawn_on_the_page_of_its_own(): void {
+		$user  = $this->make_user();
+		$nonce = diluxone_users_2fa_pending_start( $user, 'password', false, '' );
+
+		$this->assertSame( 'page', diluxone_users_2fa_surface(), 'with no page chosen, the page of its own draws it' );
+
+		$url = diluxone_users_2fa_url( $user, $nonce, 'email' );
+
+		$this->assertStringStartsWith( home_url( '/sign-in/?' ), $url );
+		$this->assertStringStartsWith( home_url( '/sign-in/?' ), diluxone_users_2fa_restart_url() );
+
+		$this->as_front_end();
+		$this->on_door( 'login' );
+		parse_str( (string) wp_parse_url( $url, PHP_URL_QUERY ), $_GET );
+
+		$html = diluxone_users_door_form();
+
+		$this->assertStringContainsString( 'diluxone-users-login-frame--own', $html );
+		$this->assertStringContainsString( 'One more step', $html, 'the second step, not the sign-in form' );
+	}
+
+	public function test_c5_a_reset_lands_and_is_drawn_on_the_page_of_its_own(): void {
+		$user  = $this->make_user();
+		$login = get_userdata( $user )->user_login;
+		$key   = (string) get_password_reset_key( get_userdata( $user ) );
+
+		diluxone_users_update_option( 'diluxone_users_lost_password', 'site' );
+
+		// The link in WordPress's e-mail, opened on wp-login.php, is handed on.
+		$_GET = array(
+			'action' => 'rp',
+			'key'    => $key,
+			'login'  => $login,
+		);
+
+		$to = $this->expectRedirect( 'diluxone_users_reset_to_site' );
+
+		$this->assertStringStartsWith( home_url( '/sign-in/?' ), $to );
+
+		// There the key goes into a cookie, and the page draws the new password.
+		$_GET                    = array();
+		$_COOKIE                 = array( diluxone_users_reset_cookie() => $login . ':' . $key );
+		$this->as_front_end();
+		$this->on_door( 'login' );
+
+		$html = diluxone_users_door_form();
+
+		$this->assertStringContainsString( 'diluxone-users-login-frame--own', $html );
+		$this->assertStringContainsString( 'Choose a new password', $html );
+		$this->assertStringStartsWith( home_url( '/sign-in/' ), diluxone_users_login_url(), 'and the save ends there' );
+	}
+
+	public function test_c5_registration_is_at_register_on_the_same_document(): void {
+		diluxone_users_update_option( 'diluxone_users_register_form', 1 );
+
+		$this->assertSame( home_url( '/sign-in/register/' ), diluxone_users_register_url() );
+		$this->assertTrue( diluxone_users_register_form_open(), 'a form with a door, and no page' );
+
+		$this->as_front_end();
+		$this->on_door( 'register' );
+
+		$this->assertSame( DILUXONE_USERS_DIR . 'templates/login-page.php', diluxone_users_door_template( '/theme/index.php' ) );
+		$this->assertStringStartsWith( 'Create your account', diluxone_users_door_title( 'Home' ) );
+
+		$html = diluxone_users_door_form();
+
+		$this->assertStringContainsString( 'diluxone-users-login-frame--own', $html );
+		$this->assertStringContainsString( 'diluxone-users-register', $html );
+	}
+
+	public function test_c5_a_registration_page_still_chosen_sends_people_to_the_page_of_its_own(): void {
+		$page = $this->page( 'Create your account' );
+		diluxone_users_update_option( 'diluxone_users_register_page', $page );
+
+		$this->as_front_end();
+		$GLOBALS['wp_query']     = new \WP_Query( array( 'page_id' => $page ) );
+		$GLOBALS['wp_the_query'] = $GLOBALS['wp_query'];
+
+		$this->assertSame( home_url( '/sign-in/register/' ), $this->expectRedirect( 'diluxone_users_door_pages' ) );
+	}
 }

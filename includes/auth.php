@@ -194,7 +194,8 @@ function diluxone_users_2fa_available( int $user_id ): array {
  * screens say so; "required" cannot be saved.
  */
 function diluxone_users_2fa_surface(): string {
-	if ( diluxone_users_login_page_live() ) {
+	// The page of its own draws it too: it is the sign-in form's.
+	if ( diluxone_users_login_page_live() || diluxone_users_door_on() ) {
 		return 'page';
 	}
 

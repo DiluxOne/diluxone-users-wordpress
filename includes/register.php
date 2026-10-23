@@ -26,11 +26,13 @@ defined( 'ABSPATH' ) || exit;
 /**
  * The page holding the registration form, or '' when there is none.
  *
- * The hub's, on a network; from any other site it carries where the person
- * is, to be sent back there once they are in (see network-hub.php).
+ * With the shape "A page of its own", that page's `register/` (see
+ * login-door.php), whatever page is chosen. The hub's, on a network; from any
+ * other site it carries where the person is, to be sent back there once they
+ * are in (see network-hub.php).
  */
 function diluxone_users_register_url(): string {
-	$url = diluxone_users_page_url( 'diluxone_users_register_page' );
+	$url = diluxone_users_door_on() ? diluxone_users_door_url( 'register' ) : diluxone_users_page_url( 'diluxone_users_register_page' );
 
 	return '' !== $url && diluxone_users_sends_to_hub() ? diluxone_users_with_return( $url ) : $url;
 }
