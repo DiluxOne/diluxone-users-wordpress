@@ -360,6 +360,14 @@ details.diluxone-users-panel[open] > .diluxone-users-panel__head .diluxone-users
 .diluxone-users-button--danger { background: var(--diluxone-users-danger); color: #fff; }
 .diluxone-users-button--danger:hover { color: #fff; }
 
+/* Inside the account area the button is a link in the theme's content column,
+   and a theme that underlines content links (`.entry-content a`, one class and
+   a tag) would outweigh the single class above. Two classes win, with no
+   !important. */
+.diluxone-users-account .diluxone-users-button,
+.diluxone-users-account .diluxone-users-button:hover,
+.diluxone-users-account .diluxone-users-button:focus { text-decoration: none; }
+
 /* ── A question asked in the page ───────────────────────────────────── */
 
 /* Before something that cannot be taken back. The browser's own box cannot
@@ -780,6 +788,10 @@ details.diluxone-users-panel[open] > .diluxone-users-panel__head .diluxone-users
    above it — its own header, usually. The opening air belongs to the area and
    not to the strip: on the strip it would push the menu off centre. */
 .diluxone-users-account--bare { padding-top: var(--diluxone-users-bare-top, 24px); }
+/* Signed out, the area is a title, a line and a button. On a theme whose
+   content column has no padding they would sit against its edge, so the block
+   carries its own inner space. */
+.diluxone-users-account--guest { padding: var(--diluxone-users-guest-pad, 24px); }
 
 @media (max-width: 640px) {
 	/* Two answers and the site picks one. With eight sections a sideways
