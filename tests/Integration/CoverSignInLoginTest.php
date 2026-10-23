@@ -372,6 +372,19 @@ class CoverSignInLoginTest extends IntegrationTestCase {
 		$this->assertMatchesRegularExpression( '#^<p class="diluxone-users-login__logo"><img src="[^"]*logo\.jpg" alt="' . preg_quote( esc_attr( get_bloginfo( 'name' ) ), '#' ) . '"></p>$#', $html );
 	}
 
+	public function test_a_logo_the_site_keeps_off_the_form_is_not_drawn(): void {
+		$this->set(
+			array(
+				'diluxone_users_login_logo'      => $this->image( 'logo' ),
+				'diluxone_users_login_logo_show' => 0,
+			)
+		);
+
+		ob_start();
+		diluxone_users_login_logo();
+		$this->assertSame( '', ob_get_clean() );
+	}
+
 	public function test_an_icon_nobody_drew_is_nothing(): void {
 		$this->assertSame( '', diluxone_users_icon( 'unicorn' ) );
 		$this->assertStringContainsString( 'width="40"', diluxone_users_icon( 'mail' ) );

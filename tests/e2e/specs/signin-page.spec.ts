@@ -121,6 +121,20 @@ test.describe('What the sign-in page draws, and for whom', () => {
 		}
 	});
 
+	test('with the logo switched off, the sign-in page draws no logo above the form', async ({ browser, baseURL, page, pages, options }) => {
+		const image = await uploadImage(browser, baseURL!, ADMIN_STATE);
+
+		try {
+			await options.set({ diluxone_users_login_logo: image.id, diluxone_users_login_logo_show: 0 });
+
+			await page.goto(pages.login.url);
+			await expect(page.locator('.diluxone-users-login')).toBeVisible();
+			await expect(page.locator('.diluxone-users-login__logo')).toHaveCount(0);
+		} finally {
+			await image.forget();
+		}
+	});
+
 	test('a Pro layout stored while Users+ Pro was on is the card, with the form in its box', async ({ page, pages, options }) => {
 		await options.set({ diluxone_users_login_template: 'backdrop' });
 
