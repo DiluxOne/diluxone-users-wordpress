@@ -96,3 +96,42 @@ test.describe('The account area in dark mode › the ground “The theme’s”'
 		await expect.poll(async () => unreadable(await readings(guest, HEADINGS))).toEqual([]);
 	});
 });
+
+/** The ground palette's shades, as stored. */
+const SHADES = { mist: '#f5f6f8', sky: '#eef3fb', sage: '#eef6f1', paper: '#f7f5f0' };
+
+/** The area's own ground, and its text read on it, as the reader sees them. */
+async function areaReads(page: Page): Promise<void> {
+	const [area] = await readings(page, AREA);
+
+	expect(area.ground, 'a shade of its own, not the page’s').not.toBe(DARK_GROUND);
+	expect(unreadable([area]), 'the area’s text at 4.5:1 or more on its ground').toEqual([]);
+	await headingsRead(page);
+}
+
+test.describe('The account area in dark mode › a shade of the palette', () => {
+	for (const [name, shade] of Object.entries(SHADES)) {
+		test(`${name}: in the system’s dark mode and with the theme’s own switch, the shade turns and its text reads`, async ({ options, guest, site, pages }) => {
+			await options.set({ ...DARK_SITE, diluxone_users_account_ground: shade });
+			await guest.emulateMedia({ colorScheme: 'light' });
+			await signInMember(guest, site, pages.login.url, `dark-${name}`);
+
+			await guest.goto(pages.account.url);
+			await areaReads(guest);
+			const light = await groundBehind(guest, AREA);
+
+			await guest.emulateMedia({ colorScheme: 'dark' });
+			await expect.poll(() => groundBehind(guest, AREA), { message: 'the shade turns with the theme' }).not.toBe(light);
+			await expect.poll(async () => unreadable(await readings(guest, `${AREA}, ${HEADINGS}`))).toEqual([]);
+			await areaReads(guest);
+
+			await guest.emulateMedia({ colorScheme: 'light' });
+			await expect.poll(() => groundBehind(guest, AREA)).toBe(light);
+
+			await themeSwitch(guest, true);
+			await expect.poll(() => groundBehind(guest, AREA)).not.toBe(light);
+			await expect.poll(async () => unreadable(await readings(guest, `${AREA}, ${HEADINGS}`))).toEqual([]);
+			await areaReads(guest);
+		});
+	}
+});

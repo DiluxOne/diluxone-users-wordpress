@@ -66,3 +66,20 @@ test.describe('The hub’s account area in dark mode › the ground “The theme
 		await expect.poll(async () => unreadable(await readings(guest, HEADINGS)), { message: 'every heading at 4.5:1 or more' }).toEqual([]);
 	});
 });
+
+test.describe('The hub’s account area in dark mode › a shade of the palette', () => {
+	test('sky: in the system’s dark mode the shade turns with the theme and the text reads on it', async ({ guest, hub }) => {
+		await hub.set({ ...DARK_SITE, diluxone_users_account_ground: '#eef3fb' });
+		await guest.emulateMedia({ colorScheme: 'light' });
+		await member(guest, hub, 'nd-sky');
+
+		await guest.goto(hub.pages.account.url);
+		await headingsRead(guest);
+		const light = await groundBehind(guest, AREA);
+
+		await guest.emulateMedia({ colorScheme: 'dark' });
+		await expect.poll(() => groundBehind(guest, AREA), { message: 'the shade turns with the theme' }).not.toBe(light);
+		await expect.poll(async () => unreadable(await readings(guest, `${AREA}, ${HEADINGS}`)), { message: 'the area’s text and every heading at 4.5:1 or more' }).toEqual([]);
+		expect(await groundBehind(guest, AREA), 'a shade of its own').not.toBe(DARK_GROUND);
+	});
+});

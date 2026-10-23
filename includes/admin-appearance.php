@@ -349,7 +349,8 @@ function diluxone_users_screen_appearance_template(): void {
 			'value'   => (string) diluxone_users_option( 'diluxone_users_account_ground' ),
 			'palette' => diluxone_users_ground_palette(),
 			'none'    => __( 'The theme’s', 'diluxone-users' ),
-			'help'    => __( 'The shade the area sits on. The theme’s is the page’s own ground, light or dark, and prints nothing — but on a white page white boxes have no edge, so a shade is how they get one.', 'diluxone-users' ),
+			'help'    => __( 'The shade the area sits on. The theme’s is the page’s own ground, light or dark, and prints nothing — but on a white page white boxes have no edge, so a shade is how they get one.', 'diluxone-users' )
+				. ( diluxone_users_colors_from_theme() ? ' ' . __( 'While the colours are the theme’s, the shades are mixed from them and follow the theme’s dark mode.', 'diluxone-users' ) : '' ),
 		)
 	);
 
