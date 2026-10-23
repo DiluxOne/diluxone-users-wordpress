@@ -76,4 +76,24 @@ test.describe('After signing in, the required fields missing', () => {
 		expect(page.url(), 'on to where it was headed').toBe(going);
 		expect((await site.user(email, ['first_name'])).fields.first_name).toBe('Ada');
 	});
+
+	test('a new account by a social network that gave no name lands on the same step', async ({ page, site, pages, options }) => {
+		await options.set({
+			diluxone_e2e_sso: 1,
+			diluxone_users_sso: MOCK_ON,
+			diluxone_users_sso_login: 1,
+			diluxone_users_sso_register: 1,
+			diluxone_users_sso_verified_only: 0,
+		});
+
+		const email = freshEmail('missing-sso');
+		await site.setIdentity({ sub: `mock|${email}`, email, email_verified: true });
+
+		await page.goto(pages.login.url);
+		await navigated(page, () => ssoButton(page, 'mock').click());
+
+		await expectSignedIn(page, email);
+		expect(onStep(page, pages.account.url), `on the step, at ${page.url()}`).toBe(true);
+		await expect(stepForm(page).locator('input[name="first_name"]')).toBeVisible();
+	});
 });
