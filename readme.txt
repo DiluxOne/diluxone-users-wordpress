@@ -269,6 +269,7 @@ Unreleased.
 
 First public release.
 
+* On a theme that styles a focused button like a hovered one, the plugin's buttons no longer keep the hover colour after a click, and a button reached with the keyboard shows a ring around it.
 * On a site with a dark mode, with Colours › the theme's, the account area follows it: the theme's colours are measured again when the site turns dark or light, the area's ground "The theme's" (the default) is the page's own, and a shade chosen from the palette is mixed from the theme's colours, so it turns with them and its text stays readable.
 * Activating the plugin changes nothing on the site: every feature starts off, the activity log records nothing until you choose what to record, and the plugin writes no settings, tables, cron events or rewrite rules of its own until you turn something on.
 * The screens say so too: a setting you have not saved reads "Not configured" on every summary, with what WordPress does meanwhile, instead of showing the default as if somebody had chosen it. A choice that depends on another one — what becomes of wp-login.php before a sign-in page is chosen, the second step's methods while it is off, who the dashboard profile rule reaches while the profile is left alone — waits for it, and saving a tab leaves what it did not ask alone.
