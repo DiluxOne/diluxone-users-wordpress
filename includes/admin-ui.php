@@ -1577,7 +1577,7 @@ function diluxone_users_ui_color( array $field ): void {
  * A row of swatches and not a picker: each one a radio with the colour on it
  * and its name, so the answer is seen and read, and a keyboard moves along the
  * row as it does along any group of radios. `none` is the answer that stores
- * nothing — "follow the accent", "the page's own" — drawn first, with no
+ * nothing — "follow the accent", "the theme's" — drawn first, with no
  * colour on it.
  *
  * A colour stored that is none of these — chosen while Users+ Pro offered any

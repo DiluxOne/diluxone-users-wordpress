@@ -264,12 +264,31 @@ test.describe('Design › The account area', () => {
 		expect(await guest.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--diluxone-users-nav-top').trim())).toBe('');
 	});
 
-	test('a ground from its palette is the colour behind the area; the page’s own keeps nothing, and a colour sent by hand is no answer', async ({ page, guest, site, pages }) => {
+	test('on a fresh install the ground is “The theme’s”, the first swatch, and the account area prints no ground rule', async ({ page, guest, options, pages }) => {
+		await options.set({ diluxone_users_account_ground: null });
+
+		await page.goto(TAB);
+
+		const first = page.locator('[data-diluxone-users-swatches="diluxone_users_account_ground"] input[type="radio"]').first();
+
+		await expect(first, 'the theme’s, first').toHaveAttribute('value', '');
+		await expect(first, 'and chosen').toBeChecked();
+
+		await guest.goto(pages.account.url);
+		await expect(area(guest)).toBeVisible();
+		expect(
+			await guest.evaluate(() => Array.from(document.querySelectorAll('style')).some((style) => /--diluxone-users-ground|\.diluxone-users-account\{background/.test(style.textContent ?? ''))),
+			'no ground rule printed'
+		).toBe(false);
+		expect(await area(guest).evaluate((element) => getComputedStyle(element).backgroundColor), 'the page’s own ground shows through').toBe('rgba(0, 0, 0, 0)');
+	});
+
+	test('a ground from its palette is the colour behind the area; the theme’s keeps nothing, and a colour sent by hand is no answer', async ({ page, guest, site, pages }) => {
 		await page.goto(TAB);
 
 		const row = page.locator('[data-diluxone-users-swatches="diluxone_users_account_ground"]');
 
-		await expect(row.locator('input[type="radio"]'), 'the page’s own and four shades').toHaveCount(5);
+		await expect(row.locator('input[type="radio"]'), 'the theme’s and four shades').toHaveCount(5);
 		await expect(row.locator('input[value=""]')).toBeChecked();
 
 		await radio(page, 'diluxone_users_account_ground', '#eef6f1').check({ force: true });

@@ -839,7 +839,10 @@ area, wp-login.php's colour — the answer is one of a short palette, drawn with
 accents, each one reading at WCAG AA (4.5:1) under white letters and as a link
 on white, the graphite among them for a site whose brand is not a colour;
 `diluxone_users_ground_palette()` is four near-whites the plugin's text reads on.
-What is stored is the hex.
+What is stored is the hex. With Colours › the theme's, a ground is not printed as
+its hex but as `diluxone_users_ground_tint()`: a `color-mix()` of
+`--diluxone-users-surface`, 2% of `--diluxone-users-text` and 4% of the swatch's
+hue, so it turns with the theme's dark mode and its text still reads on it.
 
 `diluxone_users_any_color` (filter, default false) makes any hex an answer, and
 `diluxone_users_color_choices` (action, `( string $name, string $value )`)
@@ -893,7 +896,7 @@ added. So the measurements are properties too, not only the colours:
 | `--diluxone-users-accent-soft` | The accent with the volume down | the accent at 12% |
 | `--diluxone-users-panel-gap` | Between the rows of a panel's body | `normal` |
 | `--diluxone-users-body-top` | Above the content | none |
-| `--diluxone-users-ground` | The colour the whole account area sits on | none |
+| `--diluxone-users-ground` | The colour the whole account area sits on | none; with Colours › the theme's, a tint of the surface and text |
 | `--diluxone-users-row-w` | The width the area's three rows line up to | from the admin |
 | `--diluxone-users-row-pad` | And the gutter inside them | from the admin |
 | `--diluxone-users-display-font` | The face for the headings the plugin does size — the sign-in screens it takes over | inherit |
