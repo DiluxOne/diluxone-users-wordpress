@@ -609,8 +609,9 @@ body.diluxone-users-door {
 .diluxone-users-login-frame--own { margin-inline: 0; padding: 0; }
 
 /* Inside a column this narrow, two social buttons side by side wrap their
-   labels onto three lines each. One per row. */
-.diluxone-users-login-frame__box .diluxone-users-socials--cols-2 { grid-template-columns: minmax(0, 1fr); }
+   labels onto three lines each. One per row; the icon squares are left in
+   their row. */
+.diluxone-users-login-frame__box .diluxone-users-socials--cols-2:not(.diluxone-users-socials--icon) { grid-template-columns: minmax(0, 1fr); }
 
 /* The site's mark above the form. */
 .diluxone-users-login__logo { margin: 0 0 20px; text-align: center; }
