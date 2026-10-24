@@ -30,6 +30,10 @@ function diluxone_users_measure_key(): string {
  * the browser kept them. Without this the plugin's own blue would show for a
  * moment on every page until the measurement below replaced it.
  *
+ * They are kept once per colour scheme, and the set read is the one for the
+ * scheme the page opens in: a page that opens dark never starts with the
+ * text measured on a light one.
+ *
  * Inline and in the head, on purpose: a file would be one more request in
  * front of the first paint, which is the moment this exists for. It is a
  * script of its own in the queue all the same, so it prints where WordPress
@@ -44,7 +48,7 @@ function diluxone_users_measure_early(): void {
 	wp_enqueue_script( 'diluxone-users-theme-colors-early' );
 	wp_add_inline_script(
 		'diluxone-users-theme-colors-early',
-		'(function(k){try{var v=JSON.parse(localStorage.getItem(k)||"null");if(!v)return;var s=document.documentElement.style;for(var r in v){s.setProperty("--diluxone-users-"+r,v[r]);}}catch(e){}})(' . wp_json_encode( diluxone_users_measure_key() ) . ');'
+		'(function(k){try{var d=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;var v=JSON.parse(localStorage.getItem(k+(d?":dark":":light"))||"null");if(!v)return;var s=document.documentElement.style;for(var r in v){s.setProperty("--diluxone-users-"+r,v[r]);}}catch(e){}})(' . wp_json_encode( diluxone_users_measure_key() ) . ');'
 	);
 }
 add_action( 'wp_enqueue_scripts', 'diluxone_users_measure_early', 1 );
