@@ -68,10 +68,12 @@ function diluxone_users_has_required_fields(): bool {
  * On by default, and only ever acting while a field is required: a site with
  * none never sees it, and the first field it marks required turns it on
  * without anything stored changing by itself. It needs the account page too,
- * which is where it is drawn.
+ * which is where it is drawn. In safe mode nothing of the plugin's
+ * redirects, so neither does this.
  */
 function diluxone_users_ask_missing_on(): bool {
-	return (bool) diluxone_users_option( 'diluxone_users_ask_missing' )
+	return ! diluxone_users_safe_mode()
+		&& (bool) diluxone_users_option( 'diluxone_users_ask_missing' )
 		&& '' !== diluxone_users_page_url( 'diluxone_users_account_page' )
 		&& diluxone_users_has_required_fields();
 }
@@ -88,10 +90,19 @@ function diluxone_users_ask_missing_url( int $user_id, string $redirect ): strin
 		return $redirect;
 	}
 
+	return diluxone_users_ask_missing_step( '' !== $redirect ? $redirect : home_url( '/' ) );
+}
+
+/**
+ * The step's own address on the account page, carrying where it goes on to.
+ *
+ * @param string $to Where the person goes once the step is done or skipped.
+ */
+function diluxone_users_ask_missing_step( string $to ): string {
 	return add_query_arg(
 		array(
 			DILUXONE_USERS_COMPLETE_VAR => '1',
-			'redirect_to'               => rawurlencode( '' !== $redirect ? $redirect : home_url( '/' ) ),
+			'redirect_to'               => rawurlencode( $to ),
 		),
 		diluxone_users_page_url( 'diluxone_users_account_page' )
 	);

@@ -233,6 +233,40 @@ class MissingFieldsTest extends IntegrationTestCase {
 		$this->assertSame( home_url( '/course/' ), $this->expectRedirect( fn() => diluxone_users_complete_login( $this->user, 'link', true, home_url( '/course/' ) ) ) );
 	}
 
+	/** In safe mode nothing of the plugin's redirects: no step on any door. */
+	public function test_in_safe_mode_no_door_sends_to_the_step(): void {
+		add_filter( 'diluxone_users_safe_mode', '__return_true' );
+
+		try {
+			$going = home_url( '/course/' );
+
+			$this->assertSame( $going, diluxone_users_ask_missing_url( $this->user, $going ) );
+			$this->assertSame( $going, (string) apply_filters( 'login_redirect', $going, $going, get_userdata( $this->user ) ) );
+		} finally {
+			remove_filter( 'diluxone_users_safe_mode', '__return_true' );
+		}
+	}
+
+	/** A save of the step with no referer that still misses a field goes back to the step, not home. */
+	public function test_a_step_save_with_no_referer_goes_back_to_the_step(): void {
+		$going = home_url( '/course/' );
+
+		$this->postAs(
+			$this->user,
+			array(
+				'_wpnonce'                => wp_create_nonce( 'diluxone_users_fields_save' ),
+				'diluxone_users_group'    => '',
+				'diluxone_users_redirect' => $going,
+				'first_name'              => '',
+			)
+		);
+		unset( $_SERVER['HTTP_REFERER'] );
+		$back = $this->expectRedirect( 'diluxone_users_save_fields_form' );
+
+		$this->assertSame( 'missing', $this->redirectState( $back ) );
+		$this->assertStep( remove_query_arg( 'diluxone-users', $back ), $going );
+	}
+
 	/** C6: a password with no second step lands on the step too, through WordPress's own filter. */
 	public function test_a_password_sign_in_lands_on_the_step(): void {
 		$going = home_url( '/course/' );

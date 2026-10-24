@@ -197,6 +197,12 @@ function diluxone_users_save_fields_form(): void {
 		}
 
 		$missing = array() !== $missing ? $missing : array( 'required' );
+
+		// With no referer to go back to, back to the step itself, so the
+		// notice of what is still missing is seen where it is answered.
+		if ( ! wp_get_referer() ) {
+			$back = diluxone_users_ask_missing_step( $to );
+		}
 	}
 
 	wp_safe_redirect( add_query_arg( 'diluxone-users', array() === $missing ? 'saved' : 'missing', $back ) );

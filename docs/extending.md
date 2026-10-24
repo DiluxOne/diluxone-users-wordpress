@@ -772,7 +772,7 @@ priority 99 for a password with no second step. What an add-on may call:
 
 It is the setting `diluxone_users_ask_missing` (User fields › After sign-in,
 scope `network`), on by default and only ever acting while some field is
-required and an account page is chosen.
+required and an account page is chosen. In safe mode it is never asked.
 
 ## Looks
 
