@@ -262,6 +262,8 @@ function diluxone_users_register_doors( array $social ): array {
 	$form   = (bool) diluxone_users_option( 'diluxone_users_register_form' );
 	$page   = (int) diluxone_users_option( 'diluxone_users_register_page' );
 	$locked = diluxone_users_wp_registration_locked();
+	// The page of its own holds the form at /<slug>/register/: no page needed.
+	$own = diluxone_users_door_on();
 
 	return array(
 		array(
@@ -293,12 +295,22 @@ function diluxone_users_register_doors( array $social ): array {
 			'checked'  => $form,
 			'title'    => __( 'A registration form of the site’s own', 'diluxone-users' ),
 			'help'     => __( 'For a site that asks for more than an address before letting anybody in. It asks for the required fields, then sends the same link.', 'diluxone-users' ),
-			'state'    => $form && $page <= 0 ? 'pending' : '',
-			'note'     => $form && $page <= 0 ? __( 'it has no page yet', 'diluxone-users' ) : '',
+			'state'    => $form && $page <= 0 && ! $own ? 'pending' : '',
+			'note'     => $form && $page <= 0 && ! $own ? __( 'it has no page yet', 'diluxone-users' ) : '',
 			// The page it needs lives inside the box that turns it on, and
 			// appears with it.
-			'children' => static function () use ( $page ): void {
+			'children' => static function () use ( $page, $own ): void {
 				diluxone_users_ui_field_open( __( 'The page holding it', 'diluxone-users' ), 'diluxone_users_register_page' );
+
+				if ( $own ) {
+					diluxone_users_not_now(
+						sprintf(
+							/* translators: %s: the address of the registration form on the sign-in page of its own */
+							__( 'Not used while the shape of the sign-in page is “A page of its own”: the form is at %s, and a page chosen here sends people there.', 'diluxone-users' ),
+							diluxone_users_door_url( 'register' )
+						)
+					);
+				}
 
 				/** @var array<string, mixed> $diluxone_users_dropdown */
 				$diluxone_users_dropdown = array(
@@ -312,7 +324,7 @@ function diluxone_users_register_doors( array $social ): array {
 				diluxone_users_ui_page_dropdown( $diluxone_users_dropdown );
 				diluxone_users_create_page_link( 'diluxone_users_register_page' );
 
-				if ( $page <= 0 ) {
+				if ( $page <= 0 && ! $own ) {
 					diluxone_users_not_now( __( 'Without a page nobody can reach the form, so this door is not open yet.', 'diluxone-users' ) );
 				}
 

@@ -291,18 +291,21 @@ function diluxone_users_doors(): array {
 	 * the detail, and the Active/Off/Pending logic below is for the rows
 	 * somebody did decide.
 	 */
+	$own    = diluxone_users_door_on();
 	$rows[] = diluxone_users_summary_row(
 		'diluxone_users_login_page',
 		array(
 			'label'  => __( 'The sign-in page', 'diluxone-users' ),
 			// Pending and not off: nobody switched this page off, it was never
 			// chosen — which is the answer the status screen already gives.
-			'state'  => $page > 0 ? 'active' : 'pending',
-			'why'    => $page > 0 ? '' : __( 'No page chosen yet.', 'diluxone-users' ),
-			'detail' => $page > 0
-				? sprintf( '<a href="%s">%s</a>', esc_url( (string) get_permalink( $page ) ), esc_html( $title ) )
-				: esc_html__( 'None: wp-login.php does the job.', 'diluxone-users' ),
-			'url'    => $tab( 'page' ),
+			'state'  => $page > 0 || $own ? 'active' : 'pending',
+			'why'    => $page > 0 || $own ? '' : __( 'No page chosen yet.', 'diluxone-users' ),
+			'detail' => $own
+				? sprintf( '<a href="%1$s">%1$s</a>', esc_url( diluxone_users_door_url() ) )
+				: ( $page > 0
+					? sprintf( '<a href="%s">%s</a>', esc_url( (string) get_permalink( $page ) ), esc_html( $title ) )
+					: esc_html__( 'None: wp-login.php does the job.', 'diluxone-users' ) ),
+			'url'    => $own ? diluxone_users_admin_url( 'diluxone-users-design', array( 'tab' => 'login' ) ) : $tab( 'page' ),
 		),
 		esc_html__( 'Everybody signs in on wp-login.php, as WordPress has it.', 'diluxone-users' )
 	);
@@ -439,7 +442,7 @@ function diluxone_users_wp_login_seen(): bool {
 	// With no page of its own, wp-login.php is not one of the ways in: it is
 	// the only one. That is the moment how it looks matters most, so it is
 	// answered first and the rest of the rules do not get a say.
-	if ( (int) diluxone_users_option( 'diluxone_users_login_page' ) <= 0 ) {
+	if ( (int) diluxone_users_option( 'diluxone_users_login_page' ) <= 0 && ! diluxone_users_door_on() ) {
 		return true;
 	}
 
@@ -458,6 +461,22 @@ function diluxone_users_screen_login_page(): void {
 	$brand  = (bool) diluxone_users_option( 'diluxone_users_wp_login_brand' );
 
 	diluxone_users_intro( __( 'The page holding the sign-in form, and what becomes of wp-login.php. The form appears on the page you pick, below whatever the page already says.', 'diluxone-users' ) );
+
+	// The page of its own is the door while that shape is chosen: a page
+	// still picked here sends people to it, and says so here.
+	$own = diluxone_users_door_on();
+
+	if ( $own ) {
+		diluxone_users_not_now(
+			sprintf(
+				/* translators: %s: the address of the sign-in page of its own */
+				__( 'Not used while the shape of the sign-in page is “A page of its own”: people sign in at %s, and a page chosen here sends them there.', 'diluxone-users' ),
+				diluxone_users_door_url()
+			),
+			diluxone_users_admin_url( 'diluxone-users-design', array( 'tab' => 'login' ) ),
+			__( 'Design › The sign-in page →', 'diluxone-users' )
+		);
+	}
 
 	diluxone_users_ui_field_open( __( 'The sign-in page', 'diluxone-users' ), 'diluxone_users_login_page' );
 
@@ -504,14 +523,14 @@ function diluxone_users_screen_login_page(): void {
 	 * drawn as made about a page that does not exist was how a fresh install
 	 * read as set up by somebody.
 	 */
-	$waits = static fn( string $why ): array => array(
+	$waits = static fn( string $why ): array => $own ? array() : array(
 		'why'     => $why,
 		'name'    => 'diluxone_users_login_page',
 		'not'     => array( '0', '' ),
 		'waiting' => $page <= 0,
 	);
 
-	if ( $page > 0 && ! $password ) {
+	if ( ( $page > 0 || $own ) && ! $password ) {
 		diluxone_users_not_now(
 			__( 'Nobody signs in with a password on this site, so wp-login.php has nothing left to offer and everybody is sent to the sign-in page. What is chosen here applies the day a password is a way in again.', 'diluxone-users' ),
 			diluxone_users_admin_url( 'diluxone-users-login', array( 'tab' => 'ways' ) ),
@@ -556,7 +575,7 @@ function diluxone_users_screen_login_page(): void {
 		__( 'Forgetting a password is about changing it, not about getting in. This is where the new one is typed — or whether one is typed at all.', 'diluxone-users' )
 	);
 
-	if ( $page > 0 && ! $password ) {
+	if ( ( $page > 0 || $own ) && ! $password ) {
 		diluxone_users_not_now( __( 'There is no password on this site, so there is nothing to forget. What is chosen here waits for one.', 'diluxone-users' ) );
 	}
 
@@ -1112,6 +1131,12 @@ function diluxone_users_login_templates(): array {
 			'label' => __( 'A centred card', 'diluxone-users' ),
 			'help'  => __( 'The form in a box in the middle of the page. The safe answer when there is no design for this screen.', 'diluxone-users' ),
 		),
+		// No page at all: the plugin answers an address of its own and draws
+		// the whole document, with no header or footer of the theme's.
+		'own'   => array(
+			'label' => __( 'A page of its own', 'diluxone-users' ),
+			'help'  => __( 'A screen of its own at an address you choose, with your mark and colours and none of the theme’s header or footer. No page to create.', 'diluxone-users' ),
+		),
 	);
 
 	/**
@@ -1188,6 +1213,8 @@ function diluxone_users_screen_login_shape(): void {
 	<?php
 	diluxone_users_ui_field_close();
 
+	diluxone_users_screen_login_door( $template );
+
 	/**
 	 * Fires under the shapes of the sign-in page, on Design › The sign-in page.
 	 *
@@ -1232,6 +1259,42 @@ function diluxone_users_screen_login_shape(): void {
 			esc_html__( 'It is set on Your brand →', 'diluxone-users' )
 		)
 	);
+}
+
+/**
+ * Where the page of its own is: the site's address and the slug after it.
+ *
+ * Waiting, as every block that depends on another answer, while another
+ * shape is chosen: drawn disabled under a line saying so, and let go the
+ * moment "A page of its own" is picked.
+ *
+ * @param string $template The shape chosen.
+ */
+function diluxone_users_screen_login_door( string $template ): void {
+	$waits = array(
+		'name'    => 'diluxone_users_login_template',
+		'is'      => array( 'own' ),
+		'waiting' => 'own' !== $template,
+		'why'     => __( 'Used when the shape is “A page of its own”.', 'diluxone-users' ),
+	);
+
+	$waiting = diluxone_users_ui_waits_open( $waits );
+
+	diluxone_users_ui_field_open( __( 'Its address', 'diluxone-users' ), 'diluxone_users_login_slug' );
+
+	echo wp_kses(
+		sprintf(
+			'<span class="du-door-address"><code>%1$s</code><input type="text" id="diluxone_users_login_slug" name="diluxone_users_login_slug" class="regular-text code" value="%2$s" required%3$s></span>',
+			esc_html( trailingslashit( (string) diluxone_users_on_hub( static fn() => home_url() ) ) ),
+			esc_attr( diluxone_users_login_slug() ),
+			$waiting ? ' disabled data-diluxone-users-waited' : ''
+		),
+		diluxone_users_allowed_html()
+	);
+
+	diluxone_users_ui_field_close( __( 'Letters, numbers and dashes. Sign in, registration, the second step and a new password are all answered there, and an address you used before keeps sending people to it.', 'diluxone-users' ) );
+
+	diluxone_users_ui_waits_close( $waits );
 }
 
 /** WordPress's own sign-in screen, which somebody still sees. */

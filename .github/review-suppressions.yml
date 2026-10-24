@@ -156,6 +156,10 @@ suppressions:
     sniff: WordPress.DB.PreparedSQL.InterpolatedNotPrepared
     fingerprint: 74bfdab8b3ac
     reason: "$where is built above out of literals and every value in it is a placeholder filled from $args, all through prepare(); the plugin's own table, read as it is now."
+  - file: includes/login-door.php
+    sniff: WordPress.Security.NonceVerification.Recommended
+    fingerprint: a187d6e6bc86
+    reason: "Reads the query of a GET request only to hand it on unchanged to the address the page moved to: each name through sanitize_key(), each value through wp_unslash() and sanitize_text_field(), arrays dropped; nothing is written, stored or acted on, so there is no request to forge."
   - file: includes/login-messages.php
     sniff: WordPress.Security.NonceVerification
     fingerprint: 71365417f8b5
