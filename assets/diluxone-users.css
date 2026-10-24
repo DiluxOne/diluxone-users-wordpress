@@ -553,6 +553,21 @@ details.diluxone-users-panel[open] > .diluxone-users-panel__head .diluxone-users
 		0 1px 2px color-mix(in srgb, var(--diluxone-users-text) 6%, transparent),
 		0 8px 24px color-mix(in srgb, var(--diluxone-users-text) 8%, transparent);
 }
+/* One alignment for the whole card, and it is the centre: the logo, the
+   heading, its introduction, the notes and the small print. The form keeps
+   its full-width controls and its labels at the start of them, because a
+   label is read with its box and not with the heading; and a message keeps
+   its own alignment, the one it has everywhere else. */
+.diluxone-users-login-frame--card .diluxone-users-login :is(h2, p):not(form *, .diluxone-users-notice) { text-align: center; }
+/* A note with its drawing, centred, is one line of text with the drawing in
+   it: as a row of two, the drawing stays at the left edge while the text
+   runs down the middle. */
+.diluxone-users-login-frame--card .diluxone-users-note--icon:not(form *) { display: block; }
+.diluxone-users-login-frame--card .diluxone-users-note--icon:not(form *) .diluxone-users-icon {
+	margin: 0 var(--diluxone-users-note-gap, 8px) 0 0;
+	vertical-align: -0.2em;
+}
+.diluxone-users-login-frame--card .diluxone-users-login__icon--circle { margin-inline: auto; }
 
 /* A page of its own: the whole document is the plugin's (templates/
    login-page.php), so there is no theme column to break out of. The frame

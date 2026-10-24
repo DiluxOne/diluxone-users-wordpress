@@ -123,3 +123,53 @@ export async function cardEdge(page: Page): Promise<Edge> {
 
 	return { edge, page: ground, ratio: edge && ground ? contrast(edge, ground) : 0 };
 }
+
+export interface Piece {
+	what: string;
+	/** How far its centre is from the centre of the box's content, in px. */
+	offset: number;
+	align: string;
+}
+
+/**
+ * Where the card's pieces sit across its box: the logo's picture, the text of
+ * the heading and of the introduction (the text itself, not the block around
+ * it, which is always the full width), and the form.
+ */
+export function cardPieces(page: Page): Promise<Piece[]> {
+	return page.evaluate((box) => {
+		const frame = document.querySelector(box) as HTMLElement;
+		const style = getComputedStyle(frame);
+		const outer = frame.getBoundingClientRect();
+		const left = outer.left + frame.clientLeft + parseFloat(style.paddingLeft);
+		const right = outer.left + frame.clientLeft + frame.clientWidth - parseFloat(style.paddingRight);
+		const middle = (left + right) / 2;
+
+		const textOf = (element: Element): DOMRect => {
+			const range = document.createRange();
+			range.selectNodeContents(element);
+
+			return range.getBoundingClientRect();
+		};
+
+		const pieces: Array<[string, string, (element: Element) => DOMRect, string]> = [
+			['logo', '.diluxone-users-login__logo img', (element) => element.getBoundingClientRect(), '.diluxone-users-login__logo'],
+			['title', '.diluxone-users-login__title', textOf, '.diluxone-users-login__title'],
+			['intro', '.diluxone-users-login__intro', textOf, '.diluxone-users-login__intro'],
+			['form', '.diluxone-users-form', (element) => element.getBoundingClientRect(), '.diluxone-users-form'],
+		];
+
+		return pieces.map(([what, query, rect, aligned]) => {
+			const element = frame.querySelector(query);
+			const holder = frame.querySelector(aligned);
+
+			if (!element || !holder) {
+				return { what, offset: Infinity, align: 'missing' };
+			}
+
+			const r = rect(element);
+
+			return { what, offset: Math.abs((r.left + r.right) / 2 - middle), align: getComputedStyle(holder).textAlign };
+		});
+	}, CARD_BOX);
+}
