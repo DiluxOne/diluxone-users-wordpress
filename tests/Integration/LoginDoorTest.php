@@ -102,6 +102,20 @@ class LoginDoorTest extends IntegrationTestCase {
 		$this->assertStringNotContainsString( 'wp-block-template-part', $html, 'no header or footer of the theme' );
 	}
 
+	public function test_c1_a_logo_the_site_hides_leaves_the_sites_name_on_the_page(): void {
+		$this->as_front_end();
+		$this->on_door( 'login' );
+		diluxone_users_update_option( 'diluxone_users_login_logo', self::factory()->attachment->create() );
+		diluxone_users_update_option( 'diluxone_users_login_logo_show', 0 );
+
+		ob_start();
+		include DILUXONE_USERS_DIR . 'templates/login-page.php';
+		$html = (string) ob_get_clean();
+
+		$this->assertStringContainsString( 'diluxone-users-door__site', $html, 'the site’s name, with no mark above the form' );
+		$this->assertStringNotContainsString( 'diluxone-users-door__back', $html );
+	}
+
 	public function test_c1_somebody_signed_in_is_sent_to_their_account(): void {
 		$this->as_front_end();
 		$this->on_door( 'login' );

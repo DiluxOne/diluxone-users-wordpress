@@ -21,7 +21,8 @@
 defined( 'ABSPATH' ) || exit;
 
 $diluxone_users_form = diluxone_users_door_form();
-$diluxone_users_mark = (int) diluxone_users_option( 'diluxone_users_login_logo' ) > 0;
+// The mark the form draws above itself; without it, the site's name stands in.
+$diluxone_users_mark = (int) diluxone_users_option( 'diluxone_users_login_logo' ) > 0 && (bool) diluxone_users_option( 'diluxone_users_login_logo_show' );
 ?><!doctype html>
 <html <?php language_attributes(); ?>>
 <head>
