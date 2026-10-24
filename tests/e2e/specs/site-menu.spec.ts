@@ -63,6 +63,11 @@ test.describe('The person in the site menu', () => {
 		await expect(item(page, 'sign-out')).toHaveCount(1);
 		await expect(item(page, 'dashboard')).toHaveCount(0);
 
+		// It says it opens, the class themes draw the arrow and the drop-down
+		// from, and the sub-menu hangs from it.
+		await expect(person).toHaveClass(/(^|\s)menu-item-has-children(\s|$)/);
+		await expect(person.locator('> ul.sub-menu li.diluxone-users-menu--sign-out')).toHaveCount(1);
+
 		// The way out works.
 		await page.goto((await item(page, 'sign-out').locator('a').getAttribute('href'))!);
 		expect(await page.request.get('/wp-admin/profile.php').then((r) => new URL(r.url()).pathname)).toContain(

@@ -168,9 +168,33 @@ function diluxone_users_menu_items( $items, $args ) {
 	}
 	$add( diluxone_users_menu_item( ++$id, esc_html__( 'Sign out', 'diluxone-users' ), wp_logout_url( home_url( '/' ) ), 990001, 'diluxone-users-menu--sign-out' ) );
 
+	// wp_nav_menu() marks the items with children before this filter runs,
+	// so the person's never got the class themes draw the arrow and the
+	// drop-down from.
+	diluxone_users_menu_mark_parents( $items );
+
 	return $items;
 }
 add_filter( 'wp_nav_menu_objects', 'diluxone_users_menu_items', 20, 2 );
+
+/**
+ * Gives `menu-item-has-children` to each of the plugin's items something hangs from.
+ *
+ * @param array<int, WP_Post> $items The menu's items, the plugin's among them.
+ */
+function diluxone_users_menu_mark_parents( array $items ): void {
+	$parents = array();
+	foreach ( $items as $item ) {
+		$parents[ (int) $item->menu_item_parent ] = true;
+	}
+	foreach ( $items as $item ) {
+		$classes = (array) $item->classes;
+		if ( in_array( 'diluxone-users-menu', $classes, true ) && isset( $parents[ (int) $item->ID ] ) && ! in_array( 'menu-item-has-children', $classes, true ) ) {
+			$classes[]     = 'menu-item-has-children';
+			$item->classes = $classes;
+		}
+	}
+}
 
 /**
  * The photo as a circle beside the name. The ring takes the colour of the
