@@ -12,8 +12,11 @@
  * - `group`
  * - `title`
  * - `state`
+ * - `redirect` (optional) where a save that leaves nothing required missing
+ *   goes on to: the step that asks for the missing fields after a sign-in
+ * - `skip` (optional) the address of a "Skip for now" link under the form
  *
- * @var array{user_id: int, fields: array<int, array<string, mixed>>, group: string, title: string, state: string} $args
+ * @var array{user_id: int, fields: array<int, array<string, mixed>>, group: string, title: string, state: string, redirect?: string, skip?: string} $args
  *
  * @package DiluxOneUsers
  */
@@ -23,6 +26,9 @@ defined( 'ABSPATH' ) || exit;
 if ( array() === $args['fields'] ) {
 	return;
 }
+
+$diluxone_users_redirect = (string) ( $args['redirect'] ?? '' );
+$diluxone_users_skip     = (string) ( $args['skip'] ?? '' );
 ?>
 <div class="diluxone-users diluxone-users-fields">
 
@@ -40,6 +46,9 @@ if ( array() === $args['fields'] ) {
 		<input type="hidden" name="action" value="diluxone_users_fields_save">
 		<input type="hidden" name="diluxone_users_group" value="<?php echo esc_attr( $args['group'] ); ?>">
 		<?php wp_nonce_field( 'diluxone_users_fields_save' ); ?>
+		<?php if ( '' !== $diluxone_users_redirect ) : ?>
+			<input type="hidden" name="diluxone_users_redirect" value="<?php echo esc_url( $diluxone_users_redirect ); ?>">
+		<?php endif; ?>
 
 		<?php foreach ( $args['fields'] as $diluxone_users_field ) : ?>
 			<div class="diluxone-users-field diluxone-users-field--<?php echo esc_attr( $diluxone_users_field['type'] ); ?>">
@@ -66,5 +75,9 @@ if ( array() === $args['fields'] ) {
 		<?php endforeach; ?>
 
 		<button type="submit" class="diluxone-users-button"><?php esc_html_e( 'Save', 'diluxone-users' ); ?></button>
+
+		<?php if ( '' !== $diluxone_users_skip ) : ?>
+			<a class="diluxone-users-fields__skip" href="<?php echo esc_url( $diluxone_users_skip ); ?>"><?php esc_html_e( 'Skip for now', 'diluxone-users' ); ?></a>
+		<?php endif; ?>
 	</form>
 </div>

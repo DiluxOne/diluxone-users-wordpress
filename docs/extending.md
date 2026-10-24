@@ -747,6 +747,33 @@ an array of field definitions as the stored list holds them. A key already on
 the list is not offered again; one ticked is added at the end of the list by
 `diluxone_users_add_suggested_fields( $keys )`.
 
+### Required fields missing after a sign-in
+
+An account made by the e-mail link, a social network or an add-on's way in
+never saw the registration form, so it has nothing in the fields the site
+marked as required. Once it is signed in, it is sent first to the account
+page with `?diluxone-users-complete=1&redirect_to=<where it was going>`,
+which draws only those fields (`templates/fields.php`, the same form, checks
+and save as Details) in place of the sections and their nav, with a "Skip
+for now" link. Saved with nothing required still missing, it goes on to
+`redirect_to`, checked with `wp_validate_redirect()` against the site's (and,
+on a network, the network's) hosts. Nothing is stored about the person: it is
+decided again at every sign-in, and no other request is held up.
+
+It is asked where a session is opened and the person sent on: the end of
+`diluxone_users_complete_login()` (so an add-on's door calling it gets it
+too), the end of the second step, and WordPress's `login_redirect` at
+priority 99 for a password with no second step. What an add-on may call:
+
+- `diluxone_users_missing_required( $user_id )` — the active, required
+  fields the person may edit and has no answer for.
+- `diluxone_users_ask_missing_url( $user_id, $redirect )` — the step's
+  address carrying `$redirect`, or `$redirect` itself when nothing is owed.
+
+It is the setting `diluxone_users_ask_missing` (User fields › After sign-in,
+scope `network`), on by default and only ever acting while some field is
+required and an account page is chosen. In safe mode it is never asked.
+
 ## Looks
 
 ### Shapes
@@ -1004,7 +1031,11 @@ is on the Status screen.
 
 A template receives what it draws in one array, `$args`, the way WordPress's
 own `get_template_part()` passes it: `$args['state']`, `$args['user']`. Each
-template's docblock names its keys and their types.
+template's docblock names its keys and their types. A key added later is
+optional and read with a default, so a copy made before it keeps working:
+`templates/fields.php` takes `redirect` (where its save goes on to) and
+`skip` (a "Skip for now" link), both used by the step that asks for the
+required fields missing after a sign-in.
 
 A template escapes what it prints, line by line, and a copy in a theme has to
 do the same. To draw one of the plugin's templates from code,

@@ -30,9 +30,15 @@ const FIELDS = [
 ];
 
 /** Somebody new, signed in with a password in this browser. */
-async function signedIn(page: Page, site: Site, loginUrl: string, prefix: string): Promise<{ email: string; id: number }> {
+async function signedIn(
+	page: Page,
+	site: Site,
+	loginUrl: string,
+	prefix: string,
+	meta?: Record<string, unknown>
+): Promise<{ email: string; id: number }> {
 	const email = freshEmail(prefix);
-	const made = await site.makeUser({ email, password: PASSWORD });
+	const made = await site.makeUser({ email, password: PASSWORD, meta });
 
 	await page.goto(loginUrl);
 	await signInWithPassword(page, email, PASSWORD);
@@ -561,6 +567,8 @@ test.describe('Your data', () => {
 	/**
 	 * Opened with no session — another browser, the phone — the link asks to
 	 * sign in first, and signing in lands on the question it was going to.
+	 * The account has the City this file marks required, so the step that
+	 * asks for missing details has nothing to ask on the way.
 	 */
 	test('opened with no session, the link asks to sign in and comes back to the question', async ({
 		browser,
@@ -568,7 +576,7 @@ test.describe('Your data', () => {
 		site,
 		pages,
 	}) => {
-		const { email } = await signedIn(page, site, pages.login.url, 'data-elsewhere');
+		const { email } = await signedIn(page, site, pages.login.url, 'data-elsewhere', { e2e_city: 'Rosario' });
 
 		await ask(page, pages, 'erase');
 

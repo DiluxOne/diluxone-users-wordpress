@@ -9,7 +9,7 @@ For contribution rules (branch naming, commit conventions, PR workflow), see [`C
 | Tool | Why |
 | --- | --- |
 | **Docker** (Docker Desktop on macOS/Windows or Docker Engine on Linux) | Runs `wp-env` (the local WordPress stack) and the PHP toolchain (PHPCS, PHPStan, Psalm, PHPUnit, WP-CLI) without installing matching PHP extensions on the host. |
-| **Node.js 18+** and **npm** | `wp-env` and Playwright (`npm install`, then `npx playwright install chromium` once for the end-to-end suites). |
+| **Node.js 22.13+** and **npm** | `wp-env` and Playwright (`npm install`, then `npx playwright install chromium` once for the end-to-end suites). |
 | **`make`** | Wraps every common task behind a short target. `make help` lists them. |
 | **`msgfmt`** (gettext) | Only for `make i18n-check`. |
 | **`gh`** (GitHub CLI) | Optional, for issues, pull requests and CI logs. |
