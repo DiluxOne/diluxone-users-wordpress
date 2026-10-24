@@ -93,6 +93,8 @@
  *   --diluxone-users-nav-gap     Between menu items.            2 / 4 / 20px
  *   --diluxone-users-tab-pad     Inside one.                    by the shape
  *   --diluxone-users-side-w      The side menu's column.     180px … 220px
+ *   --diluxone-users-card-edge   The centred card's edge.  the text, 65%
+ *                                over the surface
  */
 
 /* There is no dark-mode block here, and that is on purpose.
@@ -534,8 +536,23 @@ details.diluxone-users-panel[open] > .diluxone-users-panel__head .diluxone-users
 	line-height: 1.1;
 }
 
-/* Centred: a card on the page's own ground. */
+/* Centred: a card on the page's own ground. The card stands on the same
+   ground as the page, so its edge is the one thing that separates the two.
+   The general border is a wash meant for fields and panels, and against a
+   dark page it is barely there, so the card's edge has a colour of its own.
+   It is derived from the text and the surface, which is what keeps it at 3:1
+   or more against the page in either scheme with nothing measured for it.
+   The plain border goes first for a browser that does not know color-mix().
+   The shadow is low and soft so the card reads as lifted, not as a box drawn
+   around a form. */
 .diluxone-users-login-frame--card { padding-block: 32px; }
+.diluxone-users-login-frame--card .diluxone-users-login-frame__box {
+	border-color: var(--diluxone-users-border);
+	border-color: var(--diluxone-users-card-edge, color-mix(in srgb, var(--diluxone-users-text) 65%, var(--diluxone-users-surface)));
+	box-shadow:
+		0 1px 2px color-mix(in srgb, var(--diluxone-users-text) 6%, transparent),
+		0 8px 24px color-mix(in srgb, var(--diluxone-users-text) 8%, transparent);
+}
 
 /* A page of its own: the whole document is the plugin's (templates/
    login-page.php), so there is no theme column to break out of. The frame
