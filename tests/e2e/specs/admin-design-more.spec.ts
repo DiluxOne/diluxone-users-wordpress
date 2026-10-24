@@ -76,6 +76,22 @@ test.describe('Design › Social buttons', () => {
 	});
 });
 
+test.describe('Design › The sign-in page', () => {
+	test('with no logo set, the switch for it is off and its link opens Your brand', async ({ page, options }) => {
+		await options.set({ diluxone_users_login_logo: 0 });
+
+		await page.goto(adminUrl('diluxone-users-design', 'login'));
+
+		const box = page.locator('input[name="diluxone_users_login_logo_show"]');
+
+		await expect(box).toBeDisabled();
+		await expect(box).not.toBeChecked();
+
+		await navigated(page, () => page.getByRole('link', { name: 'It is set on Your brand →' }).click());
+		expect(new URL(page.url()).searchParams.get('tab')).toBe('brand');
+	});
+});
+
 test.describe('Design › Profile photo', () => {
 	test('the largest size: a picture over it is refused and nothing is stored; with room, the same picture is taken', async ({ page, guest, site, pages, options }) => {
 		await options.keep(['diluxone_users_avatar_max_kb', 'diluxone_users_avatar_upload']);

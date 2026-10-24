@@ -133,6 +133,7 @@ function diluxone_users_option_scopes(): array {
 		'diluxone_users_login_layout'          => 'hub',
 		'diluxone_users_login_legal'           => 'hub',
 		'diluxone_users_login_logo'            => 'hub',
+		'diluxone_users_login_logo_show'       => 'hub',
 		'diluxone_users_login_messages'        => 'hub',
 		'diluxone_users_login_method'          => 'hub',
 		'diluxone_users_login_open'            => 'hub',

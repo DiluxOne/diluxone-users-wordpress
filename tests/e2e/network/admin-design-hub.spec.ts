@@ -33,3 +33,18 @@ test('the hub’s sign-in words and accent are what somebody sent from /alpha/ m
 	await expect(guest.locator('.diluxone-users-login__title')).toHaveText(heading);
 	expect(await resolvedColour(guest, '--diluxone-users-accent')).toBe(rgb('#6d28d9'));
 });
+
+test('with no logo set on the hub, its switch is off and its link opens the hub’s Your brand', async ({ page, hub }) => {
+	await hub.set({ diluxone_users_login_logo: 0 });
+
+	await page.goto(`${hub.url}wp-admin/admin.php?page=diluxone-users-design&tab=login`);
+
+	const box = page.locator('input[name="diluxone_users_login_logo_show"]');
+
+	await expect(box).toBeDisabled();
+	await expect(box).not.toBeChecked();
+
+	await page.getByRole('link', { name: 'It is set on Your brand →' }).click();
+	await expect(page).toHaveURL(/page=diluxone-users-design&tab=brand/);
+	expect(page.url().startsWith(hub.url)).toBe(true);
+});

@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-24T00:25:55+00:00\n"
+"POT-Creation-Date: 2026-10-24T01:52:59+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: diluxone-users\n"
@@ -1654,15 +1654,15 @@ msgstr ""
 msgid "Gravatar is not asked: no address is sent anywhere to ask whether there is a picture for it."
 msgstr ""
 
-#: includes/admin-design.php:224
+#: includes/admin-design.php:228
 msgid "Your brand"
 msgstr ""
 
-#: includes/admin-design.php:228
+#: includes/admin-design.php:232
 msgid "Your account area, as the site serves it. It is the real thing and not a drawing, so a template your theme has replaced shows up here as it does on the site."
 msgstr ""
 
-#: includes/admin-design.php:239
+#: includes/admin-design.php:243
 #: includes/admin-login.php:51
 #: includes/admin-login.php:297
 #: includes/admin-login.php:462
@@ -1670,29 +1670,29 @@ msgstr ""
 msgid "The sign-in page"
 msgstr ""
 
-#: includes/admin-design.php:243
+#: includes/admin-design.php:247
 msgid "The sign-in page, at the width shown. The theme’s own fonts are not in here: what this shows is the plugin’s part of the page."
 msgstr ""
 
-#: includes/admin-design.php:251
+#: includes/admin-design.php:255
 #: includes/admin-register.php:35
 msgid "Registration"
 msgstr ""
 
-#: includes/admin-design.php:255
+#: includes/admin-design.php:259
 msgid "The registration form, in the frame the sign-in tab chose for both."
 msgstr ""
 
-#: includes/admin-design.php:264
+#: includes/admin-design.php:268
 #: includes/admin.php:82
 msgid "Account area"
 msgstr ""
 
-#: includes/admin-design.php:268
+#: includes/admin-design.php:272
 msgid "The account area as you would meet it, with your own name and picture and the sections your account can see."
 msgstr ""
 
-#: includes/admin-design.php:276
+#: includes/admin-design.php:280
 #: includes/admin-social.php:40
 #: includes/admin-status.php:440
 #: includes/admin-status.php:451
@@ -1700,32 +1700,32 @@ msgstr ""
 msgid "Social login"
 msgstr ""
 
-#: includes/admin-design.php:280
+#: includes/admin-design.php:284
 msgid "The buttons as the sign-in page draws them, on the site’s own surface. Four networks are enough to see a finish; the sign-in page shows the ones that are switched on."
 msgstr ""
 
-#: includes/admin-design.php:288
+#: includes/admin-design.php:292
 msgid "Profile photo"
 msgstr ""
 
-#: includes/admin-design.php:306
+#: includes/admin-design.php:310
 msgid "wp-login.php itself, as it is saved right now — not a drawing of it. Press the button above to see it with the choices on this screen."
 msgstr ""
 
-#: includes/admin-design.php:322
+#: includes/admin-design.php:326
 msgid "The words on the registration form. Its shape — the frame and your mark — comes from the Sign in tab: the two forms are the same page, so the frame is chosen once."
 msgstr ""
 
-#: includes/admin-design.php:331
+#: includes/admin-design.php:335
 msgid "This site does not use this form: accounts are made another way. What is written here waits for the day that changes."
 msgstr ""
 
-#: includes/admin-design.php:338
+#: includes/admin-design.php:342
 #: includes/admin-login.php:1055
 msgid "The heading"
 msgstr ""
 
-#: includes/admin-design.php:339
+#: includes/admin-design.php:343
 #: includes/pages.php:36
 #: templates/hub-door.php:27
 #: templates/hub-door.php:30
@@ -1733,20 +1733,20 @@ msgstr ""
 msgid "Create your account"
 msgstr ""
 
-#: includes/admin-design.php:344
+#: includes/admin-design.php:348
 #: includes/admin-login.php:1062
 msgid "The line under it"
 msgstr ""
 
-#: includes/admin-design.php:346
+#: includes/admin-design.php:350
 msgid "Nothing by default. Somewhere to say what an account is for on this site."
 msgstr ""
 
-#: includes/admin-design.php:351
+#: includes/admin-design.php:355
 msgid "Once it is done"
 msgstr ""
 
-#: includes/admin-design.php:352
+#: includes/admin-design.php:356
 #: templates/register.php:33
 msgid "Your account is ready"
 msgstr ""
@@ -3182,47 +3182,55 @@ msgstr ""
 msgid "Users+ Pro adds a shape with the picture behind everything and the form over it."
 msgstr ""
 
-#: includes/admin-login.php:1210
-msgid "The site’s logo, above the form in every template."
+#: includes/admin-login.php:1218
+msgid "Show the logo above the form"
 msgstr ""
 
-#: includes/admin-login.php:1211
-msgid "None yet."
-msgstr ""
-
-#: includes/admin-login.php:1213
-msgid "It is set on Your brand →"
-msgstr ""
-
-#: includes/admin-login.php:1220
-msgid "Even with everybody sent to the page above, this one is still shown to somebody: an administrator coming in through the emergency door, and anybody finishing a password reset — WordPress builds that link and it goes here and nowhere else. Left alone it is a grey box with the WordPress logo on it."
+#: includes/admin-login.php:1219
+msgid "On signing in, registering, the second step and choosing a new password. Off for a site whose own header already shows it."
 msgstr ""
 
 #: includes/admin-login.php:1229
-msgid "Put the site’s name, mark and colour on wp-login.php"
+msgid "The site’s logo."
 msgstr ""
 
 #: includes/admin-login.php:1230
+msgid "None yet."
+msgstr ""
+
+#: includes/admin-login.php:1232
+msgid "It is set on Your brand →"
+msgstr ""
+
+#: includes/admin-login.php:1239
+msgid "Even with everybody sent to the page above, this one is still shown to somebody: an administrator coming in through the emergency door, and anybody finishing a password reset — WordPress builds that link and it goes here and nowhere else. Left alone it is a grey box with the WordPress logo on it."
+msgstr ""
+
+#: includes/admin-login.php:1248
+msgid "Put the site’s name, mark and colour on wp-login.php"
+msgstr ""
+
+#: includes/admin-login.php:1249
 msgid "Off by default: a plugin that repaints a screen nobody asked it about is a plugin that gets blamed for the repaint."
 msgstr ""
 
-#: includes/admin-login.php:1235
+#: includes/admin-login.php:1254
 msgid "The mark there"
 msgstr ""
 
-#: includes/admin-login.php:1237
+#: includes/admin-login.php:1256
 msgid "Replaces the WordPress logo above the box. Without one, the site’s name is written there instead — which is still better than somebody else’s logo."
 msgstr ""
 
-#: includes/admin-login.php:1241
+#: includes/admin-login.php:1260
 msgid "The colour there"
 msgstr ""
 
-#: includes/admin-login.php:1245
+#: includes/admin-login.php:1264
 msgid "The accent colour"
 msgstr ""
 
-#: includes/admin-login.php:1246
+#: includes/admin-login.php:1265
 msgid "The accent colour follows the accent, instead of becoming a second colour that drifts from the first. The links on it are white, so each of the others is a colour white reads on."
 msgstr ""
 
@@ -5856,7 +5864,7 @@ msgstr ""
 msgid "I forgot my password"
 msgstr ""
 
-#: includes/login.php:556
+#: includes/login.php:560
 msgid "Someone"
 msgstr ""
 

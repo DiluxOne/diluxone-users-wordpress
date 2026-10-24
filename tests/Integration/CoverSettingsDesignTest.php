@@ -157,6 +157,48 @@ class CoverSettingsDesignTest extends IntegrationTestCase {
 		$this->assertSame( 'plain', diluxone_users_option( 'diluxone_users_login_template' ), 'nothing sent is the plain page' );
 	}
 
+	public function test_without_a_logo_the_switch_is_off_and_points_at_your_brand(): void {
+		$this->the_admin();
+		diluxone_users_update_option( 'diluxone_users_login_logo', 0 );
+
+		$html = $this->draw( 'diluxone_users_screen_login_shape' );
+
+		$this->assertMatchesRegularExpression( '#<input\s[^>]*name="diluxone_users_login_logo_show"[^>]*disabled#', $html, 'the box is drawn switched off' );
+		$this->assertDoesNotMatchRegularExpression( '#<input\s[^>]*name="diluxone_users_login_logo_show"[^>]*checked#', $html, 'and nothing is ticked' );
+		$this->assertStringContainsString( 'diluxone-users-state--off', $html );
+		$this->assertMatchesRegularExpression( '#<a href="[^"]*page=diluxone-users-design[^"]*tab=brand">It is set on Your brand →</a>#', $html );
+
+		// With a logo, the box can be ticked.
+		diluxone_users_update_option( 'diluxone_users_login_logo', 4242 );
+		$html = $this->draw( 'diluxone_users_screen_login_shape' );
+
+		$this->assertDoesNotMatchRegularExpression( '#<input\s[^>]*name="diluxone_users_login_logo_show"[^>]*disabled#', $html );
+		$this->assertMatchesRegularExpression( '#<input\s[^>]*name="diluxone_users_login_logo_show"[^>]*checked#', $html, 'on until somebody turns it off' );
+	}
+
+	public function test_saving_the_tab_without_a_logo_keeps_the_logo_switch(): void {
+		$this->the_admin();
+		diluxone_users_update_option( 'diluxone_users_login_logo', 0 );
+		diluxone_users_update_option( 'diluxone_users_login_logo_show', 1 );
+
+		// What the disabled box sends: its marker, and no tick.
+		$post = array( 'diluxone_users_panel_drawn' => array( 'diluxone_users_login_logo_show' ) );
+
+		$this->send_panel( DILUXONE_USERS_DESIGN, $post );
+		diluxone_users_design_login_save();
+		$this->assertSame( 1, (int) diluxone_users_raw_get( 'diluxone_users_login_logo_show' ), 'no logo: the choice is kept' );
+
+		diluxone_users_update_option( 'diluxone_users_login_logo', 4242 );
+
+		$this->send_panel( DILUXONE_USERS_DESIGN, $post );
+		diluxone_users_design_login_save();
+		$this->assertSame( 0, (int) diluxone_users_option( 'diluxone_users_login_logo_show' ), 'a logo, unticked: off' );
+
+		$this->send_panel( DILUXONE_USERS_DESIGN, $post + array( 'diluxone_users_login_logo_show' => '1' ) );
+		diluxone_users_design_login_save();
+		$this->assertSame( 1, (int) diluxone_users_option( 'diluxone_users_login_logo_show' ), 'a logo, ticked: on' );
+	}
+
 	public function test_registrations_words_are_saved_as_plain_text(): void {
 		$this->the_admin();
 
