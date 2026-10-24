@@ -332,11 +332,13 @@ function diluxone_users_account_menu_save(): void {
 
 	$location = sanitize_key( wp_unslash( $_POST['diluxone_users_menu_location'] ?? '' ) );
 	$style    = sanitize_key( wp_unslash( $_POST['diluxone_users_menu_style'] ?? 'avatar-name' ) );
+	$sign_in  = sanitize_key( wp_unslash( $_POST['diluxone_users_menu_signin_style'] ?? 'link' ) );
 
 	diluxone_users_save_options(
 		array(
-			'diluxone_users_menu_location' => isset( diluxone_users_menu_locations()[ $location ] ) ? $location : '',
-			'diluxone_users_menu_style'    => isset( diluxone_users_menu_styles()[ $style ] ) ? $style : 'avatar-name',
+			'diluxone_users_menu_location'     => isset( diluxone_users_menu_locations()[ $location ] ) ? $location : '',
+			'diluxone_users_menu_style'        => isset( diluxone_users_menu_styles()[ $style ] ) ? $style : 'avatar-name',
+			'diluxone_users_menu_signin_style' => isset( diluxone_users_menu_signin_styles()[ $sign_in ] ) ? $sign_in : 'link',
 		)
 	);
 }
@@ -363,6 +365,16 @@ function diluxone_users_screen_account_menu(): void {
 			'name'    => 'diluxone_users_menu_style',
 			'value'   => (string) diluxone_users_option( 'diluxone_users_menu_style' ),
 			'options' => diluxone_users_menu_styles(),
+		)
+	);
+
+	diluxone_users_ui_select(
+		array(
+			'label'   => __( 'How “Sign in” looks', 'diluxone-users' ),
+			'name'    => 'diluxone_users_menu_signin_style',
+			'value'   => diluxone_users_menu_signin_style(),
+			'options' => diluxone_users_menu_signin_styles(),
+			'help'    => __( 'A button takes the colours the theme gives its own buttons.', 'diluxone-users' ),
 		)
 	);
 

@@ -198,6 +198,7 @@ function diluxone_users_option_scopes(): array {
 		'diluxone_users_bar_account'           => 'site',
 		'diluxone_users_menu_location'         => 'site',
 		'diluxone_users_menu_style'            => 'site',
+		'diluxone_users_menu_signin_style'     => 'site',
 		'diluxone_users_wp_profile'            => 'site',
 		'diluxone_users_wp_profile_roles'      => 'site',
 		'diluxone_users_wp_profile_scope'      => 'site',

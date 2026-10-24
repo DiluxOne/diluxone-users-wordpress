@@ -240,6 +240,8 @@ function diluxone_users_option_defaults_own(): array {
 		'diluxone_users_menu_location'         => '',
 		// How the signed-in person shows there: 'avatar-name', 'avatar' or 'name'.
 		'diluxone_users_menu_style'            => 'avatar-name',
+		// How "Sign in" shows there: 'link', 'filled' or 'outlined'.
+		'diluxone_users_menu_signin_style'     => 'link',
 
 		// ── The account area ──────────────────────────────────────────
 		// The page holding the [diluxone_users_account] shortcode. With that

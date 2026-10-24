@@ -10,7 +10,11 @@
 
 namespace Tests\Integration;
 
+use Tests\Integration\Support\CoverSettingsSupport;
+
 class SiteMenuLookTest extends IntegrationTestCase {
+
+	use CoverSettingsSupport;
 
 	/** @var array<int, int> Menus the test made. */
 	private array $menus = array();
@@ -36,6 +40,7 @@ class SiteMenuLookTest extends IntegrationTestCase {
 
 		wp_dequeue_style( 'diluxone-users-menu' );
 		wp_deregister_style( 'diluxone-users-menu' );
+		$this->cover_settings_reset();
 
 		parent::tearDown();
 	}
@@ -119,5 +124,60 @@ class SiteMenuLookTest extends IntegrationTestCase {
 		wp_set_current_user( 0 );
 
 		$this->assertStringNotContainsString( 'menu-item-has-children', $this->drawn() );
+	}
+
+	/* ── "Sign in" as a button, in the theme's colours (C3) ───────── */
+
+	/** @return array<int, array{0: string}> */
+	public function button_styles(): array {
+		return array(
+			'filled'   => array( 'filled' ),
+			'outlined' => array( 'outlined' ),
+		);
+	}
+
+	/** @dataProvider button_styles */
+	public function test_a_button_carries_the_themes_button_class_and_still_leads_to_the_sign_in_page( string $style ): void {
+		$this->chosen_menu();
+		wp_set_current_user( 0 );
+		diluxone_users_update_option( 'diluxone_users_menu_signin_style', $style );
+
+		$li = $this->li( $this->drawn(), 'sign-in' );
+
+		$this->assertContains( 'diluxone-users-menu--button', $this->classes( $li ) );
+		$this->assertContains( 'diluxone-users-menu--' . $style, $this->classes( $li ) );
+
+		$link = $li->getElementsByTagName( 'a' )->item( 0 );
+		$this->assertInstanceOf( \DOMElement::class, $link );
+		$this->assertContains( 'wp-element-button', preg_split( '/\s+/', $link->getAttribute( 'class' ) ) ?: array() );
+		$this->assertSame( diluxone_users_login_url(), $link->getAttribute( 'href' ) );
+
+		diluxone_users_menu_style();
+		$css = implode( '', (array) wp_styles()->get_data( 'diluxone-users-menu', 'after' ) );
+		$this->assertStringContainsString( ':where(.diluxone-users-menu--button)', $css, 'a fallback that weighs nothing beside the theme' );
+		if ( 'outlined' === $style ) {
+			$this->assertStringContainsString( '.diluxone-users-menu--outlined > a.wp-element-button{background:transparent', $css );
+		}
+	}
+
+	public function test_the_sites_own_links_never_get_the_button_class(): void {
+		$this->chosen_menu();
+		wp_set_current_user( 0 );
+		diluxone_users_update_option( 'diluxone_users_menu_signin_style', 'filled' );
+
+		$this->assertSame( 1, substr_count( $this->drawn(), 'wp-element-button' ) );
+	}
+
+	public function test_a_style_that_is_not_one_saves_as_the_link(): void {
+		$this->the_admin();
+
+		$this->send_panel( 'diluxone-users-account', array( 'diluxone_users_menu_signin_style' => 'outlined' ) );
+		diluxone_users_account_menu_save();
+		$this->assertSame( 'outlined', diluxone_users_option( 'diluxone_users_menu_signin_style' ) );
+
+		$this->send_panel( 'diluxone-users-account', array( 'diluxone_users_menu_signin_style' => 'glowing' ) );
+		diluxone_users_account_menu_save();
+
+		$this->assertSame( 'link', diluxone_users_option( 'diluxone_users_menu_signin_style' ) );
 	}
 }

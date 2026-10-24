@@ -36,6 +36,25 @@ function diluxone_users_menu_styles(): array {
 	);
 }
 
+/**
+ * How "Sign in" is drawn for a visitor.
+ *
+ * @return array<string, string>
+ */
+function diluxone_users_menu_signin_styles(): array {
+	return array(
+		'link'     => __( 'A link, like the rest of the menu', 'diluxone-users' ),
+		'filled'   => __( 'A filled button', 'diluxone-users' ),
+		'outlined' => __( 'An outlined button', 'diluxone-users' ),
+	);
+}
+
+/** The stored "Sign in" style, or the link when it is not one of them. */
+function diluxone_users_menu_signin_style(): string {
+	$style = (string) diluxone_users_option( 'diluxone_users_menu_signin_style' );
+	return isset( diluxone_users_menu_signin_styles()[ $style ] ) ? $style : 'link';
+}
+
 /** The ID of the menu assigned to the chosen location, or 0. */
 function diluxone_users_menu_id(): int {
 	$location = (string) diluxone_users_option( 'diluxone_users_menu_location' );
@@ -53,7 +72,7 @@ function diluxone_users_menu_id(): int {
  * @param string $title  May carry markup (the photo); built and escaped here.
  * @param string $url    Where it goes.
  * @param int    $hangs_from The item it hangs from, or 0.
- * @param string $extra      Extra class.
+ * @param string $extra      Extra classes, separated by spaces.
  */
 function diluxone_users_menu_item( int $id, string $title, string $url, int $hangs_from = 0, string $extra = '' ): WP_Post {
 	return new WP_Post(
@@ -74,7 +93,7 @@ function diluxone_users_menu_item( int $id, string $title, string $url, int $han
 			'attr_title'       => '',
 			'description'      => '',
 			'xfn'              => '',
-			'classes'          => array_filter( array( 'menu-item', 'diluxone-users-menu', $extra ) ),
+			'classes'          => array_merge( array( 'menu-item', 'diluxone-users-menu' ), preg_split( '/\s+/', $extra, -1, PREG_SPLIT_NO_EMPTY ) ?: array() ),
 			'current'          => false,
 			'menu_order'       => 0,
 			'post_parent'      => 0,
@@ -102,7 +121,8 @@ function diluxone_users_menu_items( $items, $args ) {
 	};
 
 	if ( ! is_user_logged_in() ) {
-		$add( diluxone_users_menu_item( 990001, esc_html__( 'Sign in', 'diluxone-users' ), diluxone_users_login_url(), 0, 'diluxone-users-menu--sign-in' ) );
+		$button = diluxone_users_menu_signin_style();
+		$add( diluxone_users_menu_item( 990001, esc_html__( 'Sign in', 'diluxone-users' ), diluxone_users_login_url(), 0, 'diluxone-users-menu--sign-in' . ( 'link' === $button ? '' : ' diluxone-users-menu--button diluxone-users-menu--' . $button ) ) );
 		return $items;
 	}
 
@@ -151,7 +171,10 @@ function diluxone_users_menu_items( $items, $args ) {
 	// Without an account page there is no account to go to: the address of
 	// one falls back to the home page, which is no place for "my account".
 	$account = '' !== diluxone_users_page_url( 'diluxone_users_account_page' ) ? diluxone_users_account_url() : '';
-	$add( diluxone_users_menu_item( 990001, $title, '' !== $account ? $account : admin_url( 'profile.php' ), 0, 'diluxone-users-menu--person' ) );
+	// wp_nav_menu() marks the items with children before this filter runs,
+	// so the person's has to say it itself: "Sign out" always hangs from it,
+	// and themes draw the arrow and the drop-down from that class.
+	$add( diluxone_users_menu_item( 990001, $title, '' !== $account ? $account : admin_url( 'profile.php' ), 0, 'diluxone-users-menu--person menu-item-has-children' ) );
 
 	if ( 'invite' === $join ) {
 		$add( diluxone_users_menu_item( 990003, esc_html__( 'This site is by invitation', 'diluxone-users' ), '', 990001, 'diluxone-users-menu--invite' ) );
@@ -168,32 +191,54 @@ function diluxone_users_menu_items( $items, $args ) {
 	}
 	$add( diluxone_users_menu_item( ++$id, esc_html__( 'Sign out', 'diluxone-users' ), wp_logout_url( home_url( '/' ) ), 990001, 'diluxone-users-menu--sign-out' ) );
 
-	// wp_nav_menu() marks the items with children before this filter runs,
-	// so the person's never got the class themes draw the arrow and the
-	// drop-down from.
-	diluxone_users_menu_mark_parents( $items );
-
 	return $items;
 }
 add_filter( 'wp_nav_menu_objects', 'diluxone_users_menu_items', 20, 2 );
 
+
 /**
- * Gives `menu-item-has-children` to each of the plugin's items something hangs from.
+ * Gives "Sign in" drawn as a button the theme's own button class.
  *
- * @param array<int, WP_Post> $items The menu's items, the plugin's among them.
+ * `wp-element-button` is what theme.json and block themes paint their
+ * buttons with, so the button takes the site's colours with nothing to set.
+ * Only the plugin's own item is touched.
+ *
+ * @param array<string, mixed> $atts The link's attributes.
+ * @param WP_Post|object       $item The menu item.
+ * @return array<string, mixed>
  */
-function diluxone_users_menu_mark_parents( array $items ): void {
-	$parents = array();
-	foreach ( $items as $item ) {
-		$parents[ (int) $item->menu_item_parent ] = true;
+function diluxone_users_menu_link_attributes( $atts, $item ) {
+	$classes = isset( $item->classes ) ? (array) $item->classes : array();
+	if ( ! in_array( 'diluxone-users-menu--button', $classes, true ) ) {
+		return $atts;
 	}
-	foreach ( $items as $item ) {
-		$classes = (array) $item->classes;
-		if ( in_array( 'diluxone-users-menu', $classes, true ) && isset( $parents[ (int) $item->ID ] ) && ! in_array( 'menu-item-has-children', $classes, true ) ) {
-			$classes[]     = 'menu-item-has-children';
-			$item->classes = $classes;
-		}
+	$atts['class'] = trim( ( isset( $atts['class'] ) ? (string) $atts['class'] . ' ' : '' ) . 'wp-element-button' );
+	return $atts;
+}
+add_filter( 'nav_menu_link_attributes', 'diluxone_users_menu_link_attributes', 10, 2 );
+
+/**
+ * The CSS of "Sign in" as a button, empty while it is a link.
+ *
+ * The theme's `.wp-element-button` paints it. The plugin's own rule is under
+ * `:where()`, so it weighs nothing and only shows on a theme that does not
+ * style that class. "Outlined" lays a transparent ground and a border of the
+ * text's colour on top of the theme's button.
+ */
+function diluxone_users_menu_signin_css(): string {
+	$style = diluxone_users_menu_signin_style();
+	if ( 'link' === $style ) {
+		return '';
 	}
+
+	$css = ':where(.diluxone-users-menu--button) > a{display:inline-block;padding:.5em 1.1em;border:2px solid transparent;border-radius:4px;line-height:1.2;text-decoration:none;'
+		. 'background:var(--wp--preset--color--contrast,#1e1e1e);color:var(--wp--preset--color--base,#fff)}';
+
+	if ( 'outlined' === $style ) {
+		$css .= '.diluxone-users-menu--outlined > a.wp-element-button{background:transparent;color:inherit;border:2px solid currentColor}';
+	}
+
+	return $css;
 }
 
 /**
@@ -201,7 +246,17 @@ function diluxone_users_menu_mark_parents( array $items ): void {
  * menu link itself, so it matches whatever the theme paints its menu with.
  */
 function diluxone_users_menu_style(): void {
-	if ( diluxone_users_menu_id() <= 0 || ! is_user_logged_in() ) {
+	if ( diluxone_users_menu_id() <= 0 ) {
+		return;
+	}
+	if ( ! is_user_logged_in() ) {
+		// A visitor gets CSS only when "Sign in" is drawn other than a link.
+		$css = diluxone_users_menu_signin_css();
+		if ( '' !== $css ) {
+			wp_register_style( 'diluxone-users-menu', false, array(), DILUXONE_USERS_VERSION );
+			wp_enqueue_style( 'diluxone-users-menu' );
+			wp_add_inline_style( 'diluxone-users-menu', $css );
+		}
 		return;
 	}
 	wp_register_style( 'diluxone-users-menu', false, array(), DILUXONE_USERS_VERSION );

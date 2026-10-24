@@ -1,6 +1,7 @@
 import { test, expect, expectSignedIn } from '../support/fixtures';
 import { freshEmail } from '../support/api';
 import { adminUrl, savePanel, signInWithPassword } from '../support/ui';
+import { buttonPaint } from '../support/menu';
 import { ADMIN_STATE } from '../../../playwright.config';
 
 /**
@@ -117,11 +118,61 @@ test.describe('The person in the site menu', () => {
 	});
 });
 
+test.describe('“Sign in” as a button, in the theme’s colours', () => {
+	let menuUrl = '';
+
+	test.beforeEach(async ({ site, options }) => {
+		menuUrl = (await site.menu()).url;
+		await options.set({ diluxone_users_menu_location: 'diluxone-e2e' });
+	});
+
+	test('filled: the theme’s own button, in its colours, and it still leads to the sign-in page', async ({ page, pages, options }) => {
+		await options.set({ diluxone_users_menu_signin_style: 'filled' });
+		await page.goto(menuUrl);
+
+		const link = item(page, 'sign-in').locator('> a');
+
+		await expect(item(page, 'sign-in')).toHaveClass(/diluxone-users-menu--button/);
+		await expect(item(page, 'sign-in')).toHaveClass(/diluxone-users-menu--filled/);
+		await expect(link).toHaveClass(/(^|\s)wp-element-button(\s|$)/);
+		await expect(link).toHaveAttribute('href', pages.login.url);
+
+		const paint = await buttonPaint(link);
+
+		expect(paint.link.background, 'the theme’s button ground').toBe(paint.theme.background);
+		expect(paint.link.color, 'the theme’s button text').toBe(paint.theme.color);
+		expect(paint.link.background, 'a ground of its own, not a link’s').not.toBe('rgba(0, 0, 0, 0)');
+
+		// The site's own link is left as it is.
+		await expect(page.locator('nav.diluxone-e2e-menu a.wp-element-button')).toHaveCount(1);
+
+		await link.click();
+		await expect(page).toHaveURL(pages.login.url);
+	});
+
+	test('outlined: the theme’s button with no ground, a border in its text’s colour', async ({ page, pages, options }) => {
+		await options.set({ diluxone_users_menu_signin_style: 'outlined' });
+		await page.goto(menuUrl);
+
+		const link = item(page, 'sign-in').locator('> a');
+
+		await expect(item(page, 'sign-in')).toHaveClass(/diluxone-users-menu--outlined/);
+		await expect(link).toHaveClass(/(^|\s)wp-element-button(\s|$)/);
+		await expect(link).toHaveAttribute('href', pages.login.url);
+
+		const paint = await buttonPaint(link);
+
+		expect(paint.link.background, 'no ground').toBe('rgba(0, 0, 0, 0)');
+		expect(paint.link.borderWidth, 'a border').toBeGreaterThanOrEqual(1);
+		expect(paint.link.border, 'in the text’s colour').toBe(paint.link.color);
+	});
+});
+
 test.describe('Account area › In the site menu', () => {
 	test.use({ storageState: ADMIN_STATE });
 
 	test('the location and the style saved on the screen are what the menu draws', async ({ page, guest, site, options }) => {
-		await options.keep(['diluxone_users_menu_location', 'diluxone_users_menu_style']);
+		await options.keep(['diluxone_users_menu_location', 'diluxone_users_menu_style', 'diluxone_users_menu_signin_style']);
 		await options.set({ diluxone_users_menu_location: '' });
 
 		const { url } = await site.menu();
@@ -134,11 +185,16 @@ test.describe('Account area › In the site menu', () => {
 		await page.goto(adminUrl('diluxone-users-account', 'menu'));
 		await page.locator('select[name="diluxone_users_menu_location"]').selectOption('diluxone-e2e');
 		await page.locator('select[name="diluxone_users_menu_style"]').selectOption('name');
+		await page.locator('select[name="diluxone_users_menu_signin_style"]').selectOption('outlined');
 		await savePanel(page);
 
 		await guest.goto(url);
 		await expect(item(guest, 'sign-in')).toHaveCount(1);
+		await expect(item(guest, 'sign-in')).toHaveClass(/diluxone-users-menu--outlined/);
 
-		expect(await site.getOptions(['diluxone_users_menu_style'])).toEqual({ diluxone_users_menu_style: 'name' });
+		expect(await site.getOptions(['diluxone_users_menu_style', 'diluxone_users_menu_signin_style'])).toEqual({
+			diluxone_users_menu_style: 'name',
+			diluxone_users_menu_signin_style: 'outlined',
+		});
 	});
 });

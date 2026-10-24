@@ -187,6 +187,7 @@ class OptionScopeTest extends TestCase {
 		foreach ( array(
 			'diluxone_users_menu_location',
 			'diluxone_users_menu_style',
+			'diluxone_users_menu_signin_style',
 			'diluxone_users_admin_bar',
 			'diluxone_users_admin_bar_roles',
 			'diluxone_users_admin_bar_scope',

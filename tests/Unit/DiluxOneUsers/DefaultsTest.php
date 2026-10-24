@@ -60,6 +60,7 @@ class DefaultsTest extends TestCase {
 			'no sign-in page'                    => array( 'diluxone_users_login_page', 0 ),
 			'no account page'                    => array( 'diluxone_users_account_page', 0 ),
 			'nothing in the site\'s menu'        => array( 'diluxone_users_menu_location', '' ),
+			'"Sign in" is a link'                => array( 'diluxone_users_menu_signin_style', 'link' ),
 			'every site keeps its wp-login.php'  => array( 'diluxone_users_network_hub', 0 ),
 			'membership adds nobody'             => array( 'diluxone_users_membership_confirmed', 0 ),
 		);
