@@ -95,6 +95,8 @@
  *   --diluxone-users-side-w      The side menu's column.     180px … 220px
  *   --diluxone-users-card-edge   The centred card's edge.  the text, 65%
  *                                over the surface
+ *   --diluxone-users-field-gap   Between two fields of a form, and the
+ *                                centred card's rhythm.                18px
  */
 
 /* There is no dark-mode block here, and that is on purpose.
@@ -316,7 +318,7 @@ details.diluxone-users-panel[open] > .diluxone-users-panel__head .diluxone-users
 .diluxone-users-form input:disabled,
 .diluxone-users-field input:disabled { background: var(--diluxone-users-surface-alt); color: var(--diluxone-users-muted); }
 
-.diluxone-users-field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 18px; }
+.diluxone-users-field { display: flex; flex-direction: column; gap: 6px; margin-bottom: var(--diluxone-users-field-gap, 18px); }
 .diluxone-users-field__help { margin: 0; font-size: 0.85em; color: var(--diluxone-users-muted); }
 .diluxone-users-field__required { color: var(--diluxone-users-danger); }
 
@@ -568,6 +570,13 @@ details.diluxone-users-panel[open] > .diluxone-users-panel__head .diluxone-users
 	vertical-align: -0.2em;
 }
 .diluxone-users-login-frame--card .diluxone-users-login__icon--circle { margin-inline: auto; }
+/* The rhythm of the card is the gap between two fields: the note under the
+   e-mail form sits that far from its button, and the small print a little
+   more than that from the note, so neither reads as part of what is above
+   it. The small print is the last thing in the box and keeps no margin
+   under it, whatever the theme gives a paragraph. */
+.diluxone-users-login-frame--card .diluxone-users-form + .diluxone-users-note--icon { margin-top: var(--diluxone-users-field-gap, 18px); }
+.diluxone-users-login-frame--card .diluxone-users-login__legal { margin: calc(var(--diluxone-users-field-gap, 18px) + 6px) 0 0; }
 
 /* A page of its own: the whole document is the plugin's (templates/
    login-page.php), so there is no theme column to break out of. The frame

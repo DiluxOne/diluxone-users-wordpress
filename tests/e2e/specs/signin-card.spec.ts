@@ -2,7 +2,7 @@ import { Page } from '@playwright/test';
 import { test, expect } from '../support/fixtures';
 import { devWp } from '../support/admin-ops';
 import { uploadImage } from '../support/signin';
-import { ASTRA, activateTheme, astraDark, cardEdge, cardPieces } from '../support/themes';
+import { ASTRA, activateTheme, astraDark, cardEdge, cardPieces, cardRhythm } from '../support/themes';
 import { ADMIN_STATE } from '../../../playwright.config';
 
 /**
@@ -73,5 +73,26 @@ test.describe('The centred card on Astra, in dark mode', () => {
 		} finally {
 			await image.forget();
 		}
+	});
+
+	test('C3: the e-mail note and the small print are at least a field’s gap apart', async ({ guest, pages, options }) => {
+		await options.set(CARD);
+		await opened(guest, pages.login.url);
+
+		const rhythm = await cardRhythm(guest);
+
+		expect(rhythm.field, 'a field keeps a gap under it').toBeGreaterThan(0);
+		expect(rhythm.gap, 'from the note to the small print').toBeGreaterThanOrEqual(rhythm.field);
+	});
+
+	test('C3: a site that sets the field gap moves the card’s rhythm with it', async ({ guest, pages, options }) => {
+		await options.set(CARD);
+		await opened(guest, pages.login.url);
+		await guest.addStyleTag({ content: ':root { --diluxone-users-field-gap: 40px; }' });
+
+		const rhythm = await cardRhythm(guest);
+
+		expect(rhythm.field, 'the site’s gap').toBe(40);
+		expect(rhythm.gap, 'from the note to the small print').toBeGreaterThanOrEqual(40);
 	});
 });

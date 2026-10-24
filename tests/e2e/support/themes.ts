@@ -173,3 +173,30 @@ export function cardPieces(page: Page): Promise<Piece[]> {
 		});
 	}, CARD_BOX);
 }
+
+export interface Rhythm {
+	/** From the bottom of the note under the e-mail form to the top of the small print. */
+	gap: number;
+	/** What a field of a form keeps under it, read from one put in the card. */
+	field: number;
+}
+
+/** The space between the e-mail note and the small print, and the gap between two fields. */
+export function cardRhythm(page: Page): Promise<Rhythm> {
+	return page.evaluate((box) => {
+		const card = document.querySelector(box) as HTMLElement;
+		const note = card.querySelector('.diluxone-users-form + .diluxone-users-note--icon');
+		const legal = card.querySelector('.diluxone-users-login__legal');
+		const probe = document.createElement('div');
+
+		probe.className = 'diluxone-users-field';
+		(card.querySelector('.diluxone-users-login') ?? card).appendChild(probe);
+		const field = parseFloat(getComputedStyle(probe).marginBottom);
+		probe.remove();
+
+		return {
+			gap: note && legal ? legal.getBoundingClientRect().top - note.getBoundingClientRect().bottom : -Infinity,
+			field,
+		};
+	}, CARD_BOX);
+}
