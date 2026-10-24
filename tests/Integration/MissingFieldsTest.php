@@ -250,6 +250,7 @@ class MissingFieldsTest extends IntegrationTestCase {
 	/** A save of the step with no referer that still misses a field goes back to the step, not home. */
 	public function test_a_step_save_with_no_referer_goes_back_to_the_step(): void {
 		$going = home_url( '/course/' );
+		wp_set_current_user( $this->user );
 
 		$this->postAs(
 			$this->user,
