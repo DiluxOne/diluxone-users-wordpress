@@ -185,6 +185,26 @@ function diluxone_users_save_fields_form(): void {
 	$back    = wp_get_referer();
 	$back    = $back ? $back : home_url( '/' );
 
+	// The step after a sign-in carries where the person was going: they go
+	// on there once nothing required is missing, and back to the step if
+	// anything still is.
+	if ( isset( $_POST['diluxone_users_redirect'] ) && is_string( $_POST['diluxone_users_redirect'] ) ) {
+		$to = diluxone_users_ask_missing_destination( esc_url_raw( wp_unslash( $_POST['diluxone_users_redirect'] ) ) );
+
+		if ( array() === $missing && array() === diluxone_users_missing_required( get_current_user_id() ) ) {
+			wp_safe_redirect( $to );
+			exit;
+		}
+
+		$missing = array() !== $missing ? $missing : array( 'required' );
+
+		// With no referer to go back to, back to the step itself, so the
+		// notice of what is still missing is seen where it is answered.
+		if ( ! wp_get_referer() ) {
+			$back = diluxone_users_ask_missing_step( $to );
+		}
+	}
+
 	wp_safe_redirect( add_query_arg( 'diluxone-users', array() === $missing ? 'saved' : 'missing', $back ) );
 	exit;
 }

@@ -360,6 +360,9 @@ details.diluxone-users-panel[open] > .diluxone-users-panel__head .diluxone-users
 .diluxone-users-button--danger { background: var(--diluxone-users-danger); color: #fff; }
 .diluxone-users-button--danger:hover { color: #fff; }
 
+/* The way past the step that asks for the required fields after a sign-in. */
+.diluxone-users-fields__skip { display: inline-block; margin-inline-start: 1rem; }
+
 /* ── A question asked in the page ───────────────────────────────────── */
 
 /* Before something that cannot be taken back. The browser's own box cannot

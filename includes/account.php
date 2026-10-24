@@ -764,6 +764,12 @@ function diluxone_users_account_area(): void {
 		return;
 	}
 
+	// The required fields missing, asked on the way in from a sign-in
+	// (includes/fields-missing.php): in place of the sections and their nav.
+	if ( diluxone_users_ask_missing_form() ) {
+		return;
+	}
+
 	$sections = diluxone_users_sections();
 
 	if ( array() === $sections ) {

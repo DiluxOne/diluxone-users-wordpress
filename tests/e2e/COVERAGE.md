@@ -67,6 +67,8 @@ everybody, with the code by e-mail, and skips it for nobody.
 | Social: link-by-email off, linked identity with another address, scope some with a disallowed role, social buttons on the registration form | `signin-social` › Who a social identity opens |
 | Social linking: `taken`, `linked` + security mails on link/unlink, unlink without its nonce | `signin-social` › Linking from the account, off the plain path |
 | Social then 2FA; new device after social | `signin-social` › What a social sign-in sets off |
+| Required fields missing after a sign-in: a new account by link lands on the account page with only the required field, its save goes on to `redirect_to`; a social account with no name lands there too; an account with every field filled goes straight on; skipped, the site is open and the next sign-in asks again | `missing-fields` › After signing in, the required fields missing |
+| …turned off on User fields › After sign-in; the box switched off and saying why while no field is required | `missing-fields` › After signing in, turned off on User fields |
 | Social button skin/shape/contents/rows/words on the real page | `signin-social` › The buttons on the real page |
 | The ways in at 390px: the card takes the width, tab labels fold, social one column, register / 2FA / reset fit | `signin-mobile` |
 | WP-CLI on a single site: `login` link opens once, `--send` mails it, bad and unknown addresses refused, the network command says it is not a network; `diluxone_users_join` (Users+ Pro's) posted on a single site has no handler | `my-account-entry` › Join, templates and WP-CLI on a single site |
@@ -384,6 +386,7 @@ In the browser, case by case:
 | A reset asked from /beta/, mailed and chosen on the hub, signs in from /beta/ | `signin-doors` › A new password, on a network |
 | Social sign-in then the second step, on the hub, back on /beta/ | `signin-doors` › The second step after a social sign-in, on a network |
 | A site on a domain of its own: its door is its own wp-login.php | `signin-doors` › A site on a domain of its own |
+| Required fields missing, asked on the hub's account page after a sign-in by link from /beta/, and the save goes back to /beta/ | `missing-fields` |
 
 ## Network settings, and the network's screens
 

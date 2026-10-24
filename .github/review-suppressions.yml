@@ -112,6 +112,14 @@ suppressions:
     sniff: WordPress.Security.NonceVerification.Missing
     fingerprint: e84598710bee
     reason: "presence only: whether this plugin's form sent the request at all, so another plugin's sign-up is not refused; nothing is read, and from here on the form's nonce is required."
+  - file: includes/fields-missing.php
+    sniff: WordPress.Security.NonceVerification.Recommended
+    fingerprint: e296497fce0f
+    reason: "A GET flag that only chooses whether the account page draws the missing-details step for the person already signed in; its value is never read, nothing is written or acted on, and the form it draws carries its own nonce, so there is no request to forge."
+  - file: includes/fields-missing.php
+    sniff: WordPress.Security.NonceVerification.Recommended
+    fingerprint: 2e98e1460d8f
+    reason: "The address to go on to after the step, read as a string, unslashed and passed through esc_url_raw(), then through wp_validate_redirect() on the next line, which keeps only the site's own hosts and falls back to home; it is only printed into the form as where to go, nothing is written, so there is no request to forge."
   - file: includes/log.php
     sniff: WordPress.DB.PreparedSQL.NotPrepared
     fingerprint: 1a04c64f06bb

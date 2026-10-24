@@ -304,6 +304,17 @@ function diluxone_users_fields_panels(): void {
 
 	diluxone_users_register_panel(
 		'diluxone-users-fields',
+		'missing',
+		array(
+			'label'    => __( 'After sign-in', 'diluxone-users' ),
+			'position' => 18,
+			'render'   => 'diluxone_users_screen_fields_missing',
+			'save'     => 'diluxone_users_screen_fields_missing_save',
+		)
+	);
+
+	diluxone_users_register_panel(
+		'diluxone-users-fields',
 		'usage',
 		array(
 			'label'    => __( 'How to use them', 'diluxone-users' ),
@@ -314,6 +325,61 @@ function diluxone_users_fields_panels(): void {
 	);
 }
 add_action( 'diluxone_users_register_panels', 'diluxone_users_fields_panels' );
+
+/**
+ * Whether a sign-in asks for the required fields an account has no answer for.
+ *
+ * The box is on by default and only ever acts while a field is required, so
+ * while none is it is drawn switched off, with the reason beside it — and the
+ * same while no account page is chosen, which is where the step is drawn.
+ */
+function diluxone_users_screen_fields_missing(): void {
+	$required = diluxone_users_has_required_fields();
+	$page     = '' !== diluxone_users_page_url( 'diluxone_users_account_page' );
+
+	if ( ! $required ) {
+		$why = __( 'No field is required yet, so there is nothing to ask for: it starts working when a field is marked as required.', 'diluxone-users' );
+	} elseif ( ! $page ) {
+		$why = __( 'No account page is chosen, so there is nowhere to ask: it starts working when one is chosen in Account area › The page.', 'diluxone-users' );
+	} else {
+		$why = '';
+	}
+
+	diluxone_users_ui_fields_open();
+
+	diluxone_users_ui_choices(
+		array(
+			array(
+				'type'     => 'checkbox',
+				// Disabled, it leaves no line for the save, and the setting
+				// keeps what it had.
+				'name'     => '' === $why ? 'diluxone_users_ask_missing' : '',
+				'value'    => '1',
+				'checked'  => (bool) diluxone_users_option( 'diluxone_users_ask_missing' ),
+				'disabled' => '' !== $why,
+				'title'    => __( 'After signing in, ask for the required fields the account has no answer for', 'diluxone-users' ),
+				'help'     => '' !== $why
+					? $why
+					: __( 'Accounts made by the e-mail link or a social network were never asked for them. Once signed in, they are shown those fields alone on the account page, and then go on to where they were going. They can skip it, and are asked again at the next sign-in.', 'diluxone-users' ),
+			),
+		)
+	);
+
+	diluxone_users_ui_fields_close();
+}
+
+/** Saves it. */
+function diluxone_users_screen_fields_missing_save(): void {
+	check_admin_referer( 'diluxone_users_panel_diluxone-users-fields', 'diluxone_users_panel_nonce' );
+	diluxone_users_panel_allowed();
+
+	diluxone_users_save_options(
+		diluxone_users_panel_drawn(
+			'diluxone-users-fields',
+			array( 'diluxone_users_ask_missing' => isset( $_POST['diluxone_users_ask_missing'] ) ? 1 : 0 )
+		)
+	);
+}
 
 /**
  * What both screens say while nobody can register on this site.
