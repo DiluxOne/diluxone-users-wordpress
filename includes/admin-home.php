@@ -131,7 +131,7 @@ function diluxone_users_setup_steps(): array {
 		array(
 			'label'  => __( 'Choose the sign-in page', 'diluxone-users' ),
 			'detail' => __( 'The page holding the [diluxone_users_login] shortcode. Until there is one, people land on wp-login.php.', 'diluxone-users' ),
-			'done'   => $login > 0,
+			'done'   => $login > 0 || diluxone_users_door_on(),
 			'url'    => diluxone_users_admin_url( 'diluxone-users-login' ),
 			'cta'    => __( 'Go to Sign in', 'diluxone-users' ),
 		),

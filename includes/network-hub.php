@@ -563,7 +563,7 @@ add_filter( 'lostpassword_url', 'diluxone_users_core_lostpassword_url', 20, 2 );
  * Holds where somebody arriving at the hub's sign-in came from.
  *
  * On the hub's wp-login.php (`login_init`, before the hub's own takeover sends
- * it to the sign-in page) and on its sign-in and registration pages. An
+ * it to the sign-in page) and on its sign-in and registration pages, or the page of its own. An
  * address that is not one of this network's is dropped without a word.
  * Somebody who arrives with a session already open has nothing to sign in to,
  * and goes straight back.
@@ -577,8 +577,9 @@ function diluxone_users_return_capture(): void {
 
 	if ( $page ) {
 		$doors = array_filter( array( diluxone_users_page_here( 'diluxone_users_login_page' ), diluxone_users_page_here( 'diluxone_users_register_page' ) ) );
+		$own   = in_array( diluxone_users_door_view(), array( 'login', 'register' ), true );
 
-		if ( array() === $doors || ! is_page( $doors ) ) {
+		if ( ! $own && ( array() === $doors || ! is_page( $doors ) ) ) {
 			return;
 		}
 	}

@@ -36,6 +36,7 @@ class RegisterTest extends TestCase {
 		require_once DILUXONE_USERS_DIR . 'includes/client-ip.php';
 		require_once DILUXONE_USERS_DIR . 'includes/fields.php';
 		require_once DILUXONE_USERS_DIR . 'includes/login.php';
+		require_once DILUXONE_USERS_DIR . 'includes/login-door.php';
 		require_once DILUXONE_USERS_DIR . 'includes/register.php';
 	}
 

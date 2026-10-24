@@ -47,7 +47,7 @@ test.describe('Design › The sign-in page', () => {
 
 	test('the card, chosen on the tab, frames the sign-in page; “plain” leaves it alone', async ({ page, guest, site, pages }) => {
 		await page.goto(LOGIN_TAB);
-		await expect(page.locator('input[name="diluxone_users_login_template"]'), 'the two shapes of the plugin’s own').toHaveCount(2);
+		await expect(page.locator('input[name="diluxone_users_login_template"]'), 'the three shapes of the plugin’s own').toHaveCount(3);
 		await template(page, 'card').check({ force: true });
 		await savePanel(page);
 		await expect(template(page, 'card')).toBeChecked();

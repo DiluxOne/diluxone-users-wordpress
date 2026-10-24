@@ -231,8 +231,12 @@ function diluxone_users_icon( string $name, int $size = 0 ): string {
 	);
 }
 
-/** The site's mark above the form, when there is one. */
+/** The site’s mark above the form, when there is one and the site shows it there. */
 function diluxone_users_login_logo(): void {
+	if ( ! diluxone_users_option( 'diluxone_users_login_logo_show' ) ) {
+		return;
+	}
+
 	$logo = diluxone_users_login_image( 'diluxone_users_login_logo' );
 
 	if ( '' === $logo ) {
