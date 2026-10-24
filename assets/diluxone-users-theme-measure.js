@@ -5,6 +5,11 @@
  * field, the text and the ground — sets what it finds as the plugin's custom
  * properties on <html>, and keeps them in the browser so the next page starts
  * with them (see includes/theme-measure.php). No theme is named here.
+ *
+ * The answer is the theme's of the moment, so it is asked again when the
+ * moment changes: the system's dark mode turning on, or the theme's own switch
+ * changing a class, a `data-theme` or a style on <html> or <body>. What is
+ * kept is kept once per scheme, so a dark page starts with the dark answer.
  */
 ( function () {
 	'use strict';
@@ -76,36 +81,104 @@
 		return out;
 	}
 
-	var text = getComputedStyle( host ).color;
-	var surface = ground( host );
-	var link = probe( '<a href="#" data-p>x</a>' ).color;
-	var button = probe( '<div class="wp-block-button"><a class="wp-block-button__link wp-element-button" href="#" data-p>x</a></div>' );
-	var field = probe( '<input type="text" data-p>' );
-	var accent = ! clear( button.bg ) && button.bg !== surface ? button.bg : link;
-	var found = {
-		accent: accent,
-		'accent-ink': ! clear( button.bg ) && button.bg === accent ? button.color : ( lum( accent ) > 0.6 ? '#16181d' : '#ffffff' ),
-		text: text,
-		surface: surface,
-		'surface-alt': mix( surface, text, 0.04 ),
-		muted: mix( text, surface, 0.35 ),
-		border: field.width > 0 && ! clear( field.border ) && field.border !== text ? field.border : mix( surface, text, 0.15 ),
-	};
-	var kept = {};
+	var dark = window.matchMedia ? window.matchMedia( '(prefers-color-scheme: dark)' ) : null;
+	var last = '';
+	var watcher = null;
+	var pending = false;
 
-	roles.forEach( function ( r ) {
-		if ( ! found[ r ] ) {
+	function scheme() {
+		return dark && dark.matches ? 'dark' : 'light';
+	}
+
+	function measure() {
+		var text = getComputedStyle( host ).color;
+		var surface = ground( host );
+		var link = probe( '<a href="#" data-p>x</a>' ).color;
+		var button = probe( '<div class="wp-block-button"><a class="wp-block-button__link wp-element-button" href="#" data-p>x</a></div>' );
+		var field = probe( '<input type="text" data-p>' );
+		var accent = ! clear( button.bg ) && button.bg !== surface ? button.bg : link;
+
+		return {
+			accent: accent,
+			'accent-ink': ! clear( button.bg ) && button.bg === accent ? button.color : ( lum( accent ) > 0.6 ? '#16181d' : '#ffffff' ),
+			text: text,
+			surface: surface,
+			'surface-alt': mix( surface, text, 0.04 ),
+			muted: mix( text, surface, 0.35 ),
+			border: field.width > 0 && ! clear( field.border ) && field.border !== text ? field.border : mix( surface, text, 0.15 ),
+		};
+	}
+
+	function apply() {
+		pending = false;
+
+		var found = measure();
+		var kept = {};
+
+		roles.forEach( function ( r ) {
+			if ( ! found[ r ] ) {
+				return;
+			}
+			kept[ r ] = found[ r ];
+			if ( r === 'accent' ) {
+				kept[ 'accent-bg' ] = found[ r ];
+			}
+		} );
+
+		var json = JSON.stringify( kept );
+
+		try {
+			localStorage.setItem( key + ':' + scheme(), json );
+		} catch ( e ) {}
+
+		if ( json === last ) {
 			return;
 		}
-		root.style.setProperty( '--diluxone-users-' + r, found[ r ] );
-		kept[ r ] = found[ r ];
-		if ( r === 'accent' ) {
-			root.style.setProperty( '--diluxone-users-accent-bg', found[ r ] );
-			kept[ 'accent-bg' ] = found[ r ];
-		}
-	} );
+		last = json;
 
-	try {
-		localStorage.setItem( key, JSON.stringify( kept ) );
-	} catch ( e ) {}
+		// Setting a property is a change to <html>'s style the watcher
+		// would hear: its own, so it is not listening while it writes.
+		if ( watcher ) {
+			watcher.disconnect();
+		}
+		Object.keys( kept ).forEach( function ( r ) {
+			root.style.setProperty( '--diluxone-users-' + r, kept[ r ] );
+		} );
+		if ( watcher ) {
+			watch();
+		}
+	}
+
+	// A theme's switch may change several things at once, and a stylesheet
+	// may take a frame to apply: one measurement, on the next frame.
+	function again() {
+		if ( pending ) {
+			return;
+		}
+		pending = true;
+		( window.requestAnimationFrame || setTimeout )( apply );
+	}
+
+	function watch() {
+		var what = { attributes: true, attributeFilter: [ 'class', 'data-theme', 'style' ] };
+		watcher.observe( root, what );
+		if ( doc.body ) {
+			watcher.observe( doc.body, what );
+		}
+	}
+
+	apply();
+
+	if ( dark ) {
+		if ( dark.addEventListener ) {
+			dark.addEventListener( 'change', again );
+		} else if ( dark.addListener ) {
+			dark.addListener( again );
+		}
+	}
+
+	if ( window.MutationObserver ) {
+		watcher = new MutationObserver( again );
+		watch();
+	}
 }() );
