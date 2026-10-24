@@ -87,6 +87,52 @@ class PaletteTest extends TestCase {
 		}
 	}
 
+	public function test_a_ground_with_the_themes_colours_is_the_surface_two_percent_text_and_four_percent_hue(): void {
+		$mix = static function ( string $hue ): string {
+			return 'color-mix(in srgb,' . $hue . ' 4%,color-mix(in srgb,var(--diluxone-users-text) 2%,var(--diluxone-users-surface)))';
+		};
+
+		$this->assertSame( $mix( '#758dbc' ), diluxone_users_ground_tint( '#f5f6f8' ), 'mist' );
+		$this->assertSame( $mix( '#0042ff' ), diluxone_users_ground_tint( '#EEF3FB' ), 'sky' );
+		$this->assertSame( $mix( '#008d0d' ), diluxone_users_ground_tint( '#eef6f1' ), 'sage' );
+		$this->assertSame( $mix( '#a77400' ), diluxone_users_ground_tint( '#f7f5f0' ), 'paper' );
+		$this->assertSame( '', diluxone_users_ground_tint( 'red;}body{display:none' ) );
+	}
+
+	public function test_a_ground_with_the_themes_colours_turns_with_the_theme_and_its_text_still_reads(): void {
+		foreach ( diluxone_users_ground_palette() as $slug => $swatch ) {
+			// On the plugin's own white and text it is the swatch, within a shade.
+			$light = $this->tinted( $swatch['color'], '#ffffff', '#16181d' );
+
+			foreach ( array( 0, 1, 2 ) as $i ) {
+				$this->assertEqualsWithDelta( hexdec( substr( $swatch['color'], 1 + 2 * $i, 2 ) ), hexdec( substr( $light, 1 + 2 * $i, 2 ) ), 2, $slug );
+			}
+
+			// Dark grounds and light text, and themes whose own text reads at little more than 5:1.
+			foreach ( array( array( '#15171c', '#e6e8ec' ), array( '#000000', '#ffffff' ), array( '#1e1e1e', '#999999' ), array( '#ffffff', '#6b6b6b' ) ) as $theme ) {
+				list( $surface, $text ) = $theme;
+				$ground                 = $this->tinted( $swatch['color'], $surface, $text );
+
+				$this->assertGreaterThanOrEqual( 4.5, diluxone_users_contrast( $ground, $text ), "$slug on $surface" );
+			}
+		}
+	}
+
+	/** The colour a browser draws for the tint, `color-mix()` in sRGB, on these colours. */
+	private function tinted( string $swatch, string $surface, string $text ): string {
+		preg_match( '/^color-mix\(in srgb,(#[0-9a-f]{6}) 4%/', diluxone_users_ground_tint( $swatch ), $hue );
+		$out = '#';
+
+		foreach ( array( 0, 1, 2 ) as $i ) {
+			$channel = static function ( string $hex ) use ( $i ): float {
+				return (float) hexdec( substr( $hex, 1 + 2 * $i, 2 ) );
+			};
+			$out    .= sprintf( '%02x', (int) round( 0.04 * $channel( $hue[1] ) + 0.96 * ( 0.02 * $channel( $text ) + 0.98 * $channel( $surface ) ) ) );
+		}
+
+		return $out;
+	}
+
 	public function test_an_answer_from_a_form_is_a_swatch_the_stored_colour_or_nothing(): void {
 		$palette = diluxone_users_accent_palette();
 
