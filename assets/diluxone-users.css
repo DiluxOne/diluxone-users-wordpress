@@ -93,6 +93,10 @@
  *   --diluxone-users-nav-gap     Between menu items.            2 / 4 / 20px
  *   --diluxone-users-tab-pad     Inside one.                    by the shape
  *   --diluxone-users-side-w      The side menu's column.     180px … 220px
+ *   --diluxone-users-card-edge   The centred card's edge.  the text, 65%
+ *                                over the surface
+ *   --diluxone-users-field-gap   Between two fields of a form, and the
+ *                                centred card's rhythm.                18px
  */
 
 /* There is no dark-mode block here, and that is on purpose.
@@ -314,7 +318,7 @@ details.diluxone-users-panel[open] > .diluxone-users-panel__head .diluxone-users
 .diluxone-users-form input:disabled,
 .diluxone-users-field input:disabled { background: var(--diluxone-users-surface-alt); color: var(--diluxone-users-muted); }
 
-.diluxone-users-field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 18px; }
+.diluxone-users-field { display: flex; flex-direction: column; gap: 6px; margin-bottom: var(--diluxone-users-field-gap, 18px); }
 .diluxone-users-field__help { margin: 0; font-size: 0.85em; color: var(--diluxone-users-muted); }
 .diluxone-users-field__required { color: var(--diluxone-users-danger); }
 
@@ -547,8 +551,45 @@ details.diluxone-users-panel[open] > .diluxone-users-panel__head .diluxone-users
 	line-height: 1.1;
 }
 
-/* Centred: a card on the page's own ground. */
+/* Centred: a card on the page's own ground. The card stands on the same
+   ground as the page, so its edge is the one thing that separates the two.
+   The general border is a wash meant for fields and panels, and against a
+   dark page it is barely there, so the card's edge has a colour of its own.
+   It is derived from the text and the surface, which is what keeps it at 3:1
+   or more against the page in either scheme with nothing measured for it.
+   The plain border goes first for a browser that does not know color-mix().
+   The shadow is low and soft so the card reads as lifted, not as a box drawn
+   around a form. */
 .diluxone-users-login-frame--card { padding-block: 32px; }
+.diluxone-users-login-frame--card .diluxone-users-login-frame__box {
+	border-color: var(--diluxone-users-border);
+	border-color: var(--diluxone-users-card-edge, color-mix(in srgb, var(--diluxone-users-text) 65%, var(--diluxone-users-surface)));
+	box-shadow:
+		0 1px 2px color-mix(in srgb, var(--diluxone-users-text) 6%, transparent),
+		0 8px 24px color-mix(in srgb, var(--diluxone-users-text) 8%, transparent);
+}
+/* One alignment for the whole card, and it is the centre: the logo, the
+   heading, its introduction, the notes and the small print. The form keeps
+   its full-width controls and its labels at the start of them, because a
+   label is read with its box and not with the heading; and a message keeps
+   its own alignment, the one it has everywhere else. */
+.diluxone-users-login-frame--card .diluxone-users-login :is(h2, p):not(form *, .diluxone-users-notice) { text-align: center; }
+/* A note with its drawing, centred, is one line of text with the drawing in
+   it: as a row of two, the drawing stays at the left edge while the text
+   runs down the middle. */
+.diluxone-users-login-frame--card .diluxone-users-note--icon:not(form *) { display: block; }
+.diluxone-users-login-frame--card .diluxone-users-note--icon:not(form *) .diluxone-users-icon {
+	margin: 0 var(--diluxone-users-note-gap, 8px) 0 0;
+	vertical-align: -0.2em;
+}
+.diluxone-users-login-frame--card .diluxone-users-login__icon--circle { margin-inline: auto; }
+/* The rhythm of the card is the gap between two fields: the note under the
+   e-mail form sits that far from its button, and the small print a little
+   more than that from the note, so neither reads as part of what is above
+   it. The small print is the last thing in the box and keeps no margin
+   under it, whatever the theme gives a paragraph. */
+.diluxone-users-login-frame--card .diluxone-users-form + .diluxone-users-note--icon { margin-top: var(--diluxone-users-field-gap, 18px); }
+.diluxone-users-login-frame--card .diluxone-users-login__legal { margin: calc(var(--diluxone-users-field-gap, 18px) + 6px) 0 0; }
 
 /* A page of its own: the whole document is the plugin's (templates/
    login-page.php), so there is no theme column to break out of. The frame
@@ -581,8 +622,9 @@ body.diluxone-users-door {
 .diluxone-users-login-frame--own { margin-inline: 0; padding: 0; }
 
 /* Inside a column this narrow, two social buttons side by side wrap their
-   labels onto three lines each. One per row. */
-.diluxone-users-login-frame__box .diluxone-users-socials--cols-2 { grid-template-columns: minmax(0, 1fr); }
+   labels onto three lines each. One per row; the icon squares are left in
+   their row. */
+.diluxone-users-login-frame__box .diluxone-users-socials--cols-2:not(.diluxone-users-socials--icon) { grid-template-columns: minmax(0, 1fr); }
 
 /* The site's mark above the form. */
 .diluxone-users-login__logo { margin: 0 0 20px; text-align: center; }

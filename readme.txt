@@ -269,6 +269,7 @@ Unreleased.
 
 First public release.
 
+* The centred card on the sign-in page stands apart from the page in light and dark: its edge has a colour of its own, kept at 3:1 or more against the page, and a soft shadow. Everything in it is centred, and the note under the e-mail form and the small print each have room of their own. A site that styled the card's edge through `--diluxone-users-border` now sets `--diluxone-users-card-edge`, and `--diluxone-users-field-gap` sets the gap between fields.
 * On a theme that styles a focused button like a hovered one, the plugin's buttons no longer keep the hover colour after a click, and a button reached with the keyboard shows a ring around it.
 * On a site with a dark mode, with Colours › the theme's, the account area follows it: the theme's colours are measured again when the site turns dark or light, the area's ground "The theme's" (the default) is the page's own, and a shade chosen from the palette is mixed from the theme's colours, so it turns with them and its text stays readable.
 * Activating the plugin changes nothing on the site: every feature starts off, the activity log records nothing until you choose what to record, and the plugin writes no settings, tables, cron events or rewrite rules of its own until you turn something on.
@@ -279,3 +280,4 @@ First public release.
 * An account made by the e-mail link or a social network, or one missing a field that became required later, is asked for the required fields it has no answer for right after signing in, on the account page, and then goes on to where it was headed. It can skip it and is asked again at the next sign-in; User fields › After sign-in turns it off.
 * Design › The sign-in page has a switch to show the logo above the form or not, so a site whose own header already shows it does not show it twice. It covers signing in, registering, the second step and choosing a new password, and is on by default.
 * A sign-in page of its own: choose the shape "A page of its own" and the site answers `/sign-in/` (or an address you pick) with a full screen in your mark and colours, none of the theme's header or footer, and no page to create. Registration, the second step and a new password are drawn on it too, every sign-in link leads there, a page still chosen as the sign-in page sends people to it, and a changed address keeps the old one sending people to the new.
+* Social buttons that show only the network's logo sit in one row centred under the logo, on the card and wherever else they are drawn, instead of stacked at the left.

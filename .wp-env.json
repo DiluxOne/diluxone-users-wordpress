@@ -5,6 +5,9 @@
   "plugins": [
     "."
   ],
+  "themes": [
+    "https://downloads.wordpress.org/theme/astra.4.14.1.zip"
+  ],
   "mappings": {
     "wp-content/mu-plugins/diluxone-e2e.php": "./tests/e2e/mu-plugin/diluxone-e2e.php"
   },

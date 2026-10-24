@@ -46,6 +46,7 @@ everybody, with the code by e-mail, and skips it for nobody.
 | Social: new account, known verified address, H-01, silence, verified-only, social registration off, cancel, roles, link/unlink, H-02, forged state, buttons off | `sso` |
 | WP-CLI `wp diluxone-users login` link | `network/lifecycle` › WP-CLI |
 | Nobody's form for somebody signed in; `title="yes"`; the site's heading, intro, small print, logo; the logo switched off (no logo on the sign-in or the registration page); a Pro layout stored is the card | `signin-page` › What the sign-in page draws, and for whom |
+| The centred card on Twenty Twenty-Five and Astra, light and dark, colours the theme's and no site CSS: the edge at 3:1 or more against the page, the logo, heading, intro and form centred, the e-mail note and the small print at least a field's gap apart, a site's `--diluxone-users-field-gap` followed (single site and the hub) | `signin-card` › C4: the centred card on …; network `signin-card` |
 | Every `?diluxone-users=` state on the sign-in, second-step, reset and register screens, with its tone and the site's rewrite (all 17 messages); an unknown state draws nothing | `signin-page` › each state draws its message with its tone… · a state nobody knows… |
 | `login_email` from a real submit; the sent screen keeps the address out of the URL, "Use a different address", the site's sent texts and round icon | `signin-page` › a real non-address… · The "sent" screen |
 | Layout `auto`, the arrow keys on the tabs (remembered), the "or" hidden between tabs | `signin-page` › The arrangement of the ways in |
@@ -71,6 +72,7 @@ everybody, with the code by e-mail, and skips it for nobody.
 | Required fields missing after a sign-in: a new account by link lands on the account page with only the required field, its save goes on to `redirect_to`; a social account with no name lands there too; an account with every field filled goes straight on; skipped, the site is open and the next sign-in asks again | `missing-fields` › After signing in, the required fields missing |
 | …turned off on User fields › After sign-in; the box switched off and saying why while no field is required | `missing-fields` › After signing in, turned off on User fields |
 | Social button skin/shape/contents/rows/words on the real page | `signin-social` › The buttons on the real page |
+| Icon-only social buttons on the card: one row, centred on the card like the logo | `repro/issue-70` |
 | The ways in at 390px: the card takes the width, tab labels fold, social one column, register / 2FA / reset fit | `signin-mobile` |
 | WP-CLI on a single site: `login` link opens once, `--send` mails it, bad and unknown addresses refused, the network command says it is not a network; `diluxone_users_join` (Users+ Pro's) posted on a single site has no handler | `my-account-entry` › Join, templates and WP-CLI on a single site |
 
