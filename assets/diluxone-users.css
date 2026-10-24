@@ -296,6 +296,33 @@ details.diluxone-users-panel[open] > .diluxone-users-panel__head .diluxone-users
 	background: var(--diluxone-users-surface);
 	color: var(--diluxone-users-text);
 	font: inherit;
+	/* The browser's own paint (its autofill, its caret, its native parts)
+	   follows the page's scheme as it is now, not the one the field was
+	   first drawn in. */
+	color-scheme: inherit;
+}
+
+/* An autofilled field is painted by the browser in its own colours, over the
+   background above, and kept there when the site's switch flips the scheme:
+   on a dark page the e-mail stayed a light box. An inset shadow covers that
+   paint with the live tokens, which follow the switch with no reload. */
+.diluxone-users-form input:autofill,
+.diluxone-users-field input:autofill,
+.diluxone-users .login-username input:autofill,
+.diluxone-users .login-password input:autofill {
+	border-color: var(--diluxone-users-border);
+	box-shadow: 0 0 0 1000px var(--diluxone-users-surface) inset;
+	-webkit-text-fill-color: var(--diluxone-users-text);
+	caret-color: var(--diluxone-users-text);
+}
+.diluxone-users-form input:-webkit-autofill,
+.diluxone-users-field input:-webkit-autofill,
+.diluxone-users .login-username input:-webkit-autofill,
+.diluxone-users .login-password input:-webkit-autofill {
+	border-color: var(--diluxone-users-border);
+	box-shadow: 0 0 0 1000px var(--diluxone-users-surface) inset;
+	-webkit-text-fill-color: var(--diluxone-users-text);
+	caret-color: var(--diluxone-users-text);
 }
 .diluxone-users-form textarea,
 .diluxone-users-field textarea { padding: 12px 14px; min-height: 8em; }
@@ -1058,6 +1085,7 @@ body.diluxone-users-door {
 	background: var(--diluxone-users-surface);
 	color: var(--diluxone-users-text);
 	font: inherit;
+	color-scheme: inherit;
 }
 .diluxone-users .login-remember { margin-bottom: 14px; color: var(--diluxone-users-muted); }
 .diluxone-users .login-submit input {
