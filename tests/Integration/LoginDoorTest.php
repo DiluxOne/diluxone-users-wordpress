@@ -105,7 +105,17 @@ class LoginDoorTest extends IntegrationTestCase {
 	public function test_c1_a_logo_the_site_hides_leaves_the_sites_name_on_the_page(): void {
 		$this->as_front_end();
 		$this->on_door( 'login' );
-		diluxone_users_update_option( 'diluxone_users_login_logo', self::factory()->attachment->create() );
+		diluxone_users_update_option(
+			'diluxone_users_login_logo',
+			(int) wp_insert_post(
+				array(
+					'post_type'      => 'attachment',
+					'post_status'    => 'inherit',
+					'post_title'     => 'Logo',
+					'post_mime_type' => 'image/png',
+				)
+			)
+		);
 		diluxone_users_update_option( 'diluxone_users_login_logo_show', 0 );
 
 		ob_start();
