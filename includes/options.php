@@ -145,6 +145,9 @@ function diluxone_users_option_defaults_own(): array {
 		// wants and would otherwise install a second plugin to get.
 		'diluxone_users_login_template'        => 'plain',
 		'diluxone_users_login_logo'            => 0,
+		// Whether that logo is drawn above the form. On, so a site that sets a
+		// logo sees it there; off for one that already shows it in its header.
+		'diluxone_users_login_logo_show'       => 1,
 
 		// ── The black bar across the top ─────────────────────────────
 		// 'wp' leaves it exactly as WordPress shows it. 'hide' takes it away

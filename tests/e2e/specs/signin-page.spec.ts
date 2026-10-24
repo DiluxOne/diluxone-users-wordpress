@@ -100,7 +100,7 @@ test.describe('What the sign-in page draws, and for whom', () => {
 		}
 	});
 
-	test('the site’s heading, introduction and small print are on the page, and the logo above them', async ({ browser, baseURL, page, pages, options }) => {
+	test('the site’s heading, introduction and small print are on the page, and the logo above them while it is switched on', async ({ browser, baseURL, page, pages, options }) => {
 		const image = await uploadImage(browser, baseURL!, ADMIN_STATE);
 
 		try {
@@ -109,6 +109,7 @@ test.describe('What the sign-in page draws, and for whom', () => {
 				diluxone_users_login_intro: 'E2E introduction',
 				diluxone_users_login_legal: 'E2E small print',
 				diluxone_users_login_logo: image.id,
+				diluxone_users_login_logo_show: 1,
 			});
 
 			await page.goto(pages.login.url);
@@ -116,6 +117,34 @@ test.describe('What the sign-in page draws, and for whom', () => {
 			await expect(page.locator('.diluxone-users-login__intro')).toHaveText('E2E introduction');
 			await expect(page.locator('.diluxone-users-login__legal')).toHaveText('E2E small print');
 			await expect(page.locator('.diluxone-users-login__logo img')).toHaveAttribute('src', image.url);
+		} finally {
+			await image.forget();
+		}
+	});
+
+	test('with the logo switched off, the sign-in page draws no logo above the form', async ({ browser, baseURL, page, pages, options }) => {
+		const image = await uploadImage(browser, baseURL!, ADMIN_STATE);
+
+		try {
+			await options.set({ diluxone_users_login_logo: image.id, diluxone_users_login_logo_show: 0 });
+
+			await page.goto(pages.login.url);
+			await expect(page.locator('.diluxone-users-login')).toBeVisible();
+			await expect(page.locator('.diluxone-users-login__logo')).toHaveCount(0);
+		} finally {
+			await image.forget();
+		}
+	});
+
+	test('with the logo switched off, the registration page draws no logo either', async ({ browser, baseURL, page, pages, options }) => {
+		const image = await uploadImage(browser, baseURL!, ADMIN_STATE);
+
+		try {
+			await options.set({ diluxone_users_register_form: 1, diluxone_users_login_logo: image.id, diluxone_users_login_logo_show: 0 });
+
+			await page.goto(pages.register.url);
+			await expect(registerScreen(page)).toBeVisible();
+			await expect(page.locator('.diluxone-users-login__logo')).toHaveCount(0);
 		} finally {
 			await image.forget();
 		}

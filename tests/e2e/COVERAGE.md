@@ -44,7 +44,7 @@ everybody, with the code by e-mail, and skips it for nobody.
 | Backup codes: handed over when the step is turned on, one gets in once, another still works | `two-factor` › Backup codes |
 | Social: new account, known verified address, H-01, silence, verified-only, social registration off, cancel, roles, link/unlink, H-02, forged state, buttons off | `sso` |
 | WP-CLI `wp diluxone-users login` link | `network/lifecycle` › WP-CLI |
-| Nobody's form for somebody signed in; `title="yes"`; the site's heading, intro, small print, logo; a Pro layout stored is the card | `signin-page` › What the sign-in page draws, and for whom |
+| Nobody's form for somebody signed in; `title="yes"`; the site's heading, intro, small print, logo; the logo switched off (no logo on the sign-in or the registration page); a Pro layout stored is the card | `signin-page` › What the sign-in page draws, and for whom |
 | Every `?diluxone-users=` state on the sign-in, second-step, reset and register screens, with its tone and the site's rewrite (all 17 messages); an unknown state draws nothing | `signin-page` › each state draws its message with its tone… · a state nobody knows… |
 | `login_email` from a real submit; the sent screen keeps the address out of the URL, "Use a different address", the site's sent texts and round icon | `signin-page` › a real non-address… · The "sent" screen |
 | Layout `auto`, the arrow keys on the tabs (remembered), the "or" hidden between tabs | `signin-page` › The arrangement of the ways in |
@@ -275,6 +275,7 @@ everybody, with the code by e-mail, and skips it for nobody.
 | Design › Sign-in: the two shapes, the Pro layouts' card (`design/login/shapes`) and the previews setting, a Pro layout stored (card on the page, inactive and kept on the tab), forged shape, intro, legal sanitised, sent screen words and envelope, emptied box falls back, live preview | `admin-design-login` › The sign-in page |
 | Design › Registration: intro and done, warning, live preview | `admin-design-login` › The registration page |
 | Design › Account: the simple shape's pieces, the cover's card (`design/account/shapes`), a cover stored (simple on the page, inactive and kept on the tab), header pieces, menu style/align, forged values, spacing + defaults (row width), ground: “The theme’s” first and chosen on a fresh install with no ground rule printed, one from its palette (a shade sent by hand refused), width, phone wrap, live preview | `admin-design-account` |
+| Design › Sign-in › Your mark: with no logo, the logo switch is disabled and its link opens Your brand (the save keeping the stored choice: integration `CoverSettingsDesignTest`) | `admin-design-more` › The sign-in page |
 | Design › Social: finish on the sign-in buttons | `admin-design-more` › Social buttons |
 | Design › Photo: largest size | `admin-design-more` › Profile photo |
 | Design › wp-login.php: a swatch of the accent palette is the exact background, own mark | `admin-design-more` › WordPress’s own screen |
@@ -478,6 +479,7 @@ In the browser, case by case:
 | Fields reordered in Network Admin, read by every site; rename keeps answers | `admin-fields-network` |
 | The hub's rules and templates govern mail from /alpha/'s door | `admin-notices-hub` |
 | The hub's sign-in words and accent, and /alpha/'s door in the same accent | `admin-design-hub` |
+| The hub's logo switch with no logo: disabled, its link opens the hub's Your brand | `admin-design-hub` |
 
 ## Membership on a network
 

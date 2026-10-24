@@ -1202,12 +1202,31 @@ function diluxone_users_screen_login_shape(): void {
 
 	diluxone_users_ui_section( __( 'Your mark', 'diluxone-users' ) );
 
+	$logo = (int) diluxone_users_option( 'diluxone_users_login_logo' ) > 0;
+
+	// Without a logo there is nothing to show or hide: the box is drawn
+	// switched off, and its save keeps what was chosen for the day one is set.
+	diluxone_users_ui_choices(
+		array(
+			array(
+				'type'     => 'checkbox',
+				'name'     => 'diluxone_users_login_logo_show',
+				'value'    => '1',
+				'checked'  => $logo && (bool) diluxone_users_option( 'diluxone_users_login_logo_show' ),
+				'disabled' => ! $logo,
+				'state'    => $logo ? '' : 'off',
+				'title'    => __( 'Show the logo above the form', 'diluxone-users' ),
+				'help'     => __( 'On signing in, registering, the second step and choosing a new password. Off for a site whose own header already shows it.', 'diluxone-users' ),
+			),
+		)
+	);
+
 	diluxone_users_ui_note(
 		'',
 		sprintf(
 			'%1$s <a href="%2$s">%3$s</a>',
-			(int) diluxone_users_option( 'diluxone_users_login_logo' ) > 0
-				? esc_html__( 'The site’s logo, above the form in every template.', 'diluxone-users' )
+			$logo
+				? esc_html__( 'The site’s logo.', 'diluxone-users' )
 				: esc_html__( 'None yet.', 'diluxone-users' ),
 			esc_url( diluxone_users_admin_url( 'diluxone-users-design', array( 'tab' => 'brand' ) ) ),
 			esc_html__( 'It is set on Your brand →', 'diluxone-users' )
