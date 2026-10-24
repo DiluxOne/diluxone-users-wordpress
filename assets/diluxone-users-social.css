@@ -15,14 +15,15 @@
 .diluxone-users-socials--cols-0 { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
 
 /* Logo only: the buttons stop being bars and become little squares that
-   arrange themselves, whatever number of columns the setting asks for. */
-.diluxone-users-socials--icon { grid-template-columns: repeat(auto-fit, 52px); }
+   arrange themselves in one centred row, whatever number of columns the
+   setting asks for. */
+.diluxone-users-socials--icon { grid-template-columns: repeat(auto-fit, 52px); justify-content: center; }
 
 /* A single button does not sit half a box wide staring at a gap. */
 .diluxone-users-socials--cols-2 > .diluxone-users-social:only-child { grid-column: 1 / -1; }
 
 @media (max-width: 480px) {
-	.diluxone-users-socials--cols-2 { grid-template-columns: minmax(0, 1fr); }
+	.diluxone-users-socials--cols-2:not(.diluxone-users-socials--icon) { grid-template-columns: minmax(0, 1fr); }
 }
 
 .diluxone-users-social {
