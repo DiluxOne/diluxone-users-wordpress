@@ -185,6 +185,49 @@ function diluxone_users_check_page( string $option, string $shortcode, string $l
 }
 
 /**
+ * The sign-in page of its own, as a door: its address, and whether something
+ * else took that address since it was chosen.
+ *
+ * The plugin's rule is matched before a page's, so a page given the same
+ * path later is the one that cannot be reached; this is where that is said
+ * rather than the page silently disappearing.
+ *
+ * @return array{label: string, state: string, detail: string, why: string, url: string, change?: string, word?: string}
+ */
+function diluxone_users_check_door(): array {
+	$label  = __( 'Sign-in page', 'diluxone-users' );
+	$url    = diluxone_users_door_url();
+	$design = diluxone_users_admin_url( 'diluxone-users-design', array( 'tab' => 'login' ) );
+	$taken  = (string) diluxone_users_on_hub( static fn(): string => diluxone_users_login_slug_taken( diluxone_users_login_slug() ) );
+
+	if ( '' !== $taken ) {
+		return diluxone_users_check(
+			$label,
+			'pending',
+			sprintf(
+				/* translators: 1: the address, 2: what else is there */
+				__( '%1$s is also %2$s, which nobody can reach while the sign-in page answers there.', 'diluxone-users' ),
+				$url,
+				$taken
+			),
+			__( 'Its address is taken.', 'diluxone-users' ),
+			$design,
+			__( 'Change the address →', 'diluxone-users' )
+		);
+	}
+
+	return diluxone_users_check(
+		$label,
+		'active',
+		sprintf(
+			/* translators: %s: the address of the sign-in page */
+			__( 'A page of its own, at %s.', 'diluxone-users' ),
+			$url
+		)
+	);
+}
+
+/**
  * Does mail go out?
  *
  * Only what the site has seen can be reported: the last message it tried to
@@ -262,13 +305,15 @@ function diluxone_users_checks(): array {
 		'diluxone-users-account',
 		__( 'No account area: people edit their details on the dashboard profile, as WordPress has it.', 'diluxone-users' )
 	);
-	$checks[] = diluxone_users_check_page(
-		'diluxone_users_login_page',
-		'diluxone_users_login',
-		__( 'Sign-in page', 'diluxone-users' ),
-		'diluxone-users-login',
-		__( 'Everybody signs in on wp-login.php, as WordPress has it.', 'diluxone-users' )
-	);
+	$checks[] = diluxone_users_door_on()
+		? diluxone_users_check_door()
+		: diluxone_users_check_page(
+			'diluxone_users_login_page',
+			'diluxone_users_login',
+			__( 'Sign-in page', 'diluxone-users' ),
+			'diluxone-users-login',
+			__( 'Everybody signs in on wp-login.php, as WordPress has it.', 'diluxone-users' )
+		);
 
 	// Mail. Without it nobody comes in by link and nobody passes a second step.
 	$checks[] = diluxone_users_check_mail();

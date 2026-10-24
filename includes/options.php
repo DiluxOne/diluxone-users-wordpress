@@ -140,7 +140,14 @@ function diluxone_users_option_defaults_own(): array {
 		// takes over the page, which is what a site that has not designed one
 		// wants and would otherwise install a second plugin to get.
 		'diluxone_users_login_template'        => 'plain',
+		// With the shape 'own', the path the sign-in page is answered at, and
+		// the ones it had before, which keep sending people to it.
+		'diluxone_users_login_slug'            => 'sign-in',
+		'diluxone_users_login_slug_old'        => array(),
 		'diluxone_users_login_logo'            => 0,
+		// Whether that logo is drawn above the form. On, so a site that sets a
+		// logo sees it there; off for one that already shows it in its header.
+		'diluxone_users_login_logo_show'       => 1,
 
 		// ── The black bar across the top ─────────────────────────────
 		// 'wp' leaves it exactly as WordPress shows it. 'hide' takes it away
@@ -800,14 +807,15 @@ function diluxone_users_login_page_live(): bool {
 /**
  * The URL of the site's sign-in screen.
  *
- * With no page configured — or one nobody can open, see
+ * With the shape "A page of its own" it is that page (login-door.php). With
+ * no page configured — or one nobody can open, see
  * diluxone_users_login_page_live() — it falls back to wp-login.php, which is
  * where WordPress expects to send somebody who is not signed in: a plugin
  * cannot leave a site with no door. On a network it is always the hub's (see
  * network-hub.php).
  */
 function diluxone_users_login_url(): string {
-	$url = diluxone_users_login_page_live() ? diluxone_users_page_url( 'diluxone_users_login_page' ) : '';
+	$url = diluxone_users_login_door_url();
 
 	if ( '' === $url ) {
 		$url = wp_login_url();

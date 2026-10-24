@@ -34,6 +34,7 @@ class TwoFactorChallengeTest extends TestCase {
 		require_once DILUXONE_USERS_DIR . 'includes/auth-email.php';
 		require_once DILUXONE_USERS_DIR . 'includes/auth.php';
 		require_once DILUXONE_USERS_DIR . 'includes/login.php';
+		require_once DILUXONE_USERS_DIR . 'includes/login-door.php';
 
 		$GLOBALS['diluxone_users_test_user_meta'] = array();
 		$GLOBALS['_test_wp_options']              = array();

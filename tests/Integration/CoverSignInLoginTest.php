@@ -370,6 +370,65 @@ class CoverSignInLoginTest extends IntegrationTestCase {
 		$html = (string) ob_get_clean();
 
 		$this->assertMatchesRegularExpression( '#^<p class="diluxone-users-login__logo"><img src="[^"]*logo\.jpg" alt="' . preg_quote( esc_attr( get_bloginfo( 'name' ) ), '#' ) . '"></p>$#', $html );
+
+		// The switch saved on draws the very same mark as the switch never touched.
+		$this->set( array( 'diluxone_users_login_logo_show' => 1 ) );
+
+		ob_start();
+		diluxone_users_login_logo();
+		$this->assertSame( $html, ob_get_clean() );
+	}
+
+	public function test_a_logo_the_site_keeps_off_the_form_is_not_drawn(): void {
+		$this->set(
+			array(
+				'diluxone_users_login_logo'      => $this->image( 'logo' ),
+				'diluxone_users_login_logo_show' => 0,
+			)
+		);
+
+		ob_start();
+		diluxone_users_login_logo();
+		$this->assertSame( '', ob_get_clean() );
+	}
+
+	public function test_registering_the_second_step_and_a_new_password_follow_the_logo_switch(): void {
+		$user    = get_userdata( $this->make_user() );
+		$screens = array(
+			'register'    => array(
+				'state'     => '',
+				'fields'    => array(),
+				'open'      => true,
+				'by_link'   => false,
+				'providers' => array(),
+			),
+			'login-2fa'   => array(
+				'key'     => 'key',
+				'method'  => 'email',
+				'methods' => array(),
+				'state'   => '',
+				'user_id' => $user->ID,
+			),
+			'login-reset' => array(
+				'user'  => $user,
+				'state' => '',
+			),
+		);
+
+		$this->set( array( 'diluxone_users_login_logo' => $this->image( 'logo' ) ) );
+
+		foreach ( $screens as $file => $args ) {
+			$this->assertStringContainsString( 'diluxone-users-login__logo', diluxone_users_render( $file, $args ), $file . ', switched on' );
+		}
+
+		$this->set( array( 'diluxone_users_login_logo_show' => 0 ) );
+
+		foreach ( $screens as $file => $args ) {
+			$html = diluxone_users_render( $file, $args );
+
+			$this->assertStringContainsString( 'diluxone-users-login', $html, $file . ' is drawn' );
+			$this->assertStringNotContainsString( 'diluxone-users-login__logo', $html, $file . ', switched off' );
+		}
 	}
 
 	public function test_an_icon_nobody_drew_is_nothing(): void {
