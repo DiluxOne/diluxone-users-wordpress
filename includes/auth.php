@@ -195,7 +195,7 @@ function diluxone_users_2fa_available( int $user_id ): array {
  */
 function diluxone_users_2fa_surface(): string {
 	// The page of its own draws it too: it is the sign-in form's.
-	if ( diluxone_users_login_page_live() || diluxone_users_door_on() ) {
+	if ( diluxone_users_login_page_live() || diluxone_users_door_open() ) {
 		return 'page';
 	}
 

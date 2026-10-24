@@ -478,4 +478,28 @@ class LoginDoorTest extends IntegrationTestCase {
 
 		$this->assertSame( home_url( '/sign-in/register/' ), $this->expectRedirect( 'diluxone_users_door_pages' ) );
 	}
+
+	public function test_safe_mode_shuts_the_page_of_its_own(): void {
+		$this->hook( 'diluxone_users_safe_mode', '__return_true' );
+
+		$this->assertSame( wp_login_url(), diluxone_users_login_url(), 'wp-login.php is the way in' );
+		$this->assertSame( '', diluxone_users_register_url() );
+
+		$this->as_front_end();
+		$this->on_door( 'login' );
+		wp_set_current_user( $this->make_user() );
+
+		$this->stays( 'diluxone_users_door_serve', 'nobody signed in is sent anywhere' );
+		$this->assertSame( '/theme/index.php', diluxone_users_door_template( '/theme/index.php' ), 'the plugin draws no document' );
+
+		$this->on_door( 'moved' );
+		$this->stays( 'diluxone_users_door_serve', 'an old address redirects nowhere' );
+
+		$page = $this->page( 'Sign in' );
+		diluxone_users_update_option( 'diluxone_users_login_page', $page );
+		$GLOBALS['wp_query']     = new \WP_Query( array( 'page_id' => $page ) );
+		$GLOBALS['wp_the_query'] = $GLOBALS['wp_query'];
+
+		$this->stays( 'diluxone_users_door_pages', 'a sign-in page still chosen draws itself' );
+	}
 }

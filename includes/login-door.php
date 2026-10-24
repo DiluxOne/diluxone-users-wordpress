@@ -46,6 +46,15 @@ function diluxone_users_door_on(): bool {
 	return 'own' === diluxone_users_login_template();
 }
 
+/**
+ * Is the page of its own the way in right now? Not in safe mode: it stands
+ * aside like every other door, wp-login.php is the way in, and its rules stay
+ * where they are, so leaving safe mode gives it back without a flush.
+ */
+function diluxone_users_door_open(): bool {
+	return diluxone_users_door_on() && ! diluxone_users_safe_mode();
+}
+
 /** The path the page is answered at, without slashes. */
 function diluxone_users_login_slug(): string {
 	$slug = sanitize_title( (string) diluxone_users_option( 'diluxone_users_login_slug' ) );
@@ -282,7 +291,7 @@ function diluxone_users_login_slug_taken( string $slug ): string {
  * stranger can open it (diluxone_users_login_page_live()).
  */
 function diluxone_users_login_door_url(): string {
-	if ( diluxone_users_door_on() ) {
+	if ( diluxone_users_door_open() ) {
 		return diluxone_users_door_url();
 	}
 
@@ -390,7 +399,7 @@ function diluxone_users_door_query( array $leave = array() ): array {
 function diluxone_users_door_serve(): void {
 	$view = diluxone_users_door_view();
 
-	if ( '' === $view ) {
+	if ( '' === $view || ! diluxone_users_door_open() ) {
 		return;
 	}
 
@@ -440,7 +449,7 @@ add_action( 'template_redirect', 'diluxone_users_door_serve', 2 );
  * own. A 302, so choosing another shape gives the page back at once.
  */
 function diluxone_users_door_pages(): void {
-	if ( ! diluxone_users_door_on() || ! is_page() ) {
+	if ( ! diluxone_users_door_open() || ! is_page() ) {
 		return;
 	}
 
@@ -477,7 +486,7 @@ add_action( 'template_redirect', 'diluxone_users_door_pages', 2 );
 function diluxone_users_door_template( $template ): string {
 	$view = diluxone_users_door_view();
 
-	if ( 'login' !== $view && 'register' !== $view ) {
+	if ( ( 'login' !== $view && 'register' !== $view ) || ! diluxone_users_door_open() ) {
 		return (string) $template;
 	}
 

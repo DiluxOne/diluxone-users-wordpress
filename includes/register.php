@@ -32,7 +32,7 @@ defined( 'ABSPATH' ) || exit;
  * are in (see network-hub.php).
  */
 function diluxone_users_register_url(): string {
-	$url = diluxone_users_door_on() ? diluxone_users_door_url( 'register' ) : diluxone_users_page_url( 'diluxone_users_register_page' );
+	$url = diluxone_users_door_open() ? diluxone_users_door_url( 'register' ) : diluxone_users_page_url( 'diluxone_users_register_page' );
 
 	return '' !== $url && diluxone_users_sends_to_hub() ? diluxone_users_with_return( $url ) : $url;
 }
