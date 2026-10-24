@@ -713,6 +713,6 @@ class CoverSettingsAccessTest extends IntegrationTestCase {
 		$this->assertStringContainsString( 'None yet.', $this->draw( 'diluxone_users_screen_design' ) );
 
 		diluxone_users_update_option( 'diluxone_users_login_logo', 99 );
-		$this->assertStringContainsString( 'The site’s logo, above the form in every template.', $this->draw( 'diluxone_users_screen_design' ) );
+		$this->assertStringContainsString( 'The site’s logo.', $this->draw( 'diluxone_users_screen_design' ) );
 	}
 }
