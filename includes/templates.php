@@ -450,6 +450,12 @@ function diluxone_users_account_css(): string {
 	 */
 	$ground = diluxone_users_account_ground();
 
+	// With the theme's colours the text may turn light, so the shade is mixed
+	// from the theme's own surface and text and turns with them.
+	if ( '' !== $ground && diluxone_users_colors_from_theme() ) {
+		$ground = diluxone_users_ground_tint( $ground );
+	}
+
 	if ( '' !== $ground ) {
 		$css .= '.diluxone-users-account{background:var(--diluxone-users-ground,' . $ground . ');}';
 	}

@@ -367,6 +367,39 @@ function diluxone_e2e_switches(): void {
 add_action( 'plugins_loaded', 'diluxone_e2e_switches' );
 
 /**
+ * A theme with a dark mode, switched on from a spec (`diluxone_e2e_dark`).
+ *
+ * The ground goes dark and the text light, both when the system asks for it
+ * (`prefers-color-scheme: dark`) and when the theme's own switch puts
+ * `is-dark` on <html>, which are the two ways a site goes dark. The theme
+ * publishes no palette while it is on, as a classic theme does, so every
+ * colour of the plugin's is the one measured on the page.
+ */
+function diluxone_e2e_dark_mode(): void {
+	if ( ! get_option( 'diluxone_e2e_dark' ) ) {
+		return;
+	}
+
+	add_filter( 'diluxone_users_theme_palette', '__return_empty_array', 100 );
+	add_action(
+		'wp_enqueue_scripts',
+		static function (): void {
+			$dark = '{--wp--preset--color--base:#15171c;--wp--preset--color--contrast:#e6e8ec;}';
+			$body = '{background:#15171c;color:#e6e8ec;}';
+
+			wp_register_style( 'diluxone-e2e-dark', false, array(), '1' );
+			wp_enqueue_style( 'diluxone-e2e-dark' );
+			wp_add_inline_style(
+				'diluxone-e2e-dark',
+				'@media (prefers-color-scheme: dark){html:root' . $dark . 'html body' . $body . '}html.is-dark:root' . $dark . 'html.is-dark body' . $body
+			);
+		},
+		100
+	);
+}
+add_action( 'plugins_loaded', 'diluxone_e2e_dark_mode' );
+
+/**
  * Says in a header whether the page defined DONOTCACHEPAGE before it was drawn.
  *
  * The constant is read by page caches at the end of the request, where no

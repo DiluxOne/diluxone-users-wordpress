@@ -228,6 +228,8 @@ everybody, with the code by e-mail, and skips it for nobody.
 | Field editor dialog: open, Cancel, save, fallback to the field screen when the fetch fails; type shows only its rows | `admin-framework-more` › The field editor |
 | Account question: Escape and backdrop are "no" | `admin-framework-more` › The account area’s own question |
 | Measured theme colours kept in localStorage and painted early on the next page | `admin-framework-more` › The theme’s colours, remembered |
+| Dark mode with the theme's colours and the ground "The theme's": the area on the page's own ground, every heading at 4.5:1, measured again when the system or the theme's class switches, each scheme opening with its own kept colours (single site and the hub) | `account-dark-mode` › the ground “The theme’s”; network `account-dark-mode` |
+| Dark mode with the theme's colours and a shade of the palette: the shade turns with the system's scheme and the theme's class, the area's text and every heading at 4.5:1 on it (each shade on a single site, Sky on the hub) | `account-dark-mode` › a shade of the palette; network `account-dark-mode` |
 | E-mail notices: subject per language, put back, the mail follows; summary reads rules and the link's delivery | `admin-framework-more` › E-mail notices: the languages and the summary |
 | Overview: cards (accounts, sessions, fields, social), the 15-minute cache, card links | `admin-overview` › the cards |
 | Overview: first steps (button only on the first undone, gone when done) | `admin-overview` › first steps |
@@ -275,7 +277,7 @@ everybody, with the code by e-mail, and skips it for nobody.
 | Design › Brand: site writes it, the accent's eight swatches, a Pro colour stored (inactive, kept on save, the palette's nearest on the page), corners + default, controls, button styles, icons, soft notices, logo via media library, the theme's palette guessed and the picture of the colour map (`design/brand/color-map`), the any-colour card (`design/brand/any-color`), live preview | `admin-design-brand` |
 | Design › Sign-in: the three shapes, the Pro layouts' card (`design/login/shapes`) and the previews setting, a Pro layout stored (card on the page, inactive and kept on the tab), forged shape, intro, legal sanitised, sent screen words and envelope, emptied box falls back, live preview | `admin-design-login` › The sign-in page |
 | Design › Registration: intro and done, warning, live preview | `admin-design-login` › The registration page |
-| Design › Account: the simple shape's pieces, the cover's card (`design/account/shapes`), a cover stored (simple on the page, inactive and kept on the tab), header pieces, menu style/align, forged values, spacing + defaults (row width), ground from its palette (a shade sent by hand refused), width, phone wrap, live preview | `admin-design-account` |
+| Design › Account: the simple shape's pieces, the cover's card (`design/account/shapes`), a cover stored (simple on the page, inactive and kept on the tab), header pieces, menu style/align, forged values, spacing + defaults (row width), ground: “The theme’s” first and chosen on a fresh install with no ground rule printed, one from its palette (a shade sent by hand refused), width, phone wrap, live preview | `admin-design-account` |
 | Design › Social: finish on the sign-in buttons | `admin-design-more` › Social buttons |
 | Design › Photo: largest size | `admin-design-more` › Profile photo |
 | Design › wp-login.php: a swatch of the accent palette is the exact background, own mark | `admin-design-more` › WordPress’s own screen |

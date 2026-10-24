@@ -107,6 +107,41 @@ function diluxone_users_ground_palette(): array {
 }
 
 /**
+ * A shade of the ground as the theme's own colours draw it, as CSS.
+ *
+ * With Colours › the theme's the text is the theme's, and on a site with a
+ * dark mode it turns light: a near-white hex behind it would put light letters
+ * on a light ground. So the shade is mixed from what the page paints instead —
+ * the surface, 2% of the text, and 4% of the swatch's hue — and it turns with
+ * the theme: a faint shade in light mode, a faint lift in dark mode. Nothing
+ * moves more than 6% of the way from the surface, which is why the text still
+ * reads on it.
+ *
+ * The hue is the colour that, mixed with the plugin's own white and text, gives
+ * the swatch back (within a shade), so a light page looks as it did with the hex.
+ *
+ * @return string A `color-mix()`, or '' for anything that is not a colour.
+ */
+function diluxone_users_ground_tint( string $hex ): string {
+	$hex = diluxone_users_hex( $hex );
+
+	if ( '' === $hex ) {
+		return '';
+	}
+
+	$own = array( 0xff, 0xff, 0xff );
+	$ink = array( 0x16, 0x18, 0x1d );
+	$hue = '#';
+
+	foreach ( array( 0, 1, 2 ) as $i ) {
+		$channel = ( hexdec( substr( $hex, 1 + 2 * $i, 2 ) ) - 0.96 * ( 0.98 * $own[ $i ] + 0.02 * $ink[ $i ] ) ) / 0.04;
+		$hue    .= sprintf( '%02x', (int) max( 0, min( 255, round( $channel ) ) ) );
+	}
+
+	return 'color-mix(in srgb,' . $hue . ' 4%,color-mix(in srgb,var(--diluxone-users-text) 2%,var(--diluxone-users-surface)))';
+}
+
+/**
  * Whether a colour setting takes any colour, or one of the palette's.
  *
  * Users+ Pro answers true: that is its "any colour".

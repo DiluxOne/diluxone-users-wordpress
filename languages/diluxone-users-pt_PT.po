@@ -278,43 +278,43 @@ msgstr "Foto de perfil"
 msgid "Saved."
 msgstr "Guardado."
 
-#: includes/admin-appearance.php:642
+#: includes/admin-appearance.php:643
 msgid "Dark mode"
 msgstr "Modo escuro"
 
-#: includes/admin-appearance.php:489
+#: includes/admin-appearance.php:490
 msgid "Accent colour"
 msgstr "Cor de destaque"
 
-#: includes/admin-appearance.php:517
+#: includes/admin-appearance.php:518
 msgid "Corners"
 msgstr "Cantos"
 
-#: includes/admin-appearance.php:520
+#: includes/admin-appearance.php:521
 msgid "pixels — empty for the default"
 msgstr "pixels — vazio para o padrão"
 
-#: includes/admin-appearance.php:760
+#: includes/admin-appearance.php:761
 msgid "Three layers, in this order: the photo the person uploaded, then Gravatar, then their initials drawn on the accent colour. Turn off the ones you do not want."
 msgstr "Três camadas, nesta ordem: a foto que a pessoa enviou, depois o Gravatar, depois as iniciais dela desenhadas sobre a cor de destaque. Desative as que não quiser."
 
-#: includes/admin-appearance.php:762
+#: includes/admin-appearance.php:763
 msgid "Where it comes from"
 msgstr "De onde vem"
 
-#: includes/admin-appearance.php:770
+#: includes/admin-appearance.php:771
 msgid "Let people upload their own"
 msgstr "Deixar as pessoas enviarem a sua"
 
-#: includes/admin-appearance.php:790
+#: includes/admin-appearance.php:791
 msgid "Fall back to Gravatar when there is none"
 msgstr "Recorrer ao Gravatar quando não houver nenhuma"
 
-#: includes/admin-appearance.php:797
+#: includes/admin-appearance.php:798
 msgid "Otherwise, draw their initials"
 msgstr "Caso contrário, desenhar as iniciais"
 
-#: includes/admin-appearance.php:776
+#: includes/admin-appearance.php:777
 msgid "Largest photo accepted"
 msgstr "Maior foto aceita"
 
@@ -595,7 +595,7 @@ msgid "Registration"
 msgstr "Registo"
 
 #: includes/admin-login.php:1075
-#: includes/login-door.php:503
+#: includes/login-door.php:512
 #: includes/login-ways.php:621
 #: includes/pages.php:26
 #: includes/passwordless.php:245
@@ -2524,15 +2524,15 @@ msgstr "Um botão para os seus dados"
 msgid "The name is always there: a header without it is a coloured band with a picture on it."
 msgstr "O nome está sempre lá: um cabeçalho sem ele é uma faixa de cor com uma foto em cima."
 
-#: includes/admin-appearance.php:417
+#: includes/admin-appearance.php:418
 msgid "The content"
 msgstr "O conteúdo"
 
-#: includes/admin-appearance.php:401
+#: includes/admin-appearance.php:402
 msgid "Held to a reading column"
 msgstr "Limitado a uma coluna de leitura"
 
-#: includes/admin-appearance.php:402
+#: includes/admin-appearance.php:403
 msgid "As wide as the theme allows"
 msgstr "Tão largo quanto o tema permitir"
 
@@ -2717,7 +2717,7 @@ msgstr "O formulário numa caixa no meio da página. A resposta segura quando n�
 msgid "The shape of the page"
 msgstr "A forma da página"
 
-#: includes/admin-appearance.php:646
+#: includes/admin-appearance.php:647
 #: includes/admin-login.php:1230
 msgid "Your mark"
 msgstr "A tua marca"
@@ -2766,7 +2766,7 @@ msgstr "A portada é um resumo: cada secção oferece um cartão e o site pode a
 msgid "Use a different address"
 msgstr "Usar outro e-mail"
 
-#: includes/admin-appearance.php:650
+#: includes/admin-appearance.php:651
 msgid "Shown above the sign-in form. Somebody who arrived from an e-mail link should be able to tell whose site this is before typing their address into it."
 msgstr "Mostra-se por cima do formulário de entrada. Quem chegou por uma ligação de e-mail devia conseguir perceber de que site se trata antes de escrever lá a sua morada."
 
@@ -2787,7 +2787,7 @@ msgid "Copy any file from the plugin’s templates/ folder into the folder below
 msgstr "Copia qualquer ficheiro da pasta templates/ do plugin para a pasta abaixo e edita-o aí. O plugin vai usar o teu."
 
 #: includes/admin-design.php:387
-#: includes/login-door.php:499
+#: includes/login-door.php:508
 #: includes/pages.php:36
 #: templates/hub-door.php:27
 #: templates/hub-door.php:30
@@ -2897,7 +2897,7 @@ msgid "This site does not use this form: accounts are made another way. What is 
 msgstr "Este site não usa este formulário: as contas são criadas de outra maneira. O que for escrito aqui espera pelo dia em que isso mude."
 
 #: includes/account.php:634
-#: includes/admin-appearance.php:665
+#: includes/admin-appearance.php:666
 msgid "Filled"
 msgstr "Preenchido"
 
@@ -2971,84 +2971,84 @@ msgstr "Uma grelha com todas as secções à vista"
 msgid "With three sections the scroller is tidier. With eight it hides half of them, and somebody has to drag sideways to find out they exist."
 msgstr "Com três secções deslizar é mais limpo. Com oito esconde metade, e alguém tem de arrastar para o lado para descobrir que existem."
 
-#: includes/admin-appearance.php:690
+#: includes/admin-appearance.php:691
 msgid "Buttons"
 msgstr "Botões"
 
-#: includes/admin-appearance.php:666
+#: includes/admin-appearance.php:667
 msgid "The accent colour, with the text on top of it."
 msgstr "A cor de destaque, com o texto por cima dela."
 
-#: includes/admin-appearance.php:669
+#: includes/admin-appearance.php:670
 msgid "Outline"
 msgstr "Contorno"
 
-#: includes/admin-appearance.php:670
+#: includes/admin-appearance.php:671
 msgid "A border and the text in the accent, on the page’s own ground. For a design where a block of colour would be too loud."
 msgstr "Um contorno e o texto na cor de destaque, sobre o fundo da própria página. Para um design onde um bloco de cor seria demasiado."
 
-#: includes/admin-appearance.php:673
+#: includes/admin-appearance.php:674
 msgid "Soft"
 msgstr "Suave"
 
-#: includes/admin-appearance.php:674
+#: includes/admin-appearance.php:675
 msgid "The accent washed down behind the text. Quieter than filled and steadier than an outline."
 msgstr "A cor de destaque esbatida atrás do texto. Mais calado do que o preenchido e mais firme do que o contorno."
 
-#: includes/admin-appearance.php:707
+#: includes/admin-appearance.php:708
 msgid "Controls"
 msgstr "Controlos"
 
-#: includes/admin-appearance.php:712
+#: includes/admin-appearance.php:713
 msgid "Height"
 msgstr "Altura"
 
-#: includes/admin-appearance.php:722
+#: includes/admin-appearance.php:723
 msgid "Edge"
 msgstr "Espessura"
 
-#: includes/admin-appearance.php:732
+#: includes/admin-appearance.php:733
 msgid "Pixels, both, and empty for the plugin’s own — 46 and 1. The edge takes halves: 1.5 is what a site with a heavier hand actually uses, and 2 is a different design."
 msgstr "Píxeis, ambos, e vazio para os do plugin — 46 e 1. A espessura aceita meios: 1,5 é o que um site de mão mais pesada usa, e 2 é outro design."
 
-#: includes/admin-appearance.php:735
+#: includes/admin-appearance.php:736
 #: includes/admin-notices.php:52
 msgid "Notices"
 msgstr "Avisos"
 
-#: includes/admin-appearance.php:741
+#: includes/admin-appearance.php:742
 msgid "A bar down the left"
 msgstr "Uma barra à esquerda"
 
-#: includes/admin-appearance.php:747
+#: includes/admin-appearance.php:748
 msgid "A soft box in the colour of what it says"
 msgstr "Uma caixa suave na cor do que diz"
 
-#: includes/admin-appearance.php:750
+#: includes/admin-appearance.php:751
 msgid "The four the plugin writes: the link expired, that address is not valid, a network failed, something went wrong. The colour is the notice’s own either way — green when it went well, red when it did not."
 msgstr "Os quatro que o plugin escreve: a ligação expirou, esse endereço não é válido, uma rede falhou, algo correu mal. A cor é a do próprio aviso de qualquer modo — verde quando correu bem, vermelho quando não."
 
-#: includes/admin-appearance.php:358
+#: includes/admin-appearance.php:359
 msgid "Lining up with the site"
 msgstr "Alinhar com o site"
 
-#: includes/admin-appearance.php:363
+#: includes/admin-appearance.php:364
 msgid "Width"
 msgstr "Largura"
 
-#: includes/admin-appearance.php:373
+#: includes/admin-appearance.php:374
 msgid "Side gutter"
 msgstr "Ar nas laterais"
 
-#: includes/admin-appearance.php:383
+#: includes/admin-appearance.php:384
 msgid "Above and below"
 msgstr "Acima e abaixo"
 
-#: includes/admin-appearance.php:393
+#: includes/admin-appearance.php:394
 msgid "The header, the menu and the content are three rows, and this is the width they line up to and the air inside them. Pixels, and empty means the plugin says nothing about it: whatever your theme already does with the page stands."
 msgstr "O cabeçalho, o menu e o conteúdo são três linhas, e isto é a largura a que se alinham e o ar que levam dentro. Píxeis, e vazio quer dizer que o plugin não opina: fica o que o seu tema já faz com a página."
 
-#: includes/admin-appearance.php:395
+#: includes/admin-appearance.php:396
 msgid "Empty and not zero, and the difference matters: a zero is an answer, and an answer printed into the stylesheet would overrule a theme that had already lined these rows up itself."
 msgstr "Vazio e não zero, e a diferença importa: um zero é uma resposta, e uma resposta impressa na folha de estilos passaria por cima de um tema que já vinha a alinhar estas linhas por sua conta."
 
@@ -4053,15 +4053,15 @@ msgstr "A forma"
 msgid "The page it sits on"
 msgstr "A página onde ela fica"
 
-#: includes/admin-appearance.php:625
+#: includes/admin-appearance.php:626
 msgid "The properties it reads"
 msgstr "As propriedades que ele lê"
 
-#: includes/admin-appearance.php:654
+#: includes/admin-appearance.php:655
 msgid "Shapes and edges"
 msgstr "Formas e bordos"
 
-#: includes/admin-appearance.php:779
+#: includes/admin-appearance.php:780
 msgid "KB"
 msgstr "KB"
 
@@ -4910,53 +4910,53 @@ msgstr "Pode abrir-se"
 msgid "Kept out"
 msgstr "Fechado"
 
-#: includes/admin-appearance.php:466
+#: includes/admin-appearance.php:467
 msgid "— the plugin’s own"
 msgstr "— o do próprio plugin"
 
-#: includes/admin-appearance.php:523
+#: includes/admin-appearance.php:524
 msgid "How round every panel, field and button is. 0 for a design with straight edges, 12 for the plugin’s own, more for a site whose own cards are round."
 msgstr "O quão redondos são os painéis, os campos e os botões. 0 para um desenho de cantos direitos, 12 para o do próprio plugin, mais para um site cujos cartões já são redondos."
 
-#: includes/admin-appearance.php:556
+#: includes/admin-appearance.php:557
 msgid "One question, and everything else on this tab hangs off the answer. What it decides reaches past this screen: the sign-in page, the account area, the fields and the buttons all read the same handful of CSS properties."
 msgstr "Uma única pergunta, e tudo o resto neste separador depende da resposta. O que decide vai além deste ecrã: a página de acesso, a área de conta, os campos e os botões leem todos o mesmo punhado de propriedades CSS."
 
-#: includes/admin-appearance.php:558
+#: includes/admin-appearance.php:559
 msgid "Where the plugin’s look comes from"
 msgstr "De onde vem o aspeto do plugin"
 
 #. translators: %s: the active theme's name.
-#: includes/admin-appearance.php:568
+#: includes/admin-appearance.php:569
 #, php-format
 msgid "From your theme — %s"
 msgstr "Do seu tema — %s"
 
-#: includes/admin-appearance.php:612
+#: includes/admin-appearance.php:613
 msgid "I choose it here"
 msgstr "Escolho-o aqui"
 
-#: includes/admin-appearance.php:613
+#: includes/admin-appearance.php:614
 msgid "One colour and one corner, and the plugin builds the rest around them. The panel beside this one is the account area itself, so what is chosen can be looked at rather than imagined."
 msgstr "Uma cor e um canto, e o plugin constrói o resto à volta disso. O painel ao lado é a própria área de conta, por isso o que se escolhe vê-se em vez de se imaginar."
 
-#: includes/admin-appearance.php:621
+#: includes/admin-appearance.php:622
 msgid "The site writes it"
 msgstr "É o site que o escreve"
 
-#: includes/admin-appearance.php:622
+#: includes/admin-appearance.php:623
 msgid "The plugin’s stylesheet is not loaded and the plugin paints nothing: its panels, fields and buttons come out bare and the site’s own stylesheet dresses them. The most work of the three, and the only way to match a design exactly."
 msgstr "A folha de estilos do plugin não é carregada e o plugin não pinta nada: os seus painéis, campos e botões saem nus e é a folha de estilos do site que os veste. A que dá mais trabalho das três, e a única forma de encaixar num desenho ao milímetro."
 
-#: includes/admin-appearance.php:628
+#: includes/admin-appearance.php:629
 msgid "Pointing these at the site’s own tokens, from the site’s own stylesheet, is almost always enough on its own — and unlike a sheet written by hand it survives the plugin growing a component next month. That is worth trying before this answer."
 msgstr "Apontar estas propriedades aos tokens do próprio site, a partir da folha de estilos do site, chega quase sempre por si só — e, ao contrário de uma folha escrita à mão, sobrevive a que o plugin ganhe um componente novo no mês que vem. Vale a pena tentar isso antes desta resposta."
 
-#: includes/admin-appearance.php:643
+#: includes/admin-appearance.php:644
 msgid "There is none here, on purpose. Dark mode belongs to the site: a light site seen from a dark system used to end up with a light page and black panels. Where the site has one, its own tokens change and these follow."
 msgstr "Aqui não há, de propósito. O modo escuro pertence ao site: um site claro visto a partir de um sistema escuro acabava com a página clara e os painéis pretos. Onde o site o tiver, mudam os tokens dele e estes vão atrás."
 
-#: includes/admin-appearance.php:655
+#: includes/admin-appearance.php:656
 msgid "What the plugin’s own stylesheet draws, whatever the colours in it came from."
 msgstr "O que a folha de estilos do próprio plugin desenha, venham de onde vierem as cores que leva."
 
@@ -5409,11 +5409,11 @@ msgstr "Ir para o painel do WordPress"
 msgid "Sign out"
 msgstr "Sair"
 
-#: includes/admin-appearance.php:572
+#: includes/admin-appearance.php:573
 msgid "Your theme publishes no palette, so the plugin takes the colours your theme paints: the colour of its links and buttons, of its text, its page ground and the edge of its fields, measured on the site itself. There is nothing else to choose."
 msgstr "O seu tema não publica paleta, por isso o plugin usa as cores que o tema pinta: a das ligações e botões, a do texto, o fundo da página e a margem dos campos, medidas no próprio site. Não há mais nada a escolher."
 
-#: includes/admin-appearance.php:573
+#: includes/admin-appearance.php:574
 msgid "The plugin paints itself with the palette your theme publishes, and goes on following it — into the theme’s own dark mode as well, where it hands over a variable rather than a colour. Any part the palette does not name is taken from what your theme paints on the site. There is nothing else to choose."
 msgstr "O plugin pinta-se com a paleta que o seu tema publica e continua a segui-la — também no modo escuro do tema, onde passa uma variável em vez de uma cor. O que a paleta não nomeia é tirado do que o tema pinta no site. Não há mais nada a escolher."
 
@@ -6536,7 +6536,7 @@ msgstr "É isto que faz entrar com o Google hoje e com o Microsoft amanhã cair 
 msgid "Custom user fields, a front-end account area, passwordless sign-in, social login, two-step verification and session control."
 msgstr "Campos de utilizador próprios, uma área de conta no site, entrada sem palavra-passe, login social, verificação em dois passos e controlo de sessões."
 
-#: includes/admin-appearance.php:699
+#: includes/admin-appearance.php:700
 msgid "An icon inside the buttons of the doors: an envelope on the link"
 msgstr "Um ícone dentro dos botões das portas: um envelope na ligação"
 
@@ -6598,31 +6598,23 @@ msgstr "Nada redireciona, a ninguém é pedido o segundo passo, e o acesso com r
 msgid "Users+ Pro adds the account area with a cover: the person on a band the full width of the window, in a colour or a picture, with the menu in a strip of its own underneath."
 msgstr "O Users+ Pro acrescenta a área de conta com capa: a pessoa numa faixa com a largura toda da janela, numa cor ou numa imagem, com o menu numa barra própria por baixo."
 
-#: includes/admin-appearance.php:351
-msgid "The page’s own"
-msgstr "O da própria página"
-
-#: includes/admin-appearance.php:352
-msgid "The shade the area sits on. The page’s own is what it always did — and on a white page white boxes have no edge, so this is how they get one."
-msgstr "O tom sobre o qual a área assenta. O da própria página é o que sempre foi — e numa página branca as caixas brancas não têm margem; é assim que ganham uma."
-
-#: includes/admin-appearance.php:419
+#: includes/admin-appearance.php:420
 msgid "Forms are hard to read at full width; a list of courses is not. This holds the content only."
 msgstr "Os formulários são difíceis de ler na largura toda; uma lista de cursos não. Isto limita apenas o conteúdo."
 
-#: includes/admin-appearance.php:494
+#: includes/admin-appearance.php:495
 msgid "A filled button, a link, the section of the menu somebody is reading, and the initials drawn for anybody with no photo. Everything else — the grounds, the lines, the quiet text — the plugin builds around it. Each of these reads under white letters and as a link on white."
 msgstr "Um botão preenchido, uma ligação, a secção do menu que alguém está a ler e as iniciais desenhadas para quem não tem fotografia. Todo o resto — os fundos, as linhas, o texto discreto — o plugin constrói à volta. Cada uma destas cores lê-se sob letras brancas e como ligação sobre branco."
 
-#: includes/admin-appearance.php:510
+#: includes/admin-appearance.php:511
 msgid "Any colour"
 msgstr "Qualquer cor"
 
-#: includes/admin-appearance.php:504
+#: includes/admin-appearance.php:505
 msgid "Users+ Pro adds a picker for any colour at all, here and wherever the plugin asks for one."
 msgstr "O Users+ Pro acrescenta um seletor para qualquer cor, aqui e onde quer que o plugin peça uma."
 
-#: includes/admin-appearance.php:585
+#: includes/admin-appearance.php:586
 msgid "Users+ Pro lets you choose which colour of your theme’s palette plays each part, for a theme that numbers its colours instead of naming them."
 msgstr "O Users+ Pro permite escolher que cor da paleta do seu tema faz cada papel, para um tema que numera as cores em vez de lhes dar nome."
 
@@ -7000,11 +6992,11 @@ msgstr "Este site ainda não tem área da conta."
 msgid "Anybody sent to their account lands on %s."
 msgstr "Quem é enviado para a sua conta chega a %s."
 
-#: includes/admin-appearance.php:814
+#: includes/admin-appearance.php:815
 msgid "Gravatar is asked: a hash of every visitor’s e-mail address is sent to a third party to ask whether it has a picture for them."
 msgstr "O Gravatar é consultado: um hash do endereço de e-mail de cada visitante é enviado a um terceiro para perguntar se tem uma fotografia."
 
-#: includes/admin-appearance.php:815
+#: includes/admin-appearance.php:816
 msgid "Gravatar is not asked: no address is sent anywhere to ask whether there is a picture for it."
 msgstr "O Gravatar não é consultado: nenhum endereço é enviado para lado nenhum para perguntar se há uma fotografia."
 
@@ -7116,30 +7108,30 @@ msgstr "Mudar o endereço →"
 msgid "A page of its own, at %s."
 msgstr "Uma página própria, em %s."
 
-#: includes/login-door.php:210
+#: includes/login-door.php:219
 msgid "The sign-in page needs an address: letters, numbers and dashes."
 msgstr "A página de acesso precisa de um endereço: letras, números e hífenes."
 
 #. translators: %s: what was typed
-#: includes/login-door.php:216
+#: includes/login-door.php:225
 #, php-format
 msgid "The address “%s” has to be one word, with no slashes: letters, numbers and dashes."
 msgstr "O endereço “%s” tem de ser uma só palavra, sem barras: letras, números e hífenes."
 
 #. translators: %s: the address, as /sign-in
-#: includes/login-door.php:226
+#: includes/login-door.php:235
 #, php-format
 msgid "The address %s is one WordPress or the site already answers. Choose another."
 msgstr "O endereço %s é um que o WordPress ou o site já atendem. Escolha outro."
 
 #. translators: 1: the address, as /about/, 2: what has it, as: the page “About us”
-#: includes/login-door.php:236
+#: includes/login-door.php:245
 #, php-format
 msgid "The address %1$s is already %2$s. Choose another, or give that one another address first."
 msgstr "O endereço %1$s já é usado por %2$s. Escolha outro, ou dê primeiro outro endereço a esse conteúdo."
 
 #. translators: 1: a kind of content, "page" or "post", 2: its title
-#: includes/login-door.php:270
+#: includes/login-door.php:279
 #, php-format
 msgid "the %1$s “%2$s”"
 msgstr "o conteúdo “%2$s” (%1$s)"
@@ -7149,3 +7141,15 @@ msgstr "o conteúdo “%2$s” (%1$s)"
 #, php-format
 msgid "← Back to %s"
 msgstr "← Voltar a %s"
+
+#: includes/admin-appearance.php:351
+msgid "The theme’s"
+msgstr "A do tema"
+
+#: includes/admin-appearance.php:352
+msgid "The shade the area sits on. The theme’s is the page’s own ground, light or dark, and prints nothing — but on a white page white boxes have no edge, so a shade is how they get one."
+msgstr "O tom sobre o qual a área assenta. O do tema é o fundo próprio da página, claro ou escuro, e não imprime nada — mas numa página branca as caixas brancas não têm contorno, e um tom é a forma de o terem."
+
+#: includes/admin-appearance.php:353
+msgid "While the colours are the theme’s, the shades are mixed from them and follow the theme’s dark mode."
+msgstr "Enquanto as cores forem as do tema, os tons são misturados a partir delas e seguem o modo escuro do tema."
