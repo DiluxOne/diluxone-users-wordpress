@@ -73,6 +73,10 @@ browser back, frame by frame.
   CI, so the tests of a second language (messages, e-mail notices, a mail
   written in its recipient's language) never depend on what a machine
   happened to have.
+- **Astra,** pinned to one version in `.wp-env.json`'s `themes`, installed and
+  inactive on both sites. `signin-card.spec.ts` (and its network twin)
+  activates it, sets its dark palette and puts both back, one test at a time.
+  An environment started before it was added needs `npx wp-env start` again.
 - Nothing else. No mail server: the mu-plugin catches the mail. No OAuth
   credentials: the mu-plugin answers as the provider. No HTTPS: nothing the
   free plugin does needs it on `localhost`.
@@ -211,6 +215,7 @@ deletes all of them. Nothing else on the site has that domain.
 | `sso.spec.ts` | A new social account, one that matches an existing address, and **H-01**: an unverified address must not be handed an existing account. Silence treated as silence. "Verified only". Cancelling at the provider. Linking and unlinking. **H-02**: a link trip with no nonce. A forged `state`. |
 | `admin-settings.spec.ts` | Every tab of every settings screen renders with no PHP notice and no footer riding up into the layout; and eight settings changed by pressing Save, each checked on the public page afterwards — including **M-10**, the legal line keeping its link. |
 | `account-area.spec.ts` | The account area as its owner: the guest screen, the menu, the sections that exist only while offered, details and a required field, the photo and its attachment, the public name, the new-device notice and its switch, export and erasure requests, two-step on and off, the app removed with a backup code, new backup codes, closing browsers. |
+| `signin-card.spec.ts` | The centred card on Twenty Twenty-Five and Astra, light and dark, with the theme's colours: the edge at 3:1 against the page, one centred alignment, the note and the small print a field's gap apart. |
 | `site-menu.spec.ts` | The person in the site's own menu, on the mu-plugin's classic menu: the stranger's sign-in item, the person's sections and sign-out, the three styles, and the tab that saves them. |
 | `admin-effects.spec.ts` | The rest of the dashboard's saves, each checked on the public side: wp-login.php branding, photos, initials, the registration heading, the account menu down the side, the toolbar, profile.php, the sessions list, notice rules, a provider switched off, and what happens to wp-login.php. |
 | `admin-tools.spec.ts` | Status › Tools (export, import, close sessions, fresh code, rebuild, test message), Reports › Sessions and Activity, WordPress's Users screens and Add New User, a field added and deleted, a section of the site's own. |

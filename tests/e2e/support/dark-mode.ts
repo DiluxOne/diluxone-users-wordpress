@@ -34,9 +34,12 @@ export interface Reading {
 /**
  * Every visible element the selector finds, with its text colour, the ground
  * painted behind it and the ratio between them.
+ *
+ * `property` reads another of its colours in place of the text's, such as
+ * `borderTopColor` for an edge.
  */
-export function readings(page: Page, selector: string): Promise<Reading[]> {
-	return page.evaluate((query) => {
+export function readings(page: Page, selector: string, property: 'color' | 'borderTopColor' = 'color'): Promise<Reading[]> {
+	return page.evaluate(([query, which]) => {
 		const canvas = document.createElement('canvas');
 		canvas.width = canvas.height = 1;
 		const pen = canvas.getContext('2d', { willReadFrequently: true })!;
@@ -92,7 +95,7 @@ export function readings(page: Page, selector: string): Promise<Reading[]> {
 			.filter((element) => (element as HTMLElement).offsetParent !== null || getComputedStyle(element).position === 'fixed')
 			.map((element) => {
 				const ground = groundOf(element);
-				const [r, g, b, a] = channels(getComputedStyle(element).color);
+				const [r, g, b, a] = channels(getComputedStyle(element)[which]);
 				const text = [r * a + ground[0] * (1 - a), g * a + ground[1] * (1 - a), b * a + ground[2] * (1 - a)];
 				const one = luminance(text);
 				const two = luminance(ground);
@@ -104,7 +107,7 @@ export function readings(page: Page, selector: string): Promise<Reading[]> {
 					ratio: (Math.max(one, two) + 0.05) / (Math.min(one, two) + 0.05),
 				};
 			});
-	}, selector);
+	}, [selector, property] as const);
 }
 
 /** The ground painted behind one element, as `rgb(r, g, b)`. */
