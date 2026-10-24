@@ -98,6 +98,11 @@ function luminance(css: string): number {
 	return 0.2126 * linear(r) + 0.7152 * linear(g) + 0.0722 * linear(b);
 }
 
+/** Whether an `rgb()` ground is a dark one: nearer black than white. */
+export function isDark(css: string): boolean {
+	return contrast(css, 'rgb(0, 0, 0)') < contrast(css, 'rgb(255, 255, 255)');
+}
+
 /** The WCAG contrast ratio between two `rgb()` colours. */
 export function contrast(one: string, two: string): number {
 	const a = luminance(one);
@@ -199,4 +204,44 @@ export function cardRhythm(page: Page): Promise<Rhythm> {
 			field,
 		};
 	}, CARD_BOX);
+}
+
+/** One of the four ways the card is checked: a theme, in one of its schemes. */
+export interface Look {
+	name: string;
+	theme: string;
+	dark: boolean;
+}
+
+/**
+ * The default theme and Astra, light and dark. Dark on the default theme is
+ * the e2e mu-plugin's stand-in (`diluxone_e2e_dark`) with the system in dark
+ * mode; on Astra it is Astra's own dark palette, which it paints whatever
+ * the system says.
+ */
+export const LOOKS: Look[] = [
+	{ name: 'Twenty Twenty-Five, light', theme: DEFAULT_THEME, dark: false },
+	{ name: 'Twenty Twenty-Five, dark', theme: DEFAULT_THEME, dark: true },
+	{ name: 'Astra, light', theme: ASTRA, dark: false },
+	{ name: 'Astra, dark', theme: ASTRA, dark: true },
+];
+
+/** Puts a look on the site and hands back what takes it off again. */
+export function wearLook(cli: Cli, look: Look, network = false): () => void {
+	const undo = [activateTheme(cli, look.theme, network)];
+
+	if (look.theme === ASTRA && look.dark) {
+		undo.push(astraDark(cli));
+	}
+
+	return () => {
+		for (const step of undo.reverse()) {
+			step();
+		}
+	};
+}
+
+/** The settings a look needs on top of the card's: the default theme's dark stand-in. */
+export function lookOptions(look: Look): Record<string, unknown> {
+	return look.theme === DEFAULT_THEME && look.dark ? { diluxone_e2e_dark: 1 } : {};
 }

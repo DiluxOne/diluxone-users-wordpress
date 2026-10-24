@@ -907,6 +907,8 @@ added. So the measurements are properties too, not only the colours:
 | `--diluxone-users-note-pad` | The air inside it, which turns it into a box | `0` |
 | `--diluxone-users-note-gap` | Between the drawing and the words | `8px` |
 | `--diluxone-users-note-mark` | The drawing's own colour | the note's |
+| `--diluxone-users-card-edge` | The centred card's edge, kept at 3:1 or more against the page | the text at 65% over the surface |
+| `--diluxone-users-field-gap` | Between two fields of a form, and the centred card's rhythm (the note under the e-mail form, the small print) | `18px` |
 
 The last two are also asked from the admin — Design → Your brand — so a site
 that is not writing CSS at all still gets them. Everything on this page can be
