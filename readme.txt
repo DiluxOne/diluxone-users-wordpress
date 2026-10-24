@@ -38,7 +38,8 @@ Only the plugin's own screens appear, in the dashboard.
   required, with a rule of its own for sign-ins by e-mail link. DiluxOne
   Users+ Pro adds an authenticator app, asking it of some roles only, and
   not asking again on a browser that passed it.
-* **Design**: the sign-in page left in your page or in a centred card, a
+* **Design**: the sign-in page left in your page, in a centred card or on a
+  screen of its own at an address you choose, a
   simple account area, the colours from your theme or from a short palette
   that always reads, and the sizes and spacing — or no stylesheet at all, for
   a site that styles everything itself.
@@ -85,7 +86,8 @@ photo**, the plugin draws them instead and nobody's browser asks gravatar.com.
 == Installation ==
 
 1. Upload the plugin folder to `/wp-content/plugins/` and activate it.
-2. Go to **DiluxOne Users+ → Access** and pick (or create) the sign-in page.
+2. Go to **DiluxOne Users+ → Access** and pick (or create) the sign-in page,
+   or choose the shape "A page of its own", which needs no page.
 3. Go to **DiluxOne Users+ → Account area** and pick (or create) the account page.
 
 Nothing changes on the site until you turn something on: WordPress's own
@@ -274,3 +276,4 @@ First public release.
 * The column beside each tab's settings says less: the button that saves, how this site stands right now, and a warning only while something needs doing. What a tab is for and where the rest of the subject lives is in its first line or in the documentation, not beside every form.
 * On a site that signs in with a password only, a person who creates an account from the registration form is mailed a link to choose their password, instead of a sign-in link the site refuses.
 * Design › The sign-in page has a switch to show the logo above the form or not, so a site whose own header already shows it does not show it twice. It covers signing in, registering, the second step and choosing a new password, and is on by default.
+* A sign-in page of its own: choose the shape "A page of its own" and the site answers `/sign-in/` (or an address you pick) with a full screen in your mark and colours, none of the theme's header or footer, and no page to create. Registration, the second step and a new password are drawn on it too, every sign-in link leads there, a page still chosen as the sign-in page sends people to it, and a changed address keeps the old one sending people to the new.
