@@ -412,7 +412,10 @@ function diluxone_users_door_serve(): void {
 			$to = add_query_arg( array_map( 'rawurlencode', $query ), $to );
 		}
 
-		wp_safe_redirect( $to, 301 );
+		// A 302 nobody keeps, not a 301: a browser keeps a bare 301 for good,
+		// and a slug set back to an old one would then send it in a loop.
+		diluxone_users_no_cache();
+		wp_safe_redirect( $to, 302 );
 		exit;
 	}
 

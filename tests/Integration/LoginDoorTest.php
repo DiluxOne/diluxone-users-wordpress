@@ -248,9 +248,21 @@ class LoginDoorTest extends IntegrationTestCase {
 		// Somebody opens /sign-in/, with what a link in an e-mail carried.
 		$this->as_front_end();
 		$this->on_door( 'moved' );
-		$_GET = array( 'diluxone-users' => 'expired' );
+		$_GET   = array( 'diluxone-users' => 'expired' );
+		$status = 0;
+		$this->hook(
+			'wp_redirect',
+			static function ( $location, $code ) use ( &$status ) {
+				$status = (int) $code;
+				return $location;
+			},
+			0,
+			2
+		);
 
 		$this->assertSame( add_query_arg( 'diluxone-users', 'expired', home_url( '/entrar/' ) ), $this->expectRedirect( 'diluxone_users_door_serve' ) );
+		$this->assertSame( 302, $status, 'not a 301 a browser keeps, which a slug set back would loop' );
+		$this->assertTrue( defined( 'DONOTCACHEPAGE' ), 'kept by no cache' );
 
 		$this->on_door( 'moved-register' );
 		$_GET = array();

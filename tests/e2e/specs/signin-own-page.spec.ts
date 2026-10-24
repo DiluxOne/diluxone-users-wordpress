@@ -68,7 +68,8 @@ test.describe('Sign in › A page of its own', () => {
 
 		const moved = await guest.request.get(`${baseURL}/sign-in/?diluxone-users=expired`, { maxRedirects: 0 });
 
-		expect(moved.status(), 'moved for good').toBe(301);
+		expect(moved.status(), 'a redirect no browser keeps').toBe(302);
+		expect(moved.headers()['cache-control'], 'kept by no cache').toContain('no-store');
 		expect(moved.headers().location, 'with what the address carried').toBe(`${baseURL}/entrar/?diluxone-users=expired`);
 
 		await guest.goto('/sign-in/');
