@@ -571,6 +571,14 @@ body.diluxone-users-door {
    labels onto three lines each. One per row. */
 .diluxone-users-login-frame__box .diluxone-users-socials--cols-2 { grid-template-columns: minmax(0, 1fr); }
 
+/* Logo only, the squares stay squares in the card too, and sit in its middle
+   under the mark, which is centred: at the left they gave the card two
+   alignments, one above the other. */
+.diluxone-users-login-frame__box .diluxone-users-socials--icon {
+	grid-template-columns: repeat(auto-fit, 52px);
+	justify-content: center;
+}
+
 /* The site's mark above the form. */
 .diluxone-users-login__logo { margin: 0 0 20px; text-align: center; }
 .diluxone-users-login__logo img { max-height: 56px; width: auto; }
