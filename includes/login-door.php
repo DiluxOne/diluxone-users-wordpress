@@ -354,6 +354,31 @@ function diluxone_users_door_stamp(): string {
 }
 
 /**
+ * What the request carried, to go along to the page it was meant for: each
+ * name a key and each value plain text, read one by one. A value that is not
+ * a string (an array) stays behind.
+ *
+ * @param string[] $leave Names left out.
+ * @return array<string, string>
+ */
+function diluxone_users_door_query( array $leave = array() ): array {
+	$query = array();
+
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- nothing is done with it: the query goes along to the page it was meant for.
+	foreach ( $_GET as $name => $value ) {
+		$name = sanitize_key( (string) $name );
+
+		if ( '' === $name || in_array( $name, $leave, true ) || ! is_string( $value ) ) {
+			continue;
+		}
+
+		$query[ $name ] = sanitize_text_field( wp_unslash( $value ) );
+	}
+
+	return $query;
+}
+
+/**
  * Before anything is drawn: where the request goes, and what the page says
  * about itself.
  *
@@ -372,11 +397,10 @@ function diluxone_users_door_serve(): void {
 	if ( 'moved' === $view || 'moved-register' === $view ) {
 		$to = diluxone_users_door_url( 'moved-register' === $view ? 'register' : 'login' );
 
-		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- nothing is done with it: the query goes along to the page it was meant for.
-		$query = array_diff_key( (array) wp_unslash( $_GET ), array( DILUXONE_USERS_DOOR_VAR => true ) );
+		$query = diluxone_users_door_query( array( DILUXONE_USERS_DOOR_VAR ) );
 
 		if ( array() !== $query ) {
-			$to = add_query_arg( array_map( 'rawurlencode_deep', $query ), $to );
+			$to = add_query_arg( array_map( 'rawurlencode', $query ), $to );
 		}
 
 		wp_safe_redirect( $to, 301 );
@@ -431,11 +455,10 @@ function diluxone_users_door_pages(): void {
 		$page = diluxone_users_page_here( $option );
 
 		if ( $page > 0 && $page === $id ) {
-			// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- nothing is done with it: the query goes along to the page it was meant for.
-			$query = (array) wp_unslash( $_GET );
+			$query = diluxone_users_door_query();
 			$to    = diluxone_users_door_url( $view );
 
-			wp_safe_redirect( array() === $query ? $to : add_query_arg( array_map( 'rawurlencode_deep', $query ), $to ), 302 );
+			wp_safe_redirect( array() === $query ? $to : add_query_arg( array_map( 'rawurlencode', $query ), $to ), 302 );
 			exit;
 		}
 	}

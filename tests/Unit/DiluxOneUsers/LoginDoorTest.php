@@ -106,4 +106,26 @@ class LoginDoorTest extends TestCase {
 		$this->assertSame( '', diluxone_users_login_slug_problem( 'entrar' ) );
 		$this->assertSame( '', diluxone_users_login_slug_problem( '/sign-in/' ), 'the slashes around it are not segments' );
 	}
+
+	public function test_the_query_goes_along_field_by_field(): void {
+		$_GET = array(
+			'redirect_to'           => 'https://example.test/course/?a=1&b=2',
+			'Action'                => 'rp',
+			'key'                   => '<b>abc</b>',
+			'list'                  => array( 'one', 'two' ),
+			DILUXONE_USERS_DOOR_VAR => 'moved',
+		);
+
+		$this->assertSame(
+			array(
+				'redirect_to' => 'https://example.test/course/?a=1&b=2',
+				'action'      => 'rp',
+				'key'         => 'abc',
+			),
+			diluxone_users_door_query( array( DILUXONE_USERS_DOOR_VAR ) ),
+			'each name a key and each value plain text; an array stays behind, and so does what is left out'
+		);
+
+		$_GET = array();
+	}
 }
