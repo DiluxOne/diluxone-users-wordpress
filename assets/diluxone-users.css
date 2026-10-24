@@ -346,6 +346,14 @@ details.diluxone-users-panel[open] > .diluxone-users-panel__head .diluxone-users
 }
 .diluxone-users-button:hover { filter: brightness(0.93); color: var(--diluxone-users-btn-ink, var(--diluxone-users-accent-ink)); }
 
+/* A link drawn as a button is still a link to the theme, and a theme that
+   underlines the links of its content (Astra: `.ast-single-post
+   .entry-content a`) reaches it with a class, a class and a tag. Inside the
+   plugin's own blocks the button answers with as much, and comes later. */
+.diluxone-users a.diluxone-users-button,
+.diluxone-users-account a.diluxone-users-button,
+.diluxone-users-login-page a.diluxone-users-button { text-decoration: none; }
+
 .diluxone-users-button--soft {
 	background: transparent;
 	border-color: var(--diluxone-users-border);
@@ -813,6 +821,14 @@ body.diluxone-users-door {
    above it — its own header, usually. The opening air belongs to the area and
    not to the strip: on the strip it would push the menu off centre. */
 .diluxone-users-account--bare { padding-top: var(--diluxone-users-bare-top, 24px); }
+
+/* What somebody signed out sees is the area too, on the area's ground when
+   the site gives it one: with no air of its own its title and its button
+   sat against the edge of that band on a theme whose content column has no
+   padding. The panel's own air, and no margin above the title. */
+.diluxone-users-account--guest { padding: 22px 24px; }
+.diluxone-users-account--guest > :first-child { margin-top: 0; }
+.diluxone-users-account--guest > :last-child { margin-bottom: 0; }
 
 @media (max-width: 640px) {
 	/* Two answers and the site picks one. With eight sections a sideways
