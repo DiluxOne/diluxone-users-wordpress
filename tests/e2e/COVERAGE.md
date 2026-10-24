@@ -70,6 +70,7 @@ everybody, with the code by e-mail, and skips it for nobody.
 | Required fields missing after a sign-in: a new account by link lands on the account page with only the required field, its save goes on to `redirect_to`; a social account with no name lands there too; an account with every field filled goes straight on; skipped, the site is open and the next sign-in asks again | `missing-fields` › After signing in, the required fields missing |
 | …turned off on User fields › After sign-in; the box switched off and saying why while no field is required | `missing-fields` › After signing in, turned off on User fields |
 | Social button skin/shape/contents/rows/words on the real page | `signin-social` › The buttons on the real page |
+| Icon-only social buttons on the card: one row, centred on the card like the logo | `repro/issue-70` |
 | The ways in at 390px: the card takes the width, tab labels fold, social one column, register / 2FA / reset fit | `signin-mobile` |
 | WP-CLI on a single site: `login` link opens once, `--send` mails it, bad and unknown addresses refused, the network command says it is not a network; `diluxone_users_join` (Users+ Pro's) posted on a single site has no handler | `my-account-entry` › Join, templates and WP-CLI on a single site |
 
