@@ -17,8 +17,9 @@
  * no light one, a page without the dark one is light). The
  * scheme seen last is kept too, for the sign-in page of its own (`door`):
  * it measures itself like any page, since it loads the theme's stylesheet,
- * but where the site's switch did not run there (neither signal on it), what
- * the site's pages measured for the scheme they showed last is applied.
+ * but keeps nothing, and where the site's switch did not run there (neither
+ * signal on it), what the site's pages measured for the scheme they showed
+ * last is applied.
  */
 ( function () {
 	'use strict';
@@ -227,6 +228,12 @@
 		} );
 
 		var now = scheme();
+
+		// What is kept is the site's pages' to write: the page of its own reads
+		// it, and its own measurement is for itself.
+		if ( door ) {
+			return kept;
+		}
 
 		try {
 			localStorage.setItem( key + ':' + now, JSON.stringify( kept ) );

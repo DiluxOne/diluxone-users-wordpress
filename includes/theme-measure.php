@@ -120,8 +120,9 @@ function diluxone_users_measure_early_signal(): string {
  *
  * With the site's own switch it also runs where the palette answered every
  * part, to keep the scheme the site showed for the page of its own; and on
- * that page it measures nothing of its own surface: it applies what the
- * site's pages measured for the scheme in force.
+ * that page it measures the theme with the page's own class off, keeps
+ * nothing, and where the site's switch did not run there applies what the
+ * site's pages measured for the scheme they showed last.
  */
 function diluxone_users_measure(): void {
 	$roles  = diluxone_users_color_measured_roles();

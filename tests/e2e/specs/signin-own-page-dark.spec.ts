@@ -38,6 +38,30 @@ test.describe('The page of its own follows the site’s switch', () => {
 		expect(await token(guest, 'surface'), 'not the dark scheme’s ground').not.toBe(DARK_GROUND);
 	});
 
+	test('the page of its own reads what the site kept and writes none of it', async ({ options, guest, pages }) => {
+		await options.set(switchSite('data-theme', 'html data-theme="dark"'));
+		await guest.emulateMedia({ colorScheme: 'light' });
+		await siteScheme(guest, pages.account.url, 'dark');
+
+		// A value the page of its own would not measure, so a write shows.
+		await guest.evaluate(() => {
+			const k = Object.keys(localStorage).find((one) => one.endsWith(':dark'));
+
+			if (k) {
+				localStorage.setItem(k, JSON.stringify({ ...JSON.parse(localStorage.getItem(k) ?? '{}'), text: 'rgb(1, 2, 3)' }));
+			}
+		});
+
+		const kept = () => guest.evaluate(() => JSON.stringify(Object.entries(localStorage).filter(([k]) => /:(dark|light|scheme)$/.test(k)).sort()));
+		const before = await kept();
+
+		expect(before, 'the site kept a dark measurement').toContain('rgb(1, 2, 3)');
+
+		await guest.goto('/sign-in/');
+		await expect.poll(() => drawnIn(guest, DOOR_FORM), { message: 'drawn dark' }).toBe('dark');
+		expect(await kept(), 'the measurements and the scheme the site kept').toBe(before);
+	});
+
 	// data-tema is no name the measurer watched before: it hears it because it is the signal.
 	for (const [name, dark, light] of [
 		['data-theme', 'dark', 'light'],
