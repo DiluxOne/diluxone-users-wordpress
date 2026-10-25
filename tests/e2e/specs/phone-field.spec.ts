@@ -444,3 +444,49 @@ test.describe('A saved number', () => {
 		await expect(area.phone.locator('input.diluxone-users-phone__number')).toHaveValue('11 2345 6789');
 	});
 });
+
+test.describe('With JavaScript off', () => {
+	test('the native list is there, a number too short comes back with the error under it, and a good one is saved joined', async ({ browser, baseURL, site, pages, options }) => {
+		await options.set({ diluxone_users_2fa_mode: 'off', diluxone_users_fields: [NAME, MAIL, PHONE] });
+
+		const context = await browser.newContext({ baseURL, storageState: undefined, javaScriptEnabled: false });
+		const page = await context.newPage();
+
+		try {
+			const { email } = await signedIn(page, site, pages.login.url, 'phone-nojs');
+
+			await page.goto(accountSection(pages.account.url, 'details'));
+
+			const form = formOf(page, 'diluxone_users_fields_save');
+			const box = form.locator('.diluxone-users-phone');
+			const select = box.locator('select.diluxone-users-phone__dial');
+			const number = box.locator('input.diluxone-users-phone__number');
+
+			// A <details> opens without a script too.
+			await reveal(page, 'input[name="e2e_phone"]');
+			await expect(select, 'the native list, as the server draws it').toBeVisible();
+			await expect(box.getByRole('button')).toHaveCount(0);
+			await expect(box, 'still one box').toHaveCSS('border-top-style', 'solid');
+
+			await select.selectOption('UY');
+			await number.fill('9912');
+			await Promise.all([page.waitForURL(/diluxone-users=phone/), form.locator('button[type="submit"]').first().click()]);
+
+			await reveal(page, 'input[name="e2e_phone"]');
+			await expect(page.locator('#e2e_phone-error')).toHaveText('This number is too short for the country chosen.');
+			await expect(page.locator('input[name="e2e_phone"]')).toHaveAttribute('aria-invalid', 'true');
+			expect((await site.user(email, ['e2e_phone'])).fields.e2e_phone || '', 'nothing saved').toBe('');
+
+			await formOf(page, 'diluxone_users_fields_save').locator('select[name="e2e_phone_dial"]').selectOption('AR');
+			await page.locator('input[name="e2e_phone"]').fill('(011) 2345-6789');
+			await Promise.all([page.waitForURL(/diluxone-users=saved/), formOf(page, 'diluxone_users_fields_save').locator('button[type="submit"]').first().click()]);
+
+			expect((await site.user(email, ['e2e_phone'])).fields.e2e_phone, 'joined and checked on the server').toBe('+541123456789');
+
+			await reveal(page, 'input[name="e2e_phone"]');
+			await expect(page.locator('input[name="e2e_phone"]'), 'and drawn back grouped by the server').toHaveValue('11 2345 6789');
+		} finally {
+			await context.close();
+		}
+	});
+});
