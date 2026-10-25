@@ -25,4 +25,16 @@ test.describe('The page of its own follows the site’s switch', () => {
 		expect(await token(guest, 'text'), 'the text measured on the site, dark').toBe(DARK_TEXT);
 		expect(await token(guest, 'surface'), 'the ground measured on the site, dark').toBe(DARK_GROUND);
 	});
+
+	test('C3: the site light, the device dark: the page of its own is drawn with the theme’s light colours', async ({ options, guest, pages }) => {
+		await options.set(switchSite('data-theme', 'html data-theme="dark"'));
+		await guest.emulateMedia({ colorScheme: 'dark' });
+		await siteScheme(guest, pages.account.url, 'light');
+
+		await guest.goto('/sign-in/');
+		await expect(guest.locator('html'), 'the site’s own switch, on the page of its own').toHaveAttribute('data-theme', 'light');
+		await expect.poll(() => drawnIn(guest, DOOR_FORM), { message: 'dark letters on a light ground' }).toBe('light');
+		expect(await token(guest, 'text'), 'not the dark scheme’s text').not.toBe(DARK_TEXT);
+		expect(await token(guest, 'surface'), 'not the dark scheme’s ground').not.toBe(DARK_GROUND);
+	});
 });
