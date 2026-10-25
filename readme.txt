@@ -269,6 +269,7 @@ Unreleased.
 
 First public release.
 
+* Signing in with a social network that does not confirm the email no longer ends in an error when "Only verified addresses" is on: nothing is created or linked yet, a link is mailed to that address and the sign-in page shows it, partly hidden, with "Send it again" and "Use another address". Opening the link, in any browser, creates the account or opens the one with that address, links the network and signs you in where you were going, on a network back on the site you started from. "Only verified addresses" is now on unless you turned it off, and its email can be rewritten on E-mail notices › Templates.
 * With Colours › the theme's, on a theme whose buttons keep a dark brand colour in dark mode, the links of the account area's home cards stay readable: the accent used as text is one that reads on the card, while buttons keep the theme's colour.
 * On the sign-in page of its own, the link back to the site under the form is as readable as the rest of the text, in the light and the dark scheme: it takes the text's colour instead of a paler one meant for the card.
 * On the sign-in page of its own, with Colours › the theme's, a theme that turns dark with the system's dark mode no longer gets dark text on a dark card: the page reads the theme's own text colour, not the plugin's light default.

@@ -444,6 +444,15 @@ is what a row without a `map` gets. A field left out is filled in with an
 empty value of its type, so a provider missing one does not work rather than
 breaking the page.
 
+What `verified` decides: an existing account is handed over on a `true`
+only, and with "Only verified addresses" on (the default) an address the
+provider answered `null` or `false` for is confirmed by mail before anything
+is created or linked (`includes/sso-pending.php`). The sign-in page then
+shows its `social-pending` state, the mail goes through
+`diluxone_users_sso_confirm_email` (see [E-mails](#e-mails)), and opening the
+link ends in `diluxone_users_complete_login()` with `via` `sso`, like any
+social sign-in. A provider that does vouch for its addresses never meets it.
+
 Its icon goes through `diluxone_users_sso_icon_paths`, and the step-by-step
 for its console through `diluxone_users_sso_guides`. It then appears on the
 Social login screen with its card, its redirect URL and its live test, like
@@ -1054,6 +1063,10 @@ optional and read with a default, so a copy made before it keeps working:
 `templates/fields.php` takes `redirect` (where its save goes on to) and
 `skip` (a "Skip for now" link), both used by the step that asks for the
 required fields missing after a sign-in.
+`templates/login.php` has a `social-pending` state, the holding screen of a
+social sign-in waiting on its address: `$args['email']` is then that address
+already masked (`a•••@e•••.com`), and the form posts `diluxone_users_sso_resend`
+with a `diluxone_users_sso_resend` nonce in `diluxone_users_nonce`.
 
 A template escapes what it prints, line by line, and a copy in a theme has to
 do the same. To draw one of the plugin's templates from code,
@@ -1075,6 +1088,11 @@ the screen, the per-language rewrite and the way back to its own words.
 `diluxone_users_notification` filters a notice — the new-device and
 security-change e-mails — right before it is sent, with the subject and body,
 the user and the notice's key.
+`diluxone_users_login_email` filters the sign-in link's message (subject and
+body, the address, the link), and `diluxone_users_sso_confirm_email` the
+message that confirms a social account's address by mail, with the same
+three and the provider's name: both run after the site's rewrite, right
+before the mail is sent.
 
 A notice is written in the language of the person it goes to — their own
 language on their profile, or the site's — whoever's request sent it: the

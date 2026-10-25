@@ -591,7 +591,7 @@ msgstr "Registro"
 
 #: includes/admin-account.php:583
 #: includes/admin-login.php:1075
-#: includes/login-door.php:551
+#: includes/login-door.php:564
 #: includes/login-ways.php:621
 #: includes/pages.php:26
 #: includes/passwordless.php:245
@@ -601,7 +601,7 @@ msgstr "Registro"
 #: templates/hub-door.php:24
 #: templates/hub-door.php:33
 #: templates/hub-door.php:36
-#: templates/login.php:86
+#: templates/login.php:129
 #: templates/register.php:51
 #: templates/register.php:68
 #: templates/register.php:175
@@ -918,14 +918,6 @@ msgstr "Si el correo ya existe, vincular la red a esa cuenta"
 #: includes/admin-social.php:546
 msgid "Turned off, someone whose email is already registered simply cannot get in with a social network. Only turn it off if you do not trust the provider to verify its own users’ email addresses."
 msgstr "Desactivada, alguien cuyo correo ya está registrado directamente no puede entrar con una red social. Desactívala solo si no confías en que el proveedor verifique el correo de su propia gente."
-
-#: includes/admin-social.php:564
-msgid "Refuse the sign-in when the provider does not say the email is verified"
-msgstr "Rechazar el ingreso cuando el proveedor no diga que el correo está verificado"
-
-#: includes/admin-social.php:565
-msgid "Stricter, and a few providers never send that flag: with this on, those stop working."
-msgstr "Más estricto, y algunos proveedores nunca envían ese dato: con esto activado, esos dejan de funcionar."
 
 #: includes/admin-social.php:624
 msgid "Getting started"
@@ -1332,14 +1324,14 @@ msgstr "Se filtra aquí — abre el archivo para cambiarlo o quitarlo:"
 
 #. translators: %s: site name
 #: includes/auth-email.php:43
-#: includes/mail-templates.php:114
+#: includes/mail-templates.php:140
 #, php-format
 msgid "Your code for %s"
 msgstr "Tu código para %s"
 
 #. translators: 1: the code, 2: how many minutes it lasts
 #: includes/auth-email.php:49
-#: includes/mail-templates.php:119
+#: includes/mail-templates.php:145
 #, php-format
 msgid ""
 "Your sign-in code is:\n"
@@ -1630,13 +1622,13 @@ msgid "When something in my security changes"
 msgstr "Cuando cambia algo de mi seguridad"
 
 #. translators: %s: site name
-#: includes/mail-templates.php:143
+#: includes/mail-templates.php:169
 #, php-format
 msgid "New sign-in to your account on %s"
 msgstr "Entraron a tu cuenta en %s"
 
 #. translators: 1: device and browser, 2: date and time, 3: how they signed in, 4: address of the account area
-#: includes/mail-templates.php:148
+#: includes/mail-templates.php:174
 #, php-format
 msgid ""
 "Somebody just signed in to your account.\n"
@@ -1662,13 +1654,13 @@ msgid "a link sent to your email"
 msgstr "un enlace mandado a tu correo"
 
 #. translators: %s: site name
-#: includes/mail-templates.php:173
+#: includes/mail-templates.php:199
 #, php-format
 msgid "Your security on %s changed"
 msgstr "Cambió algo de tu seguridad en %s"
 
 #. translators: 1: what changed, 2: date and time, 3: address of the account area
-#: includes/mail-templates.php:178
+#: includes/mail-templates.php:204
 #, php-format
 msgid ""
 "This changed in your account:\n"
@@ -1712,7 +1704,7 @@ msgid "Computer"
 msgstr "Ordenador"
 
 #: includes/sessions.php:190
-#: includes/shortcodes.php:178
+#: includes/shortcodes.php:181
 msgid "You have to sign in first."
 msgstr "Hay que entrar primero."
 
@@ -1824,55 +1816,55 @@ msgstr "Copia el «Valor» del secreto, no su «Id. de secreto». El valor se mu
 msgid "The openid, email and profile permissions are already there by default — you do not have to add anything under “API permissions”."
 msgstr "Los permisos openid, email y profile ya vienen por defecto: no hace falta agregar nada en «Permisos de API»."
 
-#: includes/sso.php:849
+#: includes/sso.php:884
 msgid "The provider did not hand over an access token. Check the client ID and the secret."
 msgstr "El proveedor no entregó un token de acceso. Revisa el ID de cliente y el secreto."
 
-#: includes/sso.php:860
+#: includes/sso.php:895
 msgid "The token worked but the profile came back empty. The app is probably missing the permissions this provider needs."
 msgstr "El token funcionó pero el perfil volvió vacío. Lo más probable es que a la aplicación le falten los permisos que pide este proveedor."
 
 #. translators: %s: name of the social network
-#: includes/sso.php:893
+#: includes/sso.php:928
 #, php-format
 msgid "The %s account was linked, and it now gets into this account."
 msgstr "Se vinculó la cuenta de %s, y ahora entra a esta cuenta."
 
 #. translators: %s: name of the social network
-#: includes/sso.php:958
+#: includes/sso.php:1000
 #, php-format
 msgid "The %s account was unlinked."
 msgstr "Se desvinculó la cuenta de %s."
 
-#: includes/sso.php:999
+#: includes/sso.php:1041
 msgid "It works"
 msgstr "Funciona"
 
-#: includes/sso.php:1000
+#: includes/sso.php:1042
 msgid "It did not work"
 msgstr "No funcionó"
 
 #. translators: %s: provider name
-#: includes/sso.php:1005
+#: includes/sso.php:1047
 #, php-format
 msgid "The round trip with %s finished correctly. You can enable the button now."
 msgstr "El ida y vuelta con %s ha terminado bien. Ya puedes activar el botón."
 
 #. translators: %s: provider name
-#: includes/sso.php:1010
+#: includes/sso.php:1052
 #, php-format
 msgid "The round trip with %s failed."
 msgstr "El ida y vuelta con %s falló."
 
 #. translators: %s: e-mail address
-#: includes/sso.php:1016
+#: includes/sso.php:1058
 #, php-format
 msgid "The provider handed over this email: %s"
 msgstr "El proveedor entregó este correo: %s"
 
 #: includes/admin-fields.php:706
 #: includes/admin-panels.php:841
-#: includes/sso.php:1041
+#: includes/sso.php:1083
 #: templates/sessions.php:67
 msgid "Close"
 msgstr "Cerrar"
@@ -2205,6 +2197,7 @@ msgstr "El código"
 
 #: includes/auth-wp-login.php:118
 #: templates/login-2fa.php:79
+#: templates/login.php:103
 msgid "Send it again"
 msgstr "Mandarlo de nuevo"
 
@@ -2235,6 +2228,7 @@ msgstr "Haz clic en el enlace y entras directo. Caduca en %d minutos y sirve una
 
 #: includes/admin-login.php:1110
 #: templates/login.php:71
+#: templates/login.php:114
 #: templates/register.php:42
 msgid "Did not arrive? Check your spam or promotions folder."
 msgstr "¿No ha llegado? Mira en spam o en la pestaña de promociones."
@@ -2790,7 +2784,7 @@ msgid "Copy any file from the plugin’s templates/ folder into the folder below
 msgstr "Copia cualquier archivo de la carpeta templates/ del plugin a la carpeta de abajo y edítalo ahí. El plugin usará el tuyo."
 
 #: includes/admin-design.php:391
-#: includes/login-door.php:547
+#: includes/login-door.php:560
 #: includes/pages.php:36
 #: templates/hub-door.php:27
 #: templates/hub-door.php:30
@@ -2849,7 +2843,7 @@ msgid "The sign-in link"
 msgstr "El enlace de acceso"
 
 #: includes/admin-notices.php:152
-#: includes/mail-templates.php:101
+#: includes/mail-templates.php:127
 msgid "The second-step code"
 msgstr "El código del segundo paso"
 
@@ -4332,38 +4326,39 @@ msgid "the address that signs them in — the e-mail is useless without it"
 msgstr "la dirección que los hace entrar — sin eso el correo no sirve para nada"
 
 #: includes/mail-templates.php:80
+#: includes/mail-templates.php:106
 msgid "how many minutes the link is good for"
 msgstr "cuántos minutos vale el enlace"
 
-#: includes/mail-templates.php:102
+#: includes/mail-templates.php:128
 msgid "Sent halfway through signing in, to somebody who is waiting for it. It has no switch either: a code that does not arrive locks them out."
 msgstr "Se envía a mitad de camino del acceso, a alguien que lo está esperando. Tampoco tiene interruptor: un código que no llega deja a la persona fuera."
 
-#: includes/mail-templates.php:104
+#: includes/mail-templates.php:130
 msgid "the six digits they have to type — the e-mail is useless without them"
 msgstr "los seis dígitos que tienen que escribir — sin ellos el correo no sirve para nada"
 
-#: includes/mail-templates.php:105
+#: includes/mail-templates.php:131
 msgid "how many minutes the code lasts"
 msgstr "cuántos minutos dura el código"
 
-#: includes/mail-templates.php:128
+#: includes/mail-templates.php:154
 msgid "A sign-in from a new device"
 msgstr "Una entrada desde un dispositivo nuevo"
 
-#: includes/mail-templates.php:129
+#: includes/mail-templates.php:155
 msgid "Sent the first time a browser or a phone gets into somebody’s account. Whether it goes out at all is decided on the Notices tab."
 msgstr "Se envía la primera vez que un navegador o un teléfono entra en la cuenta de alguien. Si sale o no se decide en la pestaña Avisos."
 
-#: includes/mail-templates.php:131
+#: includes/mail-templates.php:157
 msgid "the device, the browser and the system, in one line"
 msgstr "el dispositivo, el navegador y el sistema, en una línea"
 
-#: includes/mail-templates.php:159
+#: includes/mail-templates.php:185
 msgid "A change in their security"
 msgstr "Un cambio en su seguridad"
 
-#: includes/mail-templates.php:162
+#: includes/mail-templates.php:188
 msgid "what changed, in one line"
 msgstr "qué cambió, en una línea"
 
@@ -6112,7 +6107,7 @@ msgid "Activate DiluxOne Users+ for the whole network"
 msgstr "Activar DiluxOne Users+ para toda la red"
 
 #. translators: 1: this site's domain, 2: the name of the site where the network's accounts live
-#: includes/network-hub.php:966
+#: includes/network-hub.php:968
 #, php-format
 msgid "This site is on a domain of its own (%1$s). People must sign in again on this site: signing in on %2$s does not carry over to it. A domain of its own is not supported by DiluxOne Users+ in this version."
 msgstr "Este sitio tiene un dominio propio (%1$s). Aquí hay que volver a iniciar sesión: entrar en %2$s no se traslada a este sitio. DiluxOne Users+ no admite dominios propios en esta versión."
@@ -6571,11 +6566,11 @@ msgstr "Por omisión, nada. Quedan los ajustes, queda el registro de actividad y
 msgid "Two-step verification turned on or off, a way in added or removed, sessions closed."
 msgstr "Verificación en dos pasos activada o desactivada, una forma de entrar añadida o borrada, sesiones cerradas."
 
-#: includes/mail-templates.php:132
+#: includes/mail-templates.php:158
 msgid "how they got in: a link, a password, a social account"
 msgstr "cómo entró: un enlace, una contraseña, una cuenta social"
 
-#: includes/mail-templates.php:160
+#: includes/mail-templates.php:186
 msgid "Sent when the second step, a linked social account or another way in changes. Whether it goes out at all is decided on the Notices tab."
 msgstr "Se envía cuando cambia el segundo paso, una cuenta social vinculada u otra forma de entrar. Si sale o no se decide en la pestaña Avisos."
 
@@ -7135,30 +7130,30 @@ msgstr "Cambiar la dirección →"
 msgid "A page of its own, at %s."
 msgstr "Una página propia, en %s."
 
-#: includes/login-door.php:253
+#: includes/login-door.php:261
 msgid "The sign-in page needs an address: letters, numbers and dashes."
 msgstr "La página de acceso necesita una dirección: letras, números y guiones."
 
 #. translators: %s: what was typed
-#: includes/login-door.php:259
+#: includes/login-door.php:267
 #, php-format
 msgid "The address “%s” has to be one word, with no slashes: letters, numbers and dashes."
 msgstr "La dirección «%s» tiene que ser una sola palabra, sin barras: letras, números y guiones."
 
 #. translators: %s: the address, as /sign-in
-#: includes/login-door.php:269
+#: includes/login-door.php:277
 #, php-format
 msgid "The address %s is one WordPress or the site already answers. Choose another."
 msgstr "La dirección %s es una que WordPress o el sitio ya atienden. Elige otra."
 
 #. translators: 1: the address, as /about/, 2: what has it, as: the page “About us”
-#: includes/login-door.php:281
+#: includes/login-door.php:287
 #, php-format
 msgid "The address %1$s is already %2$s. Choose another, or give that one another address first."
 msgstr "La dirección %1$s ya la usa %2$s. Elige otra, o primero dale otra dirección a ese contenido."
 
 #. translators: 1: a kind of content, "page" or "post", 2: its title
-#: includes/login-door.php:315
+#: includes/login-door.php:328
 #, php-format
 msgid "the %1$s “%2$s”"
 msgstr "el contenido «%2$s» (%1$s)"
@@ -7293,3 +7288,79 @@ msgstr "Separado, en el extremo"
 #: includes/admin-login.php:1295
 msgid "Letters, numbers and dashes. Until you type one, it is the address of the page chosen as the sign-in page, or /sign-in/ when there is none. Sign in, registration, the second step and a new password are all answered there, and an address you used before keeps sending people to it."
 msgstr "Letras, números y guiones. Hasta que escribas una, es la dirección de la página elegida como página de acceso, o /sign-in/ si no hay ninguna. El acceso, el registro, el segundo paso y la contraseña nueva se atienden todos ahí, y una dirección que usaste antes sigue mandando a la gente a ella."
+
+#: includes/admin-social.php:564
+msgid "Only verified addresses: confirm by mail an address the provider does not vouch for"
+msgstr "Solo direcciones verificadas: confirmar por correo una dirección que el proveedor no garantiza"
+
+#: includes/admin-social.php:565
+msgid "When a provider does not say the email is verified, nothing is created or linked: a link goes to that address, and opening it signs the person in. Turned off, such an address can create a new account straight away, though never take over an existing one."
+msgstr "Cuando un proveedor no dice que el correo está verificado, no se crea ni se vincula nada: se envía un enlace a esa dirección y, al abrirlo, la persona entra. Desactivado, esa dirección puede crear una cuenta nueva en el acto, pero nunca quedarse con una que ya existe."
+
+#. translators: %s: the email address, partly hidden
+#: includes/auth-wp-login.php:166
+#, php-format
+msgid "The social network did not confirm your email, so we sent a link to %s. Open it to confirm the address and you are in."
+msgstr "La red social no confirmó tu correo, así que te mandamos un enlace a %s. Ábrelo para confirmar la dirección y entras."
+
+#: includes/auth-wp-login.php:167
+msgid "The social network did not confirm your email, so we sent a link to it. Open it to confirm the address and you are in."
+msgstr "La red social no confirmó tu correo, así que te mandamos un enlace. Ábrelo para confirmar la dirección y entras."
+
+#: includes/mail-templates.php:101
+msgid "Confirming the address of a social account"
+msgstr "Confirmar la dirección de una cuenta social"
+
+#: includes/mail-templates.php:102
+msgid "Sent when somebody signs in with a social network that did not confirm their email, and the site asks for confirmed addresses only. Nothing is created or linked until they open the link."
+msgstr "Se envía cuando alguien entra con una red social que no confirmó su correo y el sitio pide solo direcciones confirmadas. No se crea ni se vincula nada hasta que abre el enlace."
+
+#: includes/mail-templates.php:104
+msgid "the address that confirms the email and signs them in — the e-mail is useless without it"
+msgstr "la dirección que confirma el correo y los hace entrar — sin eso el correo no sirve para nada"
+
+#: includes/mail-templates.php:105
+msgid "the name of the social network they signed in with"
+msgstr "el nombre de la red social con la que entraron"
+
+#. translators: %s: site name
+#: includes/mail-templates.php:115
+#, php-format
+msgid "Confirm your email to sign in to %s"
+msgstr "Confirma tu correo para entrar a %s"
+
+#: includes/mail-templates.php:118
+msgid ""
+"You signed in with {network}, which did not confirm this email. Click here to confirm it and sign in:\n"
+"\n"
+"{link}\n"
+"\n"
+"The link expires in {minutes} minutes and works once.\n"
+"\n"
+"If it was not you, ignore this message: nothing happens without it."
+msgstr ""
+"Entraste con {network}, que no confirmó este correo. Haz clic aquí para confirmarlo y entrar:\n"
+"\n"
+"{link}\n"
+"\n"
+"El enlace caduca en {minutes} minutos y sirve una sola vez.\n"
+"\n"
+"Si no fuiste tú, ignora este mensaje: sin él no pasa nada."
+
+#: templates/login.php:85
+msgid "Confirm your email"
+msgstr "Confirma tu correo"
+
+#: templates/login.php:86
+msgid "The social network did not confirm your email, so we sent a link to"
+msgstr "La red social no confirmó tu correo, así que te mandamos un enlace a"
+
+#. translators: %d: how many minutes the link lasts
+#: templates/login.php:94
+#, php-format
+msgid "Open it to confirm the address and you are in. It expires in %d minutes and works once."
+msgstr "Ábrelo para confirmar la dirección y entras. Caduca en %d minutos y sirve una sola vez."
+
+#: templates/login.php:108
+msgid "Use another address"
+msgstr "Usar otra dirección"
