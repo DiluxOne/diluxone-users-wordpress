@@ -55,11 +55,67 @@ function diluxone_users_door_open(): bool {
 	return diluxone_users_door_on() && ! diluxone_users_safe_mode();
 }
 
-/** The path the page is answered at, without slashes. */
+/**
+ * The path the page is answered at, without slashes: the one typed in "Its
+ * address", or the default when nothing is typed there.
+ */
 function diluxone_users_login_slug(): string {
 	$slug = sanitize_title( (string) diluxone_users_option( 'diluxone_users_login_slug' ) );
 
-	return '' !== $slug ? $slug : DILUXONE_USERS_DOOR_SLUG;
+	return '' !== $slug ? $slug : diluxone_users_login_slug_default();
+}
+
+/**
+ * The path the page is answered at when "Its address" is left empty.
+ *
+ * The address of the page chosen in Sign in › The page, when there is one:
+ * a site that called it /entrar/ keeps /entrar/, answered by the page of its
+ * own instead of sent there. Otherwise "sign-in" in the site's language —
+ * the hub's, never that of the administrator looking at the screen, or the
+ * address would move with whoever opened the dashboard last.
+ */
+function diluxone_users_login_slug_default(): string {
+	return (string) diluxone_users_on_hub(
+		static function (): string {
+			$page = diluxone_users_page_here( 'diluxone_users_login_page' );
+			$post = $page > 0 ? get_post( $page ) : null;
+
+			if ( $post instanceof WP_Post && 'trash' !== $post->post_status ) {
+				$slug = sanitize_title( $post->post_name );
+
+				if ( '' !== $slug ) {
+					return $slug;
+				}
+			}
+
+			$slug = sanitize_title( diluxone_users_login_slug_translated( get_locale() ) );
+
+			return '' !== $slug ? $slug : DILUXONE_USERS_DOOR_SLUG;
+		}
+	);
+}
+
+/**
+ * "sign-in", as a URL slug, in one language. Kept for the request: a switch
+ * of language reloads every translation, and the slug is asked for on every
+ * request of the dashboard, where the person's language may not be the site's.
+ *
+ * @param string $locale The language, as WordPress names it.
+ */
+function diluxone_users_login_slug_translated( string $locale ): string {
+	static $memo = array();
+
+	if ( ! isset( $memo[ $locale ] ) ) {
+		$switched = determine_locale() !== $locale && switch_to_locale( $locale );
+
+		$memo[ $locale ] = _x( 'sign-in', 'URL slug', 'diluxone-users' );
+
+		if ( $switched ) {
+			restore_previous_locale();
+		}
+	}
+
+	return $memo[ $locale ];
 }
 
 /**
@@ -256,7 +312,9 @@ function diluxone_users_login_slug_problem( string $raw ): string {
  * “About us”` — or '' when nothing does.
  *
  * Any public type, in any status but the bin: a draft published tomorrow
- * would otherwise lose its address to the sign-in page without a word.
+ * would otherwise lose its address to the sign-in page without a word. The
+ * page chosen as the sign-in page is the exception: its address is the
+ * default one of the page of its own.
  *
  * @param string $slug The path, without slashes.
  */
@@ -268,6 +326,12 @@ function diluxone_users_login_slug_taken( string $slug ): string {
 	$post = get_page_by_path( $slug, OBJECT, array_values( get_post_types( array( 'public' => true ) ) ) );
 
 	if ( ! $post instanceof WP_Post || 'trash' === $post->post_status ) {
+		return '';
+	}
+
+	// The page chosen in Sign in › The page is not shadowed by the page of
+	// its own: it is the same sign-in, answered at its address.
+	if ( (int) $post->ID === diluxone_users_page_here( 'diluxone_users_login_page' ) ) {
 		return '';
 	}
 

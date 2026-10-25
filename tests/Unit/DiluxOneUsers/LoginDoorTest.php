@@ -47,6 +47,12 @@ class LoginDoorTest extends TestCase {
 			static fn( string $title ): string => trim( (string) preg_replace( '/[^a-z0-9_-]+/', '-', strtolower( str_replace( array( '/', '.' ), array( '', '-' ), $title ) ) ), '-' )
 		);
 		Functions\when( 'get_page_by_path' )->justReturn( null );
+
+		// An English site, looked at in English: the default is not translated.
+		Functions\when( 'get_locale' )->justReturn( 'en_US' );
+		Functions\when( 'determine_locale' )->justReturn( 'en_US' );
+		Functions\when( '_x' )->returnArg( 1 );
+		Functions\when( 'get_post' )->justReturn( null );
 	}
 
 	protected function tearDown(): void {

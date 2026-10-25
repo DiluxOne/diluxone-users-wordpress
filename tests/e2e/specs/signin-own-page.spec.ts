@@ -48,6 +48,18 @@ test.describe('Sign in › A page of its own', () => {
 		expect(response?.headers()['cache-control'] ?? '', 'kept out of every cache').toContain('no-store');
 	});
 
+	test('C1: with “Its address” empty, the sign-in page chosen gives the page of its own its address', async ({ guest, pages, options }) => {
+		await options.set({ diluxone_users_login_slug: '' });
+
+		const path = new URL(pages.login.url).pathname;
+		const response = await guest.goto(pages.login.url);
+
+		expect(response?.status(), 'answered there, not redirected').toBe(200);
+		expect(response?.request().redirectedFrom(), 'nothing redirects').toBeNull();
+		await onTheDoor(guest, path);
+		await expect(guest.locator('.diluxone-users-login-frame--own .diluxone-users-login')).toBeVisible();
+	});
+
 	test('C2: the account area and the sign-in page chosen before both lead to /sign-in/', async ({ guest, pages, baseURL }) => {
 		const door = `${baseURL}/sign-in/`;
 
@@ -78,7 +90,8 @@ test.describe('Sign in › A page of its own', () => {
 	});
 
 	test('C4: an address a page already has is refused, naming the page, and nothing is written', async ({ page, pages, site }) => {
-		const taken = new URL(pages.login.url).pathname.replace(/^\/|\/$/g, '');
+		// Not the sign-in page chosen: its address is the page of its own's to take.
+		const taken = new URL(pages.register.url).pathname.replace(/^\/|\/$/g, '');
 
 		await page.goto(adminUrl('diluxone-users-design', 'login'));
 		await page.locator('input[name="diluxone_users_login_template"][value="own"]').check({ force: true });

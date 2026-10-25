@@ -62,6 +62,50 @@ class LoginDoorTest extends IntegrationTestCase {
 		$this->assertStringContainsString( 'door:sign-in', diluxone_users_rewrite_stamp(), 'a changed slug flushes the rules' );
 	}
 
+	/** What WordPress matches a path against first, of every rule it has. */
+	private function first_match( string $path ): string {
+		global $wp_rewrite;
+
+		$this->rules();
+
+		foreach ( (array) $wp_rewrite->rewrite_rules() as $match => $query ) {
+			if ( preg_match( '#^' . $match . '#', $path ) ) {
+				return (string) $query;
+			}
+		}
+
+		return '';
+	}
+
+	public function test_c1_with_no_address_typed_the_chosen_sign_in_page_gives_its_own(): void {
+		$page = (int) wp_insert_post(
+			array(
+				'post_type'   => 'page',
+				'post_status' => 'publish',
+				'post_title'  => 'Entrar',
+				'post_name'   => 'entrar',
+			)
+		);
+		diluxone_users_update_option( 'diluxone_users_login_page', $page );
+
+		$this->assertSame( '', (string) diluxone_users_option( 'diluxone_users_login_slug' ), '“Its address” is empty' );
+		$this->assertSame( 'entrar', diluxone_users_login_slug(), 'the address of the page chosen' );
+		$this->assertSame( home_url( '/entrar/' ), diluxone_users_login_url() );
+		$this->assertSame( 'index.php?diluxone_users_door=login', $this->first_match( 'entrar/' ), '/entrar/ is the page of its own before it is the page' );
+		$this->assertSame( array(), diluxone_users_login_slug_old(), 'no old address sending anybody anywhere' );
+		$this->assertSame( '', diluxone_users_login_slug_taken( 'entrar' ), 'the page chosen does not count as taking it' );
+		$this->assertSame( 'active', diluxone_users_check_door()['state'], 'the Status screen does not call it taken' );
+
+		$this->as_front_end();
+		$this->on_door( 'login' );
+		$this->stays( 'diluxone_users_door_serve', 'answered there, not redirected' );
+		$this->assertSame( DILUXONE_USERS_DIR . 'templates/login-page.php', diluxone_users_door_template( '/theme/index.php' ) );
+
+		// A page saved later leaves the address where it is.
+		diluxone_users_login_slug_old_forget();
+		$this->assertSame( 'entrar', diluxone_users_login_slug() );
+	}
+
 	public function test_c1_another_shape_adds_no_rule_and_no_page(): void {
 		diluxone_users_update_option( 'diluxone_users_login_template', 'card' );
 
