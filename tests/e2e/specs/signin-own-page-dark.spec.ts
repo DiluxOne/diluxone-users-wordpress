@@ -37,4 +37,34 @@ test.describe('The page of its own follows the site’s switch', () => {
 		expect(await token(guest, 'text'), 'not the dark scheme’s text').not.toBe(DARK_TEXT);
 		expect(await token(guest, 'surface'), 'not the dark scheme’s ground').not.toBe(DARK_GROUND);
 	});
+
+	// data-tema is no name the measurer watched before: it hears it because it is the signal.
+	for (const [name, dark, light] of [
+		['data-theme', 'dark', 'light'],
+		['data-tema', 'oscuro', 'claro'],
+	] as const) {
+		test(`C4: the visitor flips the site’s switch (${name}) on a page with the sign-in form: the form takes the new scheme’s colours without a reload`, async ({ options, guest, pages }) => {
+			await options.set(switchSite(name, `html ${name}="${dark}"`, `html ${name}="${light}"`, { diluxone_users_login_template: 'plain' }));
+			await guest.emulateMedia({ colorScheme: 'light' });
+			await siteScheme(guest, pages.login.url, 'light');
+
+			const form = '.diluxone-users-login';
+			const text = () => guest.locator(form).first().evaluate((el) => getComputedStyle(el).color);
+			const flip = (value: string) => guest.evaluate(([n, v]) => document.documentElement.setAttribute(n, v), [name, value] as const);
+
+			await expect(guest.locator(form).first()).toBeVisible();
+			await expect.poll(() => drawnIn(guest, form)).toBe('light');
+			const before = await text();
+			await guest.evaluate(() => ((window as unknown as { e2eStill: boolean }).e2eStill = true));
+
+			await flip(dark);
+			await expect.poll(text, { message: 'the form’s letters, in the dark scheme' }).toBe(DARK_TEXT);
+			await expect.poll(() => drawnIn(guest, form)).toBe('dark');
+
+			await flip(light);
+			await expect.poll(text, { message: 'and back' }).toBe(before);
+			expect(await guest.evaluate(() => (window as unknown as { e2eStill?: boolean }).e2eStill), 'the same page, never reloaded').toBe(true);
+		});
+	}
 });
+
