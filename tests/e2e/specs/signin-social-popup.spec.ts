@@ -282,5 +282,28 @@ test.describe('Social sign-in in a popup', () => {
 		await expect(page.locator('.diluxone-users-complete form.diluxone-users-form input[name="first_name"]')).toBeVisible();
 		await expectSignedIn(page, email);
 	});
+
+	/* ── C5: an error or a cancel closes the popup, the page shows it, signed out ── */
+
+	for (const [what, identity] of [
+		['a cancel at the provider', { deny: true }],
+		['a return with a state nobody issued', { forge_state: true }],
+	] as const) {
+		test(`${what}: the popup closes and the page that opened it shows the social error, signed out`, async ({ page, site, pages }) => {
+			const email = freshEmail('popup-error');
+
+			await site.setIdentity({ sub: `mock|${email}`, email, email_verified: true, ...identity });
+			await page.goto(pages.login.url);
+
+			const popup = await pressInPopup(page, ssoButton(page, 'mock'));
+
+			expect(popup.isClosed()).toBe(true);
+			expect(stateOf(page.url()), 'the social error').toBe('social');
+			expect(page.url().startsWith(pages.login.url)).toBe(true);
+			await expect(page.locator('[data-diluxone-users-message="login_social"]')).toBeVisible();
+			await expectSignedOut(page);
+			expect((await site.user(email)).exists, 'no account').toBe(false);
+		});
+	}
 });
 

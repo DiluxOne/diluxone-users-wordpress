@@ -321,4 +321,47 @@ class SsoPopupTest extends IntegrationTestCase {
 
 		wp_delete_post( $page, true );
 	}
+
+	/* ── C5: an error or a cancel closes the popup, the opener shows it ── */
+
+	public function test_a_cancel_at_the_provider_ends_in_the_bridge_and_the_opener_shows_the_error(): void {
+		$this->back( $this->start( '1' ), array( 'code' => '', 'error' => 'access_denied' ) );
+
+		$this->assertSame( 'next', $this->data( $this->bridge(), 'kind' ) );
+		$this->assertSame( 0, get_current_user_id() );
+		$this->assertArrayNotHasKey( LOGGED_IN_COOKIE, self::$cookies, 'no session' );
+		$this->assertSame( 'social', $this->redirectState( $this->resume() ) );
+	}
+
+	public function test_a_forged_state_in_a_popup_still_ends_in_the_bridge_by_this_browsers_mark(): void {
+		$trip = $this->start( '1' );
+		$this->back( array( 'state' => 'forged', 'cookie' => $trip['cookie'] ) );
+
+		$this->assertSame( 'next', $this->data( $this->bridge(), 'kind' ) );
+		$this->assertSame( 0, get_current_user_id() );
+		$this->assertSame( array(), MockProvider::$requests, 'nothing was asked of the provider' );
+		$this->assertSame( 'social', $this->redirectState( $this->resume() ) );
+	}
+
+	public function test_a_forged_state_with_no_popup_trip_behind_it_redirects_as_before(): void {
+		$trip = $this->start( '' );
+		$this->back( array( 'state' => 'forged', 'cookie' => $trip['cookie'] ) );
+
+		$this->assertSame( 'social', $this->redirectState( $this->expectRedirect( 'diluxone_users_sso_handle' ) ) );
+	}
+
+	public function test_a_refusal_at_the_start_of_a_popup_trip_ends_in_the_bridge(): void {
+		// A link with no nonce: refused before the provider, in the popup.
+		wp_set_current_user( $this->make_user() );
+		$this->request(
+			array(
+				'diluxone_users_sso'   => MockProvider::ID,
+				'diluxone_users_go'    => '1',
+				'diluxone_users_popup' => '1',
+			)
+		);
+
+		$this->assertSame( 'next', $this->data( $this->bridge(), 'kind' ) );
+		$this->assertSame( 'social', $this->redirectState( $this->resume() ) );
+	}
 }

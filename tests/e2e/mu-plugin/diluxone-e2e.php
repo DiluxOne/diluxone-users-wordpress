@@ -1306,6 +1306,11 @@ function diluxone_e2e_authorize( WP_REST_Request $request ) {
 			'state'             => $state,
 		);
 
+	// A return whose state nobody issued: what a forged callback looks like.
+	if ( ! empty( $identity['forge_state'] ) ) {
+		$args['state'] = 'forged-by-e2e';
+	}
+
 	// Not wp_safe_redirect(): the callback is this same site, but the check
 	// would still have to know that, and a plain redirect is what a provider
 	// actually sends.
