@@ -39,7 +39,7 @@ async function drawn(page: Page, standIn: boolean): Promise<void> {
 }
 
 test.describe('Issue 120: the back link of the sign-in page of its own', () => {
-	for (const scheme of ['dark'] as const) {
+	for (const scheme of ['dark', 'light'] as const) {
 		test(`Colours › the theme’s, on a theme that flips with the system, ${scheme}: the back link keeps 4.5:1 against the ground`, async ({ browser, baseURL, page, options }) => {
 			const image = await uploadImage(browser, baseURL!, ADMIN_STATE);
 

@@ -38,7 +38,7 @@ test.describe('A page of its own, on a network', () => {
 		await expect(guest.locator('body.diluxone-users-door')).toHaveCount(1);
 	});
 
-	for (const scheme of ['dark'] as const) {
+	for (const scheme of ['dark', 'light'] as const) {
 		test(`the back link keeps 4.5:1 against the ground, ${scheme}, on a theme that flips with the system (#120)`, async ({ browser, hub, guest }) => {
 			const image = await uploadImage(browser, hub.url, NETWORK_ADMIN_STATE);
 
