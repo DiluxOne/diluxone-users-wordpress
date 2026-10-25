@@ -1,6 +1,6 @@
 import { test, expect, expectSignedIn, expectSignedOut, stateOf } from '../support/fixtures';
 import { freshEmail, linkIn, waitForMail } from '../support/api';
-import { notice, ssoButton } from '../support/ui';
+import { navigated, notice, ssoButton } from '../support/ui';
 
 /**
  * A social sign-in whose address the provider did not confirm, on a site that
@@ -49,7 +49,7 @@ test.describe('A social address confirmed by mail', () => {
 		await site.setIdentity({ sub: `mock|${email}`, email, given_name: 'Grace' });
 
 		await page.goto(pages.login.url);
-		await ssoButton(page, 'mock').click();
+		await navigated(page, () => ssoButton(page, 'mock').click());
 
 		expect(stateOf(page.url())).toBe('social-pending');
 		expect(page.url(), 'the address never goes in a URL').not.toContain(encodeURIComponent(email));
@@ -78,7 +78,7 @@ test.describe('A social address confirmed by mail', () => {
 		await site.setIdentity({ sub: `mock|${email}`, email, given_name: 'Grace', family_name: 'Hopper' });
 
 		await page.goto(pages.login.url);
-		await ssoButton(page, 'mock').click();
+		await navigated(page, () => ssoButton(page, 'mock').click());
 		expect(stateOf(page.url())).toBe('social-pending');
 
 		// Opened on the phone, where the mail is read: the inbox is the proof.
@@ -102,7 +102,7 @@ test.describe('A social address confirmed by mail', () => {
 		await site.setIdentity({ sub: `mock|${email}`, email });
 
 		await page.goto(pages.login.url);
-		await ssoButton(page, 'mock').click();
+		await navigated(page, () => ssoButton(page, 'mock').click());
 		expect(stateOf(page.url())).toBe('social-pending');
 		expect((await site.user(email)).meta.diluxone_users_sso_mock, 'nothing linked before the link').toBe('');
 
@@ -122,7 +122,7 @@ test.describe('A social address confirmed by mail', () => {
 		await site.setIdentity({ sub: `mock|${email}`, email });
 
 		await page.goto(pages.login.url);
-		await ssoButton(page, 'mock').click();
+		await navigated(page, () => ssoButton(page, 'mock').click());
 
 		const link = linkIn(await waitForMail(site, email), PENDING_LINK);
 
@@ -148,7 +148,7 @@ test.describe('A social address confirmed by mail', () => {
 		await site.setIdentity({ sub: `mock|${email}`, email });
 
 		await page.goto(pages.login.url);
-		await ssoButton(page, 'mock').click();
+		await navigated(page, () => ssoButton(page, 'mock').click());
 
 		await expectSignedIn(page, email);
 		expect(stateOf(page.url())).not.toBe('social-pending');
@@ -170,7 +170,7 @@ test.describe('A social address confirmed by mail', () => {
 		await site.setIdentity({ sub: `mock|${email}`, email });
 
 		await page.goto(pages.login.url);
-		await ssoButton(page, 'mock').click();
+		await navigated(page, () => ssoButton(page, 'mock').click());
 
 		const first = await waitForMail(site, email);
 		const old = linkIn(first, PENDING_LINK);
