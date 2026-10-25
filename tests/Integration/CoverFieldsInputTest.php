@@ -175,7 +175,7 @@ class CoverFieldsInputTest extends IntegrationTestCase {
 		$this->assertStringContainsString( ' disabled', $this->input( $this->field( 'f_f', 'country', array( 'edit' => 'never' ) ) ) );
 
 		$phone = $this->input( $this->field( 'f_g', 'phone', array( 'edit' => 'never' ) ) );
-		$this->assertStringContainsString( 'class="diluxone-users-phone__dial" disabled', $phone );
+		$this->assertMatchesRegularExpression( '/<select [^>]*class="diluxone-users-phone__dial"[^>]* disabled>/', $phone );
 		$this->assertStringContainsString( 'autocomplete="tel-national" readonly', $phone );
 	}
 

@@ -355,8 +355,64 @@ details.diluxone-users-panel[open] > .diluxone-users-panel__head .diluxone-users
 .diluxone-users-field__help { margin: 0; font-size: 0.85em; color: var(--diluxone-users-muted); }
 .diluxone-users-field__required { color: var(--diluxone-users-danger); }
 
-/* The phone is two controls that are one: the dialling code and the number. */
-.diluxone-users-phone { display: grid; grid-template-columns: var(--diluxone-users-dial-w, minmax(0, 9rem)) minmax(0, 1fr); gap: 8px; }
+/* The phone is two controls that are one: the dialling code and the number.
+   The box is the wrapper, with the height, border, radius and focus ring of
+   every other input; the two inside it have none of their own and are split
+   by a rule. Without the script the code is the native list, with it the
+   picker's button (diluxone-users-phone.js), and the box is the same. */
+.diluxone-users-phone {
+	position: relative;
+	display: grid;
+	grid-template-columns: var(--diluxone-users-dial-w, minmax(0, 9rem)) minmax(0, 1fr);
+	align-items: stretch;
+	box-sizing: border-box;
+	width: 100%;
+	min-height: var(--diluxone-users-control-h);
+	border: var(--diluxone-users-border-w) solid var(--diluxone-users-border);
+	border-radius: var(--diluxone-users-radius-sm);
+	background: var(--diluxone-users-surface);
+	color: var(--diluxone-users-text);
+	color-scheme: inherit;
+}
+.diluxone-users-phone:focus-within {
+	outline: 2px solid var(--diluxone-users-accent);
+	outline-offset: 1px;
+	border-color: var(--diluxone-users-accent);
+}
+.diluxone-users-phone:has([aria-invalid="true"]) { border-color: var(--diluxone-users-danger); }
+.diluxone-users-phone select.diluxone-users-phone__dial,
+.diluxone-users-phone input.diluxone-users-phone__number,
+.diluxone-users-phone select.diluxone-users-phone__dial:focus,
+.diluxone-users-phone input.diluxone-users-phone__number:focus {
+	min-width: 0;
+	width: 100%;
+	min-height: 0;
+	height: auto;
+	margin: 0;
+	border: 0;
+	border-radius: 0;
+	background: transparent;
+	box-shadow: none;
+	outline: 0;
+}
+.diluxone-users-phone select.diluxone-users-phone__dial,
+.diluxone-users-phone select.diluxone-users-phone__dial:focus {
+	border-inline-end: var(--diluxone-users-border-w) solid var(--diluxone-users-border);
+	border-start-start-radius: inherit;
+	border-end-start-radius: inherit;
+}
+.diluxone-users-phone input.diluxone-users-phone__number,
+.diluxone-users-phone input.diluxone-users-phone__number:focus {
+	border-start-end-radius: inherit;
+	border-end-end-radius: inherit;
+}
+.diluxone-users-field__error {
+	margin: 0;
+	padding-inline-start: 10px;
+	border-inline-start: 3px solid var(--diluxone-users-danger);
+	font-size: 0.85em;
+	color: var(--diluxone-users-text);
+}
 
 .diluxone-users-check { display: flex; align-items: flex-start; gap: 10px; margin: 0 0 12px; }
 .diluxone-users-check input { margin-top: 4px; }

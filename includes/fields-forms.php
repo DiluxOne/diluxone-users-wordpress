@@ -226,8 +226,17 @@ function diluxone_users_field_input( array $field, string $value, string $id = '
 				}
 			}
 
+			// One box holding both, with the height and the border of every other
+			// input: the label points at the number, and the list says what it
+			// is itself.
 			echo '<span class="diluxone-users-phone">';
-			printf( '<select id="%1$s-dial" name="%2$s_dial" class="diluxone-users-phone__dial"%3$s>', esc_attr( $id ), esc_attr( $key ), esc_attr( $lock_sel ) );
+			printf(
+				'<select id="%1$s-dial" name="%2$s_dial" class="diluxone-users-phone__dial" aria-label="%3$s"%4$s>',
+				esc_attr( $id ),
+				esc_attr( $key ),
+				esc_attr__( 'Country code', 'diluxone-users' ),
+				esc_attr( $lock_sel )
+			);
 
 			foreach ( diluxone_users_countries_sorted( $field['options'] ) as $iso => $country_name ) {
 				printf(

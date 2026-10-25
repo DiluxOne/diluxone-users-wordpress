@@ -37,6 +37,7 @@
 	--du-ground-alt: #f6f7f7;
 	--du-text: #1d2327;
 	--du-muted: #646970;
+	--du-danger: #d63638;
 
 	--du-title: 15px;
 	--du-heading: 18px;
@@ -642,6 +643,53 @@
 .diluxone-users-admin textarea:focus {
 	border-color: var(--du-accent, #2271b1);
 	box-shadow: 0 0 0 1px var(--du-accent, #2271b1);
+}
+
+/* The phone on the profile and on Users → Add New: the dialling code and the
+   number in one box. The box is WordPress's own text box — the number input,
+   with the edge, height and corners WordPress gives every input of the
+   version it is — and the code sits inside its left end, split off by a
+   rule. Drawing a box of the plugin's own would match one version of
+   WordPress's inputs and not the next. */
+.diluxone-users-admin .diluxone-users-phone {
+	position: relative;
+	display: block;
+	width: 25em;
+	max-width: 100%;
+}
+.diluxone-users-admin .diluxone-users-phone input.diluxone-users-phone__number {
+	width: 100%;
+	margin: 0;
+	padding-inline-start: calc(var(--diluxone-users-dial-w, 8rem) + var(--du-3));
+}
+.diluxone-users-admin .diluxone-users-phone .diluxone-users-phone__dial,
+.diluxone-users-admin .diluxone-users-phone .diluxone-users-phone__dial:focus {
+	position: absolute;
+	inset-block: 1px;
+	inset-inline-start: 1px;
+	z-index: 1;
+	width: var(--diluxone-users-dial-w, 8rem);
+	min-width: 0;
+	max-width: none;
+	min-height: 0;
+	height: auto;
+	margin: 0;
+	border: 0;
+	border-inline-end: 1px solid var(--du-line);
+	border-radius: 0;
+	background-color: transparent;
+	box-shadow: none;
+}
+.diluxone-users-admin .diluxone-users-phone input.diluxone-users-phone__number[aria-invalid="true"] { border-color: var(--du-danger); }
+.diluxone-users-admin .diluxone-users-phone .diluxone-users-phone__dial:focus-visible {
+	outline: 2px solid var(--du-accent, currentColor);
+	outline-offset: -2px;
+}
+.diluxone-users-admin .diluxone-users-field__error {
+	margin: var(--du-1) 0 0;
+	padding-inline-start: var(--du-2);
+	border-inline-start: 3px solid var(--du-danger);
+	color: var(--du-text);
 }
 
 /* ── State pills ──────────────────────────────────────────────────── */
