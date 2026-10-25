@@ -1,0 +1,468 @@
+<?php
+/**
+ * How the plugin's items look and sit in the site's own menu.
+ *
+ * The person's item says it opens, the way themes read it. "Sign in" can be
+ * a button, in the theme's colours or the site's own, and the plugin's items
+ * can stand apart at the far end of the bar with room of their own; left at
+ * their defaults, everything is drawn exactly as before.
+ */
+
+namespace Tests\Integration;
+
+use Tests\Integration\Support\CoverSettingsSupport;
+
+class SiteMenuLookTest extends IntegrationTestCase {
+
+	use CoverSettingsSupport;
+
+	/** @var array<int, int> Menus the test made. */
+	private array $menus = array();
+
+	/** @var mixed The menu locations before the test. */
+	private $locations;
+
+	protected function setUp(): void {
+		parent::setUp();
+		$this->locations = get_theme_mod( 'nav_menu_locations' );
+	}
+
+	protected function tearDown(): void {
+		foreach ( $this->menus as $menu ) {
+			wp_delete_nav_menu( $menu );
+		}
+
+		if ( false === $this->locations ) {
+			remove_theme_mod( 'nav_menu_locations' );
+		} else {
+			set_theme_mod( 'nav_menu_locations', $this->locations );
+		}
+
+		wp_dequeue_style( 'diluxone-users-menu' );
+		wp_deregister_style( 'diluxone-users-menu' );
+		$this->cover_settings_reset();
+
+		parent::tearDown();
+	}
+
+	/** A menu with one link of the site's, in a location chosen for the person. */
+	private function chosen_menu(): \WP_Term {
+		$menu = wp_create_nav_menu( 'Look menu ' . wp_generate_password( 6, false ) );
+		$this->assertIsInt( $menu );
+		$this->menus[] = $menu;
+
+		wp_update_nav_menu_item(
+			$menu,
+			0,
+			array(
+				'menu-item-title'  => 'Site link',
+				'menu-item-url'    => home_url( '/about/' ),
+				'menu-item-status' => 'publish',
+				'menu-item-type'   => 'custom',
+			)
+		);
+
+		register_nav_menu( 'look-menu', 'Look menu' );
+		set_theme_mod( 'nav_menu_locations', array( 'look-menu' => $menu ) );
+		diluxone_users_update_option( 'diluxone_users_menu_location', 'look-menu' );
+
+		return get_term( $menu, 'nav_menu' );
+	}
+
+	/** The menu as the theme's header draws it. */
+	private function drawn(): string {
+		return (string) wp_nav_menu(
+			array(
+				'theme_location' => 'look-menu',
+				'echo'           => false,
+				'fallback_cb'    => false,
+			)
+		);
+	}
+
+	/** The `<li>` of one of the plugin's items, by its kind. */
+	private function li( string $html, string $kind ): \DOMElement {
+		$doc = new \DOMDocument();
+		libxml_use_internal_errors( true );
+		$doc->loadHTML( '<?xml encoding="utf-8"?><body>' . $html . '</body>' );
+		libxml_clear_errors();
+
+		$found = ( new \DOMXPath( $doc ) )->query( '//li[contains(concat(" ", @class, " "), " diluxone-users-menu--' . $kind . ' ")]' );
+		$this->assertNotFalse( $found );
+		$this->assertSame( 1, $found->length, "the {$kind} item is drawn once" );
+
+		$li = $found->item( 0 );
+		$this->assertInstanceOf( \DOMElement::class, $li );
+
+		return $li;
+	}
+
+	/** @return array<int, string> */
+	private function classes( \DOMElement $li ): array {
+		return preg_split( '/\s+/', trim( $li->getAttribute( 'class' ) ) ) ?: array();
+	}
+
+	/* ── The person's sub-menu (C2) ────────────────────────────────── */
+
+	public function test_the_persons_item_says_it_has_children_and_holds_its_sub_menu(): void {
+		$this->chosen_menu();
+		wp_set_current_user( $this->make_user() );
+
+		$html   = $this->drawn();
+		$person = $this->li( $html, 'person' );
+
+		$this->assertContains( 'menu-item-has-children', $this->classes( $person ) );
+
+		$sub = $person->getElementsByTagName( 'ul' )->item( 0 );
+		$this->assertInstanceOf( \DOMElement::class, $sub, 'the sub-menu hangs from it' );
+		$this->assertSame( 'sub-menu', $sub->getAttribute( 'class' ) );
+		$this->assertStringContainsString( 'diluxone-users-menu--sign-out', (string) $person->ownerDocument?->saveHTML( $sub ), 'with the way out in it' );
+	}
+
+	public function test_an_item_nothing_hangs_from_does_not_say_it_has_children(): void {
+		$this->chosen_menu();
+		wp_set_current_user( 0 );
+
+		$this->assertStringNotContainsString( 'menu-item-has-children', $this->drawn() );
+	}
+
+	/* ── "Sign in" as a button, in the theme's colours (C3) ───────── */
+
+	/** @return array<int, array{0: string}> */
+	public function button_styles(): array {
+		return array(
+			'filled'   => array( 'filled' ),
+			'outlined' => array( 'outlined' ),
+		);
+	}
+
+	/** @dataProvider button_styles */
+	public function test_a_button_carries_the_themes_button_class_and_still_leads_to_the_sign_in_page( string $style ): void {
+		$this->chosen_menu();
+		wp_set_current_user( 0 );
+		diluxone_users_update_option( 'diluxone_users_menu_signin_style', $style );
+
+		$li = $this->li( $this->drawn(), 'sign-in' );
+
+		$this->assertContains( 'diluxone-users-menu--button', $this->classes( $li ) );
+		$this->assertContains( 'diluxone-users-menu--' . $style, $this->classes( $li ) );
+
+		$link = $li->getElementsByTagName( 'a' )->item( 0 );
+		$this->assertInstanceOf( \DOMElement::class, $link );
+		$this->assertContains( 'wp-element-button', preg_split( '/\s+/', $link->getAttribute( 'class' ) ) ?: array() );
+		$this->assertSame( diluxone_users_login_url(), $link->getAttribute( 'href' ) );
+
+		diluxone_users_menu_style();
+		$css = implode( '', (array) wp_styles()->get_data( 'diluxone-users-menu', 'after' ) );
+		$this->assertStringContainsString( ':where(.diluxone-users-menu--button)', $css, 'a fallback that weighs nothing beside the theme' );
+		if ( 'outlined' === $style ) {
+			$this->assertStringContainsString( '.diluxone-users-menu--outlined > a.wp-element-button{background:transparent', $css );
+		}
+	}
+
+	public function test_the_sites_own_links_never_get_the_button_class(): void {
+		$this->chosen_menu();
+		wp_set_current_user( 0 );
+		diluxone_users_update_option( 'diluxone_users_menu_signin_style', 'filled' );
+
+		$this->assertSame( 1, substr_count( $this->drawn(), 'wp-element-button' ) );
+	}
+
+	public function test_a_style_that_is_not_one_saves_as_the_link(): void {
+		$this->the_admin();
+
+		$this->send_panel( 'diluxone-users-account', array( 'diluxone_users_menu_signin_style' => 'outlined' ) );
+		diluxone_users_account_menu_save();
+		$this->assertSame( 'outlined', diluxone_users_option( 'diluxone_users_menu_signin_style' ) );
+
+		$this->send_panel( 'diluxone-users-account', array( 'diluxone_users_menu_signin_style' => 'glowing' ) );
+		diluxone_users_account_menu_save();
+
+		$this->assertSame( 'link', diluxone_users_option( 'diluxone_users_menu_signin_style' ) );
+	}
+
+	/* ── "Sign in" in the site's own colours (C4, C5) ─────────────── */
+
+	/** The menu's inline CSS, for whoever is looking. */
+	private function menu_css(): string {
+		diluxone_users_menu_style();
+		return implode( '', (array) wp_styles()->get_data( 'diluxone-users-menu', 'after' ) );
+	}
+
+	/** @return array<string, string> */
+	private function own_colours( string $bg, string $text, string $border, string $hover ): array {
+		return array(
+			'diluxone_users_menu_signin_bg'     => $bg,
+			'diluxone_users_menu_signin_text'   => $text,
+			'diluxone_users_menu_signin_border' => $border,
+			'diluxone_users_menu_signin_hover'  => $hover,
+		);
+	}
+
+	/** @return array<string, string> */
+	private function stored_colours(): array {
+		$stored = array();
+		foreach ( array( 'bg', 'text', 'border', 'hover' ) as $part ) {
+			$stored[ 'diluxone_users_menu_signin_' . $part ] = (string) diluxone_users_option( 'diluxone_users_menu_signin_' . $part );
+		}
+		return $stored;
+	}
+
+	public function test_own_colours_are_saved_and_painted_from_the_tokens_without_the_themes_button(): void {
+		$this->the_admin();
+		$colours = $this->own_colours( '#0b3d91', '#ffffff', '#072b66', '#062456' );
+
+		$this->send_panel(
+			'diluxone-users-account',
+			array(
+				'diluxone_users_menu_signin_style'  => 'filled',
+				'diluxone_users_menu_signin_colors' => 'own',
+			) + $colours
+		);
+		$this->draw( 'diluxone_users_account_menu_save' );
+
+		$this->assertSame( 'own', diluxone_users_option( 'diluxone_users_menu_signin_colors' ) );
+		$this->assertSame( $colours, $this->stored_colours() );
+
+		$this->chosen_menu();
+		wp_set_current_user( 0 );
+
+		$li = $this->li( $this->drawn(), 'sign-in' );
+		$this->assertContains( 'diluxone-users-menu--own', $this->classes( $li ) );
+		$link = $li->getElementsByTagName( 'a' )->item( 0 );
+		$this->assertInstanceOf( \DOMElement::class, $link );
+		$this->assertStringNotContainsString( 'wp-element-button', $link->getAttribute( 'class' ), 'the theme’s button would paint over them' );
+
+		$css = $this->menu_css();
+		$this->assertStringContainsString( '--diluxone-users-menu-btn-bg:#0b3d91;--diluxone-users-menu-btn-text:#ffffff;--diluxone-users-menu-btn-border:#072b66;--diluxone-users-menu-btn-hover:#062456', $css );
+		$this->assertStringContainsString( 'a:hover', $css );
+	}
+
+	/** @return array<string, array{0: array<string, string>}> */
+	public function unreadable_pairs(): array {
+		return array(
+			'grey text on white'           => array( $this->own_colours( '#ffffff', '#999999', '#ffffff', '#000000' ) ),
+			'reads at rest, not on hover'  => array( $this->own_colours( '#000000', '#ffffff', '#000000', '#dddddd' ) ),
+		);
+	}
+
+	/**
+	 * @dataProvider unreadable_pairs
+	 * @param array<string, string> $colours
+	 */
+	public function test_a_pair_below_four_and_a_half_to_one_is_refused_and_the_colours_before_stay( array $colours ): void {
+		$this->the_admin();
+		$before = $this->stored_colours();
+
+		$this->send_panel( 'diluxone-users-account', array( 'diluxone_users_menu_signin_colors' => 'own' ) + $colours );
+		$said = $this->draw( 'diluxone_users_account_menu_save' );
+
+		$this->assertSame( $before, $this->stored_colours() );
+		$this->assertStringContainsString( 'notice-error', $said );
+		$this->assertTrue( diluxone_users_menu_signin_palette_reads( diluxone_users_menu_signin_palette() ), 'what is stored reads' );
+	}
+
+	/** @return array<string, array{0: string}> */
+	public function not_colours(): array {
+		return array(
+			'a word'          => array( 'red' ),
+			'css let in'      => array( '#fff;}body{display:none' ),
+			'no hash'         => array( 'ffffff' ),
+			'too many digits' => array( '#1234567' ),
+			'empty'           => array( '' ),
+		);
+	}
+
+	/** @dataProvider not_colours */
+	public function test_a_colour_that_is_not_a_hex_colour_is_not_stored_and_keeps_its_value( string $sent ): void {
+		$this->the_admin();
+		diluxone_users_update_option( 'diluxone_users_menu_signin_bg', '#0b3d91' );
+
+		$this->send_panel(
+			'diluxone-users-account',
+			array(
+				'diluxone_users_menu_signin_colors' => 'own',
+				'diluxone_users_menu_signin_bg'     => $sent,
+				'diluxone_users_menu_signin_text'   => '#fefefe',
+			)
+		);
+		$said = $this->draw( 'diluxone_users_account_menu_save' );
+
+		$this->assertSame( '#0b3d91', diluxone_users_option( 'diluxone_users_menu_signin_bg' ) );
+		$this->assertSame( '#fefefe', diluxone_users_option( 'diluxone_users_menu_signin_text' ), 'the good one beside it is kept' );
+		$this->assertStringContainsString( 'notice-error', $said );
+
+		$this->chosen_menu();
+		wp_set_current_user( 0 );
+		diluxone_users_update_option( 'diluxone_users_menu_signin_style', 'filled' );
+		$css = $this->menu_css();
+		$this->assertStringContainsString( '--diluxone-users-menu-btn-bg:#0b3d91;', $css, 'the menu draws the colour it had' );
+		$this->assertStringNotContainsString( 'body{', $css );
+	}
+
+	/* ── Left at "link", "Sign in" is today's (C6) ────────────────── */
+
+	/** @return array<string, array{0: array<string, string>}> */
+	public function left_as_a_link(): array {
+		return array(
+			'nothing set'                  => array( array() ),
+			'own colours saved beside it'  => array(
+				array(
+					'diluxone_users_menu_signin_colors' => 'own',
+					'diluxone_users_menu_signin_bg'     => '#0b3d91',
+				),
+			),
+		);
+	}
+
+	/**
+	 * @dataProvider left_as_a_link
+	 * @param array<string, string> $saved
+	 */
+	public function test_left_at_link_sign_in_is_drawn_exactly_as_before( array $saved ): void {
+		$this->chosen_menu();
+		wp_set_current_user( 0 );
+		foreach ( $saved as $key => $value ) {
+			diluxone_users_update_option( $key, $value );
+		}
+
+		$this->assertSame( 'link', diluxone_users_menu_signin_style() );
+
+		$html = $this->drawn();
+		$li   = $this->li( $html, 'sign-in' );
+
+		$this->assertSame( 'menu-item diluxone-users-menu diluxone-users-menu--sign-in menu-item-990001', $li->getAttribute( 'class' ) );
+		$this->assertStringContainsString(
+			'<li class="menu-item diluxone-users-menu diluxone-users-menu--sign-in menu-item-990001"><a href="' . esc_url( diluxone_users_login_url() ) . '">Sign in</a></li>',
+			$html
+		);
+		$this->assertStringNotContainsString( 'wp-element-button', $html );
+
+		diluxone_users_menu_style();
+		$this->assertFalse( wp_style_is( 'diluxone-users-menu', 'enqueued' ), 'a visitor gets no CSS for a link' );
+	}
+
+	public function test_left_at_link_the_signed_in_css_is_todays_to_the_byte(): void {
+		$this->chosen_menu();
+		wp_set_current_user( $this->make_user() );
+
+		$this->assertSame(
+			'.diluxone-users-menu--person > a{align-items:center}'
+			. '.diluxone-users-menu .diluxone-users-menu__avatar{display:inline-block;vertical-align:middle;width:32px;height:32px;margin-inline-end:.55em;border-radius:50%;object-fit:cover;box-shadow:0 0 0 2px currentColor;flex:none}',
+			$this->menu_css()
+		);
+	}
+
+	/* ── A spacing out of range, or not a length (C9) ─────────────── */
+
+	public function test_a_spacing_beyond_its_range_is_stored_and_drawn_within_it(): void {
+		$this->the_admin();
+
+		$this->send_panel(
+			'diluxone-users-account',
+			array(
+				'diluxone_users_menu_position'  => 'apart',
+				'diluxone_users_menu_gap'       => '400px',
+				'diluxone_users_menu_inner_gap' => '9rem',
+			)
+		);
+		$this->draw( 'diluxone_users_account_menu_save' );
+
+		$this->assertSame( '96px', diluxone_users_option( 'diluxone_users_menu_gap' ) );
+		$this->assertSame( '6rem', diluxone_users_option( 'diluxone_users_menu_inner_gap' ) );
+
+		$this->chosen_menu();
+		wp_set_current_user( 0 );
+		$css = $this->menu_css();
+
+		$this->assertStringContainsString( '--diluxone-users-menu-gap:96px', $css );
+		$this->assertStringContainsString( '--diluxone-users-menu-inner-gap:6rem', $css );
+		$this->assertStringNotContainsString( '400px', $css );
+		$this->assertStringStartsWith( '@media (min-width:600px){', $css );
+	}
+
+	/** @return array<string, array{0: string}> */
+	public function not_spacings(): array {
+		return array(
+			'no unit'      => array( '24' ),
+			'another unit' => array( '2em' ),
+			'below zero'   => array( '-8px' ),
+			'css let in'   => array( '8px}body{display:none' ),
+		);
+	}
+
+	/** @dataProvider not_spacings */
+	public function test_a_spacing_that_is_not_a_length_is_refused_and_the_one_before_stays( string $sent ): void {
+		$this->the_admin();
+		diluxone_users_update_option( 'diluxone_users_menu_gap', '20px' );
+
+		$this->send_panel(
+			'diluxone-users-account',
+			array(
+				'diluxone_users_menu_gap'       => $sent,
+				'diluxone_users_menu_inner_gap' => '10px',
+			)
+		);
+		$said = $this->draw( 'diluxone_users_account_menu_save' );
+
+		$this->assertSame( '20px', diluxone_users_option( 'diluxone_users_menu_gap' ) );
+		$this->assertSame( '10px', diluxone_users_option( 'diluxone_users_menu_inner_gap' ), 'the good one beside it is kept' );
+		$this->assertStringContainsString( 'notice-error', $said );
+
+		$this->chosen_menu();
+		wp_set_current_user( 0 );
+		$css = $this->menu_css();
+
+		$this->assertStringContainsString( '--diluxone-users-menu-gap:20px', $css );
+		$this->assertStringNotContainsString( $sent, $css );
+	}
+
+	public function test_a_spacing_stored_by_other_means_is_never_drawn_unless_it_is_a_length(): void {
+		$this->chosen_menu();
+		wp_set_current_user( 0 );
+		diluxone_users_update_option( 'diluxone_users_menu_gap', '8px}body{display:none' );
+		diluxone_users_update_option( 'diluxone_users_menu_inner_gap', '700px' );
+
+		$css = $this->menu_css();
+
+		$this->assertStringNotContainsString( 'body{', $css );
+		$this->assertStringNotContainsString( '700px', $css );
+		$this->assertStringContainsString( '--diluxone-users-menu-inner-gap:96px', $css );
+	}
+
+	/* ── Position and spacing at their defaults (C10) ─────────────── */
+
+	public function test_at_their_defaults_the_persons_items_are_where_and_as_they_were(): void {
+		$this->the_admin();
+		// Saved from the screen as it comes: at the end, no room of its own.
+		$this->send_panel(
+			'diluxone-users-account',
+			array(
+				'diluxone_users_menu_position'  => 'end',
+				'diluxone_users_menu_gap'       => '',
+				'diluxone_users_menu_inner_gap' => '',
+			)
+		);
+		$this->draw( 'diluxone_users_account_menu_save' );
+
+		$this->assertSame( 'end', diluxone_users_option( 'diluxone_users_menu_position' ) );
+		$this->assertSame( '', diluxone_users_option( 'diluxone_users_menu_gap' ) );
+		$this->assertSame( '', diluxone_users_option( 'diluxone_users_menu_inner_gap' ) );
+
+		$this->chosen_menu();
+		wp_set_current_user( $this->make_user() );
+
+		$html   = $this->drawn();
+		$person = $this->li( $html, 'person' );
+
+		$this->assertSame( 'menu-item diluxone-users-menu diluxone-users-menu--person menu-item-has-children menu-item-990001', $person->getAttribute( 'class' ) );
+		$this->assertStringNotContainsString( 'diluxone-users-menu--first', $html );
+		$this->assertStringNotContainsString( 'diluxone-users-menu--next', $html );
+		$this->assertMatchesRegularExpression( '#Site link</a></li>\s*<li class="menu-item diluxone-users-menu diluxone-users-menu--person#', $html, 'right after the site’s own items, as their last' );
+
+		$css = $this->menu_css();
+		$this->assertStringNotContainsString( '@media', $css );
+		$this->assertStringNotContainsString( '--diluxone-users-menu-gap', $css );
+		$this->assertStringNotContainsString( 'margin-inline-start:auto', $css );
+	}
+}

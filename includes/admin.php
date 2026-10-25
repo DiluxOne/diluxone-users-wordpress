@@ -534,6 +534,16 @@ function diluxone_users_admin_styles( string $hook ): void {
 	// rather than printing a <link> in the middle of the tab.
 	if ( false !== strpos( $hook, 'diluxone-users-account' ) ) {
 		wp_enqueue_editor();
+
+		// The colour pickers of "Sign in", on the tab that has them.
+		$tabs = array(
+			''     => '',
+			'menu' => '',
+		);
+		if ( 'menu' === diluxone_users_tab( $tabs ) ) {
+			wp_enqueue_style( 'wp-color-picker' );
+			wp_enqueue_script( 'wp-color-picker' );
+		}
 	}
 
 	wp_enqueue_script( 'diluxone-users-admin', DILUXONE_USERS_URL . 'assets/diluxone-users-admin.js', array(), diluxone_users_asset_version( 'assets/diluxone-users-admin.js' ), true );
