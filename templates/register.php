@@ -95,7 +95,11 @@ defined( 'ABSPATH' ) || exit;
 			'slow'    => 'register_slow',
 			'closed'  => 'register_closed',
 			'error'   => 'register_error',
+			'phone'   => 'register_phone',
 		);
+
+		// The phone the form came back for, and why: said under the number.
+		$diluxone_users_refused = diluxone_users_phone_refused( $args['fields'] );
 		?>
 
 		<?php if ( isset( $diluxone_users_says[ $args['state'] ] ) ) : ?>
@@ -150,7 +154,7 @@ defined( 'ABSPATH' ) || exit;
 						</label>
 					<?php endif; ?>
 
-					<?php diluxone_users_field_input( $diluxone_users_field, '', 'diluxone-users-' . $diluxone_users_field['key'] ); ?>
+					<?php diluxone_users_field_input( $diluxone_users_field, '', 'diluxone-users-' . $diluxone_users_field['key'], 0, (string) ( $diluxone_users_refused[ $diluxone_users_field['key'] ] ?? '' ) ); ?>
 
 					<?php if ( '' !== (string) $diluxone_users_field['help'] ) : ?>
 						<p class="diluxone-users-field__help"><?php echo esc_html( (string) $diluxone_users_field['help'] ); ?></p>
