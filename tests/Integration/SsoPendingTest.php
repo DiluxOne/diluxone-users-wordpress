@@ -95,6 +95,31 @@ class SsoPendingTest extends IntegrationTestCase {
 		return $links;
 	}
 
+	/** The cookies this browser holds after the trip. */
+	private function held(): array {
+		$held = array();
+
+		foreach ( array( DILUXONE_USERS_SSO_PENDING_COOKIE, DILUXONE_USERS_SSO_PENDING_SHOWN ) as $name ) {
+			if ( isset( self::$cookies[ $name ] ) ) {
+				$held[ $name ] = self::$cookies[ $name ]['value'];
+			}
+		}
+
+		return $held;
+	}
+
+	/**
+	 * Presses "Send it again" in this browser: where it sends the person.
+	 *
+	 * @param array<string, string> $cookie
+	 */
+	private function resend( array $cookie, string $nonce = '' ): string {
+		$this->postAs( 0, array( 'action' => 'diluxone_users_sso_resend', 'diluxone_users_nonce' => '' !== $nonce ? $nonce : wp_create_nonce( 'diluxone_users_sso_resend' ) ) );
+		$_COOKIE = $cookie;
+
+		return $this->expectRedirect( 'diluxone_users_sso_pending_resend' );
+	}
+
 	/** The account behind the identity, or 0. */
 	private function owner(): int {
 		return diluxone_users_sso_owner( MockProvider::ID, $this->sub );
@@ -327,5 +352,102 @@ class SsoPendingTest extends IntegrationTestCase {
 		$this->assertSame( 'expired', $this->redirectState( $this->open( $this->links()[0] ) ) );
 		$this->assertFalse( get_user_by( 'email', $this->email ) );
 		$this->assertSame( 0, $this->owner() );
+	}
+
+	/* ── C5: the link's limits ───────────────────────────────────────── */
+
+	public function test_a_link_works_once(): void {
+		$this->trip();
+		$link = $this->links()[0];
+
+		$this->open( $link );
+		$user = get_current_user_id();
+		$this->assertGreaterThan( 0, $user );
+		wp_set_current_user( 0 );
+
+		$this->assertSame( 'expired', $this->redirectState( $this->open( $link ) ) );
+		$this->assertSame( 0, get_current_user_id(), 'the second time opens nothing' );
+	}
+
+	public function test_a_wrong_token_is_expired_and_spends_nothing(): void {
+		$this->trip();
+		$link  = $this->links()[0];
+		$wrong = add_query_arg( 'diluxone_users_token', str_repeat( 'x', 40 ), $link );
+
+		$this->assertSame( 'expired', $this->redirectState( $this->open( $wrong ) ) );
+		$this->assertFalse( get_user_by( 'email', $this->email ) );
+		$this->assertSame( 0, $this->owner() );
+
+		// Whoever guesses does not get to spend the real one.
+		$this->open( $link );
+		$this->assertGreaterThan( 0, get_current_user_id() );
+	}
+
+	public function test_a_handle_nobody_issued_is_expired(): void {
+		$this->assertSame( 'expired', $this->redirectState( $this->open( home_url( '/?diluxone_users_sso_pending=' . str_repeat( 'a', 32 ) . '&diluxone_users_token=' . str_repeat( 'b', 40 ) ) ) ) );
+		$this->assertSame( 'expired', $this->redirectState( $this->open( home_url( '/?diluxone_users_sso_pending=../x&diluxone_users_token=' ) ) ) );
+	}
+
+	public function test_an_inbox_written_to_a_moment_ago_gets_the_same_screen_and_no_mail(): void {
+		set_site_transient( 'diluxone_users_throttle_' . md5( strtolower( $this->email ) ), 1, 60 );
+
+		$this->assertSame( 'social-pending', $this->redirectState( $this->trip() ) );
+		$this->assertSame( 'p•••@e•••.test', self::$cookies[ DILUXONE_USERS_SSO_PENDING_SHOWN ]['value'] ?? '' );
+		$this->assertSame( array(), self::$mail );
+		$this->assertFalse( get_user_by( 'email', $this->email ) );
+	}
+
+	public function test_a_machine_past_its_count_gets_the_same_screen_and_nothing_is_kept(): void {
+		for ( $i = 0; $i < diluxone_users_login_burst(); $i++ ) {
+			diluxone_users_ip_burst( 'link', diluxone_users_login_burst() );
+		}
+
+		$this->assertSame( 'social-pending', $this->redirectState( $this->trip() ) );
+		$this->assertSame( 'p•••@e•••.test', self::$cookies[ DILUXONE_USERS_SSO_PENDING_SHOWN ]['value'] ?? '' );
+		$this->assertArrayNotHasKey( DILUXONE_USERS_SSO_PENDING_COOKIE, self::$cookies, 'no record kept' );
+		$this->assertSame( array(), self::$mail );
+	}
+
+	public function test_a_machine_past_its_account_count_gets_the_same_screen_and_no_mail(): void {
+		for ( $i = 0; $i < diluxone_users_register_burst(); $i++ ) {
+			diluxone_users_register_allowed();
+		}
+
+		$this->assertSame( 'social-pending', $this->redirectState( $this->trip() ) );
+		$this->assertSame( array(), self::$mail );
+		$this->assertFalse( get_user_by( 'email', $this->email ) );
+	}
+
+	public function test_send_it_again_inside_the_wait_gets_the_same_screen_and_no_mail(): void {
+		$this->trip();
+		$held = $this->held();
+
+		$this->assertSame( 'social-pending', $this->redirectState( $this->resend( $held ) ) );
+		$this->assertCount( 1, self::$mail, 'only the first' );
+	}
+
+	public function test_send_it_again_past_the_machine_s_count_gets_the_same_screen_and_no_mail(): void {
+		$this->trip();
+		$held = $this->held();
+		delete_site_transient( 'diluxone_users_throttle_' . md5( strtolower( $this->email ) ) );
+
+		for ( $i = 0; $i < diluxone_users_login_burst(); $i++ ) {
+			diluxone_users_ip_burst( 'link', diluxone_users_login_burst() );
+		}
+
+		$this->assertSame( 'social-pending', $this->redirectState( $this->resend( $held ) ) );
+		$this->assertCount( 1, self::$mail );
+	}
+
+	public function test_send_it_again_with_nothing_pending_or_no_nonce_gets_the_same_screen(): void {
+		$this->assertSame( 'social-pending', $this->redirectState( $this->resend( array() ) ) );
+		$this->assertSame( 'social-pending', $this->redirectState( $this->resend( array( DILUXONE_USERS_SSO_PENDING_COOKIE => str_repeat( 'a', 32 ) ) ) ) );
+
+		$this->trip();
+		$held = $this->held();
+		delete_site_transient( 'diluxone_users_throttle_' . md5( strtolower( $this->email ) ) );
+
+		$this->assertSame( 'social-pending', $this->redirectState( $this->resend( $held, 'forged' ) ) );
+		$this->assertCount( 1, self::$mail, 'nothing sent without the nonce' );
 	}
 }
