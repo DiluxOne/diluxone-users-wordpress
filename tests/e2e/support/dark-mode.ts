@@ -121,3 +121,77 @@ export async function groundBehind(page: Page, selector: string): Promise<string
 export function unreadable(all: Reading[], bar = 4.5): string[] {
 	return all.filter((one) => one.ratio < bar).map((one) => `${one.what}: ${one.text} on ${one.ground} (${one.ratio.toFixed(2)}:1)`);
 }
+
+/** The switches of the e2e mu-plugin's stand-in theme with one of its own (`diluxone_e2e_switch`). */
+export type SwitchKind = 'data-theme' | 'data-tema' | 'class';
+
+/**
+ * The settings that make the site the stand-in with a switch of its own, the
+ * sign-in page of its own on, and Dark mode follows › the site's own switch,
+ * with the signals as stored: where they go, a space, and what they are.
+ */
+export function switchSite(kind: SwitchKind, dark: string, light = '', extra: Record<string, unknown> = {}): Record<string, unknown> {
+	return {
+		diluxone_e2e_switch: kind,
+		diluxone_e2e_switch_off_door: 0,
+		diluxone_users_styles: 1,
+		diluxone_users_colors: 'theme',
+		diluxone_users_dark_follows: 'site',
+		diluxone_users_dark_signal: dark,
+		diluxone_users_light_signal: light,
+		diluxone_users_login_template: 'own',
+		diluxone_users_login_slug: 'sign-in',
+		diluxone_users_login_slug_old: [],
+		...extra,
+	};
+}
+
+/**
+ * The visitor flips the site's switch, kept the way the stand-in keeps it
+ * (`e2e-scheme` in the browser: 'dark', 'light', or '' for as the device),
+ * on a page of the site, which is opened again so its script puts it there;
+ * and waits for the plugin to have measured that page in that scheme.
+ */
+export async function siteScheme(page: Page, url: string, scheme: 'dark' | 'light' | ''): Promise<void> {
+	await page.goto(url);
+	await page.evaluate((v) => (v ? localStorage.setItem('e2e-scheme', v) : localStorage.removeItem('e2e-scheme')), scheme);
+	await page.reload();
+
+	if (scheme) {
+		await page.waitForFunction(
+			(v) => Object.keys(localStorage).some((k) => k.endsWith(':scheme') && localStorage.getItem(k) === v),
+			scheme,
+		);
+	}
+}
+
+/** The text the stand-in paints in dark mode, as the browser reports it. */
+export const DARK_TEXT = 'rgb(230, 232, 236)';
+
+/** One of the plugin's colours, as it stands on <html>: `token(page, 'text')`. */
+export function token(page: Page, role: string): Promise<string> {
+	return page.evaluate((r) => getComputedStyle(document.documentElement).getPropertyValue(`--diluxone-users-${r}`).trim(), role);
+}
+
+/** The form of the sign-in page of its own. */
+export const DOOR_FORM = '.diluxone-users-login-frame--own .diluxone-users-login';
+
+/**
+ * Which scheme an element is drawn in, as a reader tells: light letters on a
+ * dark ground, or the other way round.
+ */
+export async function drawnIn(page: Page, selector: string): Promise<'dark' | 'light' | ''> {
+	const [first] = await readings(page, selector);
+
+	if (!first) {
+		return '';
+	}
+
+	const light = (css: string) => {
+		const [r, g, b] = (css.match(/\d+/g) ?? []).map(Number);
+
+		return (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+	};
+
+	return light(first.ground) < light(first.text) ? 'dark' : 'light';
+}
