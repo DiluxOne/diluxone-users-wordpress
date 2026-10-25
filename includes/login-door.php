@@ -185,7 +185,45 @@ function diluxone_users_login_slug_move( string $slug ): void {
 	$old = array_values( array_diff( array_merge( array( $was ), diluxone_users_login_slug_old() ), array( $now ) ) );
 
 	diluxone_users_update_option( 'diluxone_users_login_slug_old', array_slice( $old, 0, DILUXONE_USERS_DOOR_OLD_MAX ) );
+	diluxone_users_update_option( 'diluxone_users_login_slug_was', $now );
 }
+
+/**
+ * A default that moved keeps its old address sending people to the new one.
+ *
+ * With "Its address" empty the address follows the site's language and the
+ * page chosen in Sign in › The page, so it can change without anybody saving
+ * this tab: the language set to Spanish, the page renamed or another chosen.
+ * The address the rules were last built for is kept, and when it is no longer
+ * the one answered it goes to the front of the old ones, as a typed change
+ * does (diluxone_users_login_slug_move()). Not when a post has that address:
+ * a page that was the sign-in page before another was chosen is still there,
+ * and answers at its own address.
+ *
+ * Before the rules are added, so the rewrite stamp sees the change and the
+ * rules are flushed once.
+ */
+function diluxone_users_login_slug_follow(): void {
+	if ( ! diluxone_users_on_the_hub() || ! diluxone_users_door_on() ) {
+		return;
+	}
+
+	$now = diluxone_users_login_slug();
+	$was = sanitize_title( (string) diluxone_users_option( 'diluxone_users_login_slug_was' ) );
+
+	if ( $now === $was ) {
+		return;
+	}
+
+	if ( '' !== $was && '' === diluxone_users_login_slug_taken( $was ) ) {
+		$old = array_values( array_diff( array_merge( array( $was ), diluxone_users_login_slug_old() ), array( $now ) ) );
+
+		diluxone_users_update_option( 'diluxone_users_login_slug_old', array_slice( $old, 0, DILUXONE_USERS_DOOR_OLD_MAX ) );
+	}
+
+	diluxone_users_update_option( 'diluxone_users_login_slug_was', $now );
+}
+add_action( 'init', 'diluxone_users_login_slug_follow', 9 );
 
 /**
  * An old address a post takes later is the post's.

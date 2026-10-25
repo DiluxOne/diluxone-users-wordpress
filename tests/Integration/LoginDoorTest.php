@@ -592,6 +592,85 @@ class LoginDoorTest extends IntegrationTestCase {
 		$this->assertSame( 'entrar', diluxone_users_login_slug() );
 	}
 
+	public function test_c5_a_language_changed_leaves_the_old_default_sending_people_to_the_new(): void {
+		update_option( 'WPLANG', '' );
+		diluxone_users_login_slug_follow();
+
+		$this->assertSame( 'sign-in', diluxone_users_option( 'diluxone_users_login_slug_was' ), 'the address the rules are built for' );
+		$this->assertSame( array(), diluxone_users_login_slug_old(), 'the first one moves nothing' );
+
+		update_option( 'WPLANG', 'es_ES' );
+		diluxone_users_login_slug_follow();
+
+		$this->assertSame( 'acceder', diluxone_users_login_slug() );
+		$this->assertSame( array( 'sign-in' ), diluxone_users_login_slug_old() );
+		$this->assertSame( 'acceder', diluxone_users_option( 'diluxone_users_login_slug_was' ) );
+		$this->assertSame( 'index.php?diluxone_users_door=moved', $this->rules()['^sign\\-in/?$'] ?? '' );
+		$this->assertStringContainsString( 'door:acceder+sign-in', diluxone_users_rewrite_stamp(), 'the rules flushed once' );
+
+		$this->as_front_end();
+		$this->on_door( 'moved' );
+		$_GET = array( 'diluxone-users' => 'expired' );
+
+		$this->assertSame( add_query_arg( 'diluxone-users', 'expired', home_url( '/acceder/' ) ), $this->expectRedirect( 'diluxone_users_door_serve' ) );
+
+		// Back to English: /sign-in/ is the page again, and /acceder/ sends people there.
+		update_option( 'WPLANG', '' );
+		diluxone_users_login_slug_follow();
+
+		$this->assertSame( array( 'acceder' ), diluxone_users_login_slug_old() );
+	}
+
+	public function test_c5_nothing_follows_while_another_shape_is_chosen(): void {
+		diluxone_users_update_option( 'diluxone_users_login_template', 'card' );
+		diluxone_users_login_slug_follow();
+
+		$this->assertNull( diluxone_users_raw_get( 'diluxone_users_login_slug_was', null ), 'nothing written' );
+	}
+
+	public function test_c5_a_chosen_page_renamed_or_replaced(): void {
+		$page = $this->page( 'Entrar' );
+		wp_update_post(
+			array(
+				'ID'        => $page,
+				'post_name' => 'entrar',
+			)
+		);
+		diluxone_users_update_option( 'diluxone_users_login_page', $page );
+		diluxone_users_login_slug_follow();
+
+		wp_update_post(
+			array(
+				'ID'        => $page,
+				'post_name' => 'acceso',
+			)
+		);
+		diluxone_users_login_slug_follow();
+
+		$this->assertSame( 'acceso', diluxone_users_login_slug() );
+		$this->assertSame( array( 'entrar' ), diluxone_users_login_slug_old(), 'renamed: the old address sends people on' );
+
+		// Another page chosen: the one before is still there, at its address.
+		diluxone_users_update_option( 'diluxone_users_login_page', $this->page( 'Ingresar' ) );
+		diluxone_users_login_slug_follow();
+
+		$this->assertSame( 'ingresar', diluxone_users_login_slug() );
+		$this->assertSame( array( 'entrar' ), diluxone_users_login_slug_old(), '/acceso/ is the page’s own' );
+	}
+
+	public function test_c5_a_typed_change_is_not_counted_twice(): void {
+		diluxone_users_login_slug_follow();
+
+		ob_start();
+		$this->save_slug( 'puerta' );
+		ob_end_clean();
+
+		diluxone_users_login_slug_follow();
+
+		$this->assertSame( 'puerta', diluxone_users_option( 'diluxone_users_login_slug_was' ) );
+		$this->assertSame( array( 'sign-in' ), diluxone_users_login_slug_old() );
+	}
+
 	public function test_c5_the_second_step_is_drawn_on_the_page_of_its_own(): void {
 		$user  = $this->make_user();
 		$nonce = diluxone_users_2fa_pending_start( $user, 'password', false, '' );

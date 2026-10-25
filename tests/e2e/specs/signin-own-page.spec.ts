@@ -24,7 +24,7 @@ async function onTheDoor(page: Page, path = '/sign-in/'): Promise<void> {
 	await expect(page.locator('header, footer, .wp-block-template-part')).toHaveCount(0);
 }
 
-const SHAPE_KEYS = ['diluxone_users_login_template', 'diluxone_users_login_slug', 'diluxone_users_login_slug_old'];
+const SHAPE_KEYS = ['diluxone_users_login_template', 'diluxone_users_login_slug', 'diluxone_users_login_slug_old', 'diluxone_users_login_slug_was'];
 
 test.describe('Sign in › A page of its own', () => {
 	test.beforeEach(async ({ options }) => {
@@ -33,6 +33,7 @@ test.describe('Sign in › A page of its own', () => {
 			diluxone_users_login_template: 'own',
 			diluxone_users_login_slug: 'sign-in',
 			diluxone_users_login_slug_old: [],
+			diluxone_users_login_slug_was: '',
 		});
 	});
 
@@ -115,6 +116,23 @@ test.describe('Sign in › A page of its own', () => {
 		await expect(page.locator('.notice-error')).toContainText(`The address /${taken}/ is already the page “`);
 		await expect(page.locator('.notice-success')).toHaveCount(0);
 		expect((await site.getOptions(['diluxone_users_login_slug'])).diluxone_users_login_slug).toBe('sign-in');
+	});
+
+	test('C5: the default in use, the site moved to Spanish, /sign-in/ sends people to the new address', async ({ guest, options, baseURL }) => {
+		await options.set({ WPLANG: '', diluxone_users_login_slug: '', diluxone_users_login_page: 0 });
+
+		await guest.goto('/sign-in/');
+		await onTheDoor(guest);
+
+		await options.set({ WPLANG: 'es_ES' });
+
+		const moved = await guest.request.get(`${baseURL}/sign-in/?diluxone-users=expired`, { maxRedirects: 0 });
+
+		expect(moved.status(), 'a redirect no browser keeps').toBe(302);
+		expect(moved.headers().location, 'to the address in Spanish, with what it carried').toBe(`${baseURL}/acceder/?diluxone-users=expired`);
+
+		await guest.goto('/sign-in/');
+		await onTheDoor(guest, '/acceder/');
 	});
 
 	test('C5: the second step is drawn on /sign-in/, and finishing it signs in', async ({ guest, site, options }) => {

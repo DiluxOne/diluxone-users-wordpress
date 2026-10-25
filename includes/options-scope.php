@@ -145,6 +145,7 @@ function diluxone_users_option_scopes(): array {
 		'diluxone_users_login_role'            => 'hub',
 		'diluxone_users_login_slug'            => 'hub',
 		'diluxone_users_login_slug_old'        => 'hub',
+		'diluxone_users_login_slug_was'        => 'hub',
 		'diluxone_users_login_template'        => 'hub',
 		'diluxone_users_login_throttle'        => 'hub',
 		'diluxone_users_login_title'           => 'hub',

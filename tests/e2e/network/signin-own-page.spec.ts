@@ -5,7 +5,7 @@ import { test, expect } from './support';
  * the network signs in, and the other sites send people there.
  */
 
-const SHAPE = { diluxone_users_login_template: 'own', diluxone_users_login_slug: 'sign-in', diluxone_users_login_slug_old: [] };
+const SHAPE = { diluxone_users_login_template: 'own', diluxone_users_login_slug: 'sign-in', diluxone_users_login_slug_old: [], diluxone_users_login_slug_was: '' };
 
 test.describe('A page of its own, on a network', () => {
 	test('C1: the hub’s /sign-in/ draws the form with no theme header or footer; another site has no such page', async ({ hub, alpha, guest }) => {

@@ -150,6 +150,10 @@ function diluxone_users_option_defaults_own(): array {
 		// site's language (diluxone_users_login_slug_default()).
 		'diluxone_users_login_slug'            => '',
 		'diluxone_users_login_slug_old'        => array(),
+		// The address the rules were last built for, so a default that moves
+		// (the site's language, the page chosen) leaves the old one sending
+		// people to the new (diluxone_users_login_slug_follow()).
+		'diluxone_users_login_slug_was'        => '',
 		'diluxone_users_login_logo'            => 0,
 		// Whether that logo is drawn above the form. On, so a site that sets a
 		// logo sees it there; off for one that already shows it in its header.

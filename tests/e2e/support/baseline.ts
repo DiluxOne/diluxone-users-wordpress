@@ -39,6 +39,7 @@ export const BASELINE = (pages: { login: number; register: number; account: numb
 	diluxone_users_login_template: 'plain',
 	diluxone_users_login_slug: 'sign-in',
 	diluxone_users_login_slug_old: [],
+	diluxone_users_login_slug_was: '',
 	diluxone_users_login_title: '',
 	diluxone_users_login_intro: '',
 	diluxone_users_login_legal: '',
