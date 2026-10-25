@@ -561,8 +561,8 @@ function diluxone_users_screen_social_general(): void {
 				'name'    => 'diluxone_users_sso_verified_only',
 				'value'   => '1',
 				'checked' => (bool) diluxone_users_option( 'diluxone_users_sso_verified_only' ),
-				'title'   => __( 'Refuse the sign-in when the provider does not say the email is verified', 'diluxone-users' ),
-				'help'    => __( 'Stricter, and a few providers never send that flag: with this on, those stop working.', 'diluxone-users' ),
+				'title'   => __( 'Only verified addresses: confirm by mail an address the provider does not vouch for', 'diluxone-users' ),
+				'help'    => __( 'When a provider does not say the email is verified, nothing is created or linked: a link goes to that address, and opening it signs the person in. Turned off, such an address can create a new account straight away, though never take over an existing one.', 'diluxone-users' ),
 			),
 		)
 	);

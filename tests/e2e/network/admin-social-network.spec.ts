@@ -196,7 +196,7 @@ test.describe('Network Admin › Social login › Rules', () => {
 		expect(await whoOn(guest, beta.url)).toBe(email);
 	});
 
-	test('“refuse when the e-mail is not said to be verified” saved there: a provider that says nothing creates nobody from /alpha/', async ({
+	test('“only verified addresses” saved there: a provider that says nothing creates nobody from /alpha/ until the address is confirmed by mail', async ({
 		page,
 		guest,
 		hub,
