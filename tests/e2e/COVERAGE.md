@@ -91,6 +91,7 @@ everybody, with the code by e-mail, and skips it for nobody.
 | Feature / state | Covered by |
 |---|---|
 | Guest view with the way in | `account-area` › a stranger is shown the way in |
+| Guest view on a theme that underlines content links and gives its column no padding (Astra): content off the block's edge, the button not underlined | `repro/issue-69` › The account area for somebody signed out, on a theme that underlines content links |
 | Menu reaches every section, current tab marked | `account-area` › the menu reaches every section |
 | Your data / Linked accounts exist only while offered | `account-area` › The account page itself |
 | Details: fields saved, display name rebuilt, `missing` from the server | `account-area` › Your details |

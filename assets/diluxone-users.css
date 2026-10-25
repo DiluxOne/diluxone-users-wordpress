@@ -149,6 +149,11 @@
 }
 .diluxone-users-panel h3 { margin-bottom: 10px; }
 
+/* What somebody signed out sees on the account page, the hub's door and the
+   join screen: the theme's own ground and type, but kept off the edge of a
+   content column that has no padding of its own (Astra's). */
+.diluxone-users-account--guest { padding: 20px 24px; }
+
 /* ── Boxes that open and close ──────────────────────────────────────── */
 
 details.diluxone-users-panel { padding: 0; }
@@ -349,6 +354,20 @@ details.diluxone-users-panel[open] > .diluxone-users-panel__head .diluxone-users
 	transition: filter .15s ease;
 }
 .diluxone-users-button:hover { filter: brightness(0.93); color: var(--diluxone-users-btn-ink, var(--diluxone-users-accent-ink)); }
+
+/* A theme that underlines the links in its content column (Astra's
+   `.ast-single-post .entry-content a`, for one) is more specific than the one
+   class above, so a link drawn as a button says it again from inside the
+   plugin's own containers, with the class doubled to stay ahead. */
+.diluxone-users a.diluxone-users-button.diluxone-users-button,
+.diluxone-users a.diluxone-users-button.diluxone-users-button:hover,
+.diluxone-users a.diluxone-users-button.diluxone-users-button:focus,
+.diluxone-users-account a.diluxone-users-button.diluxone-users-button,
+.diluxone-users-account a.diluxone-users-button.diluxone-users-button:hover,
+.diluxone-users-account a.diluxone-users-button.diluxone-users-button:focus,
+.diluxone-users-login-page a.diluxone-users-button.diluxone-users-button,
+.diluxone-users-login-page a.diluxone-users-button.diluxone-users-button:hover,
+.diluxone-users-login-page a.diluxone-users-button.diluxone-users-button:focus { text-decoration: none; }
 
 .diluxone-users-button--soft {
 	background: transparent;
