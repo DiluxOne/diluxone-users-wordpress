@@ -1789,9 +1789,9 @@ span.diluxone-users-state {
 	gap: 1.25em;
 	margin: 0;
 	padding: 12px 16px;
-	border: 1px solid #dcdcde;
+	border: 1px solid var(--du-line);
 	border-radius: 4px;
-	background: #fff;
+	background: var(--du-ground);
 	list-style: none;
 }
 
@@ -1800,7 +1800,7 @@ span.diluxone-users-state {
 }
 
 .diluxone-users-admin .du-menu-preview a {
-	color: #1d2327;
+	color: var(--du-text);
 	text-decoration: none;
 	pointer-events: none;
 }
@@ -1809,16 +1809,16 @@ span.diluxone-users-state {
 .diluxone-users-admin .du-menu-preview__item--outlined > a {
 	display: inline-block;
 	padding: 0.5em 1.1em;
-	border: 2px solid #1e1e1e;
+	border: 2px solid var(--du-text);
 	border-radius: 4px;
 	line-height: 1.2;
-	background: #1e1e1e;
-	color: #fff;
+	background: var(--du-text);
+	color: var(--du-ground);
 }
 
 .diluxone-users-admin .du-menu-preview__item--outlined > a {
 	background: transparent;
-	color: #1d2327;
+	color: var(--du-text);
 	border-color: currentColor;
 }
 
