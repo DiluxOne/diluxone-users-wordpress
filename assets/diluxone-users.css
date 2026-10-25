@@ -49,6 +49,7 @@
 	--diluxone-users-accent-soft: color-mix(in srgb, var(--diluxone-users-accent) 12%, transparent);
 	--diluxone-users-ok: #0f7b4f;
 	--diluxone-users-danger: #b3261e;
+	--diluxone-users-danger-ink: #ffffff;
 }
 
 /* ── The measurements a site changes ─────────────────────────────────────
@@ -373,9 +374,9 @@ details.diluxone-users-panel[open] > .diluxone-users-panel__head .diluxone-users
    email", and until now it was a class on the markup with no rule behind it. */
 .diluxone-users-button--wide { display: flex; width: 100%; }
 
-.diluxone-users-button--danger { background: var(--diluxone-users-danger); color: #fff; }
-.diluxone-users-button--danger:focus { background: var(--diluxone-users-danger); color: #fff; }
-.diluxone-users-button--danger:hover { color: #fff; }
+.diluxone-users-button--danger { background: var(--diluxone-users-danger); color: var(--diluxone-users-danger-ink); }
+.diluxone-users-button--danger:focus { background: var(--diluxone-users-danger); color: var(--diluxone-users-danger-ink); }
+.diluxone-users-button--danger:hover { color: var(--diluxone-users-danger-ink); }
 
 /* The way past the step that asks for the required fields after a sign-in. */
 .diluxone-users-fields__skip { display: inline-block; margin-inline-start: 1rem; }
