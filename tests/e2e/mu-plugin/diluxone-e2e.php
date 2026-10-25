@@ -432,6 +432,67 @@ function diluxone_e2e_dark_mode(): void {
 add_action( 'plugins_loaded', 'diluxone_e2e_dark_mode' );
 
 /**
+ * A theme with a light and a dark switch of its own, switched on from a spec
+ * (`diluxone_e2e_switch`): `data-theme` ("dark" / "light"), `data-tema`
+ * ("oscuro" / "claro"), or `class` (`is-dark` and nothing for light), all on
+ * <html>.
+ *
+ * What the visitor chose is kept in their browser (`e2e-scheme`, "dark" or
+ * "light", or nothing for "as the device"), and an inline script on wp_head
+ * puts it on <html>, after the plugin's own scripts in the head, as a theme's
+ * switch does. The ground goes dark and the text light while the dark signal
+ * is there, or while the device is dark and the light signal is not. The
+ * theme publishes no palette while it is on, so every colour is measured.
+ *
+ * `diluxone_e2e_switch_off_door` keeps the script off the sign-in page of its
+ * own, as a switch drawn by the theme's template would be.
+ */
+function diluxone_e2e_dark_switch(): void {
+	$kind = (string) get_option( 'diluxone_e2e_switch' );
+
+	$kinds = array(
+		'data-theme' => array( '[data-theme="dark"]', '[data-theme="light"]', 'r.setAttribute("data-theme",v)' ),
+		'data-tema'  => array( '[data-tema="oscuro"]', '[data-tema="claro"]', 'r.setAttribute("data-tema",v==="dark"?"oscuro":"claro")' ),
+		'class'      => array( '.is-dark', '.is-light-never', 'r.classList.toggle("is-dark",v==="dark")' ),
+	);
+
+	if ( ! isset( $kinds[ $kind ] ) ) {
+		return;
+	}
+
+	list( $dark, $light, $set ) = $kinds[ $kind ];
+
+	add_filter( 'diluxone_users_theme_palette', '__return_empty_array', 100 );
+	add_action(
+		'wp_enqueue_scripts',
+		static function () use ( $dark, $light ): void {
+			$tokens = '{--wp--preset--color--base:#15171c;--wp--preset--color--contrast:#e6e8ec;}';
+			$body   = '{background:#15171c;color:#e6e8ec;}';
+
+			wp_register_style( 'diluxone-e2e-switch', false, array(), '1' );
+			wp_enqueue_style( 'diluxone-e2e-switch' );
+			wp_add_inline_style(
+				'diluxone-e2e-switch',
+				'html' . $dark . ':root' . $tokens . 'html' . $dark . ' body' . $body
+				. '@media (prefers-color-scheme: dark){html:not(' . $light . '):root' . $tokens . 'html:not(' . $light . ') body' . $body . '}'
+			);
+		},
+		100
+	);
+	add_action(
+		'wp_head',
+		static function () use ( $set ): void {
+			if ( get_option( 'diluxone_e2e_switch_off_door' ) && function_exists( 'diluxone_users_door_drawn' ) && diluxone_users_door_drawn() ) {
+				return;
+			}
+
+			wp_print_inline_script_tag( '(function(){var r=document.documentElement,v=localStorage.getItem("e2e-scheme");if(v!=="dark"&&v!=="light")return;' . $set . ';})();' );
+		}
+	);
+}
+add_action( 'plugins_loaded', 'diluxone_e2e_dark_switch' );
+
+/**
  * Says in a header whether the page defined DONOTCACHEPAGE before it was drawn.
  *
  * The constant is read by page caches at the end of the request, where no
@@ -1305,6 +1366,11 @@ function diluxone_e2e_authorize( WP_REST_Request $request ) {
 			'error_description' => 'The e2e provider was told to deny this.',
 			'state'             => $state,
 		);
+
+	// A return whose state nobody issued: what a forged callback looks like.
+	if ( ! empty( $identity['forge_state'] ) ) {
+		$args['state'] = 'forged-by-e2e';
+	}
 
 	// Not wp_safe_redirect(): the callback is this same site, but the check
 	// would still have to know that, and a plain redirect is what a provider

@@ -75,7 +75,13 @@ defined( 'ABSPATH' ) || exit;
 						<button type="submit" class="diluxone-users-button diluxone-users-button--soft"><?php esc_html_e( 'Unlink', 'diluxone-users' ); ?></button>
 					</form>
 				<?php else : ?>
-					<a class="diluxone-users-button diluxone-users-button--soft" href="<?php echo esc_url( diluxone_users_sso_link_url( $diluxone_users_id ) ); ?>">
+					<?php
+					// In a popup when the browser opens one, in the whole
+					// window when it does not (sso-popup.php).
+					$diluxone_users_link = diluxone_users_sso_link_url( $diluxone_users_id );
+					diluxone_users_sso_enqueue_popup();
+					?>
+					<a class="diluxone-users-button diluxone-users-button--soft" href="<?php echo esc_url( $diluxone_users_link ); ?>" data-diluxone-users-sso-popup="<?php echo esc_url( diluxone_users_sso_popup_url( $diluxone_users_link, false ) ); ?>" data-diluxone-users-sso-resume="<?php echo esc_url( diluxone_users_sso_resume_url( $diluxone_users_id ) ); ?>">
 						<?php esc_html_e( 'Link', 'diluxone-users' ); ?>
 					</a>
 				<?php endif; ?>

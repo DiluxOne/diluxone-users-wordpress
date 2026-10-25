@@ -454,6 +454,39 @@ network). `diluxone_users_sso_base` (filter, default `sso`) changes the first
 part, for a site where that address is taken; the rewrite rules have to be
 rebuilt after (Maintenance › Tools).
 
+### The round trip in a popup
+
+A provider an add-on registers gets the popup like the plugin's own
+(`includes/sso-popup.php`): every live button (the sign-in form, the
+registration form, the account's Link) is still a plain link to the round trip,
+and carries `data-diluxone-users-sso-popup` (the same address plus
+`diluxone_users_popup=1`, or `=door` on the plugin's own sign-in and
+registration pages) and `data-diluxone-users-sso-resume`. The enqueued
+`diluxone-users-sso-popup` script opens the first in a popup and keeps the page
+where it is; when the browser gives no window (a blocker) the click goes ahead
+and the whole window makes the trip as before. A theme that draws its own
+social links gets the popup by carrying the same two attributes and enqueuing
+the script with `diluxone_users_sso_enqueue_popup()`.
+
+The popup trip is stored as such in the trip's state. Its return ends where
+the whole window's would have ended, but the redirect that ends it is caught on
+`wp_redirect` (priority 0, for that request only): the address is kept
+server-side for two minutes under a random name in an HttpOnly cookie, and the
+popup draws a bridge page instead (`diluxone-users-sso-bridge`) that sends the
+page that opened it `{ type: 'diluxone-users-sso', kind: 'in' | 'next' }` with
+`postMessage` to the site's own origin (the hub's on a network) and on a
+`BroadcastChannel` of that origin, and closes. `in` is a plain sign-in to the
+default destination begun away from a door: the page reloads in place. `next`
+is everything else (a destination of its own, the second step, the required
+fields, the account's notice, the error): the page goes to the resume address,
+`/sso/<provider>/?diluxone_users_resume=1`, which spends what waits and
+redirects there with `wp_safe_redirect()`, or to the sign-in page when nothing
+waits. The message carries no address, code, state, key or nonce.
+
+Because the catch is on `wp_redirect`, an add-on that redirects from
+`wp_login` or `diluxone_users_logged_in` during a popup sign-in sends the page
+that opened the popup there, through the resume address, instead of the popup.
+
 A provider's stored row (`diluxone_users_sso`, keyed by provider id) keeps
 whatever else is in it when the plugin saves the credentials, and a row of a
 provider nothing registers today is left alone: nobody signs in with it, the
@@ -971,6 +1004,39 @@ add_filter( 'diluxone_users_theme_palette', function ( array $palette ): array {
 
 Values are checked before they reach the stylesheet: a hex, an `rgb()/rgba()`,
 an `hsl()/hsla()`, or a `var(--name)`. Anything else is dropped.
+
+What the palette does not name is measured on the site, in the visitor's
+browser (`assets/diluxone-users-theme-measure.js`): the colour of a link and a
+button, the text and the ground, the edge of a field. It is measured again
+when the scheme changes and kept once per scheme in the browser, so the next
+page starts with it.
+
+### Dark mode follows
+
+Which scheme is in force is the visitor's device (`prefers-color-scheme`)
+unless Design → Your brand → "Dark mode follows" says "The site's own switch".
+Then the site says what its switch puts on the page, as a class or an
+attribute on `<html>` or `<body>`:
+
+| Typed | Means |
+| --- | --- |
+| `.is-dark` | the class `is-dark` |
+| `data-theme="dark"` (or `data-theme=dark`) | the attribute with that value |
+| `data-mode` | the attribute, with any value |
+
+The dark one on the page means dark and the light one (optional) light; with
+both configured and neither on the page, the device decides, and with only the
+dark one, a page without it is light. An attribute named `on…`, `style` or
+`class`, and a value with a quote or a bracket, are refused on save.
+
+The measurer watches that attribute, so a theme's switch flipped on the page
+re-measures at once, and it keeps the scheme it saw last. The sign-in page of
+its own has no theme template for the switch to run in: when neither signal is
+on it, the plugin puts the last scheme's signal there (the class added, the
+attribute set), so the theme's own CSS keyed on it applies, and paints it with
+what the site's pages measured for that scheme. A signal the site's own
+`wp_head` script sets wins. Only with Colours → the theme's: with the plugin's
+own colours there is no dark scheme to follow.
 
 ### Headings are the theme's
 

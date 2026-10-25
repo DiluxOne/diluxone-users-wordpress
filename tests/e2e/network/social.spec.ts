@@ -1,6 +1,6 @@
 import { test, expect, whoOn, toTheHub, signInFrom } from './support';
 import { freshEmail } from '../support/api';
-import { accountSection, openAllPanels, ssoButton } from '../support/ui';
+import { accountSection, openAllPanels, navigated, ssoButton } from '../support/ui';
 
 /**
  * A social account linked once, used from any site of the network.
@@ -50,8 +50,7 @@ test('linked from /alpha/ on the hub’s account, the same network from /beta/ o
 	await signInFrom(first, alpha, hub, email, PASSWORD);
 	await first.goto(accountSection(hub.pages.account.url, 'accounts'));
 	await openAllPanels(first);
-	await first.locator('.diluxone-users-linked__item').filter({ hasText: 'Mock' }).locator('a.diluxone-users-button').click();
-	await first.waitForLoadState('domcontentloaded');
+	await navigated(first, () => first.locator('.diluxone-users-linked__item').filter({ hasText: 'Mock' }).locator('a.diluxone-users-button').click());
 
 	expect((await root.user(email)).meta.diluxone_users_sso_mock, 'linked on the hub').toBe(sub);
 
@@ -59,7 +58,7 @@ test('linked from /alpha/ on the hub’s account, the same network from /beta/ o
 	const second = await (await browser.newContext()).newPage();
 
 	await toTheHub(second, beta, hub);
-	await ssoButton(second, 'mock').click();
+	await navigated(second, () => ssoButton(second, 'mock').click());
 	await second.waitForURL((url) => url.href.startsWith(beta.url), { waitUntil: 'domcontentloaded' });
 
 	expect(await whoOn(second, beta.url), 'the identity opens the account it is linked to').toBe(email);

@@ -10,6 +10,16 @@
  * moment changes: the system's dark mode turning on, or the theme's own switch
  * changing a class, a `data-theme` or a style on <html> or <body>. What is
  * kept is kept once per scheme, so a dark page starts with the dark answer.
+ *
+ * A site with a switch of its own may say how it marks dark (`signal`, from
+ * Design › Your brand): then the scheme is the one that signal says, and the
+ * device's only when the page has neither the dark nor the light one (with
+ * no light one, a page without the dark one is light). The
+ * scheme seen last is kept too, for the sign-in page of its own (`door`):
+ * it measures itself like any page, since it loads the theme's stylesheet,
+ * but keeps nothing, and where the site's switch did not run there (neither
+ * signal on it), what the site's pages measured for the scheme they showed
+ * last is applied.
  */
 ( function () {
 	'use strict';
@@ -22,6 +32,8 @@
 
 	var roles = config.roles;
 	var key = config.key;
+	var signal = config.signal || null;
+	var door = !! config.door && !! signal;
 	var doc = document;
 	var root = doc.documentElement;
 	var host = doc.querySelector( '.entry-content, main, #primary, #content, .site-content' ) || doc.body;
@@ -55,6 +67,44 @@
 		return ( 0.2126 * v.r + 0.7152 * v.g + 0.0722 * v.b ) / 255;
 	}
 
+	// WCAG's relative luminance and contrast ratio, for "does it read": lum()
+	// above only says whether a ground wants light or dark ink.
+	function luminance( c ) {
+		var v = rgb( c );
+		function lin( x ) {
+			x /= 255;
+			return x <= 0.04045 ? x / 12.92 : Math.pow( ( x + 0.055 ) / 1.055, 2.4 );
+		}
+		return 0.2126 * lin( v.r ) + 0.7152 * lin( v.g ) + 0.0722 * lin( v.b );
+	}
+
+	function contrast( a, b ) {
+		var x = luminance( a );
+		var y = luminance( b );
+		return ( Math.max( x, y ) + 0.05 ) / ( Math.min( x, y ) + 0.05 );
+	}
+
+	function reads( c, on ) {
+		return contrast( c, on ) >= 4.5;
+	}
+
+	// The accent as text on the surface: the first of the candidates that
+	// reads there, else the link drawn toward the text until it does.
+	function legible( candidates, link, text, surface ) {
+		for ( var i = 0; i < candidates.length; i++ ) {
+			if ( candidates[ i ] && reads( candidates[ i ], surface ) ) {
+				return candidates[ i ];
+			}
+		}
+		for ( var t = 0.1; t < 1; t += 0.1 ) {
+			var c = mix( link, text, t );
+			if ( reads( c, surface ) ) {
+				return c;
+			}
+		}
+		return text;
+	}
+
 	function ground( el ) {
 		while ( el ) {
 			var c = getComputedStyle( el ).backgroundColor;
@@ -86,8 +136,57 @@
 	var watcher = null;
 	var pending = false;
 
+	function element( s ) {
+		return s.on === 'body' ? doc.body : root;
+	}
+
+	function has( s ) {
+		var el = s && element( s );
+		if ( ! el ) {
+			return false;
+		}
+		if ( s.kind === 'class' ) {
+			return el.classList.contains( s.name );
+		}
+		return el.hasAttribute( s.name ) && ( s.value === null || el.getAttribute( s.name ) === s.value );
+	}
+
+	function remembered() {
+		try {
+			var m = localStorage.getItem( key + ':scheme' );
+			return m === 'dark' || m === 'light' ? m : '';
+		} catch ( e ) {
+			return '';
+		}
+	}
+
 	function scheme() {
+		if ( signal ) {
+			if ( has( signal.dark ) ) {
+				return 'dark';
+			}
+			if ( has( signal.light ) ) {
+				return 'light';
+			}
+			if ( door ) {
+				// The site's switch may not run here: the scheme it showed last.
+				if ( remembered() ) {
+					return remembered();
+				}
+			} else if ( ! signal.light ) {
+				// Only a dark signal: a page without it is light.
+				return 'light';
+			}
+		}
 		return dark && dark.matches ? 'dark' : 'light';
+	}
+
+	function stored( s ) {
+		try {
+			return JSON.parse( localStorage.getItem( key + ':' + s ) || 'null' ) || {};
+		} catch ( e ) {
+			return {};
+		}
 	}
 
 	// On "A page of its own" the plugin repaints <body> with its own text and
@@ -96,9 +195,9 @@
 	// class is off for the moment of the reading, and back before any paint.
 	function measure() {
 		var body = doc.body;
-		var door = body && body.classList.contains( 'diluxone-users-door' );
+		var own = body && body.classList.contains( 'diluxone-users-door' );
 
-		if ( ! door ) {
+		if ( ! own ) {
 			return read();
 		}
 
@@ -116,17 +215,76 @@
 		var link = probe( '<a href="#" data-p>x</a>' ).color;
 		var button = probe( '<div class="wp-block-button"><a class="wp-block-button__link wp-element-button" href="#" data-p>x</a></div>' );
 		var field = probe( '<input type="text" data-p>' );
-		var accent = ! clear( button.bg ) && button.bg !== surface ? button.bg : link;
+		var filled = ! clear( button.bg ) && button.bg !== surface;
+		var fill = filled ? button.bg : link;
 
+		// Two jobs: the button's ground under its own ink, and the accent as
+		// text on the surface, which a mid-dark button ground may not be.
 		return {
-			accent: accent,
-			'accent-ink': ! clear( button.bg ) && button.bg === accent ? button.color : ( lum( accent ) > 0.6 ? '#16181d' : '#ffffff' ),
+			accent: legible( filled ? [ button.bg, link ] : [ link ], link, text, surface ),
+			'accent-bg': fill,
+			'accent-ink': filled ? button.color : ( lum( fill ) > 0.6 ? '#16181d' : '#ffffff' ),
 			text: text,
 			surface: surface,
 			'surface-alt': mix( surface, text, 0.04 ),
 			muted: mix( text, surface, 0.35 ),
 			border: field.width > 0 && ! clear( field.border ) && field.border !== text ? field.border : mix( surface, text, 0.15 ),
 		};
+	}
+
+	// The page of its own loads the theme's stylesheet, so it measures itself
+	// like any page; only when the site's switch did not run there (neither
+	// signal on it) does it take what the site's pages kept for the scheme
+	// they showed last, and nothing of a scheme it is not in.
+	function borrowed() {
+		return door && ! has( signal.dark ) && ! has( signal.light ) && '' !== remembered() && Object.keys( stored( remembered() ) ).length > 0;
+	}
+
+	function keptHere() {
+		var all = stored( scheme() );
+		var kept = {};
+
+		roles.forEach( function ( r ) {
+			[ r, r === 'accent' ? 'accent-bg' : '' ].forEach( function ( p ) {
+				if ( p ) {
+					kept[ p ] = all[ p ] || '';
+				}
+			} );
+		} );
+
+		return kept;
+	}
+
+	function measured() {
+		var found = measure();
+		var kept = {};
+
+		roles.forEach( function ( r ) {
+			if ( ! found[ r ] ) {
+				return;
+			}
+			kept[ r ] = found[ r ];
+			if ( r === 'accent' ) {
+				kept[ 'accent-bg' ] = found[ 'accent-bg' ];
+			}
+		} );
+
+		var now = scheme();
+
+		// What is kept is the site's pages' to write: the page of its own reads
+		// it, and its own measurement is for itself.
+		if ( door ) {
+			return kept;
+		}
+
+		try {
+			localStorage.setItem( key + ':' + now, JSON.stringify( kept ) );
+			if ( signal ) {
+				localStorage.setItem( key + ':scheme', now );
+			}
+		} catch ( e ) {}
+
+		return kept;
 	}
 
 	function apply() {
@@ -138,7 +296,7 @@
 			watcher.disconnect();
 		}
 		try {
-			write( measure() );
+			write( borrowed() ? keptHere() : measured() );
 		} finally {
 			if ( watcher ) {
 				watcher.takeRecords();
@@ -147,24 +305,8 @@
 		}
 	}
 
-	function write( found ) {
-		var kept = {};
-
-		roles.forEach( function ( r ) {
-			if ( ! found[ r ] ) {
-				return;
-			}
-			kept[ r ] = found[ r ];
-			if ( r === 'accent' ) {
-				kept[ 'accent-bg' ] = found[ r ];
-			}
-		} );
-
+	function write( kept ) {
 		var json = JSON.stringify( kept );
-
-		try {
-			localStorage.setItem( key + ':' + scheme(), json );
-		} catch ( e ) {}
 
 		if ( json === last ) {
 			return;
@@ -172,7 +314,11 @@
 		last = json;
 
 		Object.keys( kept ).forEach( function ( r ) {
-			root.style.setProperty( '--diluxone-users-' + r, kept[ r ] );
+			if ( kept[ r ] ) {
+				root.style.setProperty( '--diluxone-users-' + r, kept[ r ] );
+			} else {
+				root.style.removeProperty( '--diluxone-users-' + r );
+			}
 		} );
 	}
 
@@ -187,7 +333,15 @@
 	}
 
 	function watch() {
-		var what = { attributes: true, attributeFilter: [ 'class', 'data-theme', 'style' ] };
+		var names = [ 'class', 'data-theme', 'style' ];
+		if ( signal ) {
+			[ signal.dark, signal.light ].forEach( function ( s ) {
+				if ( s && s.kind === 'attr' && names.indexOf( s.name ) < 0 ) {
+					names.push( s.name );
+				}
+			} );
+		}
+		var what = { attributes: true, attributeFilter: names };
 		watcher.observe( root, what );
 		if ( doc.body ) {
 			watcher.observe( doc.body, what );
@@ -207,5 +361,11 @@
 	if ( window.MutationObserver ) {
 		watcher = new MutationObserver( again );
 		watch();
+	}
+
+	// A site's switch may print after this, or set its signal once the
+	// document is read: once more then.
+	if ( signal && doc.readyState === 'loading' ) {
+		doc.addEventListener( 'DOMContentLoaded', again );
 	}
 }() );

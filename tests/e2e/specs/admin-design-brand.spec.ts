@@ -1,6 +1,6 @@
 import { Page } from '@playwright/test';
 import { test, expect } from '../support/fixtures';
-import { adminUrl, emailField, linkForm, navigated, saveButton, savePanel } from '../support/ui';
+import { adminError, adminUrl, emailField, linkForm, navigated, saveButton, savePanel } from '../support/ui';
 import { forgetPicture, mediaPicture, previewAnswer, resolvedColour, rgb, stage } from '../support/admin-content';
 import { ADMIN_STATE } from '../../../playwright.config';
 
@@ -24,6 +24,9 @@ const BRAND_KEYS = [
 	'diluxone_users_button_icons',
 	'diluxone_users_notice_style',
 	'diluxone_users_login_logo',
+	'diluxone_users_dark_follows',
+	'diluxone_users_dark_signal',
+	'diluxone_users_light_signal',
 ];
 
 const look = (page: Page, answer: 'theme' | 'own' | 'site') => page.locator(`input[name="diluxone_users_look"][value="${answer}"]`);
@@ -364,5 +367,42 @@ test.describe('Design › Your brand › saved from another tab', () => {
 		await navigated(page, () => saveButton(page).click());
 
 		expect((await site.getOptions(['diluxone_users_sent_icon'])).diluxone_users_sent_icon).toBe('circle');
+	});
+});
+
+test.describe('Design › Your brand › Dark mode follows', () => {
+	const follows = (page: Page, answer: 'device' | 'site') => page.locator(`input[name="diluxone_users_dark_follows"][value="${answer}"]`);
+	const darkField = (page: Page) => page.locator('input[name="diluxone_users_dark_signal"]');
+
+	test.beforeEach(async ({ options }) => {
+		await options.set({ diluxone_users_dark_follows: 'device', diluxone_users_dark_signal: '', diluxone_users_light_signal: '' });
+	});
+
+	test('the site’s own switch shows its two fields, saves them as typed, and a value that is not a class or an attribute is refused with a notice', async ({ page, site }) => {
+		await page.goto(adminUrl('diluxone-users-design', 'brand'));
+		await expect(follows(page, 'device'), 'the visitor’s device, by default').toBeChecked();
+		await expect(darkField(page), 'no signal to ask for while the device decides').toBeHidden();
+
+		await follows(page, 'site').check({ force: true });
+		await expect(darkField(page)).toBeVisible();
+		await page.locator('select[name="diluxone_users_dark_signal_on"]').selectOption('html');
+		await darkField(page).fill('data-tema="oscuro"');
+		await page.locator('select[name="diluxone_users_light_signal_on"]').selectOption('body');
+		await page.locator('input[name="diluxone_users_light_signal"]').fill('.is-light');
+		await savePanel(page);
+
+		await expect(follows(page, 'site')).toBeChecked();
+		await expect(darkField(page)).toHaveValue('data-tema="oscuro"');
+		expect(await site.getOptions(['diluxone_users_dark_follows', 'diluxone_users_dark_signal', 'diluxone_users_light_signal'])).toEqual({
+			diluxone_users_dark_follows: 'site',
+			diluxone_users_dark_signal: 'html data-tema="oscuro"',
+			diluxone_users_light_signal: 'body .is-light',
+		});
+
+		await darkField(page).fill('onclick="x"');
+		await navigated(page, () => saveButton(page).click());
+		await expect(adminError(page)).toContainText('has to be a class, as .is-dark, or an attribute');
+		await expect(darkField(page), 'the one saved before').toHaveValue('data-tema="oscuro"');
+		expect((await site.getOptions(['diluxone_users_dark_signal'])).diluxone_users_dark_signal).toBe('html data-tema="oscuro"');
 	});
 });

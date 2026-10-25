@@ -155,7 +155,7 @@ test.describe('The plugin’s own doors fire wp_login, once', () => {
 
 		await site.setIdentity({ sub: `mock|${email}`, email, email_verified: true });
 		await page.goto(pages.login.url);
-		await ssoButton(page, 'mock').click();
+		await navigated(page, () => ssoButton(page, 'mock').click());
 
 		await expectSignedIn(page, email);
 		expect(await site.wpLogins(email)).toBe(1);

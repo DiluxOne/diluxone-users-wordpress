@@ -529,6 +529,99 @@ function diluxone_users_brand_own_colour(): void {
 }
 
 /**
+ * Dark mode follows: how the plugin tells that the site is dark.
+ *
+ * Under the question of where the look comes from, whatever the answer,
+ * because it is true of all three and belongs to none of them. The plugin has
+ * no dark mode of its own: the site's colours change and the plugin's follow.
+ * What it has to know is when, and the device's setting is the answer only
+ * for a site with no switch of its own. A site with one says what the switch
+ * puts on the page, and the plugin reads that instead, the sign-in page of
+ * its own included, which is drawn without the theme's template around it.
+ */
+function diluxone_users_brand_dark_follows(): void {
+	$follows = 'site' === diluxone_users_option( 'diluxone_users_dark_follows' ) ? 'site' : 'device';
+
+	diluxone_users_ui_section(
+		__( 'Dark mode follows', 'diluxone-users' ),
+		__( 'There is no dark mode of the plugin’s own, on purpose: dark mode belongs to the site, and where the site has one its colours change and the plugin’s follow. This says how the plugin tells that the site is dark.', 'diluxone-users' )
+	);
+
+	diluxone_users_ui_choices(
+		array(
+			array(
+				'name'    => 'diluxone_users_dark_follows',
+				'value'   => 'device',
+				'id'      => 'diluxone_users_dark_follows_device',
+				'checked' => 'device' === $follows,
+				'title'   => __( 'The visitor’s device', 'diluxone-users' ),
+				'help'    => __( 'Dark when the visitor’s system is set to dark. Right for a theme that follows the system and has no switch of its own.', 'diluxone-users' ),
+			),
+			array(
+				'name'     => 'diluxone_users_dark_follows',
+				'value'    => 'site',
+				'id'       => 'diluxone_users_dark_follows_site',
+				'checked'  => 'site' === $follows,
+				'title'    => __( 'The site’s own switch', 'diluxone-users' ),
+				'help'     => __( 'For a theme with a light and a dark switch of its own: say what it puts on the page, and the plugin follows it, the sign-in page of its own included.', 'diluxone-users' ),
+				'children' => static function (): void {
+					diluxone_users_brand_dark_signal_field(
+						'diluxone_users_dark_signal',
+						__( 'The site is dark when the page has', 'diluxone-users' ),
+						'data-theme="dark"',
+						__( 'A class, as <code>.is-dark</code>, or an attribute, as <code>data-theme="dark"</code>, or <code>data-mode</code> with any value.', 'diluxone-users' )
+					);
+					diluxone_users_brand_dark_signal_field(
+						'diluxone_users_light_signal',
+						__( 'The site is light when the page has (optional)', 'diluxone-users' ),
+						'data-theme="light"',
+						__( 'For a switch that also says light, as <code>.is-light</code> or <code>data-theme="light"</code>. The dark one on the page means dark, the light one light, and with neither the visitor’s device decides. Left empty, a page without the dark one is light.', 'diluxone-users' )
+					);
+				},
+			),
+		)
+	);
+}
+
+/**
+ * One of the two signals: where it goes, and what it is.
+ *
+ * @param string $key         The setting, which is also the text box's name.
+ * @param string $label       What it asks.
+ * @param string $placeholder An example in the empty box.
+ * @param string $help        The examples under it.
+ */
+function diluxone_users_brand_dark_signal_field( string $key, string $label, string $placeholder, string $help ): void {
+	$stored = diluxone_users_option( $key );
+	$parts  = explode( ' ', is_string( $stored ) ? trim( $stored ) : '', 2 );
+	$on     = 'body' === $parts[0] ? 'body' : 'html';
+	$text   = $parts[1] ?? '';
+
+	diluxone_users_ui_field_open( $label, $key );
+	diluxone_users_ui_fields_open();
+	diluxone_users_ui_select(
+		array(
+			'name'    => $key . '_on',
+			'value'   => $on,
+			'options' => array(
+				'html' => __( 'On <html>', 'diluxone-users' ),
+				'body' => __( 'On <body>', 'diluxone-users' ),
+			),
+		)
+	);
+	diluxone_users_ui_text(
+		array(
+			'name'        => $key,
+			'value'       => $text,
+			'placeholder' => $placeholder,
+			'code'        => true,
+		)
+	);
+	diluxone_users_ui_fields_close();
+	diluxone_users_ui_field_close( $help );
+}
+
+/**
  * The brand: where everything the plugin draws gets its look from.
  *
  * One question, and everything else hangs off the answer. It used to be six
@@ -634,15 +727,7 @@ function diluxone_users_screen_design_brand(): void {
 		)
 	);
 
-	/*
-	 * Said once, under the question, because it is true of all three answers
-	 * and belongs to none of them. Inside one it would read as a property of
-	 * that answer; at the top it would read as a fourth thing to decide.
-	 */
-	diluxone_users_ui_note(
-		__( 'Dark mode', 'diluxone-users' ),
-		__( 'There is none here, on purpose. Dark mode belongs to the site: a light site seen from a dark system used to end up with a light page and black panels. Where the site has one, its own tokens change and these follow.', 'diluxone-users' )
-	);
+	diluxone_users_brand_dark_follows();
 
 	diluxone_users_ui_section( __( 'Your mark', 'diluxone-users' ) );
 

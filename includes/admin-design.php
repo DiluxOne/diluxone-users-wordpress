@@ -67,6 +67,79 @@ function diluxone_users_design_brand_save(): void {
 			)
 		)
 	);
+
+	diluxone_users_design_brand_dark_save();
+}
+
+/**
+ * Saves how dark mode is told: the answer, and the two signals.
+ *
+ * A signal that is not a class or an attribute is refused with a notice and
+ * the one stored stays, and so does the answer while the dark signal it
+ * needs is refused: a switch the plugin cannot read is no switch. The light
+ * one may be empty; the dark one may not, while the site's switch is chosen.
+ * What was typed is read only through a short list of characters, so a value
+ * with a bracket in it is refused rather than quietly cleaned into another.
+ */
+function diluxone_users_design_brand_dark_save(): void {
+	check_admin_referer( 'diluxone_users_panel_' . DILUXONE_USERS_DESIGN, 'diluxone_users_panel_nonce' );
+	diluxone_users_panel_allowed();
+
+	if ( ! isset( $_POST['diluxone_users_dark_follows'] ) || ! is_string( $_POST['diluxone_users_dark_follows'] ) ) {
+		return;
+	}
+
+	$follows = 'site' === sanitize_key( wp_unslash( $_POST['diluxone_users_dark_follows'] ) ) ? 'site' : 'device';
+	$values  = array();
+	$dark_ok = true;
+	$fields  = array(
+		'diluxone_users_dark_signal'  => __( 'The site is dark when the page has', 'diluxone-users' ),
+		'diluxone_users_light_signal' => __( 'The site is light when the page has', 'diluxone-users' ),
+	);
+
+	foreach ( $fields as $key => $label ) {
+		if ( ! isset( $_POST[ $key ] ) || ! is_string( $_POST[ $key ] ) ) {
+			continue;
+		}
+
+		$dark  = 'diluxone_users_dark_signal' === $key;
+		$typed = filter_var( wp_unslash( $_POST[ $key ] ), FILTER_VALIDATE_REGEXP, array( 'options' => array( 'regexp' => '/^[A-Za-z0-9_.:=\'" -]*$/' ) ) );
+		$on    = isset( $_POST[ $key . '_on' ] ) && is_string( $_POST[ $key . '_on' ] ) && 'body' === sanitize_key( wp_unslash( $_POST[ $key . '_on' ] ) ) ? 'body' : 'html';
+
+		if ( is_string( $typed ) && '' === trim( $typed ) ) {
+			if ( $dark && 'site' === $follows ) {
+				$dark_ok = false;
+				diluxone_users_notice( __( 'The site’s own switch needs what the page has when the site is dark: a class, as .is-dark, or an attribute, as data-theme="dark". Nothing was changed in how dark mode is told.', 'diluxone-users' ), 'error' );
+				continue;
+			}
+
+			$values[ $key ] = '';
+			continue;
+		}
+
+		$signal = is_string( $typed ) ? diluxone_users_dark_signal_parse( $on, $typed ) : null;
+
+		if ( null === $signal ) {
+			$dark_ok = $dark_ok && ! $dark;
+			diluxone_users_notice(
+				sprintf(
+					/* translators: %s: the field, as "The site is dark when the page has" */
+					__( '“%s” has to be a class, as .is-dark, or an attribute, as data-theme="dark" or data-mode, with no spaces, brackets or event handlers. The one saved before stays.', 'diluxone-users' ),
+					$label
+				),
+				'error'
+			);
+			continue;
+		}
+
+		$values[ $key ] = $on . ' ' . diluxone_users_dark_signal_text( $signal );
+	}
+
+	if ( $dark_ok || 'device' === $follows ) {
+		$values['diluxone_users_dark_follows'] = $follows;
+	}
+
+	diluxone_users_save_options( $values );
 }
 
 /* ── Sign in ───────────────────────────────────────────────────────── */
