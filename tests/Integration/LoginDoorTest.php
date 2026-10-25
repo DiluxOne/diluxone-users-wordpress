@@ -426,6 +426,62 @@ class LoginDoorTest extends IntegrationTestCase {
 		$this->assertStringContainsString( 'already answers', $this->refused( 'blog' ) );
 	}
 
+	public function test_c4_with_the_address_empty_the_chosen_sign_in_pages_path_is_kept_and_saved(): void {
+		$page = (int) wp_insert_post(
+			array(
+				'post_type'   => 'page',
+				'post_status' => 'publish',
+				'post_title'  => 'Entrar',
+				'post_name'   => 'entrar',
+			)
+		);
+
+		diluxone_users_update_option( 'diluxone_users_login_page', $page );
+		diluxone_users_update_option( 'diluxone_users_login_slug', '' );
+
+		$this->assertSame( 'entrar', diluxone_users_login_slug(), 'the address the site already had for signing in' );
+		$this->assertArrayHasKey( '^entrar/?$', $this->rules() );
+
+		ob_start();
+		$this->assertTrue( $this->save_slug( 'entrar' ), 'the address the field shows is saved as it is' );
+		ob_end_clean();
+
+		$this->assertSame( 'entrar', diluxone_users_login_slug() );
+		$this->assertStringContainsString( 'already the page “About us”', $this->refused_about() );
+	}
+
+	/** Another page's address, still refused while a sign-in page is chosen. */
+	private function refused_about(): string {
+		wp_insert_post(
+			array(
+				'post_type'   => 'page',
+				'post_status' => 'publish',
+				'post_title'  => 'About us',
+				'post_name'   => 'about',
+			)
+		);
+
+		return $this->refused( 'about' );
+	}
+
+	public function test_c4_a_nested_sign_in_page_leaves_sign_in(): void {
+		$parent = $this->page( 'Members' );
+		$page   = (int) wp_insert_post(
+			array(
+				'post_type'   => 'page',
+				'post_status' => 'publish',
+				'post_title'  => 'Entrar',
+				'post_name'   => 'entrar',
+				'post_parent' => $parent,
+			)
+		);
+
+		diluxone_users_update_option( 'diluxone_users_login_page', $page );
+		diluxone_users_update_option( 'diluxone_users_login_slug', '' );
+
+		$this->assertSame( 'sign-in', diluxone_users_login_slug(), 'the page of its own answers one segment only' );
+	}
+
 	public function test_c4_a_good_address_is_saved_clean(): void {
 		ob_start();
 		$this->assertTrue( $this->save_slug( '/Entrar/' ) );
