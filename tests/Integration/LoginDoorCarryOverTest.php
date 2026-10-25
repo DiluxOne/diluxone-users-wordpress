@@ -151,4 +151,18 @@ class LoginDoorCarryOverTest extends IntegrationTestCase {
 		$this->assertSame( 'entrar', $slug );
 		$this->assertSame( array( 'sign-in' ), $old );
 	}
+
+	public function test_c5_no_page_and_an_address_typed_keeps_the_address(): void {
+		$this->stored_before( 0, 'entrar' );
+
+		$this->assertSame( 'entrar', diluxone_users_login_slug() );
+		$this->assertSame( home_url( '/entrar/' ), diluxone_users_login_url() );
+		$this->assertSame( array(), diluxone_users_login_slug_old(), 'nothing added to the old addresses' );
+		$this->assertSame( array(), diluxone_users_raw_get( 'diluxone_users_login_slug_old' ) );
+
+		$rules = $this->rules();
+
+		$this->assertSame( 'index.php?diluxone_users_door=login', $rules['^entrar/?$'] ?? '' );
+		$this->assertArrayNotHasKey( '^sign\\-in/?$', $rules );
+	}
 }

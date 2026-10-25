@@ -81,6 +81,7 @@ class LoginDoorTest extends TestCase {
 		update_option( 'diluxone_users_login_page', 0 );
 
 		$this->assertSame( 'entrar', diluxone_users_login_slug() );
+		$this->assertSame( array(), diluxone_users_login_slug_old(), 'C5: the address kept is the current one, never an old one' );
 	}
 
 	public function test_c4_with_a_page_chosen_the_address_stored_before_sends_people_to_it(): void {
