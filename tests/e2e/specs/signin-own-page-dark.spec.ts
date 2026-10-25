@@ -66,5 +66,30 @@ test.describe('The page of its own follows the site’s switch', () => {
 			expect(await guest.evaluate(() => (window as unknown as { e2eStill?: boolean }).e2eStill), 'the same page, never reloaded').toBe(true);
 		});
 	}
+
+	test('C5: data-tema="oscuro" dark and data-tema="claro" light: claro with the device dark draws light; neither follows the device', async ({ options, guest, pages }) => {
+		await options.set(switchSite('data-tema', 'html data-tema="oscuro"', 'html data-tema="claro"', { diluxone_users_login_template: 'plain' }));
+		await guest.emulateMedia({ colorScheme: 'dark' });
+		await siteScheme(guest, pages.login.url, 'light');
+
+		const form = '.diluxone-users-login';
+		const kept = () => guest.evaluate(() => Object.entries(localStorage).find(([k]) => k.endsWith(':scheme'))?.[1] ?? '');
+
+		await expect(guest.locator('html')).toHaveAttribute('data-tema', 'claro');
+		await expect.poll(kept, { message: 'the scheme the plugin drew in' }).toBe('light');
+		await expect.poll(() => drawnIn(guest, form)).toBe('light');
+		expect(await token(guest, 'text'), 'not the dark scheme’s text').not.toBe(DARK_TEXT);
+
+		// Neither signal: the device, which is dark.
+		await siteScheme(guest, pages.login.url, '');
+		await expect(guest.locator('html')).not.toHaveAttribute('data-tema', /.*/);
+		await expect.poll(kept, { message: 'the scheme the plugin drew in' }).toBe('dark');
+		await expect.poll(() => drawnIn(guest, form)).toBe('dark');
+		expect(await token(guest, 'text')).toBe(DARK_TEXT);
+
+		await guest.emulateMedia({ colorScheme: 'light' });
+		await expect.poll(kept, { message: 'and the device turning light' }).toBe('light');
+		await expect.poll(() => drawnIn(guest, form)).toBe('light');
+	});
 });
 
