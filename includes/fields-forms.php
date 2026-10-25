@@ -29,7 +29,7 @@ function diluxone_users_field_control( array $field, int $user_id ): void {
 	$id = 'diluxone-users-' . $field['key'];
 
 	diluxone_users_ui_field_open( (string) $field['label'], $id );
-	diluxone_users_field_input( $field, diluxone_users_value( $user_id, $field['key'] ), $id, $user_id );
+	diluxone_users_field_input( $field, diluxone_users_value( $user_id, $field['key'] ), $id, $user_id, (string) ( diluxone_users_phone_failed()[ $field['key'] ] ?? '' ) );
 	diluxone_users_ui_field_close( (string) $field['help'] );
 }
 
@@ -81,8 +81,9 @@ function diluxone_users_fields_block( int $user_id ): void {
  * @param string               $value   What is stored.
  * @param string               $id      The id the label points at; the key when empty.
  * @param int                  $user_id Whose field it is; the person looking when 0.
+ * @param string               $error   Why what was sent was refused, said under the control; a phone's length.
  */
-function diluxone_users_field_input( array $field, string $value, string $id = '', int $user_id = 0 ): void {
+function diluxone_users_field_input( array $field, string $value, string $id = '', int $user_id = 0, string $error = '' ): void {
 	$key           = $field['key'];
 	$id            = '' === $id ? $key : $id;
 	$required_attr = $field['required'] ? ' required' : '';
@@ -235,12 +236,14 @@ function diluxone_users_field_input( array $field, string $value, string $id = '
 			diluxone_users_phone_enqueue();
 
 			printf(
-				'<span class="diluxone-users-phone" data-diluxone-users-phone data-search="%1$s" data-list="%2$s" data-found="%3$s" data-none="%4$s">',
+				'<span class="diluxone-users-phone" data-diluxone-users-phone data-search="%1$s" data-list="%2$s" data-found="%3$s" data-none="%4$s" data-short="%5$s" data-long="%6$s">',
 				esc_attr__( 'Search for a country or a code', 'diluxone-users' ),
 				esc_attr__( 'Countries', 'diluxone-users' ),
 				/* translators: %d: how many countries match what was typed */
 				esc_attr__( 'Countries found: %d', 'diluxone-users' ),
-				esc_attr__( 'No country matches that.', 'diluxone-users' )
+				esc_attr__( 'No country matches that.', 'diluxone-users' ),
+				esc_attr( diluxone_users_phone_message( 'short' ) ),
+				esc_attr( diluxone_users_phone_message( 'long' ) )
 			);
 			printf(
 				'<select id="%1$s-dial" name="%2$s_dial" class="diluxone-users-phone__dial" aria-label="%3$s"%4$s>',
@@ -272,15 +275,23 @@ function diluxone_users_field_input( array $field, string $value, string $id = '
 			echo '</select>';
 
 			printf(
-				'<input type="tel" id="%1$s" name="%2$s" value="%3$s" inputmode="tel" class="diluxone-users-phone__number" autocomplete="tel-national"%4$s placeholder="%5$s">',
+				'<input type="tel" id="%1$s" name="%2$s" value="%3$s" inputmode="tel" class="diluxone-users-phone__number" autocomplete="tel-national"%4$s placeholder="%5$s"%6$s>',
 				esc_attr( $id ),
 				esc_attr( $key ),
 				esc_attr( $national ),
 				esc_attr( $required_attr . $lock ),
-				esc_attr( $placeholder )
+				esc_attr( $placeholder ),
+				'' === $error ? '' : ' aria-invalid="true" aria-describedby="' . esc_attr( $id . '-error' ) . '"'
 			);
 
 			echo '</span>';
+
+			// Why the form came back, under the number it is about. The script
+			// writes the same words here when the browser's own check stops a
+			// number before it is sent.
+			if ( '' !== $error ) {
+				printf( '<p class="diluxone-users-field__error" id="%1$s-error">%2$s</p>', esc_attr( $id ), esc_html( $error ) );
+			}
 			return;
 
 		case 'datalist':
@@ -374,10 +385,59 @@ function diluxone_users_profile_save( int $user_id ): void {
 		return;
 	}
 
-	diluxone_users_save( $user_id, diluxone_users_posted_fields( 'update-user_' . $user_id, '_wpnonce' ) );
+	$sent = diluxone_users_posted_fields( 'update-user_' . $user_id, '_wpnonce' );
+
+	// A phone the wrong length refuses the whole profile: nothing of the
+	// plugin's is saved here, and the error below stops WordPress saving its
+	// part (this runs before it does).
+	if ( array() !== diluxone_users_phone_codes( $sent, diluxone_users_fields() ) ) {
+		return;
+	}
+
+	diluxone_users_save( $user_id, $sent );
 }
 add_action( 'personal_options_update', 'diluxone_users_profile_save' );
 add_action( 'edit_user_profile_update', 'diluxone_users_profile_save' );
+
+/**
+ * A phone the wrong length, on the profile and on Users → Add New.
+ *
+ * WordPress gathers the errors of both screens here, before it saves
+ * anything or creates the account, and draws the same form again with them
+ * on top; the field says it again under the number.
+ *
+ * @param WP_Error         $errors The errors WordPress has gathered.
+ * @param bool             $update Whether a profile is being saved; false on Users → Add New.
+ * @param WP_User|stdClass $user   The person, or the one about to be.
+ */
+function diluxone_users_profile_phone_errors( $errors, $update, $user ): void {
+	$user_id = (int) ( $user->ID ?? 0 );
+	$action  = $update ? 'update-user_' . $user_id : 'create-user';
+	$nonce   = $update ? '_wpnonce' : '_wpnonce_create-user';
+
+	if ( ! $errors instanceof WP_Error || ! ( $update ? current_user_can( 'edit_user', $user_id ) : current_user_can( 'create_users' ) ) ) {
+		return;
+	}
+
+	$fields = diluxone_users_fields();
+	$wrong  = diluxone_users_phone_errors( diluxone_users_posted_fields( $action, $nonce ), $fields );
+	$labels = wp_list_pluck( $fields, 'label', 'key' );
+
+	foreach ( $wrong as $key => $message ) {
+		$errors->add(
+			'diluxone_users_' . $key,
+			sprintf(
+				/* translators: 1: field name, 2: what is wrong with it */
+				esc_html__( 'Error: “%1$s”: %2$s', 'diluxone-users' ),
+				esc_html( (string) ( $labels[ $key ] ?? $key ) ),
+				esc_html( $message )
+			)
+		);
+	}
+
+	diluxone_users_phone_failed( $wrong );
+}
+add_action( 'user_profile_update_errors', 'diluxone_users_profile_phone_errors', 10, 3 );
 
 /* ── Sign-up from the dashboard (Users → Add New) ──────────────────── */
 
@@ -492,6 +552,20 @@ function diluxone_users_register_validate( $errors, $login, $email ) {
 	}
 
 	$sent = diluxone_users_posted_fields( 'diluxone_users_wp_register', 'diluxone_users_wp_register_nonce' );
+
+	$labels = wp_list_pluck( $fields, 'label', 'key' );
+
+	foreach ( diluxone_users_phone_errors( $sent, $fields ) as $key => $message ) {
+		$errors->add(
+			'diluxone_users_' . $key . '_length',
+			sprintf(
+				/* translators: 1: field name, 2: what is wrong with it */
+				esc_html__( 'Error: “%1$s”: %2$s', 'diluxone-users' ),
+				esc_html( (string) ( $labels[ $key ] ?? $key ) ),
+				esc_html( $message )
+			)
+		);
+	}
 
 	foreach ( $fields as $field ) {
 		if ( ! $field['required'] ) {

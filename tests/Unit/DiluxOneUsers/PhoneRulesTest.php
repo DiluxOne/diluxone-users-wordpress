@@ -80,4 +80,55 @@ class PhoneRulesTest extends TestCase {
 			}
 		}
 	}
+
+	public function test_every_country_has_a_rule_that_holds_together(): void {
+		$rules = diluxone_users_phone_rules();
+
+		$this->assertSame( array(), array_values( array_diff( array_keys( diluxone_users_countries() ), array_keys( $rules ) ) ), 'every country of the list has its row' );
+		$this->assertSame( array(), array_values( array_diff( array_keys( $rules ), array_keys( diluxone_users_countries() ) ) ), 'and no row is for a country the list does not have' );
+
+		foreach ( $rules as $iso => $row ) {
+			list( $min, $max, $group, $trunk ) = $row;
+
+			$this->assertGreaterThanOrEqual( 4, $min, "{$iso}: no number is shorter than four digits" );
+			$this->assertLessThanOrEqual( $max, $min, "{$iso}: the shortest is not longer than the longest" );
+			$this->assertLessThanOrEqual( 15, $max + strlen( diluxone_users_country_dial( $iso ) ), "{$iso}: E.164 numbers have at most fifteen digits, dialling code included" );
+			$this->assertMatchesRegularExpression( '/^(\d+( \d+)*(\|\d+( \d+)*)*)?$/', $group, "{$iso}: groups of digits, patterns apart by |" );
+			$this->assertMatchesRegularExpression( '/^\d{0,2}$/', $trunk, "{$iso}: a trunk prefix is a digit or two, or none" );
+
+			foreach ( '' === $group ? array() : explode( '|', $group ) as $pattern ) {
+				$sum = array_sum( array_map( 'intval', explode( ' ', $pattern ) ) );
+
+				$this->assertTrue( $sum >= $min && $sum <= $max, "{$iso}: the pattern {$pattern} is for a length the country has" );
+			}
+		}
+	}
+
+	public function test_a_number_too_short_or_too_long_for_its_country_says_which(): void {
+		$this->assertSame( '', diluxone_users_phone_check( 'AR', '11 2345 6789' ) );
+		$this->assertSame( '', diluxone_users_phone_check( 'AR', '9 11 2345 6789' ), 'a mobile with its 9' );
+		$this->assertSame( '', diluxone_users_phone_check( 'AR', '011 2345 6789' ), 'with the trunk prefix typed out of habit' );
+		$this->assertSame( 'short', diluxone_users_phone_check( 'AR', '12345' ) );
+		$this->assertSame( 'long', diluxone_users_phone_check( 'AR', '123456789012' ) );
+		$this->assertSame( '', diluxone_users_phone_check( 'AR', '' ), 'nothing typed is no wrong length' );
+		$this->assertSame( '', diluxone_users_phone_check( 'AR', ' - ' ) );
+		$this->assertSame( 'short', diluxone_users_phone_check( 'US', '212 555 123' ) );
+		$this->assertSame( '', diluxone_users_phone_check( 'US', '1 212 555 1234' ) );
+		$this->assertSame( 'long', diluxone_users_phone_check( 'AG', '268 464 1234' ), 'the area code is already in this dialling code' );
+		$this->assertSame( '', diluxone_users_phone_check( 'AG', '464 1234' ) );
+
+		foreach ( diluxone_users_phone_rules() as $iso => $row ) {
+			$this->assertSame( 'short', diluxone_users_phone_check( $iso, str_repeat( '5', $row[0] - 1 ) ), "{$iso}: one digit short" );
+			$this->assertSame( '', diluxone_users_phone_check( $iso, str_repeat( '5', $row[0] ) ), "{$iso}: the shortest" );
+			$this->assertSame( '', diluxone_users_phone_check( $iso, str_repeat( '5', $row[1] ) ), "{$iso}: the longest" );
+			$this->assertSame( 'long', diluxone_users_phone_check( $iso, str_repeat( '5', $row[1] + 1 ) ), "{$iso}: one digit too many" );
+		}
+	}
+
+	public function test_a_country_the_table_does_not_have_is_held_to_e164_alone(): void {
+		$this->assertSame( array( 'min' => 4, 'max' => 15, 'group' => '', 'trunk' => '' ), diluxone_users_phone_rule( 'ZZ' ) );
+		$this->assertSame( 'short', diluxone_users_phone_check( 'ZZ', '123' ) );
+		$this->assertSame( 'long', diluxone_users_phone_check( 'ZZ', '1234567890123456' ) );
+		$this->assertSame( '', diluxone_users_phone_check( 'ZZ', '12345678' ) );
+	}
 }

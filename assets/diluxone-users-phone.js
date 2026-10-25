@@ -162,7 +162,66 @@
 			}
 		}
 
-		input.addEventListener( 'input', regroup );
+		/**
+		 * The browser's own check, with the words the server would send back:
+		 * a number the wrong length for the country stops the form here, and
+		 * the error is said under the number as the server says it.
+		 */
+		function check( event ) {
+			var r = rule();
+			var length = split( r, input.value ).digits.length;
+			var code = '';
+
+			if ( length > 0 && select.value ) {
+				code = length < r.min ? 'short' : ( length > r.max ? 'long' : '' );
+			}
+
+			input.setCustomValidity( code ? box.getAttribute( 'data-' + code ) || '' : '' );
+
+			// What the server said stays until the person changes something.
+			if ( ! code && event ) {
+				say( '' );
+			}
+		}
+
+		function say( text ) {
+			var id = ( input.id || 'diluxone-users-phone' ) + '-error';
+			var error = document.getElementById( id );
+
+			if ( ! text ) {
+				if ( error ) {
+					error.hidden = true;
+				}
+
+				input.removeAttribute( 'aria-invalid' );
+				return;
+			}
+
+			if ( ! error ) {
+				error = document.createElement( 'p' );
+				error.id = id;
+				error.className = 'diluxone-users-field__error';
+				box.parentNode.insertBefore( error, box.nextSibling );
+			}
+
+			error.textContent = text;
+			error.hidden = false;
+			input.setAttribute( 'aria-invalid', 'true' );
+			input.setAttribute( 'aria-describedby', id );
+		}
+
+		input.addEventListener( 'input', function ( event ) {
+			regroup();
+			check( event );
+		} );
+
+		select.addEventListener( 'change', check );
+
+		input.addEventListener( 'invalid', function () {
+			say( input.validationMessage );
+		} );
+
+		check();
 
 		// A space is the script's, not the person's: Backspace over one takes
 		// the digit before it, and Delete the digit after it.

@@ -109,7 +109,7 @@ function diluxone_users_phone_rules(): array {
 			'GA' => array( 7, 8, '2 2 2 2', '' ),
 			'GM' => array( 7, 9, '', '' ),
 			'GE' => array( 9, 9, '2 3 2 2', '0' ),
-			'DE' => array( 5, 15, '2 6|4 7', '0' ),
+			'DE' => array( 5, 13, '2 6|4 7', '0' ),
 			'GH' => array( 9, 9, '2 3 4', '0' ),
 			'GI' => array( 8, 8, '3 5', '' ),
 			'GR' => array( 10, 10, '2 4 4', '' ),

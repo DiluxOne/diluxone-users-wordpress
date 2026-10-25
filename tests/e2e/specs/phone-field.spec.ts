@@ -356,3 +356,77 @@ test.describe('The number as it is typed and saved', () => {
 		expect((await site.user(email, ['e2e_phone'])).fields.e2e_phone).toBe('+541123456789');
 	});
 });
+
+test.describe('A number the wrong length for its country', () => {
+	test.beforeEach(async ({ options }) => {
+		await options.set({ diluxone_users_2fa_mode: 'off', diluxone_users_fields: [NAME, MAIL, PHONE] });
+	});
+
+	test('sent past the browser, the server refuses the whole form and says so under the number', async ({ page, site, pages }) => {
+		const { email } = await signedIn(page, site, pages.login.url, 'phone-short', { meta: { first_name: 'Ada', e2e_phone: '+541123456789' } });
+		const area = await details(page, pages.account.url);
+		const form = formOf(page, 'diluxone_users_fields_save');
+
+		await form.evaluate((element: HTMLFormElement) => (element.noValidate = true));
+		await form.locator('input[name="first_name"]').fill('Changed');
+		await area.phone.locator('input.diluxone-users-phone__number').fill('11 2345');
+
+		await Promise.all([page.waitForURL(/diluxone-users=phone/), form.locator('button[type="submit"]').first().click()]);
+
+		expect(new URL(page.url()).searchParams.get('diluxone-users-field')).toBe('e2e_phone');
+		expect(page.url(), 'the number never travels in the address').not.toContain('2345');
+
+		await reveal(page, 'input[name="e2e_phone"]');
+		const number = page.locator('input[name="e2e_phone"]');
+		const error = page.locator('#e2e_phone-error');
+
+		await expect(error).toBeVisible();
+		await expect(error).toHaveText('This number is too short for the country chosen.');
+		await expect(number).toHaveAttribute('aria-invalid', 'true');
+		await expect(number).toHaveAttribute('aria-describedby', 'e2e_phone-error');
+		await expect(page.locator('.diluxone-users-notice--error')).toContainText('Nothing was saved');
+
+		const stored = (await site.user(email, ['first_name', 'e2e_phone'])).fields;
+		expect(stored, 'nothing on the form was saved').toEqual({ first_name: 'Ada', e2e_phone: '+541123456789' });
+	});
+
+	test('too long, too: the browser stops it first with the same words, under the number', async ({ page, site, pages }) => {
+		await signedIn(page, site, pages.login.url, 'phone-long');
+		const area = await details(page, pages.account.url);
+		const form = formOf(page, 'diluxone_users_fields_save');
+		const number = area.phone.locator('input.diluxone-users-phone__number');
+
+		await number.fill('11 2345 6789 0123');
+		await form.locator('button[type="submit"]').first().click();
+
+		const error = page.locator('#e2e_phone-error');
+		await expect(error).toHaveText('This number is too long for the country chosen.');
+		await expect(number).toHaveAttribute('aria-invalid', 'true');
+		expect(new URL(page.url()).searchParams.get('diluxone-users'), 'never sent').toBeNull();
+
+		// Put right, the error goes.
+		await number.fill('11 2345 6789');
+		await expect(error).toBeHidden();
+		await expect(number).not.toHaveAttribute('aria-invalid', 'true');
+	});
+
+	test('on the registration form no account is made, and the error is under the number', async ({ guest, site, pages, options }) => {
+		await options.set({ diluxone_users_fields: REQUIRED, diluxone_users_register_form: 1 });
+
+		const email = `phone-reg-${Date.now()}@e2e.test`;
+		const p = await picker(guest, pages.register.url);
+		const form = guest.locator('form.diluxone-users-form').filter({ has: guest.locator('input[name="action"][value="diluxone_users_signup"]') });
+
+		await form.evaluate((element: HTMLFormElement) => (element.noValidate = true));
+		await form.locator('input[name="diluxone_users_email"]').fill(email);
+		await form.locator('input[name="e2e_mail"]').fill('work@example.org');
+		await p.number.fill('11 23');
+
+		await Promise.all([guest.waitForURL(/diluxone-users=phone/), form.locator('button[type="submit"]').click()]);
+
+		await expect(guest.locator('[data-diluxone-users-message="register_phone"]')).toBeVisible();
+		await expect(guest.locator('#diluxone-users-e2e_phone-error')).toHaveText('This number is too short for the country chosen.');
+		await expect(guest.locator('#diluxone-users-e2e_phone')).toHaveAttribute('aria-invalid', 'true');
+		expect((await site.user(email)).exists, 'no account').toBe(false);
+	});
+});
