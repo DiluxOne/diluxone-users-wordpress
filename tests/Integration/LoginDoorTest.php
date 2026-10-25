@@ -203,19 +203,165 @@ class LoginDoorTest extends IntegrationTestCase {
 		$this->assertSame( get_permalink( $page ), diluxone_users_login_url() );
 	}
 
-	public function test_c2_a_sign_in_page_still_chosen_sends_people_to_the_page_of_its_own(): void {
-		$page = $this->page( 'Sign in' );
-		diluxone_users_update_option( 'diluxone_users_login_page', $page );
-
-		$this->as_front_end();
+	/** The main query as WordPress leaves it for a page asked for by its ID. */
+	private function on_page( int $page ): void {
 		$GLOBALS['wp_query']     = new \WP_Query( array( 'page_id' => $page ) );
 		$GLOBALS['wp_the_query'] = $GLOBALS['wp_query'];
-		$_GET                    = array( 'diluxone-users' => 'expired' );
+		$GLOBALS['wp_query']->get_queried_object();
+	}
 
-		$this->assertSame( add_query_arg( 'diluxone-users', 'expired', home_url( '/sign-in/' ) ), $this->expectRedirect( 'diluxone_users_door_pages' ) );
+	public function test_c1_the_chosen_sign_in_pages_own_address_draws_the_page_of_its_own_with_no_redirect(): void {
+		$page = (int) wp_insert_post(
+			array(
+				'post_type'   => 'page',
+				'post_status' => 'publish',
+				'post_title'  => 'Entrar',
+				'post_name'   => 'entrar',
+			)
+		);
+		diluxone_users_update_option( 'diluxone_users_login_page', $page );
+
+		$this->assertSame( 'entrar', diluxone_users_login_slug(), 'the page’s own path' );
+		$this->assertSame( get_permalink( $page ), diluxone_users_door_url(), 'the door is the page’s address' );
+		$this->assertSame( home_url( '/entrar/' ), diluxone_users_login_url() );
+		$this->assertSame( home_url( '/entrar/register/' ), diluxone_users_door_url( 'register' ) );
+
+		$rules = $this->rules();
+
+		$this->assertSame( 'index.php?diluxone_users_door=login', $rules['^entrar/?$'] ?? '', 'its address is answered by the door' );
+		$this->assertSame( 'index.php?diluxone_users_door=register', $rules['^entrar/register/?$'] ?? '' );
+
+		// The page itself asked for, as plain permalinks and ?page_id= ask.
+		$this->as_front_end();
+		$this->on_page( $page );
+		$_GET = array( 'diluxone-users' => 'expired' );
+
+		$this->assertSame( 'login', diluxone_users_door_view() );
+		$this->stays( 'diluxone_users_door_pages', 'nothing redirects' );
+		$this->stays( 'diluxone_users_door_serve', 'a signed-out person stays on the page' );
+		$this->assertSame( DILUXONE_USERS_DIR . 'templates/login-page.php', diluxone_users_door_template( '/theme/page.php' ), 'the page of its own, drawn there' );
 
 		diluxone_users_update_option( 'diluxone_users_login_template', 'plain' );
-		$this->stays( 'diluxone_users_door_pages', 'another shape gives the page back' );
+		$this->assertSame( '', diluxone_users_door_view(), 'another shape gives the page back' );
+		$this->assertSame( '/theme/page.php', diluxone_users_door_template( '/theme/page.php' ) );
+	}
+
+	public function test_c1_a_nested_sign_in_page_is_drawn_at_its_whole_path(): void {
+		$parent = $this->page( 'Members' );
+		$page   = (int) wp_insert_post(
+			array(
+				'post_type'   => 'page',
+				'post_status' => 'publish',
+				'post_title'  => 'Entrar',
+				'post_name'   => 'entrar',
+				'post_parent' => $parent,
+			)
+		);
+
+		diluxone_users_update_option( 'diluxone_users_login_page', $page );
+
+		$this->assertSame( 'members/entrar', diluxone_users_login_slug() );
+		$this->assertSame( home_url( '/members/entrar/' ), diluxone_users_login_url() );
+
+		$rules = $this->rules();
+
+		$this->assertSame( 'index.php?diluxone_users_door=login', $rules['^members\\/entrar/?$'] ?? '' );
+		$this->assertSame( 'index.php?diluxone_users_door=register', $rules['^members\\/entrar/register/?$'] ?? '' );
+
+		foreach ( array_keys( $rules ) as $rule ) {
+			$this->assertDoesNotMatchRegularExpression( '#' . $rule . '#', 'members/', 'the parent page keeps its address' );
+		}
+
+		$this->as_front_end();
+		$this->on_page( $page );
+		$this->stays( 'diluxone_users_door_pages', 'nothing redirects' );
+		$this->assertSame( 'login', diluxone_users_door_view() );
+
+		$this->on_page( $parent );
+		$this->assertSame( '', diluxone_users_door_view(), 'the parent is not the door' );
+	}
+
+	public function test_c1_with_plain_permalinks_the_door_is_the_chosen_page_itself(): void {
+		global $wp_rewrite;
+
+		update_option( 'permalink_structure', '' );
+		$wp_rewrite->init();
+		$page = $this->page( 'Entrar' );
+		diluxone_users_update_option( 'diluxone_users_login_page', $page );
+
+		try {
+			$this->assertSame( add_query_arg( 'page_id', $page, home_url( '/' ) ), diluxone_users_login_url() );
+		} finally {
+			update_option( 'permalink_structure', '/%postname%/' );
+			$wp_rewrite->init();
+		}
+	}
+
+	public function test_c1_a_page_in_the_bin_leaves_the_address_with_no_page(): void {
+		$page = $this->page( 'Entrar' );
+		diluxone_users_update_option( 'diluxone_users_login_page', $page );
+		wp_trash_post( $page );
+
+		$this->assertSame( 'sign-in', diluxone_users_login_slug() );
+	}
+
+	public function test_c1_the_chosen_page_renamed_keeps_its_old_path_sending_people_to_the_new(): void {
+		$parent = $this->page( 'Members' );
+		$page   = (int) wp_insert_post(
+			array(
+				'post_type'   => 'page',
+				'post_status' => 'publish',
+				'post_title'  => 'Entrar',
+				'post_name'   => 'entrar',
+			)
+		);
+		diluxone_users_update_option( 'diluxone_users_login_page', $page );
+		diluxone_users_update_option( 'diluxone_users_login_slug_old', array() );
+
+		wp_update_post(
+			array(
+				'ID'        => $page,
+				'post_name' => 'acceder',
+			)
+		);
+
+		$this->assertSame( 'acceder', diluxone_users_login_slug() );
+		$this->assertSame( array( 'entrar' ), diluxone_users_login_slug_old() );
+
+		wp_update_post(
+			array(
+				'ID'          => $page,
+				'post_parent' => $parent,
+			)
+		);
+		wp_update_post(
+			array(
+				'ID'        => $parent,
+				'post_name' => 'socios',
+			)
+		);
+
+		$this->assertSame( 'socios/acceder', diluxone_users_login_slug() );
+		$this->assertSame( array( 'members/acceder', 'acceder', 'entrar' ), diluxone_users_login_slug_old(), 'a parent renamed moves it too' );
+	}
+
+	public function test_c1_another_page_chosen_keeps_the_address_it_leaves(): void {
+		diluxone_users_update_option( 'diluxone_users_login_slug_old', array() );
+
+		$first = $this->page( 'Entrar' );
+		diluxone_users_update_option( 'diluxone_users_login_page', $first );
+
+		$this->assertSame( array( 'sign-in' ), diluxone_users_login_slug_old(), '/sign-in/ sends people to the page chosen' );
+
+		$second = $this->page( 'Acceso' );
+		diluxone_users_update_option( 'diluxone_users_login_page', $second );
+
+		$this->assertSame( 'acceso', diluxone_users_login_slug() );
+		$this->assertSame( array( 'sign-in' ), diluxone_users_login_slug_old(), 'the first page is still a page, answered as one' );
+
+		diluxone_users_update_option( 'diluxone_users_login_template', 'card' );
+		diluxone_users_update_option( 'diluxone_users_login_page', $first );
+		$this->assertSame( array( 'sign-in' ), diluxone_users_login_slug_old(), 'nothing kept under another shape' );
 	}
 
 	public function test_c2_another_site_of_the_network_points_to_the_hubs_page(): void {
@@ -426,40 +572,6 @@ class LoginDoorTest extends IntegrationTestCase {
 		$this->assertStringContainsString( 'already answers', $this->refused( 'blog' ) );
 	}
 
-	public function test_c4_with_the_address_empty_the_chosen_sign_in_pages_path_is_kept_and_stored(): void {
-		$page = (int) wp_insert_post(
-			array(
-				'post_type'   => 'page',
-				'post_status' => 'publish',
-				'post_title'  => 'Entrar',
-				'post_name'   => 'entrar',
-			)
-		);
-
-		diluxone_users_update_option( 'diluxone_users_login_page', $page );
-		diluxone_users_update_option( 'diluxone_users_login_slug', '' );
-
-		$this->assertSame( 'entrar', diluxone_users_login_slug(), 'the address the site already had for signing in' );
-		$this->assertArrayHasKey( '^entrar/?$', $this->rules() );
-
-		ob_start();
-		$this->assertTrue( $this->save_slug( 'entrar' ), 'the address the field shows is saved as it is' );
-		ob_end_clean();
-
-		$this->assertSame( 'entrar', diluxone_users_raw_get( 'diluxone_users_login_slug' ), 'stored, no longer following the page' );
-		$this->assertSame( array(), diluxone_users_login_slug_old(), 'the address did not move' );
-
-		wp_update_post(
-			array(
-				'ID'        => $page,
-				'post_name' => 'acceder',
-			)
-		);
-
-		$this->assertSame( 'entrar', diluxone_users_login_slug(), 'the page renamed, the address kept' );
-		$this->assertStringContainsString( 'already the page “About us”', $this->refused_about() );
-	}
-
 	public function test_c4_the_chosen_sign_in_pages_own_address_is_not_taken_on_the_status_screen(): void {
 		$page = (int) wp_insert_post(
 			array(
@@ -472,7 +584,6 @@ class LoginDoorTest extends IntegrationTestCase {
 
 		diluxone_users_update_option( 'diluxone_users_login_template', 'own' );
 		diluxone_users_update_option( 'diluxone_users_login_page', $page );
-		diluxone_users_update_option( 'diluxone_users_login_slug', '' );
 
 		$this->assertSame( '', diluxone_users_login_slug_taken( 'entrar' ), 'the page the page of its own takes the place of' );
 		$this->assertSame( 'active', diluxone_users_check_door()['state'] );
@@ -480,67 +591,6 @@ class LoginDoorTest extends IntegrationTestCase {
 		diluxone_users_update_option( 'diluxone_users_login_page', 0 );
 
 		$this->assertSame( 'the page “Entrar”', diluxone_users_login_slug_taken( 'entrar' ), 'any other page still has its address' );
-	}
-
-	public function test_c3_an_old_address_that_is_the_chosen_sign_in_pages_keeps_sending_people(): void {
-		$page = (int) wp_insert_post(
-			array(
-				'post_type'   => 'page',
-				'post_status' => 'publish',
-				'post_title'  => 'Entrar',
-				'post_name'   => 'entrar',
-			)
-		);
-
-		diluxone_users_update_option( 'diluxone_users_login_page', $page );
-		diluxone_users_update_option( 'diluxone_users_login_slug', '' );
-
-		ob_start();
-		$this->assertTrue( $this->save_slug( 'acceso' ) );
-		ob_end_clean();
-
-		$this->assertSame( array( 'entrar' ), diluxone_users_login_slug_old() );
-
-		wp_update_post(
-			array(
-				'ID'         => $page,
-				'post_title' => 'Entrar ya',
-			)
-		);
-
-		$this->assertSame( array( 'entrar' ), diluxone_users_login_slug_old(), 'the sign-in page saved again does not take it back' );
-	}
-
-	/** Another page's address, still refused while a sign-in page is chosen. */
-	private function refused_about(): string {
-		wp_insert_post(
-			array(
-				'post_type'   => 'page',
-				'post_status' => 'publish',
-				'post_title'  => 'About us',
-				'post_name'   => 'about',
-			)
-		);
-
-		return $this->refused( 'about' );
-	}
-
-	public function test_c4_a_nested_sign_in_page_leaves_sign_in(): void {
-		$parent = $this->page( 'Members' );
-		$page   = (int) wp_insert_post(
-			array(
-				'post_type'   => 'page',
-				'post_status' => 'publish',
-				'post_title'  => 'Entrar',
-				'post_name'   => 'entrar',
-				'post_parent' => $parent,
-			)
-		);
-
-		diluxone_users_update_option( 'diluxone_users_login_page', $page );
-		diluxone_users_update_option( 'diluxone_users_login_slug', '' );
-
-		$this->assertSame( 'sign-in', diluxone_users_login_slug(), 'the page of its own answers one segment only' );
 	}
 
 	public function test_c4_a_good_address_is_saved_clean(): void {
@@ -654,5 +704,6 @@ class LoginDoorTest extends IntegrationTestCase {
 		$GLOBALS['wp_the_query'] = $GLOBALS['wp_query'];
 
 		$this->stays( 'diluxone_users_door_pages', 'a sign-in page still chosen draws itself' );
+		$this->assertSame( '/theme/page.php', diluxone_users_door_template( '/theme/page.php' ), 'and is drawn as the page it is' );
 	}
 }

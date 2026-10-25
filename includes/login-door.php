@@ -5,9 +5,11 @@
  * Every other shape is drawn inside a page and inside the theme around it,
  * and a site that wanted the sign-in on a screen of its own wrote a template
  * to drop the header and the footer. This shape needs neither: the plugin
- * answers an address of the site's choosing (until somebody says otherwise,
- * the path of the page chosen as the sign-in page, or `/sign-in/`) and draws the whole document itself, with the site's name, its
- * mark and its colours, and nothing of the theme's but what wp_head() brings.
+ * answers the address chosen on Access › The sign-in page (the page chosen
+ * there, at its own address, or with "No page" the address typed beside it,
+ * `/sign-in/` until one is) and draws the whole document itself, with the
+ * site's name, its mark and its colours, and nothing of the theme's but what
+ * wp_head() brings.
  *
  * It is the plugin's own route, the way the account area's sections and the
  * social sign-in's return are: a rewrite rule, a query var, and the rules
@@ -56,43 +58,69 @@ function diluxone_users_door_open(): bool {
 }
 
 /**
- * The path the page is answered at, without slashes.
+ * The path the page is answered at, without slashes at either end.
  *
- * With "Its address" empty, the address the site already had for signing in:
- * the path of the page chosen in Sign in › The page. `/sign-in/` only when no
- * page is chosen, the page is gone, or its path is nested.
+ * Access › The sign-in page decides it alone. With a page chosen there, the
+ * page's own path, whatever its depth: the page of its own is drawn at the
+ * page's address. With "No page", the address typed beside it, or
+ * `/sign-in/` when none is stored.
  */
 function diluxone_users_login_slug(): string {
-	$slug = sanitize_title( (string) diluxone_users_option( 'diluxone_users_login_slug' ) );
-
-	if ( '' !== $slug ) {
-		return $slug;
-	}
-
-	$page = diluxone_users_login_slug_of_page();
-
-	return '' !== $page ? $page : DILUXONE_USERS_DOOR_SLUG;
+	return diluxone_users_login_slug_for( (int) diluxone_users_option( 'diluxone_users_login_page' ) );
 }
 
 /**
- * The path of the page chosen as the sign-in page, without slashes, or ''
- * when none is chosen, it is gone, or its path is more than one segment: the
- * page of its own answers one segment only.
+ * The path the page would be answered at with this page chosen as the sign-in
+ * page (0 for none): what diluxone_users_login_slug() says, for a choice that
+ * is not, or no longer, the one stored.
+ *
+ * @param int $page The page's ID, or 0.
  */
-function diluxone_users_login_slug_of_page(): string {
-	$page = (int) diluxone_users_option( 'diluxone_users_login_page' );
+function diluxone_users_login_slug_for( int $page ): string {
+	$path = diluxone_users_login_slug_of_page( $page );
 
+	if ( '' !== $path ) {
+		return $path;
+	}
+
+	$slug = sanitize_title( (string) diluxone_users_option( 'diluxone_users_login_slug' ) );
+
+	return '' !== $slug ? $slug : DILUXONE_USERS_DOOR_SLUG;
+}
+
+/**
+ * The path of a page on the hub, without slashes at either end, each segment
+ * sanitised, or '' when there is no such page or it is in the bin.
+ *
+ * @param int $page The page's ID, or 0 for none.
+ */
+function diluxone_users_login_slug_of_page( int $page ): string {
 	if ( $page <= 0 ) {
 		return '';
 	}
 
-	$path = trim( (string) diluxone_users_on_hub( static fn() => get_page_uri( $page ) ), '/' );
+	return (string) diluxone_users_on_hub(
+		static function () use ( $page ): string {
+			$status = get_post_field( 'post_status', $page );
+			$status = is_string( $status ) ? $status : '';
 
-	if ( '' === $path || false !== strpos( $path, '/' ) ) {
-		return '';
-	}
+			if ( '' === $status || 'trash' === $status ) {
+				return '';
+			}
 
-	return sanitize_title( $path );
+			return diluxone_users_login_path( (string) get_page_uri( $page ) );
+		}
+	);
+}
+
+/**
+ * A path made clean: each segment sanitised, the empty ones dropped, no
+ * slash at either end.
+ *
+ * @param string $path The path, as stored or as WordPress gives it.
+ */
+function diluxone_users_login_path( string $path ): string {
+	return implode( '/', array_filter( array_map( 'sanitize_title', explode( '/', $path ) ), static fn( string $segment ): bool => '' !== $segment ) );
 }
 
 /**
@@ -106,7 +134,7 @@ function diluxone_users_login_slug_old(): array {
 	$old     = array();
 
 	foreach ( (array) diluxone_users_option( 'diluxone_users_login_slug_old' ) as $slug ) {
-		$slug = is_scalar( $slug ) ? sanitize_title( (string) $slug ) : '';
+		$slug = is_scalar( $slug ) ? diluxone_users_login_path( (string) $slug ) : '';
 
 		if ( '' !== $slug && $slug !== $current && ! in_array( $slug, $old, true ) ) {
 			$old[] = $slug;
@@ -117,36 +145,102 @@ function diluxone_users_login_slug_old(): array {
 }
 
 /**
- * Moves the page to another address, keeping the one it leaves.
+ * The page of its own left an address: it goes on sending people to the new
+ * one.
  *
  * The address it had goes to the front of the old ones, which go on sending
  * people to the new one: a sign-in or reset link already sent by e-mail still
  * works. At most DILUXONE_USERS_DOOR_OLD_MAX of them, the newest kept, and
  * never the address the page has now — going back to an old address takes it
- * off the list.
+ * off the list. Nothing is kept while another shape is chosen, when the
+ * address did not change, or when a post has the address it left: the post
+ * is answered there again.
  *
- * Saving the address it answers while "Its address" is empty, which follows
- * the chosen sign-in page, stores it: from then on it stays where it is when
- * that page is renamed or another is chosen.
+ * @param string $was The address in force before the change.
+ */
+function diluxone_users_login_slug_left( string $was ): void {
+	$was = diluxone_users_login_path( $was );
+	$now = diluxone_users_login_slug();
+
+	if ( '' === $was || $was === $now || ! diluxone_users_door_on() ) {
+		return;
+	}
+
+	if ( '' !== (string) diluxone_users_on_hub( static fn(): string => diluxone_users_login_slug_taken( $was ) ) ) {
+		return;
+	}
+
+	$old = array_values( array_diff( array_merge( array( $was ), diluxone_users_login_slug_old() ), array( $now ) ) );
+
+	diluxone_users_update_option( 'diluxone_users_login_slug_old', array_slice( $old, 0, DILUXONE_USERS_DOOR_OLD_MAX ) );
+}
+
+/**
+ * Moves the page to another address while no page is chosen, keeping the
+ * one it leaves.
  *
  * @param string $slug The new path, already sanitised.
  */
 function diluxone_users_login_slug_move( string $slug ): void {
 	$was = diluxone_users_login_slug();
 
-	if ( $slug === $was ) {
-		if ( '' === sanitize_title( (string) diluxone_users_option( 'diluxone_users_login_slug' ) ) ) {
-			diluxone_users_update_option( 'diluxone_users_login_slug', $slug );
-		}
+	diluxone_users_update_option( 'diluxone_users_login_slug', $slug );
+	diluxone_users_login_slug_left( $was );
+}
 
+/**
+ * Another page chosen as the sign-in page, or none: the address it leaves
+ * keeps sending people to the new one. However it was chosen — Access, the
+ * page created from there, the Home screen.
+ *
+ * @param mixed $old The page chosen before.
+ */
+function diluxone_users_login_page_changed( $old ): void {
+	diluxone_users_login_slug_left( diluxone_users_login_slug_for( is_numeric( $old ) ? (int) $old : 0 ) );
+}
+add_action( 'update_option_diluxone_users_login_page', 'diluxone_users_login_page_changed' );
+
+/**
+ * The first page ever chosen: the address it leaves is the one with none.
+ */
+function diluxone_users_login_page_added(): void {
+	diluxone_users_login_page_changed( 0 );
+}
+add_action( 'add_option_diluxone_users_login_page', 'diluxone_users_login_page_added' );
+
+/**
+ * The chosen sign-in page given another path, by its own slug or parent or by
+ * a parent's: the path it leaves keeps sending people to the new one.
+ *
+ * @param int     $id     The post updated.
+ * @param WP_Post $after  The post as it is now.
+ * @param WP_Post $before The post as it was.
+ */
+function diluxone_users_login_page_moved( int $id, WP_Post $after, WP_Post $before ): void {
+	if ( ! diluxone_users_on_the_hub() ) {
 		return;
 	}
 
-	$old = array_values( array_diff( array_merge( array( $was ), diluxone_users_login_slug_old() ), array( $slug ) ) );
+	$page = (int) diluxone_users_option( 'diluxone_users_login_page' );
 
-	diluxone_users_update_option( 'diluxone_users_login_slug_old', array_slice( $old, 0, DILUXONE_USERS_DOOR_OLD_MAX ) );
-	diluxone_users_update_option( 'diluxone_users_login_slug', $slug );
+	if ( $page <= 0 || ( $id !== $page && ! in_array( $id, get_post_ancestors( $page ), true ) ) ) {
+		return;
+	}
+
+	$was = (string) get_page_uri( $before );
+	$now = (string) get_page_uri( $after );
+
+	if ( $was === $now ) {
+		return;
+	}
+
+	// The part of the sign-in page's path under the post that moved.
+	$path = (string) get_page_uri( $page );
+	$tail = 0 === strpos( $path, $now ) ? substr( $path, strlen( $now ) ) : '';
+
+	diluxone_users_login_slug_left( $was . $tail );
 }
+add_action( 'post_updated', 'diluxone_users_login_page_moved', 10, 3 );
 
 /**
  * An old address a post takes later is the post's.
@@ -173,16 +267,23 @@ add_action( 'save_post', 'diluxone_users_login_slug_old_forget' );
  * The address of the page, on the hub.
  *
  * With pretty permalinks `/<slug>/` (and `/<slug>/register/`); with plain
- * ones the query var itself, which the same code answers.
+ * ones the query var itself, which the same code answers. With a page chosen
+ * as the sign-in page, the page's own address, which the page of its own is
+ * drawn at whatever the permalinks.
  *
  * @param string $view 'login' or 'register'.
  */
 function diluxone_users_door_url( string $view = 'login' ): string {
 	$view = 'register' === $view ? 'register' : 'login';
 	$slug = diluxone_users_login_slug();
+	$page = (int) diluxone_users_option( 'diluxone_users_login_page' );
 
 	return (string) diluxone_users_on_hub(
-		static function () use ( $view, $slug ): string {
+		static function () use ( $view, $slug, $page ): string {
+			if ( 'login' === $view && '' !== diluxone_users_login_slug_of_page( $page ) ) {
+				return (string) get_permalink( $page );
+			}
+
 			if ( '' === (string) get_option( 'permalink_structure' ) ) {
 				return add_query_arg( DILUXONE_USERS_DOOR_VAR, $view, home_url( '/' ) );
 			}
@@ -358,6 +459,8 @@ function diluxone_users_door_rules(): void {
 		return;
 	}
 
+	// The chosen page's path may be more than one segment: each rule is the
+	// whole path, so it never answers the page's parent.
 	$slug = preg_quote( diluxone_users_login_slug(), '/' );
 
 	add_rewrite_rule( '^' . $slug . '/?$', 'index.php?' . DILUXONE_USERS_DOOR_VAR . '=login', 'top' );
@@ -388,6 +491,10 @@ add_filter( 'query_vars', 'diluxone_users_door_query_var' );
 /**
  * What this request asked the door for: one of diluxone_users_door_views(),
  * or '' when it is not the door, or the door is not on here.
+ *
+ * The page chosen as the sign-in page, asked for itself (plain permalinks,
+ * `?page_id=`), is the door's `login`: the page of its own is drawn at its
+ * address.
  */
 function diluxone_users_door_view(): string {
 	if ( ! diluxone_users_on_the_hub() || ! diluxone_users_door_on() ) {
@@ -395,6 +502,14 @@ function diluxone_users_door_view(): string {
 	}
 
 	$view = (string) get_query_var( DILUXONE_USERS_DOOR_VAR, '' );
+
+	if ( '' === $view && is_page() ) {
+		$page = diluxone_users_page_here( 'diluxone_users_login_page' );
+
+		if ( $page > 0 && $page === (int) get_queried_object_id() ) {
+			return 'login';
+		}
+	}
 
 	return in_array( $view, diluxone_users_door_views(), true ) ? $view : '';
 }
@@ -496,9 +611,10 @@ function diluxone_users_door_serve(): void {
 add_action( 'template_redirect', 'diluxone_users_door_serve', 2 );
 
 /**
- * A sign-in or registration page still chosen in Sign in › The page is not
- * a second door while this shape is on: it sends people to the page of its
- * own. A 302, so choosing another shape gives the page back at once.
+ * A registration page still chosen in Access › Registration is not a second
+ * door while this shape is on: it sends people to the page of its own. A
+ * 302, so choosing another shape gives the page back at once. The sign-in
+ * page is not sent anywhere: the page of its own is drawn at its address.
  */
 function diluxone_users_door_pages(): void {
 	if ( ! diluxone_users_door_open() || ! is_page() ) {
@@ -508,7 +624,6 @@ function diluxone_users_door_pages(): void {
 	$id = (int) get_queried_object_id();
 
 	$roles = array(
-		'diluxone_users_login_page'    => 'login',
 		'diluxone_users_register_page' => 'register',
 	);
 

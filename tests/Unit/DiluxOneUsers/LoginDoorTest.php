@@ -64,32 +64,34 @@ class LoginDoorTest extends TestCase {
 		$this->assertSame( 'sign-in', diluxone_users_login_slug(), 'empty is the default, never no address' );
 	}
 
-	public function test_with_the_address_empty_a_chosen_pages_one_segment_path_is_kept(): void {
-		update_option( 'diluxone_users_login_slug', '' );
+	public function test_a_chosen_page_is_drawn_at_its_own_path_whatever_is_typed(): void {
+		update_option( 'diluxone_users_login_slug', 'acceso' );
 		update_option( 'diluxone_users_login_page', 42 );
 
+		Functions\when( 'get_post_field' )->justReturn( 'publish' );
 		Functions\when( 'get_page_uri' )->justReturn( 'Entrar' );
-		$this->assertSame( 'entrar', diluxone_users_login_slug(), 'the chosen sign-in page’s address' );
+		$this->assertSame( 'entrar', diluxone_users_login_slug(), 'the chosen sign-in page’s address, not the one typed' );
 
-		update_option( 'diluxone_users_login_slug', 'acceso' );
-		$this->assertSame( 'acceso', diluxone_users_login_slug(), 'an address typed wins' );
+		Functions\when( 'get_page_uri' )->justReturn( 'members/Entrar/' );
+		$this->assertSame( 'members/entrar', diluxone_users_login_slug(), 'a nested page, at its whole path' );
 	}
 
-	public function test_with_its_address_never_saved_a_chosen_page_is_followed(): void {
+	public function test_with_no_page_chosen_the_address_typed_is_kept(): void {
+		update_option( 'diluxone_users_login_slug', 'entrar' );
+		update_option( 'diluxone_users_login_page', 0 );
+
+		$this->assertSame( 'entrar', diluxone_users_login_slug() );
+	}
+
+	public function test_a_missing_page_or_one_in_the_bin_leaves_the_address_with_no_page(): void {
+		update_option( 'diluxone_users_login_slug', '' );
 		update_option( 'diluxone_users_login_page', 42 );
 
 		Functions\when( 'get_page_uri' )->justReturn( 'entrar' );
-		$this->assertSame( 'entrar', diluxone_users_login_slug(), 'the default is empty, not sign-in' );
-	}
+		Functions\when( 'get_post_field' )->justReturn( 'trash' );
+		$this->assertSame( 'sign-in', diluxone_users_login_slug(), 'the page is in the bin' );
 
-	public function test_a_nested_or_missing_page_leaves_sign_in(): void {
-		update_option( 'diluxone_users_login_slug', '' );
-		update_option( 'diluxone_users_login_page', 42 );
-
-		Functions\when( 'get_page_uri' )->justReturn( 'members/entrar' );
-		$this->assertSame( 'sign-in', diluxone_users_login_slug(), 'the page of its own answers one segment only' );
-
-		Functions\when( 'get_page_uri' )->justReturn( false );
+		Functions\when( 'get_post_field' )->justReturn( '' );
 		$this->assertSame( 'sign-in', diluxone_users_login_slug(), 'the page is gone' );
 	}
 
