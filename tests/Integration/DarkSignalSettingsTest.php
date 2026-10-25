@@ -117,4 +117,45 @@ class DarkSignalSettingsTest extends IntegrationTestCase {
 		$this->assertStringContainsString( '"name":"data-theme","value":"dark"', $this->early() );
 		$this->assertStringContainsString( '"signal":{"dark":{"on":"html","kind":"attr","name":"data-theme","value":"dark"}', $this->measurer() );
 	}
+
+	public function test_c6_the_page_of_its_own_prints_the_sites_wp_head_and_puts_the_signal_before_it(): void {
+		$permalinks = (string) get_option( 'permalink_structure' );
+		update_option( 'permalink_structure', '/%postname%/' );
+		diluxone_users_update_option( 'diluxone_users_login_template', 'own' );
+		diluxone_users_update_option( 'diluxone_users_dark_follows', 'site' );
+		diluxone_users_update_option( 'diluxone_users_dark_signal', 'html data-theme="dark"' );
+
+		$this->as_front_end();
+		$GLOBALS['wp_query']     = new \WP_Query();
+		$GLOBALS['wp_the_query'] = $GLOBALS['wp_query'];
+		set_query_var( DILUXONE_USERS_DOOR_VAR, 'login' );
+
+		// The site's switch, as a theme prints it: inline, on wp_head.
+		$this->hook(
+			'wp_head',
+			static function (): void {
+				echo '<script>document.documentElement.setAttribute("data-theme","dark");/* the-sites-switch */</script>';
+			}
+		);
+
+		try {
+			$this->assertTrue( diluxone_users_door_drawn() );
+
+			ob_start();
+			include DILUXONE_USERS_DIR . 'templates/login-page.php';
+			$html = (string) ob_get_clean();
+		} finally {
+			update_option( 'permalink_structure', $permalinks );
+			$GLOBALS['wp_query']     = new \WP_Query();
+			$GLOBALS['wp_the_query'] = $GLOBALS['wp_query'];
+		}
+
+		$head  = substr( $html, 0, (int) strpos( $html, '</head>' ) );
+		$early = strpos( $head, 'diluxone-users-theme-colors-early' );
+
+		$this->assertStringContainsString( 'the-sites-switch', $head, 'the site’s wp_head, in the head of the page of its own' );
+		$this->assertNotFalse( $early, 'the early script, in the head' );
+		$this->assertStringContainsString( '"name":"data-theme","value":"dark"}},1);', $head, 'told the signal, and that this is the page of its own' );
+		$this->assertLessThan( strpos( $head, 'the-sites-switch' ), $early, 'before the site’s switch, so the switch has the last word' );
+	}
 }

@@ -91,5 +91,24 @@ test.describe('The page of its own follows the site’s switch', () => {
 		await expect.poll(kept, { message: 'and the device turning light' }).toBe('light');
 		await expect.poll(() => drawnIn(guest, form)).toBe('light');
 	});
+
+	test('C6: the site’s switch sets its signal from an inline wp_head script: it is on the page of its own’s <html>, and the page is drawn in the scheme it says', async ({ options, guest, pages }) => {
+		await options.set(switchSite('data-theme', 'html data-theme="dark"', 'html data-theme="light"'));
+		await guest.emulateMedia({ colorScheme: 'light' });
+
+		// Both schemes measured on the site, the light one last.
+		await siteScheme(guest, pages.account.url, 'dark');
+		await siteScheme(guest, pages.account.url, 'light');
+
+		// The visitor chooses dark, and the next page they open is the page of its own.
+		await guest.evaluate(() => localStorage.setItem('e2e-scheme', 'dark'));
+		await guest.goto('/sign-in/');
+
+		await expect(guest.locator('body.diluxone-users-door')).toHaveCount(1);
+		await expect(guest.locator('html'), 'the site’s own signal, not the scheme shown last').toHaveAttribute('data-theme', 'dark');
+		await expect.poll(() => token(guest, 'text'), { message: 'the dark scheme’s text' }).toBe(DARK_TEXT);
+		await expect.poll(() => drawnIn(guest, DOOR_FORM)).toBe('dark');
+		expect(await token(guest, 'surface')).toBe(DARK_GROUND);
+	});
 });
 
