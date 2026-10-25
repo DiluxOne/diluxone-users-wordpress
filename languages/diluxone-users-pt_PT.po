@@ -1836,55 +1836,55 @@ msgstr "Copie o “Valor” do segredo, não o “ID do segredo”. O valor é m
 msgid "The openid, email and profile permissions are already there by default — you do not have to add anything under “API permissions”."
 msgstr "As permissões openid, email e profile já vêm por padrão — não é preciso adicionar nada em “Permissões de API”."
 
-#: includes/sso.php:849
+#: includes/sso.php:896
 msgid "The provider did not hand over an access token. Check the client ID and the secret."
 msgstr "O provedor não entregou um token de acesso. Confira o ID de cliente e o segredo."
 
-#: includes/sso.php:860
+#: includes/sso.php:907
 msgid "The token worked but the profile came back empty. The app is probably missing the permissions this provider needs."
 msgstr "O token funcionou mas o perfil voltou vazio. Provavelmente faltam ao aplicação as permissões que este provedor precisa."
 
 #. translators: %s: name of the social network
-#: includes/sso.php:893
+#: includes/sso.php:940
 #, php-format
 msgid "The %s account was linked, and it now gets into this account."
 msgstr "A conta %s foi vinculada, e agora entra nesta conta."
 
 #. translators: %s: name of the social network
-#: includes/sso.php:958
+#: includes/sso.php:1010
 #, php-format
 msgid "The %s account was unlinked."
 msgstr "A conta %s foi desvinculada."
 
-#: includes/sso.php:999
+#: includes/sso.php:1051
 msgid "It works"
 msgstr "Funciona"
 
-#: includes/sso.php:1000
+#: includes/sso.php:1052
 msgid "It did not work"
 msgstr "Não funcionou"
 
 #. translators: %s: provider name
-#: includes/sso.php:1005
+#: includes/sso.php:1057
 #, php-format
 msgid "The round trip with %s finished correctly. You can enable the button now."
 msgstr "O ida e volta com %s terminou certo. Você já pode ativar o botão."
 
 #. translators: %s: provider name
-#: includes/sso.php:1010
+#: includes/sso.php:1062
 #, php-format
 msgid "The round trip with %s failed."
 msgstr "O ida e volta com %s falhou."
 
 #. translators: %s: e-mail address
-#: includes/sso.php:1016
+#: includes/sso.php:1068
 #, php-format
 msgid "The provider handed over this email: %s"
 msgstr "O provedor entregou este e-mail: %s"
 
 #: includes/admin-fields.php:706
 #: includes/admin-panels.php:841
-#: includes/sso.php:1041
+#: includes/sso.php:1093
 #: templates/sessions.php:67
 msgid "Close"
 msgstr "Fechar"
@@ -2188,7 +2188,7 @@ msgstr "Não vinculada"
 msgid "Unlink"
 msgstr "Desvincular"
 
-#: templates/accounts.php:79
+#: templates/accounts.php:85
 msgid "Link"
 msgstr "Vincular"
 
@@ -7349,3 +7349,7 @@ msgstr "O interruptor próprio do site precisa do que a página tem quando o sit
 #, php-format
 msgid "“%s” has to be a class, as .is-dark, or an attribute, as data-theme=\"dark\" or data-mode, with no spaces, brackets or event handlers. The one saved before stays."
 msgstr "“%s” precisa ser uma classe, como .is-dark, ou um atributo, como data-theme=\"dark\" ou data-mode, sem espaços, colchetes ou manipuladores de eventos. Fica o que estava guardado antes."
+
+#: includes/sso-popup.php:281
+msgid "Back to the site"
+msgstr "Voltar ao site"

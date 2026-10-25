@@ -1,5 +1,5 @@
 import { test, expect, expectSignedOut, stateOf } from '../support/fixtures';
-import { adminUrl, savePanel, ssoButton } from '../support/ui';
+import { adminUrl, savePanel, navigated, ssoButton } from '../support/ui';
 import { ADMIN_STATE } from '../../../playwright.config';
 import type { Locator, Page } from '@playwright/test';
 
@@ -92,7 +92,7 @@ test.describe('The words the sign-in page shows when something fails', () => {
 		await site.setIdentity({ deny: true });
 
 		await guest.goto(pages.login.url);
-		await ssoButton(guest, 'mock').click();
+		await navigated(guest, () => ssoButton(guest, 'mock').click());
 
 		await expectSignedOut(guest);
 		expect(stateOf(guest.url()), 'back at the sign-in page with the social state').toBe('social');
@@ -141,7 +141,7 @@ test.describe('The words the sign-in page shows when something fails', () => {
 		await site.setIdentity({ deny: true });
 
 		await guest.goto(pages.login.url);
-		await ssoButton(guest, 'mock').click();
+		await navigated(guest, () => ssoButton(guest, 'mock').click());
 
 		await expect(shownMessage(guest, 'login_social')).toHaveText(shipped);
 	});

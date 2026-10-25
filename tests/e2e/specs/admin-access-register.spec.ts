@@ -1,6 +1,6 @@
 import { test, expect, expectSignedOut, stateOf } from '../support/fixtures';
 import { freshEmail } from '../support/api';
-import { adminError, adminSaved, askForLink, needsOne, registerScreen, savePanel, ssoButton } from '../support/ui';
+import { adminError, adminSaved, askForLink, needsOne, registerScreen, savePanel, navigated, ssoButton } from '../support/ui';
 import { MOCK_SSO, PLAIN_FIELDS, accessTab, card, control, expectPill, notNow, rail, storedNumbers } from '../support/admin-access';
 import { ADMIN_STATE } from '../../../playwright.config';
 
@@ -85,7 +85,7 @@ test.describe('Access › Registration', () => {
 
 		await site.setIdentity({ sub: `mock|${social}`, email: social, email_verified: true });
 		await guest.goto(pages.login.url);
-		await ssoButton(guest, 'mock').click();
+		await navigated(guest, () => ssoButton(guest, 'mock').click());
 		await guest.waitForURL(/diluxone-users=/);
 		expect(stateOf(guest.url())).toBe('social');
 		expect((await site.user(social)).exists, 'the social door created an account').toBe(false);
@@ -111,7 +111,7 @@ test.describe('Access › Registration', () => {
 
 		await site.setIdentity({ sub: `mock|${turnedAway}`, email: turnedAway, email_verified: true });
 		await guest.goto(pages.login.url);
-		await ssoButton(guest, 'mock').click();
+		await navigated(guest, () => ssoButton(guest, 'mock').click());
 		await guest.waitForURL(/diluxone-users=/);
 		await expectSignedOut(guest);
 		expect(stateOf(guest.url())).toBe('social');
@@ -126,7 +126,7 @@ test.describe('Access › Registration', () => {
 		await site.setIdentity({ sub: `mock|${welcome}`, email: welcome, email_verified: true });
 		await guest.context().clearCookies();
 		await guest.goto(pages.login.url);
-		await ssoButton(guest, 'mock').click();
+		await navigated(guest, () => ssoButton(guest, 'mock').click());
 		await expect.poll(async () => (await site.user(welcome)).exists, { message: 'the open social door made no account' }).toBe(true);
 	});
 
