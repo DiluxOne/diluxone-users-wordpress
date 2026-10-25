@@ -58,13 +58,18 @@ class SsoPendingTest extends IntegrationTestCase {
 		diluxone_users_sso_query_snapshot();
 	}
 
-	/** The whole trip to the provider and back, signed out: where it sends the person. */
-	private function trip(): string {
+	/**
+	 * The whole trip to the provider and back, signed out: where it sends the person.
+	 *
+	 * @param array<string, string> $keep Cookies the browser already holds (the hub's way back).
+	 */
+	private function trip( array $keep = array() ): string {
 		$this->request(
 			array(
 				'diluxone_users_sso' => MockProvider::ID,
 				'diluxone_users_go'  => '1',
-			)
+			),
+			$keep
 		);
 
 		$out    = $this->expectRedirect( 'diluxone_users_sso_handle' );
@@ -76,7 +81,7 @@ class SsoPendingTest extends IntegrationTestCase {
 				'code'               => 'the-code',
 				'state'              => $this->queryArg( $out, 'state' ),
 			),
-			array( diluxone_users_sso_cookie() => $cookie )
+			$keep + array( diluxone_users_sso_cookie() => $cookie )
 		);
 
 		return $this->expectRedirect( 'diluxone_users_sso_handle' );
@@ -449,5 +454,88 @@ class SsoPendingTest extends IntegrationTestCase {
 
 		$this->assertSame( 'social-pending', $this->redirectState( $this->resend( $held, 'forged' ) ) );
 		$this->assertCount( 1, self::$mail, 'nothing sent without the nonce' );
+	}
+
+	/* ── C6: a network, whose round trip is the hub's ───────────────── */
+
+	public function test_from_a_site_of_the_network_the_link_is_the_hub_s_and_goes_back_there(): void {
+		if ( ! is_multisite() ) {
+			$this->markTestSkipped( 'Needs a network: on a single site the site is its own hub, which every other test here covers.' );
+		}
+
+		$site = (int) wp_insert_site(
+			array(
+				'domain' => (string) get_network()->domain,
+				'path'   => '/sso-pending-' . strtolower( wp_generate_password( 6, false ) ) . '/',
+				'title'  => 'Pending test site',
+			)
+		);
+		$this->assertGreaterThan( 0, $site );
+
+		// Every site's members are the network's: the way back makes them one.
+		diluxone_users_update_option( DILUXONE_USERS_MEMBERSHIP, 'all' );
+		diluxone_users_update_option( DILUXONE_USERS_MEMBERSHIP_CONFIRMED, 1 );
+
+		switch_to_blog( $site );
+		$back = home_url( '/a-page/' );
+		// From that site, the sign-in is the hub's page, carrying the way back.
+		$door = diluxone_users_login_url();
+		restore_current_blog();
+
+		$this->assertSame( strtok( diluxone_users_login_url(), '?' ), strtok( $door, '?' ), 'the hub’s sign-in page' );
+		$this->assertNotSame( '', $this->queryArg( $door, 'redirect_to' ), 'carrying the way back' );
+
+		// The hub's sign-in page holds where the person came from.
+		$_GET = array( 'redirect_to' => $back );
+		diluxone_users_return_capture();
+		$_GET = array();
+		$held = array( DILUXONE_USERS_RETURN_COOKIE => (string) ( self::$cookies[ DILUXONE_USERS_RETURN_COOKIE ]['value'] ?? '' ) );
+		$this->assertSame( $back, $held[ DILUXONE_USERS_RETURN_COOKIE ] );
+
+		// C1 on the hub: nothing yet, a link mailed, the hub's holding screen.
+		$url = $this->trip( $held );
+
+		$this->assertSame( 'social-pending', $this->redirectState( $url ) );
+		$this->assertStringStartsWith( diluxone_users_login_url(), $url );
+		$this->assertFalse( get_user_by( 'email', $this->email ) );
+		$this->assertCount( 1, $this->links() );
+		$this->assertStringStartsWith( home_url( '/' ), $this->links()[0], 'the link is the hub’s' );
+
+		// C2, opened on the phone, where the hub's cookie is not: back to the site.
+		$this->assertSame( $back, $this->open( $this->links()[0] ) );
+
+		$user = get_current_user_id();
+		$this->assertGreaterThan( 0, $user );
+		$this->assertSame( $this->sub, get_user_meta( $user, 'diluxone_users_sso_mock', true ) );
+		$this->assertTrue( is_user_member_of_blog( $user, $site ), 'a member of the site they came from' );
+	}
+
+	public function test_on_a_site_of_the_network_the_route_starts_nothing_and_goes_to_the_hub(): void {
+		if ( ! is_multisite() ) {
+			$this->markTestSkipped( 'Needs a network.' );
+		}
+
+		$site = (int) wp_insert_site(
+			array(
+				'domain' => (string) get_network()->domain,
+				'path'   => '/sso-pending-' . strtolower( wp_generate_password( 6, false ) ) . '/',
+				'title'  => 'Pending test site',
+			)
+		);
+
+		switch_to_blog( $site );
+		$this->request(
+			array(
+				'diluxone_users_sso' => MockProvider::ID,
+				'code'               => 'the-code',
+				'state'              => 'any',
+			)
+		);
+		$url = $this->expectRedirect( 'diluxone_users_sso_handle' );
+		$hub = diluxone_users_login_url();
+		restore_current_blog();
+
+		$this->assertSame( $hub, $url );
+		$this->assertSame( array(), self::$mail );
 	}
 }
