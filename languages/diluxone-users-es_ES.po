@@ -269,7 +269,7 @@ msgstr "Foto de perfil"
 #: includes/admin-account.php:775
 #: includes/admin-panels.php:276
 #: templates/account/notifications.php:62
-#: templates/fields.php:40
+#: templates/fields.php:42
 msgid "Saved."
 msgstr "Listo, guardado."
 
@@ -600,7 +600,7 @@ msgstr "Registro"
 #: templates/login.php:86
 #: templates/register.php:51
 #: templates/register.php:68
-#: templates/register.php:175
+#: templates/register.php:179
 msgid "Sign in"
 msgstr "Entrar"
 
@@ -1387,8 +1387,8 @@ msgstr "La foto pesa demasiado: como mucho %s."
 msgid "That is not a photo. It has to be a JPG, PNG, GIF or WebP."
 msgstr "Eso no es una foto. Tiene que ser un JPG, PNG, GIF o WebP."
 
-#: includes/fields-forms.php:143
-#: includes/fields-forms.php:178
+#: includes/fields-forms.php:144
+#: includes/fields-forms.php:179
 msgid "— Choose —"
 msgstr "— Elegir —"
 
@@ -1397,7 +1397,7 @@ msgid "Additional details"
 msgstr "Datos adicionales"
 
 #. translators: %s: field name
-#: includes/fields-forms.php:463
+#: includes/fields-forms.php:594
 #, php-format
 msgid "Error: “%s” is required."
 msgstr "Error: falta completar «%s»."
@@ -1408,7 +1408,7 @@ msgstr "Texto largo"
 
 #: includes/fields.php:32
 #: includes/login-ways.php:597
-#: templates/register.php:133
+#: templates/register.php:137
 msgid "Email address"
 msgstr "Correo electrónico"
 
@@ -1921,7 +1921,7 @@ msgstr "Elegir una foto"
 #: templates/account/avatar.php:36
 #: templates/account/handle.php:37
 #: templates/account/notifications.php:103
-#: templates/fields.php:77
+#: templates/fields.php:81
 msgid "Save"
 msgstr "Guardar"
 
@@ -2177,7 +2177,7 @@ msgid "Link"
 msgstr "Vincular"
 
 #: includes/login-messages.php:232
-#: templates/fields.php:42
+#: templates/fields.php:44
 msgid "Some required fields are missing."
 msgstr "Faltan campos obligatorios."
 
@@ -2249,7 +2249,7 @@ msgid "We could not finish signing you in with that provider. Try again or use y
 msgstr "No hemos podido completar el acceso con esa red. Prueba de nuevo o usa tu correo."
 
 #: includes/login-messages.php:162
-#: includes/login-messages.php:262
+#: includes/login-messages.php:272
 msgid "Something went wrong. Try again."
 msgstr "Algo ha salido mal. Prueba de nuevo."
 
@@ -2263,7 +2263,7 @@ msgid "or"
 msgstr "o"
 
 #: includes/login-ways.php:553
-#: templates/register.php:119
+#: templates/register.php:123
 msgid "or with your email"
 msgstr "o con tu correo"
 
@@ -2276,7 +2276,7 @@ msgid "Send me the sign-in link"
 msgstr "Enviarme el enlace de acceso"
 
 #: includes/login-ways.php:606
-#: templates/register.php:167
+#: templates/register.php:171
 msgid "You get an email with a link. Click it and you are in: no password to choose or type."
 msgstr "Te llega un correo con un enlace. Haces clic y ya estás dentro: no tienes que elegir ni escribir ninguna contraseña."
 
@@ -2453,7 +2453,7 @@ msgstr "Desvincular no borra nada: esa red simplemente deja de abrir esta cuenta
 
 #: includes/login-ways.php:595
 #: includes/login-ways.php:598
-#: templates/register.php:136
+#: templates/register.php:140
 msgctxt "placeholder for the e-mail field"
 msgid "you@example.com"
 msgstr "tu@ejemplo.com"
@@ -2823,19 +2823,19 @@ msgstr "Este sitio no admite cuentas nuevas por ahora. Si ya tienes una, puedes 
 msgid "There is already an account with that address."
 msgstr "Ya hay una cuenta con esa dirección."
 
-#: templates/register.php:109
+#: templates/register.php:113
 msgid "Sign in instead"
 msgstr "Entra en su lugar"
 
-#: includes/login-messages.php:252
+#: includes/login-messages.php:262
 msgid "This site does not take new accounts right now."
 msgstr "Este sitio no admite cuentas nuevas por ahora."
 
-#: templates/register.php:161
+#: templates/register.php:165
 msgid "Create my account"
 msgstr "Crear mi cuenta"
 
-#: templates/register.php:174
+#: templates/register.php:178
 msgid "Already have an account?"
 msgstr "¿Ya tienes una cuenta?"
 
@@ -2887,7 +2887,7 @@ msgstr "No hace falta que hagas esto: en este sitio un enlace por correo te hace
 msgid "Your password is changed. You can sign in with it now."
 msgstr "Tu contraseña ha quedado cambiada. Ya puedes entrar con ella."
 
-#: includes/login-messages.php:242
+#: includes/login-messages.php:252
 msgid "One moment: wait a few seconds and try again."
 msgstr "Un momento: espera unos segundos y prueba de nuevo."
 
@@ -4141,7 +4141,7 @@ msgid "The e-mails"
 msgstr "Los correos"
 
 #: includes/admin-notices.php:357
-#: includes/login-messages.php:659
+#: includes/login-messages.php:669
 msgid "The language you are writing"
 msgstr "El idioma en el que estás escribiendo"
 
@@ -4775,7 +4775,7 @@ msgid "Shown whenever a trip out to a social network comes back without a sessio
 msgstr "Se muestra cada vez que una vuelta por una red social regresa sin sesión: la persona dijo que no allí, la red no quiso responder por la dirección, este sitio no acepta esa cuenta, o el viaje fue manipulado. Una sola frase los cubre todos a propósito: decirle a un desconocido cuál de ellos fue es decirle qué probar después."
 
 #: includes/login-messages.php:159
-#: includes/login-messages.php:259
+#: includes/login-messages.php:269
 msgid "Something else went wrong"
 msgstr "Algo más ha salido mal"
 
@@ -4827,53 +4827,53 @@ msgstr "Ha quedado algo obligatorio en blanco"
 msgid "Shown when one of the fields this site marks as required came back empty."
 msgstr "Se muestra cuando uno de los campos que este sitio marca como obligatorios ha vuelto vacío."
 
-#: includes/login-messages.php:239
+#: includes/login-messages.php:249
 msgid "Too many accounts, too fast"
 msgstr "Demasiadas cuentas, demasiado rápido"
 
-#: includes/login-messages.php:240
+#: includes/login-messages.php:250
 msgid "Shown when the same machine has just asked for several accounts in a row. It is the throttle talking, and it says so gently: whoever reads it is far more often impatient than malicious."
 msgstr "Se muestra cuando la misma máquina acaba de pedir varias cuentas seguidas. Es el freno hablando, y lo dice con suavidad: quien lo lee es mucho más a menudo un impaciente que un malintencionado."
 
-#: includes/login-messages.php:249
+#: includes/login-messages.php:259
 msgid "Registration is shut"
 msgstr "El registro está cerrado"
 
-#: includes/login-messages.php:250
+#: includes/login-messages.php:260
 msgid "Shown when a form was sent to a site that has since stopped taking new accounts."
 msgstr "Se muestra cuando se ha enviado un formulario a un sitio que desde entonces ha dejado de aceptar cuentas nuevas."
 
-#: includes/login-messages.php:260
+#: includes/login-messages.php:270
 msgid "The last resort of the registration form, when nothing more precise can honestly be said."
 msgstr "El último recurso del formulario de registro, cuando no se puede decir nada más preciso con honestidad."
 
-#: includes/login-messages.php:537
+#: includes/login-messages.php:547
 msgid "It is read by somebody who is stuck, so it is worth saying what to do next and not only what happened. Empty the box and the plugin’s own words come back."
 msgstr "Lo lee alguien que se ha quedado atascado, así que merece la pena decirle qué hacer después y no solo qué ha pasado. Vacía la caja y vuelven las palabras del plugin."
 
-#: includes/login-messages.php:551
+#: includes/login-messages.php:561
 msgid "The sentences a person reads when the way in does not work. Each one starts as the text the plugin ships in this language, so a site that changes nothing still reads correctly — and an update that improves a sentence improves it here too. Rewrite one and that is what is shown, until you put it back."
 msgstr "Las frases que lee una persona cuando la forma de entrar no funciona. Cada una arranca como el texto que el plugin trae en este idioma, así que un sitio que no cambia nada se lee bien igualmente, y una actualización que mejora una frase también la mejora aquí. Reescribe una y eso es lo que se muestra, hasta que la devuelvas."
 
-#: includes/login-messages.php:585
+#: includes/login-messages.php:595
 msgid "Added by something else on this site"
 msgstr "Lo ha añadido algo más de este sitio"
 
 #. translators: %s: the name of a language, in <code>
-#: includes/login-messages.php:600
+#: includes/login-messages.php:610
 #, php-format
 msgid "Every message is the plugin’s own, in %s."
 msgstr "Todos los mensajes son los del plugin, en %s."
 
 #. translators: 1: how many messages this site wrote, 2: how many there are, 3: the name of a language, in <code>
-#: includes/login-messages.php:605
+#: includes/login-messages.php:615
 #, php-format
 msgid "This site writes %1$d of the %2$d messages itself, in %3$s."
 msgid_plural "This site writes %1$d of the %2$d messages themselves, in %3$s."
 msgstr[0] "Este sitio escribe %1$d de los %2$d mensajes por su cuenta, en %3$s."
 msgstr[1] "Este sitio escribe %1$d de los %2$d mensajes por su cuenta, en %3$s."
 
-#: includes/login-messages.php:661
+#: includes/login-messages.php:671
 msgid "Each language keeps its own wording, and one nobody has touched shows the text the plugin ships. Moving to another one here does not save what is on screen."
 msgstr "Cada idioma se queda con su propia redacción, y uno que nadie ha tocado muestra el texto que trae el plugin. Pasar a otro desde aquí no guarda lo que está en pantalla."
 
@@ -5314,11 +5314,11 @@ msgstr "Qué se guarda en tu perfil"
 msgid "What is stored in the activity log"
 msgstr "Qué se guarda en el registro de actividad"
 
-#: includes/login-messages.php:463
+#: includes/login-messages.php:473
 msgid "Messages"
 msgstr "Mensajes"
 
-#: includes/login-messages.php:532
+#: includes/login-messages.php:542
 msgid "The sentence"
 msgstr "La frase"
 
@@ -5426,7 +5426,7 @@ msgstr "Sus sesiones están cerradas: ha quedado fuera en todas partes."
 msgid "The photo is too large: at most %d pixels a side."
 msgstr "La foto es demasiado grande: como mucho %d píxeles por lado."
 
-#: includes/fields-forms.php:444
+#: includes/fields-forms.php:561
 msgid "Error: the form expired. Load the page again and send it once more."
 msgstr "Error: el formulario ha caducado. Carga la página de nuevo y envíalo otra vez."
 
@@ -7039,7 +7039,7 @@ msgstr "Los ajustes propios de los add-ons"
 msgid "We sent you a link to choose your password."
 msgstr "Te hemos enviado un enlace para elegir tu contraseña."
 
-#: templates/register.php:169
+#: templates/register.php:173
 msgid "You get an email with a link to choose your password, and you sign in with it."
 msgstr "Te llega un correo con un enlace para elegir tu contraseña, y con ella entras."
 
@@ -7071,7 +7071,7 @@ msgstr "Antes de seguir, el sitio necesita algunos datos que todavía no tiene."
 msgid "Complete your details"
 msgstr "Completar los datos"
 
-#: templates/fields.php:80
+#: templates/fields.php:84
 msgid "Skip for now"
 msgstr "Omitir por ahora"
 
@@ -7352,3 +7352,56 @@ msgstr "“%s” tiene que ser una clase, como .is-dark, o un atributo, como dat
 #: includes/sso-popup.php:281
 msgid "Back to the site"
 msgstr "Volver al sitio"
+
+#: includes/fields-forms.php:252
+msgid "Search for a country or a code"
+msgstr "Busca un país o un prefijo"
+
+#: includes/fields-forms.php:253
+msgid "Countries"
+msgstr "Países"
+
+#. translators: %d: how many countries match what was typed
+#: includes/fields-forms.php:255
+#, php-format
+msgid "Countries found: %d"
+msgstr "Países encontrados: %d"
+
+#: includes/fields-forms.php:256
+msgid "No country matches that."
+msgstr "Ningún país coincide con eso."
+
+#: includes/fields-forms.php:264
+msgid "Country code"
+msgstr "Prefijo del país"
+
+#. translators: 1: field name, 2: what is wrong with it
+#: includes/fields-forms.php:443
+#: includes/fields-forms.php:575
+#, php-format
+msgid "Error: “%1$s”: %2$s"
+msgstr "Error: «%1$s»: %2$s"
+
+#: includes/fields.php:803
+msgid "This number is too long for the country chosen."
+msgstr "Este número es demasiado largo para el país elegido."
+
+#: includes/fields.php:804
+msgid "This number is too short for the country chosen."
+msgstr "Este número es demasiado corto para el país elegido."
+
+#: includes/login-messages.php:239
+msgid "A phone number of the wrong length"
+msgstr "Un teléfono con un número de cifras incorrecto"
+
+#: includes/login-messages.php:240
+msgid "Shown when a phone number is too short or too long for the country chosen. The field itself says which, under the number."
+msgstr "Se muestra cuando un número de teléfono es demasiado corto o demasiado largo para el país elegido. El propio campo dice cuál de las dos, debajo del número."
+
+#: includes/login-messages.php:242
+msgid "Check the phone number: it is not the right length for its country."
+msgstr "Revisa el número de teléfono: no tiene las cifras de su país."
+
+#: templates/fields.php:46
+msgid "Nothing was saved: a phone number is not the right length for its country."
+msgstr "No se ha guardado nada: un número de teléfono no tiene las cifras de su país."

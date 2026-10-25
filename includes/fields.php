@@ -743,6 +743,131 @@ function diluxone_users_sanitize( array $field, string $value ): string {
 }
 
 /**
+ * Which of the phones a form sent are the wrong length for their country.
+ *
+ * Asked before anything on the form is saved: a number too short or too long
+ * refuses the whole form, the way a missing required field does. A phone
+ * sent empty is no number to measure — whether it may be empty is the
+ * required check's business — and one sent without a country it can be
+ * measured against is left to the save.
+ *
+ * @param array<string, string>            $sent   What diluxone_users_posted_fields() read.
+ * @param array<int, array<string, mixed>> $fields The fields the form drew.
+ * @return array<string, string> Field key => 'short' or 'long'.
+ */
+function diluxone_users_phone_codes( array $sent, array $fields ): array {
+	$wrong = array();
+
+	foreach ( $fields as $field ) {
+		$key = (string) ( $field['key'] ?? '' );
+
+		if ( 'phone' !== ( $field['type'] ?? '' ) || ! isset( $sent[ $key ] ) || '' === trim( (string) $sent[ $key ] ) ) {
+			continue;
+		}
+
+		$iso = strtoupper( sanitize_text_field( (string) ( $sent[ $key . '_dial' ] ?? '' ) ) );
+
+		if ( '' === diluxone_users_country_dial( $iso ) ) {
+			continue;
+		}
+
+		$code = diluxone_users_phone_check( $iso, (string) $sent[ $key ] );
+
+		if ( '' !== $code ) {
+			$wrong[ $key ] = $code;
+		}
+	}
+
+	return $wrong;
+}
+
+/**
+ * The same, as the sentences a person reads under the number.
+ *
+ * @param array<string, string>            $sent
+ * @param array<int, array<string, mixed>> $fields
+ * @return array<string, string> Field key => message.
+ */
+function diluxone_users_phone_errors( array $sent, array $fields ): array {
+	return array_map( 'diluxone_users_phone_message', diluxone_users_phone_codes( $sent, $fields ) );
+}
+
+/**
+ * What is said of a number the wrong length: the same words under the field
+ * the server sends back and in the browser's own check.
+ *
+ * @param string $code 'short' or 'long'.
+ */
+function diluxone_users_phone_message( string $code ): string {
+	return 'long' === $code
+		? __( 'This number is too long for the country chosen.', 'diluxone-users' )
+		: __( 'This number is too short for the country chosen.', 'diluxone-users' );
+}
+
+/**
+ * The phone a form was sent back for, read from the address the refusal
+ * redirected to: `diluxone-users=phone`, the field's key and the code.
+ *
+ * The key is only believed once it is one of the fields being drawn, and
+ * the number itself never travels in the address.
+ *
+ * @param array<int, array<string, mixed>> $fields The fields being drawn.
+ * @return array<string, string> Field key => message, or nothing.
+ */
+function diluxone_users_phone_refused( array $fields ): array {
+	// phpcs:disable WordPress.Security.NonceVerification.Recommended -- it only picks which message is shown under which field.
+	if ( 'phone' !== diluxone_users_state() || ! isset( $_GET['diluxone-users-field'] ) || ! is_string( $_GET['diluxone-users-field'] ) ) {
+		return array();
+	}
+
+	$key  = sanitize_key( wp_unslash( $_GET['diluxone-users-field'] ) );
+	$code = isset( $_GET['diluxone-users-code'] ) && is_string( $_GET['diluxone-users-code'] ) ? sanitize_key( wp_unslash( $_GET['diluxone-users-code'] ) ) : '';
+	// phpcs:enable
+
+	foreach ( $fields as $field ) {
+		if ( 'phone' === ( $field['type'] ?? '' ) && $key === (string) $field['key'] ) {
+			return array( $key => diluxone_users_phone_message( 'long' === $code ? 'long' : 'short' ) );
+		}
+	}
+
+	return array();
+}
+
+/**
+ * Where a form refused for a phone goes back to: the same page, saying which
+ * field and why.
+ *
+ * @param array<string, string> $wrong What diluxone_users_phone_codes() found.
+ */
+function diluxone_users_phone_back( string $back, array $wrong ): string {
+	$key = (string) array_key_first( $wrong );
+
+	return add_query_arg(
+		array(
+			'diluxone-users'       => 'phone',
+			'diluxone-users-field' => $key,
+			'diluxone-users-code'  => $wrong[ $key ],
+		),
+		$back
+	);
+}
+
+/**
+ * The phones refused in this very request, for a screen that draws its form
+ * again in the same request instead of redirecting (the profile in wp-admin).
+ *
+ * @param array<string, string> $add Field key => message, to remember.
+ * @return array<string, string>
+ */
+function diluxone_users_phone_failed( array $add = array() ): array {
+	static $failed = array();
+
+	$failed = array_merge( $failed, $add );
+
+	return $failed;
+}
+
+/**
  * What a form sent for the fields this plugin defines, and nothing else.
  *
  * The one place that reads the superglobal for a field, and it reads it by
@@ -837,10 +962,20 @@ function diluxone_users_save( int $user_id, array $input, string $group = '' ): 
 
 		// The phone arrives in two parts: the country dialling code, from its
 		// list, and the number. They are joined here and not in the browser so
-		// it also holds when the form arrives without JavaScript.
+		// it also holds when the form arrives without JavaScript. The number
+		// goes in as the country writes it after its code: digits only, and
+		// without the trunk prefix ("011…" in Argentina) typed out of habit.
 		if ( 'phone' === $field['type'] && '' !== trim( $raw ) ) {
-			$dial = diluxone_users_country_dial( sanitize_text_field( (string) ( $input[ $key . '_dial' ] ?? '' ) ) );
-			$raw  = '+' . $dial . preg_replace( '/\D/', '', $raw );
+			$iso  = sanitize_text_field( (string) ( $input[ $key . '_dial' ] ?? '' ) );
+			$dial = diluxone_users_country_dial( $iso );
+			$raw  = '+' . $dial . ( '' === $dial ? preg_replace( '/\D/', '', $raw ) : diluxone_users_phone_national( $iso, $raw ) );
+
+			// A number the wrong length for its country is not saved, whoever
+			// called: the forms check first and say so, and a caller that does
+			// not (Users → Add New, an add-on) keeps what was there.
+			if ( '' !== $dial && '' !== diluxone_users_phone_check( $iso, (string) $input[ $key ] ) ) {
+				continue;
+			}
 		}
 
 		$value = diluxone_users_sanitize( $field, $raw );

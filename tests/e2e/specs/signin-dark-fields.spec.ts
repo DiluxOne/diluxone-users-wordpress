@@ -158,4 +158,35 @@ test.describe('The sign-in form’s fields when the theme switches the scheme', 
 		await themeSwitch(guest, true);
 		await expect.poll(ground, { message: 'the autofill ground follows the switch' }).not.toBe(before);
 	});
+
+	test('the phone on the registration form is one box that takes the switch like the e-mail field, both ways', async ({ guest, pages, options }) => {
+		await options.set({
+			diluxone_users_register_form: 1,
+			diluxone_users_fields: [{ key: 'e2e_phone', label: 'Phone', type: 'phone', options: ['AR'], required: 1, active: 1, group: 'main', edit: 'always' }],
+		});
+
+		await guest.emulateMedia({ colorScheme: 'light' });
+		await guest.goto(pages.register.url);
+
+		const phone = '.diluxone-users-register .diluxone-users-phone';
+		const email = '.diluxone-users-register input[name="diluxone_users_email"]';
+
+		await expect(guest.locator(phone)).toBeVisible();
+
+		for (const dark of [true, false]) {
+			await themeSwitch(guest, dark);
+			await expect
+				.poll(async () => {
+					const { field, tokens } = await paintOf(guest, phone);
+					return [field.background, field.color, field.border].join(' ') === [tokens.background, tokens.color, tokens.border].join(' ');
+				}, { message: 'the phone box paints from the live tokens' })
+				.toBe(true);
+
+			const box = await paintOf(guest, phone);
+			const beside = await paintOf(guest, email);
+
+			expect(box.field.background, 'the ground of the e-mail field').toBe(beside.field.background);
+			expect(box.field.border, 'the border of the e-mail field').toBe(beside.field.border);
+		}
+	});
 });
