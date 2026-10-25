@@ -333,14 +333,62 @@ function diluxone_users_account_menu_save(): void {
 	$location = sanitize_key( wp_unslash( $_POST['diluxone_users_menu_location'] ?? '' ) );
 	$style    = sanitize_key( wp_unslash( $_POST['diluxone_users_menu_style'] ?? 'avatar-name' ) );
 	$sign_in  = sanitize_key( wp_unslash( $_POST['diluxone_users_menu_signin_style'] ?? 'link' ) );
+	$colors   = sanitize_key( wp_unslash( $_POST['diluxone_users_menu_signin_colors'] ?? 'theme' ) );
 
 	diluxone_users_save_options(
 		array(
-			'diluxone_users_menu_location'     => isset( diluxone_users_menu_locations()[ $location ] ) ? $location : '',
-			'diluxone_users_menu_style'        => isset( diluxone_users_menu_styles()[ $style ] ) ? $style : 'avatar-name',
-			'diluxone_users_menu_signin_style' => isset( diluxone_users_menu_signin_styles()[ $sign_in ] ) ? $sign_in : 'link',
-		)
+			'diluxone_users_menu_location'      => isset( diluxone_users_menu_locations()[ $location ] ) ? $location : '',
+			'diluxone_users_menu_style'         => isset( diluxone_users_menu_styles()[ $style ] ) ? $style : 'avatar-name',
+			'diluxone_users_menu_signin_style'  => isset( diluxone_users_menu_signin_styles()[ $sign_in ] ) ? $sign_in : 'link',
+			'diluxone_users_menu_signin_colors' => isset( diluxone_users_menu_signin_color_modes()[ $colors ] ) ? $colors : 'theme',
+		) + diluxone_users_account_menu_palette_sent()
 	);
+}
+
+/**
+ * The button's own colours as sent, the ones that may be stored.
+ *
+ * A value that is not a hex colour is left out, so that colour keeps what it
+ * had. And the set is stored only whole and only when its text reads on its
+ * ground and on its hover ground, 4.5:1 at least: otherwise none of it is,
+ * and the screen says why.
+ *
+ * @return array<string, string> Option name => hex colour.
+ */
+function diluxone_users_account_menu_palette_sent(): array {
+	check_admin_referer( 'diluxone_users_panel_diluxone-users-account', 'diluxone_users_panel_nonce' );
+	diluxone_users_panel_allowed();
+
+	$palette = diluxone_users_menu_signin_palette();
+	$sent    = array();
+	$refused = false;
+
+	foreach ( array_keys( $palette ) as $part ) {
+		$key = 'diluxone_users_menu_signin_' . $part;
+		if ( ! isset( $_POST[ $key ] ) || ! is_string( $_POST[ $key ] ) ) {
+			continue;
+		}
+
+		$hex = sanitize_hex_color( sanitize_text_field( wp_unslash( $_POST[ $key ] ) ) );
+		if ( ! is_string( $hex ) || '' === $hex ) {
+			$refused = true;
+			continue;
+		}
+
+		$palette[ $part ] = $hex;
+		$sent[ $key ]     = $hex;
+	}
+
+	if ( $refused ) {
+		diluxone_users_notice( __( 'A colour of “Sign in” was not a colour, so it keeps the one it had.', 'diluxone-users' ), 'error' );
+	}
+
+	if ( array() !== $sent && ! diluxone_users_menu_signin_palette_reads( $palette ) ) {
+		diluxone_users_notice( __( 'The text of “Sign in” would not read on its background or on its hover colour (4.5:1 at least), so its colours stay as they were.', 'diluxone-users' ), 'error' );
+		return array();
+	}
+
+	return $sent;
 }
 
 /** The person in the site's menu: where, and how. */
@@ -374,9 +422,42 @@ function diluxone_users_screen_account_menu(): void {
 			'name'    => 'diluxone_users_menu_signin_style',
 			'value'   => diluxone_users_menu_signin_style(),
 			'options' => diluxone_users_menu_signin_styles(),
-			'help'    => __( 'A button takes the colours the theme gives its own buttons.', 'diluxone-users' ),
+			'help'    => __( 'A button takes the colours the theme gives its own buttons, or yours.', 'diluxone-users' ),
 		)
 	);
+
+	diluxone_users_ui_select(
+		array(
+			'label'   => __( 'Colours of the button', 'diluxone-users' ),
+			'name'    => 'diluxone_users_menu_signin_colors',
+			'value'   => diluxone_users_menu_signin_color_mode(),
+			'options' => diluxone_users_menu_signin_color_modes(),
+			'help'    => __( 'The theme’s follow its light and dark schemes. Yours are one set for both, and the text has to read on them.', 'diluxone-users' ),
+		)
+	);
+
+	$palette = diluxone_users_menu_signin_palette();
+	$labels  = array(
+		'bg'     => __( 'Background', 'diluxone-users' ),
+		'text'   => __( 'Text', 'diluxone-users' ),
+		'border' => __( 'Border', 'diluxone-users' ),
+		'hover'  => __( 'Background on hover', 'diluxone-users' ),
+	);
+	echo '<div class="du-menu-own" data-diluxone-users-menu-own>';
+	foreach ( $labels as $part => $label ) {
+		diluxone_users_ui_text(
+			array(
+				'label' => $label,
+				'name'  => 'diluxone_users_menu_signin_' . $part,
+				'value' => $palette[ $part ],
+				'code'  => true,
+				'data'  => array( 'color-picker' => $part ),
+			)
+		);
+	}
+	echo '</div>';
+
+	diluxone_users_account_menu_preview();
 
 	$menu = diluxone_users_menu_id();
 	diluxone_users_ui_aside_close(
@@ -397,6 +478,34 @@ function diluxone_users_screen_account_menu(): void {
 			);
 		}
 	);
+}
+
+/**
+ * A strip of make-believe menu with "Sign in" in it, as the fields above say.
+ *
+ * Static markup the admin's script restyles as the fields change. With the
+ * theme's colours it can only show the plugin's fallback: the real ones are
+ * the theme's, on the site.
+ */
+function diluxone_users_account_menu_preview(): void {
+	$style = diluxone_users_menu_signin_style();
+	$own   = 'own' === diluxone_users_menu_signin_color_mode();
+	$vars  = '';
+	foreach ( diluxone_users_menu_signin_palette() as $part => $hex ) {
+		$vars .= '--diluxone-users-menu-btn-' . $part . ':' . $hex . ';';
+	}
+
+	diluxone_users_ui_field_open( __( 'Preview', 'diluxone-users' ) );
+	printf(
+		'<ul class="du-menu-preview" data-diluxone-users-menu-preview style="%1$s"><li><a href="#" tabindex="-1">%2$s</a></li><li><a href="#" tabindex="-1">%3$s</a></li><li class="du-menu-preview__item du-menu-preview__item--%4$s%5$s"><a href="#" tabindex="-1">%6$s</a></li></ul>',
+		esc_attr( $vars ),
+		esc_html__( 'Home', 'diluxone-users' ),
+		esc_html__( 'About', 'diluxone-users' ),
+		esc_attr( $style ),
+		esc_attr( $own ? ' du-menu-preview__item--own' : '' ),
+		esc_html__( 'Sign in', 'diluxone-users' )
+	);
+	diluxone_users_ui_field_close( __( 'With the theme’s colours, the site shows the theme’s own button.', 'diluxone-users' ) );
 }
 
 /** The two things WordPress shows a signed-in person that the site may not want. */

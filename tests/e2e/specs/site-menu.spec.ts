@@ -1,7 +1,8 @@
 import { test, expect, expectSignedIn } from '../support/fixtures';
 import { freshEmail } from '../support/api';
 import { adminUrl, savePanel, signInWithPassword } from '../support/ui';
-import { buttonPaint } from '../support/menu';
+import { buttonPaint, contrast } from '../support/menu';
+import { DARK_SITE, themeSwitch } from '../support/dark-mode';
 import { ADMIN_STATE } from '../../../playwright.config';
 
 /**
@@ -168,11 +169,60 @@ test.describe('“Sign in” as a button, in the theme’s colours', () => {
 	});
 });
 
+test.describe('“Sign in” as a button, in the site’s own colours', () => {
+	let menuUrl = '';
+
+	const OWN = {
+		diluxone_users_menu_signin_colors: 'own',
+		diluxone_users_menu_signin_bg: '#0b3d91',
+		diluxone_users_menu_signin_text: '#ffffff',
+		diluxone_users_menu_signin_border: '#072b66',
+		diluxone_users_menu_signin_hover: '#062456',
+	};
+
+	test.beforeEach(async ({ site, options }) => {
+		menuUrl = (await site.menu()).url;
+		// The e2e mu-plugin's dark stand-in: its switch is `is-dark` on <html>.
+		await options.set({ diluxone_users_menu_location: 'diluxone-e2e', ...DARK_SITE });
+	});
+
+	for (const style of ['filled', 'outlined'] as const) {
+		test(`${style}: those colours, the hover colour on hover, and text that reads, in the light scheme and the dark one`, async ({ page, options }) => {
+			await options.set({ diluxone_users_menu_signin_style: style, ...OWN });
+			await page.goto(menuUrl);
+
+			const link = item(page, 'sign-in').locator('> a');
+
+			await expect(item(page, 'sign-in')).toHaveClass(/diluxone-users-menu--own/);
+			await expect(link, 'the theme’s button would paint over them').not.toHaveClass(/wp-element-button/);
+
+			for (const dark of [false, true]) {
+				const scheme = dark ? 'dark' : 'light';
+				await themeSwitch(page, dark);
+
+				await page.mouse.move(0, 0);
+				const rest = (await buttonPaint(link)).link;
+
+				expect(rest.background, `${scheme}: the background`).toBe('rgb(11, 61, 145)');
+				expect(rest.color, `${scheme}: the text`).toBe('rgb(255, 255, 255)');
+				expect(rest.border, `${scheme}: the border`).toBe('rgb(7, 43, 102)');
+				expect(contrast(rest.color, rest.background), `${scheme}: the text reads`).toBeGreaterThanOrEqual(4.5);
+
+				await link.hover();
+				const hover = (await buttonPaint(link)).link;
+
+				expect(hover.background, `${scheme}: the hover colour`).toBe('rgb(6, 36, 86)');
+				expect(contrast(hover.color, hover.background), `${scheme}: the text reads on hover`).toBeGreaterThanOrEqual(4.5);
+			}
+		});
+	}
+});
+
 test.describe('Account area › In the site menu', () => {
 	test.use({ storageState: ADMIN_STATE });
 
 	test('the location and the style saved on the screen are what the menu draws', async ({ page, guest, site, options }) => {
-		await options.keep(['diluxone_users_menu_location', 'diluxone_users_menu_style', 'diluxone_users_menu_signin_style']);
+		await options.keep(['diluxone_users_menu_location', 'diluxone_users_menu_style', 'diluxone_users_menu_signin_style', 'diluxone_users_menu_signin_colors']);
 		await options.set({ diluxone_users_menu_location: '' });
 
 		const { url } = await site.menu();
@@ -196,5 +246,28 @@ test.describe('Account area › In the site menu', () => {
 			diluxone_users_menu_style: 'name',
 			diluxone_users_menu_signin_style: 'outlined',
 		});
+	});
+
+	test('the colour pickers show with “Your own” only, and the preview takes the colours', async ({ page, options }) => {
+		await options.keep([
+			'diluxone_users_menu_signin_style',
+			'diluxone_users_menu_signin_colors',
+			'diluxone_users_menu_signin_bg',
+			'diluxone_users_menu_signin_text',
+			'diluxone_users_menu_signin_border',
+			'diluxone_users_menu_signin_hover',
+		]);
+		await options.set({ diluxone_users_menu_signin_style: 'filled', diluxone_users_menu_signin_colors: 'theme', diluxone_users_menu_signin_bg: '#0b3d91' });
+
+		await page.goto(adminUrl('diluxone-users-account', 'menu'));
+
+		const own = page.locator('[data-diluxone-users-menu-own]');
+		const preview = page.locator('[data-diluxone-users-menu-preview] .du-menu-preview__item > a');
+
+		await expect(own).toBeHidden();
+		await page.locator('select[name="diluxone_users_menu_signin_colors"]').selectOption('own');
+		await expect(own).toBeVisible();
+		await expect(own.locator('.wp-picker-container'), 'WordPress’s colour picker, one per colour').toHaveCount(4);
+		await expect(preview).toHaveCSS('background-color', 'rgb(11, 61, 145)');
 	});
 });

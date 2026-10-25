@@ -55,6 +55,55 @@ function diluxone_users_menu_signin_style(): string {
 	return isset( diluxone_users_menu_signin_styles()[ $style ] ) ? $style : 'link';
 }
 
+/**
+ * Whose colours a "Sign in" button takes.
+ *
+ * @return array<string, string>
+ */
+function diluxone_users_menu_signin_color_modes(): array {
+	return array(
+		'theme' => __( 'The theme’s', 'diluxone-users' ),
+		'own'   => __( 'Your own', 'diluxone-users' ),
+	);
+}
+
+/** The stored colour mode, or the theme's when it is not one of them. */
+function diluxone_users_menu_signin_color_mode(): string {
+	$mode = (string) diluxone_users_option( 'diluxone_users_menu_signin_colors' );
+	return isset( diluxone_users_menu_signin_color_modes()[ $mode ] ) ? $mode : 'theme';
+}
+
+/**
+ * The four colours of a "Sign in" button in the site's own colours.
+ *
+ * One set for both schemes: the colours belong to the button and not to the
+ * page, so a contrast checked once on save holds on a light page and a dark
+ * one alike.
+ *
+ * @return array<string, string> bg, text, border, hover => a hex colour.
+ */
+function diluxone_users_menu_signin_palette(): array {
+	$defaults = diluxone_users_option_defaults();
+	$palette  = array();
+	foreach ( array( 'bg', 'text', 'border', 'hover' ) as $part ) {
+		$key              = 'diluxone_users_menu_signin_' . $part;
+		$hex              = sanitize_hex_color( (string) diluxone_users_option( $key ) );
+		$palette[ $part ] = is_string( $hex ) && '' !== $hex ? $hex : (string) $defaults[ $key ];
+	}
+	return $palette;
+}
+
+/**
+ * Whether the text of a "Sign in" button reads on its ground and on its
+ * hover ground: 4.5:1 at least, WCAG's AA for text.
+ *
+ * @param array<string, string> $palette bg, text, border, hover.
+ */
+function diluxone_users_menu_signin_palette_reads( array $palette ): bool {
+	return diluxone_users_contrast( $palette['text'], $palette['bg'] ) >= 4.5
+		&& diluxone_users_contrast( $palette['text'], $palette['hover'] ) >= 4.5;
+}
+
 /** The ID of the menu assigned to the chosen location, or 0. */
 function diluxone_users_menu_id(): int {
 	$location = (string) diluxone_users_option( 'diluxone_users_menu_location' );
@@ -93,7 +142,7 @@ function diluxone_users_menu_item( int $id, string $title, string $url, int $han
 			'attr_title'       => '',
 			'description'      => '',
 			'xfn'              => '',
-			'classes'          => array_merge( array( 'menu-item', 'diluxone-users-menu' ), preg_split( '/\s+/', $extra, -1, PREG_SPLIT_NO_EMPTY ) ?: array() ),
+			'classes'          => array_merge( array( 'menu-item', 'diluxone-users-menu' ), array_values( array_filter( explode( ' ', $extra ) ) ) ),
 			'current'          => false,
 			'menu_order'       => 0,
 			'post_parent'      => 0,
@@ -122,7 +171,8 @@ function diluxone_users_menu_items( $items, $args ) {
 
 	if ( ! is_user_logged_in() ) {
 		$button = diluxone_users_menu_signin_style();
-		$add( diluxone_users_menu_item( 990001, esc_html__( 'Sign in', 'diluxone-users' ), diluxone_users_login_url(), 0, 'diluxone-users-menu--sign-in' . ( 'link' === $button ? '' : ' diluxone-users-menu--button diluxone-users-menu--' . $button ) ) );
+		$look   = 'link' === $button ? '' : ' diluxone-users-menu--button diluxone-users-menu--' . $button . ( 'own' === diluxone_users_menu_signin_color_mode() ? ' diluxone-users-menu--own' : '' );
+		$add( diluxone_users_menu_item( 990001, esc_html__( 'Sign in', 'diluxone-users' ), diluxone_users_login_url(), 0, 'diluxone-users-menu--sign-in' . $look ) );
 		return $items;
 	}
 
@@ -201,7 +251,8 @@ add_filter( 'wp_nav_menu_objects', 'diluxone_users_menu_items', 20, 2 );
  *
  * `wp-element-button` is what theme.json and block themes paint their
  * buttons with, so the button takes the site's colours with nothing to set.
- * Only the plugin's own item is touched.
+ * Only the plugin's own item is touched, and not when the site gave it
+ * colours of its own: then the theme's button would paint over them.
  *
  * @param array<string, mixed> $atts The link's attributes.
  * @param WP_Post|object       $item The menu item.
@@ -209,7 +260,7 @@ add_filter( 'wp_nav_menu_objects', 'diluxone_users_menu_items', 20, 2 );
  */
 function diluxone_users_menu_link_attributes( $atts, $item ) {
 	$classes = isset( $item->classes ) ? (array) $item->classes : array();
-	if ( ! in_array( 'diluxone-users-menu--button', $classes, true ) ) {
+	if ( ! in_array( 'diluxone-users-menu--button', $classes, true ) || in_array( 'diluxone-users-menu--own', $classes, true ) ) {
 		return $atts;
 	}
 	$atts['class'] = trim( ( isset( $atts['class'] ) ? (string) $atts['class'] . ' ' : '' ) . 'wp-element-button' );
@@ -223,7 +274,9 @@ add_filter( 'nav_menu_link_attributes', 'diluxone_users_menu_link_attributes', 1
  * The theme's `.wp-element-button` paints it. The plugin's own rule is under
  * `:where()`, so it weighs nothing and only shows on a theme that does not
  * style that class. "Outlined" lays a transparent ground and a border of the
- * text's colour on top of the theme's button.
+ * text's colour on top of the theme's button. With the site's own colours
+ * the button is painted from the `--diluxone-users-menu-btn-*` tokens, built
+ * only from colours checked on save and again here.
  */
 function diluxone_users_menu_signin_css(): string {
 	$style = diluxone_users_menu_signin_style();
@@ -236,6 +289,19 @@ function diluxone_users_menu_signin_css(): string {
 
 	if ( 'outlined' === $style ) {
 		$css .= '.diluxone-users-menu--outlined > a.wp-element-button{background:transparent;color:inherit;border:2px solid currentColor}';
+	}
+
+	if ( 'own' === diluxone_users_menu_signin_color_mode() ) {
+		$palette = diluxone_users_menu_signin_palette();
+		$css    .= sprintf(
+			'.diluxone-users-menu--own{--diluxone-users-menu-btn-bg:%1$s;--diluxone-users-menu-btn-text:%2$s;--diluxone-users-menu-btn-border:%3$s;--diluxone-users-menu-btn-hover:%4$s}',
+			$palette['bg'],
+			$palette['text'],
+			$palette['border'],
+			$palette['hover']
+		)
+			. '.diluxone-users-menu--sign-in.diluxone-users-menu--own > a{background:var(--diluxone-users-menu-btn-bg);color:var(--diluxone-users-menu-btn-text);border-color:var(--diluxone-users-menu-btn-border)}'
+			. '.diluxone-users-menu--sign-in.diluxone-users-menu--own > a:hover,.diluxone-users-menu--sign-in.diluxone-users-menu--own > a:focus-visible{background:var(--diluxone-users-menu-btn-hover);color:var(--diluxone-users-menu-btn-text)}';
 	}
 
 	return $css;

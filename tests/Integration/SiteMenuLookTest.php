@@ -180,4 +180,85 @@ class SiteMenuLookTest extends IntegrationTestCase {
 
 		$this->assertSame( 'link', diluxone_users_option( 'diluxone_users_menu_signin_style' ) );
 	}
+
+	/* ── "Sign in" in the site's own colours (C4) ─────────────────── */
+
+	/** The menu's inline CSS, for whoever is looking. */
+	private function menu_css(): string {
+		diluxone_users_menu_style();
+		return implode( '', (array) wp_styles()->get_data( 'diluxone-users-menu', 'after' ) );
+	}
+
+	/** @return array<string, string> */
+	private function own_colours( string $bg, string $text, string $border, string $hover ): array {
+		return array(
+			'diluxone_users_menu_signin_bg'     => $bg,
+			'diluxone_users_menu_signin_text'   => $text,
+			'diluxone_users_menu_signin_border' => $border,
+			'diluxone_users_menu_signin_hover'  => $hover,
+		);
+	}
+
+	/** @return array<string, string> */
+	private function stored_colours(): array {
+		$stored = array();
+		foreach ( array( 'bg', 'text', 'border', 'hover' ) as $part ) {
+			$stored[ 'diluxone_users_menu_signin_' . $part ] = (string) diluxone_users_option( 'diluxone_users_menu_signin_' . $part );
+		}
+		return $stored;
+	}
+
+	public function test_own_colours_are_saved_and_painted_from_the_tokens_without_the_themes_button(): void {
+		$this->the_admin();
+		$colours = $this->own_colours( '#0b3d91', '#ffffff', '#072b66', '#062456' );
+
+		$this->send_panel(
+			'diluxone-users-account',
+			array(
+				'diluxone_users_menu_signin_style'  => 'filled',
+				'diluxone_users_menu_signin_colors' => 'own',
+			) + $colours
+		);
+		$this->draw( 'diluxone_users_account_menu_save' );
+
+		$this->assertSame( 'own', diluxone_users_option( 'diluxone_users_menu_signin_colors' ) );
+		$this->assertSame( $colours, $this->stored_colours() );
+
+		$this->chosen_menu();
+		wp_set_current_user( 0 );
+
+		$li = $this->li( $this->drawn(), 'sign-in' );
+		$this->assertContains( 'diluxone-users-menu--own', $this->classes( $li ) );
+		$link = $li->getElementsByTagName( 'a' )->item( 0 );
+		$this->assertInstanceOf( \DOMElement::class, $link );
+		$this->assertStringNotContainsString( 'wp-element-button', $link->getAttribute( 'class' ), 'the theme’s button would paint over them' );
+
+		$css = $this->menu_css();
+		$this->assertStringContainsString( '--diluxone-users-menu-btn-bg:#0b3d91;--diluxone-users-menu-btn-text:#ffffff;--diluxone-users-menu-btn-border:#072b66;--diluxone-users-menu-btn-hover:#062456', $css );
+		$this->assertStringContainsString( 'a:hover', $css );
+	}
+
+	/** @return array<string, array{0: array<string, string>}> */
+	public function unreadable_pairs(): array {
+		return array(
+			'grey text on white'           => array( $this->own_colours( '#ffffff', '#999999', '#ffffff', '#000000' ) ),
+			'reads at rest, not on hover'  => array( $this->own_colours( '#000000', '#ffffff', '#000000', '#dddddd' ) ),
+		);
+	}
+
+	/**
+	 * @dataProvider unreadable_pairs
+	 * @param array<string, string> $colours
+	 */
+	public function test_a_pair_below_four_and_a_half_to_one_is_refused_and_the_colours_before_stay( array $colours ): void {
+		$this->the_admin();
+		$before = $this->stored_colours();
+
+		$this->send_panel( 'diluxone-users-account', array( 'diluxone_users_menu_signin_colors' => 'own' ) + $colours );
+		$said = $this->draw( 'diluxone_users_account_menu_save' );
+
+		$this->assertSame( $before, $this->stored_colours() );
+		$this->assertStringContainsString( 'notice-error', $said );
+		$this->assertTrue( diluxone_users_menu_signin_palette_reads( diluxone_users_menu_signin_palette() ), 'what is stored reads' );
+	}
 }

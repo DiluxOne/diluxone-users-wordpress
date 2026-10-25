@@ -242,6 +242,14 @@ function diluxone_users_option_defaults_own(): array {
 		'diluxone_users_menu_style'            => 'avatar-name',
 		// How "Sign in" shows there: 'link', 'filled' or 'outlined'.
 		'diluxone_users_menu_signin_style'     => 'link',
+		// Whose colours a "Sign in" button takes: 'theme' or 'own'.
+		'diluxone_users_menu_signin_colors'    => 'theme',
+		// With 'own': one set for both schemes, text at 4.5:1 on the ground
+		// and on the hover ground (checked on save).
+		'diluxone_users_menu_signin_bg'        => '#1e1e1e',
+		'diluxone_users_menu_signin_text'      => '#ffffff',
+		'diluxone_users_menu_signin_border'    => '#1e1e1e',
+		'diluxone_users_menu_signin_hover'     => '#3c434a',
 
 		// ── The account area ──────────────────────────────────────────
 		// The page holding the [diluxone_users_account] shortcode. With that

@@ -1780,3 +1780,50 @@ span.diluxone-users-state {
 .du-pro--control .du-pro__foot { margin: var(--du-2) 0 0; }
 .du-pro--control select:disabled,
 .du-pro--control input:disabled { opacity: .65; }
+
+/* "Sign in" in the site's menu: a strip of make-believe menu. */
+.diluxone-users-admin .du-menu-preview {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 1.25em;
+	margin: 0;
+	padding: 12px 16px;
+	border: 1px solid #dcdcde;
+	border-radius: 4px;
+	background: #fff;
+	list-style: none;
+}
+
+.diluxone-users-admin .du-menu-preview li {
+	margin: 0;
+}
+
+.diluxone-users-admin .du-menu-preview a {
+	color: #1d2327;
+	text-decoration: none;
+	pointer-events: none;
+}
+
+.diluxone-users-admin .du-menu-preview__item--filled > a,
+.diluxone-users-admin .du-menu-preview__item--outlined > a {
+	display: inline-block;
+	padding: 0.5em 1.1em;
+	border: 2px solid #1e1e1e;
+	border-radius: 4px;
+	line-height: 1.2;
+	background: #1e1e1e;
+	color: #fff;
+}
+
+.diluxone-users-admin .du-menu-preview__item--outlined > a {
+	background: transparent;
+	color: #1d2327;
+	border-color: currentColor;
+}
+
+.diluxone-users-admin .du-menu-preview__item--own > a {
+	background: var(--diluxone-users-menu-btn-bg);
+	color: var(--diluxone-users-menu-btn-text);
+	border-color: var(--diluxone-users-menu-btn-border);
+}
