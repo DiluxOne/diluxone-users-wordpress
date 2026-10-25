@@ -235,6 +235,11 @@ class ActivityLogTest extends TestCase {
 			'Google · server_error',
 			diluxone_users_log_says( $row( array( 'via' => 'sso', 'provider' => 'google', 'reason' => 'server_error' ) ) )
 		);
+		// No reason kept: the network alone, with no separator left hanging.
+		$this->assertSame(
+			'Google',
+			diluxone_users_log_says( $row( array( 'via' => 'sso', 'provider' => 'google', 'reason' => '' ) ) )
+		);
 		$this->assertSame( 'quien@example.test', diluxone_users_log_says( $row( array( 'tried' => 'quien@example.test' ) ) ) );
 	}
 }

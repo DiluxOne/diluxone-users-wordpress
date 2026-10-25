@@ -408,7 +408,9 @@ function diluxone_users_log_sso_refused( string $provider, string $reason ): str
 		'account'   => __( 'no account found or created', 'diluxone-users' ),
 	);
 
-	return trim( $name . ' · ' . ( $reasons[ $reason ] ?? $reason ), ' ·' );
+	$why = (string) ( $reasons[ $reason ] ?? $reason );
+
+	return '' === $why ? $name : $name . ' · ' . $why;
 }
 
 /**

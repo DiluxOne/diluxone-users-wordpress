@@ -843,8 +843,10 @@ function diluxone_users_sso_handle( $wp = null ): void {
 		}
 
 		// The provider's own code, never its free-text description: that one
-		// is whatever the provider wrote, and the log keeps short slugs.
-		$error = sanitize_key( diluxone_users_sso_param( 'error' ) );
+		// is whatever the provider wrote, and the log keeps short slugs. OAuth's
+		// codes are a few words long; anything longer is cut, so a stranger's
+		// return cannot fill the row with a URL's worth of text.
+		$error = substr( sanitize_key( diluxone_users_sso_param( 'error' ) ), 0, 64 );
 
 		diluxone_users_sso_log_refused( $id, 'access_denied' === $error ? 'cancelled' : $error );
 		diluxone_users_sso_fail();
