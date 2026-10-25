@@ -563,15 +563,19 @@ function diluxone_users_screen_account_menu(): void {
 function diluxone_users_account_menu_preview(): void {
 	$style = diluxone_users_menu_signin_style();
 	$own   = 'own' === diluxone_users_menu_signin_color_mode();
-	$vars  = '';
+	$vars  = array();
 	foreach ( diluxone_users_menu_signin_palette() as $part => $hex ) {
-		$vars .= '--diluxone-users-menu-btn-' . $part . ':' . $hex . ';';
+		$vars[] = '--diluxone-users-menu-btn-' . $part . ':' . $hex;
+	}
+	$gap = diluxone_users_menu_gap( 'diluxone_users_menu_gap' );
+	if ( '' !== $gap ) {
+		$vars[] = '--du-menu-gap:' . $gap;
 	}
 
 	diluxone_users_ui_field_open( __( 'Preview', 'diluxone-users' ) );
 	printf(
 		'<ul class="du-menu-preview%7$s" data-diluxone-users-menu-preview style="%1$s"><li><a href="#" tabindex="-1">%2$s</a></li><li><a href="#" tabindex="-1">%3$s</a></li><li class="du-menu-preview__item du-menu-preview__item--%4$s%5$s"><a href="#" tabindex="-1">%6$s</a></li></ul>',
-		esc_attr( $vars . '--du-menu-gap:' . diluxone_users_menu_gap( 'diluxone_users_menu_gap' ) . ';' ),
+		esc_attr( implode( ';', $vars ) ),
 		esc_html__( 'Home', 'diluxone-users' ),
 		esc_html__( 'About', 'diluxone-users' ),
 		esc_attr( $style ),
