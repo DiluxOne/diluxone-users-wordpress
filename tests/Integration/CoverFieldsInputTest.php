@@ -146,14 +146,36 @@ class CoverFieldsInputTest extends IntegrationTestCase {
 		$empty = $this->input( $this->field( 'f_mobile', 'phone', array( 'options' => array( 'ar' ) ) ) );
 
 		$this->assertStringContainsString( '<select id="f_mobile-dial" name="f_mobile_dial"', $empty );
-		$this->assertStringContainsString( "value=\"AR\" selected='selected'>Argentina +54", $empty, 'The first preferred one by default' );
+		$this->assertMatchesRegularExpression( "/<option value=\"AR\"[^>]* selected='selected'>Argentina \\+54</", $empty, 'The first preferred one by default' );
 		$this->assertStringContainsString( 'type="tel" id="f_mobile" name="f_mobile" value=""', $empty );
 
 		// +1242 is the Bahamas, not the United States with 242 in front.
 		$bahamas = $this->input( $this->field( 'f_mobile', 'phone' ), '+12425551234' );
 
-		$this->assertStringContainsString( "value=\"BS\" selected='selected'>Bahamas +1242", $bahamas );
+		$this->assertMatchesRegularExpression( "/<option value=\"BS\"[^>]* selected='selected'>Bahamas \\+1242</", $bahamas );
 		$this->assertStringContainsString( 'value="5551234"', $bahamas );
+	}
+
+	public function test_every_country_of_a_phone_carries_its_rule_for_the_picker(): void {
+		$html = $this->input( $this->field( 'f_mobile', 'phone', array( 'options' => array( 'AR' ) ) ) );
+
+		$this->assertSame( 1, preg_match_all( '/<select [^>]*name="f_mobile_dial"[^>]*>(.*?)<\/select>/s', $html, $select ) );
+		$this->assertSame( 1, substr_count( $html, 'data-diluxone-users-phone' ), 'the box the script looks for' );
+
+		preg_match_all( '/<option value="([A-Z]{2})" data-dial="(\d+)" data-min="(\d+)" data-max="(\d+)" data-group="([\d |]*)" data-trunk="(\d*)"/', $select[1][0], $rows, PREG_SET_ORDER );
+
+		$this->assertCount( count( diluxone_users_countries() ), $rows, 'every country, each with its rule' );
+		$this->assertSame( substr_count( $select[1][0], '<option ' ), count( $rows ), 'no option without one' );
+
+		foreach ( $rows as $row ) {
+			$rule = diluxone_users_phone_rule( $row[1] );
+
+			$this->assertSame( diluxone_users_country_dial( $row[1] ), $row[2], "{$row[1]}: its dialling code" );
+			$this->assertSame( array( $rule['min'], $rule['max'], $rule['group'], $rule['trunk'] ), array( (int) $row[3], (int) $row[4], $row[5], $row[6] ), "{$row[1]}: the server's own rule" );
+		}
+
+		$this->assertStringContainsString( 'value="AR" data-dial="54" data-min="10" data-max="11" data-group="2 4 4|1 2 4 4" data-trunk="0"', $html );
+		$this->assertTrue( wp_script_is( 'diluxone-users-phone', 'enqueued' ), 'the picker is loaded where a phone is drawn' );
 	}
 
 	public function test_text_with_suggestions_carries_its_list(): void {

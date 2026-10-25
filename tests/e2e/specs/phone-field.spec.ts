@@ -174,3 +174,136 @@ test.describe('The phone field is one control', () => {
 		}
 	});
 });
+
+/** The picker of the phone on the registration form, for a visitor. */
+async function picker(page: Page, url: string) {
+	await page.goto(url);
+
+	const box = page.locator('.diluxone-users-register .diluxone-users-phone');
+	await expect(box).toHaveClass(/is-enhanced/);
+
+	return {
+		box,
+		select: box.locator('select.diluxone-users-phone__dial'),
+		button: box.getByRole('button', { name: /Country code/ }),
+		search: box.locator('[role="combobox"]'),
+		list: box.locator('[role="listbox"]'),
+		options: box.getByRole('option'),
+		status: box.locator('[role="status"]'),
+		number: box.locator('input.diluxone-users-phone__number'),
+	};
+}
+
+test.describe('The country picker', () => {
+	test.beforeEach(async ({ options }) => {
+		await options.set({ diluxone_users_2fa_mode: 'off', diluxone_users_fields: REQUIRED, diluxone_users_register_form: 1 });
+	});
+
+	test('typing “arg” or “54” narrows the list to the countries that match, and says how many', async ({ guest, pages }) => {
+		const p = await picker(guest, pages.register.url);
+
+		await expect(p.select, 'the native list is kept, hidden, as what is posted').toBeHidden();
+		await expect(p.button).toContainText('AR');
+		await expect(p.button).toContainText('+54');
+
+		await p.button.click();
+		await expect(p.search).toBeFocused();
+		await expect(p.button).toHaveAttribute('aria-expanded', 'true');
+		await expect(p.search).toHaveAttribute('aria-expanded', 'true');
+
+		const all = await p.options.count();
+		expect(all, 'every country to start with').toBeGreaterThan(190);
+
+		await p.search.fill('arg');
+		await expect(p.options).toHaveCount(1);
+		await expect(p.options.first()).toContainText('Argentina');
+		await expect(p.status).toHaveText('Countries found: 1');
+
+		await p.search.fill('54');
+		await expect(p.options.filter({ hasText: 'Argentina' })).toHaveCount(1);
+		for (const code of await p.options.locator('.diluxone-users-phone__option-code').allTextContents()) {
+			expect(code.startsWith('+54'), `${code} starts with +54`).toBe(true);
+		}
+		expect(await p.options.count()).toBeLessThan(all);
+
+		await p.search.fill('+54');
+		await expect(p.options.filter({ hasText: 'Argentina' }), 'with its plus, too').toHaveCount(1);
+
+		await p.search.fill('córdoba-nowhere');
+		await expect(p.options).toHaveCount(0);
+		await expect(p.status).toHaveText('No country matches that.');
+	});
+
+	test('the keyboard alone: open, arrows, Home and End, Enter to choose, Escape to close', async ({ guest, pages }) => {
+		const p = await picker(guest, pages.register.url);
+
+		// The roles a screen reader announces, and what they point at.
+		await expect(p.search).toHaveAttribute('aria-controls', (await p.list.getAttribute('id'))!);
+		await expect(p.button).toHaveAttribute('aria-haspopup', 'listbox');
+
+		await p.button.focus();
+		await guest.keyboard.press('ArrowDown');
+		await expect(p.search, 'the arrow opens it, on the search').toBeFocused();
+
+		const activeId = () => p.search.getAttribute('aria-activedescendant');
+		const chosen = await p.options.filter({ has: guest.locator('xpath=self::*[@aria-selected="true"]') }).first();
+
+		await expect(chosen).toContainText('Argentina');
+		expect(await activeId(), 'the country chosen is where it starts').toBe(await chosen.getAttribute('id'));
+
+		await guest.keyboard.press('ArrowDown');
+		const second = await activeId();
+		expect(second).not.toBe(await chosen.getAttribute('id'));
+		await expect(guest.locator(`[id="${second}"]`)).toHaveClass(/is-active/);
+
+		await guest.keyboard.press('ArrowUp');
+		expect(await activeId()).toBe(await chosen.getAttribute('id'));
+
+		await guest.keyboard.press('End');
+		expect(await activeId()).toBe(await p.options.last().getAttribute('id'));
+		await guest.keyboard.press('Home');
+		expect(await activeId()).toBe(await p.options.first().getAttribute('id'));
+
+		// Escape: closed, back on the button, nothing changed.
+		await guest.keyboard.press('Escape');
+		await expect(p.list).toBeHidden();
+		await expect(p.button).toBeFocused();
+		await expect(p.button).toHaveAttribute('aria-expanded', 'false');
+		await expect(p.select).toHaveValue('AR');
+
+		// Enter chooses, and never sends the form.
+		await guest.keyboard.press('Enter');
+		await expect(p.search).toBeFocused();
+		await guest.keyboard.type('urug');
+		await expect(p.options).toHaveCount(1);
+		expect(await activeId()).toBe(await p.options.first().getAttribute('id'));
+		await guest.keyboard.press('Enter');
+
+		await expect(p.list).toBeHidden();
+		await expect(p.button).toBeFocused();
+		await expect(p.select, 'the hidden list is what is posted, and it was written').toHaveValue('UY');
+		await expect(p.button).toContainText('UY');
+		await expect(p.button).toContainText('+598');
+		await expect(p.button).toHaveAttribute('aria-label', /Uruguay \+598/);
+		expect(new URL(guest.url()).searchParams.get('diluxone-users'), 'still on the form').toBeNull();
+
+		// Tab goes on to the number.
+		await guest.keyboard.press('Tab');
+		await expect(p.number).toBeFocused();
+	});
+
+	test('a pointer chooses too, and a click outside closes it', async ({ guest, pages }) => {
+		const p = await picker(guest, pages.register.url);
+
+		await p.button.click();
+		await p.search.fill('chile');
+		await p.options.filter({ hasText: 'Chile' }).click();
+		await expect(p.select).toHaveValue('CL');
+		await expect(p.list).toBeHidden();
+
+		await p.button.click();
+		await expect(p.list).toBeVisible();
+		await guest.locator('body').click({ position: { x: 5, y: 5 } });
+		await expect(p.list).toBeHidden();
+	});
+});

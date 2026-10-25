@@ -228,8 +228,20 @@ function diluxone_users_field_input( array $field, string $value, string $id = '
 
 			// One box holding both, with the height and the border of every other
 			// input: the label points at the number, and the list says what it
-			// is itself.
-			echo '<span class="diluxone-users-phone">';
+			// is itself. The script turns the list into a picker that can be
+			// searched (diluxone-users-phone.js); without it the list is what is
+			// there, and what is posted either way. The words the picker says
+			// travel with the box, translated here.
+			diluxone_users_phone_enqueue();
+
+			printf(
+				'<span class="diluxone-users-phone" data-diluxone-users-phone data-search="%1$s" data-list="%2$s" data-found="%3$s" data-none="%4$s">',
+				esc_attr__( 'Search for a country or a code', 'diluxone-users' ),
+				esc_attr__( 'Countries', 'diluxone-users' ),
+				/* translators: %d: how many countries match what was typed */
+				esc_attr__( 'Countries found: %d', 'diluxone-users' ),
+				esc_attr__( 'No country matches that.', 'diluxone-users' )
+			);
 			printf(
 				'<select id="%1$s-dial" name="%2$s_dial" class="diluxone-users-phone__dial" aria-label="%3$s"%4$s>',
 				esc_attr( $id ),
@@ -238,13 +250,22 @@ function diluxone_users_field_input( array $field, string $value, string $id = '
 				esc_attr( $lock_sel )
 			);
 
+			// Each country carries its rule, so the picker and the number need
+			// nothing else to search, group and check as the person types. The
+			// server reads its own table whatever these say.
 			foreach ( diluxone_users_countries_sorted( $field['options'] ) as $iso => $country_name ) {
+				$rule = diluxone_users_phone_rule( (string) $iso );
+
 				printf(
-					'<option value="%1$s"%2$s>%3$s +%4$s</option>',
+					'<option value="%1$s" data-dial="%4$s" data-min="%5$d" data-max="%6$d" data-group="%7$s" data-trunk="%8$s"%2$s>%3$s +%4$s</option>',
 					esc_attr( $iso ),
 					selected( $dial, $iso, false ),
 					esc_html( $country_name ),
-					esc_html( diluxone_users_country_dial( $iso ) )
+					esc_attr( diluxone_users_country_dial( $iso ) ),
+					(int) $rule['min'],
+					(int) $rule['max'],
+					esc_attr( $rule['group'] ),
+					esc_attr( $rule['trunk'] )
 				);
 			}
 
@@ -301,6 +322,21 @@ function diluxone_users_field_input( array $field, string $value, string $id = '
 		esc_attr( $required_attr . $lock ),
 		esc_attr( $placeholder )
 	);
+}
+
+/**
+ * The script that makes a phone field's country list a picker that can be
+ * searched, and groups the number as it is typed.
+ *
+ * Enqueued by the first phone drawn on a page, in the footer and with nothing
+ * it depends on; a page without a phone does not load it.
+ */
+function diluxone_users_phone_enqueue(): void {
+	if ( wp_script_is( 'diluxone-users-phone', 'enqueued' ) ) {
+		return;
+	}
+
+	wp_enqueue_script( 'diluxone-users-phone', DILUXONE_USERS_URL . 'assets/diluxone-users-phone.js', array(), diluxone_users_asset_version( 'assets/diluxone-users-phone.js' ), true );
 }
 
 /* ── The dashboard profile ─────────────────────────────────────────── */

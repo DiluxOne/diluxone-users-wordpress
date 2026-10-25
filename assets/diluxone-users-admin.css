@@ -685,6 +685,62 @@
 	outline: 2px solid var(--du-accent, currentColor);
 	outline-offset: -2px;
 }
+.diluxone-users-admin .diluxone-users-phone { --diluxone-users-phone-picker: 1; }
+.diluxone-users-admin .diluxone-users-phone select.diluxone-users-phone__dial[hidden] { display: none; }
+.diluxone-users-admin .diluxone-users-phone button.diluxone-users-phone__button {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--du-1);
+	padding: 0 var(--du-3);
+	color: var(--du-text);
+	font: inherit;
+	cursor: pointer;
+}
+.diluxone-users-admin .diluxone-users-phone button.diluxone-users-phone__button:disabled { color: var(--du-muted); cursor: default; }
+.diluxone-users-admin .diluxone-users-phone__iso { font-weight: 600; }
+.diluxone-users-admin .diluxone-users-phone__code { color: var(--du-muted); }
+.diluxone-users-admin .diluxone-users-phone__caret {
+	margin-inline-start: auto;
+	border-inline: 4px solid transparent;
+	border-top: 5px solid currentColor;
+}
+.diluxone-users-admin .diluxone-users-phone__popup {
+	position: absolute;
+	z-index: 100;
+	inset-inline-start: 0;
+	top: calc(100% + var(--du-1));
+	box-sizing: border-box;
+	width: min(22rem, calc(100vw - 32px));
+	padding: var(--du-2);
+	border: 1px solid var(--du-line);
+	border-radius: var(--du-radius);
+	background: var(--du-ground);
+	box-shadow: 0 8px 24px color-mix(in srgb, var(--du-text) 18%, transparent);
+}
+.diluxone-users-admin .diluxone-users-phone__popup[hidden] { display: none; }
+.diluxone-users-admin .diluxone-users-phone__popup input.diluxone-users-phone__search { width: 100%; margin: 0; }
+.diluxone-users-admin .diluxone-users-phone__list { max-height: 15rem; margin: var(--du-2) 0 0; padding: 0; overflow-y: auto; list-style: none; }
+.diluxone-users-admin .diluxone-users-phone__option {
+	display: flex;
+	justify-content: space-between;
+	gap: var(--du-3);
+	margin: 0;
+	padding: var(--du-2) var(--du-3);
+	border-radius: var(--du-radius-sm);
+	cursor: pointer;
+}
+.diluxone-users-admin .diluxone-users-phone__option:hover,
+.diluxone-users-admin .diluxone-users-phone__option.is-active { background: var(--du-ground-alt); }
+.diluxone-users-admin .diluxone-users-phone__option[aria-selected="true"] { font-weight: 600; }
+.diluxone-users-admin .diluxone-users-phone__option-code { color: var(--du-muted); white-space: nowrap; }
+.diluxone-users-admin .diluxone-users-phone__status {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+	clip-path: inset(50%);
+	white-space: nowrap;
+}
 .diluxone-users-admin .diluxone-users-field__error {
 	margin: var(--du-1) 0 0;
 	padding-inline-start: var(--du-2);

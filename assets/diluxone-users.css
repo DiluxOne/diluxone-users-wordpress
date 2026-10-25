@@ -406,6 +406,95 @@ details.diluxone-users-panel[open] > .diluxone-users-panel__head .diluxone-users
 	border-start-end-radius: inherit;
 	border-end-end-radius: inherit;
 }
+.diluxone-users-phone.is-enhanced { grid-template-columns: var(--diluxone-users-dial-w, auto) minmax(0, 1fr); }
+.diluxone-users-phone select.diluxone-users-phone__dial[hidden] { display: none; }
+
+/* The picker: a button where the list was, and the search over the countries
+   it opens. The property below is how the script knows this sheet is on the
+   page; without it the native list stays. */
+.diluxone-users-phone { --diluxone-users-phone-picker: 1; }
+.diluxone-users-phone button.diluxone-users-phone__button,
+.diluxone-users-phone button.diluxone-users-phone__button:hover,
+.diluxone-users-phone button.diluxone-users-phone__button:focus {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	min-width: 0;
+	min-height: 0;
+	margin: 0;
+	padding: 0 12px 0 14px;
+	border: 0;
+	border-inline-end: var(--diluxone-users-border-w) solid var(--diluxone-users-border);
+	border-start-start-radius: inherit;
+	border-end-start-radius: inherit;
+	border-start-end-radius: 0;
+	border-end-end-radius: 0;
+	background: transparent;
+	box-shadow: none;
+	color: var(--diluxone-users-text);
+	font: inherit;
+	line-height: 1;
+	text-transform: none;
+	letter-spacing: normal;
+	white-space: nowrap;
+	cursor: pointer;
+	outline: 0;
+}
+.diluxone-users-phone button.diluxone-users-phone__button:hover { background: var(--diluxone-users-surface-alt); }
+.diluxone-users-phone button.diluxone-users-phone__button:disabled { cursor: default; color: var(--diluxone-users-muted); background: var(--diluxone-users-surface-alt); }
+.diluxone-users-phone__iso { font-weight: 600; }
+.diluxone-users-phone__code { color: var(--diluxone-users-muted); }
+.diluxone-users-phone__caret {
+	width: 0;
+	height: 0;
+	margin-inline-start: 2px;
+	border-inline: 4px solid transparent;
+	border-top: 5px solid currentColor;
+}
+.diluxone-users-phone__popup {
+	position: absolute;
+	z-index: 50;
+	inset-inline-start: calc(-1 * var(--diluxone-users-border-w));
+	top: calc(100% + 6px);
+	box-sizing: border-box;
+	width: min(22rem, calc(100vw - 32px));
+	padding: 8px;
+	border: var(--diluxone-users-border-w) solid var(--diluxone-users-border);
+	border-radius: var(--diluxone-users-radius-sm);
+	background: var(--diluxone-users-surface);
+	color: var(--diluxone-users-text);
+	box-shadow: 0 10px 30px color-mix(in srgb, var(--diluxone-users-text) 18%, transparent);
+}
+.diluxone-users-phone__popup[hidden] { display: none; }
+.diluxone-users-phone .diluxone-users-phone__popup input.diluxone-users-phone__search { width: 100%; }
+.diluxone-users-phone__list {
+	max-height: 15rem;
+	margin: 8px 0 0;
+	padding: 0;
+	overflow-y: auto;
+	list-style: none;
+}
+.diluxone-users-phone__option {
+	display: flex;
+	justify-content: space-between;
+	gap: 12px;
+	margin: 0;
+	padding: 8px 10px;
+	border-radius: var(--diluxone-users-radius-sm);
+	cursor: pointer;
+}
+.diluxone-users-phone__option:hover,
+.diluxone-users-phone__option.is-active { background: var(--diluxone-users-accent-soft); }
+.diluxone-users-phone__option[aria-selected="true"] { font-weight: 600; }
+.diluxone-users-phone__option-code { color: var(--diluxone-users-muted); white-space: nowrap; }
+.diluxone-users-phone__status {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+	clip-path: inset(50%);
+	white-space: nowrap;
+}
 .diluxone-users-field__error {
 	margin: 0;
 	padding-inline-start: 10px;
