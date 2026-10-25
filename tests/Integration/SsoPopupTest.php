@@ -259,4 +259,66 @@ class SsoPopupTest extends IntegrationTestCase {
 		$this->assertSame( $this->sub, get_user_meta( $user, 'diluxone_users_sso_mock', true ) );
 		$this->assertSame( 'linked', $this->redirectState( $this->resume() ) );
 	}
+
+	/* ── C4: the second step and the required fields reach the opener ── */
+
+	public function test_the_second_step_reaches_the_opener_and_its_key_never_enters_the_bridge(): void {
+		$user = $this->make_user();
+		update_user_meta( $user, 'diluxone_users_sso_mock', $this->sub );
+		update_user_meta( $user, 'diluxone_users_totp', 'JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP' );
+		update_user_meta( $user, 'diluxone_users_2fa_on', 1 );
+		diluxone_users_update_option( 'diluxone_users_2fa_mode', 'required' );
+		diluxone_users_update_option( 'diluxone_users_2fa_methods', array( 'totp' ) );
+
+		$this->back( $this->start( '1' ) );
+
+		$html = $this->bridge();
+
+		$this->assertSame( 0, get_current_user_id(), 'nobody is in before the code' );
+		$this->assertSame( 'next', $this->data( $html, 'kind' ) );
+		$this->assertStringNotContainsString( 'diluxone_users_key', $html );
+		$this->assertStringNotContainsString( 'diluxone_users_2fa', $html );
+
+		$step = $this->resume();
+		$key  = $this->queryArg( $step, 'diluxone_users_key' );
+
+		$this->assertSame( (string) $user, $this->queryArg( $step, 'diluxone_users_2fa' ), 'the opener is sent to the second step' );
+		$this->assertNotSame( '', $key );
+		$this->assertStringNotContainsString( $key, $html, 'the key stays server-side until the opener asks for it' );
+	}
+
+	public function test_the_required_fields_step_reaches_the_opener(): void {
+		$page = (int) wp_insert_post(
+			array(
+				'post_type'    => 'page',
+				'post_status'  => 'publish',
+				'post_title'   => 'Account',
+				'post_content' => '[diluxone_users_account]',
+			)
+		);
+		diluxone_users_update_option( 'diluxone_users_account_page', $page );
+		diluxone_users_update_option(
+			'diluxone_users_fields',
+			array(
+				array(
+					'key'      => 'first_name',
+					'label'    => 'First name',
+					'type'     => 'text',
+					'required' => 1,
+				),
+			)
+		);
+		unset( MockProvider::$profile['given_name'] );
+
+		$this->back( $this->start( '1' ) );
+
+		$this->assertSame( 'next', $this->data( $this->bridge(), 'kind' ), 'signed in, but not yet where a sign-in ends' );
+
+		$step = $this->resume();
+
+		$this->assertStringStartsWith( (string) get_permalink( $page ), $step );
+		$this->assertSame( '1', $this->queryArg( $step, DILUXONE_USERS_COMPLETE_VAR ) );
+
+		wp_delete_post( $page, true );
+	}
 }

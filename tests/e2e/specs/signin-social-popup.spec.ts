@@ -1,8 +1,8 @@
 import { BrowserContext, Locator, Page } from '@playwright/test';
 import { test, expect, expectSignedIn, expectSignedOut, stateOf } from '../support/fixtures';
-import { freshEmail } from '../support/api';
-import { accountSection, navigated, openAllPanels, registerScreen, signInWithPassword, ssoButton } from '../support/ui';
-import { MOCK_ON } from '../support/signin';
+import { codeIn, freshEmail, waitForMail } from '../support/api';
+import { accountSection, challengeScreen, navigated, openAllPanels, registerScreen, signInWithPassword, ssoButton } from '../support/ui';
+import { MOCK_ON, answerChallenge } from '../support/signin';
 
 /**
  * Signing in with a social account in a popup (includes/sso-popup.php).
@@ -237,6 +237,49 @@ test.describe('Social sign-in in a popup', () => {
 		expect(opened, 'no popup').toBe(false);
 		expect(visited[0], 'the button’s own trip, in this window').toMatch(TRIP_START);
 		expect(visited[0], 'not a popup trip').not.toContain('diluxone_users_popup');
+		await expectSignedIn(page, email);
+	});
+
+	/* ── C4: the second step and the required fields, on the page that opened it ── */
+
+	test('with the second step on, the popup closes and the page that opened it shows the code step', async ({ page, site, pages, options }) => {
+		await options.set({ diluxone_users_2fa_mode: 'required', diluxone_users_2fa_methods: ['email'] });
+
+		const email = freshEmail('popup-2fa');
+
+		await site.makeUser({ email, password: PASSWORD, meta: { diluxone_users_sso_mock: `mock|${email}` } });
+		await site.setIdentity({ sub: `mock|${email}`, email, email_verified: true });
+		await page.goto(pages.login.url);
+
+		await pressInPopup(page, ssoButton(page, 'mock'));
+
+		await expect(challengeScreen(page), 'the code step, on the page that opened the popup').toBeVisible();
+		await expectSignedOut(page);
+
+		await answerChallenge(page, codeIn(await waitForMail(site, email)));
+		await expectSignedIn(page, email);
+	});
+
+	test('with a required field missing, the popup closes and the page that opened it shows the fields step', async ({ page, site, pages, options }) => {
+		await options.set({
+			diluxone_users_fields: [
+				{ key: 'first_name', label: 'First name', type: 'text', required: 1, group: 'main', active: 1 },
+				{ key: 'last_name', label: 'Last name', type: 'text', required: 0, group: 'main', active: 1 },
+			],
+			diluxone_users_login_role: 'subscriber',
+		});
+
+		const email = freshEmail('popup-fields');
+
+		// No name from the network: the account comes in without its required field.
+		await site.setIdentity({ sub: `mock|${email}`, email, email_verified: true });
+		await page.goto(pages.login.url);
+
+		await pressInPopup(page, ssoButton(page, 'mock'));
+
+		expect(page.url().startsWith(pages.account.url), `on the account page, at ${page.url()}`).toBe(true);
+		expect(new URL(page.url()).searchParams.get('diluxone-users-complete'), 'the fields step').toBe('1');
+		await expect(page.locator('.diluxone-users-complete form.diluxone-users-form input[name="first_name"]')).toBeVisible();
 		await expectSignedIn(page, email);
 	});
 });
