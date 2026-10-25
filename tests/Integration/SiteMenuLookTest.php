@@ -181,7 +181,7 @@ class SiteMenuLookTest extends IntegrationTestCase {
 		$this->assertSame( 'link', diluxone_users_option( 'diluxone_users_menu_signin_style' ) );
 	}
 
-	/* ── "Sign in" in the site's own colours (C4) ─────────────────── */
+	/* ── "Sign in" in the site's own colours (C4, C5) ─────────────── */
 
 	/** The menu's inline CSS, for whoever is looking. */
 	private function menu_css(): string {
@@ -260,5 +260,43 @@ class SiteMenuLookTest extends IntegrationTestCase {
 		$this->assertSame( $before, $this->stored_colours() );
 		$this->assertStringContainsString( 'notice-error', $said );
 		$this->assertTrue( diluxone_users_menu_signin_palette_reads( diluxone_users_menu_signin_palette() ), 'what is stored reads' );
+	}
+
+	/** @return array<string, array{0: string}> */
+	public function not_colours(): array {
+		return array(
+			'a word'          => array( 'red' ),
+			'css let in'      => array( '#fff;}body{display:none' ),
+			'no hash'         => array( 'ffffff' ),
+			'too many digits' => array( '#1234567' ),
+			'empty'           => array( '' ),
+		);
+	}
+
+	/** @dataProvider not_colours */
+	public function test_a_colour_that_is_not_a_hex_colour_is_not_stored_and_keeps_its_value( string $sent ): void {
+		$this->the_admin();
+		diluxone_users_update_option( 'diluxone_users_menu_signin_bg', '#0b3d91' );
+
+		$this->send_panel(
+			'diluxone-users-account',
+			array(
+				'diluxone_users_menu_signin_colors' => 'own',
+				'diluxone_users_menu_signin_bg'     => $sent,
+				'diluxone_users_menu_signin_text'   => '#fefefe',
+			)
+		);
+		$said = $this->draw( 'diluxone_users_account_menu_save' );
+
+		$this->assertSame( '#0b3d91', diluxone_users_option( 'diluxone_users_menu_signin_bg' ) );
+		$this->assertSame( '#fefefe', diluxone_users_option( 'diluxone_users_menu_signin_text' ), 'the good one beside it is kept' );
+		$this->assertStringContainsString( 'notice-error', $said );
+
+		$this->chosen_menu();
+		wp_set_current_user( 0 );
+		diluxone_users_update_option( 'diluxone_users_menu_signin_style', 'filled' );
+		$css = $this->menu_css();
+		$this->assertStringContainsString( '--diluxone-users-menu-btn-bg:#0b3d91;', $css, 'the menu draws the colour it had' );
+		$this->assertStringNotContainsString( 'body{', $css );
 	}
 }
