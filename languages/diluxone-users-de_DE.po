@@ -597,7 +597,7 @@ msgstr "Registrierung"
 
 #: includes/admin-account.php:583
 #: includes/admin-login.php:1075
-#: includes/login-door.php:515
+#: includes/login-door.php:551
 #: includes/login-ways.php:621
 #: includes/pages.php:26
 #: includes/passwordless.php:245
@@ -2791,7 +2791,7 @@ msgid "Copy any file from the plugin’s templates/ folder into the folder below
 msgstr "Kopiere eine beliebige Datei aus dem Ordner templates/ des Plugins in den Ordner unten und bearbeite sie dort. Das Plugin nimmt dann deine."
 
 #: includes/admin-design.php:391
-#: includes/login-door.php:511
+#: includes/login-door.php:547
 #: includes/pages.php:36
 #: templates/hub-door.php:27
 #: templates/hub-door.php:30
@@ -7110,10 +7110,6 @@ msgstr "Wird verwendet, wenn die Form „Eine eigene Seite“ ist."
 msgid "Its address"
 msgstr "Ihre Adresse"
 
-#: includes/admin-login.php:1295
-msgid "Letters, numbers and dashes. Sign in, registration, the second step and a new password are all answered there, and an address you used before keeps sending people to it."
-msgstr "Buchstaben, Zahlen und Bindestriche. Anmeldung, Registrierung, der zweite Schritt und ein neues Passwort werden alle dort beantwortet, und eine früher verwendete Adresse leitet weiter dorthin."
-
 #. translators: %s: the address of the registration form on the sign-in page of its own
 #: includes/admin-register.php:309
 #, php-format
@@ -7140,30 +7136,30 @@ msgstr "Adresse ändern →"
 msgid "A page of its own, at %s."
 msgstr "Eine eigene Seite, unter %s."
 
-#: includes/login-door.php:219
+#: includes/login-door.php:253
 msgid "The sign-in page needs an address: letters, numbers and dashes."
 msgstr "Die Anmeldeseite braucht eine Adresse: Buchstaben, Zahlen und Bindestriche."
 
 #. translators: %s: what was typed
-#: includes/login-door.php:225
+#: includes/login-door.php:259
 #, php-format
 msgid "The address “%s” has to be one word, with no slashes: letters, numbers and dashes."
 msgstr "Die Adresse „%s“ muss ein einziges Wort ohne Schrägstriche sein: Buchstaben, Zahlen und Bindestriche."
 
 #. translators: %s: the address, as /sign-in
-#: includes/login-door.php:235
+#: includes/login-door.php:269
 #, php-format
 msgid "The address %s is one WordPress or the site already answers. Choose another."
 msgstr "Die Adresse %s beantworten WordPress oder die Website bereits. Wähle eine andere."
 
 #. translators: 1: the address, as /about/, 2: what has it, as: the page “About us”
-#: includes/login-door.php:245
+#: includes/login-door.php:281
 #, php-format
 msgid "The address %1$s is already %2$s. Choose another, or give that one another address first."
 msgstr "Die Adresse %1$s ist bereits vergeben an %2$s. Wähle eine andere oder gib jenem zuerst eine andere Adresse."
 
 #. translators: 1: a kind of content, "page" or "post", 2: its title
-#: includes/login-door.php:279
+#: includes/login-door.php:315
 #, php-format
 msgid "the %1$s “%2$s”"
 msgstr "den Inhalt „%2$s“ (%1$s)"
@@ -7294,3 +7290,7 @@ msgstr "Am Ende, bei den anderen Einträgen"
 #: includes/site-menu.php:115
 msgid "Set apart, at the far end"
 msgstr "Abgesetzt, am äußersten Ende"
+
+#: includes/admin-login.php:1295
+msgid "Letters, numbers and dashes. Until you type one, it is the address of the page chosen as the sign-in page, or /sign-in/ when there is none. Sign in, registration, the second step and a new password are all answered there, and an address you used before keeps sending people to it."
+msgstr "Buchstaben, Zahlen und Bindestriche. Solange du keine eingibst, ist es die Adresse der als Anmeldeseite gewählten Seite, oder /sign-in/, wenn es keine gibt. Anmeldung, Registrierung, der zweite Schritt und ein neues Passwort werden alle dort beantwortet, und eine früher verwendete Adresse leitet weiter dorthin."

@@ -78,7 +78,9 @@ test.describe('Sign in › A page of its own', () => {
 	});
 
 	test('C4: an address a page already has is refused, naming the page, and nothing is written', async ({ page, pages, site }) => {
-		const taken = new URL(pages.login.url).pathname.replace(/^\/|\/$/g, '');
+		// Any page but the chosen sign-in page: its own path is the address the
+		// page of its own takes over (#116), not one it shadows.
+		const taken = new URL(pages.account.url).pathname.replace(/^\/|\/$/g, '');
 
 		await page.goto(adminUrl('diluxone-users-design', 'login'));
 		await page.locator('input[name="diluxone_users_login_template"][value="own"]').check({ force: true });
