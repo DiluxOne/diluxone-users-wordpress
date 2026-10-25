@@ -1,6 +1,6 @@
 import { test, expect, whoOn, toTheHub } from './support';
 import { freshEmail, linkIn, waitForMail } from '../support/api';
-import { ssoButton } from '../support/ui';
+import { navigated, ssoButton } from '../support/ui';
 import { stateOf } from '../support/fixtures';
 
 /**
@@ -43,7 +43,8 @@ test('from /beta/, an unconfirmed address waits on the hub, and the link opened 
 	const first = await (await browser.newContext()).newPage();
 
 	await toTheHub(first, beta, hub);
-	await ssoButton(first, 'mock').click();
+	// The trip runs in a popup; the hub's page moves when it closes.
+	await navigated(first, () => ssoButton(first, 'mock').click());
 	await first.waitForURL((url) => url.href.startsWith(hub.pages.login.url), { waitUntil: 'domcontentloaded' });
 
 	// C1 on the hub: the holding screen, nothing created.
