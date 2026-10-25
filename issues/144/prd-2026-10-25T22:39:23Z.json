@@ -1,0 +1,8 @@
+{
+  "kind": "prd-seal",
+  "issue": 144,
+  "prd_sha256": "eaa5835ef3c103afca2f4719485b0318625ffc12cb591bcb69787d5225be232b",
+  "accepted_by": "policy (lane bugfix-reproduced)",
+  "at": "2026-10-25T22:39:23Z",
+  "policy": "DiluxOne/.github@3737ced3ad41"
+}
