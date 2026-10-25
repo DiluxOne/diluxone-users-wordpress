@@ -10,6 +10,15 @@
  * moment changes: the system's dark mode turning on, or the theme's own switch
  * changing a class, a `data-theme` or a style on <html> or <body>. What is
  * kept is kept once per scheme, so a dark page starts with the dark answer.
+ *
+ * A site with a switch of its own may say how it marks dark (`signal`, from
+ * Design › Your brand): then the scheme is the one that signal says, and the
+ * device's only when the page has neither the dark nor the light one (with
+ * no light one, a page without the dark one is light). The
+ * scheme seen last is kept too, for the sign-in page of its own (`door`),
+ * which has no theme template for the switch to run in: there nothing is
+ * measured, and what the site's pages measured for the scheme in force is
+ * applied instead.
  */
 ( function () {
 	'use strict';
@@ -22,6 +31,8 @@
 
 	var roles = config.roles;
 	var key = config.key;
+	var signal = config.signal || null;
+	var door = !! config.door && !! signal;
 	var doc = document;
 	var root = doc.documentElement;
 	var host = doc.querySelector( '.entry-content, main, #primary, #content, .site-content' ) || doc.body;
@@ -86,8 +97,57 @@
 	var watcher = null;
 	var pending = false;
 
+	function element( s ) {
+		return s.on === 'body' ? doc.body : root;
+	}
+
+	function has( s ) {
+		var el = s && element( s );
+		if ( ! el ) {
+			return false;
+		}
+		if ( s.kind === 'class' ) {
+			return el.classList.contains( s.name );
+		}
+		return el.hasAttribute( s.name ) && ( s.value === null || el.getAttribute( s.name ) === s.value );
+	}
+
+	function remembered() {
+		try {
+			var m = localStorage.getItem( key + ':scheme' );
+			return m === 'dark' || m === 'light' ? m : '';
+		} catch ( e ) {
+			return '';
+		}
+	}
+
 	function scheme() {
+		if ( signal ) {
+			if ( has( signal.dark ) ) {
+				return 'dark';
+			}
+			if ( has( signal.light ) ) {
+				return 'light';
+			}
+			if ( door ) {
+				// The site's switch may not run here: the scheme it showed last.
+				if ( remembered() ) {
+					return remembered();
+				}
+			} else if ( ! signal.light ) {
+				// Only a dark signal: a page without it is light.
+				return 'light';
+			}
+		}
 		return dark && dark.matches ? 'dark' : 'light';
+	}
+
+	function stored( s ) {
+		try {
+			return JSON.parse( localStorage.getItem( key + ':' + s ) || 'null' ) || {};
+		} catch ( e ) {
+			return {};
+		}
 	}
 
 	function measure() {
@@ -109,9 +169,24 @@
 		};
 	}
 
-	function apply() {
-		pending = false;
+	// The page of its own: what the site's pages kept for this scheme, and
+	// nothing of a scheme it is not in.
+	function keptHere() {
+		var all = stored( scheme() );
+		var kept = {};
 
+		roles.forEach( function ( r ) {
+			[ r, r === 'accent' ? 'accent-bg' : '' ].forEach( function ( p ) {
+				if ( p ) {
+					kept[ p ] = all[ p ] || '';
+				}
+			} );
+		} );
+
+		return kept;
+	}
+
+	function measured() {
 		var found = measure();
 		var kept = {};
 
@@ -125,11 +200,23 @@
 			}
 		} );
 
-		var json = JSON.stringify( kept );
+		var now = scheme();
 
 		try {
-			localStorage.setItem( key + ':' + scheme(), json );
+			localStorage.setItem( key + ':' + now, JSON.stringify( kept ) );
+			if ( signal ) {
+				localStorage.setItem( key + ':scheme', now );
+			}
 		} catch ( e ) {}
+
+		return kept;
+	}
+
+	function apply() {
+		pending = false;
+
+		var kept = door ? keptHere() : measured();
+		var json = JSON.stringify( kept );
 
 		if ( json === last ) {
 			return;
@@ -142,7 +229,11 @@
 			watcher.disconnect();
 		}
 		Object.keys( kept ).forEach( function ( r ) {
-			root.style.setProperty( '--diluxone-users-' + r, kept[ r ] );
+			if ( kept[ r ] ) {
+				root.style.setProperty( '--diluxone-users-' + r, kept[ r ] );
+			} else {
+				root.style.removeProperty( '--diluxone-users-' + r );
+			}
 		} );
 		if ( watcher ) {
 			watch();
@@ -160,7 +251,15 @@
 	}
 
 	function watch() {
-		var what = { attributes: true, attributeFilter: [ 'class', 'data-theme', 'style' ] };
+		var names = [ 'class', 'data-theme', 'style' ];
+		if ( signal ) {
+			[ signal.dark, signal.light ].forEach( function ( s ) {
+				if ( s && s.kind === 'attr' && names.indexOf( s.name ) < 0 ) {
+					names.push( s.name );
+				}
+			} );
+		}
+		var what = { attributes: true, attributeFilter: names };
 		watcher.observe( root, what );
 		if ( doc.body ) {
 			watcher.observe( doc.body, what );
@@ -180,5 +279,11 @@
 	if ( window.MutationObserver ) {
 		watcher = new MutationObserver( again );
 		watch();
+	}
+
+	// A site's switch may print after this, or set its signal once the
+	// document is read: once more then.
+	if ( signal && doc.readyState === 'loading' ) {
+		doc.addEventListener( 'DOMContentLoaded', again );
 	}
 }() );
