@@ -133,4 +133,25 @@ test.describe('A social address confirmed by mail', () => {
 		await expect(notice(page, 'error')).toBeVisible();
 		expect((await site.user(email)).exists, 'nothing created').toBe(false);
 	});
+
+	test('with “Only verified addresses” off, silence signs in as before and nothing is mailed', async ({
+		page,
+		site,
+		pages,
+		options,
+	}) => {
+		await options.set({ diluxone_users_sso_verified_only: 0 });
+
+		const email = freshEmail('sso-pending-off');
+
+		await site.setIdentity({ sub: `mock|${email}`, email });
+
+		await page.goto(pages.login.url);
+		await ssoButton(page, 'mock').click();
+
+		await expectSignedIn(page, email);
+		expect(stateOf(page.url())).not.toBe('social-pending');
+		expect((await site.user(email)).meta.diluxone_users_sso_mock).toBe(`mock|${email}`);
+		expect(await site.mail(email), 'no confirmation mail').toEqual([]);
+	});
 });

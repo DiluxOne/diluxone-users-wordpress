@@ -67,6 +67,9 @@ class SsoIdentityTest extends TestCase {
 	}
 
 	public function test_a_new_account_needs_only_the_absence_of_a_no(): void {
+		// "Only verified addresses" off, saved that way.
+		update_option( 'diluxone_users_sso_verified_only', 0 );
+
 		$this->assertTrue( diluxone_users_sso_email_trusted( array( 'verified' => true ), false ) );
 		$this->assertTrue( diluxone_users_sso_email_trusted( array( 'verified' => null ), false ) );
 		$this->assertFalse( diluxone_users_sso_email_trusted( array( 'verified' => false ), false ) );
@@ -77,5 +80,42 @@ class SsoIdentityTest extends TestCase {
 
 		$this->assertTrue( diluxone_users_sso_email_trusted( array( 'verified' => true ), false ) );
 		$this->assertFalse( diluxone_users_sso_email_trusted( array( 'verified' => null ), false ) );
+	}
+
+	public function test_with_verified_only_off_nothing_changes(): void {
+		update_option( 'diluxone_users_sso_verified_only', 0 );
+
+		// Exactly the answers of before: a yes opens both, silence only a new
+		// account, a no neither.
+		$this->assertTrue( diluxone_users_sso_email_trusted( array( 'verified' => true ), true ) );
+		$this->assertFalse( diluxone_users_sso_email_trusted( array( 'verified' => null ), true ) );
+		$this->assertFalse( diluxone_users_sso_email_trusted( array( 'verified' => false ), true ) );
+		$this->assertTrue( diluxone_users_sso_email_trusted( array( 'verified' => true ), false ) );
+		$this->assertTrue( diluxone_users_sso_email_trusted( array( 'verified' => null ), false ) );
+		$this->assertFalse( diluxone_users_sso_email_trusted( array( 'verified' => false ), false ) );
+	}
+
+	public function test_an_address_proved_by_mail_is_trusted_whatever_the_provider_said(): void {
+		update_option( 'diluxone_users_sso_verified_only', 1 );
+
+		foreach ( array( true, null, false ) as $verified ) {
+			$this->assertTrue( diluxone_users_sso_email_trusted( array( 'verified' => $verified, 'proved' => true ), true ) );
+			$this->assertTrue( diluxone_users_sso_email_trusted( array( 'verified' => $verified, 'proved' => true ), false ) );
+		}
+	}
+
+	public function test_only_a_real_true_counts_as_proved(): void {
+		update_option( 'diluxone_users_sso_verified_only', 1 );
+
+		$this->assertFalse( diluxone_users_sso_email_trusted( array( 'verified' => null, 'proved' => 1 ), true ) );
+		$this->assertFalse( diluxone_users_sso_email_trusted( array( 'verified' => null, 'proved' => 'yes' ), false ) );
+	}
+
+	public function test_what_a_provider_sends_never_carries_the_proof(): void {
+		Monkey\Functions\stubs( array( 'sanitize_email' ) );
+
+		$clean = diluxone_users_sso_clean( array( 'id' => '1', 'email' => 'a@example.test', 'proved' => true ) );
+
+		$this->assertArrayNotHasKey( 'proved', $clean );
 	}
 }
