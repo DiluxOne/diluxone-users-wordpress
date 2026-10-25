@@ -669,7 +669,10 @@ body.diluxone-users-door {
 .diluxone-users-door__site { margin: 0 0 20px; font-size: 22px; font-weight: 700; text-align: center; }
 .diluxone-users-door__site a,
 .diluxone-users-door__back a { color: inherit; text-decoration: none; }
-.diluxone-users-door__back { margin: 20px 0 0; font-size: 14px; color: var(--diluxone-users-muted); }
+/* The back link sits on the door's ground, not on the card that the muted
+   colour is worked out against, so it takes the text's colour, as the site's
+   name in its place does: it reads wherever the main text reads. */
+.diluxone-users-door__back { margin: 20px 0 0; font-size: 14px; color: var(--diluxone-users-text); }
 .diluxone-users-login-frame--own { margin-inline: 0; padding: 0; }
 
 /* Inside a column this narrow, two social buttons side by side wrap their

@@ -195,3 +195,36 @@ export async function drawnIn(page: Page, selector: string): Promise<'dark' | 'l
 
 	return light(first.ground) < light(first.text) ? 'dark' : 'light';
 }
+
+/**
+ * A theme whose own stylesheet flips its colours under
+ * `prefers-color-scheme: dark` (the stand-in of `repro/issue-113`): it paints
+ * `html` and `body` with its variables and names the two grounds, as the
+ * plugin prints them for a theme whose palette says which colour is the
+ * ground. The text roles are left to what the page measures.
+ */
+export const STAND_IN_THEME = `<style id="stand-in-theme">
+:root{--cst-fondo:#ffffff;--cst-fondo-alt:#f5f6f8;--cst-texto:#1b1d22;--cst-texto-tenue:#4a505c}
+@media (prefers-color-scheme: dark){:root{--cst-fondo:#15171c;--cst-fondo-alt:#1c1f26;--cst-texto:#e6e8ec;--cst-texto-tenue:#aeb4c0}}
+html,body{background:var(--cst-fondo);color:var(--cst-texto)}
+:root{--diluxone-users-surface:var(--cst-fondo);--diluxone-users-surface-alt:var(--cst-fondo-alt)}
+</style>`;
+
+/** Serves the page at `pathname` with the stand-in theme in its head. */
+export async function wearStandIn(page: Page, pathname: string): Promise<void> {
+	await page.route(
+		(url) => url.pathname === pathname,
+		async (route) => {
+			const response = await route.fetch();
+
+			await route.fulfill({ response, body: (await response.text()).replace('</head>', `${STAND_IN_THEME}</head>`) });
+		}
+	);
+}
+
+/** What is wrong with what the selector finds: missing, or under the bar against the ground behind it. */
+export async function unreadableOn(page: Page, name: string, selector: string, bar = 4.5): Promise<string[]> {
+	const all = await readings(page, selector);
+
+	return all.length === 0 ? [`${name}: not on the page`] : unreadable(all, bar).map((line) => `${name}: ${line}`);
+}
