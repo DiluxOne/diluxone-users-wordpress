@@ -910,6 +910,21 @@ added. So the measurements are properties too, not only the colours:
 | `--diluxone-users-note-mark` | The drawing's own colour | the note's |
 | `--diluxone-users-card-edge` | The centred card's edge, kept at 3:1 or more against the page | the text at 65% over the surface |
 | `--diluxone-users-field-gap` | Between two fields of a form, and the centred card's rhythm (the note under the e-mail form, the small print) | `18px` |
+| `--diluxone-users-menu-btn-bg` | "Sign in" as a button in the site's own colours (Account › In the site menu): its ground | from the admin |
+| `--diluxone-users-menu-btn-text` | Its text | from the admin |
+| `--diluxone-users-menu-btn-border` | Its border | from the admin |
+| `--diluxone-users-menu-btn-hover` | Its ground on hover and focus | from the admin |
+| `--diluxone-users-menu-gap` | In the site's menu, before the plugin's first item; set apart, the least it keeps (600px up) | none |
+| `--diluxone-users-menu-inner-gap` | Between two of the plugin's items side by side there (600px up) | none |
+
+The plugin's items in the site's own menu carry `diluxone-users-menu` and one
+of `diluxone-users-menu--sign-in`, `--join`, `--person` (with
+`menu-item-has-children`), `--invite`, `--dashboard` or `--sign-out`. "Sign in"
+drawn as a button adds `diluxone-users-menu--button` and `--filled` or
+`--outlined`, and its link `wp-element-button` with the theme's colours or
+`diluxone-users-menu--own` on the item with the site's own. With a position or
+a spacing chosen, the first of the plugin's top-level items carries
+`diluxone-users-menu--first` and each after it `diluxone-users-menu--next`.
 
 The last two are also asked from the admin — Design → Your brand — so a site
 that is not writing CSS at all still gets them. Everything on this page can be
