@@ -78,6 +78,19 @@ class LoginDoorTest extends TestCase {
 		$this->assertSame( 'sign-in', diluxone_users_login_slug(), 'never no address' );
 	}
 
+	public function test_c4_an_address_typed_wins_over_both_defaults(): void {
+		// A site in Spanish, with a sign-in page chosen.
+		update_option( 'WPLANG', 'es_ES' );
+		update_option( 'diluxone_users_login_page', 12 );
+		Functions\when( 'determine_locale' )->justReturn( 'es_ES' );
+		Functions\when( '_x' )->justReturn( 'acceder' );
+		Functions\expect( 'get_post' )->never();
+
+		update_option( 'diluxone_users_login_slug', 'Puerta' );
+
+		$this->assertSame( 'puerta', diluxone_users_login_slug() );
+	}
+
 	public function test_the_address_is_sign_in_until_another_is_chosen(): void {
 		$this->assertSame( 'sign-in', diluxone_users_login_slug() );
 

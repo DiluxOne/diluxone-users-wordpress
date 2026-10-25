@@ -469,6 +469,44 @@ class LoginDoorTest extends IntegrationTestCase {
 		return $said;
 	}
 
+	public function test_c4_an_address_typed_wins_over_both_defaults(): void {
+		update_option( 'WPLANG', 'es_ES' );
+
+		$page = (int) wp_insert_post(
+			array(
+				'post_type'   => 'page',
+				'post_status' => 'publish',
+				'post_title'  => 'Entrar',
+				'post_name'   => 'entrar',
+			)
+		);
+		diluxone_users_update_option( 'diluxone_users_login_page', $page );
+		diluxone_users_update_option( 'diluxone_users_login_slug', 'puerta' );
+
+		$this->assertSame( 'puerta', diluxone_users_login_slug() );
+		$this->assertSame( home_url( '/puerta/' ), diluxone_users_login_url() );
+
+		$rules = $this->rules();
+
+		$this->assertSame( 'index.php?diluxone_users_door=login', $rules['^puerta/?$'] ?? '' );
+		$this->assertArrayNotHasKey( '^entrar/?$', $rules, 'not the page’s address' );
+		$this->assertArrayNotHasKey( '^acceder/?$', $rules, 'nor the translated one' );
+
+		// The page chosen is served at its own address, and sends people to it.
+		$this->as_front_end();
+		$GLOBALS['wp_query']     = new \WP_Query( array( 'page_id' => $page ) );
+		$GLOBALS['wp_the_query'] = $GLOBALS['wp_query'];
+
+		$this->assertSame( home_url( '/puerta/' ), $this->expectRedirect( 'diluxone_users_door_pages' ) );
+
+		ob_start();
+		diluxone_users_screen_login_door( 'own' );
+		$html = (string) ob_get_clean();
+
+		$this->assertStringContainsString( 'value="puerta"', $html, 'what was typed, as typed' );
+		$this->assertStringContainsString( '<code>/entrar/</code>', $html, 'and the address emptying it would give' );
+	}
+
 	public function test_c4_an_address_a_page_already_has_is_refused_naming_the_page(): void {
 		diluxone_users_update_option( 'diluxone_users_login_template', 'card' );
 
