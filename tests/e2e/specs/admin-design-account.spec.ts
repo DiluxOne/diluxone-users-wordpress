@@ -331,6 +331,32 @@ test.describe('Design › The account area', () => {
 });
 
 test.describe('Design › The account area › the live preview', () => {
+	test('“above and below” is the room above the area’s first row and under the taller of menu and content, in every layout', async ({ guest, pages, options }) => {
+		const ROOM = 36;
+
+		for (const layout of ['tabs', 'side']) {
+			for (const header of [1, 0]) {
+				await options.set({ diluxone_users_account_layout: layout, diluxone_users_account_header: header, diluxone_users_account_body_pad: String(ROOM) });
+				await guest.goto(pages.account.url);
+				await expect(area(guest)).toBeVisible();
+
+				const gaps = await guest.evaluate(() => {
+					const box = (selector: string) => document.querySelector(selector)?.getBoundingClientRect();
+					const whole = box('.diluxone-users-account')!;
+					const first = box('.diluxone-users-account__header') ?? box('.diluxone-users-account__bar') ?? box('.diluxone-users-account__body')!;
+					const ends = [...document.querySelectorAll('.diluxone-users-account__nav .diluxone-users-account__tab, .diluxone-users-account__section')].map((element) => element.getBoundingClientRect().bottom);
+
+					return { above: first.top - whole.top, below: whole.bottom - Math.max(...ends) };
+				});
+
+				const where = `${layout}, ${header ? 'with' : 'without'} the header`;
+
+				expect(Math.abs(gaps.above - ROOM), `${where}: the room above its first row`).toBeLessThanOrEqual(1);
+				expect(gaps.below, `${where}: the room under the taller of menu and content`).toBeGreaterThanOrEqual(ROOM - 1);
+			}
+		}
+	});
+
 	test('“a menu down the side”, chosen and not saved, is drawn as a column in the stage; nothing is stored', async ({ page, site }) => {
 		await page.goto(TAB);
 		await expect.poll(async () => (await stage(page)).locator('.diluxone-users-account__nav').getAttribute('class').catch(() => '')).toContain('--row');
