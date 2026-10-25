@@ -895,7 +895,8 @@ added. So the measurements are properties too, not only the colours:
 | `--diluxone-users-border-w` | A control's edge — inputs and buttons | `1px` |
 | `--diluxone-users-accent-soft` | The accent with the volume down | the accent at 12% |
 | `--diluxone-users-panel-gap` | Between the rows of a panel's body | `normal` |
-| `--diluxone-users-body-top` | Above the content | none |
+| `--diluxone-users-body-top` | Above the account area's first row, the header or the menu | none; from the admin |
+| `--diluxone-users-body-bottom` | Under the taller of the side menu and the content, to the end of the area | none; from the admin |
 | `--diluxone-users-ground` | The colour the whole account area sits on | none; with Colours › the theme's, a tint of the surface and text |
 | `--diluxone-users-row-w` | The width the area's three rows line up to | from the admin |
 | `--diluxone-users-row-pad` | And the gutter inside them | from the admin |

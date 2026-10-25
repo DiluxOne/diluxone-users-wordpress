@@ -1,5 +1,6 @@
 import { test, expect, toTheHub } from './support';
-import { savePanel } from '../support/ui';
+import { savePanel, signInWithPassword } from '../support/ui';
+import { freshEmail } from '../support/api';
 import { resolvedColour, rgb } from '../support/admin-content';
 import { NETWORK_ADMIN_STATE } from '../../../playwright.network.config';
 
@@ -10,6 +11,8 @@ import { NETWORK_ADMIN_STATE } from '../../../playwright.network.config';
  */
 
 test.use({ storageState: NETWORK_ADMIN_STATE });
+
+const PASSWORD = 'e2e-DesignHub-1!';
 
 test('the hub’s sign-in words and accent are what somebody sent from /alpha/ meets, and /alpha/’s door wears the same accent', async ({ page, guest, hub, alpha }) => {
 	await hub.keep(['diluxone_users_login_title', 'diluxone_users_style_accent', 'diluxone_users_styles', 'diluxone_users_colors']);
@@ -47,4 +50,37 @@ test('with no logo set on the hub, its switch is off and its link opens the hub�
 	await page.getByRole('link', { name: 'It is set on Your brand →' }).click();
 	await expect(page).toHaveURL(/page=diluxone-users-design&tab=brand/);
 	expect(page.url().startsWith(hub.url)).toBe(true);
+});
+
+test('the hub’s “above and below” is the room above its account area’s header and under the taller of the side menu and the content', async ({ page, hub }) => {
+	const ROOM = 36;
+
+	await hub.keep(['diluxone_users_account_template', 'diluxone_users_account_layout', 'diluxone_users_account_header', 'diluxone_users_account_body_pad', 'diluxone_users_2fa_mode']);
+	await hub.set({
+		diluxone_users_account_template: 'plain',
+		diluxone_users_account_layout: 'side',
+		diluxone_users_account_header: 1,
+		diluxone_users_account_body_pad: String(ROOM),
+		diluxone_users_2fa_mode: 'off',
+	});
+
+	const email = freshEmail('net-body-pad');
+
+	await hub.site.makeUser({ email, password: PASSWORD });
+	await page.context().clearCookies();
+	await page.goto(hub.pages.login.url);
+	await signInWithPassword(page, email, PASSWORD);
+	await page.goto(hub.pages.account.url);
+	await expect(page.locator('.diluxone-users-account__header')).toBeVisible();
+
+	const gaps = await page.evaluate(() => {
+		const whole = document.querySelector('.diluxone-users-account')!.getBoundingClientRect();
+		const header = document.querySelector('.diluxone-users-account__header')!.getBoundingClientRect();
+		const ends = [...document.querySelectorAll('.diluxone-users-account__nav .diluxone-users-account__tab, .diluxone-users-account__section')].map((element) => element.getBoundingClientRect().bottom);
+
+		return { above: header.top - whole.top, below: whole.bottom - Math.max(...ends) };
+	});
+
+	expect(Math.abs(gaps.above - ROOM), 'the room above the header').toBeLessThanOrEqual(1);
+	expect(gaps.below, 'the room under the taller of menu and content').toBeGreaterThanOrEqual(ROOM - 1);
 });
