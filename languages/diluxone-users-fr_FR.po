@@ -597,7 +597,7 @@ msgstr "Inscription"
 
 #: includes/admin-account.php:583
 #: includes/admin-login.php:1075
-#: includes/login-door.php:551
+#: includes/login-door.php:564
 #: includes/login-ways.php:621
 #: includes/pages.php:26
 #: includes/passwordless.php:245
@@ -1847,55 +1847,55 @@ msgstr "Copiez la « Valeur » du secret, pas son « ID de secret ». La valeur 
 msgid "The openid, email and profile permissions are already there by default — you do not have to add anything under “API permissions”."
 msgstr "Les permissions openid, email et profile sont déjà là par défaut — vous n’avez rien à ajouter dans « Autorisations d’API »."
 
-#: includes/sso.php:849
+#: includes/sso.php:896
 msgid "The provider did not hand over an access token. Check the client ID and the secret."
 msgstr "Le fournisseur n’a pas délivré de jeton d’accès. Vérifiez l’identifiant client et le secret."
 
-#: includes/sso.php:860
+#: includes/sso.php:907
 msgid "The token worked but the profile came back empty. The app is probably missing the permissions this provider needs."
 msgstr "Le jeton a fonctionné mais le profil est revenu vide. Il manque probablement à l’application les permissions dont ce fournisseur a besoin."
 
 #. translators: %s: name of the social network
-#: includes/sso.php:893
+#: includes/sso.php:940
 #, php-format
 msgid "The %s account was linked, and it now gets into this account."
 msgstr "Le compte %s a été lié, et il ouvre désormais ce compte."
 
 #. translators: %s: name of the social network
-#: includes/sso.php:958
+#: includes/sso.php:1010
 #, php-format
 msgid "The %s account was unlinked."
 msgstr "Le compte %s a été délié."
 
-#: includes/sso.php:999
+#: includes/sso.php:1051
 msgid "It works"
 msgstr "Ça marche"
 
-#: includes/sso.php:1000
+#: includes/sso.php:1052
 msgid "It did not work"
 msgstr "Ça n’a pas marché"
 
 #. translators: %s: provider name
-#: includes/sso.php:1005
+#: includes/sso.php:1057
 #, php-format
 msgid "The round trip with %s finished correctly. You can enable the button now."
 msgstr "L’aller-retour avec %s s’est terminé correctement. Vous pouvez activer le bouton."
 
 #. translators: %s: provider name
-#: includes/sso.php:1010
+#: includes/sso.php:1062
 #, php-format
 msgid "The round trip with %s failed."
 msgstr "L’aller-retour avec %s a échoué."
 
 #. translators: %s: e-mail address
-#: includes/sso.php:1016
+#: includes/sso.php:1068
 #, php-format
 msgid "The provider handed over this email: %s"
 msgstr "Le fournisseur a délivré cet e-mail : %s"
 
 #: includes/admin-fields.php:706
 #: includes/admin-panels.php:841
-#: includes/sso.php:1041
+#: includes/sso.php:1093
 #: templates/sessions.php:67
 msgid "Close"
 msgstr "Fermer"
@@ -2199,7 +2199,7 @@ msgstr "Non lié"
 msgid "Unlink"
 msgstr "Délier"
 
-#: templates/accounts.php:79
+#: templates/accounts.php:85
 msgid "Link"
 msgstr "Lier"
 
@@ -2791,7 +2791,7 @@ msgid "Copy any file from the plugin’s templates/ folder into the folder below
 msgstr "Copiez n'importe quel fichier du dossier templates/ de l'extension dans le dossier ci-dessous et modifiez-le là. L'extension utilisera le vôtre."
 
 #: includes/admin-design.php:391
-#: includes/login-door.php:547
+#: includes/login-door.php:560
 #: includes/pages.php:36
 #: templates/hub-door.php:27
 #: templates/hub-door.php:30
@@ -7136,30 +7136,30 @@ msgstr "Changer l’adresse →"
 msgid "A page of its own, at %s."
 msgstr "Une page à part, sur %s."
 
-#: includes/login-door.php:253
+#: includes/login-door.php:261
 msgid "The sign-in page needs an address: letters, numbers and dashes."
 msgstr "La page de connexion a besoin d’une adresse : lettres, chiffres et tirets."
 
 #. translators: %s: what was typed
-#: includes/login-door.php:259
+#: includes/login-door.php:267
 #, php-format
 msgid "The address “%s” has to be one word, with no slashes: letters, numbers and dashes."
 msgstr "L’adresse « %s » doit être un seul mot, sans barres obliques : lettres, chiffres et tirets."
 
 #. translators: %s: the address, as /sign-in
-#: includes/login-door.php:269
+#: includes/login-door.php:277
 #, php-format
 msgid "The address %s is one WordPress or the site already answers. Choose another."
 msgstr "L’adresse %s est déjà utilisée par WordPress ou par le site. Choisissez-en une autre."
 
 #. translators: 1: the address, as /about/, 2: what has it, as: the page “About us”
-#: includes/login-door.php:281
+#: includes/login-door.php:287
 #, php-format
 msgid "The address %1$s is already %2$s. Choose another, or give that one another address first."
 msgstr "L’adresse %1$s est déjà celle de %2$s. Choisissez-en une autre, ou donnez d’abord une autre adresse à ce contenu."
 
 #. translators: 1: a kind of content, "page" or "post", 2: its title
-#: includes/login-door.php:315
+#: includes/login-door.php:328
 #, php-format
 msgid "the %1$s “%2$s”"
 msgstr "le contenu « %2$s » (%1$s)"
@@ -7294,3 +7294,7 @@ msgstr "À part, à l’extrémité"
 #: includes/admin-login.php:1295
 msgid "Letters, numbers and dashes. Until you type one, it is the address of the page chosen as the sign-in page, or /sign-in/ when there is none. Sign in, registration, the second step and a new password are all answered there, and an address you used before keeps sending people to it."
 msgstr "Lettres, chiffres et tirets. Tant que vous n’en saisissez pas, c’est l’adresse de la page choisie comme page de connexion, ou /sign-in/ s’il n’y en a pas. La connexion, l’inscription, la deuxième étape et le nouveau mot de passe y sont tous traités, et une adresse utilisée auparavant continue d’y renvoyer."
+
+#: includes/sso-popup.php:281
+msgid "Back to the site"
+msgstr "Retour au site"
