@@ -3,7 +3,7 @@ import { execFileSync } from 'node:child_process';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { test, expect, expectSignedIn, signedInAs, stateOf } from '../support/fixtures';
 import { Site, freshEmail, linkIn, waitForMail } from '../support/api';
-import { accountSection, adminUrl, savePanel, signInWithPassword, ssoButton } from '../support/ui';
+import { accountSection, adminUrl, savePanel, signInWithPassword, navigated, ssoButton } from '../support/ui';
 import { ADMIN_STATE } from '../../../playwright.config';
 import { PASSWORD, devWp, formOf, nonceOf, postByHand, reveal, send, signedIn } from '../support/my-account';
 
@@ -414,7 +414,7 @@ test.describe('Closing an account', () => {
 			// The social identity it had does not open it.
 			await site.setIdentity({ sub, email, email_verified: true });
 			await page.goto(pages.login.url);
-			await ssoButton(page, 'mock').click();
+			await navigated(page, () => ssoButton(page, 'mock').click());
 			await page.waitForLoadState('domcontentloaded');
 
 			const who = await signedInAs(page);

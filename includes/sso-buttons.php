@@ -118,8 +118,22 @@ function diluxone_users_sso_button( string $id, array $provider, string $url = '
 	$text = diluxone_users_sso_button_text( $provider );
 	$icon = diluxone_users_sso_icon( $id );
 
+	// A live button also says where its popup goes and where the page that
+	// opened it resumes (sso-popup.php); the href stays the whole-window trip.
+	$popup = '';
+
+	if ( '' !== $url ) {
+		diluxone_users_sso_enqueue_popup();
+
+		$popup = sprintf(
+			' data-diluxone-users-sso-popup="%1$s" data-diluxone-users-sso-resume="%2$s"',
+			esc_url( diluxone_users_sso_popup_url( $url, diluxone_users_sso_on_door() ) ),
+			esc_url( diluxone_users_sso_resume_url( $id ) )
+		);
+	}
+
 	return sprintf(
-		'<a class="diluxone-users-social diluxone-users-social--%1$s" style="--diluxone-users-brand: %2$s" href="%3$s"%4$s>%5$s<span class="diluxone-users-social__text">%6$s</span></a>',
+		'<a class="diluxone-users-social diluxone-users-social--%1$s" style="--diluxone-users-brand: %2$s" href="%3$s"%4$s%7$s>%5$s<span class="diluxone-users-social__text">%6$s</span></a>',
 		esc_attr( $id ),
 		// A colour and not "whatever is in that key": it is printed inside a
 		// `style` attribute, where `esc_attr` stops the attribute being broken
@@ -129,7 +143,8 @@ function diluxone_users_sso_button( string $id, array $provider, string $url = '
 		'' === $url ? '#' : esc_url( $url ),
 		'' === $url ? ' tabindex="-1" aria-hidden="true"' : '',
 		$icon,
-		esc_html( $text )
+		esc_html( $text ),
+		$popup
 	);
 }
 

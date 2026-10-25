@@ -329,3 +329,115 @@ function diluxone_users_theme_colors_css(): string {
 
 	return '' === $tokens ? '' : ':root{' . $tokens . '}';
 }
+
+/**
+ * How the site says it is dark, read from what the admin typed.
+ *
+ * Two answers: `.is-dark`, a class, or `data-theme`, `data-theme="dark"`,
+ * `data-theme=dark`, an attribute with or without the value it must have.
+ * Nothing else, because the plugin writes it onto the page of its own as it
+ * is: a class name, or an attribute name and a value, each from a short list
+ * of characters. An attribute that runs code or paints (`on…`, `style`) is no
+ * signal, nor is `class` (that is what the dot is for), nor a value with a
+ * quote or a bracket in it.
+ *
+ * @param string $on   Where it goes: 'html' or 'body'.
+ * @param string $text What was typed.
+ * @return array{on: string, kind: string, name: string, value: ?string}|null Null when it is not one.
+ */
+function diluxone_users_dark_signal_parse( string $on, string $text ): ?array {
+	$text = trim( $text );
+
+	if ( ! in_array( $on, array( 'html', 'body' ), true ) || '' === $text ) {
+		return null;
+	}
+
+	if ( preg_match( '/^\.([A-Za-z_-][A-Za-z0-9_-]*)$/', $text, $class ) ) {
+		return array(
+			'on'    => $on,
+			'kind'  => 'class',
+			'name'  => $class[1],
+			'value' => null,
+		);
+	}
+
+	if ( ! preg_match( '/^([A-Za-z_][A-Za-z0-9_.:-]*)(?:=(?:"([^"\'<>`]*)"|\'([^"\'<>`]*)\'|([^\s"\'<>`=]+)))?$/', $text, $attr ) ) {
+		return null;
+	}
+
+	$name = strtolower( $attr[1] );
+
+	if ( 'style' === $name || 'class' === $name || 0 === strpos( $name, 'on' ) ) {
+		return null;
+	}
+
+	$value = null;
+
+	if ( false !== strpos( $text, '=' ) ) {
+		$value = implode( '', array_slice( $attr, 2 ) );
+	}
+
+	return array(
+		'on'    => $on,
+		'kind'  => 'attr',
+		'name'  => $name,
+		'value' => $value,
+	);
+}
+
+/**
+ * A signal as it is typed and stored: `.is-dark`, `data-theme`, `data-theme="dark"`.
+ *
+ * @param array{on: string, kind: string, name: string, value: ?string} $signal
+ */
+function diluxone_users_dark_signal_text( array $signal ): string {
+	if ( 'class' === $signal['kind'] ) {
+		return '.' . $signal['name'];
+	}
+
+	return null === $signal['value'] ? $signal['name'] : $signal['name'] . '="' . $signal['value'] . '"';
+}
+
+/**
+ * A stored signal, read again: `html data-theme="dark"`, where it goes, a
+ * space, and what it is. Null for nothing, or for something that no longer
+ * parses (an old or hand-edited value), which leaves the device to decide.
+ *
+ * @param string $key 'diluxone_users_dark_signal' or 'diluxone_users_light_signal'.
+ * @return array{on: string, kind: string, name: string, value: ?string}|null
+ */
+function diluxone_users_dark_signal_stored( string $key ): ?array {
+	$stored = diluxone_users_option( $key );
+	$parts  = explode( ' ', is_string( $stored ) ? trim( $stored ) : '', 2 );
+
+	return 2 === count( $parts ) ? diluxone_users_dark_signal_parse( $parts[0], $parts[1] ) : null;
+}
+
+/**
+ * How the plugin tells the site's dark scheme from its light one, in the
+ * browser: the site's own switch, as the admin described it, or nothing,
+ * while the visitor's device decides through `prefers-color-scheme`.
+ *
+ * Only while the colours are the theme's: with the plugin's own there is one
+ * palette and no dark one to choose.
+ *
+ * @return array<string, array{on: string, kind: string, name: string, value: ?string}> 'dark', and 'light' when there is one; empty while the device decides.
+ */
+function diluxone_users_dark_signal(): array {
+	if ( 'site' !== diluxone_users_option( 'diluxone_users_dark_follows' ) || ! diluxone_users_colors_from_theme() ) {
+		return array();
+	}
+
+	$dark = diluxone_users_dark_signal_stored( 'diluxone_users_dark_signal' );
+
+	if ( null === $dark ) {
+		return array();
+	}
+
+	$light = diluxone_users_dark_signal_stored( 'diluxone_users_light_signal' );
+
+	return null === $light ? array( 'dark' => $dark ) : array(
+		'dark'  => $dark,
+		'light' => $light,
+	);
+}
