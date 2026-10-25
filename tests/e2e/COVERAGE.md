@@ -37,6 +37,7 @@ everybody, with the code by e-mail, and skips it for nobody.
 | wp-login.php left to WordPress (`wp`) and sent to the site's page (`mine`) | `admin-effects` › Access › The sign-in page |
 | No password: `wp` not offered, the third answer in force, wp-login.php sent to the page | `admin-effects` › with no password, wp-login.php is no second door |
 | The three ways in as tabs or stacked, order, the tab that opens, no JS; nothing about passkeys on the page | `login-ways` |
+| A clicked button looks as it does at rest once the pointer has moved away, on a theme that paints `button:focus` like `button:hover` (Astra) | `repro/issue-102` |
 | Split-screen layout, messages rewritten in the dashboard | `login-screen` |
 | Sign in with the public name (handle login) | `account-area` › The public name |
 | Reset: `wp`, `site` (whole chain, reused key), `link` | `password-reset` |
@@ -56,6 +57,8 @@ everybody, with the code by e-mail, and skips it for nobody.
 | A page of its own follows the site's own switch (Dark mode follows › the site's): drawn dark when the site showed dark with the device light, light when the site is light with the device dark, the site's `wp_head` signal winning over the last scheme; on a page with the form, a flip of the switch (`data-theme`, `data-tema`) re-colours it without a reload; `data-tema="oscuro"`/`"claro"` with neither following the device (single site and the hub) | `signin-own-page-dark` › C2–C6 · `network/signin-own-page-dark` › C2. Integration: `DarkSignalSettingsTest` (the device's early script byte-identical, the signal told to both scripts, the page of its own's head). Unit: `DarkSignalParseTest` |
 | Design › Your brand › Dark mode follows: the signal fields only with the site's switch, saved as typed, a value that is not a class or an attribute refused with a notice and the stored one kept | `admin-design-brand` › Dark mode follows. Integration: `DarkSignalSettingsTest` (C7). Unit: `DarkSignalParseTest` |
 | A page of its own draws every step: the second step (and finishing it), a password reset handed on from wp-login.php and typed there, registration at `/sign-in/register/`; a registration page still chosen sends people there | `signin-own-page` › C5. Integration: `LoginDoorTest` |
+| A page of its own on Astra: in the dark scheme the site's name, intro, divider, note and legal line keep 4.5:1 against the card; the text is in the theme's face, as on "In the page" | `repro/issue-105` |
+| A page of its own, Colours › the theme's, on a theme that flips its colours under `prefers-color-scheme: dark`: opened dark with nothing measured before, the site's name, intro, divider, note and legal line keep 4.5:1, the text measured as the theme paints it, not the plugin's own | `repro/issue-113` |
 | Link request: password-only site answers `error`; per-inbox wait ignores capitals; per-machine burst; registration burst; role fallback; unknown public name | `signin-page` › The link request, from the outside |
 | Second step: account lock (`locked`, the wait doubling, cleared by a right code), e-mail code expiry, forged attempt key | `signin-second-step` › The account's own lock, across attempts |
 | A site whose only method was Users+ Pro's app, Pro off: the e-mail code is asked in its place, and somebody with only the app gets in | `signin-second-step` › The app, with Users+ Pro off |
@@ -94,6 +97,7 @@ everybody, with the code by e-mail, and skips it for nobody.
 |---|---|
 | Guest view with the way in | `account-area` › a stranger is shown the way in |
 | Guest view on a theme that underlines content links and gives its column no padding (Astra): content off the block's edge, the button not underlined | `repro/issue-69` › The account area for somebody signed out, on a theme that underlines content links |
+| Design › The account area › "Above and below": the room above the area's first row (header, or menu without one) and under the taller of the side menu and the content, tabs and side | `admin-design-account` › “above and below” is the room above… · `repro/issue-107` · `network/admin-design-hub` › the hub’s “above and below”… · integration: `CoverFieldsStyleTest` |
 | Menu reaches every section, current tab marked | `account-area` › the menu reaches every section |
 | Your data / Linked accounts exist only while offered | `account-area` › The account page itself |
 | Details: fields saved, display name rebuilt, `missing` from the server | `account-area` › Your details |

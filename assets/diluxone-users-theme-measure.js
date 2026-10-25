@@ -15,10 +15,10 @@
  * Design › Your brand): then the scheme is the one that signal says, and the
  * device's only when the page has neither the dark nor the light one (with
  * no light one, a page without the dark one is light). The
- * scheme seen last is kept too, for the sign-in page of its own (`door`),
- * which has no theme template for the switch to run in: there nothing is
- * measured, and what the site's pages measured for the scheme in force is
- * applied instead.
+ * scheme seen last is kept too, for the sign-in page of its own (`door`):
+ * it measures itself like any page, since it loads the theme's stylesheet,
+ * but where the site's switch did not run there (neither signal on it), what
+ * the site's pages measured for the scheme they showed last is applied.
  */
 ( function () {
 	'use strict';
@@ -150,7 +150,27 @@
 		}
 	}
 
+	// On "A page of its own" the plugin repaints <body> with its own text and
+	// ground, and the host inherits them: measured as they are, the plugin
+	// would read its own light-scheme text back as the theme's. So the door's
+	// class is off for the moment of the reading, and back before any paint.
 	function measure() {
+		var body = doc.body;
+		var own = body && body.classList.contains( 'diluxone-users-door' );
+
+		if ( ! own ) {
+			return read();
+		}
+
+		body.classList.remove( 'diluxone-users-door' );
+		try {
+			return read();
+		} finally {
+			body.classList.add( 'diluxone-users-door' );
+		}
+	}
+
+	function read() {
 		var text = getComputedStyle( host ).color;
 		var surface = ground( host );
 		var link = probe( '<a href="#" data-p>x</a>' ).color;
@@ -169,8 +189,14 @@
 		};
 	}
 
-	// The page of its own: what the site's pages kept for this scheme, and
-	// nothing of a scheme it is not in.
+	// The page of its own loads the theme's stylesheet, so it measures itself
+	// like any page; only when the site's switch did not run there (neither
+	// signal on it) does it take what the site's pages kept for the scheme
+	// they showed last, and nothing of a scheme it is not in.
+	function borrowed() {
+		return door && ! has( signal.dark ) && ! has( signal.light ) && '' !== remembered() && Object.keys( stored( remembered() ) ).length > 0;
+	}
+
 	function keptHere() {
 		var all = stored( scheme() );
 		var kept = {};
@@ -215,7 +241,22 @@
 	function apply() {
 		pending = false;
 
-		var kept = door ? keptHere() : measured();
+		// The measurement and what it writes change <html> and <body>, which
+		// the watcher would hear: its own, so it is not listening meanwhile.
+		if ( watcher ) {
+			watcher.disconnect();
+		}
+		try {
+			write( borrowed() ? keptHere() : measured() );
+		} finally {
+			if ( watcher ) {
+				watcher.takeRecords();
+				watch();
+			}
+		}
+	}
+
+	function write( kept ) {
 		var json = JSON.stringify( kept );
 
 		if ( json === last ) {
@@ -223,11 +264,6 @@
 		}
 		last = json;
 
-		// Setting a property is a change to <html>'s style the watcher
-		// would hear: its own, so it is not listening while it writes.
-		if ( watcher ) {
-			watcher.disconnect();
-		}
 		Object.keys( kept ).forEach( function ( r ) {
 			if ( kept[ r ] ) {
 				root.style.setProperty( '--diluxone-users-' + r, kept[ r ] );
@@ -235,9 +271,6 @@
 				root.style.removeProperty( '--diluxone-users-' + r );
 			}
 		} );
-		if ( watcher ) {
-			watch();
-		}
 	}
 
 	// A theme's switch may change several things at once, and a stylesheet
