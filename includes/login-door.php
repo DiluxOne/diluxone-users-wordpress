@@ -527,6 +527,17 @@ function diluxone_users_door_pages(): void {
 add_action( 'template_redirect', 'diluxone_users_door_pages', 2 );
 
 /**
+ * Is this request the page of its own, drawn? Its sign-in or its
+ * registration, with the shape on and nobody signed in, which is when the
+ * template below answers it.
+ */
+function diluxone_users_door_drawn(): bool {
+	$view = diluxone_users_door_view();
+
+	return ( 'login' === $view || 'register' === $view ) && diluxone_users_door_open() && ! is_user_logged_in();
+}
+
+/**
  * The document the plugin draws in place of the theme's template.
  *
  * Late, so a block theme's template, chosen before this filter, is replaced
