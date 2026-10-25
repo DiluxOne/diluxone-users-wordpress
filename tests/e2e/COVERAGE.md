@@ -93,6 +93,7 @@ everybody, with the code by e-mail, and skips it for nobody.
 |---|---|
 | Guest view with the way in | `account-area` › a stranger is shown the way in |
 | Guest view on a theme that underlines content links and gives its column no padding (Astra): content off the block's edge, the button not underlined | `repro/issue-69` › The account area for somebody signed out, on a theme that underlines content links |
+| Design › The account area › "Above and below": the room above the area's first row (header, or menu without one) and under the taller of the side menu and the content, tabs and side | `admin-design-account` › “above and below” is the room above… · `repro/issue-107` · `network/admin-design-hub` › the hub’s “above and below”… · integration: `CoverFieldsStyleTest` |
 | Menu reaches every section, current tab marked | `account-area` › the menu reaches every section |
 | Your data / Linked accounts exist only while offered | `account-area` › The account page itself |
 | Details: fields saved, display name rebuilt, `missing` from the server | `account-area` › Your details |
