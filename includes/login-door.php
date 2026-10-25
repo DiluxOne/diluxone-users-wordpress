@@ -279,7 +279,9 @@ function diluxone_users_door_url( string $view = 'login' ): string {
 
 	return (string) diluxone_users_on_hub(
 		static function () use ( $view, $slug, $page ): string {
-			if ( 'login' === $view && '' !== diluxone_users_login_slug_of_page( $page ) ) {
+			// The page's own permalink only where a stranger can open it: a
+			// draft's is `?page_id=`, a 404 to them, while its path is the door's.
+			if ( 'login' === $view && '' !== diluxone_users_login_slug_of_page( $page ) && 'publish' === get_post_status( $page ) && ! post_password_required( $page ) ) {
 				return (string) get_permalink( $page );
 			}
 

@@ -210,6 +210,23 @@ class LoginDoorTest extends IntegrationTestCase {
 		$GLOBALS['wp_query']->get_queried_object();
 	}
 
+	public function test_a_chosen_page_a_stranger_cannot_open_is_linked_by_its_path_not_its_permalink(): void {
+		foreach ( array( 'draft', 'pending', 'private' ) as $status ) {
+			$page = (int) wp_insert_post(
+				array(
+					'post_type'   => 'page',
+					'post_status' => $status,
+					'post_title'  => 'Entrar ' . $status,
+					'post_name'   => 'entrar-' . $status,
+				)
+			);
+			diluxone_users_update_option( 'diluxone_users_login_page', $page );
+
+			$this->assertSame( home_url( user_trailingslashit( diluxone_users_login_slug() ) ), diluxone_users_door_url(), "a $status page: the path the door answers" );
+			$this->assertStringNotContainsString( 'page_id=', diluxone_users_door_url(), "a $status page: not its ?page_id= permalink" );
+		}
+	}
+
 	public function test_c1_the_chosen_sign_in_pages_own_address_draws_the_page_of_its_own_with_no_redirect(): void {
 		$page = (int) wp_insert_post(
 			array(
