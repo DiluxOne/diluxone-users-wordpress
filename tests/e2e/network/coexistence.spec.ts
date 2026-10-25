@@ -145,7 +145,7 @@ test.describe('The hub’s own doors fire wp_login, once', () => {
 
 		await hub.site.setIdentity({ sub: `mock|${email}`, email, email_verified: true });
 		await page.goto(hub.pages.login.url);
-		await ssoButton(page, 'mock').click();
+		await navigated(page, () => ssoButton(page, 'mock').click());
 		await page.waitForLoadState('domcontentloaded');
 
 		expect(await whoOn(page, hub.url)).toBe(email);

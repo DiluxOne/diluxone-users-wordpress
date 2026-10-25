@@ -1,7 +1,7 @@
 import { Page } from '@playwright/test';
 import { test, expect, hubDoor, whoOn, toTheHub, SiteHandle } from './support';
 import { freshEmail, linkIn, waitForMail } from '../support/api';
-import { accountSection, signInWithPassword, ssoButton } from '../support/ui';
+import { accountSection, signInWithPassword, navigated, ssoButton } from '../support/ui';
 import { wp } from '../support/cli';
 import { postByHand, wpFails } from '../support/my-account';
 
@@ -296,7 +296,7 @@ test.describe('Closing an account on a network', () => {
 			await hub.site.setIdentity({ sub, email, email_verified: true });
 			await page.context().clearCookies();
 			await toTheHub(page, beta, hub);
-			await ssoButton(page, 'mock').click();
+			await navigated(page, () => ssoButton(page, 'mock').click());
 			await page.waitForLoadState('domcontentloaded');
 
 			const who = await whoOn(page, hub.url);
