@@ -55,16 +55,30 @@ async function closedPopup(opened: Promise<Page>): Promise<Page> {
 	return popup;
 }
 
+/** Every address the page itself goes to from now on, redirects included. */
+function openerTrail(page: Page): string[] {
+	const visited: string[] = [];
+
+	page.on('request', (request) => {
+		if (request.isNavigationRequest() && request.frame() === page.mainFrame()) {
+			visited.push(request.url());
+		}
+	});
+
+	return visited;
+}
+
 /**
  * Presses a social button and waits for the whole of it: the popup opens,
  * makes the trip, closes, and the page that opened it lands where it goes.
  */
 async function pressInPopup(page: Page, button: Locator): Promise<Page> {
-	const opened = page.waitForEvent('popup');
-		await button.click();
 	const moved = page.waitForEvent('framenavigated', (frame) => frame === page.mainFrame());
+	const opened = page.waitForEvent('popup');
 
-	await popup.waitForEvent('close');
+	await button.click();
+
+	const popup = await closedPopup(opened);
 	await moved;
 	await page.waitForLoadState('domcontentloaded');
 
@@ -164,6 +178,42 @@ test.describe('Social sign-in in a popup', () => {
 		expect(stateOf(page.url()), 'the account says the link was made').toBe('linked');
 		await expect(page.locator('.diluxone-users-accounts .diluxone-users-notice--ok')).toBeVisible();
 	});
+
+	/* ── C2: the popup closes, the page is signed in, in place or at the destination ── */
+
+	test('from a page with the sign-in form of its own, the popup closes and the page reloads in place, signed in', async ({ page, site }) => {
+		const email = freshEmail('popup-inplace');
+		const here = await site.page('social-popup', '[diluxone_users_login]');
+
+		try {
+			await site.setIdentity({ sub: `mock|${email}`, email, email_verified: true });
+			await page.goto(here.url);
+
+			const visited = openerTrail(page);
+			const popup = await pressInPopup(page, ssoButton(page, 'mock'));
+
+			expect(popup.isClosed(), 'the popup closed itself').toBe(true);
+			expect(page.url(), 'reloaded where it was').toBe(here.url);
+			expect(visited.filter((url) => url !== here.url), 'the page never left: no provider, no trip').toEqual([]);
+			await expectSignedIn(page, email);
+		} finally {
+			await site.forgetPage('social-popup');
+		}
+	});
+
+	test('from the sign-in page, the popup closes and the page goes on to the destination, signed in', async ({ page, site, pages, baseURL }) => {
+		const email = freshEmail('popup-door');
+
+		await site.setIdentity({ sub: `mock|${email}`, email, email_verified: true });
+		await page.goto(pages.login.url);
+
+		const visited = openerTrail(page);
+		const popup = await pressInPopup(page, ssoButton(page, 'mock'));
+
+		expect(popup.isClosed()).toBe(true);
+		expect(new URL(page.url()).pathname, 'at the destination: the front page').toBe(new URL(baseURL!).pathname.replace(/\/?$/, '/'));
+		expect(visited.some((url) => url.includes('/oauth/authorize')), 'the whole window never went to the provider').toBe(false);
+		await expectSignedIn(page, email);
+	});
 });
 
-export { pressInPopup };

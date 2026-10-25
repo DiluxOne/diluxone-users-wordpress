@@ -189,4 +189,74 @@ class SsoPopupTest extends IntegrationTestCase {
 		// The preview on the settings screen opens nothing.
 		$this->assertStringNotContainsString( 'data-diluxone-users-sso-popup', diluxone_users_sso_buttons( diluxone_users_sso_providers(), false ) );
 	}
+
+	/* ── C2: the popup closes, the page that opened it is signed in ──── */
+
+	public function test_a_popup_sign_in_draws_the_bridge_and_the_opener_may_reload_in_place(): void {
+		$this->back( $this->start( '1' ) );
+
+		$html = $this->bridge();
+
+		$this->assertGreaterThan( 0, get_current_user_id(), 'the session is open, in the popup' );
+		$this->assertSame( MockProvider::$profile['email'], wp_get_current_user()->user_email );
+		$this->assertSame( 'in', $this->data( $html, 'kind' ), 'nowhere of its own to go, from a page that is not a door' );
+		$this->assertSame( diluxone_users_sso_resume_url( MockProvider::ID ), $this->data( $html, 'resume' ) );
+		$this->assertFalse( has_filter( 'wp_redirect', 'diluxone_users_sso_popup_finish' ), 'the catch is spent with the request' );
+
+		// The opener asks once and is sent where the whole window would have gone.
+		$this->assertSame( home_url( '/' ), $this->resume() );
+		$this->assertSame( diluxone_users_login_url(), $this->resume(), 'a second ask finds nothing waiting' );
+	}
+
+	public function test_a_popup_sign_in_begun_on_a_door_sends_the_opener_on_to_the_destination(): void {
+		$this->back( $this->start( 'door' ) );
+
+		$html = $this->bridge();
+
+		$this->assertSame( 'next', $this->data( $html, 'kind' ) );
+		$this->assertSame( home_url( '/' ), $this->resume() );
+	}
+
+	public function test_a_destination_of_its_own_is_followed_through_the_resume_address(): void {
+		$welcome = home_url( '/welcome/' );
+		$this->hook(
+			'diluxone_users_login_redirect',
+			static fn (): string => $welcome
+		);
+
+		$this->back( $this->start( '1' ) );
+
+		$this->assertSame( 'next', $this->data( $this->bridge(), 'kind' ) );
+		$this->assertSame( $welcome, $this->resume() );
+	}
+
+	public function test_the_return_of_a_trip_in_the_whole_window_still_redirects(): void {
+		$this->back( $this->start( '' ) );
+
+		$this->assertSame( home_url( '/' ), $this->expectRedirect( 'diluxone_users_sso_handle' ) );
+		$this->assertArrayNotHasKey( diluxone_users_sso_resume_cookie(), self::$cookies );
+	}
+
+	public function test_a_resume_with_nothing_waiting_goes_to_the_sign_in_page(): void {
+		$this->assertSame( diluxone_users_login_url(), $this->resume() );
+
+		self::$cookies[ diluxone_users_sso_resume_cookie() ] = array(
+			'value'   => 'made-up',
+			'options' => array(),
+		);
+		$this->assertSame( diluxone_users_login_url(), $this->resume(), 'a name nobody issued is nothing' );
+	}
+
+	public function test_an_account_link_in_a_popup_resumes_on_the_account_with_its_notice(): void {
+		$user = $this->make_user();
+		wp_set_current_user( $user );
+		set_transient( 'diluxone_users_sso_back_' . $user, home_url( '/account/' ), 600 );
+
+		$this->back( $this->start( '1', array( 'diluxone_users_nonce' => wp_create_nonce( 'diluxone_users_sso_link_' . MockProvider::ID ) ) ) );
+		wp_set_current_user( $user );
+
+		$this->assertSame( 'next', $this->data( $this->bridge(), 'kind' ), 'the account shows its notice' );
+		$this->assertSame( $this->sub, get_user_meta( $user, 'diluxone_users_sso_mock', true ) );
+		$this->assertSame( 'linked', $this->redirectState( $this->resume() ) );
+	}
 }
