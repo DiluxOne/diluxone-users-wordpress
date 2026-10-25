@@ -364,4 +364,30 @@ class SsoPopupTest extends IntegrationTestCase {
 		$this->assertSame( 'next', $this->data( $this->bridge(), 'kind' ) );
 		$this->assertSame( 'social', $this->redirectState( $this->resume() ) );
 	}
+
+	/* ── C6: the answer carries no token or secret, to the site's origin only ── */
+
+	public function test_the_bridge_hands_over_only_the_kind_the_origin_and_the_resume_address(): void {
+		$trip = $this->start( '1' );
+		$this->back( $trip );
+
+		$html = $this->bridge();
+
+		$this->assertSame( 1, preg_match( '/<body([^>]*)>/', $html, $body ) );
+		preg_match_all( '/\s(data-[a-z-]+)=?/', $body[1], $names );
+		$this->assertSame( array( 'data-diluxone-users-sso-bridge', 'data-kind', 'data-origin', 'data-resume' ), $names[1], 'nothing else is handed to the script' );
+
+		$home = (array) wp_parse_url( home_url( '/' ) );
+		$this->assertSame( $home['scheme'] . '://' . $home['host'] . ( isset( $home['port'] ) ? ':' . $home['port'] : '' ), $this->data( $html, 'origin' ), 'an explicit origin, the site\'s, never *' );
+
+		foreach ( array( $trip['state'], $trip['cookie'], 'the-code', 'mock-token', 'diluxone_users_nonce', 'state=', 'code=' ) as $secret ) {
+			$this->assertStringNotContainsString( $secret, $html );
+		}
+
+		$resume = self::$cookies[ diluxone_users_sso_resume_cookie() ];
+		$this->assertTrue( $resume['options']['httponly'], 'the name of what waits is out of any script\'s reach' );
+		$this->assertSame( 'Lax', $resume['options']['samesite'] );
+		$this->assertLessThanOrEqual( time() + DILUXONE_USERS_SSO_RESUME_TTL, $resume['options']['expires'] );
+		$this->assertStringNotContainsString( $resume['value'], $html );
+	}
 }

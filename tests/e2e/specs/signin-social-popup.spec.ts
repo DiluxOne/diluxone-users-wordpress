@@ -305,5 +305,63 @@ test.describe('Social sign-in in a popup', () => {
 			expect((await site.user(email)).exists, 'no account').toBe(false);
 		});
 	}
+
+	/* ── C6: a forged answer moves nothing, the real one carries nothing ── */
+
+	test('an answer from another origin or another window moves nothing, and the real one carries only its type and kind', async ({ page, site, pages }) => {
+		const email = freshEmail('popup-forged');
+
+		await site.setIdentity({ sub: `mock|${email}`, email, email_verified: true });
+		await page.goto(pages.login.url);
+
+		// What reaches this page, as any listener of its own would see it.
+		await page.evaluate(() => {
+			(window as any).__heard = [];
+			window.addEventListener('message', (event) => (window as any).__heard.push({ origin: event.origin, data: event.data }));
+		});
+
+		const before = page.url();
+		const trip = await holdTheTrip(page.context());
+		const opened = page.waitForEvent('popup');
+
+		await ssoButton(page, 'mock').click();
+		await expect.poll(() => trip.seen.length).toBe(1);
+
+		// With the popup open: the right words from a foreign origin, and from
+		// this origin but not from the popup.
+		await page.evaluate(() => {
+			const data = { type: 'diluxone-users-sso', kind: 'next' };
+
+			window.dispatchEvent(new MessageEvent('message', { data, origin: 'https://evil.example', source: window }));
+			window.dispatchEvent(new MessageEvent('message', { data, origin: window.location.origin, source: window }));
+		});
+		await page.waitForTimeout(1_000);
+
+		expect(page.url(), 'neither moved the page').toBe(before);
+		await expectSignedOut(page);
+
+		const moved = page.waitForEvent('framenavigated', (frame) => frame === page.mainFrame());
+		const heard = page.evaluate(
+			() =>
+				new Promise<unknown[]>((resolve) => {
+					window.addEventListener('message', () => resolve((window as any).__heard));
+				})
+		);
+
+		trip.release();
+
+		const messages = (await heard) as { origin: string; data: Record<string, unknown> }[];
+		const real = messages.filter((m) => m.origin !== 'https://evil.example' && m.data && (m.data as any).type === 'diluxone-users-sso');
+
+		await closedPopup(opened);
+		await moved;
+
+		expect(real.length, 'the popup answered').toBeGreaterThan(0);
+		const answer = real[real.length - 1];
+		expect(answer.origin, 'from this site').toBe(new URL(before).origin);
+		expect(Object.keys(answer.data).sort(), 'two fields, nothing else').toEqual(['kind', 'type']);
+		expect(answer.data.kind).toBe('next');
+		await expectSignedIn(page, email);
+	});
 });
 
