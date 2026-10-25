@@ -328,9 +328,7 @@ test.describe('Design › The account area', () => {
 		await expect(area(guest)).toHaveClass(/diluxone-users-account--full/);
 		expect(await limit(), 'no limit of its own').toBe('none');
 	});
-});
 
-test.describe('Design › The account area › the live preview', () => {
 	test('“above and below” is the room above the area’s first row and under the taller of menu and content, in every layout', async ({ guest, pages, options }) => {
 		const ROOM = 36;
 
@@ -356,7 +354,9 @@ test.describe('Design › The account area › the live preview', () => {
 			}
 		}
 	});
+});
 
+test.describe('Design › The account area › the live preview', () => {
 	test('“a menu down the side”, chosen and not saved, is drawn as a column in the stage; nothing is stored', async ({ page, site }) => {
 		await page.goto(TAB);
 		await expect.poll(async () => (await stage(page)).locator('.diluxone-users-account__nav').getAttribute('class').catch(() => '')).toContain('--row');
