@@ -352,4 +352,31 @@ class CoverAdminStatusTest extends IntegrationTestCase {
 		$this->assertStringContainsString( 'wp diluxone-users login ' . wp_get_current_user()->user_email, $html );
 		$this->assertStringContainsString( 'wp-login.php?diluxone-users-admin=1', $html );
 	}
+
+	public function test_the_sign_in_page_of_its_own_reports_the_address_in_force_and_is_changed_on_access(): void {
+		$this->filter( 'pre_option_permalink_structure', static fn() => '/%postname%/' );
+		diluxone_users_update_option( 'diluxone_users_login_template', 'own' );
+		diluxone_users_update_option( 'diluxone_users_login_page', 0 );
+		diluxone_users_update_option( 'diluxone_users_login_slug', 'cover-status-door' );
+
+		$row = diluxone_users_check_door();
+
+		$this->assertSame( 'active', $row['state'] );
+		$this->assertStringContainsString( home_url( '/cover-status-door/' ), $row['detail'] );
+
+		wp_insert_post(
+			array(
+				'post_type'   => 'page',
+				'post_status' => 'publish',
+				'post_title'  => 'Taken',
+				'post_name'   => 'cover-status-door',
+			)
+		);
+
+		$row = diluxone_users_check_door();
+
+		$this->assertSame( 'pending', $row['state'] );
+		$this->assertSame( diluxone_users_admin_url( 'diluxone-users-login', array( 'tab' => 'page' ) ), $row['url'], 'changed on Access › The sign-in page' );
+		$this->assertSame( 'Change the address →', $row['change'] ?? '' );
+	}
 }

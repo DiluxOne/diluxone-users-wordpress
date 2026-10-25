@@ -181,6 +181,27 @@ test.describe('Status › Status: the checks', () => {
 		expect(await stateIn(row(page, 'social'))).toBe('active');
 	});
 
+	test('the sign-in page of its own: the address in force, and taken, it is changed on Access › The sign-in page', async ({ page, site, options }) => {
+		await options.keep(['diluxone_users_login_page', 'diluxone_users_login_slug', 'diluxone_users_login_slug_old', 'diluxone_users_rewrite_version']);
+
+		const taken = await site.page('status-door-taken', '<p>Taken.</p>');
+		const path = new URL(taken.url).pathname.replace(/^\/|\/$/g, '');
+
+		try {
+			await options.set({ diluxone_users_login_template: 'own', diluxone_users_login_page: taken.id, diluxone_users_login_slug_old: [] });
+			await page.goto(STATUS);
+			expect(await stateIn(row(page, 'login')), 'the page chosen is where it is drawn').toBe('active');
+			await expect(row(page, 'login')).toContainText(new URL(taken.url).pathname);
+
+			await options.set({ diluxone_users_login_page: 0, diluxone_users_login_slug: path });
+			await page.goto(STATUS);
+			expect(await stateIn(row(page, 'login')), 'with no page, another page has the address').toBe('pending');
+			await expect(row(page, 'login').locator('td.diluxone-users-summary__change a')).toHaveAttribute('href', /page=diluxone-users-login&(amp;)?tab=page/);
+		} finally {
+			await site.forgetPage('status-door-taken');
+		}
+	});
+
 	test('HTTPS: on plain HTTP it is a warning, about what travels in the clear', async ({ page, baseURL }) => {
 		test.skip(baseURL!.startsWith('https:'), 'this site is on HTTPS');
 
