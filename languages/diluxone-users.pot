@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-25T04:01:01+00:00\n"
+"POT-Creation-Date: 2026-10-25T04:07:26+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: diluxone-users\n"
@@ -1726,7 +1726,7 @@ msgid "The heading"
 msgstr ""
 
 #: includes/admin-design.php:394
-#: includes/login-door.php:580
+#: includes/login-door.php:638
 #: includes/pages.php:36
 #: templates/hub-door.php:27
 #: templates/hub-door.php:30
@@ -3108,7 +3108,7 @@ msgid "In a circle of washed colour"
 msgstr ""
 
 #: includes/admin-login.php:1075
-#: includes/login-door.php:584
+#: includes/login-door.php:642
 #: includes/login-ways.php:621
 #: includes/pages.php:26
 #: includes/passwordless.php:245
@@ -5659,35 +5659,35 @@ msgstr ""
 msgid "Sessions closed"
 msgstr ""
 
-#: includes/login-door.php:111
+#: includes/login-door.php:131
 msgctxt "URL slug"
 msgid "sign-in"
 msgstr ""
 
-#: includes/login-door.php:280
+#: includes/login-door.php:338
 msgid "The sign-in page needs an address: letters, numbers and dashes."
 msgstr ""
 
 #. translators: %s: what was typed
-#: includes/login-door.php:286
+#: includes/login-door.php:344
 #, php-format
 msgid "The address “%s” has to be one word, with no slashes: letters, numbers and dashes."
 msgstr ""
 
 #. translators: %s: the address, as /sign-in
-#: includes/login-door.php:296
+#: includes/login-door.php:354
 #, php-format
 msgid "The address %s is one WordPress or the site already answers. Choose another."
 msgstr ""
 
 #. translators: 1: the address, as /about/, 2: what has it, as: the page “About us”
-#: includes/login-door.php:306
+#: includes/login-door.php:364
 #, php-format
 msgid "The address %1$s is already %2$s. Choose another, or give that one another address first."
 msgstr ""
 
 #. translators: 1: a kind of content, "page" or "post", 2: its title
-#: includes/login-door.php:348
+#: includes/login-door.php:406
 #, php-format
 msgid "the %1$s “%2$s”"
 msgstr ""

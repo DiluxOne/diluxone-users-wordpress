@@ -589,7 +589,7 @@ msgid "Registration"
 msgstr "Registro"
 
 #: includes/admin-login.php:1075
-#: includes/login-door.php:584
+#: includes/login-door.php:642
 #: includes/login-ways.php:621
 #: includes/pages.php:26
 #: includes/passwordless.php:245
@@ -2786,7 +2786,7 @@ msgid "Copy any file from the plugin’s templates/ folder into the folder below
 msgstr "Copia cualquier archivo de la carpeta templates/ del plugin a la carpeta de abajo y edítalo ahí. El plugin usará el tuyo."
 
 #: includes/admin-design.php:394
-#: includes/login-door.php:580
+#: includes/login-door.php:638
 #: includes/pages.php:36
 #: templates/hub-door.php:27
 #: templates/hub-door.php:30
@@ -7135,30 +7135,30 @@ msgstr "Cambiar la dirección →"
 msgid "A page of its own, at %s."
 msgstr "Una página propia, en %s."
 
-#: includes/login-door.php:280
+#: includes/login-door.php:338
 msgid "The sign-in page needs an address: letters, numbers and dashes."
 msgstr "La página de acceso necesita una dirección: letras, números y guiones."
 
 #. translators: %s: what was typed
-#: includes/login-door.php:286
+#: includes/login-door.php:344
 #, php-format
 msgid "The address “%s” has to be one word, with no slashes: letters, numbers and dashes."
 msgstr "La dirección «%s» tiene que ser una sola palabra, sin barras: letras, números y guiones."
 
 #. translators: %s: the address, as /sign-in
-#: includes/login-door.php:296
+#: includes/login-door.php:354
 #, php-format
 msgid "The address %s is one WordPress or the site already answers. Choose another."
 msgstr "La dirección %s es una que WordPress o el sitio ya atienden. Elige otra."
 
 #. translators: 1: the address, as /about/, 2: what has it, as: the page “About us”
-#: includes/login-door.php:306
+#: includes/login-door.php:364
 #, php-format
 msgid "The address %1$s is already %2$s. Choose another, or give that one another address first."
 msgstr "La dirección %1$s ya la usa %2$s. Elige otra, o primero dale otra dirección a ese contenido."
 
 #. translators: 1: a kind of content, "page" or "post", 2: its title
-#: includes/login-door.php:348
+#: includes/login-door.php:406
 #, php-format
 msgid "the %1$s “%2$s”"
 msgstr "el contenido «%2$s» (%1$s)"
@@ -7199,7 +7199,7 @@ msgstr "El logo del sitio."
 msgid "Left empty, the address is %s."
 msgstr "Si se deja vacía, la dirección es %s."
 
-#: includes/login-door.php:111
+#: includes/login-door.php:131
 msgctxt "URL slug"
 msgid "sign-in"
 msgstr "acceder"

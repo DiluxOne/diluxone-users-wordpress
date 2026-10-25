@@ -5,8 +5,9 @@
  * Every other shape is drawn inside a page and inside the theme around it,
  * and a site that wanted the sign-in on a screen of its own wrote a template
  * to drop the header and the footer. This shape needs neither: the plugin
- * answers an address of the site's choosing (`/sign-in/` until somebody says
- * otherwise) and draws the whole document itself, with the site's name, its
+ * answers an address of the site's choosing (until somebody types one, the
+ * address of the chosen sign-in page, or `/sign-in/` in the site's language)
+ * and draws the whole document itself, with the site's name, its
  * mark and its colours, and nothing of the theme's but what wp_head() brings.
  *
  * It is the plugin's own route, the way the account area's sections and the
@@ -25,7 +26,7 @@ defined( 'ABSPATH' ) || exit;
 /** The query var the door's addresses are answered by. */
 const DILUXONE_USERS_DOOR_VAR = 'diluxone_users_door';
 
-/** The slug until somebody chooses another. */
+/** The slug when nothing else gives one: no page chosen, no translation. */
 const DILUXONE_USERS_DOOR_SLUG = 'sign-in';
 
 /** How many old addresses are kept answering. */
