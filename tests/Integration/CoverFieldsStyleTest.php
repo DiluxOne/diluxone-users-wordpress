@@ -128,8 +128,11 @@ class CoverFieldsStyleTest extends IntegrationTestCase {
 		$this->assertStringContainsString( ':root{--diluxone-users-nav-top:8px;--diluxone-users-bar-gap:12px;}', $css );
 		$this->assertStringNotContainsString( 'nav-bottom', $css, 'Unanswered, unprinted' );
 		$this->assertStringContainsString( '.diluxone-users-account__bar .diluxone-users-account__nav{padding-inline:16px 0px;}', $css );
-		$this->assertStringContainsString( 'padding-top:var(--diluxone-users-body-top,32px);', $css );
-		$this->assertStringNotContainsString( 'padding-bottom', $css, 'the air under the content is a shape’s, and no shape of the plugin’s own runs edge to edge' );
+		$this->assertStringContainsString( '.diluxone-users-account:not(.diluxone-users-account--guest){padding-block:var(--diluxone-users-body-top,32px) var(--diluxone-users-body-bottom,32px);}', $css, 'above and below the whole area, not only its content' );
+		$this->assertStringNotContainsString( '__body{padding', $css, 'the room is not counted twice' );
+
+		diluxone_users_update_option( 'diluxone_users_account_body_pad', '' );
+		$this->assertStringNotContainsString( 'padding-block', diluxone_users_account_css(), 'Unanswered, unprinted' );
 
 		diluxone_users_update_option( 'diluxone_users_account_nav_left', '' );
 		diluxone_users_update_option( 'diluxone_users_account_nav_right', '20' );

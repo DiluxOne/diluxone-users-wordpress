@@ -389,8 +389,8 @@ function diluxone_users_style_css(): string {
 	 * Filters the CSS the admin's answers become.
 	 *
 	 * Printed after the plugin's stylesheet, on the front end and in every
-	 * preview. An add-on whose shapes read an answer of the plugin's — the air
-	 * under the content, say — adds its rule here, printed only when there is
+	 * preview. An add-on whose shapes read an answer of the plugin's — the
+	 * width of the rows, say — adds its rule here, printed only when there is
 	 * an answer, the way the plugin's own are.
 	 *
 	 * @since 1.0.0
@@ -504,8 +504,15 @@ function diluxone_users_account_css(): string {
 		 * the number from this screen instead — the one place a documented
 		 * property could not be set. As a fallback it is the other way round,
 		 * which is the way round the rest of them work.
+		 *
+		 * On the area and not on its body: "above and below" is the room above
+		 * its first row (the header, or the menu without one) and under the
+		 * taller of the side menu and the content. On the body it left the
+		 * header flush against the theme's and nothing at all under a side
+		 * menu longer than the section. The door a stranger is shown wears
+		 * the area's class too, with padding of its own, so it is left alone.
 		 */
-		$css .= '.diluxone-users-account__body{padding-top:var(--diluxone-users-body-top,' . (int) $body . 'px);}';
+		$css .= '.diluxone-users-account:not(.diluxone-users-account--guest){padding-block:var(--diluxone-users-body-top,' . (int) $body . 'px) var(--diluxone-users-body-bottom,' . (int) $body . 'px);}';
 	}
 
 	return $css;
