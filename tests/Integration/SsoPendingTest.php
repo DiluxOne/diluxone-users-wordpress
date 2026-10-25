@@ -100,6 +100,24 @@ class SsoPendingTest extends IntegrationTestCase {
 		return diluxone_users_sso_owner( MockProvider::ID, $this->sub );
 	}
 
+	/**
+	 * Opens a confirmation link: where it sends the person.
+	 *
+	 * In a browser with no cookie of the trip unless one is passed: the link
+	 * works in any browser, like the sign-in link.
+	 *
+	 * @param array<string, string> $cookie
+	 */
+	private function open( string $link, array $cookie = array() ): string {
+		$_COOKIE = $cookie;
+		$_GET    = array(
+			'diluxone_users_sso_pending' => $this->queryArg( $link, 'diluxone_users_sso_pending' ),
+			'diluxone_users_token'       => $this->queryArg( $link, 'diluxone_users_token' ),
+		);
+
+		return $this->expectRedirect( 'diluxone_users_sso_pending_consume' );
+	}
+
 	/* ── C1: back from the provider, nothing yet ─────────────────────── */
 
 	public function test_an_unconfirmed_address_creates_nothing_mails_a_link_and_waits(): void {
@@ -177,5 +195,107 @@ class SsoPendingTest extends IntegrationTestCase {
 		$this->assertStringContainsString( 'Send it again', $html );
 		$this->assertStringContainsString( 'Use another address', $html );
 		$this->assertStringContainsString( 'href="' . esc_url( diluxone_users_login_url() ) . '"', $html );
+	}
+
+	/* ── C2: the link opened ─────────────────────────────────────────── */
+
+	public function test_the_link_creates_the_account_links_the_identity_and_signs_in(): void {
+		$this->trip();
+		$url = $this->open( $this->links()[0] );
+
+		$user = get_user_by( 'email', $this->email );
+		$this->assertInstanceOf( \WP_User::class, $user, 'the account, made now' );
+		$this->assertSame( (int) $user->ID, get_current_user_id(), 'and signed in' );
+		$this->assertSame( $this->sub, get_user_meta( $user->ID, 'diluxone_users_sso_mock', true ), 'the identity linked' );
+		$this->assertSame( 'Grace', get_user_meta( $user->ID, 'first_name', true ) );
+		$this->assertSame( 'Hopper', get_user_meta( $user->ID, 'last_name', true ) );
+		$this->assertSame( home_url( '/' ), $url );
+	}
+
+	public function test_opened_in_the_browser_that_waited_the_pending_sign_in_is_forgotten_there(): void {
+		$this->trip();
+		$cookie = array(
+			DILUXONE_USERS_SSO_PENDING_COOKIE => self::$cookies[ DILUXONE_USERS_SSO_PENDING_COOKIE ]['value'],
+			DILUXONE_USERS_SSO_PENDING_SHOWN  => self::$cookies[ DILUXONE_USERS_SSO_PENDING_SHOWN ]['value'],
+		);
+
+		$this->open( $this->links()[0], $cookie );
+
+		$this->assertGreaterThan( 0, get_current_user_id() );
+		$this->assertSame( '', self::$cookies[ DILUXONE_USERS_SSO_PENDING_COOKIE ]['value'] );
+		$this->assertSame( '', self::$cookies[ DILUXONE_USERS_SSO_PENDING_SHOWN ]['value'] );
+	}
+
+	public function test_the_link_opens_the_account_that_already_has_the_address(): void {
+		$existing = (int) wp_insert_user(
+			array(
+				'user_login' => 'pending_' . wp_generate_password( 6, false ),
+				'user_email' => $this->email,
+				'user_pass'  => wp_generate_password( 16 ),
+				'role'       => 'subscriber',
+			)
+		);
+
+		$this->assertSame( 'social-pending', $this->redirectState( $this->trip() ) );
+		$this->assertSame( '', get_user_meta( $existing, 'diluxone_users_sso_mock', true ), 'nothing linked before the link is opened' );
+
+		$this->open( $this->links()[0] );
+
+		$this->assertSame( $existing, get_current_user_id(), 'the same account, not a second one' );
+		$this->assertSame( $this->sub, get_user_meta( $existing, 'diluxone_users_sso_mock', true ) );
+	}
+
+	public function test_an_existing_account_is_not_taken_while_linking_by_email_is_off(): void {
+		wp_insert_user(
+			array(
+				'user_login' => 'pending_' . wp_generate_password( 6, false ),
+				'user_email' => $this->email,
+				'user_pass'  => wp_generate_password( 16 ),
+			)
+		);
+		diluxone_users_update_option( 'diluxone_users_sso_link_by_email', 0 );
+
+		$this->assertSame( 'social', $this->redirectState( $this->trip() ) );
+		$this->assertSame( array(), self::$mail );
+	}
+
+	public function test_where_the_site_sends_people_after_signing_in_applies(): void {
+		$this->hook( 'diluxone_users_login_redirect', static fn(): string => home_url( '/landing/' ) );
+
+		$this->trip();
+
+		$this->assertSame( home_url( '/landing/' ), $this->open( $this->links()[0] ) );
+	}
+
+	public function test_the_second_step_is_still_asked_for(): void {
+		$user = (int) wp_insert_user(
+			array(
+				'user_login' => 'pending_' . wp_generate_password( 6, false ),
+				'user_email' => $this->email,
+				'user_pass'  => wp_generate_password( 16 ),
+			)
+		);
+		update_user_meta( $user, 'diluxone_users_totp', 'JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP' );
+		update_user_meta( $user, 'diluxone_users_2fa_on', 1 );
+		diluxone_users_update_option( 'diluxone_users_2fa_mode', 'required' );
+		diluxone_users_update_option( 'diluxone_users_2fa_methods', array( 'totp' ) );
+
+		$this->trip();
+		$url = $this->open( $this->links()[0] );
+
+		$this->assertSame( (string) $user, $this->queryArg( $url, 'diluxone_users_2fa' ), 'sent to the second step' );
+		$this->assertSame( 0, get_current_user_id(), 'and nobody is in yet' );
+	}
+
+	public function test_a_provider_turned_off_before_the_link_is_opened_signs_nobody_in(): void {
+		$this->trip();
+
+		$sso                               = (array) diluxone_users_raw_get( 'diluxone_users_sso' );
+		$sso[ MockProvider::ID ]['active'] = 0;
+		diluxone_users_update_option( 'diluxone_users_sso', $sso );
+
+		$this->assertSame( 'social', $this->redirectState( $this->open( $this->links()[0] ) ) );
+		$this->assertFalse( get_user_by( 'email', $this->email ) );
+		$this->assertSame( 0, get_current_user_id() );
 	}
 }

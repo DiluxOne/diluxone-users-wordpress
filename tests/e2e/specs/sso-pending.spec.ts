@@ -65,4 +65,53 @@ test.describe('A social address confirmed by mail', () => {
 
 		expect(linkIn(mail, PENDING_LINK)).toMatch(/diluxone_users_token=/);
 	});
+
+	test('the link opened, in another browser: the account made, the identity linked, signed in where they were going', async ({
+		page,
+		guest,
+		site,
+		pages,
+	}) => {
+		const email = freshEmail('sso-pending-open');
+
+		await site.setIdentity({ sub: `mock|${email}`, email, given_name: 'Grace', family_name: 'Hopper' });
+
+		await page.goto(pages.login.url);
+		await ssoButton(page, 'mock').click();
+		expect(stateOf(page.url())).toBe('social-pending');
+
+		// Opened on the phone, where the mail is read: the inbox is the proof.
+		await guest.goto(linkIn(await waitForMail(site, email), PENDING_LINK));
+
+		await expectSignedIn(guest, email);
+		// Nothing filters diluxone_users_login_redirect here: the front page.
+		expect(new URL(guest.url()).pathname, 'where a sign-in lands on this site').toBe('/');
+
+		const made = await site.user(email);
+
+		expect(made.exists).toBe(true);
+		expect(made.meta.diluxone_users_sso_mock, 'the identity is written on the account').toBe(`mock|${email}`);
+		expect(made.meta.first_name).toBe('Grace');
+	});
+
+	test('the link opens the account that already has the address', async ({ page, site, pages }) => {
+		const email = freshEmail('sso-pending-known');
+		const existing = await site.makeUser({ email, password: 'e2e-Pending-1!', name: 'Already Here' });
+
+		await site.setIdentity({ sub: `mock|${email}`, email });
+
+		await page.goto(pages.login.url);
+		await ssoButton(page, 'mock').click();
+		expect(stateOf(page.url())).toBe('social-pending');
+		expect((await site.user(email)).meta.diluxone_users_sso_mock, 'nothing linked before the link').toBe('');
+
+		await page.goto(linkIn(await waitForMail(site, email), PENDING_LINK));
+
+		await expectSignedIn(page, email);
+
+		const after = await site.user(email);
+
+		expect(after.id, 'the same account, not a second one').toBe(existing.id);
+		expect(after.meta.diluxone_users_sso_mock).toBe(`mock|${email}`);
+	});
 });
