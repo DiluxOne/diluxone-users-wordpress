@@ -429,4 +429,40 @@ class SiteMenuLookTest extends IntegrationTestCase {
 		$this->assertStringNotContainsString( '700px', $css );
 		$this->assertStringContainsString( '--diluxone-users-menu-inner-gap:96px', $css );
 	}
+
+	/* ── Position and spacing at their defaults (C10) ─────────────── */
+
+	public function test_at_their_defaults_the_persons_items_are_where_and_as_they_were(): void {
+		$this->the_admin();
+		// Saved from the screen as it comes: at the end, no room of its own.
+		$this->send_panel(
+			'diluxone-users-account',
+			array(
+				'diluxone_users_menu_position'  => 'end',
+				'diluxone_users_menu_gap'       => '',
+				'diluxone_users_menu_inner_gap' => '',
+			)
+		);
+		$this->draw( 'diluxone_users_account_menu_save' );
+
+		$this->assertSame( 'end', diluxone_users_option( 'diluxone_users_menu_position' ) );
+		$this->assertSame( '', diluxone_users_option( 'diluxone_users_menu_gap' ) );
+		$this->assertSame( '', diluxone_users_option( 'diluxone_users_menu_inner_gap' ) );
+
+		$this->chosen_menu();
+		wp_set_current_user( $this->make_user() );
+
+		$html   = $this->drawn();
+		$person = $this->li( $html, 'person' );
+
+		$this->assertSame( 'menu-item diluxone-users-menu diluxone-users-menu--person menu-item-has-children menu-item-990001', $person->getAttribute( 'class' ) );
+		$this->assertStringNotContainsString( 'diluxone-users-menu--first', $html );
+		$this->assertStringNotContainsString( 'diluxone-users-menu--next', $html );
+		$this->assertMatchesRegularExpression( '#Site link</a></li>\s*<li class="menu-item diluxone-users-menu diluxone-users-menu--person#', $html, 'right after the site’s own items, as their last' );
+
+		$css = $this->menu_css();
+		$this->assertStringNotContainsString( '@media', $css );
+		$this->assertStringNotContainsString( '--diluxone-users-menu-gap', $css );
+		$this->assertStringNotContainsString( 'margin-inline-start:auto', $css );
+	}
 }

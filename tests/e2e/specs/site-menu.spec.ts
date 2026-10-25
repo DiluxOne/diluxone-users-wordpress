@@ -266,6 +266,28 @@ test.describe('Where the plugin’s items sit in the menu', () => {
 		expect(tight.items[mine].link.left - tight.items[mine - 1].li.right, 'at least the room chosen').toBeGreaterThanOrEqual(39.5);
 	});
 
+	test('at their defaults, the person sits right after the site’s last item, with no room of the plugin’s', async ({ page, site, pages, options }) => {
+		const email = freshEmail('menu-defaults');
+
+		await options.set({ diluxone_users_menu_position: 'end', diluxone_users_menu_gap: '', diluxone_users_menu_inner_gap: '' });
+		await site.makeUser({ email, password: PASSWORD, name: 'Default Person' });
+		await page.goto(pages.login.url);
+		await signInWithPassword(page, email, PASSWORD);
+		await expectSignedIn(page, email);
+
+		await page.setViewportSize({ width: 1280, height: 800 });
+		await page.goto(menuUrl);
+		await page.addStyleTag({ content: FLEX_MENU });
+
+		const { items } = await menuBoxes(page);
+		const mine = items.findIndex((one) => /diluxone-users-menu--person/.test(one.classes));
+
+		expect(mine, 'the last item, after the site’s own').toBe(items.length - 1);
+		expect(items[mine].classes).not.toMatch(/diluxone-users-menu--(first|next)/);
+		expect(items[mine].margin).toBe('0px');
+		expect(items[mine].li.left - items[mine - 1].li.right, 'right beside it').toBeCloseTo(0, 0);
+	});
+
 	test('set apart: on a phone, where menus stack, it stays where the theme puts it', async ({ page, options }) => {
 		await options.set({ diluxone_users_menu_position: 'apart', diluxone_users_menu_gap: '40px' });
 		await page.setViewportSize({ width: 390, height: 800 });
