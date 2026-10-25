@@ -38,6 +38,23 @@ test.describe('The person in the site menu', () => {
 		await expect(item(page, 'person')).toHaveCount(0);
 	});
 
+	test('left at “link”, “Sign in” is drawn as it always was: a link like the rest, and no CSS of the plugin’s', async ({ page, options }) => {
+		// Own colours saved beside it change nothing while it is a link.
+		await options.set({ diluxone_users_menu_signin_style: 'link', diluxone_users_menu_signin_colors: 'own', diluxone_users_menu_signin_bg: '#0b3d91' });
+		await page.goto(menuUrl);
+
+		const li = item(page, 'sign-in');
+
+		await expect(li).toHaveAttribute('class', 'menu-item diluxone-users-menu diluxone-users-menu--sign-in menu-item-990001');
+		await expect(li.locator('> a')).not.toHaveAttribute('class', /./);
+		await expect(page.locator('#diluxone-users-menu-inline-css')).toHaveCount(0);
+
+		const site = page.locator('nav.diluxone-e2e-menu li').first().locator('> a');
+		const [own, theirs] = await Promise.all([buttonPaint(li.locator('> a')), buttonPaint(site)]);
+
+		expect(own.link, 'painted like the site’s own link').toEqual(theirs.link);
+	});
+
 	test('somebody signed in is in it, with the account’s sections and the way out under their name', async ({
 		page,
 		site,

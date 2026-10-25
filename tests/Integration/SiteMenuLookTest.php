@@ -299,4 +299,57 @@ class SiteMenuLookTest extends IntegrationTestCase {
 		$this->assertStringContainsString( '--diluxone-users-menu-btn-bg:#0b3d91;', $css, 'the menu draws the colour it had' );
 		$this->assertStringNotContainsString( 'body{', $css );
 	}
+
+	/* ── Left at "link", "Sign in" is today's (C6) ────────────────── */
+
+	/** @return array<string, array{0: array<string, string>}> */
+	public function left_as_a_link(): array {
+		return array(
+			'nothing set'                  => array( array() ),
+			'own colours saved beside it'  => array(
+				array(
+					'diluxone_users_menu_signin_colors' => 'own',
+					'diluxone_users_menu_signin_bg'     => '#0b3d91',
+				),
+			),
+		);
+	}
+
+	/**
+	 * @dataProvider left_as_a_link
+	 * @param array<string, string> $saved
+	 */
+	public function test_left_at_link_sign_in_is_drawn_exactly_as_before( array $saved ): void {
+		$this->chosen_menu();
+		wp_set_current_user( 0 );
+		foreach ( $saved as $key => $value ) {
+			diluxone_users_update_option( $key, $value );
+		}
+
+		$this->assertSame( 'link', diluxone_users_menu_signin_style() );
+
+		$html = $this->drawn();
+		$li   = $this->li( $html, 'sign-in' );
+
+		$this->assertSame( 'menu-item diluxone-users-menu diluxone-users-menu--sign-in menu-item-990001', $li->getAttribute( 'class' ) );
+		$this->assertStringContainsString(
+			'<li class="menu-item diluxone-users-menu diluxone-users-menu--sign-in menu-item-990001"><a href="' . esc_url( diluxone_users_login_url() ) . '">Sign in</a></li>',
+			$html
+		);
+		$this->assertStringNotContainsString( 'wp-element-button', $html );
+
+		diluxone_users_menu_style();
+		$this->assertFalse( wp_style_is( 'diluxone-users-menu', 'enqueued' ), 'a visitor gets no CSS for a link' );
+	}
+
+	public function test_left_at_link_the_signed_in_css_is_todays_to_the_byte(): void {
+		$this->chosen_menu();
+		wp_set_current_user( $this->make_user() );
+
+		$this->assertSame(
+			'.diluxone-users-menu--person > a{align-items:center}'
+			. '.diluxone-users-menu .diluxone-users-menu__avatar{display:inline-block;vertical-align:middle;width:32px;height:32px;margin-inline-end:.55em;border-radius:50%;object-fit:cover;box-shadow:0 0 0 2px currentColor;flex:none}',
+			$this->menu_css()
+		);
+	}
 }
