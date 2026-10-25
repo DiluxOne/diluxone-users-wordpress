@@ -740,6 +740,40 @@ rest of `diluxone_users_` is what the plugin, or an add-on of it, keeps about
 a person, and no field can be named after it. A key outside the prefix
 follows the older rule: anything but WordPress's own keys.
 
+### The phone field
+
+A field of type `phone` is drawn as one control: a country list
+(`<key>_dial`, the ISO code) and the number (`<key>`), in one box with the
+height, border and corners of the other inputs. The stored value is E.164,
+`+` and digits. `assets/diluxone-users-phone.js`, loaded by the first phone a
+page draws, turns the list into a picker that can be searched (a button over a
+combobox and a listbox) and groups the number as it is typed; the hidden list
+is still what is posted, and without the script, or with the plugin's
+stylesheet off, the native list stays.
+
+What is particular to each country is data, in `includes/data-phone.php`:
+`diluxone_users_phone_rule( $iso )` gives its national number's shortest and
+longest length, how it is grouped and its trunk prefix (the `0` dialled at
+home, dropped when it is typed). `diluxone_users_phone_check( $iso, $number )`
+answers `''`, `'short'` or `'long'`, `diluxone_users_phone_format( $iso,
+$number )` writes it in groups, and `diluxone_users_phone_errors( $sent,
+$fields )` gives the message for each phone of a form that is the wrong
+length. Each `<option>` carries its rule as `data-dial`, `data-min`,
+`data-max`, `data-group` and `data-trunk`; the server reads its own table.
+
+A number the wrong length refuses the whole form it was sent with, before
+anything on it is saved. The plugin's forms come back with
+`diluxone-users=phone`, `diluxone-users-field=<key>` and
+`diluxone-users-code=short|long` (never the number), and draw the message
+under the number in a `<p class="diluxone-users-field__error"
+id="<id>-error">`, with `aria-invalid` and `aria-describedby` on the number.
+A template of your own passes it on with the fifth argument of
+`diluxone_users_field_input( $field, $value, $id, $user_id, $error )`, from
+`diluxone_users_phone_refused( $fields )`. The registration form also shows
+the rewritable message `register_phone`. WordPress's own registration, the
+profile and Users → Add New refuse through `registration_errors` and
+`user_profile_update_errors`.
+
 A new site starts with the first and last name only, neither required. The
 fields offered on User fields › Suggested fields — a country, a date of birth,
 a gender and a phone — come from `diluxone_users_suggested_fields` (filter):
@@ -891,7 +925,7 @@ added. So the measurements are properties too, not only the colours:
 | `--diluxone-users-side-w` | The side menu's column | `minmax(180px, 220px)` |
 | `--diluxone-users-nav-min` | Narrowest item when the menu wraps on a phone | `140px` |
 | `--diluxone-users-sent-icon` | The circle on "check your email" | `88px` |
-| `--diluxone-users-dial-w` | The dial-code column of a phone field | `minmax(0, 9rem)` |
+| `--diluxone-users-dial-w` | The country column of a phone field, inside its box: the native list without the script, the picker's button with it | `minmax(0, 9rem)`; `auto` with the picker |
 | `--diluxone-users-border-w` | A control's edge — inputs and buttons | `1px` |
 | `--diluxone-users-accent-soft` | The accent with the volume down | the accent at 12% |
 | `--diluxone-users-panel-gap` | Between the rows of a panel's body | `normal` |
