@@ -83,6 +83,22 @@ class LoginDoorTest extends TestCase {
 		$this->assertSame( 'entrar', diluxone_users_login_slug() );
 	}
 
+	public function test_c4_with_a_page_chosen_the_address_stored_before_sends_people_to_it(): void {
+		update_option( 'diluxone_users_login_slug', 'sign-in' );
+		update_option( 'diluxone_users_login_slug_old', array( 'acceso' ) );
+		update_option( 'diluxone_users_login_page', 42 );
+
+		Functions\when( 'get_post_field' )->justReturn( 'publish' );
+		Functions\when( 'get_page_uri' )->justReturn( 'entrar' );
+
+		$this->assertSame( 'entrar', diluxone_users_login_slug() );
+		$this->assertSame( array( 'acceso', 'sign-in' ), diluxone_users_login_slug_old(), 'the address stored before, the oldest' );
+		$this->assertSame( array( 'acceso' ), get_option( 'diluxone_users_login_slug_old' ), 'nothing written for it' );
+
+		update_option( 'diluxone_users_login_slug', 'entrar' );
+		$this->assertSame( array( 'acceso' ), diluxone_users_login_slug_old(), 'never the current address' );
+	}
+
 	public function test_a_missing_page_or_one_in_the_bin_leaves_the_address_with_no_page(): void {
 		update_option( 'diluxone_users_login_slug', '' );
 		update_option( 'diluxone_users_login_page', 42 );

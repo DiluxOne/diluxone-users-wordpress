@@ -127,13 +127,25 @@ function diluxone_users_login_path( string $path ): string {
  * The addresses the page had before, newest first, the current one never
  * among them.
  *
+ * With a page chosen, the address stored for "No page" is one of them, the
+ * oldest: before Access decided the address alone it was where the page of
+ * its own was drawn, and `sign-in` was stored by default, so `/sign-in/` goes
+ * on sending people to the page. Nothing is written for it, and it is left
+ * out while a post has that address.
+ *
  * @return array<int, string>
  */
 function diluxone_users_login_slug_old(): array {
 	$current = diluxone_users_login_slug();
 	$old     = array();
+	$stored  = (array) diluxone_users_option( 'diluxone_users_login_slug_old' );
+	$typed   = sanitize_title( (string) diluxone_users_option( 'diluxone_users_login_slug' ) );
 
-	foreach ( (array) diluxone_users_option( 'diluxone_users_login_slug_old' ) as $slug ) {
+	if ( '' !== $typed && $typed !== $current && '' === (string) diluxone_users_on_hub( static fn(): string => diluxone_users_login_slug_taken( $typed ) ) ) {
+		$stored[] = $typed;
+	}
+
+	foreach ( $stored as $slug ) {
 		$slug = is_scalar( $slug ) ? diluxone_users_login_path( (string) $slug ) : '';
 
 		if ( '' !== $slug && $slug !== $current && ! in_array( $slug, $old, true ) ) {
