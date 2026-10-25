@@ -13,6 +13,11 @@
  *
  * No theme is named here: the measurement is the same for every theme.
  *
+ * On "A page of its own" the plugin paints <body> itself, so the door is
+ * measured without its own paint: its class is off <body> for the moment of
+ * the reading, and the text and ground read are the theme's, not the
+ * plugin's defaults read back.
+ *
  * @package DiluxOneUsers
  */
 
