@@ -168,6 +168,10 @@ suppressions:
     sniff: WordPress.Security.NonceVerification.Recommended
     fingerprint: c2d06b25d525
     reason: "A sign-in link opened from an e-mail by somebody not yet signed in cannot carry a nonce: the single-use token in it is the credential, hashed at rest, compared in constant time and deleted when used, before anything else is done."
+  - file: includes/login.php
+    sniff: WordPress.Security.NonceVerification.Recommended
+    fingerprint: e90027c10517
+    reason: "The link that finishes a sign-up is opened from an e-mail by somebody who has no account yet, so it cannot carry a nonce: the single-use token in it is the credential, hashed at rest, compared in constant time and deleted when used, before any account is created."
   - file: includes/membership.php
     sniff: WordPress.DB.PreparedSQL.NotPrepared
     fingerprint: ab524b8c3f81

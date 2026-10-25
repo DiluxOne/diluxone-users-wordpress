@@ -269,6 +269,7 @@ Unreleased.
 
 First public release.
 
+* Asking for a sign-in link with an address that has no account no longer creates the account: it is created when the person opens the link mailed to them, so nobody can make an account for somebody else's address.
 * With Colours › the theme's, on a theme whose buttons keep a dark brand colour in dark mode, the links of the account area's home cards stay readable: the accent used as text is one that reads on the card, while buttons keep the theme's colour.
 * On the sign-in page of its own, the link back to the site under the form is as readable as the rest of the text, in the light and the dark scheme: it takes the text's colour instead of a paler one meant for the card.
 * On the sign-in page of its own, with Colours › the theme's, a theme that turns dark with the system's dark mode no longer gets dark text on a dark card: the page reads the theme's own text colour, not the plugin's light default.
