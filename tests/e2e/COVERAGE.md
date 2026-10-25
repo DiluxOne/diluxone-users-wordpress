@@ -45,6 +45,7 @@ everybody, with the code by e-mail, and skips it for nobody.
 | Social: new account, known verified address, H-01, silence, verified-only, social registration off, cancel, roles, link/unlink, H-02, forged state, buttons off | `sso` |
 | WP-CLI `wp diluxone-users login` link | `network/lifecycle` › WP-CLI |
 | Nobody's form for somebody signed in; `title="yes"`; the site's heading, intro, small print, logo; the logo switched off (no logo on the sign-in or the registration page); a Pro layout stored is the card | `signin-page` › What the sign-in page draws, and for whom |
+| The centred card on Twenty Twenty-Five and Astra, light and dark, colours the theme's and no site CSS: the edge at 3:1 or more against the page, the logo, heading, intro and form centred, the e-mail note and the small print at least a field's gap apart, a site's `--diluxone-users-field-gap` followed (single site and the hub) | `signin-card` › C4: the centred card on …; network `signin-card` |
 | Every `?diluxone-users=` state on the sign-in, second-step, reset and register screens, with its tone and the site's rewrite (all 17 messages); an unknown state draws nothing | `signin-page` › each state draws its message with its tone… · a state nobody knows… |
 | `login_email` from a real submit; the sent screen keeps the address out of the URL, "Use a different address", the site's sent texts and round icon | `signin-page` › a real non-address… · The "sent" screen |
 | Layout `auto`, the arrow keys on the tabs (remembered), the "or" hidden between tabs | `signin-page` › The arrangement of the ways in |
@@ -53,6 +54,7 @@ everybody, with the code by e-mail, and skips it for nobody.
 | A page of its own moved: the address changed on Design › The sign-in page, the old one answered 301 to the new with its query; the newest ten kept, never the current one, one a page takes later dropped | `signin-own-page` › C3. Integration: `LoginDoorTest` |
 | A page of its own's address refused: a page has it (the message names the page), a draft or post (the bin does not count), WordPress's and the site's reserved paths, the account page, two segments, empty, a site of a subdirectory network; nothing of the tab written | `signin-own-page` › C4. Integration: `LoginDoorTest`. Unit: `LoginDoorTest` (the reserved list and the slug's shape) |
 | A page of its own draws every step: the second step (and finishing it), a password reset handed on from wp-login.php and typed there, registration at `/sign-in/register/`; a registration page still chosen sends people there | `signin-own-page` › C5. Integration: `LoginDoorTest` |
+| A page of its own on Astra: in the dark scheme the site's name, intro, divider, note and legal line keep 4.5:1 against the card; the text is in the theme's face, as on "In the page" | `repro/issue-105` |
 | Link request: password-only site answers `error`; per-inbox wait ignores capitals; per-machine burst; registration burst; role fallback; unknown public name | `signin-page` › The link request, from the outside |
 | Second step: account lock (`locked`, the wait doubling, cleared by a right code), e-mail code expiry, forged attempt key | `signin-second-step` › The account's own lock, across attempts |
 | A site whose only method was Users+ Pro's app, Pro off: the e-mail code is asked in its place, and somebody with only the app gets in | `signin-second-step` › The app, with Users+ Pro off |
@@ -70,6 +72,7 @@ everybody, with the code by e-mail, and skips it for nobody.
 | Required fields missing after a sign-in: a new account by link lands on the account page with only the required field, its save goes on to `redirect_to`; a social account with no name lands there too; an account with every field filled goes straight on; skipped, the site is open and the next sign-in asks again | `missing-fields` › After signing in, the required fields missing |
 | …turned off on User fields › After sign-in; the box switched off and saying why while no field is required | `missing-fields` › After signing in, turned off on User fields |
 | Social button skin/shape/contents/rows/words on the real page | `signin-social` › The buttons on the real page |
+| Icon-only social buttons on the card: one row, centred on the card like the logo | `repro/issue-70` |
 | The ways in at 390px: the card takes the width, tab labels fold, social one column, register / 2FA / reset fit | `signin-mobile` |
 | WP-CLI on a single site: `login` link opens once, `--send` mails it, bad and unknown addresses refused, the network command says it is not a network; `diluxone_users_join` (Users+ Pro's) posted on a single site has no handler | `my-account-entry` › Join, templates and WP-CLI on a single site |
 
@@ -89,6 +92,7 @@ everybody, with the code by e-mail, and skips it for nobody.
 | Feature / state | Covered by |
 |---|---|
 | Guest view with the way in | `account-area` › a stranger is shown the way in |
+| Guest view on a theme that underlines content links and gives its column no padding (Astra): content off the block's edge, the button not underlined | `repro/issue-69` › The account area for somebody signed out, on a theme that underlines content links |
 | Menu reaches every section, current tab marked | `account-area` › the menu reaches every section |
 | Your data / Linked accounts exist only while offered | `account-area` › The account page itself |
 | Details: fields saved, display name rebuilt, `missing` from the server | `account-area` › Your details |
