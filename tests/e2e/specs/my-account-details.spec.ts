@@ -93,7 +93,7 @@ test.describe('Fields', () => {
 		await page.reload();
 		await reveal(page, 'textarea[name="e2e_bio"]');
 		await expect(form.locator('select[name="e2e_phone_dial"]')).toHaveValue('AR');
-		await expect(form.locator('input[name="e2e_phone"]')).toHaveValue('1123456789');
+		await expect(form.locator('input[name="e2e_phone"]'), 'written as the country writes it').toHaveValue('11 2345 6789');
 		await expect(form.locator('select[name="e2e_country"]')).toHaveValue('CL');
 		await expect(form.locator('select[name="e2e_pick"]')).toHaveValue('b');
 		await expect(form.locator('input[type="checkbox"][name="e2e_ok"]')).toBeChecked();

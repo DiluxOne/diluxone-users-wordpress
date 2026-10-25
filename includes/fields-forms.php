@@ -211,19 +211,31 @@ function diluxone_users_field_input( array $field, string $value, string $id = '
 
 			// On reading a stored value back it has to be split again. It is tried
 			// from the longest dialling code to the shortest because +1 and +1242
-			// coexist.
+			// coexist; between countries that share one (+1, +7, +44) the field's
+			// own come first. The number is then written as its country writes it.
 			if ( '' !== $value ) {
-				$digits = ltrim( $value, '+' );
-				$best   = 0;
+				$digits    = ltrim( $value, '+' );
+				$best      = 0;
+				$preferred = array_map( 'strtoupper', array_map( 'strval', (array) $field['options'] ) );
 
 				foreach ( diluxone_users_countries() as $iso => $data ) {
 					$len = strlen( $data[1] );
 
-					if ( $len > $best && 0 === strpos( $digits, $data[1] ) ) {
-						$best     = $len;
-						$dial     = $iso;
-						$national = substr( $digits, $len );
+					if ( 0 !== strpos( $digits, $data[1] ) || $len < $best ) {
+						continue;
 					}
+
+					if ( $len === $best && ( ! in_array( $iso, $preferred, true ) || in_array( $dial, $preferred, true ) ) ) {
+						continue;
+					}
+
+					$best     = $len;
+					$dial     = $iso;
+					$national = substr( $digits, $len );
+				}
+
+				if ( $best > 0 ) {
+					$national = diluxone_users_phone_format( $dial, $national );
 				}
 			}
 

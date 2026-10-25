@@ -153,7 +153,7 @@ class CoverFieldsInputTest extends IntegrationTestCase {
 		$bahamas = $this->input( $this->field( 'f_mobile', 'phone' ), '+12425551234' );
 
 		$this->assertMatchesRegularExpression( "/<option value=\"BS\"[^>]* selected='selected'>Bahamas \\+1242</", $bahamas );
-		$this->assertStringContainsString( 'value="5551234"', $bahamas );
+		$this->assertStringContainsString( 'value="555 1234"', $bahamas, 'written as the country writes it' );
 	}
 
 	public function test_every_country_of_a_phone_carries_its_rule_for_the_picker(): void {

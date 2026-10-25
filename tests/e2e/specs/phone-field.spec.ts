@@ -430,3 +430,17 @@ test.describe('A number the wrong length for its country', () => {
 		expect((await site.user(email)).exists, 'no account').toBe(false);
 	});
 });
+
+test.describe('A saved number', () => {
+	test('is shown in the account area grouped, with its country picked', async ({ page, site, pages, options }) => {
+		await options.set({ diluxone_users_2fa_mode: 'off', diluxone_users_fields: [NAME, MAIL, { ...PHONE, options: ['UY'] }] });
+		await signedIn(page, site, pages.login.url, 'phone-shown', { meta: { e2e_phone: '+541123456789' } });
+
+		const area = await details(page, pages.account.url);
+
+		await expect(area.phone.locator('select.diluxone-users-phone__dial'), 'Argentina, though the field starts on Uruguay').toHaveValue('AR');
+		await expect(area.phone.getByRole('button', { name: /Country code/ })).toContainText('AR');
+		await expect(area.phone.getByRole('button', { name: /Country code/ })).toHaveAttribute('aria-label', /Argentina \+54/);
+		await expect(area.phone.locator('input.diluxone-users-phone__number')).toHaveValue('11 2345 6789');
+	});
+});

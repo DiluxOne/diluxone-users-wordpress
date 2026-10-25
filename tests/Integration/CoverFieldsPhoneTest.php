@@ -314,4 +314,29 @@ class CoverFieldsPhoneTest extends IntegrationTestCase {
 
 		$this->assertSame( '+541123456789', get_user_meta( $user, 'test_mobile', true ), 'kept what was there' );
 	}
+
+	public function test_a_saved_number_is_drawn_with_its_country_picked_and_grouped(): void {
+		$user = $this->make_user();
+		wp_set_current_user( $user );
+		update_user_meta( $user, 'test_mobile', '+541123456789' );
+
+		$html = diluxone_users_shortcode_fields();
+
+		$this->assertMatchesRegularExpression( "/<option value=\"AR\"[^>]* selected='selected'>Argentina \\+54</", $html );
+		$this->assertMatchesRegularExpression( '/<input type="tel" id="test_mobile" name="test_mobile" value="11 2345 6789"/', $html );
+
+		// A mobile, with its 9.
+		update_user_meta( $user, 'test_mobile', '+5491123456789' );
+		$this->assertStringContainsString( 'value="9 11 2345 6789"', diluxone_users_shortcode_fields() );
+
+		// A code two countries share: the field's own country first.
+		$fields                  = self::FIELDS;
+		$fields[1]['options']    = array( 'US' );
+		diluxone_users_update_option( 'diluxone_users_fields', $fields );
+		update_user_meta( $user, 'test_mobile', '+12125551234' );
+		$html = diluxone_users_shortcode_fields();
+
+		$this->assertMatchesRegularExpression( "/<option value=\"US\"[^>]* selected='selected'>United States \\+1</", $html );
+		$this->assertStringContainsString( 'value="212 555 1234"', $html );
+	}
 }

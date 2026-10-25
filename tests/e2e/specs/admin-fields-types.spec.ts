@@ -257,7 +257,7 @@ test.describe('User fields › every type, added from the screen', () => {
 
 		await details(guest, pages.account.url);
 		await expect(guest.locator(`select[name="${field.key}_dial"]`), 'read back, the stored code is chosen again').toHaveValue('UY');
-		await expect(guest.locator(`input[name="${field.key}"]`)).toHaveValue('99123456');
+		await expect(guest.locator(`input[name="${field.key}"]`), 'written as the country writes it').toHaveValue('9912 3456');
 	});
 
 	test('a required closed list refuses a value from outside it and keeps the answer it had', async ({ page, guest, site, pages, options }) => {
