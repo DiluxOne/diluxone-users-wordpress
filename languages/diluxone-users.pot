@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-25T03:48:42+00:00\n"
+"POT-Creation-Date: 2026-10-25T07:54:53+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: diluxone-users\n"
@@ -716,7 +716,7 @@ msgstr ""
 
 #: includes/admin-account.php:583
 #: includes/admin-login.php:1075
-#: includes/login-door.php:515
+#: includes/login-door.php:551
 #: includes/login-ways.php:621
 #: includes/pages.php:26
 #: includes/passwordless.php:245
@@ -1832,7 +1832,7 @@ msgid "The heading"
 msgstr ""
 
 #: includes/admin-design.php:391
-#: includes/login-door.php:511
+#: includes/login-door.php:547
 #: includes/pages.php:36
 #: templates/hub-door.php:27
 #: templates/hub-door.php:30
@@ -3340,7 +3340,7 @@ msgid "Its address"
 msgstr ""
 
 #: includes/admin-login.php:1295
-msgid "Letters, numbers and dashes. Sign in, registration, the second step and a new password are all answered there, and an address you used before keeps sending people to it."
+msgid "Letters, numbers and dashes. Until you type one, it is the address of the page chosen as the sign-in page, or /sign-in/ when there is none. Sign in, registration, the second step and a new password are all answered there, and an address you used before keeps sending people to it."
 msgstr ""
 
 #: includes/admin-login.php:1302
@@ -5730,30 +5730,30 @@ msgstr ""
 msgid "Sessions closed"
 msgstr ""
 
-#: includes/login-door.php:219
+#: includes/login-door.php:253
 msgid "The sign-in page needs an address: letters, numbers and dashes."
 msgstr ""
 
 #. translators: %s: what was typed
-#: includes/login-door.php:225
+#: includes/login-door.php:259
 #, php-format
 msgid "The address “%s” has to be one word, with no slashes: letters, numbers and dashes."
 msgstr ""
 
 #. translators: %s: the address, as /sign-in
-#: includes/login-door.php:235
+#: includes/login-door.php:269
 #, php-format
 msgid "The address %s is one WordPress or the site already answers. Choose another."
 msgstr ""
 
 #. translators: 1: the address, as /about/, 2: what has it, as: the page “About us”
-#: includes/login-door.php:245
+#: includes/login-door.php:281
 #, php-format
 msgid "The address %1$s is already %2$s. Choose another, or give that one another address first."
 msgstr ""
 
 #. translators: 1: a kind of content, "page" or "post", 2: its title
-#: includes/login-door.php:279
+#: includes/login-door.php:315
 #, php-format
 msgid "the %1$s “%2$s”"
 msgstr ""

@@ -145,8 +145,9 @@ function diluxone_users_option_defaults_own(): array {
 		// wants and would otherwise install a second plugin to get.
 		'diluxone_users_login_template'        => 'plain',
 		// With the shape 'own', the path the sign-in page is answered at, and
-		// the ones it had before, which keep sending people to it.
-		'diluxone_users_login_slug'            => 'sign-in',
+		// the ones it had before, which keep sending people to it. Empty
+		// follows the page chosen as the sign-in page, then `sign-in`.
+		'diluxone_users_login_slug'            => '',
 		'diluxone_users_login_slug_old'        => array(),
 		'diluxone_users_login_logo'            => 0,
 		// Whether that logo is drawn above the form. On, so a site that sets a

@@ -64,6 +64,35 @@ class LoginDoorTest extends TestCase {
 		$this->assertSame( 'sign-in', diluxone_users_login_slug(), 'empty is the default, never no address' );
 	}
 
+	public function test_with_the_address_empty_a_chosen_pages_one_segment_path_is_kept(): void {
+		update_option( 'diluxone_users_login_slug', '' );
+		update_option( 'diluxone_users_login_page', 42 );
+
+		Functions\when( 'get_page_uri' )->justReturn( 'Entrar' );
+		$this->assertSame( 'entrar', diluxone_users_login_slug(), 'the chosen sign-in page’s address' );
+
+		update_option( 'diluxone_users_login_slug', 'acceso' );
+		$this->assertSame( 'acceso', diluxone_users_login_slug(), 'an address typed wins' );
+	}
+
+	public function test_with_its_address_never_saved_a_chosen_page_is_followed(): void {
+		update_option( 'diluxone_users_login_page', 42 );
+
+		Functions\when( 'get_page_uri' )->justReturn( 'entrar' );
+		$this->assertSame( 'entrar', diluxone_users_login_slug(), 'the default is empty, not sign-in' );
+	}
+
+	public function test_a_nested_or_missing_page_leaves_sign_in(): void {
+		update_option( 'diluxone_users_login_slug', '' );
+		update_option( 'diluxone_users_login_page', 42 );
+
+		Functions\when( 'get_page_uri' )->justReturn( 'members/entrar' );
+		$this->assertSame( 'sign-in', diluxone_users_login_slug(), 'the page of its own answers one segment only' );
+
+		Functions\when( 'get_page_uri' )->justReturn( false );
+		$this->assertSame( 'sign-in', diluxone_users_login_slug(), 'the page is gone' );
+	}
+
 	public function test_what_wordpress_and_the_site_answer_is_reserved(): void {
 		update_option( 'category_base', '/topics' );
 

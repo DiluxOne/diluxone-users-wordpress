@@ -5,8 +5,8 @@
  * Every other shape is drawn inside a page and inside the theme around it,
  * and a site that wanted the sign-in on a screen of its own wrote a template
  * to drop the header and the footer. This shape needs neither: the plugin
- * answers an address of the site's choosing (`/sign-in/` until somebody says
- * otherwise) and draws the whole document itself, with the site's name, its
+ * answers an address of the site's choosing (until somebody says otherwise,
+ * the path of the page chosen as the sign-in page, or `/sign-in/`) and draws the whole document itself, with the site's name, its
  * mark and its colours, and nothing of the theme's but what wp_head() brings.
  *
  * It is the plugin's own route, the way the account area's sections and the
@@ -55,11 +55,44 @@ function diluxone_users_door_open(): bool {
 	return diluxone_users_door_on() && ! diluxone_users_safe_mode();
 }
 
-/** The path the page is answered at, without slashes. */
+/**
+ * The path the page is answered at, without slashes.
+ *
+ * With "Its address" empty, the address the site already had for signing in:
+ * the path of the page chosen in Sign in › The page. `/sign-in/` only when no
+ * page is chosen, the page is gone, or its path is nested.
+ */
 function diluxone_users_login_slug(): string {
 	$slug = sanitize_title( (string) diluxone_users_option( 'diluxone_users_login_slug' ) );
 
-	return '' !== $slug ? $slug : DILUXONE_USERS_DOOR_SLUG;
+	if ( '' !== $slug ) {
+		return $slug;
+	}
+
+	$page = diluxone_users_login_slug_of_page();
+
+	return '' !== $page ? $page : DILUXONE_USERS_DOOR_SLUG;
+}
+
+/**
+ * The path of the page chosen as the sign-in page, without slashes, or ''
+ * when none is chosen, it is gone, or its path is more than one segment: the
+ * page of its own answers one segment only.
+ */
+function diluxone_users_login_slug_of_page(): string {
+	$page = (int) diluxone_users_option( 'diluxone_users_login_page' );
+
+	if ( $page <= 0 ) {
+		return '';
+	}
+
+	$path = trim( (string) diluxone_users_on_hub( static fn() => get_page_uri( $page ) ), '/' );
+
+	if ( '' === $path || false !== strpos( $path, '/' ) ) {
+		return '';
+	}
+
+	return sanitize_title( $path );
 }
 
 /**
@@ -92,12 +125,20 @@ function diluxone_users_login_slug_old(): array {
  * never the address the page has now — going back to an old address takes it
  * off the list.
  *
+ * Saving the address it answers while "Its address" is empty, which follows
+ * the chosen sign-in page, stores it: from then on it stays where it is when
+ * that page is renamed or another is chosen.
+ *
  * @param string $slug The new path, already sanitised.
  */
 function diluxone_users_login_slug_move( string $slug ): void {
 	$was = diluxone_users_login_slug();
 
 	if ( $slug === $was ) {
+		if ( '' === sanitize_title( (string) diluxone_users_option( 'diluxone_users_login_slug' ) ) ) {
+			diluxone_users_update_option( 'diluxone_users_login_slug', $slug );
+		}
+
 		return;
 	}
 
@@ -206,8 +247,9 @@ function diluxone_users_login_slug_reserved(): array {
  * Why this address cannot be the page's, or '' when it can.
  *
  * One segment, not empty, nothing WordPress or the site already answers, and
- * no post's: a page shadowed by the sign-in, or the sign-in shadowing
- * wp-admin, is a site that lost something without anybody deciding it.
+ * no post's but the page chosen as the sign-in page, which it takes the place
+ * of: a page shadowed by the sign-in, or the sign-in shadowing wp-admin, is a
+ * site that lost something without anybody deciding it.
  *
  * @param string $raw What was typed, unslashed.
  */
@@ -256,7 +298,10 @@ function diluxone_users_login_slug_problem( string $raw ): string {
  * “About us”` — or '' when nothing does.
  *
  * Any public type, in any status but the bin: a draft published tomorrow
- * would otherwise lose its address to the sign-in page without a word.
+ * would otherwise lose its address to the sign-in page without a word. Never
+ * the page chosen as the sign-in page: it already sends people to the page of
+ * its own, which takes its place at its address, so the save, the Status
+ * screen and the old addresses all leave it be.
  *
  * @param string $slug The path, without slashes.
  */
@@ -268,6 +313,10 @@ function diluxone_users_login_slug_taken( string $slug ): string {
 	$post = get_page_by_path( $slug, OBJECT, array_values( get_post_types( array( 'public' => true ) ) ) );
 
 	if ( ! $post instanceof WP_Post || 'trash' === $post->post_status ) {
+		return '';
+	}
+
+	if ( (int) $post->ID === (int) diluxone_users_option( 'diluxone_users_login_page' ) ) {
 		return '';
 	}
 
