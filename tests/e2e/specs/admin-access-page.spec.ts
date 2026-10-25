@@ -277,6 +277,41 @@ test.describe('Access › The sign-in page, with “A page of its own”', () =>
 	});
 });
 
+for (const [shape, label] of [
+	['plain', 'In the page'],
+	['card', 'A centred card'],
+] as const) {
+	test.describe(`Access › The sign-in page, with “${label}”`, () => {
+		test.beforeEach(async ({ options }) => {
+			await options.keep(['diluxone_users_login_page', 'diluxone_users_login_slug', 'diluxone_users_login_slug_old', 'diluxone_users_wp_screens', 'diluxone_users_rewrite_version']);
+			await options.set({ diluxone_users_login_template: shape, diluxone_users_login_page: 0, diluxone_users_login_slug: 'sign-in', diluxone_users_login_slug_old: [] });
+		});
+
+		test('C6: no address is asked for, and a save stores the page as it did', async ({ page, guest, site, pages }) => {
+			await page.goto(accessTab('page'));
+
+			await expect(page.locator('input[name="diluxone_users_login_slug"]'), 'no address field').toHaveCount(0);
+			await expect(notNow(page)).toHaveCount(0);
+			await expect(page.locator('#diluxone_users_login_page option[value="0"]')).toHaveText('— None: wp-login.php does the job —');
+
+			await page.locator('#diluxone_users_login_page').selectOption(String(pages.login.id));
+			await control(page, 'diluxone_users_wp_screens', 'mine').check({ force: true });
+			await savePanel(page);
+
+			const stored = await site.getOptions(['diluxone_users_login_page', 'diluxone_users_login_slug', 'diluxone_users_login_slug_old']);
+
+			expect(Number(stored.diluxone_users_login_page)).toBe(pages.login.id);
+			expect(stored.diluxone_users_login_slug, 'the address is not touched').toBe('sign-in');
+			expect(stored.diluxone_users_login_slug_old ?? [], 'no old address kept').toEqual([]);
+
+			// The page holds the form, as before.
+			await guest.goto('/wp-login.php');
+			expect(new URL(guest.url()).pathname).toBe(new URL(pages.login.url).pathname);
+			await expect(guest.locator('body.diluxone-users-door')).toHaveCount(0);
+		});
+	});
+}
+
 test.describe('Create the page', () => {
 	test('for the sign-in page: made, chosen, announced, and where wp-login.php sends people', async ({ page, guest, site, options }) => {
 		await options.set({ diluxone_users_login_page: 0, diluxone_users_login_method: 'both', diluxone_users_wp_screens: 'mine' });
