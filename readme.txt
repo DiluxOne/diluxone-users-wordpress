@@ -269,6 +269,7 @@ Unreleased.
 
 First public release.
 
+* On the sign-in page of its own, the text is in the theme's typeface, as it is on a sign-in page inside the site, instead of the system's.
 * The centred card on the sign-in page stands apart from the page in light and dark: its edge has a colour of its own, kept at 3:1 or more against the page, and a soft shadow. Everything in it is centred, and the note under the e-mail form and the small print each have room of their own. A site that styled the card's edge through `--diluxone-users-border` now sets `--diluxone-users-card-edge`, and `--diluxone-users-field-gap` sets the gap between fields.
 * On a site with a dark mode, with Colours › the theme's, the account area follows it: the theme's colours are measured again when the site turns dark or light, the area's ground "The theme's" (the default) is the page's own, and a shade chosen from the palette is mixed from the theme's colours, so it turns with them and its text stays readable.
 * Activating the plugin changes nothing on the site: every feature starts off, the activity log records nothing until you choose what to record, and the plugin writes no settings, tables, cron events or rewrite rules of its own until you turn something on.
