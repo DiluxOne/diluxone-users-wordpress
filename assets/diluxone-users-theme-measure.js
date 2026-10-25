@@ -67,6 +67,44 @@
 		return ( 0.2126 * v.r + 0.7152 * v.g + 0.0722 * v.b ) / 255;
 	}
 
+	// WCAG's relative luminance and contrast ratio, for "does it read": lum()
+	// above only says whether a ground wants light or dark ink.
+	function luminance( c ) {
+		var v = rgb( c );
+		function lin( x ) {
+			x /= 255;
+			return x <= 0.04045 ? x / 12.92 : Math.pow( ( x + 0.055 ) / 1.055, 2.4 );
+		}
+		return 0.2126 * lin( v.r ) + 0.7152 * lin( v.g ) + 0.0722 * lin( v.b );
+	}
+
+	function contrast( a, b ) {
+		var x = luminance( a );
+		var y = luminance( b );
+		return ( Math.max( x, y ) + 0.05 ) / ( Math.min( x, y ) + 0.05 );
+	}
+
+	function reads( c, on ) {
+		return contrast( c, on ) >= 4.5;
+	}
+
+	// The accent as text on the surface: the first of the candidates that
+	// reads there, else the link drawn toward the text until it does.
+	function legible( candidates, link, text, surface ) {
+		for ( var i = 0; i < candidates.length; i++ ) {
+			if ( candidates[ i ] && reads( candidates[ i ], surface ) ) {
+				return candidates[ i ];
+			}
+		}
+		for ( var t = 0.1; t < 1; t += 0.1 ) {
+			var c = mix( link, text, t );
+			if ( reads( c, surface ) ) {
+				return c;
+			}
+		}
+		return text;
+	}
+
 	function ground( el ) {
 		while ( el ) {
 			var c = getComputedStyle( el ).backgroundColor;
@@ -177,11 +215,15 @@
 		var link = probe( '<a href="#" data-p>x</a>' ).color;
 		var button = probe( '<div class="wp-block-button"><a class="wp-block-button__link wp-element-button" href="#" data-p>x</a></div>' );
 		var field = probe( '<input type="text" data-p>' );
-		var accent = ! clear( button.bg ) && button.bg !== surface ? button.bg : link;
+		var filled = ! clear( button.bg ) && button.bg !== surface;
+		var fill = filled ? button.bg : link;
 
+		// Two jobs: the button's ground under its own ink, and the accent as
+		// text on the surface, which a mid-dark button ground may not be.
 		return {
-			accent: accent,
-			'accent-ink': ! clear( button.bg ) && button.bg === accent ? button.color : ( lum( accent ) > 0.6 ? '#16181d' : '#ffffff' ),
+			accent: legible( filled ? [ button.bg, link ] : [ link ], link, text, surface ),
+			'accent-bg': fill,
+			'accent-ink': filled ? button.color : ( lum( fill ) > 0.6 ? '#16181d' : '#ffffff' ),
 			text: text,
 			surface: surface,
 			'surface-alt': mix( surface, text, 0.04 ),
@@ -223,7 +265,7 @@
 			}
 			kept[ r ] = found[ r ];
 			if ( r === 'accent' ) {
-				kept[ 'accent-bg' ] = found[ r ];
+				kept[ 'accent-bg' ] = found[ 'accent-bg' ];
 			}
 		} );
 
