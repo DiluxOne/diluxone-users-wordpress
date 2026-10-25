@@ -1,7 +1,7 @@
 import { Page } from '@playwright/test';
 import { test, expect, expectSignedIn } from '../support/fixtures';
 import { codeIn, freshEmail, linkIn, waitForMail } from '../support/api';
-import { adminUrl, challengeScreen, registerScreen, resetScreen, savePanel, signInWithPassword } from '../support/ui';
+import { challengeScreen, registerScreen, resetScreen, signInWithPassword } from '../support/ui';
 import { answerChallenge } from '../support/signin';
 import { ADMIN_STATE } from '../../../playwright.config';
 
@@ -73,42 +73,6 @@ test.describe('Sign in › A page of its own', () => {
 
 		await guest.goto(pages.account.url);
 		await expect(guest.locator(`a[href="${door}"]`).first(), 'the account area, to a stranger, links to the page of its own').toBeVisible();
-	});
-
-	test('C3: the address changed from sign-in to entrar on the tab, /sign-in/ redirects to /entrar/', async ({ page, guest, baseURL }) => {
-		await page.goto(adminUrl('diluxone-users-design', 'login'));
-		await page.locator('input[name="diluxone_users_login_template"][value="own"]').check({ force: true });
-		await page.locator('input[name="diluxone_users_login_slug"]').fill('entrar');
-		await savePanel(page);
-		await expect(page.locator('input[name="diluxone_users_login_slug"]')).toHaveValue('entrar');
-
-		const moved = await guest.request.get(`${baseURL}/sign-in/?diluxone-users=expired`, { maxRedirects: 0 });
-
-		expect(moved.status(), 'a redirect no browser keeps').toBe(302);
-		expect(moved.headers()['cache-control'], 'kept by no cache').toContain('no-store');
-		expect(moved.headers().location, 'with what the address carried').toBe(`${baseURL}/entrar/?diluxone-users=expired`);
-
-		await guest.goto('/sign-in/');
-		expect(guest.url()).toBe(`${baseURL}/entrar/`);
-		await expect(guest.locator('body.diluxone-users-door')).toHaveCount(1);
-	});
-
-	test('C4: an address a page already has is refused, naming the page, and nothing is written', async ({ page, site }) => {
-		// A plain page of the spec's own: the chosen sign-in page's path is the
-		// address the page of its own takes over (#116), and the plugin's other
-		// pages are addresses it answers itself, refused before any page is named.
-		const plain = await site.page('signin-taken', '<p>Taken.</p>');
-		const taken = new URL(plain.url).pathname.replace(/^\/|\/$/g, '');
-
-		await page.goto(adminUrl('diluxone-users-design', 'login'));
-		await page.locator('input[name="diluxone_users_login_template"][value="own"]').check({ force: true });
-		await page.locator('input[name="diluxone_users_login_slug"]').fill(taken);
-		await page.getByRole('button', { name: /save/i }).first().click();
-
-		await expect(page.locator('.notice-error')).toContainText(`The address /${taken}/ is already the page “`);
-		await expect(page.locator('.notice-success')).toHaveCount(0);
-		expect((await site.getOptions(['diluxone_users_login_slug'])).diluxone_users_login_slug).toBe('sign-in');
-		await site.forgetPage('signin-taken');
 	});
 
 	test('C5: the second step is drawn on /sign-in/, and finishing it signs in', async ({ guest, site, options }) => {

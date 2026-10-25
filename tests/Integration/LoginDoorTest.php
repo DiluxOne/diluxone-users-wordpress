@@ -388,17 +388,9 @@ class LoginDoorTest extends IntegrationTestCase {
 		$this->assertStringStartsWith( $door . '?redirect_to=', $url, 'the hub’s page, carrying the way back' );
 	}
 
-	/** Design › The sign-in page saved with this shape and this address. */
+	/** The address typed for "No page" stored, as Access › The sign-in page stores it. */
 	private function save_slug( string $slug ): bool {
-		$this->postPanel(
-			'diluxone-users-design',
-			array(
-				'diluxone_users_login_template' => 'own',
-				'diluxone_users_login_slug'     => $slug,
-			)
-		);
-
-		return diluxone_users_design_login_save();
+		return '' === diluxone_users_login_slug_save( $slug );
 	}
 
 	public function test_c3_a_changed_address_keeps_the_old_one_sending_people_to_the_new(): void {
@@ -474,23 +466,27 @@ class LoginDoorTest extends IntegrationTestCase {
 		$this->assertArrayNotHasKey( '^sign\\-in/?$', $this->rules() );
 	}
 
-	public function test_c3_a_save_with_no_address_keeps_the_one_stored(): void {
+	public function test_c3_the_design_tab_saved_writes_no_address(): void {
 		diluxone_users_update_option( 'diluxone_users_login_slug', 'entrar' );
 
-		$this->postPanel( 'diluxone-users-design', array( 'diluxone_users_login_template' => 'card' ) );
+		$this->postPanel(
+			'diluxone-users-design',
+			array(
+				'diluxone_users_login_template' => 'own',
+				'diluxone_users_login_slug'     => 'acceso',
+			)
+		);
 		diluxone_users_design_login_save();
 
-		$this->assertSame( 'entrar', diluxone_users_login_slug(), 'the field waits under another shape and sends nothing' );
+		$this->assertSame( 'entrar', diluxone_users_login_slug(), 'Design only says where it is drawn' );
 		$this->assertSame( array(), diluxone_users_login_slug_old() );
 	}
 
-	/** The save, with what it printed. */
+	/** Why the address was refused, with nothing written. */
 	private function refused( string $slug ): string {
-		ob_start();
-		$saved = $this->save_slug( $slug );
-		$said  = (string) ob_get_clean();
+		$said = diluxone_users_login_slug_save( $slug );
 
-		$this->assertFalse( $saved, $slug . ' was saved' );
+		$this->assertNotSame( '', $said, $slug . ' was saved' );
 
 		return $said;
 	}
@@ -509,9 +505,7 @@ class LoginDoorTest extends IntegrationTestCase {
 
 		$said = $this->refused( 'about' );
 
-		$this->assertStringContainsString( 'notice-error', $said );
 		$this->assertStringContainsString( 'The address /about/ is already the page “About us”.', $said );
-		$this->assertSame( 'card', diluxone_users_option( 'diluxone_users_login_template' ), 'nothing of the tab written' );
 		$this->assertSame( 'sign-in', diluxone_users_login_slug() );
 		$this->assertSame( array(), diluxone_users_login_slug_old() );
 	}
@@ -530,9 +524,7 @@ class LoginDoorTest extends IntegrationTestCase {
 
 		wp_trash_post( $draft );
 
-		ob_start();
 		$this->assertTrue( $this->save_slug( 'soon' ), 'a post in the bin has no address' );
-		ob_end_clean();
 		$this->assertSame( 'soon', diluxone_users_login_slug() );
 	}
 
@@ -548,7 +540,7 @@ class LoginDoorTest extends IntegrationTestCase {
 		diluxone_users_update_option( 'diluxone_users_account_page', $account );
 
 		foreach ( array( 'wp-admin', 'wp-json', 'feed', 'category', 'tag', 'search', 'my-account' ) as $slug ) {
-			$this->assertStringContainsString( 'notice-error', $this->refused( $slug ), $slug );
+			$this->assertStringContainsString( 'The address', $this->refused( $slug ), $slug );
 		}
 
 		$this->assertStringContainsString( 'one word, with no slashes', $this->refused( 'a/b' ) );
@@ -594,9 +586,7 @@ class LoginDoorTest extends IntegrationTestCase {
 	}
 
 	public function test_c4_a_good_address_is_saved_clean(): void {
-		ob_start();
 		$this->assertTrue( $this->save_slug( '/Entrar/' ) );
-		ob_end_clean();
 
 		$this->assertSame( 'entrar', diluxone_users_login_slug() );
 	}

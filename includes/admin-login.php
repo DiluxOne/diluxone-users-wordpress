@@ -1262,11 +1262,12 @@ function diluxone_users_screen_login_shape(): void {
 }
 
 /**
- * Where the page of its own is: the site's address and the slug after it.
+ * Where the page of its own is drawn: said here, decided on Access › The
+ * sign-in page, the one place that decides where people sign in.
  *
  * Waiting, as every block that depends on another answer, while another
- * shape is chosen: drawn disabled under a line saying so, and let go the
- * moment "A page of its own" is picked.
+ * shape is chosen: drawn under a line saying so, and let go the moment "A
+ * page of its own" is picked.
  *
  * @param string $template The shape chosen.
  */
@@ -1278,21 +1279,27 @@ function diluxone_users_screen_login_door( string $template ): void {
 		'why'     => __( 'Used when the shape is “A page of its own”.', 'diluxone-users' ),
 	);
 
-	$waiting = diluxone_users_ui_waits_open( $waits );
+	diluxone_users_ui_waits_open( $waits );
 
-	diluxone_users_ui_field_open( __( 'Its address', 'diluxone-users' ), 'diluxone_users_login_slug' );
+	$url = diluxone_users_door_url();
+
+	diluxone_users_ui_field_open( __( 'Its address', 'diluxone-users' ) );
 
 	echo wp_kses(
 		sprintf(
-			'<span class="du-door-address"><code>%1$s</code><input type="text" id="diluxone_users_login_slug" name="diluxone_users_login_slug" class="regular-text code" value="%2$s" required%3$s></span>',
-			esc_html( trailingslashit( (string) diluxone_users_on_hub( static fn() => home_url() ) ) ),
-			esc_attr( diluxone_users_login_slug() ),
-			$waiting ? ' disabled data-diluxone-users-waited' : ''
+			'<p>%1$s</p><p><a href="%2$s">%3$s</a></p>',
+			sprintf(
+				/* translators: %s: the address the sign-in page of its own is drawn at, as a link */
+				esc_html__( 'Drawn at %s', 'diluxone-users' ),
+				sprintf( '<a href="%1$s"><code>%2$s</code></a>', esc_url( $url ), esc_html( $url ) )
+			),
+			esc_url( diluxone_users_admin_url( 'diluxone-users-login', array( 'tab' => 'page' ) ) ),
+			esc_html__( 'Access › The sign-in page →', 'diluxone-users' )
 		),
 		diluxone_users_allowed_html()
 	);
 
-	diluxone_users_ui_field_close( __( 'Letters, numbers and dashes. Until you type one, it is the address of the page chosen as the sign-in page, or /sign-in/ when there is none. Sign in, registration, the second step and a new password are all answered there, and an address you used before keeps sending people to it.', 'diluxone-users' ) );
+	diluxone_users_ui_field_close( __( 'It is chosen on Access › The sign-in page: the page chosen there, at its own address, or with no page the address typed there. Sign in, registration, the second step and a new password are all answered there, and an address used before keeps sending people to it.', 'diluxone-users' ) );
 
 	diluxone_users_ui_waits_close( $waits );
 }

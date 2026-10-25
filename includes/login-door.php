@@ -176,16 +176,28 @@ function diluxone_users_login_slug_left( string $was ): void {
 }
 
 /**
- * Moves the page to another address while no page is chosen, keeping the
- * one it leaves.
+ * Stores the address typed for "No page", keeping the one the page of its
+ * own leaves.
  *
- * @param string $slug The new path, already sanitised.
+ * Asked of the hub, where the page is and where a post could already have
+ * the address. A refused address writes nothing, and the answer says why.
+ *
+ * @param string $raw What was typed, unslashed and sanitised as text.
+ * @return string '' when it was stored, else why it was refused.
  */
-function diluxone_users_login_slug_move( string $slug ): void {
+function diluxone_users_login_slug_save( string $raw ): string {
+	$problem = (string) diluxone_users_on_hub( static fn(): string => diluxone_users_login_slug_problem( $raw ) );
+
+	if ( '' !== $problem ) {
+		return $problem;
+	}
+
 	$was = diluxone_users_login_slug();
 
-	diluxone_users_update_option( 'diluxone_users_login_slug', $slug );
+	diluxone_users_update_option( 'diluxone_users_login_slug', sanitize_title( trim( $raw, '/ ' ) ) );
 	diluxone_users_login_slug_left( $was );
+
+	return '';
 }
 
 /**
