@@ -1,0 +1,8 @@
+{
+  "kind": "prd-seal",
+  "issue": 123,
+  "prd_sha256": "8f458fd74253bf7f863b7a7524618921b7370494e1240403d8161488ee3cb8ec",
+  "accepted_by": "soydiloreto",
+  "at": "2026-10-25T19:17:22Z",
+  "policy": "DiluxOne/.github@3737ced3ad41"
+}
