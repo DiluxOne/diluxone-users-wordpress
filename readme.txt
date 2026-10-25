@@ -269,6 +269,7 @@ Unreleased.
 
 First public release.
 
+* In the account area's Your data, the pills of a done and a failed request keep their text readable in the dark scheme as in the light one: their green and red lean towards the text's colour.
 * On the sign-in page of its own, the link back to the site under the form is as readable as the rest of the text, in the light and the dark scheme: it takes the text's colour instead of a paler one meant for the card.
 * On the sign-in page of its own, with Colours › the theme's, a theme that turns dark with the system's dark mode no longer gets dark text on a dark card: the page reads the theme's own text colour, not the plugin's light default.
 * The sign-in page of its own, with "Its address" empty, answers at the address of the page you chose as the sign-in page, such as `/entrar/`, instead of always `/sign-in/`; saving that address keeps it.
