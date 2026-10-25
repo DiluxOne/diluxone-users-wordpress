@@ -71,6 +71,7 @@ everybody, with the code by e-mail, and skips it for nobody.
 | wp-login.php brand colour, radius, logo; no-cache on a loose shortcode page | `signin-wp-login` › wp-login.php in the site's colours… |
 | Reset: forged and spent key `expired`, cookie lost before saving, the optional-password note, a new password ends other sessions | `signin-reset-register` › Choosing a new password on the site's page |
 | Social: replayed return, return in another browser, network off mid-trip, unknown/unconfigured route, configured-but-off, trip burst | `signin-social` › A social return, tampered with |
+| Social in a popup: the sign-in, registration and account Link buttons open the provider in a popup and the page stays; the popup closes and the page reloads in place (a page with the form of its own) or goes on to the destination (the sign-in page); a blocked popup is the whole-window trip; the second step and the required fields shown on the page that opened it; a cancel and a forged state show the social error, signed out; a forged answer (another origin, another window) moves nothing and the real one carries only `type`/`kind` | `signin-social-popup` · integration: `SsoPopupTest` · unit: `SsoPopupTest` |
 | Social: link-by-email off, linked identity with another address, scope some with a disallowed role, social buttons on the registration form | `signin-social` › Who a social identity opens |
 | Social linking: `taken`, `linked` + security mails on link/unlink, unlink without its nonce | `signin-social` › Linking from the account, off the plain path |
 | Social then 2FA; new device after social | `signin-social` › What a social sign-in sets off |
@@ -404,6 +405,7 @@ In the browser, case by case:
 | Old /beta/sso/ address: by parameter; by path | `signin-doors` › an old social address on /beta/… |
 | A reset asked from /beta/, mailed and chosen on the hub, signs in from /beta/ | `signin-doors` › A new password, on a network |
 | Social sign-in then the second step, on the hub, back on /beta/ | `signin-doors` › The second step after a social sign-in, on a network |
+| Social in a popup on a network: from /alpha/ to the hub's sign-in, the popup makes the hub's trip while the hub's page stays, and the page ends back on /alpha/ signed in; the second step on the hub, then /alpha/; a cancel shows the hub's social error | `network/social-popup` · integration (network): `SsoPopupTest` › …the hub's |
 | A site on a domain of its own: its door is its own wp-login.php | `signin-doors` › A site on a domain of its own |
 | Required fields missing, asked on the hub's account page after a sign-in by link from /beta/, and the save goes back to /beta/ | `missing-fields` |
 

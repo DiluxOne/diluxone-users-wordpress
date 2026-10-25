@@ -454,6 +454,39 @@ network). `diluxone_users_sso_base` (filter, default `sso`) changes the first
 part, for a site where that address is taken; the rewrite rules have to be
 rebuilt after (Maintenance › Tools).
 
+### The round trip in a popup
+
+A provider an add-on registers gets the popup like the plugin's own
+(`includes/sso-popup.php`): every live button (the sign-in form, the
+registration form, the account's Link) is still a plain link to the round trip,
+and carries `data-diluxone-users-sso-popup` (the same address plus
+`diluxone_users_popup=1`, or `=door` on the plugin's own sign-in and
+registration pages) and `data-diluxone-users-sso-resume`. The enqueued
+`diluxone-users-sso-popup` script opens the first in a popup and keeps the page
+where it is; when the browser gives no window (a blocker) the click goes ahead
+and the whole window makes the trip as before. A theme that draws its own
+social links gets the popup by carrying the same two attributes and enqueuing
+the script with `diluxone_users_sso_enqueue_popup()`.
+
+The popup trip is stored as such in the trip's state. Its return ends where
+the whole window's would have ended, but the redirect that ends it is caught on
+`wp_redirect` (priority 0, for that request only): the address is kept
+server-side for two minutes under a random name in an HttpOnly cookie, and the
+popup draws a bridge page instead (`diluxone-users-sso-bridge`) that sends the
+page that opened it `{ type: 'diluxone-users-sso', kind: 'in' | 'next' }` with
+`postMessage` to the site's own origin (the hub's on a network) and on a
+`BroadcastChannel` of that origin, and closes. `in` is a plain sign-in to the
+default destination begun away from a door: the page reloads in place. `next`
+is everything else (a destination of its own, the second step, the required
+fields, the account's notice, the error): the page goes to the resume address,
+`/sso/<provider>/?diluxone_users_resume=1`, which spends what waits and
+redirects there with `wp_safe_redirect()`, or to the sign-in page when nothing
+waits. The message carries no address, code, state, key or nonce.
+
+Because the catch is on `wp_redirect`, an add-on that redirects from
+`wp_login` or `diluxone_users_logged_in` during a popup sign-in sends the page
+that opened the popup there, through the resume address, instead of the popup.
+
 A provider's stored row (`diluxone_users_sso`, keyed by provider id) keeps
 whatever else is in it when the plugin saves the credentials, and a row of a
 provider nothing registers today is left alone: nobody signs in with it, the
