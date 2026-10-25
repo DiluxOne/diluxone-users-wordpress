@@ -317,7 +317,12 @@ test.describe('Social sign-in in a popup', () => {
 		// What reaches this page, as any listener of its own would see it.
 		await page.evaluate(() => {
 			(window as any).__heard = [];
-			window.addEventListener('message', (event) => (window as any).__heard.push({ origin: event.origin, data: event.data }));
+			window.addEventListener('message', (event) => {
+				// Only this site's: what a foreign origin sends is checked by the page not moving.
+				if (event.origin === window.location.origin) {
+					(window as any).__heard.push({ origin: event.origin, data: event.data });
+				}
+			});
 		});
 
 		const before = page.url();

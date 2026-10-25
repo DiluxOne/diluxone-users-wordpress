@@ -16,8 +16,19 @@
 	}
 
 	var NAME = 'diluxone-users-sso';
+
+	// An address of this site, or nothing: what the page says is only followed here.
+	function own( value ) {
+		try {
+			var url = new URL( value || '', window.location.href );
+
+			return url.origin === window.location.origin ? url.href : '';
+		} catch ( e ) {
+			return '';
+		}
+	}
 	var origin = body.getAttribute( 'data-origin' ) || '';
-	var resume = body.getAttribute( 'data-resume' ) || '';
+	var resume = own( body.getAttribute( 'data-resume' ) );
 	var message = { type: 'diluxone-users-sso', kind: 'in' === body.getAttribute( 'data-kind' ) ? 'in' : 'next' };
 	var told = false;
 	var channel = null;

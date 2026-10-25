@@ -18,6 +18,18 @@
 	'use strict';
 
 	var NAME = 'diluxone-users-sso';
+
+	// A web address, or nothing: the popup opens, and the page goes, only to
+	// one (on a network the trip may be the hub's, another origin).
+	function own( value ) {
+		try {
+			var url = new URL( value || '', window.location.href );
+
+			return 'https:' === url.protocol || 'http:' === url.protocol ? url.href : '';
+		} catch ( e ) {
+			return '';
+		}
+	}
 	var popup = null;
 	var resume = '';
 	var done = false;
@@ -58,7 +70,7 @@
 		if ( 'in' === kind ) {
 			window.location.reload();
 		} else {
-			window.location.assign( resume );
+			window.location.assign( resume || window.location.href );
 		}
 	}
 
@@ -69,7 +81,8 @@
 			return;
 		}
 
-		var opened = window.open( link.getAttribute( 'data-diluxone-users-sso-popup' ), NAME, features() );
+		var target = own( link.getAttribute( 'data-diluxone-users-sso-popup' ) );
+		var opened = target ? window.open( target, NAME, features() ) : null;
 
 		// Blocked: the link goes ahead, in the whole window.
 		if ( ! opened ) {
@@ -79,7 +92,7 @@
 		event.preventDefault();
 
 		popup = opened;
-		resume = link.getAttribute( 'data-diluxone-users-sso-resume' ) || link.href;
+		resume = own( link.getAttribute( 'data-diluxone-users-sso-resume' ) || link.href );
 		done = false;
 
 		try {
