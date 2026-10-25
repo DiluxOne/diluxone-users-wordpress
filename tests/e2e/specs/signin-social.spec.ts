@@ -42,8 +42,9 @@ test.describe('A social return, tampered with', () => {
 
 		await site.setIdentity({ sub: `mock|${email}`, email, email_verified: true });
 
+		// The context's requests, not the page's: the trip runs in the popup.
 		let callback = '';
-		page.on('request', (request) => {
+		page.context().on('request', (request) => {
 			if (/\/sso\/mock\/\?(.*&)?code=/.test(request.url())) {
 				callback = request.url();
 			}
