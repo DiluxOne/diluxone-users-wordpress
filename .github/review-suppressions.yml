@@ -228,6 +228,10 @@ suppressions:
     sniff: WordPress.Security.NonceVerification.Recommended
     fingerprint: dc68d5a7eea8
     reason: "the person is not signed in yet, so no nonce can belong to them: the single-use pending-attempt key is the credential, validated by diluxone_users_2fa_pending() before anything is drawn."
+  - file: includes/sso-pending.php
+    sniff: WordPress.Security.NonceVerification.Recommended
+    fingerprint: c7f1b40c2051
+    reason: "The link that proves a social sign-in's address is opened from an e-mail by somebody not yet signed in and cannot carry a nonce: the single-use token in it is the credential, hashed at rest, compared in constant time and deleted when used, before anything is created or linked."
   - file: includes/sso.php
     sniff: WordPress.Security.NonceVerification.Recommended
     fingerprint: fcbea1c4babc
