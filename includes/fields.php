@@ -837,10 +837,13 @@ function diluxone_users_save( int $user_id, array $input, string $group = '' ): 
 
 		// The phone arrives in two parts: the country dialling code, from its
 		// list, and the number. They are joined here and not in the browser so
-		// it also holds when the form arrives without JavaScript.
+		// it also holds when the form arrives without JavaScript. The number
+		// goes in as the country writes it after its code: digits only, and
+		// without the trunk prefix ("011…" in Argentina) typed out of habit.
 		if ( 'phone' === $field['type'] && '' !== trim( $raw ) ) {
-			$dial = diluxone_users_country_dial( sanitize_text_field( (string) ( $input[ $key . '_dial' ] ?? '' ) ) );
-			$raw  = '+' . $dial . preg_replace( '/\D/', '', $raw );
+			$iso  = sanitize_text_field( (string) ( $input[ $key . '_dial' ] ?? '' ) );
+			$dial = diluxone_users_country_dial( $iso );
+			$raw  = '+' . $dial . ( '' === $dial ? preg_replace( '/\D/', '', $raw ) : diluxone_users_phone_national( $iso, $raw ) );
 		}
 
 		$value = diluxone_users_sanitize( $field, $raw );

@@ -307,3 +307,52 @@ test.describe('The country picker', () => {
 		await expect(p.list).toBeHidden();
 	});
 });
+
+test.describe('The number as it is typed and saved', () => {
+	test.beforeEach(async ({ options }) => {
+		await options.set({ diluxone_users_2fa_mode: 'off', diluxone_users_fields: [NAME, MAIL, PHONE] });
+	});
+
+	test('with Argentina chosen it is grouped as it is typed, the caret stays put, and it is saved as +54 and digits', async ({ page, site, pages }) => {
+		const { email } = await signedIn(page, site, pages.login.url, 'phone-typed');
+		const area = await details(page, pages.account.url);
+		const number = area.phone.locator('input.diluxone-users-phone__number');
+
+		await expect(area.phone.locator('select.diluxone-users-phone__dial')).toHaveValue('AR');
+
+		await number.click();
+		await number.pressSequentially('11234');
+		await expect(number, 'grouped while it is typed').toHaveValue('11 234');
+		await number.pressSequentially('56789');
+		await expect(number).toHaveValue('11 2345 6789');
+
+		// Back over a space takes the digit before it, and the caret stays
+		// after the same digit when the groups move.
+		await number.press('Home');
+		for (let n = 0; n < 3; n++) {
+			await number.press('ArrowRight');
+		}
+		await number.press('Backspace');
+		await expect(number).toHaveValue('12 3456 789');
+		expect(await number.evaluate((input: HTMLInputElement) => input.selectionStart)).toBe(1);
+		await number.press('1');
+		await expect(number).toHaveValue('11 2345 6789');
+		expect(await number.evaluate((input: HTMLInputElement) => input.selectionStart)).toBe(2);
+
+		await Promise.all([page.waitForURL(/diluxone-users=saved/), formOf(page, 'diluxone_users_fields_save').locator('button[type="submit"]').first().click()]);
+		expect((await site.user(email, ['e2e_phone'])).fields.e2e_phone, 'the dialling code and the digits, nothing else').toBe('+541123456789');
+	});
+
+	test('a trunk prefix typed out of habit is shown apart and left out of what is saved', async ({ page, site, pages }) => {
+		const { email } = await signedIn(page, site, pages.login.url, 'phone-trunk');
+		const area = await details(page, pages.account.url);
+		const number = area.phone.locator('input.diluxone-users-phone__number');
+
+		await number.click();
+		await number.pressSequentially('01123456789');
+		await expect(number).toHaveValue('0 11 2345 6789');
+
+		await Promise.all([page.waitForURL(/diluxone-users=saved/), formOf(page, 'diluxone_users_fields_save').locator('button[type="submit"]').first().click()]);
+		expect((await site.user(email, ['e2e_phone'])).fields.e2e_phone).toBe('+541123456789');
+	});
+});
