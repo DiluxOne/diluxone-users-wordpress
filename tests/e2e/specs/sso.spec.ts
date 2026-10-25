@@ -221,7 +221,8 @@ test.describe('Signing in with a social account', () => {
 		const link = row.locator('a.diluxone-users-button');
 		await expect(link).toHaveAttribute('href', /diluxone_users_nonce=/);
 
-		await link.click();
+		// The trip runs in a popup; the account page moves when it closes.
+		await navigated(page, () => link.click());
 
 		// Back on the account, still the same person, now with the network on
 		// it — and NOT signed in as whoever the identity belongs to.
