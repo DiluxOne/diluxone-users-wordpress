@@ -225,6 +225,7 @@ everybody, with the code by e-mail, and skips it for nobody.
 | Reports › Activity: logging groups, event filter | `activity-log`, `admin-tools` › Reports |
 | Reports › Logging: empty the log (asks first) | `activity-log` › emptying it asks first |
 | Reports › Activity: search by address finds refused attempts | `admin-tools` › …finds the refused attempts |
+| Reports › Activity: a refused social sign-in (cancelled at the provider, a state nobody issued, …) is a `sign_in_failed` row with the network and why, never the code or the state | unit: `Repro/Issue140Test`, `ActivityLogTest` › a refused social sign-in reads as the network and why |
 | Reports › Activity on a single site: every row the site's, no Site column, no site filter, no network report or button | `activity-log` › on a single site every row is the site’s… |
 | Status › Tools: export, import, close sessions, fresh code, rebuild, test message | `admin-tools` › Status › Tools |
 | Status › Tools: a file round trip keeps nested settings | `admin-tools` › …nested ones included |
