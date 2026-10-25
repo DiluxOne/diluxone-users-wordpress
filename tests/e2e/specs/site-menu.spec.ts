@@ -1,7 +1,7 @@
 import { test, expect, expectSignedIn } from '../support/fixtures';
 import { freshEmail } from '../support/api';
 import { adminUrl, savePanel, signInWithPassword } from '../support/ui';
-import { buttonPaint, contrast } from '../support/menu';
+import { buttonPaint, contrast, FLEX_MENU, menuBoxes } from '../support/menu';
 import { DARK_SITE, themeSwitch } from '../support/dark-mode';
 import { ADMIN_STATE } from '../../../playwright.config';
 
@@ -233,6 +233,51 @@ test.describe('“Sign in” as a button, in the site’s own colours', () => {
 			}
 		});
 	}
+});
+
+test.describe('Where the plugin’s items sit in the menu', () => {
+	let menuUrl = '';
+
+	test.beforeEach(async ({ site, options }) => {
+		menuUrl = (await site.menu()).url;
+		await options.set({ diluxone_users_menu_location: 'diluxone-e2e' });
+	});
+
+	test('set apart: on a wide screen “Sign in” sits at the far end of the bar, after the site’s last item, with the room chosen', async ({ page, options }) => {
+		await options.set({ diluxone_users_menu_position: 'apart', diluxone_users_menu_gap: '40px' });
+		await page.setViewportSize({ width: 1280, height: 800 });
+		await page.goto(menuUrl);
+		await page.addStyleTag({ content: FLEX_MENU });
+
+		const { bar, items } = await menuBoxes(page);
+		const mine = items.findIndex((one) => /diluxone-users-menu--sign-in/.test(one.classes));
+		const theirs = items[mine - 1];
+
+		expect(mine, 'after the site’s own items').toBe(items.length - 1);
+		expect(items[mine].classes).toMatch(/diluxone-users-menu--first/);
+		expect(items[mine].li.top, 'on the same row').toBeCloseTo(theirs.li.top, 0);
+		expect(items[mine].li.right, 'at the far end of the bar').toBeCloseTo(bar.right, 0);
+		expect(items[mine].link.left - theirs.li.right, 'pushed away from the site’s last item').toBeGreaterThan(40);
+
+		// On a bar too short to push it, the room chosen is still kept.
+		await page.addStyleTag({ content: 'nav.diluxone-e2e-menu > ul{width:max-content}' });
+		const tight = await menuBoxes(page);
+
+		expect(tight.items[mine].link.left - tight.items[mine - 1].li.right, 'at least the room chosen').toBeGreaterThanOrEqual(39.5);
+	});
+
+	test('set apart: on a phone, where menus stack, it stays where the theme puts it', async ({ page, options }) => {
+		await options.set({ diluxone_users_menu_position: 'apart', diluxone_users_menu_gap: '40px' });
+		await page.setViewportSize({ width: 390, height: 800 });
+		await page.goto(menuUrl);
+		await page.addStyleTag({ content: FLEX_MENU });
+
+		const { items } = await menuBoxes(page);
+		const mine = items.find((one) => /diluxone-users-menu--sign-in/.test(one.classes))!;
+
+		expect(mine.margin, 'not pushed below 600px').toBe('0px');
+		expect(mine.link.left - items[items.length - 2].li.right, 'no room of its own').toBeCloseTo(0, 0);
+	});
 });
 
 test.describe('Account area › In the site menu', () => {

@@ -250,6 +250,13 @@ function diluxone_users_option_defaults_own(): array {
 		'diluxone_users_menu_signin_text'      => '#ffffff',
 		'diluxone_users_menu_signin_border'    => '#1e1e1e',
 		'diluxone_users_menu_signin_hover'     => '#3c434a',
+		// Where the plugin's items sit there: 'end' (with the rest) or 'apart'
+		// (at the far end of the bar), from 600px up.
+		'diluxone_users_menu_position'         => 'end',
+		// The room before the plugin's first item, and between two of its
+		// own: a length in px or rem, '' for the theme's own.
+		'diluxone_users_menu_gap'              => '',
+		'diluxone_users_menu_inner_gap'        => '',
 
 		// ── The account area ──────────────────────────────────────────
 		// The page holding the [diluxone_users_account] shortcode. With that

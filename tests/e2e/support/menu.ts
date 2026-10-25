@@ -35,3 +35,33 @@ export function contrast(one: string, two: string): number {
 	const [a, b] = [luminance(one), luminance(two)];
 	return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
 }
+
+/**
+ * The e2e menu laid out the way most themes lay theirs: one row, flex, no gap
+ * of its own, across the width of the page. The theme wp-env ships draws the
+ * shortcode's list as a plain list, which is no menu bar at all.
+ */
+export const FLEX_MENU =
+	'nav.diluxone-e2e-menu{width:100%}' +
+	'nav.diluxone-e2e-menu > ul{display:flex;gap:0;margin:0;padding:0;list-style:none;width:100%}' +
+	'nav.diluxone-e2e-menu > ul > li{margin:0;padding:0}' +
+	'nav.diluxone-e2e-menu .sub-menu{display:none}';
+
+/** Where the boxes are: of the bar, and of each of its top-level items and their links. */
+export async function menuBoxes(page: import('@playwright/test').Page) {
+	return page.locator('nav.diluxone-e2e-menu > ul').evaluate((bar) => {
+		const box = (element: Element) => {
+			const r = element.getBoundingClientRect();
+			return { left: r.left, right: r.right, top: r.top };
+		};
+		return {
+			bar: box(bar),
+			items: Array.from(bar.children).map((li) => ({
+				classes: li.className,
+				li: box(li),
+				link: box(li.querySelector(':scope > a')!),
+				margin: getComputedStyle(li).marginInlineStart,
+			})),
+		};
+	});
+}

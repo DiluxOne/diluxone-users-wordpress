@@ -334,6 +334,7 @@ function diluxone_users_account_menu_save(): void {
 	$style    = sanitize_key( wp_unslash( $_POST['diluxone_users_menu_style'] ?? 'avatar-name' ) );
 	$sign_in  = sanitize_key( wp_unslash( $_POST['diluxone_users_menu_signin_style'] ?? 'link' ) );
 	$colors   = sanitize_key( wp_unslash( $_POST['diluxone_users_menu_signin_colors'] ?? 'theme' ) );
+	$position = sanitize_key( wp_unslash( $_POST['diluxone_users_menu_position'] ?? 'end' ) );
 
 	diluxone_users_save_options(
 		array(
@@ -341,8 +342,46 @@ function diluxone_users_account_menu_save(): void {
 			'diluxone_users_menu_style'         => isset( diluxone_users_menu_styles()[ $style ] ) ? $style : 'avatar-name',
 			'diluxone_users_menu_signin_style'  => isset( diluxone_users_menu_signin_styles()[ $sign_in ] ) ? $sign_in : 'link',
 			'diluxone_users_menu_signin_colors' => isset( diluxone_users_menu_signin_color_modes()[ $colors ] ) ? $colors : 'theme',
-		) + diluxone_users_account_menu_palette_sent()
+			'diluxone_users_menu_position'      => isset( diluxone_users_menu_positions()[ $position ] ) ? $position : 'end',
+		) + diluxone_users_account_menu_palette_sent() + diluxone_users_account_menu_gaps_sent()
 	);
+}
+
+/**
+ * The menu's spacings as sent, the ones that may be stored.
+ *
+ * A length in px or rem, brought back into its range; empty for the theme's
+ * own. Anything else is left out, so that spacing keeps what it had, and the
+ * screen says so.
+ *
+ * @return array<string, string> Option name => length.
+ */
+function diluxone_users_account_menu_gaps_sent(): array {
+	check_admin_referer( 'diluxone_users_panel_diluxone-users-account', 'diluxone_users_panel_nonce' );
+	diluxone_users_panel_allowed();
+
+	$sent    = array();
+	$refused = false;
+
+	foreach ( array( 'diluxone_users_menu_gap', 'diluxone_users_menu_inner_gap' ) as $key ) {
+		if ( ! isset( $_POST[ $key ] ) || ! is_string( $_POST[ $key ] ) ) {
+			continue;
+		}
+
+		$length = diluxone_users_menu_length( sanitize_text_field( wp_unslash( $_POST[ $key ] ) ) );
+		if ( null === $length ) {
+			$refused = true;
+			continue;
+		}
+
+		$sent[ $key ] = $length;
+	}
+
+	if ( $refused ) {
+		diluxone_users_notice( __( 'A spacing of the menu was not a length in px or rem, so it keeps the one it had.', 'diluxone-users' ), 'error' );
+	}
+
+	return $sent;
 }
 
 /**
@@ -457,6 +496,40 @@ function diluxone_users_screen_account_menu(): void {
 	}
 	echo '</div>';
 
+	diluxone_users_ui_select(
+		array(
+			'label'   => __( 'Where it sits', 'diluxone-users' ),
+			'name'    => 'diluxone_users_menu_position',
+			'value'   => diluxone_users_menu_position(),
+			'options' => diluxone_users_menu_positions(),
+			'help'    => __( 'Set apart, it is pushed to the far end of a menu laid out in a row, which most themes’ menus are. On a phone, where the menu stacks, it stays where the theme puts it.', 'diluxone-users' ),
+		)
+	);
+
+	diluxone_users_ui_text(
+		array(
+			'label'       => __( 'Room before it', 'diluxone-users' ),
+			'name'        => 'diluxone_users_menu_gap',
+			'value'       => diluxone_users_menu_gap( 'diluxone_users_menu_gap' ),
+			'placeholder' => '24px',
+			'code'        => true,
+			'help'        => __( 'Between the menu’s own items and the first of these; set apart, the least it keeps. In px or rem, up to 96px or 6rem. Empty: the theme’s spacing.', 'diluxone-users' ),
+			'data'        => array( 'menu-gap' => 'gap' ),
+		)
+	);
+
+	diluxone_users_ui_text(
+		array(
+			'label'       => __( 'Room between them', 'diluxone-users' ),
+			'name'        => 'diluxone_users_menu_inner_gap',
+			'value'       => diluxone_users_menu_gap( 'diluxone_users_menu_inner_gap' ),
+			'placeholder' => '12px',
+			'code'        => true,
+			'help'        => __( 'Between two of these side by side, such as “Join” and the person. In px or rem, up to 96px or 6rem. Empty: the theme’s spacing.', 'diluxone-users' ),
+			'data'        => array( 'menu-gap' => 'inner-gap' ),
+		)
+	);
+
 	diluxone_users_account_menu_preview();
 
 	$menu = diluxone_users_menu_id();
@@ -497,13 +570,14 @@ function diluxone_users_account_menu_preview(): void {
 
 	diluxone_users_ui_field_open( __( 'Preview', 'diluxone-users' ) );
 	printf(
-		'<ul class="du-menu-preview" data-diluxone-users-menu-preview style="%1$s"><li><a href="#" tabindex="-1">%2$s</a></li><li><a href="#" tabindex="-1">%3$s</a></li><li class="du-menu-preview__item du-menu-preview__item--%4$s%5$s"><a href="#" tabindex="-1">%6$s</a></li></ul>',
-		esc_attr( $vars ),
+		'<ul class="du-menu-preview%7$s" data-diluxone-users-menu-preview style="%1$s"><li><a href="#" tabindex="-1">%2$s</a></li><li><a href="#" tabindex="-1">%3$s</a></li><li class="du-menu-preview__item du-menu-preview__item--%4$s%5$s"><a href="#" tabindex="-1">%6$s</a></li></ul>',
+		esc_attr( $vars . '--du-menu-gap:' . diluxone_users_menu_gap( 'diluxone_users_menu_gap' ) . ';' ),
 		esc_html__( 'Home', 'diluxone-users' ),
 		esc_html__( 'About', 'diluxone-users' ),
 		esc_attr( $style ),
 		esc_attr( $own ? ' du-menu-preview__item--own' : '' ),
-		esc_html__( 'Sign in', 'diluxone-users' )
+		esc_html__( 'Sign in', 'diluxone-users' ),
+		esc_attr( 'apart' === diluxone_users_menu_position() ? ' du-menu-preview--apart' : '' )
 	);
 	diluxone_users_ui_field_close( __( 'With the theme’s colours, the site shows the theme’s own button.', 'diluxone-users' ) );
 }

@@ -1280,10 +1280,19 @@ function diluxoneUsersChoiceGroups( root ) {
 
 	var item = preview.querySelector( '.du-menu-preview__item' );
 	var fields = own.querySelectorAll( '[data-diluxone-users-color-picker]' );
+	var position = document.querySelector( 'select[name="diluxone_users_menu_position"]' );
+	var gap = document.querySelector( '[data-diluxone-users-menu-gap="gap"]' );
 
 	function review() {
 		own.hidden = 'link' === style.value || 'own' !== colors.value;
 		item.className = 'du-menu-preview__item du-menu-preview__item--' + style.value + ( 'own' === colors.value ? ' du-menu-preview__item--own' : '' );
+
+		if ( position ) {
+			preview.classList.toggle( 'du-menu-preview--apart', 'apart' === position.value );
+		}
+		if ( gap ) {
+			preview.style.setProperty( '--du-menu-gap', /^\d+(\.\d+)?(px|rem)$/.test( gap.value.trim() ) ? gap.value.trim() : '' );
+		}
 
 		fields.forEach( function ( field ) {
 			if ( /^#([0-9a-f]{3}){1,2}$/i.test( field.value ) ) {
@@ -1292,9 +1301,14 @@ function diluxoneUsersChoiceGroups( root ) {
 		} );
 	}
 
-	[ style, colors ].forEach( function ( select ) {
-		select.addEventListener( 'change', review );
+	[ style, colors, position ].forEach( function ( select ) {
+		if ( select ) {
+			select.addEventListener( 'change', review );
+		}
 	} );
+	if ( gap ) {
+		gap.addEventListener( 'input', review );
+	}
 	fields.forEach( function ( field ) {
 		field.addEventListener( 'input', review );
 	} );

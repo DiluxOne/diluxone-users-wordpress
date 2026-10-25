@@ -104,6 +104,61 @@ function diluxone_users_menu_signin_palette_reads( array $palette ): bool {
 		&& diluxone_users_contrast( $palette['text'], $palette['hover'] ) >= 4.5;
 }
 
+/**
+ * Where the plugin's items sit in the menu.
+ *
+ * @return array<string, string>
+ */
+function diluxone_users_menu_positions(): array {
+	return array(
+		'end'   => __( 'At the end, with the other items', 'diluxone-users' ),
+		'apart' => __( 'Set apart, at the far end', 'diluxone-users' ),
+	);
+}
+
+/** The stored position, or the end when it is not one of them. */
+function diluxone_users_menu_position(): string {
+	$position = (string) diluxone_users_option( 'diluxone_users_menu_position' );
+	return isset( diluxone_users_menu_positions()[ $position ] ) ? $position : 'end';
+}
+
+/**
+ * A spacing of the menu, as it may be stored and drawn.
+ *
+ * A number and px or rem, nothing else: `12px`, `1.5rem`. A length beyond
+ * the range (96px, or 6rem) is brought back to it.
+ *
+ * @param string $raw What was sent.
+ * @return string|null The length, '' for none (the theme's own), or null
+ *                     when it is not a length in px or rem.
+ */
+function diluxone_users_menu_length( string $raw ): ?string {
+	$raw = strtolower( trim( $raw ) );
+	if ( '' === $raw ) {
+		return '';
+	}
+	if ( 1 !== preg_match( '/^(\d{1,4}(?:\.\d{1,3})?)(px|rem)$/', $raw, $match ) ) {
+		return null;
+	}
+
+	$most   = 'px' === $match[2] ? 96.0 : 6.0;
+	$number = min( (float) $match[1], $most );
+
+	return rtrim( rtrim( sprintf( '%.3F', $number ), '0' ), '.' ) . $match[2];
+}
+
+/** A stored spacing, checked again before it is drawn: '' for none. */
+function diluxone_users_menu_gap( string $key ): string {
+	return (string) diluxone_users_menu_length( (string) diluxone_users_option( $key ) );
+}
+
+/** Whether the site moved the plugin's items or gave them room of their own. */
+function diluxone_users_menu_layout_on(): bool {
+	return 'end' !== diluxone_users_menu_position()
+		|| '' !== diluxone_users_menu_gap( 'diluxone_users_menu_gap' )
+		|| '' !== diluxone_users_menu_gap( 'diluxone_users_menu_inner_gap' );
+}
+
 /** The ID of the menu assigned to the chosen location, or 0. */
 function diluxone_users_menu_id(): int {
 	$location = (string) diluxone_users_option( 'diluxone_users_menu_location' );
@@ -245,6 +300,35 @@ function diluxone_users_menu_items( $items, $args ) {
 }
 add_filter( 'wp_nav_menu_objects', 'diluxone_users_menu_items', 20, 2 );
 
+/**
+ * Marks the plugin's top-level items for the position and the spacing: the
+ * first one, and each one after it. Nothing while both are at their defaults,
+ * so the items are what they always were.
+ *
+ * @param array<int, object> $items The menu's items, the plugin's included.
+ * @return array<int, object>
+ */
+function diluxone_users_menu_layout_classes( $items ) {
+	if ( ! diluxone_users_menu_layout_on() ) {
+		return $items;
+	}
+
+	$first = true;
+	foreach ( $items as $item ) {
+		$classes = isset( $item->classes ) ? (array) $item->classes : array();
+		$parent  = isset( $item->menu_item_parent ) ? (string) $item->menu_item_parent : '';
+		if ( '0' !== $parent || ! in_array( 'diluxone-users-menu', $classes, true ) ) {
+			continue;
+		}
+		$classes[]     = $first ? 'diluxone-users-menu--first' : 'diluxone-users-menu--next';
+		$item->classes = $classes;
+		$first         = false;
+	}
+
+	return $items;
+}
+add_filter( 'wp_nav_menu_objects', 'diluxone_users_menu_layout_classes', 21 );
+
 
 /**
  * Gives "Sign in" drawn as a button the theme's own button class.
@@ -308,6 +392,52 @@ function diluxone_users_menu_signin_css(): string {
 }
 
 /**
+ * The CSS of the position and the spacing, empty at their defaults.
+ *
+ * Only from 600px up, where WordPress's navigation block stops stacking its
+ * items: in a stacked menu `margin-inline-start:auto` would push the item to
+ * one side of the column. The lengths are the stored ones, checked again.
+ */
+function diluxone_users_menu_layout_css(): string {
+	if ( ! diluxone_users_menu_layout_on() ) {
+		return '';
+	}
+
+	$apart = 'apart' === diluxone_users_menu_position();
+	$gap   = diluxone_users_menu_gap( 'diluxone_users_menu_gap' );
+	$inner = diluxone_users_menu_gap( 'diluxone_users_menu_inner_gap' );
+	$first = array();
+	$css   = '';
+
+	if ( $apart ) {
+		$first[] = 'margin-inline-start:auto';
+	}
+	if ( '' !== $gap ) {
+		// Set apart, the room is the least it keeps; at the end, it is the room.
+		$first[] = ( $apart ? 'padding-inline-start' : 'margin-inline-start' ) . ':var(--diluxone-users-menu-gap)';
+	}
+	if ( array() !== $first ) {
+		$css .= 'li.diluxone-users-menu.diluxone-users-menu--first{' . implode( ';', $first ) . '}';
+	}
+	if ( '' !== $inner ) {
+		$css .= 'li.diluxone-users-menu.diluxone-users-menu--next{margin-inline-start:var(--diluxone-users-menu-inner-gap)}';
+	}
+
+	$tokens = array();
+	if ( '' !== $gap ) {
+		$tokens[] = '--diluxone-users-menu-gap:' . $gap;
+	}
+	if ( '' !== $inner ) {
+		$tokens[] = '--diluxone-users-menu-inner-gap:' . $inner;
+	}
+
+	return '@media (min-width:600px){'
+		. ( array() !== $tokens ? 'li.diluxone-users-menu{' . implode( ';', $tokens ) . '}' : '' )
+		. $css
+		. '}';
+}
+
+/**
  * The photo as a circle beside the name. The ring takes the colour of the
  * menu link itself, so it matches whatever the theme paints its menu with.
  */
@@ -316,8 +446,9 @@ function diluxone_users_menu_style(): void {
 		return;
 	}
 	if ( ! is_user_logged_in() ) {
-		// A visitor gets CSS only when "Sign in" is drawn other than a link.
-		$css = diluxone_users_menu_signin_css();
+		// A visitor gets CSS only when "Sign in" is drawn other than a link,
+		// or the items are moved or given room.
+		$css = diluxone_users_menu_signin_css() . diluxone_users_menu_layout_css();
 		if ( '' !== $css ) {
 			wp_register_style( 'diluxone-users-menu', false, array(), DILUXONE_USERS_VERSION );
 			wp_enqueue_style( 'diluxone-users-menu' );
@@ -335,6 +466,7 @@ function diluxone_users_menu_style(): void {
 		// all — the name ran over the photo.
 		'.diluxone-users-menu--person > a{align-items:center}'
 		. '.diluxone-users-menu .diluxone-users-menu__avatar{display:inline-block;vertical-align:middle;width:32px;height:32px;margin-inline-end:.55em;border-radius:50%;object-fit:cover;box-shadow:0 0 0 2px currentColor;flex:none}'
+		. diluxone_users_menu_layout_css()
 	);
 }
 add_action( 'wp_enqueue_scripts', 'diluxone_users_menu_style' );
