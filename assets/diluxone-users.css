@@ -620,10 +620,14 @@ body.diluxone-users-door {
 	min-height: 100vh;
 	background: color-mix(in srgb, var(--diluxone-users-accent) 7%, var(--diluxone-users-surface-alt));
 	color: var(--diluxone-users-text);
-	/* The theme's body face when it prints one, the system's otherwise: with
-	   no theme template around it, "inherit" is the browser's serif. */
-	font-family: var(--wp--preset--font-family--body, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif);
 	line-height: 1.5;
+}
+/* The face is only a fallback, so it sits in :where(), at no specificity: a
+   classic theme's own "body { font-family }" wins, as it does on the shape
+   "In the page", and a block theme's body preset comes next. A theme that
+   sets no face gets the system's, never the browser's serif. */
+:where(body.diluxone-users-door) {
+	font-family: var(--wp--preset--font-family--body, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif);
 }
 .diluxone-users-door__main {
 	min-height: 100vh;
