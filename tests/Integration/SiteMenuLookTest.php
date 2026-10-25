@@ -352,4 +352,81 @@ class SiteMenuLookTest extends IntegrationTestCase {
 			$this->menu_css()
 		);
 	}
+
+	/* ── A spacing out of range, or not a length (C9) ─────────────── */
+
+	public function test_a_spacing_beyond_its_range_is_stored_and_drawn_within_it(): void {
+		$this->the_admin();
+
+		$this->send_panel(
+			'diluxone-users-account',
+			array(
+				'diluxone_users_menu_position'  => 'apart',
+				'diluxone_users_menu_gap'       => '400px',
+				'diluxone_users_menu_inner_gap' => '9rem',
+			)
+		);
+		$this->draw( 'diluxone_users_account_menu_save' );
+
+		$this->assertSame( '96px', diluxone_users_option( 'diluxone_users_menu_gap' ) );
+		$this->assertSame( '6rem', diluxone_users_option( 'diluxone_users_menu_inner_gap' ) );
+
+		$this->chosen_menu();
+		wp_set_current_user( 0 );
+		$css = $this->menu_css();
+
+		$this->assertStringContainsString( '--diluxone-users-menu-gap:96px', $css );
+		$this->assertStringContainsString( '--diluxone-users-menu-inner-gap:6rem', $css );
+		$this->assertStringNotContainsString( '400px', $css );
+		$this->assertStringStartsWith( '@media (min-width:600px){', $css );
+	}
+
+	/** @return array<string, array{0: string}> */
+	public function not_spacings(): array {
+		return array(
+			'no unit'      => array( '24' ),
+			'another unit' => array( '2em' ),
+			'below zero'   => array( '-8px' ),
+			'css let in'   => array( '8px}body{display:none' ),
+		);
+	}
+
+	/** @dataProvider not_spacings */
+	public function test_a_spacing_that_is_not_a_length_is_refused_and_the_one_before_stays( string $sent ): void {
+		$this->the_admin();
+		diluxone_users_update_option( 'diluxone_users_menu_gap', '20px' );
+
+		$this->send_panel(
+			'diluxone-users-account',
+			array(
+				'diluxone_users_menu_gap'       => $sent,
+				'diluxone_users_menu_inner_gap' => '10px',
+			)
+		);
+		$said = $this->draw( 'diluxone_users_account_menu_save' );
+
+		$this->assertSame( '20px', diluxone_users_option( 'diluxone_users_menu_gap' ) );
+		$this->assertSame( '10px', diluxone_users_option( 'diluxone_users_menu_inner_gap' ), 'the good one beside it is kept' );
+		$this->assertStringContainsString( 'notice-error', $said );
+
+		$this->chosen_menu();
+		wp_set_current_user( 0 );
+		$css = $this->menu_css();
+
+		$this->assertStringContainsString( '--diluxone-users-menu-gap:20px', $css );
+		$this->assertStringNotContainsString( $sent, $css );
+	}
+
+	public function test_a_spacing_stored_by_other_means_is_never_drawn_unless_it_is_a_length(): void {
+		$this->chosen_menu();
+		wp_set_current_user( 0 );
+		diluxone_users_update_option( 'diluxone_users_menu_gap', '8px}body{display:none' );
+		diluxone_users_update_option( 'diluxone_users_menu_inner_gap', '700px' );
+
+		$css = $this->menu_css();
+
+		$this->assertStringNotContainsString( 'body{', $css );
+		$this->assertStringNotContainsString( '700px', $css );
+		$this->assertStringContainsString( '--diluxone-users-menu-inner-gap:96px', $css );
+	}
 }
