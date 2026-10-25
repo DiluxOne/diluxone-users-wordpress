@@ -862,6 +862,7 @@ add_filter( 'pre_do_shortcode_tag', 'diluxone_users_shortcode_off_hub', 10, 3 );
 function diluxone_users_hub_posts(): array {
 	$posts = array(
 		'diluxone_users_link_request',
+		'diluxone_users_sso_resend',
 		'diluxone_users_signup',
 		'diluxone_users_reset',
 		'diluxone_users_avatar',
@@ -899,13 +900,14 @@ function diluxone_users_post_to_hub(): void {
 }
 
 /**
- * The hub's actions somebody signed out may send: the sign-in link, the
- * registration and a new password. Every other one needs a session.
+ * The hub's actions somebody signed out may send: the sign-in link, a new
+ * link for a social sign-in waiting on its address, the registration and a
+ * new password. Every other one needs a session.
  *
  * @return array<int, string>
  */
 function diluxone_users_hub_posts_public(): array {
-	return array( 'diluxone_users_link_request', 'diluxone_users_signup', 'diluxone_users_reset' );
+	return array( 'diluxone_users_link_request', 'diluxone_users_sso_resend', 'diluxone_users_signup', 'diluxone_users_reset' );
 }
 
 /**

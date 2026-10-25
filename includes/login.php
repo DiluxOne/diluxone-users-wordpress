@@ -602,6 +602,29 @@ function diluxone_users_sent_address(): string {
 }
 
 /**
+ * An address with most of it hidden: `ana@example.com` reads `a•••@e•••.com`.
+ *
+ * Enough for the person it belongs to to recognise it and spot a typo, and
+ * not enough for somebody looking over their shoulder to write it down. The
+ * first letter of the name, the first letter of the domain and what follows
+ * its last dot; anything that is not an address is hidden whole.
+ */
+function diluxone_users_mask_email( string $email ): string {
+	$at = strrpos( $email, '@' );
+
+	if ( false === $at || 0 === $at || strlen( $email ) - 1 === $at ) {
+		return '' === $email ? '' : '•••';
+	}
+
+	$local  = substr( $email, 0, $at );
+	$domain = substr( $email, $at + 1 );
+	$dot    = strrpos( $domain, '.' );
+	$tail   = false === $dot || 0 === $dot ? '' : substr( $domain, $dot );
+
+	return substr( $local, 0, 1 ) . '•••@' . substr( $domain, 0, 1 ) . '•••' . $tail;
+}
+
+/**
  * How many sign-in links one machine may ask for in an hour.
  *
  * Generous on purpose: a family, an office or a school share an address, and

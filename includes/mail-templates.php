@@ -8,7 +8,7 @@
  * message a site could rewrite was the sign-in link, it had a tab of its own,
  * and the other three could only be got at from code through a filter.
  *
- * So the texts live here, all four in the same shape, and the sending keeps
+ * So the texts live here, all in the same shape, and the sending keeps
  * happening where it happened: each message is composed through
  * `diluxone_users_mail_compose()` and the filters that were already on the way
  * out are still applied afterwards, so nothing that hooked them breaks.
@@ -91,6 +91,32 @@ function diluxone_users_mail_templates(): array {
 				),
 				'body'    => __(
 					"Click here to sign in:\n\n{link}\n\nThe link expires in {minutes} minutes and works once.\n\nIf you did not ask for it, ignore this message: nobody can get into your account without it.",
+					'diluxone-users'
+				),
+			);
+		},
+	);
+
+	$templates['sso_confirm'] = array(
+		'label'    => __( 'Confirming the address of a social account', 'diluxone-users' ),
+		'help'     => __( 'Sent when somebody signs in with a social network that did not confirm their email, and the site asks for confirmed addresses only. Nothing is created or linked until they open the link.', 'diluxone-users' ),
+		'vars'     => array(
+			'{link}'    => __( 'the address that confirms the email and signs them in — the e-mail is useless without it', 'diluxone-users' ),
+			'{network}' => __( 'the name of the social network they signed in with', 'diluxone-users' ),
+			'{minutes}' => __( 'how many minutes the link is good for', 'diluxone-users' ),
+			'{site}'    => $site,
+			'{name}'    => $who,
+		),
+		'required' => array( '{link}' ),
+		'shipped'  => static function (): array {
+			return array(
+				'subject' => sprintf(
+					/* translators: %s: site name */
+					__( 'Confirm your email to sign in to %s', 'diluxone-users' ),
+					'{site}'
+				),
+				'body'    => __(
+					"You signed in with {network}, which did not confirm this email. Click here to confirm it and sign in:\n\n{link}\n\nThe link expires in {minutes} minutes and works once.\n\nIf it was not you, ignore this message: nothing happens without it.",
 					'diluxone-users'
 				),
 			);
@@ -460,6 +486,24 @@ function diluxone_users_mail_login_link( string $email, string $url ): array {
 		'login_link',
 		array(
 			'{link}'    => $url,
+			'{minutes}' => (string) diluxone_users_login_expiry(),
+			'{site}'    => diluxone_users_site_name(),
+			'{name}'    => diluxone_users_mail_person( $email ),
+		)
+	);
+}
+
+/**
+ * The confirmation of a social account's address, the same way.
+ *
+ * @return array{subject: string, body: string}
+ */
+function diluxone_users_mail_sso_confirm( string $email, string $url, string $network ): array {
+	return diluxone_users_mail_compose(
+		'sso_confirm',
+		array(
+			'{link}'    => $url,
+			'{network}' => $network,
 			'{minutes}' => (string) diluxone_users_login_expiry(),
 			'{site}'    => diluxone_users_site_name(),
 			'{name}'    => diluxone_users_mail_person( $email ),

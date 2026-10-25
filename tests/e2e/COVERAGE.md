@@ -43,7 +43,7 @@ everybody, with the code by e-mail, and skips it for nobody.
 | Reset: `wp`, `site` (whole chain, reused key), `link` | `password-reset` |
 | Second step by e-mail: code, reuse, five tries, resend wait, timeout, link skip | `two-factor` › by e-mail |
 | Backup codes: handed over when the step is turned on, one gets in once, another still works | `two-factor` › Backup codes |
-| Social: new account, known verified address, H-01, silence, verified-only, social registration off, cancel, roles, link/unlink, H-02, forged state, buttons off | `sso` |
+| Social: new account, known verified address, H-01, silence, verified-only (waits on the mail), social registration off, cancel, roles, link/unlink, H-02, forged state, buttons off | `sso` |
 | WP-CLI `wp diluxone-users login` link | `network/lifecycle` › WP-CLI |
 | Nobody's form for somebody signed in; `title="yes"`; the site's heading, intro, small print, logo; the logo switched off (no logo on the sign-in or the registration page); a Pro layout stored is the card | `signin-page` › What the sign-in page draws, and for whom |
 | The centred card on Twenty Twenty-Five and Astra, light and dark, colours the theme's and no site CSS: the edge at 3:1 or more against the page, the logo, heading, intro and form centred, the e-mail note and the small print at least a field's gap apart, a site's `--diluxone-users-field-gap` followed (single site and the hub) | `signin-card` › C4: the centred card on …; network `signin-card` |

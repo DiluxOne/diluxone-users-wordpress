@@ -126,7 +126,7 @@ test.describe('Signing in with a social account', () => {
 		expect((await site.user(email)).meta.diluxone_users_sso_mock).toBe('');
 	});
 
-	test('with “verified only” on, silence stops a new account too', async ({ page, site, pages, options }) => {
+	test('with “verified only” on, silence creates no account until the address is proved by mail', async ({ page, site, pages, options }) => {
 		await options.set({ diluxone_users_sso_verified_only: 1 });
 
 		const email = freshEmail('sso-vonly');
@@ -136,9 +136,10 @@ test.describe('Signing in with a social account', () => {
 		await page.goto(pages.login.url);
 		await ssoButton(page, 'mock').click();
 
+		// The rest of that trip — the link, the holding screen — is sso-pending.spec.ts.
 		await expectSignedOut(page);
-		expect(stateOf(page.url())).toBe('social');
-		expect((await site.user(email)).exists, 'no account may be created').toBe(false);
+		expect(stateOf(page.url())).toBe('social-pending');
+		expect((await site.user(email)).exists, 'no account may be created yet').toBe(false);
 	});
 
 	test('with social registration off, an unknown address is turned away', async ({ page, site, pages, options }) => {

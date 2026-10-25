@@ -1241,6 +1241,12 @@ function diluxone_e2e_identity_write( WP_REST_Request $request ): WP_REST_Respon
  * minutes.
  */
 function diluxone_e2e_expire( WP_REST_Request $request ): WP_REST_Response {
+	// A social sign-in waiting on its address has no account yet: its record
+	// is a network transient, found by the address it carries.
+	if ( 'sso-pending' === (string) $request->get_param( 'what' ) ) {
+		return new WP_REST_Response( array( 'expired' => diluxone_e2e_expire_sso_pending( (string) $request->get_param( 'email' ) ) ) );
+	}
+
 	$user = get_user_by( 'email', (string) $request->get_param( 'email' ) );
 
 	if ( ! $user instanceof WP_User ) {
@@ -1274,6 +1280,39 @@ function diluxone_e2e_expire( WP_REST_Request $request ): WP_REST_Response {
 	}
 
 	return new WP_REST_Response( array( 'expired' => $what ) );
+}
+
+/**
+ * Moves the deadline of every pending social sign-in for an address into the past.
+ *
+ * @return int How many there were.
+ */
+function diluxone_e2e_expire_sso_pending( string $email ): int {
+	global $wpdb;
+
+	$like = $wpdb->esc_like( '_site_transient_diluxone_users_sso_pending_' ) . '%';
+
+	// phpcs:ignore WordPress.DB.DirectDatabaseQuery
+	$names = is_multisite()
+		? (array) $wpdb->get_col( $wpdb->prepare( "SELECT meta_key FROM {$wpdb->sitemeta} WHERE meta_key LIKE %s", $like ) )
+		: (array) $wpdb->get_col( $wpdb->prepare( "SELECT option_name FROM {$wpdb->options} WHERE option_name LIKE %s", $like ) );
+
+	$done = 0;
+
+	foreach ( $names as $name ) {
+		$key    = substr( (string) $name, strlen( '_site_transient_' ) );
+		$record = get_site_transient( $key );
+
+		if ( ! is_array( $record ) || strtolower( (string) ( $record['identity']['email'] ?? '' ) ) !== strtolower( $email ) ) {
+			continue;
+		}
+
+		$record['expires'] = time() - 60;
+		set_site_transient( $key, $record, HOUR_IN_SECONDS );
+		++$done;
+	}
+
+	return $done;
 }
 
 /**
