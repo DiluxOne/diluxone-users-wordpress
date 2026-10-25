@@ -125,12 +125,20 @@ function diluxone_users_login_slug_old(): array {
  * never the address the page has now — going back to an old address takes it
  * off the list.
  *
+ * Saving the address it answers while "Its address" is empty, which follows
+ * the chosen sign-in page, stores it: from then on it stays where it is when
+ * that page is renamed or another is chosen.
+ *
  * @param string $slug The new path, already sanitised.
  */
 function diluxone_users_login_slug_move( string $slug ): void {
 	$was = diluxone_users_login_slug();
 
 	if ( $slug === $was ) {
+		if ( '' === sanitize_title( (string) diluxone_users_option( 'diluxone_users_login_slug' ) ) ) {
+			diluxone_users_update_option( 'diluxone_users_login_slug', $slug );
+		}
+
 		return;
 	}
 
@@ -273,9 +281,7 @@ function diluxone_users_login_slug_problem( string $raw ): string {
 
 	$taken = diluxone_users_login_slug_taken( $slug );
 
-	// The chosen sign-in page's own path is the address it already had for
-	// signing in, and the page of its own takes its place there.
-	if ( '' !== $taken && $slug !== diluxone_users_login_slug_of_page() ) {
+	if ( '' !== $taken ) {
 		return sprintf(
 			/* translators: 1: the address, as /about/, 2: what has it, as: the page “About us” */
 			__( 'The address %1$s is already %2$s. Choose another, or give that one another address first.', 'diluxone-users' ),
@@ -292,7 +298,10 @@ function diluxone_users_login_slug_problem( string $raw ): string {
  * “About us”` — or '' when nothing does.
  *
  * Any public type, in any status but the bin: a draft published tomorrow
- * would otherwise lose its address to the sign-in page without a word.
+ * would otherwise lose its address to the sign-in page without a word. Never
+ * the page chosen as the sign-in page: it already sends people to the page of
+ * its own, which takes its place at its address, so the save, the Status
+ * screen and the old addresses all leave it be.
  *
  * @param string $slug The path, without slashes.
  */
@@ -304,6 +313,10 @@ function diluxone_users_login_slug_taken( string $slug ): string {
 	$post = get_page_by_path( $slug, OBJECT, array_values( get_post_types( array( 'public' => true ) ) ) );
 
 	if ( ! $post instanceof WP_Post || 'trash' === $post->post_status ) {
+		return '';
+	}
+
+	if ( (int) $post->ID === (int) diluxone_users_option( 'diluxone_users_login_page' ) ) {
 		return '';
 	}
 
