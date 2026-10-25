@@ -390,4 +390,59 @@ class SsoPopupTest extends IntegrationTestCase {
 		$this->assertLessThanOrEqual( time() + DILUXONE_USERS_SSO_RESUME_TTL, $resume['options']['expires'] );
 		$this->assertStringNotContainsString( $resume['value'], $html );
 	}
+
+	/* ── C7: on a network, the popup trip is the hub's ──────────────── */
+
+	/** A site of the network other than the hub. */
+	private function other_site(): int {
+		if ( ! is_multisite() ) {
+			$this->markTestSkipped( 'A single site is its own hub: there everything above already runs on it.' );
+		}
+
+		return (int) wp_insert_site(
+			array(
+				'domain' => (string) get_network()->domain,
+				'path'   => '/sso-popup-' . strtolower( wp_generate_password( 6, false ) ) . '/',
+			)
+		);
+	}
+
+	public function test_on_a_network_the_popup_and_its_resume_are_the_hubs(): void {
+		$site = $this->other_site();
+		$hub  = home_url( '/' );
+
+		switch_to_blog( $site );
+		$resume = diluxone_users_sso_resume_url( MockProvider::ID );
+		$button = diluxone_users_sso_popup_url( diluxone_users_sso_login_url( MockProvider::ID ), false );
+		restore_current_blog();
+
+		$this->assertStringStartsWith( $hub, $resume, 'the resume address is on the hub' );
+		$this->assertStringStartsWith( $hub, $button, 'and so is the trip the popup opens' );
+	}
+
+	public function test_off_the_hub_a_resume_is_sent_to_the_hub_like_the_rest_of_the_route(): void {
+		$site = $this->other_site();
+
+		switch_to_blog( $site );
+		$url = $this->resume();
+
+		$this->assertSame( diluxone_users_login_url(), $url, 'the hub’s sign-in, as any old address of the route' );
+		$this->assertStringNotContainsString( (string) get_site( $site )->path, (string) wp_parse_url( $url, PHP_URL_PATH ) );
+	}
+
+	public function test_on_a_network_a_popup_sign_in_for_another_site_goes_back_there(): void {
+		$site = $this->other_site();
+		$back = get_home_url( $site, '/' );
+
+		// Held by the hub's sign-in page when the person arrived from the site.
+		$this->back( $this->start( 'door' ) );
+		$_COOKIE[ DILUXONE_USERS_RETURN_COOKIE ] = $back;
+
+		$html = $this->bridge();
+
+		$this->assertSame( 'next', $this->data( $html, 'kind' ) );
+		$this->assertSame( diluxone_users_sso_popup_origin(), $this->data( $html, 'origin' ), 'the hub’s origin' );
+		$this->assertGreaterThan( 0, get_current_user_id() );
+		$this->assertStringStartsWith( $back, $this->resume(), 'the page that opened the popup ends on the site it came from' );
+	}
 }
