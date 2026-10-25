@@ -1005,6 +1005,39 @@ add_filter( 'diluxone_users_theme_palette', function ( array $palette ): array {
 Values are checked before they reach the stylesheet: a hex, an `rgb()/rgba()`,
 an `hsl()/hsla()`, or a `var(--name)`. Anything else is dropped.
 
+What the palette does not name is measured on the site, in the visitor's
+browser (`assets/diluxone-users-theme-measure.js`): the colour of a link and a
+button, the text and the ground, the edge of a field. It is measured again
+when the scheme changes and kept once per scheme in the browser, so the next
+page starts with it.
+
+### Dark mode follows
+
+Which scheme is in force is the visitor's device (`prefers-color-scheme`)
+unless Design → Your brand → "Dark mode follows" says "The site's own switch".
+Then the site says what its switch puts on the page, as a class or an
+attribute on `<html>` or `<body>`:
+
+| Typed | Means |
+| --- | --- |
+| `.is-dark` | the class `is-dark` |
+| `data-theme="dark"` (or `data-theme=dark`) | the attribute with that value |
+| `data-mode` | the attribute, with any value |
+
+The dark one on the page means dark and the light one (optional) light; with
+both configured and neither on the page, the device decides, and with only the
+dark one, a page without it is light. An attribute named `on…`, `style` or
+`class`, and a value with a quote or a bracket, are refused on save.
+
+The measurer watches that attribute, so a theme's switch flipped on the page
+re-measures at once, and it keeps the scheme it saw last. The sign-in page of
+its own has no theme template for the switch to run in: when neither signal is
+on it, the plugin puts the last scheme's signal there (the class added, the
+attribute set), so the theme's own CSS keyed on it applies, and paints it with
+what the site's pages measured for that scheme. A signal the site's own
+`wp_head` script sets wins. Only with Colours → the theme's: with the plugin's
+own colours there is no dark scheme to follow.
+
 ### Headings are the theme's
 
 There is no property here for the size of a heading, and there will not be

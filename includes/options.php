@@ -347,6 +347,14 @@ function diluxone_users_option_defaults_own(): array {
 		// what stops a site from having to write a stylesheet that repoints
 		// every token by hand and then goes stale.
 		'diluxone_users_colors'                => 'own',
+		// How the site says it is dark: 'device', the visitor's system
+		// (`prefers-color-scheme`), or 'site', its own switch, written in the
+		// two below as where it goes and what it is: `html .is-dark`,
+		// `html data-theme="dark"` (theme-colors.php). The light one is
+		// optional; with neither on the page, the device decides.
+		'diluxone_users_dark_follows'          => 'device',
+		'diluxone_users_dark_signal'           => '',
+		'diluxone_users_light_signal'          => '',
 		// The two values that change everything else, because the rest of the
 		// sheet derives from them. Empty = the ones the sheet ships with. The
 		// accent is one of the short palette's (includes/palette.php).
