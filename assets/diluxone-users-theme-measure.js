@@ -90,7 +90,27 @@
 		return dark && dark.matches ? 'dark' : 'light';
 	}
 
+	// On "A page of its own" the plugin repaints <body> with its own text and
+	// ground, and the host inherits them: measured as they are, the plugin
+	// would read its own light-scheme text back as the theme's. So the door's
+	// class is off for the moment of the reading, and back before any paint.
 	function measure() {
+		var body = doc.body;
+		var door = body && body.classList.contains( 'diluxone-users-door' );
+
+		if ( ! door ) {
+			return read();
+		}
+
+		body.classList.remove( 'diluxone-users-door' );
+		try {
+			return read();
+		} finally {
+			body.classList.add( 'diluxone-users-door' );
+		}
+	}
+
+	function read() {
 		var text = getComputedStyle( host ).color;
 		var surface = ground( host );
 		var link = probe( '<a href="#" data-p>x</a>' ).color;
@@ -112,7 +132,22 @@
 	function apply() {
 		pending = false;
 
-		var found = measure();
+		// The measurement and what it writes change <html> and <body>, which
+		// the watcher would hear: its own, so it is not listening meanwhile.
+		if ( watcher ) {
+			watcher.disconnect();
+		}
+		try {
+			write( measure() );
+		} finally {
+			if ( watcher ) {
+				watcher.takeRecords();
+				watch();
+			}
+		}
+	}
+
+	function write( found ) {
 		var kept = {};
 
 		roles.forEach( function ( r ) {
@@ -136,17 +171,9 @@
 		}
 		last = json;
 
-		// Setting a property is a change to <html>'s style the watcher
-		// would hear: its own, so it is not listening while it writes.
-		if ( watcher ) {
-			watcher.disconnect();
-		}
 		Object.keys( kept ).forEach( function ( r ) {
 			root.style.setProperty( '--diluxone-users-' + r, kept[ r ] );
 		} );
-		if ( watcher ) {
-			watch();
-		}
 	}
 
 	// A theme's switch may change several things at once, and a stylesheet
