@@ -269,6 +269,20 @@ class LoginDoorTest extends IntegrationTestCase {
 		$this->assertSame( array( 'entrar' ), diluxone_users_login_slug_old(), '/entrar/ sends people to the default' );
 	}
 
+	public function test_c3_an_english_site_with_nothing_chosen_is_at_sign_in_as_before(): void {
+		update_option( 'WPLANG', '' );
+
+		$this->assertSame( 0, diluxone_users_page_here( 'diluxone_users_login_page' ), 'no page chosen' );
+		$this->assertSame( '', (string) diluxone_users_option( 'diluxone_users_login_slug' ), 'nothing typed' );
+		$this->assertSame( 'sign-in', diluxone_users_login_slug() );
+		$this->assertSame( home_url( '/sign-in/' ), diluxone_users_login_url() );
+		$this->assertSame( 'index.php?diluxone_users_door=login', $this->rules()['^sign\\-in/?$'] ?? '' );
+
+		ob_start();
+		diluxone_users_screen_login_door( 'own' );
+		$this->assertStringContainsString( '<code>/sign-in/</code>', (string) ob_get_clean() );
+	}
+
 	public function test_c2_every_way_to_the_sign_in_screen_points_to_the_page_of_its_own(): void {
 		$door = home_url( '/sign-in/' );
 

@@ -60,6 +60,24 @@ class LoginDoorTest extends TestCase {
 		parent::tearDown();
 	}
 
+	public function test_c3_an_english_site_with_nothing_chosen_is_at_sign_in(): void {
+		$this->assertSame( '', diluxone_users_option( 'diluxone_users_login_slug' ), 'nothing typed is the stored default' );
+		$this->assertSame( 'en_US', diluxone_users_login_slug_locale(), 'a site with no language set is in English' );
+		$this->assertSame( 'sign-in', diluxone_users_login_slug_default() );
+		$this->assertSame( 'sign-in', diluxone_users_login_slug() );
+
+		update_option( 'WPLANG', '' );
+		$this->assertSame( 'sign-in', diluxone_users_login_slug(), 'nor with English chosen' );
+	}
+
+	public function test_c3_a_translation_that_comes_out_empty_is_still_sign_in(): void {
+		update_option( 'WPLANG', 'xx_XX' );
+		Functions\when( 'determine_locale' )->justReturn( 'xx_XX' );
+		Functions\when( '_x' )->justReturn( '¡!' );
+
+		$this->assertSame( 'sign-in', diluxone_users_login_slug(), 'never no address' );
+	}
+
 	public function test_the_address_is_sign_in_until_another_is_chosen(): void {
 		$this->assertSame( 'sign-in', diluxone_users_login_slug() );
 

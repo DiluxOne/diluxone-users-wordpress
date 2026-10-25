@@ -22,6 +22,20 @@ test.describe('A page of its own, on a network', () => {
 		await expect(guest.locator('body.diluxone-users-door'), 'only the hub answers it').toHaveCount(0);
 	});
 
+	test('C3: with nothing chosen on an English hub, the page of its own is at /sign-in/, and the other sites lead there', async ({ hub, alpha, guest }) => {
+		await hub.set({ ...SHAPE, diluxone_users_login_slug: '', diluxone_users_login_page: 0, WPLANG: '' });
+
+		const response = await guest.goto(hub.path('sign-in/'));
+
+		expect(response?.status(), 'answered on the hub, as before').toBe(200);
+		expect(new URL(guest.url()).pathname).toBe(new URL(hub.path('sign-in/')).pathname);
+		await expect(guest.locator('body.diluxone-users-door')).toHaveCount(1);
+
+		await guest.goto(alpha.pages.login.url);
+		const button = guest.locator('.diluxone-users-hub-door[data-diluxone-users-door="login"] a.diluxone-users-button');
+		expect(((await button.getAttribute('href')) ?? '').startsWith(`${hub.path('sign-in/')}?redirect_to=`), 'the hub’s /sign-in/').toBe(true);
+	});
+
 	test('C2: another site’s door leads to the hub’s /sign-in/, with the way back', async ({ hub, alpha, guest }) => {
 		await hub.set(SHAPE);
 
