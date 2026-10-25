@@ -209,4 +209,32 @@ class ActivityLogTest extends TestCase {
 
 		$this->assertSame( 0, diluxone_users_log_days() );
 	}
+
+	public function test_a_refused_social_sign_in_reads_as_the_network_and_why(): void {
+		// The administrator only has the log: the row has to say which network
+		// and why, in words, where a password refusal shows the name typed.
+		require_once DILUXONE_USERS_DIR . 'includes/sso-providers.php';
+		require_once DILUXONE_USERS_DIR . 'includes/admin-log.php';
+
+		$row = static fn( array $detail ): array => array(
+			'event'   => 'sign_in_failed',
+			'site_id' => 1,
+			'detail'  => $detail,
+		);
+
+		$this->assertSame(
+			'Microsoft · cancelled at the provider',
+			diluxone_users_log_says( $row( array( 'via' => 'sso', 'provider' => 'microsoft', 'reason' => 'cancelled' ) ) )
+		);
+		$this->assertSame(
+			'Google · a return nobody started here',
+			diluxone_users_log_says( $row( array( 'via' => 'sso', 'provider' => 'google', 'reason' => 'state' ) ) )
+		);
+		// A provider's own error code nobody translated is shown as it came.
+		$this->assertSame(
+			'Google · server_error',
+			diluxone_users_log_says( $row( array( 'via' => 'sso', 'provider' => 'google', 'reason' => 'server_error' ) ) )
+		);
+		$this->assertSame( 'quien@example.test', diluxone_users_log_says( $row( array( 'tried' => 'quien@example.test' ) ) ) );
+	}
 }

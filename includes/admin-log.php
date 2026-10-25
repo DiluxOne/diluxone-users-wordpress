@@ -386,6 +386,32 @@ function diluxone_users_log_via( string $via ): string {
 }
 
 /**
+ * What a refused social sign-in says: the network, and why, in words.
+ *
+ * The row keeps the network's slug and a short reason (diluxone_users_sso_log_refused());
+ * a reason this list does not know is the provider's own error code, and is
+ * shown as it came.
+ *
+ * @param string $provider The network's slug.
+ * @param string $reason   Why, as the row keeps it.
+ */
+function diluxone_users_log_sso_refused( string $provider, string $reason ): string {
+	$providers = diluxone_users_sso_providers();
+	$name      = (string) ( $providers[ $provider ]['name'] ?? $provider );
+
+	$reasons = array(
+		'cancelled' => __( 'cancelled at the provider', 'diluxone-users' ),
+		'state'     => __( 'a return nobody started here', 'diluxone-users' ),
+		'browser'   => __( 'came back in another browser or session', 'diluxone-users' ),
+		'off'       => __( 'the network was turned off', 'diluxone-users' ),
+		'token'     => __( 'the provider handed over no access token', 'diluxone-users' ),
+		'account'   => __( 'no account found or created', 'diluxone-users' ),
+	);
+
+	return trim( $name . ' · ' . ( $reasons[ $reason ] ?? $reason ), ' ·' );
+}
+
+/**
  * The site a sign-in on the hub came from, or 0.
  *
  * @param array<string, mixed> $row One row as diluxone_users_log_search() returns it.
@@ -429,6 +455,10 @@ function diluxone_users_log_says( array $row, bool $network = false ): string {
 			return $says;
 
 		case 'sign_in_failed':
+			if ( 'sso' === (string) ( $detail['via'] ?? '' ) ) {
+				return diluxone_users_log_sso_refused( (string) ( $detail['provider'] ?? '' ), (string) ( $detail['reason'] ?? '' ) );
+			}
+
 			return (string) ( $detail['tried'] ?? '' );
 
 		case 'email_changed':
