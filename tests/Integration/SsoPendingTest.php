@@ -104,7 +104,7 @@ class SsoPendingTest extends IntegrationTestCase {
 	private function held(): array {
 		$held = array();
 
-		foreach ( array( DILUXONE_USERS_SSO_PENDING_COOKIE, DILUXONE_USERS_SSO_PENDING_SHOWN ) as $name ) {
+		foreach ( array( DILUXONE_USERS_SSO_PENDING_COOKIE, DILUXONE_USERS_SSO_PENDING_SHOWN, DILUXONE_USERS_SSO_PENDING_BROWSER ) as $name ) {
 			if ( isset( self::$cookies[ $name ] ) ) {
 				$held[ $name ] = self::$cookies[ $name ]['value'];
 			}
@@ -133,13 +133,13 @@ class SsoPendingTest extends IntegrationTestCase {
 	/**
 	 * Opens a confirmation link: where it sends the person.
 	 *
-	 * In a browser with no cookie of the trip unless one is passed: the link
-	 * works in any browser, like the sign-in link.
+	 * In the browser that went to the provider unless cookies are passed: the
+	 * link works only there.
 	 *
-	 * @param array<string, string> $cookie
+	 * @param array<string, string>|null $cookie
 	 */
-	private function open( string $link, array $cookie = array() ): string {
-		$_COOKIE = $cookie;
+	private function open( string $link, ?array $cookie = null ): string {
+		$_COOKIE = $cookie ?? $this->held();
 		$_GET    = array(
 			'diluxone_users_sso_pending' => $this->queryArg( $link, 'diluxone_users_sso_pending' ),
 			'diluxone_users_token'       => $this->queryArg( $link, 'diluxone_users_token' ),
@@ -244,16 +244,86 @@ class SsoPendingTest extends IntegrationTestCase {
 
 	public function test_opened_in_the_browser_that_waited_the_pending_sign_in_is_forgotten_there(): void {
 		$this->trip();
-		$cookie = array(
-			DILUXONE_USERS_SSO_PENDING_COOKIE => self::$cookies[ DILUXONE_USERS_SSO_PENDING_COOKIE ]['value'],
-			DILUXONE_USERS_SSO_PENDING_SHOWN  => self::$cookies[ DILUXONE_USERS_SSO_PENDING_SHOWN ]['value'],
-		);
-
-		$this->open( $this->links()[0], $cookie );
+		$this->open( $this->links()[0] );
 
 		$this->assertGreaterThan( 0, get_current_user_id() );
 		$this->assertSame( '', self::$cookies[ DILUXONE_USERS_SSO_PENDING_COOKIE ]['value'] );
 		$this->assertSame( '', self::$cookies[ DILUXONE_USERS_SSO_PENDING_SHOWN ]['value'] );
+		$this->assertSame( '', self::$cookies[ DILUXONE_USERS_SSO_PENDING_BROWSER ]['value'] );
+	}
+
+	/*
+	 * Whoever starts the trip chooses the address: a provider that does not
+	 * check it hands over anybody's. Opened by the owner of that inbox in
+	 * their own browser, the link would link the stranger's network to the
+	 * owner's account, so it works only where the trip started.
+	 */
+	public function test_the_link_opened_in_another_browser_creates_and_links_nothing(): void {
+		$this->trip();
+		$link = $this->links()[0];
+
+		$url = $this->open( $link, array() );
+
+		$this->assertSame( 'expired', $this->redirectState( $url ) );
+		$this->assertFalse( get_user_by( 'email', $this->email ), 'no account' );
+		$this->assertSame( 0, $this->owner(), 'no identity linked' );
+		$this->assertSame( 0, get_current_user_id() );
+
+		// It spent nothing: the browser that waits still gets in.
+		$this->open( $link );
+		$this->assertGreaterThan( 0, get_current_user_id() );
+	}
+
+	public function test_the_link_opened_by_the_owner_of_an_existing_account_links_nothing(): void {
+		$victim = (int) wp_insert_user(
+			array(
+				'user_login' => 'pending_' . wp_generate_password( 6, false ),
+				'user_email' => $this->email,
+				'user_pass'  => wp_generate_password( 16 ),
+			)
+		);
+
+		$this->trip();
+		$held = $this->held();
+
+		// The owner's browser: signed in, holding the handle the link names, but not the trip's secret.
+		wp_set_current_user( $victim );
+		$url = $this->open( $this->links()[0], array( DILUXONE_USERS_SSO_PENDING_COOKIE => $held[ DILUXONE_USERS_SSO_PENDING_COOKIE ] ) );
+
+		$this->assertSame( 'expired', $this->redirectState( $url ) );
+		$this->assertSame( '', get_user_meta( $victim, 'diluxone_users_sso_mock', true ), 'the stranger’s network is not linked' );
+		$this->assertSame( 0, $this->owner() );
+	}
+
+	public function test_another_trip_s_secret_does_not_open_the_link(): void {
+		$this->trip();
+		$first = $this->held();
+		$link  = $this->links()[0];
+
+		// A second trip in another browser, with another address.
+		self::$mail    = array();
+		$this->email   = 'other-' . strtolower( wp_generate_password( 6, false ) ) . '@example.test';
+		$this->sub     = 'sub-' . wp_generate_password( 8, false );
+		MockProvider::$profile['email'] = $this->email;
+		MockProvider::$profile['sub']   = $this->sub;
+		$this->trip();
+		$second = $this->held();
+
+		$url = $this->open( $link, array( DILUXONE_USERS_SSO_PENDING_BROWSER => $second[ DILUXONE_USERS_SSO_PENDING_BROWSER ] ) + $first );
+
+		$this->assertSame( 'expired', $this->redirectState( $url ) );
+		$this->assertSame( 0, get_current_user_id() );
+	}
+
+	public function test_send_it_again_from_another_browser_sends_nothing(): void {
+		$this->trip();
+		$held = $this->held();
+
+		delete_site_transient( 'diluxone_users_throttle_' . md5( strtolower( $this->email ) ) );
+		unset( $held[ DILUXONE_USERS_SSO_PENDING_BROWSER ] );
+
+		$this->assertSame( 'social-pending', $this->redirectState( $this->resend( $held ) ) );
+		$this->assertCount( 1, $this->links(), 'no second mail' );
 	}
 
 	public function test_the_link_opens_the_account_that_already_has_the_address(): void {
@@ -501,7 +571,8 @@ class SsoPendingTest extends IntegrationTestCase {
 		$this->assertCount( 1, $this->links() );
 		$this->assertStringStartsWith( home_url( '/' ), $this->links()[0], 'the link is the hub’s' );
 
-		// C2, opened on the phone, where the hub's cookie is not: back to the site.
+		// C2, opened in the browser that waits on the hub, without the hub's
+		// way back any more: the record carries it, and it is back to the site.
 		$this->assertSame( $back, $this->open( $this->links()[0] ) );
 
 		$user = get_current_user_id();

@@ -67,9 +67,8 @@ test.describe('A social address confirmed by mail', () => {
 		expect(linkIn(mail, PENDING_LINK)).toMatch(/diluxone_users_token=/);
 	});
 
-	test('the link opened, in another browser: the account made, the identity linked, signed in where they were going', async ({
+	test('the link opened in the browser that waits: the account made, the identity linked, signed in where they were going', async ({
 		page,
-		guest,
 		site,
 		pages,
 	}) => {
@@ -81,18 +80,44 @@ test.describe('A social address confirmed by mail', () => {
 		await navigated(page, () => ssoButton(page, 'mock').click());
 		expect(stateOf(page.url())).toBe('social-pending');
 
-		// Opened on the phone, where the mail is read: the inbox is the proof.
-		await guest.goto(linkIn(await waitForMail(site, email), PENDING_LINK));
+		await page.goto(linkIn(await waitForMail(site, email), PENDING_LINK));
 
-		await expectSignedIn(guest, email);
+		await expectSignedIn(page, email);
 		// Nothing filters diluxone_users_login_redirect here: the front page.
-		expect(new URL(guest.url()).pathname, 'where a sign-in lands on this site').toBe('/');
+		expect(new URL(page.url()).pathname, 'where a sign-in lands on this site').toBe('/');
 
 		const made = await site.user(email);
 
 		expect(made.exists).toBe(true);
 		expect(made.meta.diluxone_users_sso_mock, 'the identity is written on the account').toBe(`mock|${email}`);
 		expect(made.meta.first_name).toBe('Grace');
+	});
+
+	test('the link opened in another browser: expired, nothing made or linked, and it still works where the trip started', async ({
+		page,
+		guest,
+		site,
+		pages,
+	}) => {
+		const email = freshEmail('sso-pending-elsewhere');
+
+		// Whoever started the trip typed the address in: the inbox may be somebody else's.
+		await site.setIdentity({ sub: `mock|${email}`, email });
+
+		await page.goto(pages.login.url);
+		await navigated(page, () => ssoButton(page, 'mock').click());
+		expect(stateOf(page.url())).toBe('social-pending');
+
+		const link = linkIn(await waitForMail(site, email), PENDING_LINK);
+
+		await guest.goto(link);
+
+		await expectSignedOut(guest);
+		expect(stateOf(guest.url())).toBe('expired');
+		expect((await site.user(email)).exists, 'nothing created').toBe(false);
+
+		await page.goto(link);
+		await expectSignedIn(page, email);
 	});
 
 	test('the link opens the account that already has the address', async ({ page, site, pages }) => {

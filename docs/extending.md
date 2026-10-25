@@ -450,7 +450,7 @@ provider answered `null` or `false` for is confirmed by mail before anything
 is created or linked (`includes/sso-pending.php`). The sign-in page then
 shows its `social-pending` state, the mail goes through
 `diluxone_users_sso_confirm_email` (see [E-mails](#e-mails)), and opening the
-link ends in `diluxone_users_complete_login()` with `via` `sso`, like any
+link, in the browser that went to the provider and nowhere else, ends in `diluxone_users_complete_login()` with `via` `sso`, like any
 social sign-in. A provider that does vouch for its addresses never meets it.
 
 Its icon goes through `diluxone_users_sso_icon_paths`, and the step-by-step

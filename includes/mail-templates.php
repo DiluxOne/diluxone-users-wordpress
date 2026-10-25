@@ -116,7 +116,7 @@ function diluxone_users_mail_templates(): array {
 					'{site}'
 				),
 				'body'    => __(
-					"You signed in with {network}, which did not confirm this email. Click here to confirm it and sign in:\n\n{link}\n\nThe link expires in {minutes} minutes and works once.\n\nIf it was not you, ignore this message: nothing happens without it.",
+					"You signed in with {network}, which did not confirm this email. Open the link below in the browser you signed in from to confirm it and sign in:\n\n{link}\n\nThe link expires in {minutes} minutes and works once.\n\nIf it was not you, ignore this message: nothing happens without it.",
 					'diluxone-users'
 				),
 			);

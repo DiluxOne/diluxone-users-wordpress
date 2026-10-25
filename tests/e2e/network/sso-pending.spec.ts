@@ -7,10 +7,10 @@ import { stateOf } from '../support/fixtures';
  * A social address confirmed by mail, from a site of the network.
  *
  * The round trip is the hub's, so the holding screen and the link are the
- * hub's too. The link is opened in another browser — the phone the mail is
- * read on — where the hub's cookie with the way back is not, and it still
+ * hub's too. The link works only in the browser that went to the provider;
+ * opened anywhere else it is expired and links nothing. Opened there, it
  * lands on the site the person came from: the way back travels with the
- * pending sign-in, not with the browser.
+ * pending sign-in, not with the hub's cookie.
  */
 
 const MOCK = { mock: { active: 1, id: 'e2e-client-id', secret: 'e2e-client-secret', tested: 1 } };
@@ -18,7 +18,7 @@ const MOCK = { mock: { active: 1, id: 'e2e-client-id', secret: 'e2e-client-secre
 /** The link a confirmation mail carries. */
 const PENDING_LINK = /https?:\/\/\S*diluxone_users_sso_pending=\S+/;
 
-test('from /beta/, an unconfirmed address waits on the hub, and the link opened elsewhere signs in back on /beta/', async ({
+test('from /beta/, an unconfirmed address waits on the hub; the link is expired elsewhere and signs in back on /beta/ where it waited', async ({
 	browser,
 	hub,
 	beta,
@@ -56,13 +56,18 @@ test('from /beta/, an unconfirmed address waits on the hub, and the link opened 
 
 	expect(link.startsWith(hub.url), 'the link is the hub’s').toBe(true);
 
-	// C2, in another browser: signed in, and back on /beta/.
+	// In another browser: expired, nothing made.
 	const second = await (await browser.newContext()).newPage();
 
 	await second.goto(link);
-	await second.waitForURL((url) => url.href.startsWith(beta.url), { waitUntil: 'domcontentloaded' });
+	expect(stateOf(second.url()), 'not the browser that started the trip').toBe('expired');
+	expect((await root.user(email)).exists, 'nothing created').toBe(false);
 
-	expect(await whoOn(second, beta.url), 'signed in, from the site they started on').toBe(email);
+	// C2, in the browser that waits: signed in, and back on /beta/.
+	await first.goto(link);
+	await first.waitForURL((url) => url.href.startsWith(beta.url), { waitUntil: 'domcontentloaded' });
+
+	expect(await whoOn(first, beta.url), 'signed in, from the site they started on').toBe(email);
 	expect((await root.user(email)).meta.diluxone_users_sso_mock, 'the identity linked').toBe(`mock|${email}`);
 
 	await first.context().close();

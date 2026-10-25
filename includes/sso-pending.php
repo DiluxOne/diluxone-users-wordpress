@@ -18,6 +18,13 @@
  *     never from the link, which carries a handle and a token and nothing else.
  *   - The address never travels in a URL. The page shows it from a cookie
  *     only this browser has, already masked.
+ *   - The link works only in the browser that went to the provider. The
+ *     identity in the record is whoever started the trip, and the inbox is
+ *     somebody else's when the address was typed in for them: opened
+ *     anywhere, the mail would link a stranger's network to that account.
+ *     So the trip leaves a secret in its browser, the record keeps its hash,
+ *     and a link opened without it is expired, as the trip itself is
+ *     (diluxone_users_sso_same_browser()).
  *   - Whatever happened, the answer is the same screen: throttled, unknown,
  *     sent.
  *
@@ -31,6 +38,9 @@ const DILUXONE_USERS_SSO_PENDING_COOKIE = 'diluxone_users_sso_pending';
 
 /** The cookie holding the masked address the holding screen shows. */
 const DILUXONE_USERS_SSO_PENDING_SHOWN = 'diluxone_users_sso_sent';
+
+/** The cookie holding the secret that ties a pending sign-in to its browser. */
+const DILUXONE_USERS_SSO_PENDING_BROWSER = 'diluxone_users_sso_browser';
 
 /** Where a pending sign-in is kept: a network transient, like the link's throttle. */
 function diluxone_users_sso_pending_key( string $handle ): string {
@@ -57,6 +67,23 @@ function diluxone_users_sso_pending_handle(): string {
 	$handle = isset( $_COOKIE[ DILUXONE_USERS_SSO_PENDING_COOKIE ] ) && is_string( $_COOKIE[ DILUXONE_USERS_SSO_PENDING_COOKIE ] ) ? sanitize_key( wp_unslash( $_COOKIE[ DILUXONE_USERS_SSO_PENDING_COOKIE ] ) ) : '';
 
 	return 1 === preg_match( '/^[a-z0-9]{32}$/', $handle ) ? $handle : '';
+}
+
+/** The secret this browser holds for its pending sign-in, or ''. */
+function diluxone_users_sso_pending_secret(): string {
+	return isset( $_COOKIE[ DILUXONE_USERS_SSO_PENDING_BROWSER ] ) && is_string( $_COOKIE[ DILUXONE_USERS_SSO_PENDING_BROWSER ] ) ? sanitize_key( wp_unslash( $_COOKIE[ DILUXONE_USERS_SSO_PENDING_BROWSER ] ) ) : '';
+}
+
+/**
+ * Is this the browser that started the pending sign-in?
+ *
+ * @param array<string, mixed> $record
+ */
+function diluxone_users_sso_pending_same_browser( array $record ): bool {
+	$secret = diluxone_users_sso_pending_secret();
+	$hash   = (string) ( $record['browser'] ?? '' );
+
+	return '' !== $secret && '' !== $hash && hash_equals( $hash, wp_hash( $secret ) );
 }
 
 /** The masked address the holding screen shows, or ''. */
@@ -126,6 +153,7 @@ function diluxone_users_sso_pending_start( string $id, array $identity ): void {
 	}
 
 	$handle = strtolower( wp_generate_password( 32, false, false ) );
+	$secret = strtolower( wp_generate_password( 32, false, false ) );
 	$record = array(
 		'provider' => $id,
 		'identity' => array(
@@ -135,6 +163,7 @@ function diluxone_users_sso_pending_start( string $id, array $identity ): void {
 			'last_name' => (string) ( $identity['last_name'] ?? '' ),
 		),
 		'hash'     => '',
+		'browser'  => wp_hash( $secret ),
 		'expires'  => time() + $life,
 		// On a network, where the person was going when they came to the
 		// hub: the cookie that holds it may be gone, or belong to another
@@ -144,8 +173,9 @@ function diluxone_users_sso_pending_start( string $id, array $identity ): void {
 
 	set_site_transient( diluxone_users_sso_pending_key( $handle ), $record, $life );
 	diluxone_users_cookie_set( DILUXONE_USERS_SSO_PENDING_COOKIE, $handle, time() + $life );
+	diluxone_users_cookie_set( DILUXONE_USERS_SSO_PENDING_BROWSER, $secret, time() + $life );
 
-	diluxone_users_sso_pending_send( $handle, $record );
+	diluxone_users_sso_pending_send( $handle, $record, $secret );
 
 	wp_safe_redirect( $done );
 	exit;
@@ -160,9 +190,10 @@ function diluxone_users_sso_pending_start( string $id, array $identity ): void {
  * only the newest link works, and the record lives as long as that link.
  *
  * @param array<string, mixed> $record
+ * @param string               $secret The browser's secret, whose cookie lives as long as the link.
  * @return bool Whether a link was sent.
  */
-function diluxone_users_sso_pending_send( string $handle, array $record ): bool {
+function diluxone_users_sso_pending_send( string $handle, array $record, string $secret ): bool {
 	$email    = (string) ( $record['identity']['email'] ?? '' );
 	$throttle = 'diluxone_users_throttle_' . md5( strtolower( $email ) );
 
@@ -181,6 +212,7 @@ function diluxone_users_sso_pending_send( string $handle, array $record ): bool 
 	set_site_transient( diluxone_users_sso_pending_key( $handle ), $record, $life );
 	diluxone_users_cookie_set( DILUXONE_USERS_SSO_PENDING_COOKIE, $handle, time() + $life );
 	diluxone_users_cookie_set( DILUXONE_USERS_SSO_PENDING_SHOWN, diluxone_users_mask_email( $email ), time() + $life );
+	diluxone_users_cookie_set( DILUXONE_USERS_SSO_PENDING_BROWSER, $secret, time() + $life );
 
 	$url = add_query_arg(
 		array(
@@ -217,8 +249,8 @@ function diluxone_users_sso_pending_send( string $handle, array $record ): bool 
  * "Send it again", from the holding screen.
  *
  * Always back to the same screen, whatever happened: no pending sign-in in
- * this browser, a machine past its count, an inbox written to a moment ago,
- * or a new link on its way.
+ * this browser, or not this browser's, a machine past its count, an inbox
+ * written to a moment ago, or a new link on its way.
  */
 function diluxone_users_sso_pending_resend(): void {
 	$done = diluxone_users_sso_pending_url();
@@ -231,12 +263,12 @@ function diluxone_users_sso_pending_resend(): void {
 	$handle = diluxone_users_sso_pending_handle();
 	$record = diluxone_users_sso_pending_get( $handle );
 
-	if ( array() === $record || diluxone_users_safe_mode() || ! diluxone_users_ip_burst( 'link', diluxone_users_login_burst() ) ) {
+	if ( array() === $record || ! diluxone_users_sso_pending_same_browser( $record ) || diluxone_users_safe_mode() || ! diluxone_users_ip_burst( 'link', diluxone_users_login_burst() ) ) {
 		wp_safe_redirect( $done );
 		exit;
 	}
 
-	diluxone_users_sso_pending_send( $handle, $record );
+	diluxone_users_sso_pending_send( $handle, $record, diluxone_users_sso_pending_secret() );
 
 	wp_safe_redirect( $done );
 	exit;
@@ -247,10 +279,12 @@ add_action( 'admin_post_diluxone_users_sso_resend', 'diluxone_users_sso_pending_
 /**
  * Opens the link: the address is proved, and the sign-in goes on.
  *
- * In any browser, like the sign-in link: the inbox is the proof, and people
- * read their mail on their phone. A link that is missing, wrong, spent or
- * past its time gets the sign-in link's own answer, and nothing is created
- * or linked. A provider turned off since gets the social sign-in's.
+ * Only in the browser that went to the provider, unlike the sign-in link:
+ * the inbox proves the address, not that its owner started this trip, and
+ * the identity linked is the trip's. A link that is missing, wrong, spent,
+ * past its time or opened in another browser gets the sign-in link's own
+ * answer, and nothing is created or linked. A provider turned off since gets
+ * the social sign-in's.
  */
 function diluxone_users_sso_pending_consume(): void {
 	// phpcs:disable WordPress.Security.NonceVerification.Recommended -- the token IS the credential.
@@ -266,8 +300,9 @@ function diluxone_users_sso_pending_consume(): void {
 	$hash   = (string) ( $record['hash'] ?? '' );
 
 	// Read, then spent: the delete is the check, so two requests carrying the
-	// same link cannot both get in.
-	if ( '' === $token || '' === $hash || (int) ( $record['expires'] ?? 0 ) < time() || ! hash_equals( $hash, wp_hash( $token ) ) || ! delete_site_transient( diluxone_users_sso_pending_key( $handle ) ) ) {
+	// same link cannot both get in. Another browser spends nothing, so the
+	// one that waits can still open it.
+	if ( '' === $token || '' === $hash || (int) ( $record['expires'] ?? 0 ) < time() || ! hash_equals( $hash, wp_hash( $token ) ) || ! diluxone_users_sso_pending_same_browser( $record ) || ! delete_site_transient( diluxone_users_sso_pending_key( $handle ) ) ) {
 		wp_safe_redirect( add_query_arg( 'diluxone-users', 'expired', diluxone_users_login_url() ) );
 		exit;
 	}
@@ -319,7 +354,7 @@ add_action( 'init', 'diluxone_users_sso_pending_consume' );
 
 /** Forgets this browser's pending sign-in: it is over. */
 function diluxone_users_sso_pending_forget(): void {
-	foreach ( array( DILUXONE_USERS_SSO_PENDING_COOKIE, DILUXONE_USERS_SSO_PENDING_SHOWN ) as $name ) {
+	foreach ( array( DILUXONE_USERS_SSO_PENDING_COOKIE, DILUXONE_USERS_SSO_PENDING_SHOWN, DILUXONE_USERS_SSO_PENDING_BROWSER ) as $name ) {
 		if ( isset( $_COOKIE[ $name ] ) ) {
 			unset( $_COOKIE[ $name ] );
 			diluxone_users_cookie_set( $name, '', time() - YEAR_IN_SECONDS );

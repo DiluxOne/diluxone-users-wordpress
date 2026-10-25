@@ -7360,12 +7360,12 @@ msgstr "Quand un fournisseur ne dit pas que l’e-mail est vérifié, rien n’e
 #. translators: %s: the email address, partly hidden
 #: includes/auth-wp-login.php:166
 #, php-format
-msgid "The social network did not confirm your email, so we sent a link to %s. Open it to confirm the address and you are in."
-msgstr "Le réseau social n’a pas confirmé votre e-mail, nous avons donc envoyé un lien à %s. Ouvrez-le pour confirmer l’adresse et vous êtes entré."
+msgid "The social network did not confirm your email, so we sent a link to %s. Open it in this browser to confirm the address and you are in."
+msgstr "Le réseau social n’a pas confirmé votre e-mail, nous avons donc envoyé un lien à %s. Ouvrez-le dans ce navigateur pour confirmer l’adresse et vous êtes entré."
 
 #: includes/auth-wp-login.php:167
-msgid "The social network did not confirm your email, so we sent a link to it. Open it to confirm the address and you are in."
-msgstr "Le réseau social n’a pas confirmé votre e-mail, nous y avons donc envoyé un lien. Ouvrez-le pour confirmer l’adresse et vous êtes entré."
+msgid "The social network did not confirm your email, so we sent a link to it. Open it in this browser to confirm the address and you are in."
+msgstr "Le réseau social n’a pas confirmé votre e-mail, nous y avons donc envoyé un lien. Ouvrez-le dans ce navigateur pour confirmer l’adresse et vous êtes entré."
 
 #: includes/mail-templates.php:101
 msgid "Confirming the address of a social account"
@@ -7391,7 +7391,7 @@ msgstr "Confirmez votre e-mail pour vous connecter à %s"
 
 #: includes/mail-templates.php:118
 msgid ""
-"You signed in with {network}, which did not confirm this email. Click here to confirm it and sign in:\n"
+"You signed in with {network}, which did not confirm this email. Open the link below in the browser you signed in from to confirm it and sign in:\n"
 "\n"
 "{link}\n"
 "\n"
@@ -7399,7 +7399,7 @@ msgid ""
 "\n"
 "If it was not you, ignore this message: nothing happens without it."
 msgstr ""
-"Vous vous êtes connecté avec {network}, qui n’a pas confirmé cet e-mail. Cliquez ici pour le confirmer et vous connecter :\n"
+"Vous vous êtes connecté avec {network}, qui n’a pas confirmé cet e-mail. Ouvrez le lien ci-dessous dans le navigateur avec lequel vous vous êtes connecté pour le confirmer et vous connecter :\n"
 "\n"
 "{link}\n"
 "\n"
@@ -7418,8 +7418,8 @@ msgstr "Le réseau social n’a pas confirmé votre e-mail, nous avons donc envo
 #. translators: %d: how many minutes the link lasts
 #: templates/login.php:94
 #, php-format
-msgid "Open it to confirm the address and you are in. It expires in %d minutes and works once."
-msgstr "Ouvrez-le pour confirmer l’adresse et vous êtes entré. Il expire dans %d minutes et ne sert qu’une fois."
+msgid "Open it in this browser to confirm the address and you are in. It expires in %d minutes and works once."
+msgstr "Ouvrez-le dans ce navigateur pour confirmer l’adresse et vous êtes entré. Il expire dans %d minutes et ne sert qu’une fois."
 
 #: templates/login.php:108
 msgid "Use another address"

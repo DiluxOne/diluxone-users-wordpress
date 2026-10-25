@@ -163,8 +163,8 @@ function diluxone_users_wp_login_states( $errors ) {
 			esc_html(
 				'' !== $shown
 					/* translators: %s: the email address, partly hidden */
-					? sprintf( __( 'The social network did not confirm your email, so we sent a link to %s. Open it to confirm the address and you are in.', 'diluxone-users' ), $shown )
-					: __( 'The social network did not confirm your email, so we sent a link to it. Open it to confirm the address and you are in.', 'diluxone-users' )
+					? sprintf( __( 'The social network did not confirm your email, so we sent a link to %s. Open it in this browser to confirm the address and you are in.', 'diluxone-users' ), $shown )
+					: __( 'The social network did not confirm your email, so we sent a link to it. Open it in this browser to confirm the address and you are in.', 'diluxone-users' )
 			),
 			'message'
 		);

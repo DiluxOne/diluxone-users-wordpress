@@ -91,7 +91,7 @@ defined( 'ABSPATH' ) || exit;
 			<?php
 			printf(
 				/* translators: %d: how many minutes the link lasts */
-				esc_html__( 'Open it to confirm the address and you are in. It expires in %d minutes and works once.', 'diluxone-users' ),
+				esc_html__( 'Open it in this browser to confirm the address and you are in. It expires in %d minutes and works once.', 'diluxone-users' ),
 				(int) $args['minutes']
 			);
 			?>

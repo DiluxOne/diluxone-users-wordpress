@@ -75,7 +75,7 @@ everybody, with the code by e-mail, and skips it for nobody.
 | Social: link-by-email off, linked identity with another address, scope some with a disallowed role, social buttons on the registration form | `signin-social` › Who a social identity opens |
 | Social linking: `taken`, `linked` + security mails on link/unlink, unlink without its nonce | `signin-social` › Linking from the account, off the plain path |
 | Social then 2FA; new device after social | `signin-social` › What a social sign-in sets off |
-| Social, an address the provider does not confirm with “Only verified addresses” on: nothing yet, the mail, the holding screen with the masked address; the link opened in another browser (new account, existing account); the link expired; the setting off as before; “Send it again” past the wait, only the newest link works; “Use another address” | `sso-pending` |
+| Social, an address the provider does not confirm with “Only verified addresses” on: nothing yet, the mail, the holding screen with the masked address; the link opened in the browser that waits (new account, existing account), and in another browser expired with nothing made; the link expired; the setting off as before; “Send it again” past the wait, only the newest link works; “Use another address” | `sso-pending` |
 | Required fields missing after a sign-in: a new account by link lands on the account page with only the required field, its save goes on to `redirect_to`; a social account with no name lands there too; an account with every field filled goes straight on; skipped, the site is open and the next sign-in asks again | `missing-fields` › After signing in, the required fields missing |
 | …turned off on User fields › After sign-in; the box switched off and saying why while no field is required | `missing-fields` › After signing in, turned off on User fields |
 | Social button skin/shape/contents/rows/words on the real page | `signin-social` › The buttons on the real page |
@@ -337,7 +337,7 @@ everybody, with the code by e-mail, and skips it for nobody.
 | Photo removed on the hub's account deletes no /beta/ file with the same id | `isolation` |
 | 2FA required of administrators: an administrator of /alpha/ signing in for /beta/ as a subscriber is asked, on the hub; a password posted to /beta/'s own wp-login.php is asked too | `isolation` › The second step is the network’s |
 | Social identity linked on the hub's account reaches the same account from /beta/ | `social` |
-| From /beta/, an address the provider does not confirm: the hub's holding screen and link; opened in another browser, signed in back on /beta/ | `sso-pending` |
+| From /beta/, an address the provider does not confirm: the hub's holding screen and link; expired in another browser, signed in back on /beta/ in the one that waited | `sso-pending` |
 | A new site used from its public pages first, nothing in debug.log | `lifecycle` |
 | Only for the whole network: a site's Plugins screen has no Activate; left on for one site alone it does nothing there and asks super admins to network-activate; back on for the network; nothing in debug.log | `lifecycle` › only for the whole network… |
 | The pieces of the account on a page of /beta/: a door to the account on the hub for each, nothing to a stranger; on the hub the forms | `account-pieces` |
