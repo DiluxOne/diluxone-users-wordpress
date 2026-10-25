@@ -1,7 +1,7 @@
 import { BrowserContext, Locator, Page } from '@playwright/test';
 import { test, expect, expectSignedIn, expectSignedOut, stateOf } from '../support/fixtures';
 import { freshEmail } from '../support/api';
-import { accountSection, openAllPanels, registerScreen, signInWithPassword, ssoButton } from '../support/ui';
+import { accountSection, navigated, openAllPanels, registerScreen, signInWithPassword, ssoButton } from '../support/ui';
 import { MOCK_ON } from '../support/signin';
 
 /**
@@ -213,6 +213,30 @@ test.describe('Social sign-in in a popup', () => {
 		expect(popup.isClosed()).toBe(true);
 		expect(new URL(page.url()).pathname, 'at the destination: the front page').toBe(new URL(baseURL!).pathname.replace(/\/?$/, '/'));
 		expect(visited.some((url) => url.includes('/oauth/authorize')), 'the whole window never went to the provider').toBe(false);
+		await expectSignedIn(page, email);
+	});
+
+	/* ── C3: a blocked popup is the whole window, as before ──────────── */
+
+	test('with the popup blocked, the whole window goes to the provider and back, signed in', async ({ page, site, pages }) => {
+		const email = freshEmail('popup-blocked');
+
+		// What a popup blocker does: window.open() hands back no window.
+		await page.addInitScript(() => {
+			window.open = () => null;
+		});
+		await site.setIdentity({ sub: `mock|${email}`, email, email_verified: true });
+		await page.goto(pages.login.url);
+
+		const visited = openerTrail(page);
+		let opened = false;
+		page.on('popup', () => (opened = true));
+
+		await navigated(page, () => ssoButton(page, 'mock').click());
+
+		expect(opened, 'no popup').toBe(false);
+		expect(visited[0], 'the button’s own trip, in this window').toMatch(TRIP_START);
+		expect(visited[0], 'not a popup trip').not.toContain('diluxone_users_popup');
 		await expectSignedIn(page, email);
 	});
 });
