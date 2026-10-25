@@ -58,6 +58,7 @@ test.describe('A social address confirmed by mail', () => {
 		await expect(page.locator('.diluxone-users-login__email')).toHaveText(masked(email));
 		await expect(page.locator('body')).not.toContainText(email);
 		await expect(page.locator('form input[name="action"][value="diluxone_users_sso_resend"]')).toHaveCount(1);
+		await expect(page.locator('p.diluxone-users-login__again a')).toHaveAttribute('href', pages.login.url);
 
 		expect((await site.user(email)).exists, 'no account until the link is opened').toBe(false);
 
@@ -153,5 +154,50 @@ test.describe('A social address confirmed by mail', () => {
 		expect(stateOf(page.url())).not.toBe('social-pending');
 		expect((await site.user(email)).meta.diluxone_users_sso_mock).toBe(`mock|${email}`);
 		expect(await site.mail(email), 'no confirmation mail').toEqual([]);
+	});
+
+	test('“Send it again” sends a new link once the wait is over, and only the newest works; “Use another address” goes back to sign in', async ({
+		page,
+		site,
+		pages,
+		options,
+	}) => {
+		// One second between two mails to the same inbox, so the test waits seconds and not a minute.
+		await options.set({ diluxone_users_login_throttle: 1 });
+
+		const email = freshEmail('sso-pending-again');
+
+		await site.setIdentity({ sub: `mock|${email}`, email });
+
+		await page.goto(pages.login.url);
+		await ssoButton(page, 'mock').click();
+
+		const first = await waitForMail(site, email);
+		const old = linkIn(first, PENDING_LINK);
+
+		// Transients expire on whole seconds: a one-second wait is over two seconds later at the latest.
+		await page.waitForTimeout(2_100);
+		await page.locator('form:has(input[name="action"][value="diluxone_users_sso_resend"]) button[type="submit"]').click();
+		await page.waitForLoadState('domcontentloaded');
+
+		expect(stateOf(page.url()), 'the same screen').toBe('social-pending');
+		await expect(page.locator('.diluxone-users-login__email')).toHaveText(masked(email));
+
+		const second = await waitForMail(site, email, { after: first.sent });
+		const fresh = linkIn(second, PENDING_LINK);
+
+		expect(fresh).not.toBe(old);
+
+		// The way out, for an address that is not theirs.
+		await page.locator('p.diluxone-users-login__again a').click();
+		await page.waitForLoadState('domcontentloaded');
+		expect(new URL(page.url()).pathname).toBe(new URL(pages.login.url).pathname);
+		expect(stateOf(page.url())).toBe('');
+
+		await page.goto(old);
+		expect(stateOf(page.url()), 'the first link died with the second').toBe('expired');
+
+		await page.goto(fresh);
+		await expectSignedIn(page, email);
 	});
 });

@@ -538,4 +538,64 @@ class SsoPendingTest extends IntegrationTestCase {
 		$this->assertSame( $hub, $url );
 		$this->assertSame( array(), self::$mail );
 	}
+
+	/* ── C7: "Send it again" and "Use another address" ───────────────── */
+
+	public function test_send_it_again_past_the_wait_sends_a_new_link_and_the_old_one_dies(): void {
+		$this->trip();
+		$held = $this->held();
+		$old  = $this->links()[0];
+
+		// The wait is over.
+		delete_site_transient( 'diluxone_users_throttle_' . md5( strtolower( $this->email ) ) );
+
+		$this->assertSame( 'social-pending', $this->redirectState( $this->resend( $held ) ) );
+		$this->assertCount( 2, $this->links(), 'a second link' );
+		$this->assertSame( $this->email, self::$mail[1]['to'] );
+
+		$new = $this->links()[1];
+		$this->assertSame( $this->queryArg( $old, 'diluxone_users_sso_pending' ), $this->queryArg( $new, 'diluxone_users_sso_pending' ), 'the same pending sign-in, replaced rather than added' );
+		$this->assertNotSame( $this->queryArg( $old, 'diluxone_users_token' ), $this->queryArg( $new, 'diluxone_users_token' ) );
+
+		$this->assertSame( 'expired', $this->redirectState( $this->open( $old ) ), 'only the newest link works' );
+		$this->assertFalse( get_user_by( 'email', $this->email ) );
+
+		$this->open( $new );
+		$this->assertGreaterThan( 0, get_current_user_id() );
+		$this->assertSame( $this->sub, get_user_meta( get_current_user_id(), 'diluxone_users_sso_mock', true ) );
+	}
+
+	public function test_send_it_again_inside_the_wait_keeps_the_first_link_working(): void {
+		$this->trip();
+		$held = $this->held();
+
+		$this->resend( $held );
+		$this->assertCount( 1, $this->links() );
+
+		$this->open( $this->links()[0] );
+		$this->assertGreaterThan( 0, get_current_user_id() );
+	}
+
+	public function test_a_pending_sign_in_held_back_by_the_wait_is_sent_once_the_wait_is_over(): void {
+		set_site_transient( 'diluxone_users_throttle_' . md5( strtolower( $this->email ) ), 1, 60 );
+		$this->trip();
+		$this->assertSame( array(), self::$mail );
+
+		delete_site_transient( 'diluxone_users_throttle_' . md5( strtolower( $this->email ) ) );
+		$this->resend( $this->held() );
+
+		$this->assertCount( 1, $this->links() );
+		$this->open( $this->links()[0] );
+		$this->assertGreaterThan( 0, get_current_user_id() );
+	}
+
+	public function test_use_another_address_goes_back_to_sign_in(): void {
+		$this->trip();
+
+		$_GET    = array( 'diluxone-users' => 'social-pending' );
+		$_COOKIE = $this->held();
+		$html    = diluxone_users_shortcode_login();
+
+		$this->assertMatchesRegularExpression( '#<a [^>]*href="' . preg_quote( esc_url( diluxone_users_login_url() ), '#' ) . '"[^>]*>\s*Use another address#', $html );
+	}
 }
