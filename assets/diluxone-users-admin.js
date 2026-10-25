@@ -1258,3 +1258,78 @@ function diluxoneUsersChoiceGroups( root ) {
 		strip.scrollLeft = open.offsetLeft - ( strip.clientWidth - open.offsetWidth ) / 2;
 	}
 }() );
+
+/**
+ * "Sign in" in the site's menu: the colour pickers, shown only with "Your
+ * own", and the preview strip, restyled as the fields change.
+ *
+ * Without JavaScript the pickers are plain text boxes that take a hex colour,
+ * and the preview shows what was saved.
+ */
+( function () {
+	'use strict';
+
+	var own = document.querySelector( '[data-diluxone-users-menu-own]' );
+	var preview = document.querySelector( '[data-diluxone-users-menu-preview]' );
+	var style = document.querySelector( 'select[name="diluxone_users_menu_signin_style"]' );
+	var colors = document.querySelector( 'select[name="diluxone_users_menu_signin_colors"]' );
+
+	if ( ! own || ! preview || ! style || ! colors ) {
+		return;
+	}
+
+	var item = preview.querySelector( '.du-menu-preview__item' );
+	var fields = own.querySelectorAll( '[data-diluxone-users-color-picker]' );
+	var position = document.querySelector( 'select[name="diluxone_users_menu_position"]' );
+	var gap = document.querySelector( '[data-diluxone-users-menu-gap="gap"]' );
+
+	function review() {
+		own.hidden = 'link' === style.value || 'own' !== colors.value;
+		item.className = 'du-menu-preview__item du-menu-preview__item--' + style.value + ( 'own' === colors.value ? ' du-menu-preview__item--own' : '' );
+
+		if ( position ) {
+			preview.classList.toggle( 'du-menu-preview--apart', 'apart' === position.value );
+		}
+		if ( gap ) {
+			preview.style.setProperty( '--du-menu-gap', /^\d+(\.\d+)?(px|rem)$/.test( gap.value.trim() ) ? gap.value.trim() : '' );
+		}
+
+		fields.forEach( function ( field ) {
+			if ( /^#([0-9a-f]{3}){1,2}$/i.test( field.value ) ) {
+				preview.style.setProperty( '--diluxone-users-menu-btn-' + field.dataset.diluxoneUsersColorPicker, field.value );
+			}
+		} );
+	}
+
+	[ style, colors, position ].forEach( function ( select ) {
+		if ( select ) {
+			select.addEventListener( 'change', review );
+		}
+	} );
+	if ( gap ) {
+		gap.addEventListener( 'input', review );
+	}
+	fields.forEach( function ( field ) {
+		field.addEventListener( 'input', review );
+	} );
+
+	// wp-color-picker is WordPress's, on jQuery, and printed after this file.
+	window.addEventListener( 'load', function () {
+		var $ = window.jQuery;
+
+		if ( ! $ || ! $.fn.wpColorPicker ) {
+			return;
+		}
+
+		fields.forEach( function ( field ) {
+			$( field ).wpColorPicker( {
+				change: function ( event, ui ) {
+					field.value = ui.color.toString();
+					review();
+				},
+			} );
+		} );
+	} );
+
+	review();
+}() );

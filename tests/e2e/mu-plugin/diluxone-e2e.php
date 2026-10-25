@@ -367,6 +367,38 @@ function diluxone_e2e_switches(): void {
 add_action( 'plugins_loaded', 'diluxone_e2e_switches' );
 
 /**
+ * An add-on's way to join a site, switched on per site from a spec
+ * (`diluxone_e2e_join`).
+ *
+ * Users+ Pro's "Join this site" through the seams the plugin draws it with:
+ * somebody signed in who is not a member is told a state of the add-on's own
+ * instead of "by invitation", and the menu gets a "Join" link for it, beside
+ * the person.
+ */
+function diluxone_e2e_join(): void {
+	if ( ! get_option( 'diluxone_e2e_join' ) ) {
+		return;
+	}
+
+	add_filter(
+		'diluxone_users_join_state',
+		static fn( $state ) => 'invite' === $state ? 'e2e-join' : $state
+	);
+	add_filter(
+		'diluxone_users_join_link',
+		static fn( $link, $state ) => 'e2e-join' === $state
+			? array(
+				'label' => 'Join',
+				'url'   => home_url( '/' ),
+			)
+			: $link,
+		10,
+		2
+	);
+}
+add_action( 'plugins_loaded', 'diluxone_e2e_join' );
+
+/**
  * A theme with a dark mode, switched on from a spec (`diluxone_e2e_dark`).
  *
  * The ground goes dark and the text light, both when the system asks for it

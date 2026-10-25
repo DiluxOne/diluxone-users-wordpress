@@ -177,6 +177,13 @@ everybody, with the code by e-mail, and skips it for nobody.
 |---|---|
 | Sign-in item for a stranger; the person with sections, sign-out; three styles; no location | `site-menu` (classic menu from the mu-plugin, `POST /menu`) |
 | Account area › In the site menu tab saves location and style | `site-menu` › Account area › In the site menu |
+| The person's item says it has a sub-menu (`menu-item-has-children`) | `site-menu` › The person in the site menu |
+| "Sign in" left a link: as before, painted like the site's links, no CSS | `site-menu` › left at “link” |
+| "Sign in" as a filled or outlined button in the theme's colours (`wp-element-button`), on a single site and on /alpha/ | `site-menu` › “Sign in” as a button, in the theme’s colours; `network/site-menu-network` |
+| "Sign in" in the site's own colours: those colours, hover, 4.5:1, light and dark; pickers only with "Your own", the preview | `site-menu` › in the site’s own colours; Account area › the colour pickers |
+| Set apart at the far end with its room on a wide screen; left alone on a phone; defaults right after the site's last item | `site-menu` › Where the plugin’s items sit in the menu |
+| The room between "Join" and the person, with an add-on's way to join (`diluxone_e2e_join`) | `network/site-menu-network` › The room between two of the plugin’s items |
+| The sign-in fields follow the theme's light/dark switch after load, autofill rule from the live tokens | `signin-dark-fields` |
 | wp-login.php branding (Design › WordPress's screens) | `admin-effects` › Design › WordPress's own screens |
 | Toolbar hidden, profile.php sent to the account area | `admin-effects` › Account area › The WordPress dashboard |
 | Users list Access column; unlink a network, no box for Users+ Pro's app | `admin-tools` › WordPress's own Users screens |
