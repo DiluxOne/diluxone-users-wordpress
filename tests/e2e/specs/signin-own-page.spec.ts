@@ -77,10 +77,12 @@ test.describe('Sign in › A page of its own', () => {
 		await expect(guest.locator('body.diluxone-users-door')).toHaveCount(1);
 	});
 
-	test('C4: an address a page already has is refused, naming the page, and nothing is written', async ({ page, pages, site }) => {
-		// Any page but the chosen sign-in page: its own path is the address the
-		// page of its own takes over (#116), not one it shadows.
-		const taken = new URL(pages.account.url).pathname.replace(/^\/|\/$/g, '');
+	test('C4: an address a page already has is refused, naming the page, and nothing is written', async ({ page, site }) => {
+		// A plain page of the spec's own: the chosen sign-in page's path is the
+		// address the page of its own takes over (#116), and the plugin's other
+		// pages are addresses it answers itself, refused before any page is named.
+		const plain = await site.page('signin-taken', '<p>Taken.</p>');
+		const taken = new URL(plain.url).pathname.replace(/^\/|\/$/g, '');
 
 		await page.goto(adminUrl('diluxone-users-design', 'login'));
 		await page.locator('input[name="diluxone_users_login_template"][value="own"]').check({ force: true });
@@ -90,6 +92,7 @@ test.describe('Sign in › A page of its own', () => {
 		await expect(page.locator('.notice-error')).toContainText(`The address /${taken}/ is already the page “`);
 		await expect(page.locator('.notice-success')).toHaveCount(0);
 		expect((await site.getOptions(['diluxone_users_login_slug'])).diluxone_users_login_slug).toBe('sign-in');
+		await site.forgetPage('signin-taken');
 	});
 
 	test('C5: the second step is drawn on /sign-in/, and finishing it signs in', async ({ guest, site, options }) => {
