@@ -18,6 +18,9 @@ class LoginDoorTest extends IntegrationTestCase {
 	/** @var string The site's language before the test. */
 	private string $language = '';
 
+	/** @var bool Whether the request is answered in Spanish (in_spanish()). */
+	private bool $spanish = false;
+
 	protected function setUp(): void {
 		parent::setUp();
 
@@ -41,6 +44,7 @@ class LoginDoorTest extends IntegrationTestCase {
 	protected function tearDown(): void {
 		update_option( 'permalink_structure', $this->permalinks );
 		update_option( 'WPLANG', $this->language );
+		unload_textdomain( 'diluxone-users', true );
 
 		$GLOBALS['wp_query']     = new \WP_Query();
 		$GLOBALS['wp_the_query'] = $GLOBALS['wp_query'];
@@ -222,14 +226,41 @@ class LoginDoorTest extends IntegrationTestCase {
 		);
 	}
 
+	/**
+	 * The site set to Spanish, and the request answered in it, as the front
+	 * end is: without needing WordPress's own Spanish installed to switch to.
+	 */
+	private function in_spanish( bool $spanish = true ): void {
+		update_option( 'WPLANG', $spanish ? 'es_ES' : '' );
+
+		if ( ! $this->spanish && $spanish ) {
+			$this->hook( 'determine_locale', fn( string $locale ): string => $this->spanish ? 'es_ES' : $locale );
+		}
+
+		$this->spanish = $spanish;
+
+		// Read again in the language now: what was read before stays otherwise.
+		unload_textdomain( 'diluxone-users', true );
+	}
+
 	public function test_c2_with_nothing_chosen_a_site_in_spanish_gets_the_address_in_spanish(): void {
+		$this->in_spanish();
+
+		$this->assertSame( 'acceder', diluxone_users_login_slug() );
+		$this->assertSame( home_url( '/acceder/' ), diluxone_users_login_url() );
+		$this->assertSame( 'index.php?diluxone_users_door=login', $this->rules()['^acceder/?$'] ?? '' );
+		$this->assertArrayNotHasKey( '^sign\\-in/?$', $this->rules(), 'not /sign-in/' );
+	}
+
+	public function test_c2_the_sites_language_and_not_that_of_whoever_is_looking(): void {
+		if ( ! in_array( 'es_ES', get_available_languages(), true ) ) {
+			$this->markTestSkipped( 'WordPress switches only to a language it has installed: `make env` installs es_ES.' );
+		}
+
 		update_option( 'WPLANG', 'es_ES' );
 
 		$this->assertNotSame( 'es_ES', determine_locale(), 'whoever is looking is not in Spanish' );
 		$this->assertSame( 'acceder', diluxone_users_login_slug(), 'the site’s language, not theirs' );
-		$this->assertSame( home_url( '/acceder/' ), diluxone_users_login_url() );
-		$this->assertSame( 'index.php?diluxone_users_door=login', $this->rules()['^acceder/?$'] ?? '' );
-		$this->assertArrayNotHasKey( '^sign\\-in/?$', $this->rules(), 'not /sign-in/' );
 		$this->assertFalse( is_locale_switched(), 'the language put back' );
 		$this->assertSame( 'Its address', __( 'Its address', 'diluxone-users' ), 'and the plugin’s words with it' );
 
@@ -246,7 +277,7 @@ class LoginDoorTest extends IntegrationTestCase {
 	}
 
 	public function test_c2_the_screen_says_the_address_left_empty_gives(): void {
-		update_option( 'WPLANG', 'es_ES' );
+		$this->in_spanish();
 
 		ob_start();
 		diluxone_users_screen_login_door( 'own' );
@@ -470,7 +501,7 @@ class LoginDoorTest extends IntegrationTestCase {
 	}
 
 	public function test_c4_an_address_typed_wins_over_both_defaults(): void {
-		update_option( 'WPLANG', 'es_ES' );
+		$this->in_spanish();
 
 		$page = (int) wp_insert_post(
 			array(
@@ -599,7 +630,7 @@ class LoginDoorTest extends IntegrationTestCase {
 		$this->assertSame( 'sign-in', diluxone_users_option( 'diluxone_users_login_slug_was' ), 'the address the rules are built for' );
 		$this->assertSame( array(), diluxone_users_login_slug_old(), 'the first one moves nothing' );
 
-		update_option( 'WPLANG', 'es_ES' );
+		$this->in_spanish();
 		diluxone_users_login_slug_follow();
 
 		$this->assertSame( 'acceder', diluxone_users_login_slug() );
@@ -615,7 +646,7 @@ class LoginDoorTest extends IntegrationTestCase {
 		$this->assertSame( add_query_arg( 'diluxone-users', 'expired', home_url( '/acceder/' ) ), $this->expectRedirect( 'diluxone_users_door_serve' ) );
 
 		// Back to English: /sign-in/ is the page again, and /acceder/ sends people there.
-		update_option( 'WPLANG', '' );
+		$this->in_spanish( false );
 		diluxone_users_login_slug_follow();
 
 		$this->assertSame( array( 'acceder' ), diluxone_users_login_slug_old() );

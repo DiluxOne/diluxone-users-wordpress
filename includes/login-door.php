@@ -125,17 +125,20 @@ function diluxone_users_login_slug_locale(): string {
 function diluxone_users_login_slug_translated( string $locale ): string {
 	static $memo = array();
 
-	if ( ! isset( $memo[ $locale ] ) ) {
-		$switched = determine_locale() !== $locale && switch_to_locale( $locale );
+	$from = determine_locale();
+	$key  = $from . '>' . $locale;
 
-		$memo[ $locale ] = _x( 'sign-in', 'URL slug', 'diluxone-users' );
+	if ( ! isset( $memo[ $key ] ) ) {
+		$switched = $from !== $locale && switch_to_locale( $locale );
+
+		$memo[ $key ] = _x( 'sign-in', 'URL slug', 'diluxone-users' );
 
 		if ( $switched ) {
 			restore_previous_locale();
 		}
 	}
 
-	return $memo[ $locale ];
+	return $memo[ $key ];
 }
 
 /**
