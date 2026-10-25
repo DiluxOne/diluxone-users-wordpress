@@ -21,7 +21,7 @@ const PASSWORD = 'e2e-Social-Ways-1!';
 async function pressMock(page: Page, url: string): Promise<void> {
 	await page.goto(url);
 	await expect(ssoButton(page, 'mock')).toBeVisible();
-	await ssoButton(page, 'mock').click();
+	await navigated(page, () => ssoButton(page, 'mock').click());
 }
 
 test.describe('A social return, tampered with', () => {
@@ -42,8 +42,9 @@ test.describe('A social return, tampered with', () => {
 
 		await site.setIdentity({ sub: `mock|${email}`, email, email_verified: true });
 
+		// The context's requests, not the page's: the trip runs in the popup.
 		let callback = '';
-		page.on('request', (request) => {
+		page.context().on('request', (request) => {
 			if (/\/sso\/mock\/\?(.*&)?code=/.test(request.url())) {
 				callback = request.url();
 			}
@@ -221,7 +222,7 @@ test.describe('Who a social identity opens', () => {
 		await expect(registerScreen(page)).toBeVisible();
 		await expect(registerScreen(page).locator('a.diluxone-users-social--mock')).toBeVisible();
 
-		await registerScreen(page).locator('a.diluxone-users-social--mock').click();
+		await navigated(page, () => registerScreen(page).locator('a.diluxone-users-social--mock').click());
 
 		await expectSignedIn(page, email);
 		const made = await site.user(email);

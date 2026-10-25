@@ -54,7 +54,7 @@ test.describe('Signing in with a social account', () => {
 
 		await page.goto(pages.login.url);
 		await expect(ssoButton(page, 'mock')).toBeVisible();
-		await ssoButton(page, 'mock').click();
+		await navigated(page, () => ssoButton(page, 'mock').click());
 
 		await expectSignedIn(page, email);
 
@@ -74,7 +74,7 @@ test.describe('Signing in with a social account', () => {
 		await site.setIdentity({ sub: `mock|${email}`, email, email_verified: true, given_name: 'Ignored' });
 
 		await page.goto(pages.login.url);
-		await ssoButton(page, 'mock').click();
+		await navigated(page, () => ssoButton(page, 'mock').click());
 
 		await expectSignedIn(page, email);
 
@@ -95,7 +95,7 @@ test.describe('Signing in with a social account', () => {
 		await site.setIdentity({ sub: 'mock|attacker', email, email_verified: false });
 
 		await page.goto(pages.login.url);
-		await ssoButton(page, 'mock').click();
+		await navigated(page, () => ssoButton(page, 'mock').click());
 
 		await expectSignedOut(page);
 		expect(stateOf(page.url()), 'back at the sign-in page with the social error').toBe('social');
@@ -119,7 +119,7 @@ test.describe('Signing in with a social account', () => {
 		await site.setIdentity({ sub: 'mock|silent', email });
 
 		await page.goto(pages.login.url);
-		await ssoButton(page, 'mock').click();
+		await navigated(page, () => ssoButton(page, 'mock').click());
 
 		await expectSignedOut(page);
 		expect(stateOf(page.url())).toBe('social');
@@ -134,7 +134,7 @@ test.describe('Signing in with a social account', () => {
 		await site.setIdentity({ sub: 'mock|vonly', email });
 
 		await page.goto(pages.login.url);
-		await ssoButton(page, 'mock').click();
+		await navigated(page, () => ssoButton(page, 'mock').click());
 
 		// The rest of that trip — the link, the holding screen — is sso-pending.spec.ts.
 		await expectSignedOut(page);
@@ -150,7 +150,7 @@ test.describe('Signing in with a social account', () => {
 		await site.setIdentity({ sub: 'mock|closed', email, email_verified: true });
 
 		await page.goto(pages.login.url);
-		await ssoButton(page, 'mock').click();
+		await navigated(page, () => ssoButton(page, 'mock').click());
 
 		await expectSignedOut(page);
 		expect(stateOf(page.url())).toBe('social');
@@ -165,7 +165,7 @@ test.describe('Signing in with a social account', () => {
 		await site.setIdentity({ deny: true });
 
 		await page.goto(pages.login.url);
-		await ssoButton(page, 'mock').click();
+		await navigated(page, () => ssoButton(page, 'mock').click());
 
 		await expectSignedOut(page);
 		expect(stateOf(page.url())).toBe('social');
@@ -195,7 +195,7 @@ test.describe('Signing in with a social account', () => {
 		await site.setIdentity({ sub: 'mock|editor', email, email_verified: true });
 
 		await page.goto(pages.login.url);
-		await ssoButton(page, 'mock').click();
+		await navigated(page, () => ssoButton(page, 'mock').click());
 
 		await expectSignedOut(page);
 		expect(stateOf(page.url())).toBe('social');
@@ -222,7 +222,8 @@ test.describe('Signing in with a social account', () => {
 		const link = row.locator('a.diluxone-users-button');
 		await expect(link).toHaveAttribute('href', /diluxone_users_nonce=/);
 
-		await link.click();
+		// The trip runs in a popup; the account page moves when it closes.
+		await navigated(page, () => link.click());
 
 		// Back on the account, still the same person, now with the network on
 		// it — and NOT signed in as whoever the identity belongs to.

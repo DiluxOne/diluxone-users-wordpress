@@ -361,7 +361,7 @@ function diluxone_users_sso_get( string $url, string $token ): array {
  *
  * @param array<string, mixed> $provider
  */
-function diluxone_users_sso_authorize( string $id, array $provider, bool $test = false ): void {
+function diluxone_users_sso_authorize( string $id, array $provider, bool $test = false, string $popup = '' ): void {
 	$credentials = diluxone_users_sso_credentials( $id );
 	$state       = wp_generate_password( 24, false, false );
 	$browser     = wp_generate_password( 32, false, false );
@@ -382,6 +382,15 @@ function diluxone_users_sso_authorize( string $id, array $provider, bool $test =
 		'browser'  => wp_hash( $browser ),
 		'user'     => get_current_user_id(),
 	);
+
+	// A trip in a popup ends in one (sso-popup.php). Never the live test's:
+	// that one has its own window and its own page.
+	if ( '' !== $popup && ! $test ) {
+		$saved['popup'] = 1;
+		$saved['door']  = 'door' === $popup ? 1 : 0;
+
+		diluxone_users_sso_popup_mark( $browser, 'door' === $popup, get_current_user_id() );
+	}
 
 	diluxone_users_cookie_set( diluxone_users_sso_cookie(), $browser, time() + 10 * MINUTE_IN_SECONDS );
 
@@ -711,11 +720,11 @@ function diluxone_users_sso_query( bool $fresh = false ): array {
 		$query = array();
 
 		// By name, and not the whole of `$_GET`. The seven below are every
-		// parameter this file ever asks for — `diluxone_users_sso_param()` and
+		// parameter this file and sso-popup.php ever ask for — `diluxone_users_sso_param()` and
 		// `diluxone_users_sso_has()` are the only readers, and they are only
 		// ever called with these. Copying the request wholesale said nothing
 		// about which of it mattered, to a reader or to a reviewer.
-		foreach ( array( 'diluxone_users_sso', 'diluxone_users_go', 'diluxone_users_nonce', 'diluxone_users_test', 'state', 'code', 'error', 'error_description' ) as $name ) {
+		foreach ( array( 'diluxone_users_sso', 'diluxone_users_go', 'diluxone_users_nonce', 'diluxone_users_test', 'diluxone_users_popup', 'diluxone_users_resume', 'state', 'code', 'error', 'error_description' ) as $name ) {
 			// phpcs:disable WordPress.Security.NonceVerification.Recommended -- a copy of the query string, taken before WordPress can clear it; nothing is done with it here, and what acts on it validates the OAuth `state` it carries against the transient it was issued with.
 			if ( ! isset( $_GET[ $name ] ) ) {
 				continue;
@@ -781,6 +790,11 @@ function diluxone_users_sso_handle( $wp = null ): void {
 		exit;
 	}
 
+	// The page that opened a popup, coming for where the popup's return ended.
+	if ( diluxone_users_sso_has( 'diluxone_users_resume' ) ) {
+		diluxone_users_sso_resume();
+	}
+
 	$providers = diluxone_users_sso_providers();
 
 	// Having credentials filled in is enough. Requiring it to be turned on
@@ -806,6 +820,20 @@ function diluxone_users_sso_handle( $wp = null ): void {
 		&& wp_verify_nonce( sanitize_key( diluxone_users_sso_param( 'diluxone_users_nonce' ) ), 'diluxone_users_sso_test_' . $id );
 
 	if ( diluxone_users_sso_has( 'diluxone_users_go' ) ) {
+		// Started in a popup, a refusal here ends in the popup too, and the
+		// page that opened it shows it (sso-popup.php).
+		$popup = $test ? '' : ( 'door' === diluxone_users_sso_param( 'diluxone_users_popup' ) ? 'door' : ( diluxone_users_sso_has( 'diluxone_users_popup' ) ? '1' : '' ) );
+
+		if ( '' !== $popup ) {
+			diluxone_users_sso_popup_catch(
+				$id,
+				array(
+					'door' => 'door' === $popup,
+					'user' => get_current_user_id(),
+				)
+			);
+		}
+
 		// Heading out to authorise belongs to a network that is on, or to the
 		// administrator's test. A half-configured network sends nobody anywhere.
 		if ( ! $test && ! diluxone_users_sso_ready( $id ) ) {
@@ -826,7 +854,11 @@ function diluxone_users_sso_handle( $wp = null ): void {
 			diluxone_users_sso_fail();
 		}
 
-		diluxone_users_sso_authorize( $id, $provider, $test );
+		// Out to the provider in the whole popup: that redirect is not the end.
+		remove_filter( 'wp_redirect', 'diluxone_users_sso_popup_finish', 0 );
+		diluxone_users_sso_popup_context( null, true );
+
+		diluxone_users_sso_authorize( $id, $provider, $test, $popup );
 	}
 
 	// On a return the provider may answer with an error instead of a code:
@@ -837,6 +869,12 @@ function diluxone_users_sso_handle( $wp = null ): void {
 
 		if ( is_array( $state_data ) && ! empty( $state_data['test'] ) ) {
 			diluxone_users_sso_test_result( $provider, false, $detail );
+		}
+
+		$popup = diluxone_users_sso_popup_trip( $state_data );
+
+		if ( null !== $popup ) {
+			diluxone_users_sso_popup_catch( $id, $popup );
 		}
 
 		diluxone_users_sso_fail();
@@ -855,6 +893,15 @@ function diluxone_users_sso_handle( $wp = null ): void {
 
 	if ( ! delete_transient( 'diluxone_users_sso_' . $state ) ) {
 		$stored = null;
+	}
+
+	// A popup trip's return ends in the popup, whatever it ends in: the flag
+	// is the stored state's, or this browser's mark when there is no state to
+	// read, never the query's (sso-popup.php).
+	$popup = diluxone_users_sso_popup_trip( $stored );
+
+	if ( null !== $popup ) {
+		diluxone_users_sso_popup_catch( $id, $popup );
 	}
 
 	if ( ! is_array( $stored ) || ( $stored['provider'] ?? '' ) !== $id ) {
@@ -975,7 +1022,12 @@ function diluxone_users_sso_same_browser( array $stored ): bool {
 	return '' !== $cookie && hash_equals( (string) ( $stored['browser'] ?? '' ), wp_hash( $cookie ) );
 }
 
-/** Back to the sign-in screen with the notice that it did not work. */
+/**
+ * Back to the sign-in screen with the notice that it did not work.
+ *
+ * In a popup trip the redirect is caught on its way out, and the page that
+ * opened the popup is the one sent there (diluxone_users_sso_popup_finish()).
+ */
 function diluxone_users_sso_fail(): void {
 	wp_safe_redirect( add_query_arg( 'diluxone-users', 'social', diluxone_users_login_url() ) );
 	exit;

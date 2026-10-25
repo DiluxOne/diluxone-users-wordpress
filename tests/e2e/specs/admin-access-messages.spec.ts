@@ -1,6 +1,6 @@
 import type { Locator, Page } from '@playwright/test';
 import { test, expect, stateOf } from '../support/fixtures';
-import { adminUrl, answeringDialog, savePanel, ssoButton } from '../support/ui';
+import { adminUrl, answeringDialog, savePanel, navigated, ssoButton } from '../support/ui';
 import { MOCK_SSO, numbersIn, rail } from '../support/admin-access';
 import { ADMIN_STATE } from '../../../playwright.config';
 
@@ -86,7 +86,7 @@ test.describe('Access › Messages', () => {
 		// A stranger on this site reads the site language's wording.
 		await site.setIdentity({ deny: true });
 		await guest.goto(pages.login.url);
-		await ssoButton(guest, 'mock').click();
+		await navigated(guest, () => ssoButton(guest, 'mock').click());
 		await guest.waitForURL(/diluxone-users=/);
 		expect(stateOf(guest.url())).toBe('social');
 		// What was typed in the site's own language, whichever language that is.
@@ -95,7 +95,7 @@ test.describe('Access › Messages', () => {
 		// And on a site in the other language, the other one.
 		await options.set({ WPLANG: otherLocale === 'en_US' ? '' : otherLocale });
 		await guest.goto(pages.login.url);
-		await ssoButton(guest, 'mock').click();
+		await navigated(guest, () => ssoButton(guest, 'mock').click());
 		await guest.waitForURL(/diluxone-users=/);
 		await expect(guest.locator(`[data-diluxone-users-message="${KEY}"]`)).toHaveText(MINE_EN);
 	});
