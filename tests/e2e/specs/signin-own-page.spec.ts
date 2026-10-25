@@ -1,7 +1,7 @@
 import { Page } from '@playwright/test';
 import { test, expect, expectSignedIn } from '../support/fixtures';
 import { codeIn, freshEmail, linkIn, waitForMail } from '../support/api';
-import { challengeScreen, registerScreen, resetScreen, signInWithPassword } from '../support/ui';
+import { adminUrl, challengeScreen, registerScreen, resetScreen, savePanel, signInWithPassword } from '../support/ui';
 import { answerChallenge } from '../support/signin';
 import { ADMIN_STATE } from '../../../playwright.config';
 
@@ -73,6 +73,23 @@ test.describe('Sign in › A page of its own', () => {
 
 		await guest.goto(pages.account.url);
 		await expect(guest.locator(`a[href="${door}"]`).first(), 'the account area, to a stranger, links to the page of its own').toBeVisible();
+	});
+
+	test('C3: the address changed from sign-in to entrar on Access, /sign-in/ redirects to /entrar/', async ({ page, guest, baseURL }) => {
+		await page.goto(adminUrl('diluxone-users-login', 'page'));
+		await page.locator('input[name="diluxone_users_login_slug"]').fill('entrar');
+		await savePanel(page);
+		await expect(page.locator('input[name="diluxone_users_login_slug"]')).toHaveValue('entrar');
+
+		const moved = await guest.request.get(`${baseURL}/sign-in/?diluxone-users=expired`, { maxRedirects: 0 });
+
+		expect(moved.status(), 'a redirect no browser keeps').toBe(302);
+		expect(moved.headers()['cache-control'], 'kept by no cache').toContain('no-store');
+		expect(moved.headers().location, 'with what the address carried').toBe(`${baseURL}/entrar/?diluxone-users=expired`);
+
+		await guest.goto('/sign-in/');
+		expect(guest.url()).toBe(`${baseURL}/entrar/`);
+		await expect(guest.locator('body.diluxone-users-door')).toHaveCount(1);
 	});
 
 	test('C5: the second step is drawn on /sign-in/, and finishing it signs in', async ({ guest, site, options }) => {

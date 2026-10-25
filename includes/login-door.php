@@ -176,31 +176,6 @@ function diluxone_users_login_slug_left( string $was ): void {
 }
 
 /**
- * Stores the address typed for "No page", keeping the one the page of its
- * own leaves.
- *
- * Asked of the hub, where the page is and where a post could already have
- * the address. A refused address writes nothing, and the answer says why.
- *
- * @param string $raw What was typed, unslashed and sanitised as text.
- * @return string '' when it was stored, else why it was refused.
- */
-function diluxone_users_login_slug_save( string $raw ): string {
-	$problem = (string) diluxone_users_on_hub( static fn(): string => diluxone_users_login_slug_problem( $raw ) );
-
-	if ( '' !== $problem ) {
-		return $problem;
-	}
-
-	$was = diluxone_users_login_slug();
-
-	diluxone_users_update_option( 'diluxone_users_login_slug', sanitize_title( trim( $raw, '/ ' ) ) );
-	diluxone_users_login_slug_left( $was );
-
-	return '';
-}
-
-/**
  * Another page chosen as the sign-in page, or none: the address it leaves
  * keeps sending people to the new one. However it was chosen — Access, the
  * page created from there, the Home screen.
@@ -364,9 +339,11 @@ function diluxone_users_login_slug_reserved(): array {
  * of: a page shadowed by the sign-in, or the sign-in shadowing wp-admin, is a
  * site that lost something without anybody deciding it.
  *
- * @param string $raw What was typed, unslashed.
+ * @param string   $raw  What was typed, unslashed.
+ * @param int|null $page The sign-in page the address goes with, 0 for none;
+ *                       null for the one stored.
  */
-function diluxone_users_login_slug_problem( string $raw ): string {
+function diluxone_users_login_slug_problem( string $raw, ?int $page = null ): string {
 	$raw  = trim( $raw, " \t\n\r\0\x0B/" );
 	$slug = sanitize_title( $raw );
 
@@ -392,7 +369,7 @@ function diluxone_users_login_slug_problem( string $raw ): string {
 		);
 	}
 
-	$taken = diluxone_users_login_slug_taken( $slug );
+	$taken = diluxone_users_login_slug_taken( $slug, $page );
 
 	if ( '' !== $taken ) {
 		return sprintf(
@@ -416,9 +393,10 @@ function diluxone_users_login_slug_problem( string $raw ): string {
  * its own, which takes its place at its address, so the save, the Status
  * screen and the old addresses all leave it be.
  *
- * @param string $slug The path, without slashes.
+ * @param string   $slug The path, without slashes.
+ * @param int|null $page The sign-in page, 0 for none; null for the one stored.
  */
-function diluxone_users_login_slug_taken( string $slug ): string {
+function diluxone_users_login_slug_taken( string $slug, ?int $page = null ): string {
 	if ( '' === $slug ) {
 		return '';
 	}
@@ -429,7 +407,7 @@ function diluxone_users_login_slug_taken( string $slug ): string {
 		return '';
 	}
 
-	if ( (int) $post->ID === (int) diluxone_users_option( 'diluxone_users_login_page' ) ) {
+	if ( (int) $post->ID === ( $page ?? (int) diluxone_users_option( 'diluxone_users_login_page' ) ) ) {
 		return '';
 	}
 

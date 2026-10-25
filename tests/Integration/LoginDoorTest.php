@@ -388,9 +388,21 @@ class LoginDoorTest extends IntegrationTestCase {
 		$this->assertStringStartsWith( $door . '?redirect_to=', $url, 'the hub’s page, carrying the way back' );
 	}
 
-	/** The address typed for "No page" stored, as Access › The sign-in page stores it. */
+	/** Access › The sign-in page saved with "No page" and this address. */
 	private function save_slug( string $slug ): bool {
-		return '' === diluxone_users_login_slug_save( $slug );
+		$this->postPanel(
+			'diluxone-users-login',
+			array(
+				'diluxone_users_login_page' => '0',
+				'diluxone_users_login_slug' => $slug,
+			)
+		);
+
+		ob_start();
+		$saved = diluxone_users_login_page_save();
+		ob_end_clean();
+
+		return $saved;
 	}
 
 	public function test_c3_a_changed_address_keeps_the_old_one_sending_people_to_the_new(): void {
@@ -482,18 +494,27 @@ class LoginDoorTest extends IntegrationTestCase {
 		$this->assertSame( array(), diluxone_users_login_slug_old() );
 	}
 
-	/** Why the address was refused, with nothing written. */
+	/** What the save said when it refused the address. */
 	private function refused( string $slug ): string {
-		$said = diluxone_users_login_slug_save( $slug );
+		$this->postPanel(
+			'diluxone-users-login',
+			array(
+				'diluxone_users_login_page' => '0',
+				'diluxone_users_login_slug' => $slug,
+			)
+		);
 
-		$this->assertNotSame( '', $said, $slug . ' was saved' );
+		ob_start();
+		$saved = diluxone_users_login_page_save();
+		$said  = (string) ob_get_clean();
+
+		$this->assertFalse( $saved, $slug . ' was saved' );
+		$this->assertStringContainsString( 'notice-error', $said );
 
 		return $said;
 	}
 
 	public function test_c4_an_address_a_page_already_has_is_refused_naming_the_page(): void {
-		diluxone_users_update_option( 'diluxone_users_login_template', 'card' );
-
 		wp_insert_post(
 			array(
 				'post_type'   => 'page',
