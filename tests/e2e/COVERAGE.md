@@ -37,6 +37,7 @@ everybody, with the code by e-mail, and skips it for nobody.
 | wp-login.php left to WordPress (`wp`) and sent to the site's page (`mine`) | `admin-effects` › Access › The sign-in page |
 | No password: `wp` not offered, the third answer in force, wp-login.php sent to the page | `admin-effects` › with no password, wp-login.php is no second door |
 | The three ways in as tabs or stacked, order, the tab that opens, no JS; nothing about passkeys on the page | `login-ways` |
+| A clicked button looks as it does at rest once the pointer has moved away, on a theme that paints `button:focus` like `button:hover` (Astra) | `repro/issue-102` |
 | Split-screen layout, messages rewritten in the dashboard | `login-screen` |
 | Sign in with the public name (handle login) | `account-area` › The public name |
 | Reset: `wp`, `site` (whole chain, reused key), `link` | `password-reset` |

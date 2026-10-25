@@ -49,6 +49,7 @@
 	--diluxone-users-accent-soft: color-mix(in srgb, var(--diluxone-users-accent) 12%, transparent);
 	--diluxone-users-ok: #0f7b4f;
 	--diluxone-users-danger: #b3261e;
+	--diluxone-users-danger-ink: #ffffff;
 }
 
 /* ── The measurements a site changes ─────────────────────────────────────
@@ -353,6 +354,17 @@ details.diluxone-users-panel[open] > .diluxone-users-panel__head .diluxone-users
 	cursor: pointer;
 	transition: filter .15s ease;
 }
+/* A theme that paints every focused button like a hovered one (Astra does)
+   would leave a clicked button looking hovered after the pointer has gone.
+   Focus keeps the resting colours, and the hover rules after it still win
+   while the pointer is on the button; the keyboard gets the ring instead. */
+.diluxone-users-button:focus {
+	border-color: var(--diluxone-users-btn-edge, transparent);
+	background: var(--diluxone-users-btn-bg, var(--diluxone-users-accent-bg));
+	color: var(--diluxone-users-btn-ink, var(--diluxone-users-accent-ink));
+	filter: none;
+}
+.diluxone-users-button:focus-visible { outline: 2px solid var(--diluxone-users-accent); outline-offset: 2px; }
 .diluxone-users-button:hover { filter: brightness(0.93); color: var(--diluxone-users-btn-ink, var(--diluxone-users-accent-ink)); }
 
 /* A theme that underlines the links in its content column (Astra's
@@ -374,14 +386,16 @@ details.diluxone-users-panel[open] > .diluxone-users-panel__head .diluxone-users
 	border-color: var(--diluxone-users-border);
 	color: var(--diluxone-users-text);
 }
+.diluxone-users-button--soft:focus { background: transparent; border-color: var(--diluxone-users-border); color: var(--diluxone-users-text); }
 .diluxone-users-button--soft:hover { background: var(--diluxone-users-surface-alt); color: var(--diluxone-users-text); filter: none; }
 
 /* Used by a door that is one button and by the way out of "check your
    email", and until now it was a class on the markup with no rule behind it. */
 .diluxone-users-button--wide { display: flex; width: 100%; }
 
-.diluxone-users-button--danger { background: var(--diluxone-users-danger); color: #fff; }
-.diluxone-users-button--danger:hover { color: #fff; }
+.diluxone-users-button--danger { background: var(--diluxone-users-danger); color: var(--diluxone-users-danger-ink); }
+.diluxone-users-button--danger:focus { background: var(--diluxone-users-danger); color: var(--diluxone-users-danger-ink); }
+.diluxone-users-button--danger:hover { color: var(--diluxone-users-danger-ink); }
 
 /* The way past the step that asks for the required fields after a sign-in. */
 .diluxone-users-fields__skip { display: inline-block; margin-inline-start: 1rem; }
@@ -729,6 +743,7 @@ body.diluxone-users-door {
 	color: currentColor;
 	border: 1px solid currentColor;
 }
+.diluxone-users-button--line:focus { background: transparent; color: currentColor; border-color: currentColor; }
 .diluxone-users-button--line:hover { background: transparent; color: currentColor; filter: none; opacity: .85; }
 .diluxone-users-account__avatar {
 	display: inline-flex;
