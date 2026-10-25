@@ -1228,9 +1228,13 @@ body.diluxone-users-door {
 	font-size: .88em;
 	font-weight: 600;
 }
-.diluxone-users-pill--ok { background: color-mix( in srgb, var(--diluxone-users-ok) 14%, transparent ); color: var(--diluxone-users-ok); }
+/* The status colours are one light-scheme value whatever the ground, so the
+   text of a done and a failed pill is the status colour mixed with the text's
+   colour: the text reads on the ground, light or dark, and the mix takes the
+   green and the red towards it, keeping 4.5:1 in either scheme. */
+.diluxone-users-pill--ok { background: color-mix( in srgb, var(--diluxone-users-ok) 14%, transparent ); color: var(--diluxone-users-ok); color: color-mix( in srgb, var(--diluxone-users-ok) 55%, var(--diluxone-users-text) ); }
 .diluxone-users-pill--pending { background: color-mix( in srgb, var(--diluxone-users-accent) 12%, transparent ); color: var(--diluxone-users-accent); }
-.diluxone-users-pill--off { background: color-mix( in srgb, var(--diluxone-users-danger) 12%, transparent ); color: var(--diluxone-users-danger); }
+.diluxone-users-pill--off { background: color-mix( in srgb, var(--diluxone-users-danger) 12%, transparent ); color: var(--diluxone-users-danger); color: color-mix( in srgb, var(--diluxone-users-danger) 55%, var(--diluxone-users-text) ); }
 
 .diluxone-users-handle-field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 /* The air between the pieces comes from `gap`. The paragraph margins any
