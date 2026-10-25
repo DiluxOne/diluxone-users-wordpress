@@ -298,4 +298,34 @@ class SsoPendingTest extends IntegrationTestCase {
 		$this->assertFalse( get_user_by( 'email', $this->email ) );
 		$this->assertSame( 0, get_current_user_id() );
 	}
+
+	/* ── C3: the link past its time ──────────────────────────────────── */
+
+	public function test_a_link_past_its_time_is_expired_and_makes_nothing(): void {
+		$this->trip();
+
+		$handle            = self::$cookies[ DILUXONE_USERS_SSO_PENDING_COOKIE ]['value'];
+		$record            = diluxone_users_sso_pending_get( $handle );
+		$record['expires'] = time() - 1;
+		set_site_transient( diluxone_users_sso_pending_key( $handle ), $record, HOUR_IN_SECONDS );
+
+		$url = $this->open( $this->links()[0] );
+
+		$this->assertSame( 'expired', $this->redirectState( $url ) );
+		$this->assertStringStartsWith( diluxone_users_login_url(), $url );
+		$this->assertFalse( get_user_by( 'email', $this->email ), 'no account' );
+		$this->assertSame( 0, $this->owner(), 'no identity linked' );
+		$this->assertSame( 0, get_current_user_id() );
+	}
+
+	public function test_a_link_whose_record_is_gone_is_expired_and_makes_nothing(): void {
+		$this->trip();
+
+		// The transient lives as long as the link: once it is gone, it is gone.
+		delete_site_transient( diluxone_users_sso_pending_key( self::$cookies[ DILUXONE_USERS_SSO_PENDING_COOKIE ]['value'] ) );
+
+		$this->assertSame( 'expired', $this->redirectState( $this->open( $this->links()[0] ) ) );
+		$this->assertFalse( get_user_by( 'email', $this->email ) );
+		$this->assertSame( 0, $this->owner() );
+	}
 }

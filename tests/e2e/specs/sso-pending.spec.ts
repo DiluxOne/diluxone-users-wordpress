@@ -1,6 +1,6 @@
 import { test, expect, expectSignedIn, expectSignedOut, stateOf } from '../support/fixtures';
 import { freshEmail, linkIn, waitForMail } from '../support/api';
-import { ssoButton } from '../support/ui';
+import { notice, ssoButton } from '../support/ui';
 
 /**
  * A social sign-in whose address the provider did not confirm, on a site that
@@ -113,5 +113,24 @@ test.describe('A social address confirmed by mail', () => {
 
 		expect(after.id, 'the same account, not a second one').toBe(existing.id);
 		expect(after.meta.diluxone_users_sso_mock).toBe(`mock|${email}`);
+	});
+
+	test('the link opened after it expired: the usual expired answer, and nothing made', async ({ page, site, pages }) => {
+		const email = freshEmail('sso-pending-late');
+
+		await site.setIdentity({ sub: `mock|${email}`, email });
+
+		await page.goto(pages.login.url);
+		await ssoButton(page, 'mock').click();
+
+		const link = linkIn(await waitForMail(site, email), PENDING_LINK);
+
+		await site.expire(email, 'sso-pending');
+		await page.goto(link);
+
+		await expectSignedOut(page);
+		expect(stateOf(page.url())).toBe('expired');
+		await expect(notice(page, 'error')).toBeVisible();
+		expect((await site.user(email)).exists, 'nothing created').toBe(false);
 	});
 });
