@@ -73,4 +73,34 @@ class DarkSignalParseTest extends TestCase {
 			$this->assertSame( $stored, self::said( diluxone_users_dark_signal_parse( $on, $typed ) ), $typed );
 		}
 	}
+
+	public function test_c7_what_is_not_a_class_or_an_attribute_is_refused(): void {
+		$refused = array(
+			'',
+			'dark mode',
+			'.',
+			'.is dark',
+			'.1dark',
+			'onclick="x"',
+			'ONLOAD=x',
+			'style="color:red"',
+			'class="dark"',
+			'data-x="<b>"',
+			'data-x="a\'b"',
+			'data-x=a"b',
+			'data-x=<b>',
+			'html[x]',
+			'[data-theme="dark"]',
+			'data-theme="dark" data-x',
+			'data-theme=="dark"',
+			'#dark',
+			'-data',
+		);
+
+		foreach ( $refused as $typed ) {
+			$this->assertNull( diluxone_users_dark_signal_parse( 'html', $typed ), $typed );
+		}
+
+		$this->assertNull( diluxone_users_dark_signal_parse( 'head', '.is-dark' ), 'only <html> or <body>' );
+	}
 }

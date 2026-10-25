@@ -158,4 +158,133 @@ class DarkSignalSettingsTest extends IntegrationTestCase {
 		$this->assertStringContainsString( '"name":"data-theme","value":"dark"}},1);', $head, 'told the signal, and that this is the page of its own' );
 		$this->assertLessThan( strpos( $head, 'the-sites-switch' ), $early, 'before the site’s switch, so the switch has the last word' );
 	}
+
+	/**
+	 * Your brand saved with these answers, and what the save printed.
+	 *
+	 * @param array<string, string> $post
+	 */
+	private function save( array $post ): string {
+		$this->postPanel( DILUXONE_USERS_DESIGN, $post );
+
+		ob_start();
+		diluxone_users_design_brand_save();
+
+		return (string) ob_get_clean();
+	}
+
+	public function test_c7_a_signal_that_is_not_a_class_or_an_attribute_is_refused_and_the_previous_one_stays(): void {
+		diluxone_users_update_option( 'diluxone_users_dark_follows', 'site' );
+		diluxone_users_update_option( 'diluxone_users_dark_signal', 'html .is-dark' );
+		diluxone_users_update_option( 'diluxone_users_light_signal', 'html .is-light' );
+
+		foreach ( array( 'dark mode', '.', 'onclick="x"', 'data-x="<b>"', 'html[x]' ) as $typed ) {
+			foreach ( array( 'diluxone_users_dark_signal', 'diluxone_users_light_signal' ) as $key ) {
+				$said = $this->save(
+					array(
+						'diluxone_users_dark_follows' => 'site',
+						$key . '_on'                  => 'body',
+						$key                          => $typed,
+					)
+				);
+
+				$this->assertStringContainsString( 'notice-error', $said, $key . ': ' . $typed );
+				$this->assertStringContainsString( 'has to be a class, as .is-dark, or an attribute', $said );
+				$this->assertStringNotContainsString( '<b>', $said, 'what was typed is never printed as markup' );
+			}
+
+			$this->assertSame( 'html .is-dark', diluxone_users_option( 'diluxone_users_dark_signal' ), $typed );
+			$this->assertSame( 'html .is-light', diluxone_users_option( 'diluxone_users_light_signal' ), $typed );
+			$this->assertSame( 'site', diluxone_users_option( 'diluxone_users_dark_follows' ) );
+		}
+	}
+
+	public function test_c7_a_refused_dark_signal_keeps_the_answer_too(): void {
+		$said = $this->save(
+			array(
+				'diluxone_users_dark_follows'    => 'site',
+				'diluxone_users_dark_signal_on'  => 'html',
+				'diluxone_users_dark_signal'     => 'onclick="x"',
+				'diluxone_users_light_signal_on' => 'html',
+				'diluxone_users_light_signal'    => '',
+			)
+		);
+
+		$this->assertStringContainsString( 'notice-error', $said );
+		$this->assertSame( 'device', diluxone_users_option( 'diluxone_users_dark_follows' ), 'a switch the plugin cannot read is no switch' );
+		$this->assertSame( '', diluxone_users_option( 'diluxone_users_dark_signal' ) );
+	}
+
+	public function test_c7_the_sites_switch_with_no_dark_signal_is_refused(): void {
+		$said = $this->save(
+			array(
+				'diluxone_users_dark_follows' => 'site',
+				'diluxone_users_dark_signal'  => '   ',
+			)
+		);
+
+		$this->assertStringContainsString( 'notice-error', $said );
+		$this->assertStringContainsString( 'needs what the page has when the site is dark', $said );
+		$this->assertSame( 'device', diluxone_users_option( 'diluxone_users_dark_follows' ) );
+	}
+
+	public function test_a_class_or_an_attribute_is_saved_as_it_is_read(): void {
+		$said = $this->save(
+			array(
+				'diluxone_users_dark_follows'    => 'site',
+				'diluxone_users_dark_signal_on'  => 'html',
+				'diluxone_users_dark_signal'     => " data-tema='oscuro' ",
+				'diluxone_users_light_signal_on' => 'body',
+				'diluxone_users_light_signal'    => '.is-light',
+			)
+		);
+
+		$this->assertStringNotContainsString( 'notice-error', $said );
+		$this->assertSame( 'site', diluxone_users_option( 'diluxone_users_dark_follows' ) );
+		$this->assertSame( 'html data-tema="oscuro"', diluxone_users_option( 'diluxone_users_dark_signal' ) );
+		$this->assertSame( 'body .is-light', diluxone_users_option( 'diluxone_users_light_signal' ) );
+
+		// Back to the device, the light one emptied: both written, nothing refused.
+		$said = $this->save(
+			array(
+				'diluxone_users_dark_follows'    => 'device',
+				'diluxone_users_dark_signal_on'  => 'html',
+				'diluxone_users_dark_signal'     => 'data-tema="oscuro"',
+				'diluxone_users_light_signal_on' => 'html',
+				'diluxone_users_light_signal'    => '',
+			)
+		);
+
+		$this->assertStringNotContainsString( 'notice-error', $said );
+		$this->assertSame( 'device', diluxone_users_option( 'diluxone_users_dark_follows' ) );
+		$this->assertSame( '', diluxone_users_option( 'diluxone_users_light_signal' ) );
+	}
+
+	public function test_another_tab_of_the_screen_saved_leaves_it_alone(): void {
+		diluxone_users_update_option( 'diluxone_users_dark_follows', 'site' );
+		diluxone_users_update_option( 'diluxone_users_dark_signal', 'html .is-dark' );
+
+		$this->save( array( 'diluxone_users_login_logo' => '0' ) );
+
+		$this->assertSame( 'site', diluxone_users_option( 'diluxone_users_dark_follows' ) );
+		$this->assertSame( 'html .is-dark', diluxone_users_option( 'diluxone_users_dark_signal' ) );
+	}
+
+	public function test_the_section_is_drawn_on_your_brand_whatever_the_look(): void {
+		diluxone_users_update_option( 'diluxone_users_dark_follows', 'site' );
+		diluxone_users_update_option( 'diluxone_users_dark_signal', 'body data-theme="dark"' );
+
+		foreach ( array( 'theme', 'own' ) as $look ) {
+			diluxone_users_update_option( 'diluxone_users_colors', $look );
+
+			ob_start();
+			diluxone_users_brand_dark_follows();
+			$html = (string) ob_get_clean();
+
+			$this->assertStringContainsString( 'Dark mode follows', $html, $look );
+			$this->assertMatchesRegularExpression( '/value="site"[^>]*checked/', $html );
+			$this->assertStringContainsString( 'value="data-theme=&quot;dark&quot;"', $html, 'what is stored, escaped' );
+			$this->assertMatchesRegularExpression( '/<option value="body"\s+selected/', $html );
+		}
+	}
 }
