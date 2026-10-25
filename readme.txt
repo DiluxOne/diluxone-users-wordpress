@@ -269,6 +269,7 @@ Unreleased.
 
 First public release.
 
+* On the sign-in page of its own, with Colours › the theme's, a theme that turns dark with the system's dark mode no longer gets dark text on a dark card: the page reads the theme's own text colour, not the plugin's light default.
 * On the sign-in page of its own, the text is in the theme's typeface, as it is on a sign-in page inside the site, instead of the system's.
 * Design › The account area › "Above and below" is the room above and below the whole account area, in every layout: above the header (or the menu, without one), which no longer sits flush against the theme's, and under the taller of the side menu and the content. `--diluxone-users-body-bottom` sets the room below on its own.
 * The centred card on the sign-in page stands apart from the page in light and dark: its edge has a colour of its own, kept at 3:1 or more against the page, and a soft shadow. Everything in it is centred, and the note under the e-mail form and the small print each have room of their own. A site that styled the card's edge through `--diluxone-users-border` now sets `--diluxone-users-card-edge`, and `--diluxone-users-field-gap` sets the gap between fields.
