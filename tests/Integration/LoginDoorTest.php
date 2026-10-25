@@ -15,17 +15,32 @@ class LoginDoorTest extends IntegrationTestCase {
 	/** @var string The permalink structure before the test. */
 	private string $permalinks = '';
 
+	/** @var string The site's language before the test. */
+	private string $language = '';
+
 	protected function setUp(): void {
 		parent::setUp();
 
 		$this->permalinks = (string) get_option( 'permalink_structure' );
 		update_option( 'permalink_structure', '/%postname%/' );
 
+		$this->language = (string) get_option( 'WPLANG' );
+
+		// The translations the plugin ships, read the way a site with its
+		// language packs reads them.
+		$this->hook(
+			'lang_dir_for_domain',
+			static fn( $path, string $domain ) => 'diluxone-users' === $domain ? DILUXONE_USERS_DIR . 'languages/' : $path,
+			10,
+			2
+		);
+
 		diluxone_users_update_option( 'diluxone_users_login_template', 'own' );
 	}
 
 	protected function tearDown(): void {
 		update_option( 'permalink_structure', $this->permalinks );
+		update_option( 'WPLANG', $this->language );
 
 		$GLOBALS['wp_query']     = new \WP_Query();
 		$GLOBALS['wp_the_query'] = $GLOBALS['wp_query'];
@@ -205,6 +220,53 @@ class LoginDoorTest extends IntegrationTestCase {
 				'post_title'  => $title,
 			)
 		);
+	}
+
+	public function test_c2_with_nothing_chosen_a_site_in_spanish_gets_the_address_in_spanish(): void {
+		update_option( 'WPLANG', 'es_ES' );
+
+		$this->assertNotSame( 'es_ES', determine_locale(), 'whoever is looking is not in Spanish' );
+		$this->assertSame( 'acceder', diluxone_users_login_slug(), 'the site’s language, not theirs' );
+		$this->assertSame( home_url( '/acceder/' ), diluxone_users_login_url() );
+		$this->assertSame( 'index.php?diluxone_users_door=login', $this->rules()['^acceder/?$'] ?? '' );
+		$this->assertArrayNotHasKey( '^sign\\-in/?$', $this->rules(), 'not /sign-in/' );
+		$this->assertFalse( is_locale_switched(), 'the language put back' );
+		$this->assertSame( 'Its address', __( 'Its address', 'diluxone-users' ), 'and the plugin’s words with it' );
+
+		// While a notice is written in its recipient's language, the address
+		// is still the site's.
+		update_option( 'WPLANG', '' );
+		switch_to_locale( 'es_ES' );
+
+		try {
+			$this->assertSame( 'sign-in', diluxone_users_login_slug() );
+		} finally {
+			restore_previous_locale();
+		}
+	}
+
+	public function test_c2_the_screen_says_the_address_left_empty_gives(): void {
+		update_option( 'WPLANG', 'es_ES' );
+
+		ob_start();
+		diluxone_users_screen_login_door( 'own' );
+		$html = (string) ob_get_clean();
+
+		$this->assertStringContainsString( 'value=""', $html, 'empty, as stored' );
+		$this->assertStringContainsString( 'placeholder="acceder"', $html );
+		$this->assertStringContainsString( '<code>/acceder/</code>', $html, 'the line under the field' );
+		$this->assertStringNotContainsString( ' required', $html, 'empty is an answer' );
+	}
+
+	public function test_c2_a_field_saved_empty_is_the_default(): void {
+		ob_start();
+		$this->assertTrue( $this->save_slug( 'entrar' ) );
+		$this->assertTrue( $this->save_slug( '' ), 'empty is not refused' );
+		ob_end_clean();
+
+		$this->assertSame( '', (string) diluxone_users_option( 'diluxone_users_login_slug' ) );
+		$this->assertSame( 'sign-in', diluxone_users_login_slug() );
+		$this->assertSame( array( 'entrar' ), diluxone_users_login_slug_old(), '/entrar/ sends people to the default' );
 	}
 
 	public function test_c2_every_way_to_the_sign_in_screen_points_to_the_page_of_its_own(): void {
@@ -450,7 +512,7 @@ class LoginDoorTest extends IntegrationTestCase {
 		}
 
 		$this->assertStringContainsString( 'one word, with no slashes', $this->refused( 'a/b' ) );
-		$this->assertStringContainsString( 'needs an address', $this->refused( '///' ) );
+		$this->assertStringContainsString( 'needs an address', $this->refused( '!!!' ) );
 		$this->assertSame( 'sign-in', diluxone_users_login_slug(), 'nothing written' );
 	}
 

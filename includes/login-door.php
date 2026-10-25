@@ -88,7 +88,7 @@ function diluxone_users_login_slug_default(): string {
 				}
 			}
 
-			$slug = sanitize_title( diluxone_users_login_slug_translated( get_locale() ) );
+			$slug = sanitize_title( diluxone_users_login_slug_translated( diluxone_users_login_slug_locale() ) );
 
 			return '' !== $slug ? $slug : DILUXONE_USERS_DOOR_SLUG;
 		}
@@ -96,9 +96,28 @@ function diluxone_users_login_slug_default(): string {
 }
 
 /**
+ * The language this site is set to, as stored, read where the page is.
+ *
+ * Not get_locale(): that answers in the language a notice was switched to
+ * for its recipient, and a multilingual plugin's filter makes it the
+ * visitor's. Either would give the page another address on every request,
+ * and an e-mail a link to an address that answers nothing.
+ */
+function diluxone_users_login_slug_locale(): string {
+	$locale = get_option( 'WPLANG' );
+
+	if ( false === $locale && is_multisite() ) {
+		$locale = get_site_option( 'WPLANG' );
+	}
+
+	return is_string( $locale ) && '' !== $locale ? $locale : 'en_US';
+}
+
+/**
  * "sign-in", as a URL slug, in one language. Kept for the request: a switch
  * of language reloads every translation, and the slug is asked for on every
  * request of the dashboard, where the person's language may not be the site's.
+ * A language with no translation, or none installed, says "sign-in".
  *
  * @param string $locale The language, as WordPress names it.
  */
@@ -148,19 +167,24 @@ function diluxone_users_login_slug_old(): array {
  * never the address the page has now — going back to an old address takes it
  * off the list.
  *
- * @param string $slug The new path, already sanitised.
+ * @param string $slug What "Its address" holds now, already sanitised: ''
+ *                     for the default.
  */
 function diluxone_users_login_slug_move( string $slug ): void {
-	$was = diluxone_users_login_slug();
-
-	if ( $slug === $was ) {
+	if ( sanitize_title( (string) diluxone_users_option( 'diluxone_users_login_slug' ) ) === $slug ) {
 		return;
 	}
 
-	$old = array_values( array_diff( array_merge( array( $was ), diluxone_users_login_slug_old() ), array( $slug ) ) );
+	// The address it leaves and the one it takes, as they are answered: an
+	// address emptied leaves the typed one for the default.
+	$was = diluxone_users_login_slug();
+
+	diluxone_users_update_option( 'diluxone_users_login_slug', $slug );
+
+	$now = diluxone_users_login_slug();
+	$old = array_values( array_diff( array_merge( array( $was ), diluxone_users_login_slug_old() ), array( $now ) ) );
 
 	diluxone_users_update_option( 'diluxone_users_login_slug_old', array_slice( $old, 0, DILUXONE_USERS_DOOR_OLD_MAX ) );
-	diluxone_users_update_option( 'diluxone_users_login_slug', $slug );
 }
 
 /**

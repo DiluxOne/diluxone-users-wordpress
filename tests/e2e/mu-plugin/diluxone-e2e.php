@@ -367,6 +367,21 @@ function diluxone_e2e_switches(): void {
 add_action( 'plugins_loaded', 'diluxone_e2e_switches' );
 
 /**
+ * The translations the plugin ships, read the way a site with its language
+ * packs installed reads them: the address of the sign-in page of its own is
+ * "sign-in" in the site's language, and a spec of a site in Spanish has to
+ * find it in Spanish.
+ *
+ * @param string|false $path   Where WordPress would look.
+ * @param string       $domain The text domain.
+ * @return string|false
+ */
+function diluxone_e2e_shipped_languages( $path, string $domain ) {
+	return 'diluxone-users' === $domain && defined( 'DILUXONE_USERS_DIR' ) ? DILUXONE_USERS_DIR . 'languages/' : $path;
+}
+add_filter( 'lang_dir_for_domain', 'diluxone_e2e_shipped_languages', 10, 2 );
+
+/**
  * A theme with a dark mode, switched on from a spec (`diluxone_e2e_dark`).
  *
  * The ground goes dark and the text light, both when the system asks for it

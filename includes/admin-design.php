@@ -126,9 +126,7 @@ function diluxone_users_design_login_save(): bool {
 
 	diluxone_users_save_options( diluxone_users_panel_drawn( DILUXONE_USERS_DESIGN, $values ) );
 
-	if ( '' !== $slug ) {
-		diluxone_users_login_slug_move( $slug );
-	}
+	diluxone_users_login_slug_move( $slug );
 
 	return true;
 }
@@ -136,20 +134,25 @@ function diluxone_users_design_login_save(): bool {
 /**
  * The address the page of its own is answered at, as the form sent it.
  *
- * '' when the form did not send one (the field waits while another shape is
- * chosen, and a disabled field sends nothing), which keeps what is stored;
- * null when the one sent is refused, in which case the screen says why and
- * nothing of the tab is written.
+ * '' when the field was sent empty, which is the default address; the one
+ * stored when the form did not send one (the field waits while another
+ * shape is chosen, and a disabled field sends nothing); null when the one
+ * sent is refused, in which case the screen says why and nothing of the tab
+ * is written.
  */
 function diluxone_users_design_login_slug(): ?string {
 	check_admin_referer( 'diluxone_users_panel_' . DILUXONE_USERS_DESIGN, 'diluxone_users_panel_nonce' );
 	diluxone_users_panel_allowed();
 
 	if ( ! isset( $_POST['diluxone_users_login_slug'] ) || ! is_string( $_POST['diluxone_users_login_slug'] ) ) {
-		return '';
+		return sanitize_title( (string) diluxone_users_option( 'diluxone_users_login_slug' ) );
 	}
 
 	$raw = sanitize_text_field( wp_unslash( $_POST['diluxone_users_login_slug'] ) );
+
+	if ( '' === trim( $raw, '/ ' ) ) {
+		return '';
+	}
 
 	// Asked of the hub, where the page is and where a post could already
 	// have the address.

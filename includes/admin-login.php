@@ -1282,17 +1282,28 @@ function diluxone_users_screen_login_door( string $template ): void {
 
 	diluxone_users_ui_field_open( __( 'Its address', 'diluxone-users' ), 'diluxone_users_login_slug' );
 
+	// What is typed, as typed: empty is an answer of its own, the default,
+	// which is the placeholder and the line under the field.
+	$default = diluxone_users_login_slug_default();
+
 	echo wp_kses(
 		sprintf(
-			'<span class="du-door-address"><code>%1$s</code><input type="text" id="diluxone_users_login_slug" name="diluxone_users_login_slug" class="regular-text code" value="%2$s" required%3$s></span>',
+			'<span class="du-door-address"><code>%1$s</code><input type="text" id="diluxone_users_login_slug" name="diluxone_users_login_slug" class="regular-text code" value="%2$s" placeholder="%3$s"%4$s></span>',
 			esc_html( trailingslashit( (string) diluxone_users_on_hub( static fn() => home_url() ) ) ),
-			esc_attr( diluxone_users_login_slug() ),
+			esc_attr( sanitize_title( (string) diluxone_users_option( 'diluxone_users_login_slug' ) ) ),
+			esc_attr( $default ),
 			$waiting ? ' disabled data-diluxone-users-waited' : ''
 		),
 		diluxone_users_allowed_html()
 	);
 
-	diluxone_users_ui_field_close( __( 'Letters, numbers and dashes. Sign in, registration, the second step and a new password are all answered there, and an address you used before keeps sending people to it.', 'diluxone-users' ) );
+	diluxone_users_ui_field_close(
+		sprintf(
+			/* translators: %s: the address, as /sign-in/ */
+			__( 'Left empty, the address is %s.', 'diluxone-users' ),
+			'<code>/' . esc_html( $default ) . '/</code>'
+		) . ' ' . __( 'Letters, numbers and dashes. Sign in, registration, the second step and a new password are all answered there, and an address you used before keeps sending people to it.', 'diluxone-users' )
+	);
 
 	diluxone_users_ui_waits_close( $waits );
 }

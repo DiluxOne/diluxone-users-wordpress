@@ -60,6 +60,20 @@ test.describe('Sign in › A page of its own', () => {
 		await expect(guest.locator('.diluxone-users-login-frame--own .diluxone-users-login')).toBeVisible();
 	});
 
+	test('C2: with nothing chosen on a site in Spanish, the address is the Spanish one, not /sign-in/', async ({ page, guest, options }) => {
+		await options.set({ WPLANG: 'es_ES', diluxone_users_login_slug: '', diluxone_users_login_page: 0 });
+
+		await page.goto(adminUrl('diluxone-users-design', 'login'));
+		await expect(page.locator('input[name="diluxone_users_login_slug"]'), 'empty, as stored').toHaveValue('');
+		await expect(page.locator('input[name="diluxone_users_login_slug"]')).toHaveAttribute('placeholder', 'acceder');
+		await expect(page.locator('.du-field:has(#diluxone_users_login_slug) .du-field__help code'), 'the address left empty gives').toHaveText('/acceder/');
+
+		const response = await guest.goto('/acceder/');
+
+		expect(response?.status()).toBe(200);
+		await onTheDoor(guest, '/acceder/');
+	});
+
 	test('C2: the account area and the sign-in page chosen before both lead to /sign-in/', async ({ guest, pages, baseURL }) => {
 		const door = `${baseURL}/sign-in/`;
 
