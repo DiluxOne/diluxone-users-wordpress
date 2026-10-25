@@ -31,7 +31,7 @@ everybody, with the code by e-mail, and skips it for nobody.
 |---|---|
 | Link by e-mail: ask, receive, open, signed in (`sent`) | `magic-link` › ask for it, open it… |
 | Link used twice, expired, pointed at another account (`expired`) | `magic-link` › the second time…, time ran out, somebody else |
-| Unknown address, registration open / closed; the throttle | `magic-link` › nobody has seen before, self-registration off, asking twice |
+| Unknown address, registration open / closed (no account until the mailed link is opened, #134); the throttle | `magic-link` › nobody has seen before, self-registration off, asking twice · `network/signin-doors` › a link opened a second time |
 | Password form: `both`, `password`, `link` | `password-login` › the three ways in |
 | wp-login.php taken over (`auto`), POST allowed (H-05), escape hatch, logout | `password-login` |
 | wp-login.php left to WordPress (`wp`) and sent to the site's page (`mine`) | `admin-effects` › Access › The sign-in page |
