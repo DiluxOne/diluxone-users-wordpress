@@ -458,6 +458,15 @@ class CoverSignInSsoTest extends IntegrationTestCase {
 		$this->assertGreaterThan( 0, get_current_user_id(), 'and the sign-in goes through as before' );
 	}
 
+	public function test_a_provider_saved_before_use_pkce_existed_gets_it_with_nothing_written(): void {
+		// The row MockProvider::install() wrote is what a site had before the
+		// box: no `pkce` in it. Saving it again from elsewhere keeps it so.
+		$this->assertArrayNotHasKey( 'pkce', diluxone_users_raw_get( 'diluxone_users_sso', array() )[ MockProvider::ID ] );
+
+		$this->assert_pkce_trip( $this->trip_with_pkce( null ) );
+		$this->assertArrayNotHasKey( 'pkce', diluxone_users_raw_get( 'diluxone_users_sso', array() )[ MockProvider::ID ] );
+	}
+
 	/* ── Who is behind an identity ───────────────────────────────────── */
 
 	public function test_an_empty_identity_is_nobody_s(): void {

@@ -269,6 +269,7 @@ Unreleased.
 
 First public release.
 
+* Social sign-in with Google and Microsoft uses PKCE, so a code stolen on its way back to your site cannot be used by anyone else. It is on after the update, also for a provider you set up before; Social › the provider › Settings › "Use PKCE" turns it off. A provider that does not support PKCE shows the box switched off and says so.
 * With Colours › the theme's, on a theme whose buttons keep a dark brand colour in dark mode, the links of the account area's home cards stay readable: the accent used as text is one that reads on the card, while buttons keep the theme's colour.
 * The social sign-in buttons open the provider in a popup and the page you were on stays where it was: once you are in, it reloads signed in or goes on to where the sign-in leads, and the second step, the required fields or an error show up on it. A browser that blocks popups makes the trip in the whole window, as before.
 * In the account area's Your data, the pills of a done and a failed request keep their text readable in the dark scheme as in the light one: their green and red lean towards the text's colour.
