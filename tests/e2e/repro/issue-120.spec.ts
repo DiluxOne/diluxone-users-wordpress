@@ -18,6 +18,8 @@ import { ADMIN_STATE } from '../../../playwright.config';
 
 const OWN_PAGE = {
 	diluxone_users_login_template: 'own',
+	// "No page" on Access: the page of its own is at /sign-in/.
+	diluxone_users_login_page: 0,
 	diluxone_users_login_slug: 'sign-in',
 	diluxone_users_login_slug_old: [],
 	diluxone_users_login_method: 'both',
