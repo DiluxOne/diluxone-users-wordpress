@@ -90,9 +90,7 @@ class RegisterTest extends TestCase {
 		try {
 			diluxone_users_register_request();
 		} catch ( \RuntimeException | \TypeError $e ) {
-			// The final redirect, or the suite's add_query_arg() stub, which
-			// takes an array where the handler passes strings. Both come after
-			// the mail.
+			// The final redirect, which comes after the mail.
 			unset( $e );
 		}
 	}
