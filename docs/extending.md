@@ -420,6 +420,7 @@ add_filter( 'diluxone_users_sso_providers', function ( array $providers ): array
         'scope'      => 'openid email profile',
         'extra'      => array(),                                  // optional: odd parameters the provider wants
         'pkce'       => false,                                    // optional: true when it requires PKCE
+        'pkce_support' => true,                                   // optional: true when it accepts PKCE (false if left out)
         'token_auth' => 'post',                                   // optional: 'basic' when it wants the secret in a Basic header
         'map'        => 'diluxone_users_sso_map_oidc',            // optional: reads the profile (below)
         'console'    => 'https://id.acme.example/developers',     // optional: where the application is made
@@ -435,6 +436,15 @@ add-on's (DiluxOne Users+ Pro registers ten this way). `token_auth` says how
 the code is exchanged: `post` (the default) sends the client ID and the secret
 in the body, `basic` sends them in an HTTP Basic `Authorization` header and
 leaves the secret out of the body, for a provider that accepts only that.
+
+PKCE (S256) is per provider. A row with `pkce_support` true gets a "Use PKCE"
+box on its Settings tab, ticked until an administrator unticks it, and its
+trip sends `code_challenge` and the exchange `code_verifier` while it is
+ticked; Google and Microsoft are such rows. A row that leaves it out is never
+sent PKCE and its box is locked, saying the provider does not support it. A
+row with `pkce` true requires it: it is always sent, and the box is ticked and
+locked. `diluxone_users_sso_pkce( $id, $row )` says whether a provider's trip
+uses it.
 
 `map` is a callable that receives the profile (decoded JSON) and the access
 token and returns `id`, `email`, `name` (the first name), `last_name` and
