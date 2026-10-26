@@ -467,6 +467,53 @@ class CoverSignInSsoTest extends IntegrationTestCase {
 		$this->assertArrayNotHasKey( 'pkce', diluxone_users_raw_get( 'diluxone_users_sso', array() )[ MockProvider::ID ] );
 	}
 
+	public function test_on_a_network_use_pkce_is_the_network_s_and_the_hub_s_trip_carries_it(): void {
+		if ( ! is_multisite() ) {
+			$this->markTestSkipped( 'A single site is its own hub: test_with_use_pkce_on_the_challenge_goes_out_the_verifier_is_kept_and_the_exchange_sends_it is this there.' );
+		}
+
+		$hub  = get_current_blog_id();
+		$site = (int) wp_insert_site(
+			array(
+				'domain' => (string) get_network()->domain,
+				'path'   => '/cover-signin-pkce-' . strtolower( wp_generate_password( 6, false ) ) . '/',
+			)
+		);
+
+		// Saved with the site of the network the administrator happened to be on.
+		switch_to_blog( $site );
+		diluxone_users_sso_save_credentials(
+			MockProvider::ID,
+			array(
+				'active' => 1,
+				'id'     => 'client-id',
+				'secret' => 'client-secret',
+				'pkce'   => 1,
+			)
+		);
+		$this->assertFalse( get_option( 'diluxone_users_sso' ), 'nothing in the site’s own options' );
+		$this->assertSame( 1, get_site_option( 'diluxone_users_sso' )[ MockProvider::ID ]['pkce'], 'the network’s' );
+
+		// That site's button goes to the hub, where the trip is.
+		$this->assertSame( diluxone_users_login_url(), $this->start()['url'] );
+		$this->assertSame( array(), MockProvider::$requests );
+		restore_current_blog();
+
+		$this->assertSame( $hub, get_current_blog_id() );
+
+		$trip   = $this->start();
+		$stored = (array) get_transient( 'diluxone_users_sso_' . $trip['state'] );
+		$this->back( $trip );
+
+		$this->assert_pkce_trip(
+			array(
+				'url'    => $trip['url'],
+				'stored' => $stored,
+				'end'    => $this->expectRedirect( 'diluxone_users_sso_handle' ),
+			)
+		);
+	}
+
 	/* ── Who is behind an identity ───────────────────────────────────── */
 
 	public function test_an_empty_identity_is_nobody_s(): void {
