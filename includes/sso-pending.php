@@ -97,33 +97,6 @@ function diluxone_users_sso_pending_url(): string {
 }
 
 /**
- * Does this return from the provider wait for the address to be proved by mail?
- *
- * Only when that is the one thing missing: the identity is linked to nobody
- * yet, the site asks for verified addresses, the provider did not vouch for
- * this one — it said nothing, or said no — and, once proved, the address
- * would get the person somewhere: the existing account, while "Link accounts
- * by email" is on, or a new one, while "Create accounts" is. Anything else
- * is answered as it was before.
- *
- * @param array<string, mixed> $identity What the provider said, cleaned.
- */
-function diluxone_users_sso_pending_wanted( string $id, array $identity ): bool {
-	if ( ! diluxone_users_option( 'diluxone_users_sso_verified_only' ) || true === ( $identity['verified'] ?? null ) ) {
-		return false;
-	}
-
-	$sub   = (string) ( $identity['id'] ?? '' );
-	$email = (string) ( $identity['email'] ?? '' );
-
-	if ( '' === $sub || '' === $email || ! is_email( $email ) || diluxone_users_sso_owner( $id, $sub ) > 0 ) {
-		return false;
-	}
-
-	return 0 !== diluxone_users_sso_target( array_merge( $identity, array( 'proved' => true ) ) );
-}
-
-/**
  * Starts a pending sign-in: keeps it, mails the link, shows the holding screen.
  *
  * Counted per machine first, on the sign-in link's count, because a pending

@@ -684,6 +684,35 @@ function diluxone_users_sso_target( array $identity, ?string &$why = null ): int
 }
 
 /**
+ * Does this return from the provider wait for the address to be proved by mail?
+ *
+ * Only when that is the one thing missing: the identity is linked to nobody
+ * yet, the site asks for verified addresses, the provider did not vouch for
+ * this one — it said nothing, or said no — and, once proved, the address
+ * would get the person somewhere: the existing account, while "Link accounts
+ * by email" is on, or a new one, while "Create accounts" is. Anything else
+ * is answered as it was before. It sits beside the rules it asks, and the
+ * step itself is sso-pending.php's.
+ *
+ * @param array<string, mixed> $identity What the provider said, cleaned.
+ */
+function diluxone_users_sso_pending_wanted( string $id, array $identity ): bool {
+	if ( ! diluxone_users_option( 'diluxone_users_sso_verified_only' ) || true === ( $identity['verified'] ?? null ) ) {
+		return false;
+	}
+
+	$sub   = (string) ( $identity['id'] ?? '' );
+	$email = (string) ( $identity['email'] ?? '' );
+
+	if ( '' === $sub || '' === $email || ! is_email( $email ) || diluxone_users_sso_owner( $id, $sub ) > 0 ) {
+		return false;
+	}
+
+	return 0 !== diluxone_users_sso_target( array_merge( $identity, array( 'proved' => true ) ) );
+}
+
+
+/**
  * Finds or creates the account behind a social identity, and links it.
  *
  * Linking is by e-mail, the same as Nextend's "Link accounts by email"
@@ -1081,8 +1110,10 @@ function diluxone_users_sso_handle( $wp = null ): void {
 
 	// A provider that did not vouch for the address, on a site that asks for
 	// it to be vouched for: the address is proved by mail before anything is
-	// created or linked (sso-pending.php). This ends the request.
+	// created or linked (sso-pending.php). This ends the request, and it is a
+	// return that signed nobody in, so the log keeps it with its reason.
 	if ( diluxone_users_sso_pending_wanted( $id, $identity ) ) {
+		diluxone_users_sso_log_refused( $id, 'email_unverified' );
 		diluxone_users_sso_pending_start( $id, $identity );
 	}
 
