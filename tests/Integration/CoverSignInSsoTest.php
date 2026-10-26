@@ -393,6 +393,61 @@ class CoverSignInSsoTest extends IntegrationTestCase {
 		$this->assertSame( 64, strlen( $stored['verifier'] ) );
 	}
 
+	/** The token exchange MockProvider answered, or nothing. */
+	private function exchange(): array {
+		foreach ( MockProvider::$requests as $request ) {
+			if ( false !== strpos( $request['url'], '/token' ) ) {
+				return (array) $request['args']['body'];
+			}
+		}
+
+		return array();
+	}
+
+	/**
+	 * Saves "Use PKCE" for the mock as the provider form does, and starts and
+	 * finishes a trip; the address, the state it kept and where it ended.
+	 *
+	 * @return array{url: string, stored: array<string, mixed>, end: string}
+	 */
+	private function trip_with_pkce( ?int $pkce ): array {
+		$values = array(
+			'active' => 1,
+			'id'     => 'client-id',
+			'secret' => 'client-secret',
+		);
+
+		if ( null !== $pkce ) {
+			$values['pkce'] = $pkce;
+		}
+
+		diluxone_users_sso_save_credentials( MockProvider::ID, $values );
+
+		$trip   = $this->start();
+		$stored = (array) get_transient( 'diluxone_users_sso_' . $trip['state'] );
+		$this->back( $trip );
+
+		return array(
+			'url'    => $trip['url'],
+			'stored' => $stored,
+			'end'    => $this->expectRedirect( 'diluxone_users_sso_handle' ),
+		);
+	}
+
+	/** The trip with PKCE: the challenge in the address, the verifier kept and sent. */
+	private function assert_pkce_trip( array $trip ): void {
+		$this->assertSame( 'S256', $this->queryArg( $trip['url'], 'code_challenge_method' ) );
+		$this->assertSame( 64, strlen( (string) ( $trip['stored']['verifier'] ?? '' ) ), 'the verifier is kept with the state' );
+		$this->assertSame( diluxone_users_sso_pkce_challenge( $trip['stored']['verifier'] ), $this->queryArg( $trip['url'], 'code_challenge' ) );
+		$this->assertStringNotContainsString( $trip['stored']['verifier'], $trip['url'], 'the verifier never travels in the address' );
+		$this->assertSame( $trip['stored']['verifier'], $this->exchange()['code_verifier'] ?? null, 'the exchange sends it' );
+		$this->assertGreaterThan( 0, get_current_user_id(), 'and the sign-in goes through' );
+	}
+
+	public function test_with_use_pkce_on_the_challenge_goes_out_the_verifier_is_kept_and_the_exchange_sends_it(): void {
+		$this->assert_pkce_trip( $this->trip_with_pkce( 1 ) );
+	}
+
 	/* ── Who is behind an identity ───────────────────────────────────── */
 
 	public function test_an_empty_identity_is_nobody_s(): void {

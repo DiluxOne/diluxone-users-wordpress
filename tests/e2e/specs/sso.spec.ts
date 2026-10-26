@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { test, expect, expectSignedIn, expectSignedOut, stateOf } from '../support/fixtures';
 import { freshEmail } from '../support/api';
 import { accountSection, navigated, openAllPanels, signInWithPassword, ssoButton } from '../support/ui';
@@ -27,6 +28,18 @@ const PASSWORD = 'e2e-Social-1!';
 const MOCK_CREDENTIALS = {
 	mock: { active: 1, id: 'e2e-client-id', secret: 'e2e-client-secret', tested: 1 },
 };
+
+/** What the mock provider recorded of the trip's PKCE. */
+type Pkce = { challenge?: string; method?: string; verifier?: string };
+
+async function pkceSeen(site: { getOptions(keys: string[]): Promise<Record<string, unknown>> }): Promise<Pkce> {
+	return ((await site.getOptions(['diluxone_e2e_pkce'])).diluxone_e2e_pkce ?? {}) as Pkce;
+}
+
+/** The S256 challenge of a verifier, as RFC 7636 computes it. */
+function s256(verifier: string): string {
+	return createHash('sha256').update(verifier).digest('base64url');
+}
 
 test.describe('Signing in with a social account', () => {
 	test.beforeEach(async ({ options }) => {
@@ -65,6 +78,31 @@ test.describe('Signing in with a social account', () => {
 		// The name the network gave is used, because the account had none.
 		expect(made.meta.first_name).toBe('Grace');
 		expect(made.meta.last_name).toBe('Hopper');
+	});
+
+	test('with “Use PKCE” on, the provider gets the S256 challenge and the exchange the verifier that matches it', async ({
+		page,
+		site,
+		pages,
+		options,
+	}) => {
+		await options.set({ diluxone_users_sso: { mock: { ...MOCK_CREDENTIALS.mock, pkce: 1 } }, diluxone_e2e_pkce: null });
+
+		const email = freshEmail('sso-pkce');
+
+		await site.setIdentity({ sub: `mock|${email}`, email, email_verified: true });
+
+		await page.goto(pages.login.url);
+		await navigated(page, () => ssoButton(page, 'mock').click());
+
+		await expectSignedIn(page, email);
+
+		const seen = await pkceSeen(site);
+
+		expect(seen.method).toBe('S256');
+		expect(seen.challenge).toMatch(/^[A-Za-z0-9_-]{43}$/);
+		expect(seen.verifier, 'the exchange sent a verifier').toMatch(/^[A-Za-z0-9]{64}$/);
+		expect(s256(seen.verifier!), 'and it is the one the challenge was made from').toBe(seen.challenge);
 	});
 
 	test('a verified address that already has an account opens that same account', async ({ page, site, pages }) => {

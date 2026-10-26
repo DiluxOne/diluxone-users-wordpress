@@ -75,4 +75,15 @@ class SsoPkceTest extends TestCase {
 		$this->stored( 'acme', array( 'pkce' => 0 ) );
 		$this->assertTrue( diluxone_users_sso_pkce( 'acme', $row ) );
 	}
+
+	public function test_the_challenge_is_the_s256_of_the_verifier_in_base64url(): void {
+		foreach ( array( 'a', str_repeat( 'x', 64 ), 'dBjftJeZ4CVP-mB92K9uhvUatZ4gZsRV0GEOg05_z5w' ) as $verifier ) {
+			$challenge = diluxone_users_sso_pkce_challenge( $verifier );
+
+			$this->assertMatchesRegularExpression( '/^[A-Za-z0-9_-]{43}$/', $challenge, 'base64url, no padding' );
+			$this->assertSame( hash( 'sha256', $verifier, true ), base64_decode( strtr( $challenge, '-_', '+/' ) . '=' ) );
+		}
+
+		$this->assertNotSame( diluxone_users_sso_pkce_challenge( 'a' ), diluxone_users_sso_pkce_challenge( 'b' ) );
+	}
 }
