@@ -232,7 +232,7 @@ everybody, with the code by e-mail, and skips it for nobody.
 | Reports › Activity: logging groups, event filter | `activity-log`, `admin-tools` › Reports |
 | Reports › Logging: empty the log (asks first) | `activity-log` › emptying it asks first |
 | Reports › Activity: search by address finds refused attempts | `admin-tools` › …finds the refused attempts |
-| Reports › Activity: a refused social sign-in (cancelled at the provider, a state nobody issued, …) is a `sign_in_failed` row with the network and why, never the code or the state | unit: `Repro/Issue140Test`, `ActivityLogTest` › a refused social sign-in reads as the network and why |
+| Reports › Activity: a refused social sign-in (cancelled at the provider, a state nobody issued, an address the provider did not verify, …) is an `sso_failed` row with the network and why, never the code or the state; recorded by the `social` group alone or by `access` | unit: `Repro/Issue140Test`, `Repro/Issue153Test`, `ActivityLogTest` › a refused social sign-in reads as the network and why; social sign-in failures are recorded with access off · integration: `ActivityLogTest` › a refused social sign-in is written with only social on; …is a way in and out too; `CoverAdminLogTest` › social sign-in failures are saved on their own |
 | Reports › Activity on a single site: every row the site's, no Site column, no site filter, no network report or button | `activity-log` › on a single site every row is the site’s… |
 | Status › Tools: export, import, close sessions, fresh code, rebuild, test message | `admin-tools` › Status › Tools |
 | Status › Tools: a file round trip keeps nested settings | `admin-tools` › …nested ones included |
@@ -295,7 +295,7 @@ everybody, with the code by e-mail, and skips it for nobody.
 | Reports › Open sessions: search typed, Clear, Refresh, per page, pages, nobody matches, expired, name → profile | `admin-reports-sessions` › (first three) |
 | Reports › closing sessions: done notice, signed out | `admin-reports-sessions` › closing somebody’s sessions |
 | Reports › Activity: event list, dates, Clear, per page and pages, person cell | `admin-reports-activity` › (Activity describe) |
-| Reports › Log settings: days, forged group dropped, account and security groups record only while ticked | `admin-reports-activity` › the days kept…, a group that is not one…, “changes to the account”… |
+| Reports › Log settings: days, forged group dropped, account and security groups record only while ticked, social sign-in failures saved on their own | `admin-reports-activity` › the days kept…, a group that is not one…, “changes to the account”… |
 | Reports › Delete every row asks with the number and says how many (log kept and put back) | `admin-reports-activity` › “Delete every row” |
 | Account area › Summary rows follow the settings | `admin-account-dashboard` › Summary |
 | User fields: rename keeps key, reserved keys refused, “Avatar” gets a free key, unknown field, nolabel | `admin-fields-rules` › editing a field |

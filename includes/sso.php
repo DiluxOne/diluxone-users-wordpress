@@ -570,17 +570,30 @@ function diluxone_users_sso_clean( array $identity ): array {
  * same person. That holds only because the provider verified the e-mail,
  * which is why it is asked for before believing it.
  *
+ * When it finds nobody, `$why` says which door stayed shut, as the slug the
+ * activity log keeps (diluxone_users_sso_log_refused()).
+ *
  * @param array<string, mixed> $identity
+ * @param string|null          $why      Set to why, when it returns 0: role, no_email, link_off,
+ *                                       email_unverified, register_off, register_role or create_failed.
  */
-function diluxone_users_sso_user( string $id, array $identity ): int {
+function diluxone_users_sso_user( string $id, array $identity, ?string &$why = null ): int {
 	$meta     = 'diluxone_users_sso_' . $id;
 	$existing = diluxone_users_sso_owner( $id, $identity['id'] );
 
 	if ( $existing > 0 ) {
-		return diluxone_users_sso_role_blocked( $existing ) ? 0 : $existing;
+		if ( diluxone_users_sso_role_blocked( $existing ) ) {
+			$why = 'role';
+
+			return 0;
+		}
+
+		return $existing;
 	}
 
 	if ( '' === $identity['email'] || ! is_email( $identity['email'] ) ) {
+		$why = 'no_email';
+
 		return 0;
 	}
 
@@ -590,28 +603,54 @@ function diluxone_users_sso_user( string $id, array $identity ): int {
 	// linked: it is the same person, and the network is added to it. That is
 	// what makes signing in with Google today and Microsoft tomorrow one account.
 	if ( $known ) {
-		if ( ! diluxone_users_option( 'diluxone_users_sso_link_by_email' ) || ! diluxone_users_sso_email_trusted( $identity, true ) ) {
+		if ( ! diluxone_users_option( 'diluxone_users_sso_link_by_email' ) ) {
+			$why = 'link_off';
+
+			return 0;
+		}
+
+		if ( ! diluxone_users_sso_email_trusted( $identity, true ) ) {
+			$why = 'email_unverified';
+
 			return 0;
 		}
 
 		$user_id = (int) $known->ID;
 	} else {
-		if ( ! diluxone_users_option( 'diluxone_users_sso_register' ) || ! diluxone_users_sso_email_trusted( $identity, false ) ) {
+		if ( ! diluxone_users_option( 'diluxone_users_sso_register' ) ) {
+			$why = 'register_off';
+
+			return 0;
+		}
+
+		if ( ! diluxone_users_sso_email_trusted( $identity, false ) ) {
+			$why = 'email_unverified';
+
 			return 0;
 		}
 
 		// An account social sign-in would then refuse is not created: the
 		// role a new account gets has to be one that may use it.
 		if ( 'some' === diluxone_users_scope( 'diluxone_users_sso' ) && ! in_array( diluxone_users_register_role(), (array) diluxone_users_option( 'diluxone_users_sso_roles' ), true ) ) {
+			$why = 'register_role';
+
 			return 0;
 		}
 
 		// Its own switch decides, not the e-mail link's: a site can create
 		// accounts from social sign-in and not from a typed address.
 		$user_id = diluxone_users_create_account( $identity['email'] );
+
+		if ( $user_id <= 0 ) {
+			$why = 'create_failed';
+
+			return 0;
+		}
 	}
 
-	if ( $user_id <= 0 || diluxone_users_sso_role_blocked( $user_id ) ) {
+	if ( diluxone_users_sso_role_blocked( $user_id ) ) {
+		$why = 'role';
+
 		return 0;
 	}
 
@@ -958,10 +997,11 @@ function diluxone_users_sso_handle( $wp = null ): void {
 		exit;
 	}
 
-	$user_id = diluxone_users_sso_user( $id, $identity );
+	$why     = null;
+	$user_id = diluxone_users_sso_user( $id, $identity, $why );
 
 	if ( $user_id <= 0 ) {
-		diluxone_users_sso_log_refused( $id, 'account' );
+		diluxone_users_sso_log_refused( $id, $why ?? 'account' );
 		diluxone_users_sso_fail();
 	}
 
@@ -1001,14 +1041,14 @@ function diluxone_users_sso_same_browser( array $stored ): bool {
  * reason as a refused password sign-in: nobody signed in.
  *
  * @param string $id     The network's slug.
- * @param string $reason Why, as a slug: cancelled, state, browser, off, token, account or the provider's error.
+ * @param string $reason Why, as a slug: cancelled, state, browser, off, token, one of
+ *                       diluxone_users_sso_user()'s, account or the provider's error.
  */
 function diluxone_users_sso_log_refused( string $id, string $reason ): void {
 	diluxone_users_log_record(
-		'sign_in_failed',
+		'sso_failed',
 		0,
 		array(
-			'via'      => 'sso',
 			'provider' => $id,
 			'reason'   => $reason,
 		)

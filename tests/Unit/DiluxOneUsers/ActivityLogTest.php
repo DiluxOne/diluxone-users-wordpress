@@ -78,6 +78,7 @@ class ActivityLogTest extends TestCase {
 		$this->assertTrue( diluxone_users_log_records( 'signed_in' ) );
 		$this->assertTrue( diluxone_users_log_records( 'signed_out' ) );
 		$this->assertTrue( diluxone_users_log_records( 'sign_in_failed' ) );
+		$this->assertTrue( diluxone_users_log_records( 'sso_failed' ), 'a refused social sign-in is a way in too' );
 
 		$this->assertFalse( diluxone_users_log_records( 'email_changed' ) );
 		$this->assertFalse( diluxone_users_log_records( 'password_changed' ) );
@@ -90,13 +91,23 @@ class ActivityLogTest extends TestCase {
 			$this->recording( array( $group ) );
 
 			foreach ( diluxone_users_log_events() as $event => $belongs ) {
+				// `access` is every refused attempt, so it holds `social`'s too.
 				$this->assertSame(
-					$group === $belongs,
+					$group === $belongs || ( 'access' === $group && 'social' === $belongs ),
 					diluxone_users_log_records( $event ),
 					sprintf( 'with only "%s" ticked, "%s" answered wrong', $group, $event )
 				);
 			}
 		}
+	}
+
+	public function test_social_sign_in_failures_are_recorded_with_access_off(): void {
+		$this->recording( array( 'social' ) );
+
+		$this->assertTrue( diluxone_users_log_records( 'sso_failed' ) );
+		$this->assertFalse( diluxone_users_log_records( 'sign_in_failed' ) );
+		$this->assertFalse( diluxone_users_log_records( 'signed_in' ) );
+		$this->assertSame( 'Social sign-in refused', diluxone_users_log_label( 'sso_failed' ) );
 	}
 
 	public function test_two_groups_ticked_open_both_and_still_not_the_third(): void {
@@ -217,28 +228,38 @@ class ActivityLogTest extends TestCase {
 		require_once DILUXONE_USERS_DIR . 'includes/admin-log.php';
 
 		$row = static fn( array $detail ): array => array(
-			'event'   => 'sign_in_failed',
+			'event'   => isset( $detail['tried'] ) ? 'sign_in_failed' : 'sso_failed',
 			'site_id' => 1,
 			'detail'  => $detail,
 		);
 
 		$this->assertSame(
 			'Microsoft · cancelled at the provider',
-			diluxone_users_log_says( $row( array( 'via' => 'sso', 'provider' => 'microsoft', 'reason' => 'cancelled' ) ) )
+			diluxone_users_log_says( $row( array( 'provider' => 'microsoft', 'reason' => 'cancelled' ) ) )
 		);
 		$this->assertSame(
 			'Google · a return nobody started here',
-			diluxone_users_log_says( $row( array( 'via' => 'sso', 'provider' => 'google', 'reason' => 'state' ) ) )
+			diluxone_users_log_says( $row( array( 'provider' => 'google', 'reason' => 'state' ) ) )
 		);
 		// A provider's own error code nobody translated is shown as it came.
 		$this->assertSame(
 			'Google · server_error',
-			diluxone_users_log_says( $row( array( 'via' => 'sso', 'provider' => 'google', 'reason' => 'server_error' ) ) )
+			diluxone_users_log_says( $row( array( 'provider' => 'google', 'reason' => 'server_error' ) ) )
+		);
+		// Each reason the account step gives has words of its own.
+		foreach ( array( 'role', 'no_email', 'link_off', 'email_unverified', 'register_off', 'register_role', 'create_failed', 'account' ) as $reason ) {
+			$says = diluxone_users_log_says( $row( array( 'provider' => 'google', 'reason' => $reason ) ) );
+
+			$this->assertNotSame( 'Google · ' . $reason, $says, $reason . ' is said in words' );
+		}
+		$this->assertSame(
+			'Microsoft · the provider did not verify the address',
+			diluxone_users_log_says( $row( array( 'provider' => 'microsoft', 'reason' => 'email_unverified' ) ) )
 		);
 		// No reason kept: the network alone, with no separator left hanging.
 		$this->assertSame(
 			'Google',
-			diluxone_users_log_says( $row( array( 'via' => 'sso', 'provider' => 'google', 'reason' => '' ) ) )
+			diluxone_users_log_says( $row( array( 'provider' => 'google', 'reason' => '' ) ) )
 		);
 		$this->assertSame( 'quien@example.test', diluxone_users_log_says( $row( array( 'tried' => 'quien@example.test' ) ) ) );
 	}

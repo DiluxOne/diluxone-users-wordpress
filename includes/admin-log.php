@@ -400,12 +400,19 @@ function diluxone_users_log_sso_refused( string $provider, string $reason ): str
 	$name      = (string) ( $providers[ $provider ]['name'] ?? $provider );
 
 	$reasons = array(
-		'cancelled' => __( 'cancelled at the provider', 'diluxone-users' ),
-		'state'     => __( 'a return nobody started here', 'diluxone-users' ),
-		'browser'   => __( 'came back in another browser or session', 'diluxone-users' ),
-		'off'       => __( 'the network was turned off', 'diluxone-users' ),
-		'token'     => __( 'the provider handed over no access token', 'diluxone-users' ),
-		'account'   => __( 'no account found or created', 'diluxone-users' ),
+		'cancelled'        => __( 'cancelled at the provider', 'diluxone-users' ),
+		'state'            => __( 'a return nobody started here', 'diluxone-users' ),
+		'browser'          => __( 'came back in another browser or session', 'diluxone-users' ),
+		'off'              => __( 'the network was turned off', 'diluxone-users' ),
+		'token'            => __( 'the provider handed over no access token', 'diluxone-users' ),
+		'role'             => __( 'the account’s role may not use social sign-in', 'diluxone-users' ),
+		'no_email'         => __( 'the provider gave no valid e-mail address', 'diluxone-users' ),
+		'link_off'         => __( 'an account has the address and linking by e-mail is off', 'diluxone-users' ),
+		'email_unverified' => __( 'the provider did not verify the address', 'diluxone-users' ),
+		'register_off'     => __( 'new accounts from social sign-in are off', 'diluxone-users' ),
+		'register_role'    => __( 'the role new accounts get may not use social sign-in', 'diluxone-users' ),
+		'create_failed'    => __( 'the account could not be created', 'diluxone-users' ),
+		'account'          => __( 'no account found or created', 'diluxone-users' ),
 	);
 
 	$why = (string) ( $reasons[ $reason ] ?? $reason );
@@ -457,11 +464,10 @@ function diluxone_users_log_says( array $row, bool $network = false ): string {
 			return $says;
 
 		case 'sign_in_failed':
-			if ( 'sso' === (string) ( $detail['via'] ?? '' ) ) {
-				return diluxone_users_log_sso_refused( (string) ( $detail['provider'] ?? '' ), (string) ( $detail['reason'] ?? '' ) );
-			}
-
 			return (string) ( $detail['tried'] ?? '' );
+
+		case 'sso_failed':
+			return diluxone_users_log_sso_refused( (string) ( $detail['provider'] ?? '' ), (string) ( $detail['reason'] ?? '' ) );
 
 		case 'email_changed':
 		case 'name_changed':
