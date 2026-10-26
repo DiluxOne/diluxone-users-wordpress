@@ -143,3 +143,21 @@ test('a session row puts its Close under the text', async ({ page, browser, base
 	await expectNoSideScroll(page);
 	await other.context().close();
 });
+
+test('the phone is one box the height of the other inputs, and nothing in it runs off the side', async ({ page, site, pages, options }) => {
+	await options.set({
+		diluxone_users_fields: [
+			{ key: 'first_name', label: 'First name', type: 'text', required: 0, active: 1, group: 'main', edit: 'always' },
+			{ key: 'e2e_phone', label: 'Phone', type: 'phone', options: ['AR'], required: 0, active: 1, group: 'main', edit: 'always' },
+		],
+	});
+	await signedIn(page, site, pages.login.url, 'mob-phone', { meta: { e2e_phone: '+541123456789' } });
+
+	await page.goto(accountSection(pages.account.url, 'details'));
+	await reveal(page, 'input[name="e2e_phone"]');
+
+	const height = (selector: string) => page.locator(selector).first().evaluate((element) => Math.round(element.getBoundingClientRect().height));
+
+	expect(await height('.diluxone-users-phone'), 'the height of the name above it').toBe(await height('input[name="first_name"]'));
+	await expectNoSideScroll(page);
+});

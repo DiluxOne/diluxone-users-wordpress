@@ -29,6 +29,8 @@ if ( array() === $args['fields'] ) {
 
 $diluxone_users_redirect = (string) ( $args['redirect'] ?? '' );
 $diluxone_users_skip     = (string) ( $args['skip'] ?? '' );
+// The phone the form came back for, and why: said under the number.
+$diluxone_users_refused = diluxone_users_phone_refused( $args['fields'] );
 ?>
 <div class="diluxone-users diluxone-users-fields">
 
@@ -40,6 +42,8 @@ $diluxone_users_skip     = (string) ( $args['skip'] ?? '' );
 		<p class="diluxone-users-notice diluxone-users-notice--ok"><?php esc_html_e( 'Saved.', 'diluxone-users' ); ?></p>
 	<?php elseif ( 'missing' === $args['state'] ) : ?>
 		<p class="diluxone-users-notice diluxone-users-notice--error"><?php esc_html_e( 'Some required fields are missing.', 'diluxone-users' ); ?></p>
+	<?php elseif ( array() !== $diluxone_users_refused ) : ?>
+		<p class="diluxone-users-notice diluxone-users-notice--error"><?php esc_html_e( 'Nothing was saved: a phone number is not the right length for its country.', 'diluxone-users' ); ?></p>
 	<?php endif; ?>
 
 	<form class="diluxone-users-form" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
@@ -61,7 +65,7 @@ $diluxone_users_skip     = (string) ( $args['skip'] ?? '' );
 					</label>
 				<?php endif; ?>
 
-				<?php diluxone_users_field_input( $diluxone_users_field, diluxone_users_value( $args['user_id'], $diluxone_users_field['key'] ), '', (int) $args['user_id'] ); ?>
+				<?php diluxone_users_field_input( $diluxone_users_field, diluxone_users_value( $args['user_id'], $diluxone_users_field['key'] ), '', (int) $args['user_id'], (string) ( $diluxone_users_refused[ $diluxone_users_field['key'] ] ?? '' ) ); ?>
 
 				<?php if ( '' !== $diluxone_users_field['help'] ) : ?>
 					<p class="diluxone-users-field__help"><?php echo esc_html( $diluxone_users_field['help'] ); ?></p>

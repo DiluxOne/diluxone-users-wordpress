@@ -57,7 +57,8 @@ test.describe('Fields', () => {
 
 		await form.locator('textarea[name="e2e_bio"]').fill('Line one\nLine <b>two</b>');
 		await form.locator('input[name="e2e_mail"]').fill('ada@example.org');
-		await form.locator('select[name="e2e_phone_dial"]').selectOption('AR');
+		// The list is hidden behind the picker and still what is posted.
+		await form.locator('select[name="e2e_phone_dial"]').selectOption('AR', { force: true });
 		await form.locator('input[name="e2e_phone"]').fill('11 2345-6789');
 		await form.locator('select[name="e2e_country"]').selectOption('CL');
 		await form.locator('input[name="e2e_site"]').fill('https://example.org/me');
@@ -92,7 +93,7 @@ test.describe('Fields', () => {
 		await page.reload();
 		await reveal(page, 'textarea[name="e2e_bio"]');
 		await expect(form.locator('select[name="e2e_phone_dial"]')).toHaveValue('AR');
-		await expect(form.locator('input[name="e2e_phone"]')).toHaveValue('1123456789');
+		await expect(form.locator('input[name="e2e_phone"]'), 'written as the country writes it').toHaveValue('11 2345 6789');
 		await expect(form.locator('select[name="e2e_country"]')).toHaveValue('CL');
 		await expect(form.locator('select[name="e2e_pick"]')).toHaveValue('b');
 		await expect(form.locator('input[type="checkbox"][name="e2e_ok"]')).toBeChecked();

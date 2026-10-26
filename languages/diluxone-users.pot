@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-25T23:32:59+00:00\n"
+"POT-Creation-Date: 2026-10-26T00:47:57+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: diluxone-users\n"
@@ -730,7 +730,7 @@ msgstr ""
 #: templates/login.php:86
 #: templates/register.php:51
 #: templates/register.php:68
-#: templates/register.php:175
+#: templates/register.php:179
 msgid "Sign in"
 msgstr ""
 
@@ -741,8 +741,8 @@ msgstr ""
 #: includes/admin-account.php:638
 #: includes/admin-account.php:713
 #: includes/admin-account.php:737
-#: includes/admin-log.php:783
-#: includes/admin-log.php:814
+#: includes/admin-log.php:815
+#: includes/admin-log.php:846
 #: includes/admin-membership.php:394
 #: includes/admin-panels.php:158
 #: includes/admin-social.php:1037
@@ -768,7 +768,7 @@ msgstr ""
 #: includes/admin-account.php:775
 #: includes/admin-panels.php:276
 #: templates/account/notifications.php:62
-#: templates/fields.php:40
+#: templates/fields.php:42
 msgid "Saved."
 msgstr ""
 
@@ -2113,7 +2113,7 @@ msgstr ""
 
 #: includes/admin-fields.php:706
 #: includes/admin-panels.php:841
-#: includes/sso.php:1132
+#: includes/sso.php:1167
 #: templates/sessions.php:67
 msgid "Close"
 msgstr ""
@@ -2694,120 +2694,144 @@ msgstr ""
 msgid "Social account"
 msgstr ""
 
+#: includes/admin-log.php:403
+msgid "cancelled at the provider"
+msgstr ""
+
+#: includes/admin-log.php:404
+msgid "a return nobody started here"
+msgstr ""
+
+#: includes/admin-log.php:405
+msgid "came back in another browser or session"
+msgstr ""
+
+#: includes/admin-log.php:406
+msgid "the network was turned off"
+msgstr ""
+
+#: includes/admin-log.php:407
+msgid "the provider handed over no access token"
+msgstr ""
+
+#: includes/admin-log.php:408
+msgid "no account found or created"
+msgstr ""
+
 #. translators: %s: the name of the site where the person signed in
-#: includes/admin-log.php:422
+#: includes/admin-log.php:450
 #, php-format
 msgid "on %s"
 msgstr ""
 
 #. translators: %s: how many sessions were closed at once.
-#: includes/admin-log.php:444
+#: includes/admin-log.php:476
 #, php-format
 msgid "%s closed"
 msgstr ""
 
-#: includes/admin-log.php:582
+#: includes/admin-log.php:614
 msgid "What happened on every site of the network, newest first, with the site each row happened on. It shows only what was being recorded at the time: a group ticked this morning has nothing in it from yesterday."
 msgstr ""
 
-#: includes/admin-log.php:583
+#: includes/admin-log.php:615
 msgid "What happened on this site, newest first. It shows only what was being recorded at the time: a group ticked this morning has nothing in it from yesterday."
 msgstr ""
 
-#: includes/admin-log.php:591
-#: includes/admin-log.php:633
+#: includes/admin-log.php:623
+#: includes/admin-log.php:665
 #: includes/admin-sessions.php:275
 #: includes/admin-sessions.php:277
 msgid "Search"
 msgstr ""
 
-#: includes/admin-log.php:592
+#: includes/admin-log.php:624
 #: includes/admin-sessions.php:276
 msgid "Email, username or name…"
 msgstr ""
 
-#: includes/admin-log.php:598
-#: includes/admin-log.php:690
+#: includes/admin-log.php:630
+#: includes/admin-log.php:722
 #: includes/log-privacy.php:97
 msgid "Site"
 msgstr ""
 
-#: includes/admin-log.php:600
+#: includes/admin-log.php:632
 msgid "Site ID"
 msgstr ""
 
-#: includes/admin-log.php:603
+#: includes/admin-log.php:635
 #: includes/admin-membership.php:128
 msgid "Every site"
 msgstr ""
 
-#: includes/admin-log.php:611
-#: includes/admin-log.php:694
+#: includes/admin-log.php:643
+#: includes/admin-log.php:726
 #: includes/log-privacy.php:80
 msgid "What happened"
 msgstr ""
 
-#: includes/admin-log.php:613
+#: includes/admin-log.php:645
 msgid "Anything that happened"
 msgstr ""
 
-#: includes/admin-log.php:627
-#: includes/admin-log.php:691
+#: includes/admin-log.php:659
+#: includes/admin-log.php:723
 msgid "From"
 msgstr ""
 
-#: includes/admin-log.php:630
+#: includes/admin-log.php:662
 msgid "To"
 msgstr ""
 
-#: includes/admin-log.php:647
+#: includes/admin-log.php:679
 #: includes/admin-sessions.php:291
 msgid "Clear"
 msgstr ""
 
-#: includes/admin-log.php:650
+#: includes/admin-log.php:682
 #: includes/admin-sessions.php:294
 msgid "Show"
 msgstr ""
 
-#: includes/admin-log.php:656
+#: includes/admin-log.php:688
 #: includes/admin-sessions.php:300
 msgid "per page"
 msgstr ""
 
 #. translators: 1: number of rows, 2: current page, 3: total pages
-#: includes/admin-log.php:663
+#: includes/admin-log.php:695
 #, php-format
 msgid "%1$s rows · page %2$d of %3$d"
 msgstr ""
 
-#: includes/admin-log.php:688
+#: includes/admin-log.php:720
 #: includes/log-privacy.php:76
 msgid "When"
 msgstr ""
 
-#: includes/admin-log.php:693
+#: includes/admin-log.php:725
 #: includes/admin-sessions.php:337
 msgid "Person"
 msgstr ""
 
-#: includes/admin-log.php:695
+#: includes/admin-log.php:727
 msgid "Detail"
 msgstr ""
 
-#: includes/admin-log.php:696
+#: includes/admin-log.php:728
 #: includes/admin-sessions.php:341
 #: includes/log-privacy.php:84
 msgid "IP"
 msgstr ""
 
-#: includes/admin-log.php:697
+#: includes/admin-log.php:729
 #: includes/admin-sessions.php:342
 #: includes/log-privacy.php:88
 msgid "Device"
 msgstr ""
 
-#: includes/admin-log.php:702
+#: includes/admin-log.php:734
 msgid "Nothing matches that."
 msgstr ""
 
@@ -3817,7 +3841,7 @@ msgid "Nothing is registered: beyond the sign-in e-mail, this site tells nobody 
 msgstr ""
 
 #: includes/admin-notices.php:357
-#: includes/login-messages.php:659
+#: includes/login-messages.php:669
 msgid "The language you are writing"
 msgstr ""
 
@@ -5221,7 +5245,7 @@ msgstr ""
 #: templates/account/avatar.php:36
 #: templates/account/handle.php:37
 #: templates/account/notifications.php:103
-#: templates/fields.php:77
+#: templates/fields.php:81
 msgid "Save"
 msgstr ""
 
@@ -5516,17 +5540,46 @@ msgstr ""
 msgid "Additional details"
 msgstr ""
 
-#: includes/fields-forms.php:143
-#: includes/fields-forms.php:178
+#: includes/fields-forms.php:144
+#: includes/fields-forms.php:179
 msgid "— Choose —"
 msgstr ""
 
-#: includes/fields-forms.php:444
+#: includes/fields-forms.php:252
+msgid "Search for a country or a code"
+msgstr ""
+
+#: includes/fields-forms.php:253
+msgid "Countries"
+msgstr ""
+
+#. translators: %d: how many countries match what was typed
+#: includes/fields-forms.php:255
+#, php-format
+msgid "Countries found: %d"
+msgstr ""
+
+#: includes/fields-forms.php:256
+msgid "No country matches that."
+msgstr ""
+
+#: includes/fields-forms.php:264
+msgid "Country code"
+msgstr ""
+
+#. translators: 1: field name, 2: what is wrong with it
+#: includes/fields-forms.php:443
+#: includes/fields-forms.php:575
+#, php-format
+msgid "Error: “%1$s”: %2$s"
+msgstr ""
+
+#: includes/fields-forms.php:561
 msgid "Error: the form expired. Load the page again and send it once more."
 msgstr ""
 
 #. translators: %s: field name
-#: includes/fields-forms.php:463
+#: includes/fields-forms.php:594
 #, php-format
 msgid "Error: “%s” is required."
 msgstr ""
@@ -5545,7 +5598,7 @@ msgstr ""
 
 #: includes/fields.php:32
 #: includes/login-ways.php:597
-#: templates/register.php:133
+#: templates/register.php:137
 msgid "Email address"
 msgstr ""
 
@@ -5653,6 +5706,14 @@ msgid "You can change this one %d more time."
 msgid_plural "You can change this one %d more times."
 msgstr[0] ""
 msgstr[1] ""
+
+#: includes/fields.php:803
+msgid "This number is too long for the country chosen."
+msgstr ""
+
+#: includes/fields.php:804
+msgid "This number is too short for the country chosen."
+msgstr ""
 
 #: includes/handle.php:127
 msgid "You have to write something."
@@ -5917,7 +5978,7 @@ msgid "We could not finish signing you in with that provider. Try again or use y
 msgstr ""
 
 #: includes/login-messages.php:159
-#: includes/login-messages.php:259
+#: includes/login-messages.php:269
 msgid "Something else went wrong"
 msgstr ""
 
@@ -5926,7 +5987,7 @@ msgid "The last resort of the sign-in page, when nothing more precise can honest
 msgstr ""
 
 #: includes/login-messages.php:162
-#: includes/login-messages.php:262
+#: includes/login-messages.php:272
 msgid "Something went wrong. Try again."
 msgstr ""
 
@@ -6003,73 +6064,85 @@ msgid "Shown when one of the fields this site marks as required came back empty.
 msgstr ""
 
 #: includes/login-messages.php:232
-#: templates/fields.php:42
+#: templates/fields.php:44
 msgid "Some required fields are missing."
 msgstr ""
 
 #: includes/login-messages.php:239
-msgid "Too many accounts, too fast"
+msgid "A phone number of the wrong length"
 msgstr ""
 
 #: includes/login-messages.php:240
-msgid "Shown when the same machine has just asked for several accounts in a row. It is the throttle talking, and it says so gently: whoever reads it is far more often impatient than malicious."
+msgid "Shown when a phone number is too short or too long for the country chosen. The field itself says which, under the number."
 msgstr ""
 
 #: includes/login-messages.php:242
-msgid "One moment: wait a few seconds and try again."
+msgid "Check the phone number: it is not the right length for its country."
 msgstr ""
 
 #: includes/login-messages.php:249
-msgid "Registration is shut"
+msgid "Too many accounts, too fast"
 msgstr ""
 
 #: includes/login-messages.php:250
-msgid "Shown when a form was sent to a site that has since stopped taking new accounts."
+msgid "Shown when the same machine has just asked for several accounts in a row. It is the throttle talking, and it says so gently: whoever reads it is far more often impatient than malicious."
 msgstr ""
 
 #: includes/login-messages.php:252
-msgid "This site does not take new accounts right now."
+msgid "One moment: wait a few seconds and try again."
+msgstr ""
+
+#: includes/login-messages.php:259
+msgid "Registration is shut"
 msgstr ""
 
 #: includes/login-messages.php:260
+msgid "Shown when a form was sent to a site that has since stopped taking new accounts."
+msgstr ""
+
+#: includes/login-messages.php:262
+msgid "This site does not take new accounts right now."
+msgstr ""
+
+#: includes/login-messages.php:270
 msgid "The last resort of the registration form, when nothing more precise can honestly be said."
 msgstr ""
 
-#: includes/login-messages.php:463
+#: includes/login-messages.php:473
 msgid "Messages"
 msgstr ""
 
-#: includes/login-messages.php:532
+#: includes/login-messages.php:542
 msgid "The sentence"
 msgstr ""
 
-#: includes/login-messages.php:537
+#: includes/login-messages.php:547
 msgid "It is read by somebody who is stuck, so it is worth saying what to do next and not only what happened. Empty the box and the plugin’s own words come back."
 msgstr ""
 
-#: includes/login-messages.php:551
+#: includes/login-messages.php:561
 msgid "The sentences a person reads when the way in does not work. Each one starts as the text the plugin ships in this language, so a site that changes nothing still reads correctly — and an update that improves a sentence improves it here too. Rewrite one and that is what is shown, until you put it back."
 msgstr ""
 
-#: includes/login-messages.php:585
+#: includes/login-messages.php:595
 msgid "Added by something else on this site"
 msgstr ""
 
 #. translators: %s: the name of a language, in <code>
-#: includes/login-messages.php:600
+#: includes/login-messages.php:610
 #, php-format
 msgid "Every message is the plugin’s own, in %s."
 msgstr ""
 
 #. translators: 1: how many messages this site wrote, 2: how many there are, 3: the name of a language, in <code>
-#: includes/login-messages.php:605
+#: includes/login-messages.php:615
 #, php-format
 msgid "This site writes %1$d of the %2$d messages itself, in %3$s."
 msgid_plural "This site writes %1$d of the %2$d messages themselves, in %3$s."
 msgstr[0] ""
 msgstr[1] ""
 
-#: includes/login-messages.php:661
+#: includes/login-messages.php:671
 msgid "Each language keeps its own wording, and one nobody has touched shows the text the plugin ships. Moving to another one here does not save what is on screen."
 msgstr ""
 
@@ -6092,7 +6165,7 @@ msgid "Email"
 msgstr ""
 
 #: includes/login-ways.php:553
-#: templates/register.php:119
+#: templates/register.php:123
 msgid "or with your email"
 msgstr ""
 
@@ -6106,7 +6179,7 @@ msgstr ""
 
 #: includes/login-ways.php:595
 #: includes/login-ways.php:598
-#: templates/register.php:136
+#: templates/register.php:140
 msgctxt "placeholder for the e-mail field"
 msgid "you@example.com"
 msgstr ""
@@ -6116,7 +6189,7 @@ msgid "Send me the sign-in link"
 msgstr ""
 
 #: includes/login-ways.php:606
-#: templates/register.php:167
+#: templates/register.php:171
 msgid "You get an email with a link. Click it and you are in: no password to choose or type."
 msgstr ""
 
@@ -6682,48 +6755,48 @@ msgstr ""
 msgid "Back to the site"
 msgstr ""
 
-#: includes/sso.php:935
+#: includes/sso.php:945
 msgid "The provider did not hand over an access token. Check the client ID and the secret."
 msgstr ""
 
-#: includes/sso.php:946
+#: includes/sso.php:957
 msgid "The token worked but the profile came back empty. The app is probably missing the permissions this provider needs."
 msgstr ""
 
 #. translators: %s: name of the social network
-#: includes/sso.php:979
+#: includes/sso.php:990
 #, php-format
 msgid "The %s account was linked, and it now gets into this account."
 msgstr ""
 
 #. translators: %s: name of the social network
-#: includes/sso.php:1049
+#: includes/sso.php:1084
 #, php-format
 msgid "The %s account was unlinked."
 msgstr ""
 
-#: includes/sso.php:1090
+#: includes/sso.php:1125
 msgid "It works"
 msgstr ""
 
-#: includes/sso.php:1091
+#: includes/sso.php:1126
 msgid "It did not work"
 msgstr ""
 
 #. translators: %s: provider name
-#: includes/sso.php:1096
+#: includes/sso.php:1131
 #, php-format
 msgid "The round trip with %s finished correctly. You can enable the button now."
 msgstr ""
 
 #. translators: %s: provider name
-#: includes/sso.php:1101
+#: includes/sso.php:1136
 #, php-format
 msgid "The round trip with %s failed."
 msgstr ""
 
 #. translators: %s: e-mail address
-#: includes/sso.php:1107
+#: includes/sso.php:1142
 #, php-format
 msgid "The provider handed over this email: %s"
 msgstr ""
@@ -7170,7 +7243,11 @@ msgstr ""
 msgid "Link"
 msgstr ""
 
-#: templates/fields.php:80
+#: templates/fields.php:46
+msgid "Nothing was saved: a phone number is not the right length for its country."
+msgstr ""
+
+#: templates/fields.php:84
 msgid "Skip for now"
 msgstr ""
 
@@ -7288,19 +7365,19 @@ msgstr ""
 msgid "This site does not take new accounts right now. If you already have one, you can sign in."
 msgstr ""
 
-#: templates/register.php:109
+#: templates/register.php:113
 msgid "Sign in instead"
 msgstr ""
 
-#: templates/register.php:161
+#: templates/register.php:165
 msgid "Create my account"
 msgstr ""
 
-#: templates/register.php:169
+#: templates/register.php:173
 msgid "You get an email with a link to choose your password, and you sign in with it."
 msgstr ""
 
-#: templates/register.php:174
+#: templates/register.php:178
 msgid "Already have an account?"
 msgstr ""
 

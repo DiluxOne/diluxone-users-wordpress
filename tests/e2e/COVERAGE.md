@@ -152,6 +152,12 @@ everybody, with the code by e-mail, and skips it for nobody.
 | Header pieces (photo, member since, Edit profile, no header `--bare`), a cover stored is the simple area, width, nav style and alignment (unknown value → default), nav shortcode `--column` | `my-account-sections` › The header and the look |
 | Site-written section content before/after/replace with shortcodes; a section for some roles (none ticked → nobody); section renamed, moved first, own slug | `my-account-sections` › What the site writes into a section |
 | Every field type drawn, cleaned and drawn back (textarea, email, phone dial+number, country, url, number, date, select, datalist, checkbox) | `my-account-details` › every type is drawn… |
+| The phone as one control: the height, border and corners of the e-mail input on the registration form, the account area, the step after a sign-in and the wp-admin profile, in light, dark and at 390px | `phone-field` › The phone field is one control · `signin-dark-fields` › the phone on the registration form · `my-account-mobile` › the phone is one box |
+| The phone's country picker: “arg” and “54” narrow the list, the live count; keyboard only (open, arrows, Home/End, Enter, Escape, Tab), its roles and `aria-activedescendant`; a pointer and a click outside | `phone-field` › The country picker |
+| The phone grouped as it is typed (AR `11 2345 6789`), the caret kept, saved as `+541123456789`; a trunk prefix typed out of habit shown apart and not saved | `phone-field` › The number as it is typed and saved |
+| A phone too short or too long: the server refuses the whole form (`diluxone-users=phone`), the error under the number with `aria-invalid`, nothing saved; the browser stops it first with the same words; on the registration form no account is made | `phone-field` › A number the wrong length for its country |
+| A saved phone shown grouped with its country picked | `phone-field` › A saved number |
+| The phone with JavaScript off: the native list in the same box, a short number refused by the server with the error under it, a good one saved joined and drawn back grouped | `phone-field` › With JavaScript off |
 | Forged closed-list, country, address, impossible date and infinite number not stored | `my-account-details` › a value off a closed list… |
 | A ticked tick box cannot be unticked from the account | `my-account-details` › a tick box ticked can be unticked… |
 | Edit `never` (readonly, note, server refuses) and `limited` (counted, locks, server refuses) | `my-account-details` › a field nobody may change…; a field that may change once… |
@@ -226,6 +232,7 @@ everybody, with the code by e-mail, and skips it for nobody.
 | Reports › Activity: logging groups, event filter | `activity-log`, `admin-tools` › Reports |
 | Reports › Logging: empty the log (asks first) | `activity-log` › emptying it asks first |
 | Reports › Activity: search by address finds refused attempts | `admin-tools` › …finds the refused attempts |
+| Reports › Activity: a refused social sign-in (cancelled at the provider, a state nobody issued, …) is a `sign_in_failed` row with the network and why, never the code or the state | unit: `Repro/Issue140Test`, `ActivityLogTest` › a refused social sign-in reads as the network and why |
 | Reports › Activity on a single site: every row the site's, no Site column, no site filter, no network report or button | `activity-log` › on a single site every row is the site’s… |
 | Status › Tools: export, import, close sessions, fresh code, rebuild, test message | `admin-tools` › Status › Tools |
 | Status › Tools: a file round trip keeps nested settings | `admin-tools` › …nested ones included |
@@ -409,6 +416,7 @@ In the browser, case by case:
 | Social in a popup on a network: from /alpha/ to the hub's sign-in, the popup makes the hub's trip while the hub's page stays, and the page ends back on /alpha/ signed in; the second step on the hub, then /alpha/; a cancel shows the hub's social error | `network/social-popup` · integration (network): `SsoPopupTest` › …the hub's |
 | A site on a domain of its own: its door is its own wp-login.php | `signin-doors` › A site on a domain of its own |
 | Required fields missing, asked on the hub's account page after a sign-in by link from /beta/, and the save goes back to /beta/ | `missing-fields` |
+| The phone on the hub's registration form is one control drawn like the e-mail input, wide and at 390px | `phone-field` |
 
 ## Network settings, and the network's screens
 
