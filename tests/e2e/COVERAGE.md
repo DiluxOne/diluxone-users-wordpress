@@ -75,7 +75,7 @@ everybody, with the code by e-mail, and skips it for nobody.
 | Social: link-by-email off, linked identity with another address, scope some with a disallowed role, social buttons on the registration form | `signin-social` › Who a social identity opens |
 | Social linking: `taken`, `linked` + security mails on link/unlink, unlink without its nonce | `signin-social` › Linking from the account, off the plain path |
 | Social then 2FA; new device after social | `signin-social` › What a social sign-in sets off |
-| Required fields missing after a sign-in: a new account by link lands on the account page with only the required field, its save goes on to `redirect_to`; a social account with no name lands there too; an account with every field filled goes straight on; skipped, the site is open and the next sign-in asks again | `missing-fields` › After signing in, the required fields missing |
+| Required fields missing after a sign-in: a new account by link lands on the account page with only the required field, its save goes on to `redirect_to`; a social account with no name lands there too; an account with every field filled goes straight on; skipped, the site is open and the next sign-in asks again; the step drawn in the account area's frame, as wide as its reading width, with its title before its line | `missing-fields` › After signing in, the required fields missing; `repro/issue-139` |
 | …turned off on User fields › After sign-in; the box switched off and saying why while no field is required | `missing-fields` › After signing in, turned off on User fields |
 | Social button skin/shape/contents/rows/words on the real page | `signin-social` › The buttons on the real page |
 | Icon-only social buttons on the card: one row, centred on the card like the logo | `repro/issue-70` |
@@ -406,7 +406,7 @@ In the browser, case by case:
 | Social sign-in then the second step, on the hub, back on /beta/ | `signin-doors` › The second step after a social sign-in, on a network |
 | Social in a popup on a network: from /alpha/ to the hub's sign-in, the popup makes the hub's trip while the hub's page stays, and the page ends back on /alpha/ signed in; the second step on the hub, then /alpha/; a cancel shows the hub's social error | `network/social-popup` · integration (network): `SsoPopupTest` › …the hub's |
 | A site on a domain of its own: its door is its own wp-login.php | `signin-doors` › A site on a domain of its own |
-| Required fields missing, asked on the hub's account page after a sign-in by link from /beta/, and the save goes back to /beta/ | `missing-fields` |
+| Required fields missing, asked on the hub's account page after a sign-in by link from /beta/, and the save goes back to /beta/; the step in the hub's account frame, title before its line | `missing-fields` |
 
 ## Network settings, and the network's screens
 

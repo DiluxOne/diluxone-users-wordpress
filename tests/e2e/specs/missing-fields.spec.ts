@@ -67,6 +67,14 @@ test.describe('After signing in, the required fields missing', () => {
 		await expect(stepForm(page).locator('input[name="last_name"]'), 'only what is missing').toHaveCount(0);
 		await expect(page.locator('nav[class*="diluxone-users-account"]'), 'in place of the sections and their nav').toHaveCount(0);
 
+		// In the account area's frame, its title before its line (#139).
+		const frame = page.locator('.diluxone-users-account--contained .diluxone-users-account__body .diluxone-users-complete');
+		await expect(frame).toHaveCount(1);
+		const titleBox = await frame.locator('.diluxone-users-fields__title').boundingBox();
+		const introBox = await frame.locator('.diluxone-users-complete__intro').boundingBox();
+		expect(titleBox!.y, 'the title comes before the line').toBeLessThan(introBox!.y);
+		expect((await stepForm(page).boundingBox())!.width, 'held to the reading width').toBeLessThanOrEqual(981);
+
 		// Required in the browser too: the same control as the account area's.
 		await expect(stepForm(page).locator('input[name="first_name"]')).toHaveAttribute('required', /.*/);
 
