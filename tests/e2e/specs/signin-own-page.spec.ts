@@ -24,16 +24,36 @@ async function onTheDoor(page: Page, path = '/sign-in/'): Promise<void> {
 	await expect(page.locator('header, footer, .wp-block-template-part')).toHaveCount(0);
 }
 
-const SHAPE_KEYS = ['diluxone_users_login_template', 'diluxone_users_login_slug', 'diluxone_users_login_slug_old'];
+const SHAPE_KEYS = ['diluxone_users_login_template', 'diluxone_users_login_page', 'diluxone_users_login_slug', 'diluxone_users_login_slug_old'];
 
 test.describe('Sign in › A page of its own', () => {
 	test.beforeEach(async ({ options }) => {
 		await options.keep(SHAPE_KEYS);
+		// "No page" on Access, so the page of its own is at the address typed
+		// beside it: /sign-in/. The cases about a page chosen choose it.
 		await options.set({
 			diluxone_users_login_template: 'own',
+			diluxone_users_login_page: 0,
 			diluxone_users_login_slug: 'sign-in',
 			diluxone_users_login_slug_old: [],
 		});
+	});
+
+	test('C1: the page chosen on Access draws the page of its own at its own address, with no redirect', async ({ guest, options, pages }) => {
+		await options.set({ diluxone_users_login_page: pages.login.id });
+
+		const direct = await guest.request.get(pages.login.url, { maxRedirects: 0 });
+
+		expect(direct.status(), 'answered there, not sent anywhere').toBe(200);
+
+		const response = await guest.goto(pages.login.url);
+
+		expect(response?.status()).toBe(200);
+		expect(response?.request().redirectedFrom(), 'nothing redirects').toBeNull();
+		expect(guest.url()).toBe(pages.login.url);
+		await expect(guest.locator('body.diluxone-users-door'), 'the page of its own, drawn there').toHaveCount(1);
+		await expect(guest.locator('.diluxone-users-login-frame--own .diluxone-users-login')).toBeVisible();
+		await expect(guest.locator('header, footer, .wp-block-template-part'), 'nothing of the theme’s').toHaveCount(0);
 	});
 
 	test('C1: /sign-in/ draws the form on a page with no theme header or footer', async ({ guest }) => {
@@ -48,20 +68,15 @@ test.describe('Sign in › A page of its own', () => {
 		expect(response?.headers()['cache-control'] ?? '', 'kept out of every cache').toContain('no-store');
 	});
 
-	test('C2: the account area and the sign-in page chosen before both lead to /sign-in/', async ({ guest, pages, baseURL }) => {
+	test('C2: the account area leads to /sign-in/', async ({ guest, pages, baseURL }) => {
 		const door = `${baseURL}/sign-in/`;
 
 		await guest.goto(pages.account.url);
 		await expect(guest.locator(`a[href="${door}"]`).first(), 'the account area, to a stranger, links to the page of its own').toBeVisible();
-
-		await guest.goto(pages.login.url);
-		expect(guest.url(), 'the page still chosen in Sign in › The page sends people there').toBe(door);
-		await expect(guest.locator('body.diluxone-users-door')).toHaveCount(1);
 	});
 
-	test('C3: the address changed from sign-in to entrar on the tab, /sign-in/ redirects to /entrar/', async ({ page, guest, baseURL }) => {
-		await page.goto(adminUrl('diluxone-users-design', 'login'));
-		await page.locator('input[name="diluxone_users_login_template"][value="own"]').check({ force: true });
+	test('C3: the address changed from sign-in to entrar on Access, /sign-in/ redirects to /entrar/', async ({ page, guest, baseURL }) => {
+		await page.goto(adminUrl('diluxone-users-login', 'page'));
 		await page.locator('input[name="diluxone_users_login_slug"]').fill('entrar');
 		await savePanel(page);
 		await expect(page.locator('input[name="diluxone_users_login_slug"]')).toHaveValue('entrar');
@@ -75,24 +90,6 @@ test.describe('Sign in › A page of its own', () => {
 		await guest.goto('/sign-in/');
 		expect(guest.url()).toBe(`${baseURL}/entrar/`);
 		await expect(guest.locator('body.diluxone-users-door')).toHaveCount(1);
-	});
-
-	test('C4: an address a page already has is refused, naming the page, and nothing is written', async ({ page, site }) => {
-		// A plain page of the spec's own: the chosen sign-in page's path is the
-		// address the page of its own takes over (#116), and the plugin's other
-		// pages are addresses it answers itself, refused before any page is named.
-		const plain = await site.page('signin-taken', '<p>Taken.</p>');
-		const taken = new URL(plain.url).pathname.replace(/^\/|\/$/g, '');
-
-		await page.goto(adminUrl('diluxone-users-design', 'login'));
-		await page.locator('input[name="diluxone_users_login_template"][value="own"]').check({ force: true });
-		await page.locator('input[name="diluxone_users_login_slug"]').fill(taken);
-		await page.getByRole('button', { name: /save/i }).first().click();
-
-		await expect(page.locator('.notice-error')).toContainText(`The address /${taken}/ is already the page “`);
-		await expect(page.locator('.notice-success')).toHaveCount(0);
-		expect((await site.getOptions(['diluxone_users_login_slug'])).diluxone_users_login_slug).toBe('sign-in');
-		await site.forgetPage('signin-taken');
 	});
 
 	test('C5: the second step is drawn on /sign-in/, and finishing it signs in', async ({ guest, site, options }) => {

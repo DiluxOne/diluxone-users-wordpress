@@ -64,6 +64,26 @@ test.describe('Design › The sign-in page', () => {
 		await expect(frame(guest)).toHaveCount(0);
 	});
 
+	test('C2: with “A page of its own”, no address field: the tab says where it is drawn and links to Access', async ({ page, options, pages }) => {
+		await options.keep(['diluxone_users_login_page', 'diluxone_users_login_slug', 'diluxone_users_login_slug_old']);
+		await options.set({ diluxone_users_login_template: 'own', diluxone_users_login_page: pages.login.id });
+
+		await page.goto(LOGIN_TAB);
+
+		await expect(box(page, 'diluxone_users_login_slug'), 'no address field').toHaveCount(0);
+
+		const drawn = page.locator('.du-waits-on p', { hasText: 'Drawn at' });
+
+		await expect(drawn).toHaveText(`Drawn at ${pages.login.url}`);
+		await expect(drawn.locator('a')).toHaveAttribute('href', pages.login.url);
+
+		const access = page.getByRole('link', { name: 'Access › The sign-in page →' });
+
+		await expect(access).toHaveAttribute('href', /page=diluxone-users-login&tab=page/);
+		await access.click();
+		await expect(page.locator('select[name="diluxone_users_login_page"]'), 'where the address is chosen').toBeVisible();
+	});
+
 	test('where Users+ Pro’s layouts would go: two shapes after the real ones, disabled, gone with the previews setting', async ({ page, options }) => {
 		await page.goto(LOGIN_TAB);
 

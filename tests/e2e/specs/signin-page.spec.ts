@@ -402,7 +402,7 @@ test.describe('The link request, from the outside', () => {
 		expect(await site.mail(people[2]), 'the third, over the ceiling, gets nothing').toEqual([]);
 	});
 
-	test('addresses nobody has are counted on the registration ceiling: the seventh makes no account', async ({ page, site, pages, options }) => {
+	test('addresses nobody has are counted on the registration ceiling: the seventh gets no link', async ({ page, site, pages, options }) => {
 		await options.set({ diluxone_users_login_register: 1 });
 
 		const fresh = Array.from({ length: 7 }, (_, n) => freshEmail(`regburst-${n}`));
@@ -412,12 +412,14 @@ test.describe('The link request, from the outside', () => {
 			expect(stateOf(page.url())).toBe('sent');
 		}
 
+		// Asking makes no account; the link to make one is mailed (#134).
 		for (const email of fresh.slice(0, 6)) {
-			expect((await site.user(email)).exists, `${email} got an account`).toBe(true);
+			await expect.poll(async () => (await site.mail(email)).length, `${email} got a link`).toBe(1);
+			expect((await site.user(email)).exists, `${email} has no account until the link is opened`).toBe(false);
 		}
 
 		expect((await site.user(fresh[6])).exists, 'the seventh did not').toBe(false);
-		expect(await site.mail(fresh[6])).toEqual([]);
+		expect(await site.mail(fresh[6]), 'nor a link to make one').toEqual([]);
 	});
 
 	test('a role no stranger may give themselves falls back to subscriber when the account is made', async ({ page, site, pages, options }) => {

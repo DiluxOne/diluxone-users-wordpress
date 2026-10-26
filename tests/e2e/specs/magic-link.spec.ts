@@ -56,7 +56,7 @@ test.describe('Signing in with the link that arrives by e-mail', () => {
 		expect(stateOf(page.url())).toBe('expired');
 	});
 
-	test('an address nobody has seen before gets an account and gets in', async ({ page, site, pages, options }) => {
+	test('an address nobody has seen before gets an account once its link is opened, and gets in', async ({ page, site, pages, options }) => {
 		await options.set({ diluxone_users_login_register: 1, diluxone_users_login_role: 'subscriber' });
 
 		const email = freshEmail('new');
@@ -65,13 +65,23 @@ test.describe('Signing in with the link that arrives by e-mail', () => {
 
 		await askForLink(page, pages.login.url, email);
 
+		const link = linkIn(await waitForMail(site, email));
+
+		// Asking proves nothing — anybody can type somebody else's address —
+		// so the account waits for the link to be opened (#134).
+		expect((await site.user(email)).exists, 'asking for the link must create no account').toBe(false);
+		expect(link, 'the link carries a pending sign-up, never the address').toMatch(
+			/diluxone_users_signup=[a-z0-9]+.*diluxone_users_token=/
+		);
+		expect(link).not.toContain(encodeURIComponent(email));
+
+		await page.goto(link);
+		await expectSignedIn(page, email);
+
 		const made = await site.user(email);
 
-		expect(made.exists, 'signing in was supposed to create the account').toBe(true);
+		expect(made.exists, 'opening the link was supposed to create the account').toBe(true);
 		expect(made.roles).toEqual(['subscriber']);
-
-		await page.goto(linkIn(await waitForMail(site, email)));
-		await expectSignedIn(page, email);
 	});
 
 	test('with self-registration off, an unknown address gets the same screen and no account', async ({
