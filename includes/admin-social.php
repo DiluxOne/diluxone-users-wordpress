@@ -561,8 +561,8 @@ function diluxone_users_screen_social_general(): void {
 				'name'    => 'diluxone_users_sso_verified_only',
 				'value'   => '1',
 				'checked' => (bool) diluxone_users_option( 'diluxone_users_sso_verified_only' ),
-				'title'   => __( 'Refuse the sign-in when the provider does not say the email is verified', 'diluxone-users' ),
-				'help'    => __( 'Stricter, and a few providers never send that flag: with this on, those stop working.', 'diluxone-users' ),
+				'title'   => __( 'Only verified addresses: confirm by mail an address the provider does not vouch for', 'diluxone-users' ),
+				'help'    => __( 'When a provider does not say the email is verified, nothing is created or linked: a link goes to that address, and opening it signs the person in. Turned off, such an address can create a new account straight away, though never take over an existing one.', 'diluxone-users' ),
 			),
 		)
 	);
@@ -629,11 +629,19 @@ function diluxone_users_screen_provider( string $id, array $provider ): void {
 	$current = diluxone_users_tab( $tabs );
 
 	if ( diluxone_users_admin_owns( 'network' ) && current_user_can( diluxone_users_admin_cap() ) && isset( $_POST['diluxone_users_provider_nonce'] ) && wp_verify_nonce( sanitize_key( wp_unslash( $_POST['diluxone_users_provider_nonce'] ) ), 'diluxone_users_provider' ) ) {
-		$typed = sanitize_text_field( wp_unslash( $_POST['diluxone_users_client_secret'] ?? '' ) );
+		$typed  = sanitize_text_field( wp_unslash( $_POST['diluxone_users_client_secret'] ?? '' ) );
+		$drawn  = array_map( 'sanitize_key', (array) wp_unslash( $_POST['diluxone_users_panel_drawn'] ?? array() ) );
+		$values = array();
+
+		// "Use PKCE" only when the form had the box: a post without it keeps
+		// what was stored.
+		if ( isset( $_POST['diluxone_users_pkce'] ) || in_array( 'diluxone_users_pkce', $drawn, true ) ) {
+			$values['pkce'] = isset( $_POST['diluxone_users_pkce'] ) ? 1 : 0;
+		}
 
 		diluxone_users_sso_save_credentials(
 			$id,
-			array(
+			$values + array(
 				'active' => isset( $_POST['diluxone_users_active'] ) ? 1 : 0,
 				'id'     => sanitize_text_field( wp_unslash( $_POST['diluxone_users_client_id'] ?? '' ) ),
 				// An empty box means "leave it as it is", because an empty box
@@ -659,7 +667,7 @@ function diluxone_users_screen_provider( string $id, array $provider ): void {
 	diluxone_users_screen_provider_actions( $id, $state );
 
 	if ( 'settings' === $current ) {
-		diluxone_users_screen_provider_settings( $id, $state );
+		diluxone_users_screen_provider_settings( $id, $state, $provider );
 	} elseif ( 'usage' === $current ) {
 		diluxone_users_screen_provider_usage( $id, $provider );
 	} else {
@@ -682,8 +690,10 @@ function diluxone_users_screen_provider( string $id, array $provider ): void {
  * going grey: what is ticked today is what applies the day the test passes,
  * and `diluxone_users_sso_save_credentials()` is the one that refuses to turn
  * on something untested — here it is only said out loud.
+ *
+ * @param array<string, mixed> $provider
  */
-function diluxone_users_screen_provider_settings( string $id, string $state ): void {
+function diluxone_users_screen_provider_settings( string $id, string $state, array $provider ): void {
 	$credentials = diluxone_users_sso_credentials( $id );
 	?>
 	<form method="post" id="diluxone-users-provider-form">
@@ -746,9 +756,48 @@ function diluxone_users_screen_provider_settings( string $id, string $state ): v
 				),
 			)
 		);
+
+		diluxone_users_screen_provider_pkce( $id, $provider );
 		?>
 	</form>
 	<?php
+}
+
+/**
+ * "Use PKCE", ticked from what the trip will do (diluxone_users_sso_pkce()).
+ *
+ * Locked, and saying why, for a provider that requires it or does not accept
+ * it: there the box is not the administrator's to change.
+ *
+ * @param array<string, mixed> $provider
+ */
+function diluxone_users_screen_provider_pkce( string $id, array $provider ): void {
+	$required  = ! empty( $provider['pkce'] );
+	$supported = ! empty( $provider['pkce_support'] );
+
+	if ( $required ) {
+		$help = __( 'This provider requires PKCE.', 'diluxone-users' );
+	} elseif ( ! $supported ) {
+		$help = __( 'This provider does not support PKCE.', 'diluxone-users' );
+	} else {
+		$help = __( 'The sign-in sends a one-time proof with the code, so a code stolen on its way back cannot be used by anyone else.', 'diluxone-users' );
+	}
+
+	diluxone_users_ui_section( __( 'Security', 'diluxone-users' ) );
+
+	diluxone_users_ui_choices(
+		array(
+			array(
+				'type'     => 'checkbox',
+				'name'     => 'diluxone_users_pkce',
+				'value'    => '1',
+				'checked'  => diluxone_users_sso_pkce( $id, $provider ),
+				'disabled' => $required || ! $supported,
+				'title'    => __( 'Use PKCE', 'diluxone-users' ),
+				'help'     => $help,
+			),
+		)
+	);
 }
 
 /**

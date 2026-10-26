@@ -333,7 +333,7 @@ test.describe('The number as it is typed and saved', () => {
 			await number.press('ArrowRight');
 		}
 		await number.press('Backspace');
-		await expect(number).toHaveValue('12 3456 789');
+		await expect(number, 'no area code starts 12: one of four digits').toHaveValue('1234 56 789');
 		expect(await number.evaluate((input: HTMLInputElement) => input.selectionStart)).toBe(1);
 		await number.press('1');
 		await expect(number).toHaveValue('11 2345 6789');
@@ -354,6 +354,33 @@ test.describe('The number as it is typed and saved', () => {
 
 		await Promise.all([page.waitForURL(/diluxone-users=saved/), formOf(page, 'diluxone_users_fields_save').locator('button[type="submit"]').first().click()]);
 		expect((await site.user(email, ['e2e_phone'])).fields.e2e_phone).toBe('+541123456789');
+	});
+
+	test('an area code of three digits is written apart from the number', async ({ page, site, pages }) => {
+		await signedIn(page, site, pages.login.url, 'phone-area');
+		const area = await details(page, pages.account.url);
+		const number = area.phone.locator('input.diluxone-users-phone__number');
+
+		await number.click();
+		await number.pressSequentially('2214123456');
+		await expect(number, '221 is La Plata’s code, not 22').toHaveValue('221 412 3456');
+	});
+
+	test('a mobile written with 15 after its area code is accepted, shown as typed and saved as the number dialled from anywhere', async ({ page, site, pages }) => {
+		const { email } = await signedIn(page, site, pages.login.url, 'phone-mobile');
+		const area = await details(page, pages.account.url);
+		const number = area.phone.locator('input.diluxone-users-phone__number');
+
+		await number.click();
+		await number.pressSequentially('0111541234567');
+		await expect(number, 'the trunk prefix and the 15 kept where they were typed').toHaveValue('0 11 15 4123 4567');
+		expect(await number.evaluate((input: HTMLInputElement) => input.validity.valid), 'not too long for the browser').toBe(true);
+
+		await Promise.all([page.waitForURL(/diluxone-users=saved/), formOf(page, 'diluxone_users_fields_save').locator('button[type="submit"]').first().click()]);
+		expect((await site.user(email, ['e2e_phone'])).fields.e2e_phone, 'the 9 of a mobile in place of the 15').toBe('+5491141234567');
+
+		const back = await details(page, pages.account.url);
+		await expect(back.phone.locator('input.diluxone-users-phone__number'), 'drawn back as it is dialled from anywhere').toHaveValue('9 11 4123 4567');
 	});
 });
 

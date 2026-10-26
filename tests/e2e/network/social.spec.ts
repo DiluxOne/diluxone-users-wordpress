@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { test, expect, whoOn, toTheHub, signInFrom } from './support';
 import { freshEmail } from '../support/api';
 import { accountSection, openAllPanels, navigated, ssoButton } from '../support/ui';
@@ -64,4 +65,40 @@ test('linked from /alpha/ on the hub’s account, the same network from /beta/ o
 	expect(await whoOn(second, beta.url), 'the identity opens the account it is linked to').toBe(email);
 	expect((await root.user(elsewhere)).exists, 'no second account under the identity’s address').toBe(false);
 	expect((await beta.site.user(email)).id).toBe(person.id);
+});
+
+test('from /beta/, a sign-in with “Use PKCE” on goes through the hub with the S256 challenge and the verifier that matches it', async ({
+	browser,
+	hub,
+	beta,
+}) => {
+	await hub.set({
+		diluxone_e2e_sso: 1,
+		diluxone_e2e_pkce: null,
+		diluxone_users_sso: { mock: { ...MOCK.mock, pkce: 1 } },
+		diluxone_users_sso_login: 1,
+		diluxone_users_sso_register: 1,
+		diluxone_users_sso_link_by_email: 1,
+		diluxone_users_sso_verified_only: 0,
+		diluxone_users_2fa_mode: 'off',
+	});
+
+	const email = freshEmail('net-sso-pkce');
+
+	await hub.site.setIdentity({ sub: `mock|${email}`, email, email_verified: true });
+
+	const page = await (await browser.newContext()).newPage();
+
+	await toTheHub(page, beta, hub);
+	await navigated(page, () => ssoButton(page, 'mock').click());
+	await page.waitForURL((url) => url.href.startsWith(beta.url), { waitUntil: 'domcontentloaded' });
+
+	expect(await whoOn(page, beta.url), 'signed in, back on /beta/').toBe(email);
+
+	// The trip is the hub's, and so is what the provider was sent.
+	const seen = ((await hub.site.getOptions(['diluxone_e2e_pkce'])).diluxone_e2e_pkce ?? {}) as { challenge?: string; method?: string; verifier?: string };
+
+	expect(seen.method).toBe('S256');
+	expect(seen.verifier, 'the exchange sent a verifier').toMatch(/^[A-Za-z0-9]{64}$/);
+	expect(createHash('sha256').update(seen.verifier!).digest('base64url'), 'the one the challenge was made from').toBe(seen.challenge);
 });

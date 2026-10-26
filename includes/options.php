@@ -215,8 +215,10 @@ function diluxone_users_option_defaults_own(): array {
 		// an account keep using it while it stops handing out new ones, and a
 		// site can want the opposite.
 		'diluxone_users_sso_login'             => 1,
-		// Require the provider to say the e-mail is verified.
-		'diluxone_users_sso_verified_only'     => 0,
+		// Only addresses somebody proved: the provider's word, or a link
+		// mailed to the address and opened (sso-pending.php). On by default,
+		// because the mail makes it cost nobody a way in.
+		'diluxone_users_sso_verified_only'     => 1,
 		// Who may sign in with a social account: everybody, or only the
 		// roles ticked. Said the other way round until now — a list of roles
 		// that could NOT — which is the only question on these screens

@@ -162,7 +162,7 @@ class CoverFieldsInputTest extends IntegrationTestCase {
 		$this->assertSame( 1, preg_match_all( '/<select [^>]*name="f_mobile_dial"[^>]*>(.*?)<\/select>/s', $html, $select ) );
 		$this->assertSame( 1, substr_count( $html, 'data-diluxone-users-phone' ), 'the box the script looks for' );
 
-		preg_match_all( '/<option value="([A-Z]{2})" data-dial="(\d+)" data-min="(\d+)" data-max="(\d+)" data-group="([\d |]*)" data-trunk="(\d*)"/', $select[1][0], $rows, PREG_SET_ORDER );
+		preg_match_all( '/<option value="([A-Z]{2})" data-dial="(\d+)" data-min="(\d+)" data-max="(\d+)" data-group="([\d |:,]*)" data-trunk="(\d*)" data-mobile="([\d:]*)"/', $select[1][0], $rows, PREG_SET_ORDER );
 
 		$this->assertCount( count( diluxone_users_countries() ), $rows, 'every country, each with its rule' );
 		$this->assertSame( substr_count( $select[1][0], '<option ' ), count( $rows ), 'no option without one' );
@@ -171,10 +171,10 @@ class CoverFieldsInputTest extends IntegrationTestCase {
 			$rule = diluxone_users_phone_rule( $row[1] );
 
 			$this->assertSame( diluxone_users_country_dial( $row[1] ), $row[2], "{$row[1]}: its dialling code" );
-			$this->assertSame( array( $rule['min'], $rule['max'], $rule['group'], $rule['trunk'] ), array( (int) $row[3], (int) $row[4], $row[5], $row[6] ), "{$row[1]}: the server's own rule" );
+			$this->assertSame( array( $rule['min'], $rule['max'], $rule['group'], $rule['trunk'], $rule['mobile'] ), array( (int) $row[3], (int) $row[4], $row[5], $row[6], $row[7] ), "{$row[1]}: the server's own rule" );
 		}
 
-		$this->assertStringContainsString( 'value="AR" data-dial="54" data-min="10" data-max="11" data-group="2 4 4|1 2 4 4" data-trunk="0"', $html );
+		$this->assertMatchesRegularExpression( '/value="AR" data-dial="54" data-min="10" data-max="11" data-group="11:2 4 4\|220,221,[\d,]+:3 3 4\|4 2 4\|[^"]*" data-trunk="0" data-mobile="15:9"/', $html );
 		$this->assertTrue( wp_script_is( 'diluxone-users-phone', 'enqueued' ), 'the picker is loaded where a phone is drawn' );
 	}
 

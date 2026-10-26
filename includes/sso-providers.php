@@ -36,7 +36,12 @@ defined( 'ABSPATH' ) || exit;
  *   profile    URL the profile is read from.
  *   scope      The permissions asked for.
  *   extra      Odd parameters that provider requires.
- *   pkce       Whether it requires PKCE.
+ *   pkce       Whether it requires PKCE: the trip always sends it, and the
+ *              "Use PKCE" box is ticked and locked.
+ *   pkce_support Whether it accepts PKCE: the trip sends it unless the
+ *              administrator unticks "Use PKCE". `false` for a row that says
+ *              nothing, so a provider is never sent what it was not said
+ *              to accept; a row that requires it supports it.
  *   token_auth How the client proves itself on the token exchange: `post`
  *              (the ID and the secret in the body, the default) or `basic`
  *              (the two in an HTTP Basic header, and not in the body).
@@ -49,30 +54,32 @@ defined( 'ABSPATH' ) || exit;
 function diluxone_users_sso_providers(): array {
 	$providers = array(
 		'google'    => array(
-			'name'      => 'Google',
-			'color'     => '#EA4335',
-			'authorize' => 'https://accounts.google.com/o/oauth2/v2/auth',
-			'token'     => 'https://oauth2.googleapis.com/token',
-			'profile'   => 'https://openidconnect.googleapis.com/v1/userinfo',
-			'scope'     => 'openid email profile',
-			'extra'     => array( 'prompt' => 'select_account' ),
-			'pkce'      => false,
-			'map'       => 'diluxone_users_sso_map_oidc',
-			'console'   => 'https://console.cloud.google.com/apis/credentials',
-			'guide'     => 'https://developers.google.com/identity/openid-connect/openid-connect',
+			'name'         => 'Google',
+			'color'        => '#EA4335',
+			'authorize'    => 'https://accounts.google.com/o/oauth2/v2/auth',
+			'token'        => 'https://oauth2.googleapis.com/token',
+			'profile'      => 'https://openidconnect.googleapis.com/v1/userinfo',
+			'scope'        => 'openid email profile',
+			'extra'        => array( 'prompt' => 'select_account' ),
+			'pkce'         => false,
+			'pkce_support' => true,
+			'map'          => 'diluxone_users_sso_map_oidc',
+			'console'      => 'https://console.cloud.google.com/apis/credentials',
+			'guide'        => 'https://developers.google.com/identity/openid-connect/openid-connect',
 		),
 		'microsoft' => array(
-			'name'      => 'Microsoft',
-			'color'     => '#0067B8',
-			'authorize' => 'https://login.microsoftonline.com/common/oauth2/v2.0/authorize',
-			'token'     => 'https://login.microsoftonline.com/common/oauth2/v2.0/token',
-			'profile'   => 'https://graph.microsoft.com/oidc/userinfo',
-			'scope'     => 'openid email profile',
-			'extra'     => array(),
-			'pkce'      => false,
-			'map'       => 'diluxone_users_sso_map_oidc',
-			'console'   => 'https://entra.microsoft.com/',
-			'guide'     => 'https://learn.microsoft.com/entra/identity-platform/v2-protocols-oidc',
+			'name'         => 'Microsoft',
+			'color'        => '#0067B8',
+			'authorize'    => 'https://login.microsoftonline.com/common/oauth2/v2.0/authorize',
+			'token'        => 'https://login.microsoftonline.com/common/oauth2/v2.0/token',
+			'profile'      => 'https://graph.microsoft.com/oidc/userinfo',
+			'scope'        => 'openid email profile',
+			'extra'        => array(),
+			'pkce'         => false,
+			'pkce_support' => true,
+			'map'          => 'diluxone_users_sso_map_oidc',
+			'console'      => 'https://entra.microsoft.com/',
+			'guide'        => 'https://learn.microsoft.com/entra/identity-platform/v2-protocols-oidc',
 		),
 	);
 
@@ -116,18 +123,19 @@ function diluxone_users_sso_provider_row( string $id, array $row ): array {
 	$row = wp_parse_args(
 		$row,
 		array(
-			'name'       => $id,
-			'color'      => '',
-			'authorize'  => '',
-			'token'      => '',
-			'profile'    => '',
-			'scope'      => '',
-			'extra'      => array(),
-			'pkce'       => false,
-			'token_auth' => 'post',
-			'map'        => 'diluxone_users_sso_map_oidc',
-			'console'    => '',
-			'guide'      => '',
+			'name'         => $id,
+			'color'        => '',
+			'authorize'    => '',
+			'token'        => '',
+			'profile'      => '',
+			'scope'        => '',
+			'extra'        => array(),
+			'pkce'         => false,
+			'pkce_support' => false,
+			'token_auth'   => 'post',
+			'map'          => 'diluxone_users_sso_map_oidc',
+			'console'      => '',
+			'guide'        => '',
 		)
 	);
 
@@ -139,7 +147,9 @@ function diluxone_users_sso_provider_row( string $id, array $row ): array {
 	$row['name']  = '' !== $row['name'] ? $row['name'] : $id;
 	$row['extra'] = is_array( $row['extra'] ) ? $row['extra'] : array();
 	$row['pkce']  = (bool) $row['pkce'];
-	$row['map']   = is_callable( $row['map'] ) ? $row['map'] : 'diluxone_users_sso_map_oidc';
+	// What a provider requires, it accepts.
+	$row['pkce_support'] = $row['pkce'] || (bool) $row['pkce_support'];
+	$row['map']          = is_callable( $row['map'] ) ? $row['map'] : 'diluxone_users_sso_map_oidc';
 
 	// Two ways to send the secret, and the body is the one OAuth 2 asks every
 	// provider to accept: anything else said here is read as that.

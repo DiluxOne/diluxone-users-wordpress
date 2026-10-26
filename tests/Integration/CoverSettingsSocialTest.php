@@ -120,7 +120,8 @@ class CoverSettingsSocialTest extends IntegrationTestCase {
 		$this->where_the_network_is_set();
 		$this->the_admin();
 
-		$post = array( 'diluxone_users_sso_verified_only' => '1' );
+		// Unticked: saved, it would turn "Only verified addresses" off.
+		$post = array( 'diluxone_users_sso_scope' => 'all' );
 
 		$this->postAs( get_current_user_id(), $post + array( 'diluxone_users_panel_nonce' => 'not-a-nonce' ) );
 		$this->assertSame( array( 'died', self::EXPIRED ), $this->ended( 'diluxone_users_social_rules_save' ) );
@@ -133,6 +134,25 @@ class CoverSettingsSocialTest extends IntegrationTestCase {
 		$this->send_panel( 'diluxone-users-social', $post );
 		$this->assertSame( array( 'died', 'You are not allowed to do this.' ), $this->ended( 'diluxone_users_social_rules_save' ) );
 
+		$this->assertSame( 1, (int) diluxone_users_option( 'diluxone_users_sso_verified_only' ), 'still the default' );
+	}
+
+	/** Nothing saved: "Only verified addresses" is on. Saved off: it stays off. */
+	public function test_only_verified_addresses_is_on_until_it_is_saved_off(): void {
+		$this->assertSame( 1, (int) diluxone_users_option( 'diluxone_users_sso_verified_only' ), 'a fresh site' );
+
+		diluxone_users_update_option( 'diluxone_users_sso_verified_only', 0 );
+
+		$this->assertSame( 0, (int) diluxone_users_option( 'diluxone_users_sso_verified_only' ), 'saved off, kept off' );
+	}
+
+	/** Unticked on the screen and saved, it is off, and stays off. */
+	public function test_only_verified_addresses_unticked_on_the_screen_is_saved_off(): void {
+		$this->where_the_network_is_set();
+		$this->the_admin();
+		$this->send_panel( 'diluxone-users-social', array( 'diluxone_users_sso_link_by_email' => '1' ) );
+
+		$this->assertSame( 'returned', $this->ended( 'diluxone_users_social_rules_save' )[0] );
 		$this->assertSame( 0, (int) diluxone_users_option( 'diluxone_users_sso_verified_only' ) );
 	}
 
@@ -175,11 +195,12 @@ class CoverSettingsSocialTest extends IntegrationTestCase {
 		$this->network_only( 'CoverSettingsSocialTest::test_the_rules_are_saved_and_on_a_site_the_switch_stays_on_access' );
 
 		$this->the_admin();
-		$this->send_panel( 'diluxone-users-social', array( 'diluxone_users_sso_verified_only' => '1' ) );
+		// Unticked: saved, it would turn "Only verified addresses" off.
+		$this->send_panel( 'diluxone-users-social', array( 'diluxone_users_sso_scope' => 'all' ) );
 
 		diluxone_users_social_rules_save();
 
-		$this->assertSame( 0, (int) diluxone_users_option( 'diluxone_users_sso_verified_only' ) );
+		$this->assertSame( 1, (int) diluxone_users_option( 'diluxone_users_sso_verified_only' ), 'still the default' );
 	}
 
 	public function test_the_rules_tab_says_how_an_account_ends_up(): void {
@@ -442,6 +463,81 @@ class CoverSettingsSocialTest extends IntegrationTestCase {
 		$this->assertStringContainsString( '[diluxone_users_accounts]', $html );
 		$this->assertStringContainsString( esc_html( diluxone_users_sso_login_url( 'elsewhere' ) ), $html );
 		$this->assertStringNotContainsString( 'documentation', $html, 'their documentation is on the first tab' );
+	}
+
+	/* ── Use PKCE ──────────────────────────────────────────────────── */
+
+	/** The "Use PKCE" input of a drawn screen, or '' when there is none. */
+	private function pkce_box( string $html ): string {
+		return preg_match( '/<input[^>]*name="diluxone_users_pkce"[^>]*>/s', $html, $m ) ? $m[0] : '';
+	}
+
+	public function test_a_provider_that_supports_pkce_with_nothing_saved_has_the_box_ticked(): void {
+		$this->where_the_network_is_set();
+		$this->the_admin();
+
+		$html = $this->provider( 'google', 'settings' );
+		$box  = $this->pkce_box( $html );
+
+		$this->assertStringContainsString( 'Use PKCE', $html );
+		$this->assertNotSame( '', $box, 'the box is drawn' );
+		$this->assertStringContainsString( 'checked', $box );
+		$this->assertStringNotContainsString( 'disabled', $box );
+		$this->assertStringContainsString( 'a code stolen on its way back cannot be used', $html );
+	}
+
+	public function test_a_provider_that_does_not_support_pkce_has_the_box_locked_and_a_forged_save_cannot_turn_it_on(): void {
+		$this->where_the_network_is_set();
+		$this->the_admin();
+
+		$html = $this->provider( 'another', 'settings' );
+		$box  = $this->pkce_box( $html );
+
+		$this->assertStringContainsString( 'disabled', $box );
+		$this->assertStringNotContainsString( 'checked', $box );
+		$this->assertStringContainsString( 'This provider does not support PKCE.', $html );
+
+		// The disabled box, ticked anyway in a request made by hand.
+		$this->send_provider(
+			'another',
+			array(
+				'diluxone_users_client_id'     => 'an-id',
+				'diluxone_users_client_secret' => 'an-secret',
+				'diluxone_users_pkce'          => '1',
+			)
+		);
+
+		$this->assertSame( 0, diluxone_users_raw_get( 'diluxone_users_sso', array() )['another']['pkce'] );
+
+		$url = $this->expectRedirect( static fn() => diluxone_users_sso_authorize( 'another', diluxone_users_sso_providers()['another'] ) );
+
+		$this->assertStringStartsWith( 'https://another.example/authorize?', $url );
+		$this->assertStringNotContainsString( 'code_challenge', $url );
+	}
+
+	public function test_a_provider_that_requires_pkce_has_the_box_ticked_and_locked(): void {
+		$this->where_the_network_is_set();
+		$this->the_admin();
+
+		$requires = static function ( array $providers ): array {
+			$providers['another']['pkce'] = true;
+
+			return $providers;
+		};
+		add_filter( 'diluxone_users_sso_providers', $requires, 20 );
+
+		try {
+			$html = $this->provider( 'another', 'settings' );
+		$box  = $this->pkce_box( $html );
+		} finally {
+			remove_filter( 'diluxone_users_sso_providers', $requires, 20 );
+		}
+
+		$box = $this->pkce_box( $html );
+
+		$this->assertStringContainsString( 'disabled', $box );
+		$this->assertStringContainsString( 'checked', $box );
+		$this->assertStringContainsString( 'This provider requires PKCE.', $html );
 	}
 
 	/* ── Its credentials, saved ────────────────────────────────────── */

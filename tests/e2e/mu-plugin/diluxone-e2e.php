@@ -116,6 +116,10 @@ function diluxone_e2e_provider( array $providers ): array {
 		'scope'     => 'openid email profile',
 		'extra'     => array(),
 		'pkce'      => false,
+		// It accepts PKCE, as Google and Microsoft do, unless a spec says it
+		// is a provider that does not (`diluxone_e2e_sso_no_pkce`). What the
+		// trip sent is recorded below.
+		'pkce_support' => ! get_option( 'diluxone_e2e_sso_no_pkce' ),
 		'map'       => 'diluxone_users_sso_map_oidc',
 		'console'   => DILUXONE_E2E_OAUTH_BASE,
 		'guide'     => DILUXONE_E2E_OAUTH_BASE,
@@ -140,7 +144,7 @@ function diluxone_e2e_http( $pre, array $args, string $url ) {
 	$identity = (array) get_option( DILUXONE_E2E_ID, array() );
 
 	if ( false !== strpos( $url, '/token' ) ) {
-		$body = empty( $identity['no_token'] )
+		$body = empty( $identity['no_token'] ) && diluxone_e2e_pkce_exchange( (array) ( $args['body'] ?? array() ) )
 			? array( 'access_token' => 'e2e-token' )
 			: array( 'error' => 'invalid_client' );
 	} else {
@@ -159,6 +163,36 @@ function diluxone_e2e_http( $pre, array $args, string $url ) {
 	);
 }
 add_filter( 'pre_http_request', 'diluxone_e2e_http', 10, 3 );
+
+/**
+ * What PKCE the trip carried, recorded where a spec reads it
+ * (`diluxone_e2e_pkce`: challenge, method, verifier).
+ */
+const DILUXONE_E2E_PKCE = 'diluxone_e2e_pkce';
+
+/**
+ * Records the exchange's verifier, and refuses it as a provider would: a
+ * trip that sent a challenge is answered only with the verifier whose S256
+ * is that challenge, and one that sent none only without a verifier.
+ *
+ * @param array<string, mixed> $body What the exchange sent.
+ */
+function diluxone_e2e_pkce_exchange( array $body ): bool {
+	$pkce     = (array) get_option( DILUXONE_E2E_PKCE, array() );
+	$verifier = (string) ( $body['code_verifier'] ?? '' );
+
+	$pkce['verifier'] = $verifier;
+	update_option( DILUXONE_E2E_PKCE, $pkce, false );
+
+	$challenge = (string) ( $pkce['challenge'] ?? '' );
+
+	if ( '' === $challenge ) {
+		return '' === $verifier;
+	}
+
+	return 'S256' === ( $pkce['method'] ?? '' )
+		&& hash_equals( $challenge, rtrim( strtr( base64_encode( hash( 'sha256', $verifier, true ) ), '+/', '-_' ), '=' ) );
+}
 
 /* ── A classic menu, on a site whose theme may have none ──────────── */
 
@@ -1302,6 +1336,12 @@ function diluxone_e2e_identity_write( WP_REST_Request $request ): WP_REST_Respon
  * minutes.
  */
 function diluxone_e2e_expire( WP_REST_Request $request ): WP_REST_Response {
+	// A social sign-in waiting on its address has no account yet: its record
+	// is a network transient, found by the address it carries.
+	if ( 'sso-pending' === (string) $request->get_param( 'what' ) ) {
+		return new WP_REST_Response( array( 'expired' => diluxone_e2e_expire_sso_pending( (string) $request->get_param( 'email' ) ) ) );
+	}
+
 	$user = get_user_by( 'email', (string) $request->get_param( 'email' ) );
 
 	if ( ! $user instanceof WP_User ) {
@@ -1338,6 +1378,39 @@ function diluxone_e2e_expire( WP_REST_Request $request ): WP_REST_Response {
 }
 
 /**
+ * Moves the deadline of every pending social sign-in for an address into the past.
+ *
+ * @return int How many there were.
+ */
+function diluxone_e2e_expire_sso_pending( string $email ): int {
+	global $wpdb;
+
+	$like = $wpdb->esc_like( '_site_transient_diluxone_users_sso_pending_' ) . '%';
+
+	// phpcs:ignore WordPress.DB.DirectDatabaseQuery
+	$names = is_multisite()
+		? (array) $wpdb->get_col( $wpdb->prepare( "SELECT meta_key FROM {$wpdb->sitemeta} WHERE meta_key LIKE %s", $like ) )
+		: (array) $wpdb->get_col( $wpdb->prepare( "SELECT option_name FROM {$wpdb->options} WHERE option_name LIKE %s", $like ) );
+
+	$done = 0;
+
+	foreach ( $names as $name ) {
+		$key    = substr( (string) $name, strlen( '_site_transient_' ) );
+		$record = get_site_transient( $key );
+
+		if ( ! is_array( $record ) || strtolower( (string) ( $record['identity']['email'] ?? '' ) ) !== strtolower( $email ) ) {
+			continue;
+		}
+
+		$record['expires'] = time() - 60;
+		set_site_transient( $key, $record, HOUR_IN_SECONDS );
+		++$done;
+	}
+
+	return $done;
+}
+
+/**
  * The provider's own screen, which here is a redirect and nothing else.
  *
  * A real one would ask the person to approve; approving is what this stands
@@ -1353,6 +1426,15 @@ function diluxone_e2e_authorize( WP_REST_Request $request ) {
 	}
 
 	$identity = (array) get_option( DILUXONE_E2E_ID, array() );
+
+	update_option(
+		DILUXONE_E2E_PKCE,
+		array(
+			'challenge' => (string) $request->get_param( 'code_challenge' ),
+			'method'    => (string) $request->get_param( 'code_challenge_method' ),
+		),
+		false
+	);
 
 	// A person who presses "cancel" on the provider's screen: the answer is an
 	// error where the code would have been, and the plugin has to survive it.

@@ -4,7 +4,8 @@ import { test, expect } from './support';
 /**
  * The phone field on a network: the hub's registration form and account area
  * draw it as the one control the single site does, with the height, border
- * and corners of the e-mail input beside it.
+ * and corners of the e-mail input beside it, and group and check the number
+ * as it does.
  */
 
 const FIELDS = [
@@ -34,4 +35,21 @@ test('on the hub’s registration form the phone is one control, drawn like the 
 		await expect(phone).toBeVisible();
 		expect(await boxOf(phone), `at ${width}px`).toBe(await boxOf(mail));
 	}
+});
+
+test('on the hub’s registration form an area code of three digits is written apart, and a mobile typed with its 15 is not too long', async ({ guest, hub }) => {
+	await hub.set({ diluxone_users_fields: FIELDS, diluxone_users_register_form: 1, diluxone_users_2fa_mode: 'off' });
+
+	await guest.goto(hub.pages.register.url);
+
+	const number = guest.locator('.diluxone-users-register input.diluxone-users-phone__number');
+
+	await number.click();
+	await number.pressSequentially('2214123456');
+	await expect(number, '221 is La Plata’s code, not 22').toHaveValue('221 412 3456');
+
+	await number.fill('');
+	await number.pressSequentially('0111541234567');
+	await expect(number, 'the trunk prefix and the 15 kept where they were typed').toHaveValue('0 11 15 4123 4567');
+	expect(await number.evaluate((input: HTMLInputElement) => input.validity.valid), 'not too long for the browser').toBe(true);
 });
