@@ -171,6 +171,7 @@ everybody, with the code by e-mail, and skips it for nobody.
 | Tools › Export/Erase Personal Data run the plugin's exporters and erasers; Privacy policy guide text | `my-account-data` › WordPress’s own tools |
 | A data e-mail rewritten on Notifications › The e-mails reaches the inbox, link intact | `my-account-data` › The e-mails |
 | Linked accounts: notice and link/unlink mails; identity of another account → `taken`; forged provider unlinks nothing; `only="linked"`/`"available"` with empty words, the link back to the shortcode page, no provider | `my-account-entry` › Linked accounts |
+| Linked accounts with every network on offer linked: "Networks you can link" opens on its own, showing "You already have them all linked.", without the line about adding one | `repro/issue-141` · integration: `CoverAccountLinkedTest` |
 | On a phone (390 px): tabs scroll or wrap, side menu back across the top with the underline as a bottom border, a long name and its button fit the header, session row Close under the text | `my-account-mobile` |
 
 ## The site's own menu and WordPress's screens
