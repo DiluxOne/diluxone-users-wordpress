@@ -105,6 +105,25 @@ test.describe('Signing in with a social account', () => {
 		expect(s256(seen.verifier!), 'and it is the one the challenge was made from').toBe(seen.challenge);
 	});
 
+	test('with “Use PKCE” off, neither the challenge nor the verifier is sent, and the sign-in works as before', async ({
+		page,
+		site,
+		pages,
+		options,
+	}) => {
+		await options.set({ diluxone_users_sso: { mock: { ...MOCK_CREDENTIALS.mock, pkce: 0 } }, diluxone_e2e_pkce: null });
+
+		const email = freshEmail('sso-no-pkce');
+
+		await site.setIdentity({ sub: `mock|${email}`, email, email_verified: true });
+
+		await page.goto(pages.login.url);
+		await navigated(page, () => ssoButton(page, 'mock').click());
+
+		await expectSignedIn(page, email);
+		expect(await pkceSeen(site)).toEqual({ challenge: '', method: '', verifier: '' });
+	});
+
 	test('a verified address that already has an account opens that same account', async ({ page, site, pages }) => {
 		const email = freshEmail('sso-known');
 		const existing = await site.makeUser({ email, password: PASSWORD, name: 'Already Here' });

@@ -448,6 +448,16 @@ class CoverSignInSsoTest extends IntegrationTestCase {
 		$this->assert_pkce_trip( $this->trip_with_pkce( 1 ) );
 	}
 
+	public function test_with_use_pkce_off_neither_the_challenge_nor_the_verifier_is_sent(): void {
+		$trip = $this->trip_with_pkce( 0 );
+
+		$this->assertStringNotContainsString( 'code_challenge', $trip['url'], 'neither the challenge nor its method' );
+		$this->assertArrayNotHasKey( 'verifier', $trip['stored'] );
+		$this->assertNotSame( array(), $this->exchange(), 'the code was exchanged' );
+		$this->assertArrayNotHasKey( 'code_verifier', $this->exchange() );
+		$this->assertGreaterThan( 0, get_current_user_id(), 'and the sign-in goes through as before' );
+	}
+
 	/* ── Who is behind an identity ───────────────────────────────────── */
 
 	public function test_an_empty_identity_is_nobody_s(): void {
