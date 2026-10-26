@@ -60,4 +60,19 @@ class SsoPkceTest extends TestCase {
 		$this->stored( 'acme', array( 'pkce' => 1 ) );
 		$this->assertTrue( diluxone_users_sso_pkce( 'acme', $row ) );
 	}
+
+	public function test_a_provider_that_does_not_support_it_ignores_a_stored_tick(): void {
+		$row = diluxone_users_sso_provider_row( 'acme', array() );
+
+		$this->stored( 'acme', array( 'pkce' => 1 ) );
+		$this->assertFalse( diluxone_users_sso_pkce( 'acme', $row ) );
+	}
+
+	public function test_a_provider_that_requires_it_supports_it_and_ignores_a_stored_untick(): void {
+		$row = diluxone_users_sso_provider_row( 'acme', array( 'pkce' => true ) );
+
+		$this->assertTrue( $row['pkce_support'] );
+		$this->stored( 'acme', array( 'pkce' => 0 ) );
+		$this->assertTrue( diluxone_users_sso_pkce( 'acme', $row ) );
+	}
 }

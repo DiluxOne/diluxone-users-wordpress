@@ -390,6 +390,30 @@ test.describe('Social login › turning a provider’s button on and off', () =>
 		expect((await stored(site))?.tested, 'no live test asked for again').toBe(1);
 	});
 
+	test('Use PKCE: a provider that does not support it has the box locked, says so, and a forged tick is not saved', async ({
+		page,
+		site,
+		options,
+	}) => {
+		await options.set({ diluxone_e2e_sso_no_pkce: 1, diluxone_users_sso: { mock: { active: 0, id: ID, secret: SECRET, tested: 1 } } });
+
+		await page.goto(providerUrl('settings'));
+
+		const box = page.locator('input[name="diluxone_users_pkce"]');
+
+		await expect(box).toBeDisabled();
+		await expect(box).not.toBeChecked();
+		await expect(page.locator('label.du-choice', { has: box })).toContainText('This provider does not support PKCE.');
+
+		// The box switched back on and ticked by hand, as a forged request would.
+		await box.evaluate((input: HTMLInputElement) => {
+			input.disabled = false;
+			input.checked = true;
+		});
+		await savePanel(page);
+		expect((await stored(site))?.pkce, 'stored off whatever was sent').toBe(0);
+	});
+
 	test('a provider that has not passed the test is not turned on, even by its own link', async ({ page, site, options }) => {
 		// A real "Turn it on" link, while the provider is tested…
 		await options.set({ diluxone_users_sso: { mock: { active: 0, id: ID, secret: SECRET, tested: 1 } } });

@@ -465,6 +465,60 @@ class CoverSettingsSocialTest extends IntegrationTestCase {
 		$this->assertStringContainsString( 'a code stolen on its way back cannot be used', $html );
 	}
 
+	public function test_a_provider_that_does_not_support_pkce_has_the_box_locked_and_a_forged_save_cannot_turn_it_on(): void {
+		$this->where_the_network_is_set();
+		$this->the_admin();
+
+		$html = $this->provider( 'another', 'settings' );
+		$box  = $this->pkce_box( $html );
+
+		$this->assertStringContainsString( 'disabled', $box );
+		$this->assertStringNotContainsString( 'checked', $box );
+		$this->assertStringContainsString( 'This provider does not support PKCE.', $html );
+
+		// The disabled box, ticked anyway in a request made by hand.
+		$this->send_provider(
+			'another',
+			array(
+				'diluxone_users_client_id'     => 'an-id',
+				'diluxone_users_client_secret' => 'an-secret',
+				'diluxone_users_pkce'          => '1',
+			)
+		);
+
+		$this->assertSame( 0, diluxone_users_raw_get( 'diluxone_users_sso', array() )['another']['pkce'] );
+
+		$url = $this->expectRedirect( static fn() => diluxone_users_sso_authorize( 'another', diluxone_users_sso_providers()['another'] ) );
+
+		$this->assertStringStartsWith( 'https://another.example/authorize?', $url );
+		$this->assertStringNotContainsString( 'code_challenge', $url );
+	}
+
+	public function test_a_provider_that_requires_pkce_has_the_box_ticked_and_locked(): void {
+		$this->where_the_network_is_set();
+		$this->the_admin();
+
+		$requires = static function ( array $providers ): array {
+			$providers['another']['pkce'] = true;
+
+			return $providers;
+		};
+		add_filter( 'diluxone_users_sso_providers', $requires, 20 );
+
+		try {
+			$html = $this->provider( 'another', 'settings' );
+		$box  = $this->pkce_box( $html );
+		} finally {
+			remove_filter( 'diluxone_users_sso_providers', $requires, 20 );
+		}
+
+		$box = $this->pkce_box( $html );
+
+		$this->assertStringContainsString( 'disabled', $box );
+		$this->assertStringContainsString( 'checked', $box );
+		$this->assertStringContainsString( 'This provider requires PKCE.', $html );
+	}
+
 	/* ── Its credentials, saved ────────────────────────────────────── */
 
 	/**
