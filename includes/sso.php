@@ -49,6 +49,14 @@ function diluxone_users_sso_save_credentials( string $id, array $values ): void 
 
 	$new['tested'] = $changed ? 0 : ( diluxone_users_sso_tested( $id ) ? 1 : 0 );
 
+	// "Use PKCE", when the form said: never on for a provider that does not
+	// accept it, whatever was sent. Not saying keeps what was stored, and
+	// nothing stored is on (diluxone_users_sso_pkce()).
+	if ( array_key_exists( 'pkce', $values ) ) {
+		$provider    = diluxone_users_sso_providers()[ $id ] ?? array();
+		$new['pkce'] = ! empty( $values['pkce'] ) && ! empty( $provider['pkce_support'] ) ? 1 : 0;
+	}
+
 	// And nobody turns a provider on without testing it.
 	if ( ! $new['tested'] ) {
 		$new['active'] = 0;
@@ -101,6 +109,36 @@ function diluxone_users_sso_set_tested( string $id, bool $tested ): void {
 	$all[ $id ]['tested'] = $tested ? 1 : 0;
 
 	diluxone_users_update_option( 'diluxone_users_sso', $all );
+}
+
+/**
+ * Does this provider's trip use PKCE?
+ *
+ * A provider that requires it, always; one that does not accept it, never,
+ * whatever is stored. The rest, what "Use PKCE" says, and on when it was
+ * never saved: a provider set up before the box existed gets it too, with
+ * nothing written on the update.
+ *
+ * @param array<string, mixed> $provider Its row.
+ */
+function diluxone_users_sso_pkce( string $id, array $provider ): bool {
+	if ( ! empty( $provider['pkce'] ) ) {
+		return true;
+	}
+
+	if ( empty( $provider['pkce_support'] ) ) {
+		return false;
+	}
+
+	$all = (array) diluxone_users_raw_get( 'diluxone_users_sso', array() );
+	$row = (array) ( $all[ $id ] ?? array() );
+
+	return ! array_key_exists( 'pkce', $row ) || ! empty( $row['pkce'] );
+}
+
+/** The S256 challenge of a PKCE verifier: its SHA-256, in base64url without padding. */
+function diluxone_users_sso_pkce_challenge( string $verifier ): string {
+	return rtrim( strtr( base64_encode( hash( 'sha256', $verifier, true ) ), '+/', '-_' ), '=' );
 }
 
 /** Does it have credentials filled in? */
@@ -396,8 +434,9 @@ function diluxone_users_sso_authorize( string $id, array $provider, bool $test =
 
 	// PKCE: instead of the secret, the hash of a random value is sent, and the
 	// value itself is sent on the exchange. That way a code stolen on the way
-	// back is no use to anyone. Some providers require it; the rest do not mind.
-	$verifier = empty( $provider['pkce'] ) ? '' : wp_generate_password( 64, false, false );
+	// back is no use to anyone. Sent to a provider that accepts it, unless the
+	// administrator said not to (diluxone_users_sso_pkce()).
+	$verifier = diluxone_users_sso_pkce( $id, $provider ) ? wp_generate_password( 64, false, false ) : '';
 
 	if ( '' !== $verifier ) {
 		$saved['verifier'] = $verifier;
@@ -419,7 +458,7 @@ function diluxone_users_sso_authorize( string $id, array $provider, bool $test =
 	);
 
 	if ( '' !== $verifier ) {
-		$args['code_challenge']        = rtrim( strtr( base64_encode( hash( 'sha256', $verifier, true ) ), '+/', '-_' ), '=' );
+		$args['code_challenge']        = diluxone_users_sso_pkce_challenge( $verifier );
 		$args['code_challenge_method'] = 'S256';
 	}
 

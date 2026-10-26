@@ -444,6 +444,27 @@ class CoverSettingsSocialTest extends IntegrationTestCase {
 		$this->assertStringNotContainsString( 'documentation', $html, 'their documentation is on the first tab' );
 	}
 
+	/* ── Use PKCE ──────────────────────────────────────────────────── */
+
+	/** The "Use PKCE" input of a drawn screen, or '' when there is none. */
+	private function pkce_box( string $html ): string {
+		return preg_match( '/<input[^>]*name="diluxone_users_pkce"[^>]*>/s', $html, $m ) ? $m[0] : '';
+	}
+
+	public function test_a_provider_that_supports_pkce_with_nothing_saved_has_the_box_ticked(): void {
+		$this->where_the_network_is_set();
+		$this->the_admin();
+
+		$html = $this->provider( 'google', 'settings' );
+		$box  = $this->pkce_box( $html );
+
+		$this->assertStringContainsString( 'Use PKCE', $html );
+		$this->assertNotSame( '', $box, 'the box is drawn' );
+		$this->assertStringContainsString( 'checked', $box );
+		$this->assertStringNotContainsString( 'disabled', $box );
+		$this->assertStringContainsString( 'a code stolen on its way back cannot be used', $html );
+	}
+
 	/* ── Its credentials, saved ────────────────────────────────────── */
 
 	/**
