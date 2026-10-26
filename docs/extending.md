@@ -239,7 +239,13 @@ switch as Settings → General, read and written directly rather than copied.
 wants one: `login`, `form`, `both` or `closed`. The link's door counts as open
 only while the link is a way in (`diluxone_users_link_registers()`): on a
 site that signs in with a password only, no link is mailed and none creates
-an account. There the site's own form mails no sign-in link either: the new
+an account. Asking for a link creates nothing: for an address nobody has, the
+plugin keeps a pending sign-up (a network-wide transient holding the address,
+the token's hash and its expiry, under a random key) and mails a link carrying
+`diluxone_users_signup` and `diluxone_users_token`. The account is created when
+that link is opened (`diluxone_users_signup_consume()`), once, and only while
+the link still creates accounts and the network still takes them; it ends in
+`diluxone_users_complete_login()` like every other way in. There the site's own form mails no sign-in link either: the new
 account gets WordPress's "choose your password" mail
 (`wp_new_user_notification()`), and the form says so.
 
@@ -495,6 +501,17 @@ networks, and it works again the day its add-on is back. The same holds for
 the accounts linked to it (`diluxone_users_sso_{id}` user meta): kept,
 exported with their value withheld and erased with everything else of the
 person, like any other key under the prefix.
+
+A return from a provider that signs nobody in writes a `sign_in_failed` row
+to the activity log (group `access`, account 0) whose detail carries `via`
+(`sso`), `provider` (the provider id) and `reason`: `cancelled` (the provider
+answered `access_denied`), `state` (a state nobody issued, already spent or
+issued for another provider), `browser` (another browser or session than the
+one that left), `off` (the provider was turned off on the way), `token` (no
+access token), `account` (no account found or created), or else the
+provider's own OAuth error code. The code, the state and the provider's
+error description are never kept. The administrator's live test writes no
+row.
 
 ## Account area sections
 

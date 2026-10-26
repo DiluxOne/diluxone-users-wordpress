@@ -39,6 +39,11 @@ class ConsistentSettingsTest extends IntegrationTestCase {
 
 		$this->assertTrue( diluxone_users_link_registers() );
 		$this->assertSame( 'login', diluxone_users_register_mode() );
+
+		// Looking the address up is not creating it: that waits for the link to be opened.
+		$email = 'nobody-' . wp_generate_password( 6, false ) . '@example.test';
+		$this->assertSame( 0, diluxone_users_user_for( $email ) );
+		$this->assertFalse( email_exists( $email ) );
 	}
 
 	public function test_a_social_door_with_nothing_to_press_is_not_counted_open(): void {

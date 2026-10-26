@@ -481,13 +481,22 @@ class CoverSignInLoginTest extends IntegrationTestCase {
 		$this->assertTrue( diluxone_users_login_has_password() );
 	}
 
-	/** The account a link makes has the role the site gives, and is a member of the site it was asked on. */
+	/** The account a link makes, once opened, has the role the site gives, and is a member of the site it was asked on. */
 	public function test_the_account_a_link_makes_has_the_sites_role(): void {
 		diluxone_users_update_option( 'diluxone_users_login_role', 'contributor' );
 		diluxone_users_update_option( 'diluxone_users_login_register', 1 );
 		$email = $this->email( 'newbylink' );
 
 		$this->ask( $email );
+
+		$this->assertFalse( get_user_by( 'email', $email ), 'Asking for the link creates no account' );
+		$this->assertSame( 1, preg_match( '/diluxone_users_signup=([a-z0-9]+)(?:&amp;|&#038;|&)diluxone_users_token=([A-Za-z0-9]+)/', (string) ( $this->lastMail()['message'] ?? '' ), $link ) );
+
+		$_GET = array(
+			'diluxone_users_signup' => $link[1],
+			'diluxone_users_token'  => $link[2],
+		);
+		$this->expectRedirect( 'diluxone_users_signup_consume' );
 
 		$made = get_user_by( 'email', $email );
 		$this->assertInstanceOf( \WP_User::class, $made );

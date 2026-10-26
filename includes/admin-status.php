@@ -185,8 +185,9 @@ function diluxone_users_check_page( string $option, string $shortcode, string $l
 }
 
 /**
- * The sign-in page of its own, as a door: its address, and whether something
- * else took that address since it was chosen.
+ * The sign-in page of its own, as a door: the address in force, and whether
+ * something else took that address since it was chosen. The address is
+ * changed on Access › The sign-in page, where the link goes.
  *
  * The plugin's rule is matched before a page's, so a page given the same
  * path later is the one that cannot be reached; this is where that is said
@@ -197,7 +198,7 @@ function diluxone_users_check_page( string $option, string $shortcode, string $l
 function diluxone_users_check_door(): array {
 	$label  = __( 'Sign-in page', 'diluxone-users' );
 	$url    = diluxone_users_door_url();
-	$design = diluxone_users_admin_url( 'diluxone-users-design', array( 'tab' => 'login' ) );
+	$access = diluxone_users_admin_url( 'diluxone-users-login', array( 'tab' => 'page' ) );
 	$taken  = (string) diluxone_users_on_hub( static fn(): string => diluxone_users_login_slug_taken( diluxone_users_login_slug() ) );
 
 	if ( '' !== $taken ) {
@@ -211,7 +212,7 @@ function diluxone_users_check_door(): array {
 				$taken
 			),
 			__( 'Its address is taken.', 'diluxone-users' ),
-			$design,
+			$access,
 			__( 'Change the address →', 'diluxone-users' )
 		);
 	}

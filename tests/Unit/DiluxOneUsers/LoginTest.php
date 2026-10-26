@@ -101,4 +101,47 @@ class LoginTest extends TestCase {
 			'Asking for a new link must invalidate the previous one'
 		);
 	}
+
+	/*
+	 * An address nobody has yet gets a pending sign-up, not an account: the
+	 * account is created when its link is opened (#134).
+	 */
+
+	public function test_a_pending_sign_up_gives_its_address_back_for_its_token(): void {
+		$signup = diluxone_users_signup_create( 'new@example.test' );
+
+		$this->assertSame( 'new@example.test', diluxone_users_signup_take( $signup['id'], $signup['token'] ) );
+	}
+
+	public function test_a_pending_sign_up_keeps_neither_the_token_in_the_clear_nor_puts_the_address_in_the_link(): void {
+		$signup = diluxone_users_signup_create( 'new@example.test' );
+		$stored = $GLOBALS['_test_wp_transients'][ 'site_' . DILUXONE_USERS_SIGNUP_PREFIX . $signup['id'] ];
+		$link   = diluxone_users_signup_link( $signup['id'], $signup['token'] );
+
+		$this->assertNotSame( $signup['token'], $stored['hash'] );
+		$this->assertStringNotContainsString( 'new', $link );
+		$this->assertStringNotContainsString( 'example.test', $link );
+	}
+
+	public function test_a_pending_sign_up_wants_its_own_token(): void {
+		$signup = diluxone_users_signup_create( 'new@example.test' );
+
+		$this->assertSame( '', diluxone_users_signup_take( $signup['id'], 'made-up-token' ) );
+		$this->assertSame( '', diluxone_users_signup_take( 'made-up-id', $signup['token'] ) );
+	}
+
+	public function test_a_pending_sign_up_works_only_once(): void {
+		$signup = diluxone_users_signup_create( 'new@example.test' );
+
+		$this->assertSame( 'new@example.test', diluxone_users_signup_take( $signup['id'], $signup['token'] ) );
+		$this->assertSame( '', diluxone_users_signup_take( $signup['id'], $signup['token'] ), 'A forwarded link cannot create or open the account again' );
+	}
+
+	public function test_a_pending_sign_up_expires(): void {
+		$signup = diluxone_users_signup_create( 'new@example.test' );
+
+		$GLOBALS['_test_wp_transients'][ 'site_' . DILUXONE_USERS_SIGNUP_PREFIX . $signup['id'] ]['expires'] = time() - 1;
+
+		$this->assertSame( '', diluxone_users_signup_take( $signup['id'], $signup['token'] ) );
+	}
 }
