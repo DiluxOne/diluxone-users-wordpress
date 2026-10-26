@@ -31,7 +31,7 @@ everybody, with the code by e-mail, and skips it for nobody.
 |---|---|
 | Link by e-mail: ask, receive, open, signed in (`sent`) | `magic-link` › ask for it, open it… |
 | Link used twice, expired, pointed at another account (`expired`) | `magic-link` › the second time…, time ran out, somebody else |
-| Unknown address, registration open / closed; the throttle | `magic-link` › nobody has seen before, self-registration off, asking twice |
+| Unknown address, registration open / closed (no account until the mailed link is opened, #134); the throttle | `magic-link` › nobody has seen before, self-registration off, asking twice · `network/signin-doors` › a link opened a second time |
 | Password form: `both`, `password`, `link` | `password-login` › the three ways in |
 | wp-login.php taken over (`auto`), POST allowed (H-05), escape hatch, logout | `password-login` |
 | wp-login.php left to WordPress (`wp`) and sent to the site's page (`mine`) | `admin-effects` › Access › The sign-in page |
@@ -50,9 +50,10 @@ everybody, with the code by e-mail, and skips it for nobody.
 | Every `?diluxone-users=` state on the sign-in, second-step, reset and register screens, with its tone and the site's rewrite (all 17 messages); an unknown state draws nothing | `signin-page` › each state draws its message with its tone… · a state nobody knows… |
 | `login_email` from a real submit; the sent screen keeps the address out of the URL, "Use a different address", the site's sent texts and round icon | `signin-page` › a real non-address… · The "sent" screen |
 | Layout `auto`, the arrow keys on the tabs (remembered), the "or" hidden between tabs | `signin-page` › The arrangement of the ways in |
-| A page of its own: `/sign-in/` answered 200 with the plugin's whole document, no theme header or footer, the site's name, no cache; on a network only the hub answers it | `signin-own-page` › C1 · `network/signin-own-page` › C1. Integration: `LoginDoorTest` (the rules, the template chosen, signed-in sent to the account) |
-| A page of its own is the sign-in URL: the account area to a stranger, the sign-in page still chosen (302 to it), another site's door on a network with the way back | `signin-own-page` › C2 · `network/signin-own-page` › C2. Integration: `LoginDoorTest` (`diluxone_users_login_url()`, plain permalinks, another shape, another site of the network) |
-| A page of its own moved: the address changed on Design › The sign-in page, the old one answered 301 to the new with its query; the newest ten kept, never the current one, one a page takes later dropped | `signin-own-page` › C3. Integration: `LoginDoorTest` |
+| A page of its own: `/sign-in/` answered 200 with the plugin's whole document, no theme header or footer, the site's name, no cache; on a network only the hub answers it; the page chosen on Access drawn as the page of its own at its own address (nested too, plain permalinks too), nothing redirecting | `signin-own-page` › C1 · `network/signin-own-page` › C1. Integration: `LoginDoorTest` (the rules, the template chosen, signed-in sent to the account, the chosen page's path) |
+| A page of its own is the sign-in URL: the account area to a stranger, the sign-in page chosen (its own address), another site's door on a network with the way back | `signin-own-page` › C2 · `network/signin-own-page` › C2. Integration: `LoginDoorTest` (`diluxone_users_login_url()`, plain permalinks, another shape, another site of the network) |
+| A page of its own moved: the address changed on Access › The sign-in page ("No page" and an address typed, another page chosen, the chosen page renamed or moved), the old one answered 302 to the new with its query; the newest ten kept, never the current one, one a page takes later dropped | `signin-own-page` › C3 · `admin-access-page` › with “A page of its own”. Integration: `LoginDoorTest`, `CoverSettingsAccessTest` |
+| A page of its own on a site set up before Access decided the address: a page chosen and `sign-in` stored, `/sign-in/` sends people to the page (302) with nothing written, unless a post has it; no page and an address typed, the address kept | Integration: `LoginDoorCarryOverTest` (single site and network). Unit: `LoginDoorTest` |
 | A page of its own's address refused: a page has it (the message names the page), a draft or post (the bin does not count), WordPress's and the site's reserved paths, the account page, two segments, empty, a site of a subdirectory network; nothing of the tab written | `signin-own-page` › C4. Integration: `LoginDoorTest`. Unit: `LoginDoorTest` (the reserved list and the slug's shape) |
 | A page of its own follows the site's own switch (Dark mode follows › the site's): drawn dark when the site showed dark with the device light, light when the site is light with the device dark, the site's `wp_head` signal winning over the last scheme; on a page with the form, a flip of the switch (`data-theme`, `data-tema`) re-colours it without a reload; `data-tema="oscuro"`/`"claro"` with neither following the device (single site and the hub) | `signin-own-page-dark` › C2–C6 · `network/signin-own-page-dark` › C2. Integration: `DarkSignalSettingsTest` (the device's early script byte-identical, the signal told to both scripts, the page of its own's head). Unit: `DarkSignalParseTest` |
 | Design › Your brand › Dark mode follows: the signal fields only with the site's switch, saved as typed, a value that is not a class or an attribute refused with a notice and the stored one kept | `admin-design-brand` › Dark mode follows. Integration: `DarkSignalSettingsTest` (C7). Unit: `DarkSignalParseTest` |
@@ -152,6 +153,12 @@ everybody, with the code by e-mail, and skips it for nobody.
 | Header pieces (photo, member since, Edit profile, no header `--bare`), a cover stored is the simple area, width, nav style and alignment (unknown value → default), nav shortcode `--column` | `my-account-sections` › The header and the look |
 | Site-written section content before/after/replace with shortcodes; a section for some roles (none ticked → nobody); section renamed, moved first, own slug | `my-account-sections` › What the site writes into a section |
 | Every field type drawn, cleaned and drawn back (textarea, email, phone dial+number, country, url, number, date, select, datalist, checkbox) | `my-account-details` › every type is drawn… |
+| The phone as one control: the height, border and corners of the e-mail input on the registration form, the account area, the step after a sign-in and the wp-admin profile, in light, dark and at 390px | `phone-field` › The phone field is one control · `signin-dark-fields` › the phone on the registration form · `my-account-mobile` › the phone is one box |
+| The phone's country picker: “arg” and “54” narrow the list, the live count; keyboard only (open, arrows, Home/End, Enter, Escape, Tab), its roles and `aria-activedescendant`; a pointer and a click outside | `phone-field` › The country picker |
+| The phone grouped as it is typed (AR `11 2345 6789`), the caret kept, saved as `+541123456789`; a trunk prefix typed out of habit shown apart and not saved | `phone-field` › The number as it is typed and saved |
+| A phone too short or too long: the server refuses the whole form (`diluxone-users=phone`), the error under the number with `aria-invalid`, nothing saved; the browser stops it first with the same words; on the registration form no account is made | `phone-field` › A number the wrong length for its country |
+| A saved phone shown grouped with its country picked | `phone-field` › A saved number |
+| The phone with JavaScript off: the native list in the same box, a short number refused by the server with the error under it, a good one saved joined and drawn back grouped | `phone-field` › With JavaScript off |
 | Forged closed-list, country, address, impossible date and infinite number not stored | `my-account-details` › a value off a closed list… |
 | A ticked tick box cannot be unticked from the account | `my-account-details` › a tick box ticked can be unticked… |
 | Edit `never` (readonly, note, server refuses) and `limited` (counted, locks, server refuses) | `my-account-details` › a field nobody may change…; a field that may change once… |
@@ -165,6 +172,7 @@ everybody, with the code by e-mail, and skips it for nobody.
 | Two-step: "How you get in" without a password; on, renewed and off with an e-mailed code, one distinct mail per change, backup codes shown once and counted, no app; required (no off, POST `required`); not offered (`notoffered`); only Users+ Pro's app stored, Pro off: `on` works with the e-mail code; the link notice | `my-account-security` › Two-step verification |
 | Security section without an add-on: the second step right after “How you get in” (the add-on panel place empty), no passkey form, button or word | `my-account-security` › Without an add-on |
 | Your data: dialog closes on backdrop and Esc; duplicate request `error`; copies off refused by hand; section off refused by hand; button label and pills (pending → ok); no-mail warning for administrators only | `my-account-data` › Asking |
+| Your data in the dark scheme, Colours › the theme's: the pills of a done and a failed request keep 4.5:1 against what is behind them | `repro/issue-131` |
 | Confirm links: copy link with no session → `ready`; tampered key (mail and account address) and reused key → `expired`; last step with a wrong key `expired`, by another account `other`; a Tools request keeps WordPress's flow; a tampered held cookie is ignored | `my-account-data` › The links in the e-mails |
 | Closing with published content: `deleted-<id>` shell, no role, post kept, every plugin meta erased, "account deleted" mail, password and social identity do not reopen it | `my-account-data` › Closing an account |
 | Copy zip holds the plugin's groups (details with field and public name, access); a vanished file answers 404 and the Download goes | `my-account-data` › The file |
@@ -226,6 +234,7 @@ everybody, with the code by e-mail, and skips it for nobody.
 | Reports › Activity: logging groups, event filter | `activity-log`, `admin-tools` › Reports |
 | Reports › Logging: empty the log (asks first) | `activity-log` › emptying it asks first |
 | Reports › Activity: search by address finds refused attempts | `admin-tools` › …finds the refused attempts |
+| Reports › Activity: a refused social sign-in (cancelled at the provider, a state nobody issued, …) is a `sign_in_failed` row with the network and why, never the code or the state | unit: `Repro/Issue140Test`, `ActivityLogTest` › a refused social sign-in reads as the network and why |
 | Reports › Activity on a single site: every row the site's, no Site column, no site filter, no network report or button | `activity-log` › on a single site every row is the site’s… |
 | Status › Tools: export, import, close sessions, fresh code, rebuild, test message | `admin-tools` › Status › Tools |
 | Status › Tools: a file round trip keeps nested settings | `admin-tools` › …nested ones included |
@@ -257,7 +266,7 @@ everybody, with the code by e-mail, and skips it for nobody.
 | Overview: first steps (button only on the first undone, gone when done) | `admin-overview` › first steps |
 | Overview: usage "N of M (x%)" and bar width; doors panel (method, mail failing, all doors); asked panel (active fields, none); rail links | `admin-overview` › what your people use; how your people get in; what is asked of them |
 | Access › Summary: six rows by pill and link for three door shapes; no Save; emergency URL and WP-CLI line | `admin-access-summary` |
-| Access › The sign-in page: page selector (and None), `auto`, hand-sent `wp` without a password stored as `auto`, lost password `wp`/`site`/`link` through the tab, not-now notes and the wp-login look note | `admin-access-page` › Access › The sign-in page |
+| Access › The sign-in page: page selector (and None), `auto`, hand-sent `wp` without a password stored as `auto`, lost password `wp`/`site`/`link` through the tab, not-now notes and the wp-login look note; with “A page of its own”, "No page" and the address field waiting for it, a refused address writing nothing; with “In the page” and “A centred card”, no address field and the save as before | `admin-access-page` › Access › The sign-in page, … with “A page of its own”, … with “In the page”, … with “A centred card” |
 | Create the page: the sign-in page; the account page's sections answer at once; an unknown page role is refused | `admin-access-page` › Create the page |
 | Access › Ways in: neither box refused (browser and server); throttle; public-name sign-in on/off; handles-off note; password off drops the second screen; a setting pinned from code; the Users+ Pro card after the real ways in (`login/ways/more`) | `admin-access-ways` |
 | Access › Arrangement: `tabs`, `auto` threshold, first tab, junk posted by hand, real drag saves on drop, live preview | `admin-access-arrangement` |
@@ -280,6 +289,7 @@ everybody, with the code by e-mail, and skips it for nobody.
 | Social › Rules pressed on the screen: link by e-mail, verified only, some roles; rail follows registration | `admin-social-rules` › (all) |
 | Status › page checks (none, gone, draft, right; a page without the shortcode draws its form) | `admin-status-checks` › the account page |
 | Status › mail unknown / going out / failing; ways in off with link only and mail failing; headline | `admin-status-checks` › outgoing mail…, mail failing… |
+| Status › the sign-in page of its own: the address in force, and taken, "Change the address →" to Access › The sign-in page | `admin-status-checks` › the sign-in page of its own. Integration: `CoverAdminStatusTest` |
 | Status › rewrite rules heal; social saved but off; HTTPS a warning that names no passkey; usage counts (accounts, public name, social; no app without Users+ Pro) and version | `admin-status-checks` › rewrite rules…, a social provider…, HTTPS…, the usage counts |
 | Status › lockout: WP-CLI line works; emergency door is this site's | `admin-status-checks` › the WP-CLI line…, the emergency address… |
 | Tools › close every session (the admin too), sessions put back | `admin-status-tools` › “close every session” |
@@ -297,6 +307,7 @@ everybody, with the code by e-mail, and skips it for nobody.
 | User fields › Suggested: nothing ticked (`nosuggested`), all added | `admin-fields-rules` › suggested fields |
 | User fields: the rows each type shows | `admin-fields-types` › the rows the form shows for each type |
 | Design › Brand: site writes it, the accent's eight swatches, a Pro colour stored (inactive, kept on save, the palette's nearest on the page), corners + default, controls, button styles, icons, soft notices, logo via media library, the theme's palette guessed and the picture of the colour map (`design/brand/color-map`), the any-colour card (`design/brand/any-color`), live preview | `admin-design-brand` |
+| Design › Sign-in: with “A page of its own”, no address field, "Drawn at" the address with a link, and a link to Access › The sign-in page; the save writes no address | `admin-design-login` › C2. Integration: `CoverSettingsDesignTest` |
 | Design › Sign-in: the three shapes, the Pro layouts' card (`design/login/shapes`) and the previews setting, a Pro layout stored (card on the page, inactive and kept on the tab), forged shape, intro, legal sanitised, sent screen words and envelope, emptied box falls back, live preview | `admin-design-login` › The sign-in page |
 | Design › Registration: intro and done, warning, live preview | `admin-design-login` › The registration page |
 | Design › Account: the simple shape's pieces, the cover's card (`design/account/shapes`), a cover stored (simple on the page, inactive and kept on the tab), header pieces, menu style/align, forged values, spacing + defaults (row width), ground: “The theme’s” first and chosen on a fresh install with no ground rule printed, one from its palette (a shade sent by hand refused), width, phone wrap, live preview | `admin-design-account` |
@@ -408,6 +419,7 @@ In the browser, case by case:
 | Social in a popup on a network: from /alpha/ to the hub's sign-in, the popup makes the hub's trip while the hub's page stays, and the page ends back on /alpha/ signed in; the second step on the hub, then /alpha/; a cancel shows the hub's social error | `network/social-popup` · integration (network): `SsoPopupTest` › …the hub's |
 | A site on a domain of its own: its door is its own wp-login.php | `signin-doors` › A site on a domain of its own |
 | Required fields missing, asked on the hub's account page after a sign-in by link from /beta/, and the save goes back to /beta/ | `missing-fields` |
+| The phone on the hub's registration form is one control drawn like the e-mail input, wide and at 390px | `phone-field` |
 
 ## Network settings, and the network's screens
 

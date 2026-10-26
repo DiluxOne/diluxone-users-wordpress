@@ -187,6 +187,179 @@ class CoverSettingsAccessTest extends IntegrationTestCase {
 		$this->assertSame( 'site', diluxone_users_raw_get( 'diluxone_users_lost_password' ) );
 	}
 
+	/* ── Where the page of its own is drawn ───────────────────────── */
+
+	public function test_c3_under_a_page_of_its_own_the_tab_asks_for_the_address_with_no_page(): void {
+		$this->the_admin();
+		diluxone_users_update_option( 'diluxone_users_login_template', 'own' );
+		diluxone_users_update_option( 'diluxone_users_login_page', 0 );
+		diluxone_users_update_option( 'diluxone_users_login_slug', 'entrar' );
+
+		$html = $this->screen( 'page' );
+
+		$this->assertStringNotContainsString( 'Not used while', $html, 'this is where the address is decided' );
+		$this->assertStringContainsString( '— No page —', $html );
+		$this->assertMatchesRegularExpression( '#data-diluxone-users-waits="diluxone_users_login_page" data-diluxone-users-waits-is="0"#', $html, 'the field waits for “No page”' );
+		$this->assertMatchesRegularExpression( '#<input type="text" id="diluxone_users_login_slug" name="diluxone_users_login_slug" class="regular-text code" value="entrar" required>#', $html, 'with no page chosen, it is let go' );
+		$this->assertStringContainsString( '<code>' . esc_html( trailingslashit( home_url() ) ) . '</code>', $html, 'the site’s address before it' );
+
+		diluxone_users_update_option( 'diluxone_users_login_page', $this->page( 'Cover own page' ) );
+
+		$this->assertMatchesRegularExpression( '#name="diluxone_users_login_slug"[^>]* disabled data-diluxone-users-waited#', $this->screen( 'page' ), 'a page chosen: drawn at its address, the field waits' );
+	}
+
+	public function test_c3_no_page_and_an_address_saved_is_where_the_page_of_its_own_is_drawn(): void {
+		$this->the_admin();
+		diluxone_users_update_option( 'diluxone_users_login_template', 'own' );
+		diluxone_users_update_option( 'diluxone_users_login_page', $this->page( 'Cover own page' ) );
+		diluxone_users_update_option( 'diluxone_users_login_slug', 'sign-in' );
+		diluxone_users_update_option( 'diluxone_users_login_slug_old', array() );
+
+		$was = diluxone_users_login_slug();
+
+		$this->send_panel(
+			'diluxone-users-login',
+			array(
+				'diluxone_users_login_page' => '0',
+				'diluxone_users_login_slug' => '/Entrar/',
+			)
+		);
+
+		$this->assertTrue( diluxone_users_login_page_save() );
+		$this->assertSame( 0, (int) diluxone_users_raw_get( 'diluxone_users_login_page' ) );
+		$this->assertSame( 'entrar', diluxone_users_raw_get( 'diluxone_users_login_slug' ) );
+		$this->assertSame( 'entrar', diluxone_users_login_slug() );
+		$this->assertSame( home_url( user_trailingslashit( 'entrar' ) ), diluxone_users_door_url(), 'drawn at that address' );
+		$this->assertSame( array(), diluxone_users_login_slug_old(), 'the page left keeps its own address: it is still a page' );
+		$this->assertNotSame( 'entrar', $was );
+	}
+
+	public function test_c3_a_refused_address_writes_nothing_and_says_why(): void {
+		$this->the_admin();
+		diluxone_users_update_option( 'diluxone_users_login_template', 'own' );
+		diluxone_users_update_option( 'diluxone_users_login_page', 0 );
+		diluxone_users_update_option( 'diluxone_users_login_slug', 'sign-in' );
+		diluxone_users_update_option( 'diluxone_users_lost_password', 'wp' );
+
+		wp_insert_post(
+			array(
+				'post_type'   => 'page',
+				'post_status' => 'publish',
+				'post_title'  => 'About us',
+				'post_name'   => 'cover-about',
+			)
+		);
+
+		$this->send_panel(
+			'diluxone-users-login',
+			array(
+				'diluxone_users_login_page'    => '0',
+				'diluxone_users_login_slug'    => 'cover-about',
+				'diluxone_users_lost_password' => 'site',
+			)
+		);
+
+		ob_start();
+		$saved = diluxone_users_login_page_save();
+		$said  = (string) ob_get_clean();
+
+		$this->assertFalse( $saved );
+		$this->assertStringContainsString( 'notice-error', $said );
+		$this->assertStringContainsString( 'The address /cover-about/ is already the page “About us”.', $said );
+		$this->assertSame( 'sign-in', diluxone_users_raw_get( 'diluxone_users_login_slug' ), 'nothing written' );
+		$this->assertSame( 'wp', diluxone_users_raw_get( 'diluxone_users_lost_password' ), 'nothing of the tab written' );
+	}
+
+	public function test_c3_the_page_left_for_no_page_is_not_an_address_to_take(): void {
+		$this->the_admin();
+		diluxone_users_update_option( 'diluxone_users_login_template', 'own' );
+
+		$page = (int) wp_insert_post(
+			array(
+				'post_type'   => 'page',
+				'post_status' => 'publish',
+				'post_title'  => 'Entrar',
+				'post_name'   => 'cover-entrar',
+			)
+		);
+		diluxone_users_update_option( 'diluxone_users_login_page', $page );
+
+		$this->send_panel(
+			'diluxone-users-login',
+			array(
+				'diluxone_users_login_page' => '0',
+				'diluxone_users_login_slug' => 'cover-entrar',
+			)
+		);
+
+		ob_start();
+		$this->assertFalse( diluxone_users_login_page_save(), 'with no page chosen, that page is a page like any other' );
+		ob_end_clean();
+		$this->assertSame( $page, (int) diluxone_users_raw_get( 'diluxone_users_login_page' ) );
+	}
+
+	/** @return array<string, array{0: string}> */
+	public static function other_shapes(): array {
+		return array(
+			'In the page'    => array( 'plain' ),
+			'A centred card' => array( 'card' ),
+		);
+	}
+
+	/**
+	 * @dataProvider other_shapes
+	 *
+	 * @param string $shape The shape chosen on Design › The sign-in page.
+	 */
+	public function test_c6_another_shape_draws_no_address_and_the_save_stores_what_it_did( string $shape ): void {
+		$this->the_admin();
+		diluxone_users_update_option( 'diluxone_users_login_template', $shape );
+		diluxone_users_update_option( 'diluxone_users_login_page', 0 );
+		diluxone_users_update_option( 'diluxone_users_login_slug', 'sign-in' );
+		diluxone_users_update_option( 'diluxone_users_login_slug_old', array() );
+		diluxone_users_update_option( 'diluxone_users_wp_screens', 'auto' );
+		diluxone_users_update_option( 'diluxone_users_lost_password', 'wp' );
+
+		$html = $this->screen( 'page' );
+
+		$this->assertStringNotContainsString( 'name="diluxone_users_login_slug"', $html, 'no address field' );
+		$this->assertStringNotContainsString( '— No page —', $html );
+		$this->assertStringContainsString( '— None: wp-login.php does the job —', $html );
+		$this->assertStringContainsString( 'With none chosen, everybody signs in on wp-login.php and nothing below applies.', $html );
+
+		$written = array();
+		$keep    = static function ( string $option ) use ( &$written ): void {
+			if ( 0 === strpos( $option, 'diluxone_users_' ) ) {
+				$written[] = $option;
+			}
+		};
+		$this->hook( 'updated_option', $keep );
+		$this->hook( 'added_option', $keep );
+		$this->hook( 'update_site_option', $keep );
+		$this->hook( 'add_site_option', $keep );
+
+		$page = $this->page( 'Cover other shape' );
+
+		$this->send_panel(
+			'diluxone-users-login',
+			array(
+				'diluxone_users_login_page'    => (string) $page,
+				'diluxone_users_login_slug'    => 'entrar',
+				'diluxone_users_wp_screens'    => 'mine',
+				'diluxone_users_lost_password' => 'site',
+			)
+		);
+
+		$this->assertTrue( diluxone_users_login_page_save() );
+
+		sort( $written );
+		$this->assertSame( array( 'diluxone_users_login_page', 'diluxone_users_lost_password', 'diluxone_users_wp_screens' ), array_values( array_unique( $written ) ), 'the keys it stores today, and no address' );
+		$this->assertSame( $page, (int) diluxone_users_raw_get( 'diluxone_users_login_page' ) );
+		$this->assertSame( 'sign-in', diluxone_users_raw_get( 'diluxone_users_login_slug' ), 'an address sent anyway is not stored' );
+		$this->assertSame( array(), diluxone_users_raw_get( 'diluxone_users_login_slug_old' ), 'no old address kept' );
+		$this->assertSame( get_permalink( $page ), diluxone_users_login_url(), 'the page holds the form, as today' );
+	}
+
 	public function test_the_ways_save_writes_what_the_form_sent_and_nothing_it_did_not(): void {
 		$this->the_admin();
 		diluxone_users_update_option( 'diluxone_users_handle_login', 1 );

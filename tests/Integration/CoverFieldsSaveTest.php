@@ -229,6 +229,51 @@ class CoverFieldsSaveTest extends IntegrationTestCase {
 		$this->assertSame( 'Ana Pérez', get_userdata( $user )->display_name );
 	}
 
+	public function test_a_phone_sent_without_a_script_is_joined_into_plus_and_digits_whatever_it_was_typed_with(): void {
+		$this->define( array( $this->field( 'diluxone_test_mobile', 'phone' ) ) );
+		$user = $this->make_user();
+
+		foreach ( array( '11 2345 6789', '11-2345-6789', '(11) 2345 - 6789', ' 11.2345.6789 ', '11 2345 6789 ' ) as $typed ) {
+			delete_user_meta( $user, 'diluxone_test_mobile' );
+
+			diluxone_users_save(
+				$user,
+				array(
+					'diluxone_test_mobile'      => $typed,
+					'diluxone_test_mobile_dial' => 'AR',
+				)
+			);
+
+			$this->assertSame( '+541123456789', get_user_meta( $user, 'diluxone_test_mobile', true ), $typed );
+		}
+	}
+
+	public function test_a_trunk_prefix_typed_out_of_habit_is_not_saved_whatever_the_country(): void {
+		$this->define( array( $this->field( 'diluxone_test_mobile', 'phone' ) ) );
+		$user = $this->make_user();
+
+		$cases = array(
+			array( 'AR', '011 5555-1234', '+541155551234' ),
+			array( 'US', '1 (212) 555-1234', '+12125551234' ),
+			array( 'RU', '8 912 345 67 89', '+79123456789' ),
+			array( 'HU', '06 30 123 4567', '+36301234567' ),
+			array( 'IT', '06 1234 5678', '+390612345678' ),
+			array( 'UY', '(099) 123-456', '+59899123456' ),
+		);
+
+		foreach ( $cases as $case ) {
+			diluxone_users_save(
+				$user,
+				array(
+					'diluxone_test_mobile'      => $case[1],
+					'diluxone_test_mobile_dial' => $case[0],
+				)
+			);
+
+			$this->assertSame( $case[2], get_user_meta( $user, 'diluxone_test_mobile', true ), "{$case[0]}: {$case[1]}" );
+		}
+	}
+
 	public function test_a_display_name_is_rebuilt_only_for_somebody_with_a_name(): void {
 		diluxone_users_refresh_display_name( 999999 );
 

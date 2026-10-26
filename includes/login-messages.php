@@ -15,7 +15,7 @@
  * the person should be trying the other button instead. The plugin cannot
  * know any of that, and the site cannot say it.
  *
- * So the sentences live here, all thirteen in the same shape, and they are
+ * So the sentences live here, all of them in the same shape, and they are
  * rewritten the same way the e-mails are — which is deliberate, and is why
  * this reads like mail-templates.php. Three rules, the same three:
  *
@@ -230,6 +230,16 @@ function diluxone_users_login_messages(): array {
 		'when'    => __( 'Shown when one of the fields this site marks as required came back empty.', 'diluxone-users' ),
 		'shipped' => static function (): string {
 			return __( 'Some required fields are missing.', 'diluxone-users' );
+		},
+	);
+
+	$messages['register_phone'] = array(
+		'group'   => 'register',
+		'tone'    => 'error',
+		'label'   => __( 'A phone number of the wrong length', 'diluxone-users' ),
+		'when'    => __( 'Shown when a phone number is too short or too long for the country chosen. The field itself says which, under the number.', 'diluxone-users' ),
+		'shipped' => static function (): string {
+			return __( 'Check the phone number: it is not the right length for its country.', 'diluxone-users' );
 		},
 	);
 
