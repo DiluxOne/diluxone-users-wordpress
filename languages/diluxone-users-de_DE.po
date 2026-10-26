@@ -275,7 +275,7 @@ msgstr "Profilfoto"
 #: includes/admin-account.php:775
 #: includes/admin-panels.php:276
 #: templates/account/notifications.php:62
-#: templates/fields.php:40
+#: templates/fields.php:42
 msgid "Saved."
 msgstr "Gespeichert."
 
@@ -606,7 +606,7 @@ msgstr "Registrierung"
 #: templates/login.php:129
 #: templates/register.php:51
 #: templates/register.php:68
-#: templates/register.php:175
+#: templates/register.php:179
 msgid "Sign in"
 msgstr "Anmelden"
 
@@ -763,29 +763,29 @@ msgstr "Tage"
 msgid "In their account"
 msgstr "In ihrem Konto"
 
-#: includes/admin-log.php:591
-#: includes/admin-log.php:633
+#: includes/admin-log.php:623
+#: includes/admin-log.php:665
 #: includes/admin-sessions.php:275
 #: includes/admin-sessions.php:277
 msgid "Search"
 msgstr "Suchen"
 
-#: includes/admin-log.php:592
+#: includes/admin-log.php:624
 #: includes/admin-sessions.php:276
 msgid "Email, username or name…"
 msgstr "E-Mail, Benutzername oder Name…"
 
-#: includes/admin-log.php:647
+#: includes/admin-log.php:679
 #: includes/admin-sessions.php:291
 msgid "Clear"
 msgstr "Leeren"
 
-#: includes/admin-log.php:650
+#: includes/admin-log.php:682
 #: includes/admin-sessions.php:294
 msgid "Show"
 msgstr "Anzeigen"
 
-#: includes/admin-log.php:656
+#: includes/admin-log.php:688
 #: includes/admin-sessions.php:300
 msgid "per page"
 msgstr "pro Seite"
@@ -800,7 +800,7 @@ msgstr "Aktualisieren"
 msgid "%1$s people with an open session · page %2$d of %3$d"
 msgstr "%1$s Personen mit offener Sitzung · Seite %2$d von %3$d"
 
-#: includes/admin-log.php:693
+#: includes/admin-log.php:725
 #: includes/admin-sessions.php:337
 msgid "Person"
 msgstr "Person"
@@ -813,13 +813,13 @@ msgstr "Letzte Anmeldung"
 msgid "Expires"
 msgstr "Läuft ab"
 
-#: includes/admin-log.php:696
+#: includes/admin-log.php:728
 #: includes/admin-sessions.php:341
 #: includes/log-privacy.php:84
 msgid "IP"
 msgstr "IP"
 
-#: includes/admin-log.php:697
+#: includes/admin-log.php:729
 #: includes/admin-sessions.php:342
 #: includes/log-privacy.php:88
 msgid "Device"
@@ -1173,8 +1173,8 @@ msgstr "Kopiere das in eine Support-Anfrage und die Hälfte des Hin und Her entf
 #: includes/admin-account.php:638
 #: includes/admin-account.php:713
 #: includes/admin-account.php:737
-#: includes/admin-log.php:783
-#: includes/admin-log.php:814
+#: includes/admin-log.php:815
+#: includes/admin-log.php:846
 #: includes/admin-membership.php:394
 #: includes/admin-panels.php:158
 #: includes/admin-social.php:988
@@ -1402,8 +1402,8 @@ msgstr "Das Foto ist zu schwer: höchstens %s."
 msgid "That is not a photo. It has to be a JPG, PNG, GIF or WebP."
 msgstr "Das ist kein Foto. Es muss ein JPG, PNG, GIF oder WebP sein."
 
-#: includes/fields-forms.php:143
-#: includes/fields-forms.php:178
+#: includes/fields-forms.php:144
+#: includes/fields-forms.php:179
 msgid "— Choose —"
 msgstr "— Auswählen —"
 
@@ -1412,7 +1412,7 @@ msgid "Additional details"
 msgstr "Zusätzliche Angaben"
 
 #. translators: %s: field name
-#: includes/fields-forms.php:463
+#: includes/fields-forms.php:594
 #, php-format
 msgid "Error: “%s” is required."
 msgstr "Fehler: „%s“ ist ein Pflichtfeld."
@@ -1423,7 +1423,7 @@ msgstr "Langer Text"
 
 #: includes/fields.php:32
 #: includes/login-ways.php:597
-#: templates/register.php:133
+#: templates/register.php:137
 msgid "Email address"
 msgstr "E-Mail-Adresse"
 
@@ -1586,7 +1586,7 @@ msgstr "Wird geprüft…"
 msgid "We could not check it right now."
 msgstr "Wir konnten es gerade nicht prüfen."
 
-#: includes/login.php:560
+#: includes/login.php:622
 msgid "Someone"
 msgstr "Jemand"
 
@@ -1835,55 +1835,55 @@ msgstr "Kopiere den „Wert“ des Secrets, nicht seine „Geheimnis-ID“. Der 
 msgid "The openid, email and profile permissions are already there by default — you do not have to add anything under “API permissions”."
 msgstr "Die Berechtigungen openid, email und profile sind standardmäßig schon da — unter „API-Berechtigungen“ musst du nichts hinzufügen."
 
-#: includes/sso.php:931
+#: includes/sso.php:941
 msgid "The provider did not hand over an access token. Check the client ID and the secret."
 msgstr "Der Anbieter hat kein Zugriffstoken herausgegeben. Prüfe die Client-ID und das Secret."
 
-#: includes/sso.php:942
+#: includes/sso.php:953
 msgid "The token worked but the profile came back empty. The app is probably missing the permissions this provider needs."
 msgstr "Das Token hat funktioniert, aber das Profil kam leer zurück. Wahrscheinlich fehlen der App die Berechtigungen, die dieser Anbieter braucht."
 
 #. translators: %s: name of the social network
-#: includes/sso.php:975
+#: includes/sso.php:986
 #, php-format
 msgid "The %s account was linked, and it now gets into this account."
 msgstr "Das Konto %s wurde verknüpft und kommt jetzt in dieses Konto herein."
 
 #. translators: %s: name of the social network
-#: includes/sso.php:1052
+#: includes/sso.php:1087
 #, php-format
 msgid "The %s account was unlinked."
 msgstr "Die Verknüpfung mit dem Konto %s wurde gelöst."
 
-#: includes/sso.php:1093
+#: includes/sso.php:1128
 msgid "It works"
 msgstr "Es funktioniert"
 
-#: includes/sso.php:1094
+#: includes/sso.php:1129
 msgid "It did not work"
 msgstr "Es hat nicht funktioniert"
 
 #. translators: %s: provider name
-#: includes/sso.php:1099
+#: includes/sso.php:1134
 #, php-format
 msgid "The round trip with %s finished correctly. You can enable the button now."
 msgstr "Der Hin- und Rückweg mit %s ist korrekt beendet worden. Du kannst die Schaltfläche jetzt aktivieren."
 
 #. translators: %s: provider name
-#: includes/sso.php:1104
+#: includes/sso.php:1139
 #, php-format
 msgid "The round trip with %s failed."
 msgstr "Der Hin- und Rückweg mit %s ist gescheitert."
 
 #. translators: %s: e-mail address
-#: includes/sso.php:1110
+#: includes/sso.php:1145
 #, php-format
 msgid "The provider handed over this email: %s"
 msgstr "Der Anbieter hat diese E-Mail herausgegeben: %s"
 
 #: includes/admin-fields.php:706
 #: includes/admin-panels.php:841
-#: includes/sso.php:1135
+#: includes/sso.php:1170
 #: templates/sessions.php:67
 msgid "Close"
 msgstr "Schließen"
@@ -1936,7 +1936,7 @@ msgstr "Ein Foto auswählen"
 #: templates/account/avatar.php:36
 #: templates/account/handle.php:37
 #: templates/account/notifications.php:103
-#: templates/fields.php:77
+#: templates/fields.php:81
 msgid "Save"
 msgstr "Speichern"
 
@@ -2192,7 +2192,7 @@ msgid "Link"
 msgstr "Verknüpfen"
 
 #: includes/login-messages.php:232
-#: templates/fields.php:42
+#: templates/fields.php:44
 msgid "Some required fields are missing."
 msgstr "Es fehlen Pflichtfelder."
 
@@ -2266,7 +2266,7 @@ msgid "We could not finish signing you in with that provider. Try again or use y
 msgstr "Wir konnten deine Anmeldung mit diesem Anbieter nicht abschließen. Versuch es noch einmal oder nimm deine E-Mail."
 
 #: includes/login-messages.php:162
-#: includes/login-messages.php:262
+#: includes/login-messages.php:272
 msgid "Something went wrong. Try again."
 msgstr "Etwas ist schiefgegangen. Versuch es noch einmal."
 
@@ -2280,7 +2280,7 @@ msgid "or"
 msgstr "oder"
 
 #: includes/login-ways.php:553
-#: templates/register.php:119
+#: templates/register.php:123
 msgid "or with your email"
 msgstr "oder mit deiner E-Mail"
 
@@ -2293,7 +2293,7 @@ msgid "Send me the sign-in link"
 msgstr "Schick mir den Anmeldelink"
 
 #: includes/login-ways.php:606
-#: templates/register.php:167
+#: templates/register.php:171
 msgid "You get an email with a link. Click it and you are in: no password to choose or type."
 msgstr "Du bekommst eine E-Mail mit einem Link. Klick darauf und du bist drin: kein Passwort zum Aussuchen oder Tippen."
 
@@ -2448,7 +2448,7 @@ msgstr "Das Trennen löscht nichts: dieses Netzwerk öffnet dieses Konto einfach
 
 #: includes/login-ways.php:595
 #: includes/login-ways.php:598
-#: templates/register.php:136
+#: templates/register.php:140
 msgctxt "placeholder for the e-mail field"
 msgid "you@example.com"
 msgstr "du@beispiel.de"
@@ -2818,19 +2818,19 @@ msgstr "Diese Website nimmt gerade keine neuen Konten an. Wenn du schon eines ha
 msgid "There is already an account with that address."
 msgstr "Mit dieser Adresse gibt es bereits ein Konto."
 
-#: templates/register.php:109
+#: templates/register.php:113
 msgid "Sign in instead"
 msgstr "Stattdessen anmelden"
 
-#: includes/login-messages.php:252
+#: includes/login-messages.php:262
 msgid "This site does not take new accounts right now."
 msgstr "Diese Website nimmt gerade keine neuen Konten an."
 
-#: templates/register.php:161
+#: templates/register.php:165
 msgid "Create my account"
 msgstr "Mein Konto erstellen"
 
-#: templates/register.php:174
+#: templates/register.php:178
 msgid "Already have an account?"
 msgstr "Hast du schon ein Konto?"
 
@@ -2882,7 +2882,7 @@ msgstr "Du musst das nicht tun: auf dieser Website kommst du mit einem Link per 
 msgid "Your password is changed. You can sign in with it now."
 msgstr "Dein Passwort ist geändert. Du kannst dich jetzt damit anmelden."
 
-#: includes/login-messages.php:242
+#: includes/login-messages.php:252
 msgid "One moment: wait a few seconds and try again."
 msgstr "Einen Moment: warte ein paar Sekunden und versuch es noch einmal."
 
@@ -4136,7 +4136,7 @@ msgid "The e-mails"
 msgstr "Die E-Mails"
 
 #: includes/admin-notices.php:357
-#: includes/login-messages.php:659
+#: includes/login-messages.php:669
 msgid "The language you are writing"
 msgstr "Die Sprache, in der du schreibst"
 
@@ -4546,50 +4546,50 @@ msgid "Social account"
 msgstr "Social-Konto"
 
 #. translators: %s: how many sessions were closed at once.
-#: includes/admin-log.php:444
+#: includes/admin-log.php:476
 #, php-format
 msgid "%s closed"
 msgstr "%s geschlossen"
 
-#: includes/admin-log.php:583
+#: includes/admin-log.php:615
 msgid "What happened on this site, newest first. It shows only what was being recorded at the time: a group ticked this morning has nothing in it from yesterday."
 msgstr "Was auf dieser Website passiert ist, das Neueste zuerst. Gezeigt wird nur, was damals aufgezeichnet wurde: eine heute Morgen angehakte Gruppe enthält nichts von gestern."
 
-#: includes/admin-log.php:611
-#: includes/admin-log.php:694
+#: includes/admin-log.php:643
+#: includes/admin-log.php:726
 #: includes/log-privacy.php:80
 msgid "What happened"
 msgstr "Was passiert ist"
 
-#: includes/admin-log.php:613
+#: includes/admin-log.php:645
 msgid "Anything that happened"
 msgstr "Alles, was passiert ist"
 
-#: includes/admin-log.php:627
-#: includes/admin-log.php:691
+#: includes/admin-log.php:659
+#: includes/admin-log.php:723
 msgid "From"
 msgstr "Von"
 
-#: includes/admin-log.php:630
+#: includes/admin-log.php:662
 msgid "To"
 msgstr "Bis"
 
 #. translators: 1: number of rows, 2: current page, 3: total pages
-#: includes/admin-log.php:663
+#: includes/admin-log.php:695
 #, php-format
 msgid "%1$s rows · page %2$d of %3$d"
 msgstr "%1$s Zeilen · Seite %2$d von %3$d"
 
-#: includes/admin-log.php:688
+#: includes/admin-log.php:720
 #: includes/log-privacy.php:76
 msgid "When"
 msgstr "Wann"
 
-#: includes/admin-log.php:695
+#: includes/admin-log.php:727
 msgid "Detail"
 msgstr "Detail"
 
-#: includes/admin-log.php:702
+#: includes/admin-log.php:734
 msgid "Nothing matches that."
 msgstr "Dazu passt nichts."
 
@@ -4771,7 +4771,7 @@ msgid "Shown whenever a trip out to a social network comes back without a sessio
 msgstr "Wird immer dann gezeigt, wenn ein Ausflug zu einem sozialen Netzwerk ohne Sitzung zurückkommt: die Person hat dort abgelehnt, das Netzwerk wollte nicht für die Adresse bürgen, diese Website nimmt dieses Konto nicht, oder der Weg wurde manipuliert. Ein einziger Satz deckt alle Fälle ab, und zwar mit Absicht — einem Fremden zu sagen, welcher es war, heißt ihm zu sagen, was er als Nächstes versuchen soll."
 
 #: includes/login-messages.php:159
-#: includes/login-messages.php:259
+#: includes/login-messages.php:269
 msgid "Something else went wrong"
 msgstr "Etwas anderes ist schiefgegangen"
 
@@ -4823,53 +4823,53 @@ msgstr "Ein Pflichtfeld blieb leer"
 msgid "Shown when one of the fields this site marks as required came back empty."
 msgstr "Wird gezeigt, wenn eines der Felder, die diese Website als Pflicht markiert, leer zurückkam."
 
-#: includes/login-messages.php:239
+#: includes/login-messages.php:249
 msgid "Too many accounts, too fast"
 msgstr "Zu viele Konten, zu schnell"
 
-#: includes/login-messages.php:240
+#: includes/login-messages.php:250
 msgid "Shown when the same machine has just asked for several accounts in a row. It is the throttle talking, and it says so gently: whoever reads it is far more often impatient than malicious."
 msgstr "Wird gezeigt, wenn dieselbe Maschine gerade mehrere Konten hintereinander angefragt hat. Hier spricht die Bremse, und zwar behutsam: wer das liest, ist weit öfter ungeduldig als bösartig."
 
-#: includes/login-messages.php:249
+#: includes/login-messages.php:259
 msgid "Registration is shut"
 msgstr "Die Registrierung ist geschlossen"
 
-#: includes/login-messages.php:250
+#: includes/login-messages.php:260
 msgid "Shown when a form was sent to a site that has since stopped taking new accounts."
 msgstr "Wird gezeigt, wenn ein Formular an eine Website ging, die seither keine neuen Konten mehr annimmt."
 
-#: includes/login-messages.php:260
+#: includes/login-messages.php:270
 msgid "The last resort of the registration form, when nothing more precise can honestly be said."
 msgstr "Die letzte Zuflucht des Registrierungsformulars, wenn sich ehrlicherweise nichts Genaueres sagen lässt."
 
-#: includes/login-messages.php:537
+#: includes/login-messages.php:547
 msgid "It is read by somebody who is stuck, so it is worth saying what to do next and not only what happened. Empty the box and the plugin’s own words come back."
 msgstr "Das liest jemand, der feststeckt — es lohnt sich also zu sagen, was als Nächstes zu tun ist, und nicht nur, was passiert ist. Leeren Sie das Feld, und die eigenen Worte des Plugins kommen zurück."
 
-#: includes/login-messages.php:551
+#: includes/login-messages.php:561
 msgid "The sentences a person reads when the way in does not work. Each one starts as the text the plugin ships in this language, so a site that changes nothing still reads correctly — and an update that improves a sentence improves it here too. Rewrite one and that is what is shown, until you put it back."
 msgstr "Die Sätze, die jemand liest, wenn der Weg hinein nicht funktioniert. Jeder beginnt als der Text, den das Plugin in dieser Sprache mitbringt — eine Website, die nichts ändert, liest sich also weiterhin richtig, und ein Update, das einen Satz verbessert, verbessert ihn auch hier. Schreiben Sie einen um, und das wird gezeigt, bis Sie ihn zurücksetzen."
 
-#: includes/login-messages.php:585
+#: includes/login-messages.php:595
 msgid "Added by something else on this site"
 msgstr "Von etwas anderem auf dieser Website hinzugefügt"
 
 #. translators: %s: the name of a language, in <code>
-#: includes/login-messages.php:600
+#: includes/login-messages.php:610
 #, php-format
 msgid "Every message is the plugin’s own, in %s."
 msgstr "Alle Meldungen sind die des Plugins, auf %s."
 
 #. translators: 1: how many messages this site wrote, 2: how many there are, 3: the name of a language, in <code>
-#: includes/login-messages.php:605
+#: includes/login-messages.php:615
 #, php-format
 msgid "This site writes %1$d of the %2$d messages itself, in %3$s."
 msgid_plural "This site writes %1$d of the %2$d messages themselves, in %3$s."
 msgstr[0] "Diese Website schreibt %1$d der %2$d Meldungen selbst, auf %3$s."
 msgstr[1] "Diese Website schreibt %1$d der %2$d Meldungen selbst, auf %3$s."
 
-#: includes/login-messages.php:661
+#: includes/login-messages.php:671
 msgid "Each language keeps its own wording, and one nobody has touched shows the text the plugin ships. Moving to another one here does not save what is on screen."
 msgstr "Jede Sprache behält ihren eigenen Wortlaut, und eine, die niemand angefasst hat, zeigt den Text, den das Plugin mitbringt. Hier zu einer anderen zu wechseln speichert nicht, was auf dem Bildschirm steht."
 
@@ -5310,11 +5310,11 @@ msgstr "Was in Ihrem Profil gespeichert wird"
 msgid "What is stored in the activity log"
 msgstr "Was im Aktivitätsprotokoll gespeichert wird"
 
-#: includes/login-messages.php:463
+#: includes/login-messages.php:473
 msgid "Messages"
 msgstr "Meldungen"
 
-#: includes/login-messages.php:532
+#: includes/login-messages.php:542
 msgid "The sentence"
 msgstr "Der Satz"
 
@@ -5422,7 +5422,7 @@ msgstr "Die Sitzungen sind beendet: die Person ist überall abgemeldet."
 msgid "The photo is too large: at most %d pixels a side."
 msgstr "Das Foto ist zu groß: höchstens %d Pixel pro Seite."
 
-#: includes/fields-forms.php:444
+#: includes/fields-forms.php:561
 msgid "Error: the form expired. Load the page again and send it once more."
 msgstr "Fehler: Das Formular ist abgelaufen. Lade die Seite neu und sende es noch einmal."
 
@@ -5982,8 +5982,8 @@ msgstr "Diese Websites haben eine eigene Domain: %s."
 msgid "People have to sign in again on these sites: a session opened on the rest of the network does not reach a domain of its own. That is not supported in this version."
 msgstr "Auf diesen Websites müssen sich die Leute erneut anmelden: Eine im restlichen Netzwerk geöffnete Sitzung reicht nicht bis zu einer eigenen Domain. Das wird in dieser Version nicht unterstützt."
 
-#: includes/admin-log.php:598
-#: includes/admin-log.php:690
+#: includes/admin-log.php:630
+#: includes/admin-log.php:722
 #: includes/log-privacy.php:97
 msgid "Site"
 msgstr "Website"
@@ -6072,15 +6072,15 @@ msgstr "Diese Website hat %1$s Zeilen in der Tabelle des Netzwerks, die für all
 msgid "Every site of the network records %s and nothing else, in one table for the whole network."
 msgstr "Jede Website des Netzwerks zeichnet %s auf und sonst nichts, in einer einzigen Tabelle für das ganze Netzwerk."
 
-#: includes/admin-log.php:582
+#: includes/admin-log.php:614
 msgid "What happened on every site of the network, newest first, with the site each row happened on. It shows only what was being recorded at the time: a group ticked this morning has nothing in it from yesterday."
 msgstr "Was auf jeder Website des Netzwerks passiert ist, das Neueste zuerst, mit der Website, auf der jede Zeile passiert ist. Gezeigt wird nur, was damals aufgezeichnet wurde: eine heute Morgen angehakte Gruppe enthält nichts von gestern."
 
-#: includes/admin-log.php:600
+#: includes/admin-log.php:632
 msgid "Site ID"
 msgstr "Website-ID"
 
-#: includes/admin-log.php:603
+#: includes/admin-log.php:635
 #: includes/admin-membership.php:128
 msgid "Every site"
 msgstr "Alle Websites"
@@ -6128,7 +6128,7 @@ msgid "Open your account"
 msgstr "Dein Konto öffnen"
 
 #. translators: %s: the name of the site where the person signed in
-#: includes/admin-log.php:422
+#: includes/admin-log.php:450
 #, php-format
 msgid "on %s"
 msgstr "auf %s"
@@ -7035,7 +7035,7 @@ msgstr "Die eigenen Einstellungen der Add-ons"
 msgid "We sent you a link to choose your password."
 msgstr "Wir haben dir einen Link geschickt, mit dem du dein Passwort wählst."
 
-#: templates/register.php:169
+#: templates/register.php:173
 msgid "You get an email with a link to choose your password, and you sign in with it."
 msgstr "Du bekommst eine E-Mail mit einem Link, mit dem du dein Passwort wählst, und damit meldest du dich an."
 
@@ -7067,7 +7067,7 @@ msgstr "Bevor es weitergeht, braucht die Website noch ein paar Angaben, die ihr 
 msgid "Complete your details"
 msgstr "Angaben vervollständigen"
 
-#: templates/fields.php:80
+#: templates/fields.php:84
 msgid "Skip for now"
 msgstr "Jetzt überspringen"
 
@@ -7348,6 +7348,83 @@ msgstr "„%s“ muss eine Klasse sein, etwa .is-dark, oder ein Attribut, etwa d
 #: includes/sso-popup.php:281
 msgid "Back to the site"
 msgstr "Zurück zur Website"
+
+#: includes/fields-forms.php:252
+msgid "Search for a country or a code"
+msgstr "Land oder Vorwahl suchen"
+
+#: includes/fields-forms.php:253
+msgid "Countries"
+msgstr "Länder"
+
+#. translators: %d: how many countries match what was typed
+#: includes/fields-forms.php:255
+#, php-format
+msgid "Countries found: %d"
+msgstr "Gefundene Länder: %d"
+
+#: includes/fields-forms.php:256
+msgid "No country matches that."
+msgstr "Kein Land passt dazu."
+
+#: includes/fields-forms.php:264
+msgid "Country code"
+msgstr "Ländervorwahl"
+
+#. translators: 1: field name, 2: what is wrong with it
+#: includes/fields-forms.php:443
+#: includes/fields-forms.php:575
+#, php-format
+msgid "Error: “%1$s”: %2$s"
+msgstr "Fehler: „%1$s“: %2$s"
+
+#: includes/fields.php:803
+msgid "This number is too long for the country chosen."
+msgstr "Diese Nummer ist zu lang für das gewählte Land."
+
+#: includes/fields.php:804
+msgid "This number is too short for the country chosen."
+msgstr "Diese Nummer ist zu kurz für das gewählte Land."
+
+#: includes/login-messages.php:239
+msgid "A phone number of the wrong length"
+msgstr "Eine Telefonnummer mit falscher Länge"
+
+#: includes/login-messages.php:240
+msgid "Shown when a phone number is too short or too long for the country chosen. The field itself says which, under the number."
+msgstr "Wird angezeigt, wenn eine Telefonnummer für das gewählte Land zu kurz oder zu lang ist. Das Feld selbst sagt unter der Nummer, was davon."
+
+#: includes/login-messages.php:242
+msgid "Check the phone number: it is not the right length for its country."
+msgstr "Prüf die Telefonnummer: Sie hat nicht die richtige Länge für ihr Land."
+
+#: templates/fields.php:46
+msgid "Nothing was saved: a phone number is not the right length for its country."
+msgstr "Nichts wurde gespeichert: Eine Telefonnummer hat nicht die richtige Länge für ihr Land."
+
+#: includes/admin-log.php:403
+msgid "cancelled at the provider"
+msgstr "beim Anbieter abgebrochen"
+
+#: includes/admin-log.php:404
+msgid "a return nobody started here"
+msgstr "eine Rückkehr, die hier niemand begonnen hat"
+
+#: includes/admin-log.php:405
+msgid "came back in another browser or session"
+msgstr "kam in einem anderen Browser oder einer anderen Sitzung zurück"
+
+#: includes/admin-log.php:406
+msgid "the network was turned off"
+msgstr "das Netzwerk war ausgeschaltet"
+
+#: includes/admin-log.php:407
+msgid "the provider handed over no access token"
+msgstr "der Anbieter hat kein Zugriffstoken übergeben"
+
+#: includes/admin-log.php:408
+msgid "no account found or created"
+msgstr "kein Konto gefunden oder angelegt"
 
 #: includes/admin-social.php:564
 msgid "Only verified addresses: confirm by mail an address the provider does not vouch for"

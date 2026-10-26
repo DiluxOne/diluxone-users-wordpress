@@ -29,7 +29,7 @@ function diluxone_users_field_control( array $field, int $user_id ): void {
 	$id = 'diluxone-users-' . $field['key'];
 
 	diluxone_users_ui_field_open( (string) $field['label'], $id );
-	diluxone_users_field_input( $field, diluxone_users_value( $user_id, $field['key'] ), $id, $user_id );
+	diluxone_users_field_input( $field, diluxone_users_value( $user_id, $field['key'] ), $id, $user_id, (string) ( diluxone_users_phone_failed()[ $field['key'] ] ?? '' ) );
 	diluxone_users_ui_field_close( (string) $field['help'] );
 }
 
@@ -81,8 +81,9 @@ function diluxone_users_fields_block( int $user_id ): void {
  * @param string               $value   What is stored.
  * @param string               $id      The id the label points at; the key when empty.
  * @param int                  $user_id Whose field it is; the person looking when 0.
+ * @param string               $error   Why what was sent was refused, said under the control; a phone's length.
  */
-function diluxone_users_field_input( array $field, string $value, string $id = '', int $user_id = 0 ): void {
+function diluxone_users_field_input( array $field, string $value, string $id = '', int $user_id = 0, string $error = '' ): void {
 	$key           = $field['key'];
 	$id            = '' === $id ? $key : $id;
 	$required_attr = $field['required'] ? ' required' : '';
@@ -210,47 +211,99 @@ function diluxone_users_field_input( array $field, string $value, string $id = '
 
 			// On reading a stored value back it has to be split again. It is tried
 			// from the longest dialling code to the shortest because +1 and +1242
-			// coexist.
+			// coexist; between countries that share one (+1, +7, +44) the field's
+			// own come first. The number is then written as its country writes it.
 			if ( '' !== $value ) {
-				$digits = ltrim( $value, '+' );
-				$best   = 0;
+				$digits    = ltrim( $value, '+' );
+				$best      = 0;
+				$preferred = array_map( 'strtoupper', array_map( 'strval', (array) $field['options'] ) );
 
 				foreach ( diluxone_users_countries() as $iso => $data ) {
 					$len = strlen( $data[1] );
 
-					if ( $len > $best && 0 === strpos( $digits, $data[1] ) ) {
-						$best     = $len;
-						$dial     = $iso;
-						$national = substr( $digits, $len );
+					if ( 0 !== strpos( $digits, $data[1] ) || $len < $best ) {
+						continue;
 					}
+
+					if ( $len === $best && ( ! in_array( $iso, $preferred, true ) || in_array( $dial, $preferred, true ) ) ) {
+						continue;
+					}
+
+					$best     = $len;
+					$dial     = $iso;
+					$national = substr( $digits, $len );
+				}
+
+				if ( $best > 0 ) {
+					$national = diluxone_users_phone_format( $dial, $national );
 				}
 			}
 
-			echo '<span class="diluxone-users-phone">';
-			printf( '<select id="%1$s-dial" name="%2$s_dial" class="diluxone-users-phone__dial"%3$s>', esc_attr( $id ), esc_attr( $key ), esc_attr( $lock_sel ) );
+			// One box holding both, with the height and the border of every other
+			// input: the label points at the number, and the list says what it
+			// is itself. The script turns the list into a picker that can be
+			// searched (diluxone-users-phone.js); without it the list is what is
+			// there, and what is posted either way. The words the picker says
+			// travel with the box, translated here.
+			diluxone_users_phone_enqueue();
 
+			printf(
+				'<span class="diluxone-users-phone" data-diluxone-users-phone data-search="%1$s" data-list="%2$s" data-found="%3$s" data-none="%4$s" data-short="%5$s" data-long="%6$s">',
+				esc_attr__( 'Search for a country or a code', 'diluxone-users' ),
+				esc_attr__( 'Countries', 'diluxone-users' ),
+				/* translators: %d: how many countries match what was typed */
+				esc_attr__( 'Countries found: %d', 'diluxone-users' ),
+				esc_attr__( 'No country matches that.', 'diluxone-users' ),
+				esc_attr( diluxone_users_phone_message( 'short' ) ),
+				esc_attr( diluxone_users_phone_message( 'long' ) )
+			);
+			printf(
+				'<select id="%1$s-dial" name="%2$s_dial" class="diluxone-users-phone__dial" aria-label="%3$s"%4$s>',
+				esc_attr( $id ),
+				esc_attr( $key ),
+				esc_attr__( 'Country code', 'diluxone-users' ),
+				esc_attr( $lock_sel )
+			);
+
+			// Each country carries its rule, so the picker and the number need
+			// nothing else to search, group and check as the person types. The
+			// server reads its own table whatever these say.
 			foreach ( diluxone_users_countries_sorted( $field['options'] ) as $iso => $country_name ) {
+				$rule = diluxone_users_phone_rule( (string) $iso );
+
 				printf(
-					'<option value="%1$s"%2$s>%3$s +%4$s</option>',
+					'<option value="%1$s" data-dial="%4$s" data-min="%5$d" data-max="%6$d" data-group="%7$s" data-trunk="%8$s"%2$s>%3$s +%4$s</option>',
 					esc_attr( $iso ),
 					selected( $dial, $iso, false ),
 					esc_html( $country_name ),
-					esc_html( diluxone_users_country_dial( $iso ) )
+					esc_attr( diluxone_users_country_dial( $iso ) ),
+					(int) $rule['min'],
+					(int) $rule['max'],
+					esc_attr( $rule['group'] ),
+					esc_attr( $rule['trunk'] )
 				);
 			}
 
 			echo '</select>';
 
 			printf(
-				'<input type="tel" id="%1$s" name="%2$s" value="%3$s" inputmode="tel" class="diluxone-users-phone__number" autocomplete="tel-national"%4$s placeholder="%5$s">',
+				'<input type="tel" id="%1$s" name="%2$s" value="%3$s" inputmode="tel" class="diluxone-users-phone__number" autocomplete="tel-national"%4$s placeholder="%5$s"%6$s>',
 				esc_attr( $id ),
 				esc_attr( $key ),
 				esc_attr( $national ),
 				esc_attr( $required_attr . $lock ),
-				esc_attr( $placeholder )
+				esc_attr( $placeholder ),
+				'' === $error ? '' : ' aria-invalid="true" aria-describedby="' . esc_attr( $id . '-error' ) . '"'
 			);
 
 			echo '</span>';
+
+			// Why the form came back, under the number it is about. The script
+			// writes the same words here when the browser's own check stops a
+			// number before it is sent.
+			if ( '' !== $error ) {
+				printf( '<p class="diluxone-users-field__error" id="%1$s-error">%2$s</p>', esc_attr( $id ), esc_html( $error ) );
+			}
 			return;
 
 		case 'datalist':
@@ -294,6 +347,21 @@ function diluxone_users_field_input( array $field, string $value, string $id = '
 	);
 }
 
+/**
+ * The script that makes a phone field's country list a picker that can be
+ * searched, and groups the number as it is typed.
+ *
+ * Enqueued by the first phone drawn on a page, in the footer and with nothing
+ * it depends on; a page without a phone does not load it.
+ */
+function diluxone_users_phone_enqueue(): void {
+	if ( wp_script_is( 'diluxone-users-phone', 'enqueued' ) ) {
+		return;
+	}
+
+	wp_enqueue_script( 'diluxone-users-phone', DILUXONE_USERS_URL . 'assets/diluxone-users-phone.js', array(), diluxone_users_asset_version( 'assets/diluxone-users-phone.js' ), true );
+}
+
 /* ── The dashboard profile ─────────────────────────────────────────── */
 
 /**
@@ -329,10 +397,59 @@ function diluxone_users_profile_save( int $user_id ): void {
 		return;
 	}
 
-	diluxone_users_save( $user_id, diluxone_users_posted_fields( 'update-user_' . $user_id, '_wpnonce' ) );
+	$sent = diluxone_users_posted_fields( 'update-user_' . $user_id, '_wpnonce' );
+
+	// A phone the wrong length refuses the whole profile: nothing of the
+	// plugin's is saved here, and the error below stops WordPress saving its
+	// part (this runs before it does).
+	if ( array() !== diluxone_users_phone_codes( $sent, diluxone_users_fields() ) ) {
+		return;
+	}
+
+	diluxone_users_save( $user_id, $sent );
 }
 add_action( 'personal_options_update', 'diluxone_users_profile_save' );
 add_action( 'edit_user_profile_update', 'diluxone_users_profile_save' );
+
+/**
+ * A phone the wrong length, on the profile and on Users → Add New.
+ *
+ * WordPress gathers the errors of both screens here, before it saves
+ * anything or creates the account, and draws the same form again with them
+ * on top; the field says it again under the number.
+ *
+ * @param WP_Error         $errors The errors WordPress has gathered.
+ * @param bool             $update Whether a profile is being saved; false on Users → Add New.
+ * @param WP_User|stdClass $user   The person, or the one about to be.
+ */
+function diluxone_users_profile_phone_errors( $errors, $update, $user ): void {
+	$user_id = (int) ( $user->ID ?? 0 );
+	$action  = $update ? 'update-user_' . $user_id : 'create-user';
+	$nonce   = $update ? '_wpnonce' : '_wpnonce_create-user';
+
+	if ( ! $errors instanceof WP_Error || ! ( $update ? current_user_can( 'edit_user', $user_id ) : current_user_can( 'create_users' ) ) ) {
+		return;
+	}
+
+	$fields = diluxone_users_fields();
+	$wrong  = diluxone_users_phone_errors( diluxone_users_posted_fields( $action, $nonce ), $fields );
+	$labels = wp_list_pluck( $fields, 'label', 'key' );
+
+	foreach ( $wrong as $key => $message ) {
+		$errors->add(
+			'diluxone_users_' . $key,
+			sprintf(
+				/* translators: 1: field name, 2: what is wrong with it */
+				esc_html__( 'Error: “%1$s”: %2$s', 'diluxone-users' ),
+				esc_html( (string) ( $labels[ $key ] ?? $key ) ),
+				esc_html( $message )
+			)
+		);
+	}
+
+	diluxone_users_phone_failed( $wrong );
+}
+add_action( 'user_profile_update_errors', 'diluxone_users_profile_phone_errors', 10, 3 );
 
 /* ── Sign-up from the dashboard (Users → Add New) ──────────────────── */
 
@@ -447,6 +564,20 @@ function diluxone_users_register_validate( $errors, $login, $email ) {
 	}
 
 	$sent = diluxone_users_posted_fields( 'diluxone_users_wp_register', 'diluxone_users_wp_register_nonce' );
+
+	$labels = wp_list_pluck( $fields, 'label', 'key' );
+
+	foreach ( diluxone_users_phone_errors( $sent, $fields ) as $key => $message ) {
+		$errors->add(
+			'diluxone_users_' . $key . '_length',
+			sprintf(
+				/* translators: 1: field name, 2: what is wrong with it */
+				esc_html__( 'Error: “%1$s”: %2$s', 'diluxone-users' ),
+				esc_html( (string) ( $labels[ $key ] ?? $key ) ),
+				esc_html( $message )
+			)
+		);
+	}
 
 	foreach ( $fields as $field ) {
 		if ( ! $field['required'] ) {

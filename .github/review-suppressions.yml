@@ -120,6 +120,10 @@ suppressions:
     sniff: WordPress.Security.NonceVerification.Recommended
     fingerprint: 2e98e1460d8f
     reason: "The address to go on to after the step, read as a string, unslashed and passed through esc_url_raw(), then through wp_validate_redirect() on the next line, which keeps only the site's own hosts and falls back to home; it is only printed into the form as where to go, nothing is written, so there is no request to forge."
+  - file: includes/fields.php
+    sniff: WordPress.Security.NonceVerification.Recommended
+    fingerprint: 428ff2990656
+    reason: "GET parameters that only choose which fixed message is shown under which phone field after a refused save: the field key is sanitised and kept only when it is one of the phone fields being drawn, the code only picks between the two fixed messages (too long, too short), the number itself never travels in the address, and nothing is written or acted on, so there is no request to forge."
   - file: includes/log.php
     sniff: WordPress.DB.PreparedSQL.NotPrepared
     fingerprint: 1a04c64f06bb
@@ -168,6 +172,10 @@ suppressions:
     sniff: WordPress.Security.NonceVerification.Recommended
     fingerprint: c2d06b25d525
     reason: "A sign-in link opened from an e-mail by somebody not yet signed in cannot carry a nonce: the single-use token in it is the credential, hashed at rest, compared in constant time and deleted when used, before anything else is done."
+  - file: includes/login.php
+    sniff: WordPress.Security.NonceVerification.Recommended
+    fingerprint: e90027c10517
+    reason: "The link that finishes a sign-up is opened from an e-mail by somebody who has no account yet, so it cannot carry a nonce: the single-use token in it is the credential, hashed at rest, compared in constant time and deleted when used, before any account is created."
   - file: includes/membership.php
     sniff: WordPress.DB.PreparedSQL.NotPrepared
     fingerprint: ab524b8c3f81

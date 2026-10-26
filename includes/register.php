@@ -231,6 +231,15 @@ function diluxone_users_register_request(): void {
 		exit;
 	}
 
+	// A phone the wrong length for its country: no account yet, and the form
+	// says which field and why.
+	$wrong = diluxone_users_phone_codes( diluxone_users_register_answers( diluxone_users_posted_fields( 'diluxone_users_register', 'diluxone_users_register_nonce' ) ), diluxone_users_register_fields() );
+
+	if ( array() !== $wrong ) {
+		wp_safe_redirect( diluxone_users_phone_back( $back, $wrong ) );
+		exit;
+	}
+
 	if ( ! diluxone_users_register_allowed() ) {
 		wp_safe_redirect( add_query_arg( 'diluxone-users', 'slow', $back ) );
 		exit;

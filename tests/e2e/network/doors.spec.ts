@@ -127,13 +127,13 @@ test.describe('A site of the network has no sign-in of its own: its doors are th
 		expect(link.startsWith(hub.url), 'the link is the hub’s').toBe(true);
 		expect(new URL(link).pathname, 'the hub’s, not another site’s under the same host').not.toMatch(new RegExp(`^/(${alpha.slug}|${beta.slug})/`));
 		expect(link, 'and carries no address of where to go').not.toContain('redirect_to');
-		expect((await beta.site.user(email)).member, 'under “every site” the account the link request made is a member of every site').toBe(true);
+		expect((await hub.site.user(email)).exists, 'asking for the link makes no account: opening it does (#134)').toBe(false);
 
 		await page.goto(link);
 		await backOn(page, beta, 'the browser it was asked in comes back to /beta/');
 		expect(page.url()).toBe(beta.pages.login.url);
 		expect(await whoOn(page, beta.url)).toBe(email);
-		expect((await beta.site.user(email)).member).toBe(true);
+		expect((await beta.site.user(email)).member, 'under “every site” the account the link made is a member of every site').toBe(true);
 
 		// Asked from /beta/ and opened in another browser, which cannot know
 		// where the person came from: it lands on the hub, signed in.
@@ -403,11 +403,14 @@ test.describe('Who may join, and who may exist', () => {
 			await toTheHub(page, alpha, hub);
 			await askForLink(page, page.url(), email);
 
-			expect((await hub.site.user(email)).exists).toBe(true);
+			const link = linkIn(await waitForMail(hub.site, email));
 
-			await page.goto(linkIn(await waitForMail(hub.site, email)));
+			expect((await hub.site.user(email)).exists, 'asking makes no account yet (#134)').toBe(false);
+
+			await page.goto(link);
 			await backOn(page, alpha, 'back on /alpha/');
 			expect(await whoOn(page, alpha.url)).toBe(email);
+			expect((await hub.site.user(email)).exists, 'opening the link made it').toBe(true);
 			expect((await alpha.site.user(email)).member).toBe(true);
 		});
 	});

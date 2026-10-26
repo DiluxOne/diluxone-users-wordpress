@@ -36,8 +36,12 @@ test.describe('Answers said on the hub’s page', () => {
 		await askForLink(page, page.url(), email);
 		const link = linkIn(await waitForMail(hub.site, email));
 
+		// A new address: asking makes no account; opening the link does (#134).
+		expect((await hub.site.user(email)).exists, 'asking for the link must create no account').toBe(false);
+
 		await page.goto(link);
 		expect(await whoOn(page, beta.url)).toBe(email);
+		expect((await hub.site.user(email)).exists, 'opening the link creates the account').toBe(true);
 
 		const other = await (await browser.newContext()).newPage();
 

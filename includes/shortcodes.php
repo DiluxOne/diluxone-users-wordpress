@@ -183,10 +183,26 @@ function diluxone_users_save_fields_form(): void {
 
 	check_admin_referer( 'diluxone_users_fields_save' );
 
-	$group   = sanitize_key( wp_unslash( $_POST['diluxone_users_group'] ?? '' ) );
-	$missing = diluxone_users_save( get_current_user_id(), diluxone_users_posted_fields( 'diluxone_users_fields_save', '_wpnonce', $group ), $group );
-	$back    = wp_get_referer();
-	$back    = $back ? $back : home_url( '/' );
+	$group = sanitize_key( wp_unslash( $_POST['diluxone_users_group'] ?? '' ) );
+	$sent  = diluxone_users_posted_fields( 'diluxone_users_fields_save', '_wpnonce', $group );
+	$back  = wp_get_referer();
+	$back  = $back ? remove_query_arg( array( 'diluxone-users-field', 'diluxone-users-code' ), $back ) : home_url( '/' );
+
+	// A phone the wrong length for its country refuses the whole form, before
+	// anything on it is saved: back to it, saying which field and why. Back to
+	// the step after a sign-in when there is no page to go back to.
+	$wrong = diluxone_users_phone_codes( $sent, diluxone_users_fields( $group ) );
+
+	if ( array() !== $wrong ) {
+		if ( ! wp_get_referer() && isset( $_POST['diluxone_users_redirect'] ) && is_string( $_POST['diluxone_users_redirect'] ) ) {
+			$back = diluxone_users_ask_missing_step( diluxone_users_ask_missing_destination( esc_url_raw( wp_unslash( $_POST['diluxone_users_redirect'] ) ) ) );
+		}
+
+		wp_safe_redirect( diluxone_users_phone_back( $back, $wrong ) );
+		exit;
+	}
+
+	$missing = diluxone_users_save( get_current_user_id(), $sent, $group );
 
 	// The step after a sign-in carries where the person was going: they go
 	// on there once nothing required is missing, and back to the step if

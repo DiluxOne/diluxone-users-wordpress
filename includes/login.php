@@ -328,33 +328,95 @@ function diluxone_users_login_link( int $user_id, string $token ): string {
 }
 
 /**
- * Finds the account for the e-mail, or creates it if the site allows it.
+ * Finds the account for the e-mail. It never creates one.
  *
- * This is where "registration" and "sign-in" stop being two things: the
- * account is created in the same step, with no separate form and no password
- * to choose.
+ * Asking for a link proves nothing — anybody can type somebody else's
+ * address — so an address nobody has yet gets a pending sign-up instead
+ * (diluxone_users_signup_create()), and the account is created when the link
+ * is opened, which is what proves the address is theirs.
  *
- * @return int User ID, or 0 when it does not exist and cannot be created.
+ * @return int User ID, or 0 when there is no account with that address.
  */
 function diluxone_users_user_for( string $email ): int {
 	$user = get_user_by( 'email', $email );
 
-	if ( $user ) {
-		// On a network, existing is not being a member of this site. They are
-		// not made one here: asking for a link proves nothing, and anybody can
-		// type somebody else's address. diluxone_users_complete_login() adds
-		// them once they have come in.
-		return (int) $user->ID;
+	// On a network, existing is not being a member of this site. They are not
+	// made one here either: diluxone_users_complete_login() adds them once
+	// they have come in.
+	return $user ? (int) $user->ID : 0;
+}
+
+/** Prefix of the site transient that holds a pending sign-up. */
+const DILUXONE_USERS_SIGNUP_PREFIX = 'diluxone_users_signup_';
+
+/**
+ * Remembers a sign-up for an address nobody has yet, until its link is opened.
+ *
+ * Kept on the network, like the account it becomes, under a random key: what
+ * is stored is the address, the token's hash and when it runs out — the same
+ * as a sign-in link. The token in the clear exists only in the e-mail, and
+ * the address never travels in the link.
+ *
+ * @return array{id: string, token: string}
+ */
+function diluxone_users_signup_create( string $email ): array {
+	$id     = strtolower( wp_generate_password( 32, false, false ) );
+	$token  = wp_generate_password( 40, false, false );
+	$expiry = diluxone_users_login_expiry() * MINUTE_IN_SECONDS;
+
+	set_site_transient(
+		DILUXONE_USERS_SIGNUP_PREFIX . $id,
+		array(
+			'email'   => $email,
+			'hash'    => wp_hash( $token ),
+			'expires' => time() + $expiry,
+		),
+		$expiry
+	);
+
+	return array(
+		'id'    => $id,
+		'token' => $token,
+	);
+}
+
+/**
+ * Spends a pending sign-up and returns its address, or empty when it is no good.
+ *
+ * Like a sign-in link, the delete is the check: two requests carrying the
+ * same link can both find it valid; only one of them deletes it.
+ */
+function diluxone_users_signup_take( string $id, string $token ): string {
+	if ( '' === $id || '' === $token ) {
+		return '';
 	}
 
-	// Signing in only creates an account when that is how this site registers
-	// people. With a form of its own, or with registration closed, an address
-	// nobody has seen before is simply an address nobody has seen before.
-	if ( ! diluxone_users_link_registers() ) {
-		return 0;
+	$signup = get_site_transient( DILUXONE_USERS_SIGNUP_PREFIX . $id );
+
+	if ( ! is_array( $signup ) || ! isset( $signup['email'], $signup['hash'], $signup['expires'] ) ) {
+		return '';
 	}
 
-	return diluxone_users_create_account( $email );
+	if ( time() > (int) $signup['expires'] || ! hash_equals( (string) $signup['hash'], wp_hash( $token ) ) ) {
+		return '';
+	}
+
+	if ( ! delete_site_transient( DILUXONE_USERS_SIGNUP_PREFIX . $id ) ) {
+		return '';
+	}
+
+	return (string) $signup['email'];
+}
+
+/** URL of the link that finishes a pending sign-up. */
+function diluxone_users_signup_link( string $id, string $token ): string {
+	return add_query_arg(
+		array(
+			'diluxone_users_signup' => $id,
+			'diluxone_users_token'  => $token,
+		),
+		home_url( '/' )
+	);
 }
 
 /**
@@ -562,8 +624,16 @@ function diluxone_users_name_from_email( string $email ): string {
 
 /** Sends the e-mail with the link. */
 function diluxone_users_login_send( int $user_id, string $email, string $token ): bool {
-	$url = diluxone_users_login_link( $user_id, $token );
+	return diluxone_users_login_mail( $email, diluxone_users_login_link( $user_id, $token ) );
+}
 
+/** Sends the e-mail with the link that finishes a pending sign-up. */
+function diluxone_users_signup_send( string $email, string $id, string $token ): bool {
+	return diluxone_users_login_mail( $email, diluxone_users_signup_link( $id, $token ) );
+}
+
+/** Mails a link that signs somebody in, whether their account exists yet or not. */
+function diluxone_users_login_mail( string $email, string $url ): bool {
 	/*
 	 * The link is not written anywhere on the way out, and that includes the
 	 * error log on a site that is not production. It is a credential: whoever
@@ -645,7 +715,10 @@ function diluxone_users_login_burst(): int {
 /**
  * Handles the "send me the link" form.
  *
- * It always answers the same thing, whatever happened.
+ * It always answers the same thing, whatever happened. It creates no account:
+ * for an address nobody has, where the link creates accounts, it mails the
+ * link of a pending sign-up, and the account is created when that link is
+ * opened.
  */
 function diluxone_users_login_request(): void {
 	$redirect = diluxone_users_login_url();
@@ -723,8 +796,8 @@ function diluxone_users_login_request(): void {
 
 	set_site_transient( $throttle, 1, max( 1, (int) diluxone_users_option( 'diluxone_users_login_throttle' ) ) );
 
-	// An address nobody has seen before is an account about to be created,
-	// and accounts are counted per machine, on the same count the
+	// An address nobody has seen before is a sign-up about to be mailed, an
+	// account once its link is opened, and accounts are counted per machine, on the same count the
 	// registration form uses: a script typing a new address each time gets
 	// a new throttle key each time, and only the count per machine stops it
 	// — from filling the users table, and from mailing a link to every
@@ -739,6 +812,13 @@ function diluxone_users_login_request(): void {
 
 	if ( $user_id > 0 ) {
 		diluxone_users_login_send( $user_id, $email, diluxone_users_token_create( $user_id ) );
+	} elseif ( diluxone_users_link_registers() && diluxone_users_network_takes_accounts() ) {
+		// No account is created here: the link mailed is a pending sign-up,
+		// and the account is created when it is opened
+		// (diluxone_users_signup_consume()), since opening it is what proves
+		// the address belongs to whoever typed it.
+		$signup = diluxone_users_signup_create( $email );
+		diluxone_users_signup_send( $email, $signup['id'], $signup['token'] );
 	}
 
 	wp_safe_redirect( $done );
@@ -787,3 +867,55 @@ function diluxone_users_login_consume(): void {
 	diluxone_users_complete_login( $user_id, 'link', true, $redirect );
 }
 add_action( 'init', 'diluxone_users_login_consume' );
+
+/**
+ * Consumes the link of a pending sign-up: validates it, spends it, creates the
+ * account and signs it in.
+ *
+ * The doors are asked again, not remembered from when the link was mailed:
+ * an administrator who stops the link creating accounts, or a network that
+ * stops taking them, closes the links already in somebody's inbox too.
+ */
+function diluxone_users_signup_consume(): void {
+	// phpcs:disable WordPress.Security.NonceVerification.Recommended -- the token IS the credential.
+	if ( ! isset( $_GET['diluxone_users_signup'], $_GET['diluxone_users_token'] ) || ! is_string( $_GET['diluxone_users_signup'] ) || ! is_string( $_GET['diluxone_users_token'] ) ) {
+		return;
+	}
+
+	$id    = sanitize_key( wp_unslash( $_GET['diluxone_users_signup'] ) );
+	$token = sanitize_text_field( wp_unslash( $_GET['diluxone_users_token'] ) );
+	// phpcs:enable
+
+	$expired = add_query_arg( 'diluxone-users', 'expired', diluxone_users_login_url() );
+
+	if ( ! diluxone_users_link_registers() || ! diluxone_users_network_takes_accounts() ) {
+		wp_safe_redirect( $expired );
+		exit;
+	}
+
+	$email = diluxone_users_signup_take( $id, $token );
+
+	if ( '' === $email ) {
+		wp_safe_redirect( $expired );
+		exit;
+	}
+
+	// Somebody may have registered the address in the meantime, through any
+	// door: then it is theirs, and the link they just proved signs them in.
+	$user_id = diluxone_users_user_for( $email );
+
+	if ( $user_id <= 0 ) {
+		$user_id = diluxone_users_create_account( $email );
+	}
+
+	if ( $user_id <= 0 ) {
+		wp_safe_redirect( $expired );
+		exit;
+	}
+
+	/** This filter is documented in diluxone_users_login_consume(). */
+	$redirect = (string) apply_filters( 'diluxone_users_login_redirect', home_url( '/' ), $user_id );
+
+	diluxone_users_complete_login( $user_id, 'link', true, $redirect );
+}
+add_action( 'init', 'diluxone_users_signup_consume' );
