@@ -4,6 +4,8 @@
  *
  * What it is given, in `$args`: `user`, the account.
  *
+ * @var array{user: WP_User} $args
+ *
  * @package DiluxOneUsers
  */
 
@@ -13,7 +15,7 @@ defined( 'ABSPATH' ) || exit;
 // note, so its heading never stands with nothing visible under it.
 $diluxone_users_all_linked = array() === array_diff_key(
 	diluxone_users_sso_available(),
-	array_flip( diluxone_users_sso_linked( (int) $args['user']->ID ) )
+	array_flip( diluxone_users_sso_linked( $args['user']->ID ) )
 );
 ?>
 
