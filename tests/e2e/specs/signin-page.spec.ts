@@ -52,6 +52,7 @@ const MESSAGES: Array<{ key: string; tone: 'ok' | 'error'; screen: 'login' | 'tw
 	{ key: 'register_slow', tone: 'error', screen: 'register', state: 'slow' },
 	{ key: 'register_closed', tone: 'error', screen: 'register', state: 'closed' },
 	{ key: 'register_error', tone: 'error', screen: 'register', state: 'error' },
+	{ key: 'register_phone', tone: 'error', screen: 'register', state: 'phone' },
 ];
 
 /** A page address with a state added. */

@@ -842,6 +842,13 @@ function diluxone_users_sso_handle( $wp = null ): void {
 			diluxone_users_sso_popup_catch( $id, $popup );
 		}
 
+		// The provider's own code, never its free-text description: that one
+		// is whatever the provider wrote, and the log keeps short slugs. OAuth's
+		// codes are a few words long; anything longer is cut, so a stranger's
+		// return cannot fill the row with a URL's worth of text.
+		$error = substr( sanitize_key( diluxone_users_sso_param( 'error' ) ), 0, 64 );
+
+		diluxone_users_sso_log_refused( $id, 'access_denied' === $error ? 'cancelled' : $error );
 		diluxone_users_sso_fail();
 	}
 
@@ -870,6 +877,7 @@ function diluxone_users_sso_handle( $wp = null ): void {
 	}
 
 	if ( ! is_array( $stored ) || ( $stored['provider'] ?? '' ) !== $id ) {
+		diluxone_users_sso_log_refused( $id, 'state' );
 		diluxone_users_sso_fail();
 	}
 
@@ -877,6 +885,7 @@ function diluxone_users_sso_handle( $wp = null ): void {
 	// person — or the same nobody — that was signed in when it left. See
 	// diluxone_users_sso_authorize() for what each of the two stops.
 	if ( ! diluxone_users_sso_same_browser( $stored ) || (int) ( $stored['user'] ?? -1 ) !== get_current_user_id() ) {
+		diluxone_users_sso_log_refused( $id, 'browser' );
 		diluxone_users_sso_fail();
 	}
 
@@ -886,6 +895,7 @@ function diluxone_users_sso_handle( $wp = null ): void {
 	// and the return signs nobody in. The test does go on: it is precisely the
 	// step before turning it on.
 	if ( ! $is_test && ! diluxone_users_sso_ready( $id ) ) {
+		diluxone_users_sso_log_refused( $id, 'off' );
 		diluxone_users_sso_fail();
 	}
 
@@ -896,6 +906,7 @@ function diluxone_users_sso_handle( $wp = null ): void {
 			diluxone_users_sso_test_result( $provider, false, __( 'The provider did not hand over an access token. Check the client ID and the secret.', 'diluxone-users' ) );
 		}
 
+		diluxone_users_sso_log_refused( $id, 'token' );
 		diluxone_users_sso_fail();
 	}
 
@@ -950,6 +961,7 @@ function diluxone_users_sso_handle( $wp = null ): void {
 	$user_id = diluxone_users_sso_user( $id, $identity );
 
 	if ( $user_id <= 0 ) {
+		diluxone_users_sso_log_refused( $id, 'account' );
 		diluxone_users_sso_fail();
 	}
 
@@ -978,6 +990,29 @@ function diluxone_users_sso_same_browser( array $stored ): bool {
 	$cookie = isset( $_COOKIE[ $name ] ) ? sanitize_text_field( wp_unslash( $_COOKIE[ $name ] ) ) : '';
 
 	return '' !== $cookie && hash_equals( (string) ( $stored['browser'] ?? '' ), wp_hash( $cookie ) );
+}
+
+/**
+ * Records a return from a provider that signed nobody in.
+ *
+ * The visitor only gets the one notice; the administrator gets the row, with
+ * the network and why. Never the code nor the state: the row says what went
+ * wrong, not what would have let somebody in. The account is 0 for the same
+ * reason as a refused password sign-in: nobody signed in.
+ *
+ * @param string $id     The network's slug.
+ * @param string $reason Why, as a slug: cancelled, state, browser, off, token, account or the provider's error.
+ */
+function diluxone_users_sso_log_refused( string $id, string $reason ): void {
+	diluxone_users_log_record(
+		'sign_in_failed',
+		0,
+		array(
+			'via'      => 'sso',
+			'provider' => $id,
+			'reason'   => $reason,
+		)
+	);
 }
 
 /**
