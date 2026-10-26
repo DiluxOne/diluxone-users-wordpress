@@ -153,6 +153,21 @@ function diluxone_users_wp_login_states( $errors ) {
 		if ( '' !== $text ) {
 			$errors->add( 'diluxone_users_expired', esc_html( $text ) );
 		}
+	} elseif ( 'social-pending' === $state ) {
+		// Back from a social network that did not confirm the address, on a
+		// site with no sign-in page of its own (sso-pending.php).
+		$shown = diluxone_users_sso_pending_shown();
+
+		$errors->add(
+			'diluxone_users_social_pending',
+			esc_html(
+				'' !== $shown
+					/* translators: %s: the email address, partly hidden */
+					? sprintf( __( 'The social network did not confirm your email, so we sent a link to %s. Open it in this browser to confirm the address and you are in.', 'diluxone-users' ), $shown )
+					: __( 'The social network did not confirm your email, so we sent a link to it. Open it in this browser to confirm the address and you are in.', 'diluxone-users' )
+			),
+			'message'
+		);
 	}
 
 	return $errors;

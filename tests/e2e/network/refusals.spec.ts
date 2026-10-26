@@ -533,7 +533,7 @@ test.describe('Every network door that writes refuses what it should', () => {
 /* ── The account forms, posted to another site ─────────────────────── */
 
 /**
- * The twelve actions the hub owns (diluxone_users_hub_posts()), each posted to
+ * The actions the hub owns (diluxone_users_hub_posts()), each posted to
  * /beta/'s admin-post.php: sent to the hub — its sign-in page for a stranger,
  * the account for somebody signed in — before the handler reads a byte, and
  * nothing written. Sent with the member's own valid nonce, which is the
@@ -541,6 +541,7 @@ test.describe('Every network door that writes refuses what it should', () => {
  */
 const HUB_POSTS: Array<{ action: string; nonce: string; field?: string; fields: Record<string, string> }> = [
 	{ action: 'diluxone_users_link_request', nonce: 'diluxone_users_login', field: 'diluxone_users_nonce', fields: { diluxone_users_email: '' } },
+	{ action: 'diluxone_users_sso_resend', nonce: 'diluxone_users_sso_resend', field: 'diluxone_users_nonce', fields: {} },
 	{ action: 'diluxone_users_signup', nonce: 'diluxone_users_register', field: 'diluxone_users_register_nonce', fields: { diluxone_users_email: '' } },
 	{ action: 'diluxone_users_reset', nonce: 'diluxone_users_reset', field: 'diluxone_users_reset_nonce', fields: { pass1: 'e2e-Hacked-9!', pass2: 'e2e-Hacked-9!' } },
 	{ action: 'diluxone_users_avatar', nonce: 'diluxone_users_avatar', fields: { diluxone_users_avatar_remove: '1' } },

@@ -426,6 +426,7 @@ add_filter( 'diluxone_users_sso_providers', function ( array $providers ): array
         'scope'      => 'openid email profile',
         'extra'      => array(),                                  // optional: odd parameters the provider wants
         'pkce'       => false,                                    // optional: true when it requires PKCE
+        'pkce_support' => true,                                   // optional: true when it accepts PKCE (false if left out)
         'token_auth' => 'post',                                   // optional: 'basic' when it wants the secret in a Basic header
         'map'        => 'diluxone_users_sso_map_oidc',            // optional: reads the profile (below)
         'console'    => 'https://id.acme.example/developers',     // optional: where the application is made
@@ -442,6 +443,15 @@ the code is exchanged: `post` (the default) sends the client ID and the secret
 in the body, `basic` sends them in an HTTP Basic `Authorization` header and
 leaves the secret out of the body, for a provider that accepts only that.
 
+PKCE (S256) is per provider. A row with `pkce_support` true gets a "Use PKCE"
+box on its Settings tab, ticked until an administrator unticks it, and its
+trip sends `code_challenge` and the exchange `code_verifier` while it is
+ticked; Google and Microsoft are such rows. A row that leaves it out is never
+sent PKCE and its box is locked, saying the provider does not support it. A
+row with `pkce` true requires it: it is always sent, and the box is ticked and
+locked. `diluxone_users_sso_pkce( $id, $row )` says whether a provider's trip
+uses it.
+
 `map` is a callable that receives the profile (decoded JSON) and the access
 token and returns `id`, `email`, `name` (the first name), `last_name` and
 `verified` (true, false, or null when the provider does not say);
@@ -449,6 +459,15 @@ token and returns `id`, `email`, `name` (the first name), `last_name` and
 is what a row without a `map` gets. A field left out is filled in with an
 empty value of its type, so a provider missing one does not work rather than
 breaking the page.
+
+What `verified` decides: an existing account is handed over on a `true`
+only, and with "Only verified addresses" on (the default) an address the
+provider answered `null` or `false` for is confirmed by mail before anything
+is created or linked (`includes/sso-pending.php`). The sign-in page then
+shows its `social-pending` state, the mail goes through
+`diluxone_users_sso_confirm_email` (see [E-mails](#e-mails)), and opening the
+link, in the browser that went to the provider and nowhere else, ends in `diluxone_users_complete_login()` with `via` `sso`, like any
+social sign-in. A provider that does vouch for its addresses never meets it.
 
 Its icon goes through `diluxone_users_sso_icon_paths`, and the step-by-step
 for its console through `diluxone_users_sso_guides`. It then appears on the
@@ -839,7 +858,11 @@ marked as required. Once it is signed in, it is sent first to the account
 page with `?diluxone-users-complete=1&redirect_to=<where it was going>`,
 which draws only those fields (`templates/fields.php`, the same form, checks
 and save as Details) in place of the sections and their nav, with a "Skip
-for now" link. Saved with nothing required still missing, it goes on to
+for now" link. The step is drawn in the account area's own frame (the
+classes of `diluxone_users_account_classes` with the layout `none` and no
+header, and the properties of `diluxone_users_account_style`), so it follows
+the width setting and a shape's stylesheet; it prints its own title, then its
+line, and asks `templates/fields.php` for no title. Saved with nothing required still missing, it goes on to
 `redirect_to`, checked with `wp_validate_redirect()` against the site's (and,
 on a network, the network's) hosts. Nothing is stored about the person: it is
 decided again at every sign-in, and no other request is held up.
@@ -1171,6 +1194,10 @@ optional and read with a default, so a copy made before it keeps working:
 `templates/fields.php` takes `redirect` (where its save goes on to) and
 `skip` (a "Skip for now" link), both used by the step that asks for the
 required fields missing after a sign-in.
+`templates/login.php` has a `social-pending` state, the holding screen of a
+social sign-in waiting on its address: `$args['email']` is then that address
+already masked (`a•••@e•••.com`), and the form posts `diluxone_users_sso_resend`
+with a `diluxone_users_sso_resend` nonce in `diluxone_users_nonce`.
 
 A template escapes what it prints, line by line, and a copy in a theme has to
 do the same. To draw one of the plugin's templates from code,
@@ -1192,6 +1219,11 @@ the screen, the per-language rewrite and the way back to its own words.
 `diluxone_users_notification` filters a notice — the new-device and
 security-change e-mails — right before it is sent, with the subject and body,
 the user and the notice's key.
+`diluxone_users_login_email` filters the sign-in link's message (subject and
+body, the address, the link), and `diluxone_users_sso_confirm_email` the
+message that confirms a social account's address by mail, with the same
+three and the provider's name: both run after the site's rewrite, right
+before the mail is sent.
 
 A notice is written in the language of the person it goes to — their own
 language on their profile, or the site's — whoever's request sent it: the

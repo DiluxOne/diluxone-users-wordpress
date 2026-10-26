@@ -106,13 +106,16 @@ function diluxone_users_shortcode_login( $atts = array() ): string {
 		return $frame . diluxone_users_render( 'login-2fa', array_merge( $challenge, array( 'state' => diluxone_users_state() ) ) ) . $close;
 	}
 
-	$email = diluxone_users_sent_address();
+	// Waiting on a social account's address, the address the screen shows is
+	// that one, already masked (sso-pending.php), not what was typed.
+	$state = diluxone_users_state();
+	$email = 'social-pending' === $state ? diluxone_users_sso_pending_shown() : diluxone_users_sent_address();
 	$atts  = shortcode_atts( array( 'title' => 'no' ), (array) $atts, 'diluxone_users_login' );
 
 	return $frame . diluxone_users_render(
 		'login.php',
 		array(
-			'state'     => diluxone_users_state(),
+			'state'     => $state,
 			'email'     => $email,
 			'providers' => diluxone_users_sso_for_login(),
 			'minutes'   => diluxone_users_login_expiry(),

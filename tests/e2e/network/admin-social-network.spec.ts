@@ -19,7 +19,7 @@ const ID = 'e2e-net-client-id';
 const SECRET = 'e2e-net-client-secret';
 const PASSWORD = 'e2e-Net-Social-1!';
 
-type Stored = { active?: number; id?: string; secret?: string; tested?: number };
+type Stored = { active?: number; id?: string; secret?: string; tested?: number; pkce?: number };
 
 const provider = (tab = '') => networkScreen(NETWORK_URL, SOCIAL, undefined, tab ? { provider: 'mock', tab } : { provider: 'mock' });
 const grid = () => networkScreen(NETWORK_URL, SOCIAL);
@@ -55,7 +55,7 @@ test.describe('Network Admin › Social login › a provider', () => {
 		await page.locator('input[name="diluxone_users_client_secret"]').fill(SECRET);
 		await savePanel(page);
 
-		expect(await stored(alpha), '/alpha/ reads the network’s credentials').toEqual({ active: 0, id: ID, secret: SECRET, tested: 0 });
+		expect(await stored(alpha), '/alpha/ reads the network’s credentials').toEqual({ active: 0, id: ID, secret: SECRET, tested: 0, pkce: 1 });
 		await expect(page.locator('input[name="diluxone_users_client_secret"]')).toHaveValue('');
 		expect(await page.content()).not.toContain(SECRET);
 
@@ -63,6 +63,12 @@ test.describe('Network Admin › Social login › a provider', () => {
 		await page.goto(provider('settings'));
 		await savePanel(page);
 		expect((await stored(alpha))?.secret).toBe(SECRET);
+
+		// "Use PKCE", ticked with nothing saved, unticked there: off for every site.
+		await expect(page.locator('input[name="diluxone_users_pkce"]')).toBeChecked();
+		await page.locator('input[name="diluxone_users_pkce"]').uncheck();
+		await savePanel(page);
+		expect((await stored(alpha))?.pkce, '/alpha/ reads it off').toBe(0);
 	});
 
 	test('the live test from Network Admin goes round through the hub, marks it tested, and turning it on puts the button on the hub’s sign-in', async ({
@@ -196,7 +202,7 @@ test.describe('Network Admin › Social login › Rules', () => {
 		expect(await whoOn(guest, beta.url)).toBe(email);
 	});
 
-	test('“refuse when the e-mail is not said to be verified” saved there: a provider that says nothing creates nobody from /alpha/', async ({
+	test('“only verified addresses” saved there: a provider that says nothing creates nobody from /alpha/ until the address is confirmed by mail', async ({
 		page,
 		guest,
 		hub,

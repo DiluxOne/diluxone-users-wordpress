@@ -7,8 +7,8 @@
  *
  * What it is given, in `$args`:
  *
- * - `state`     What happened ('sent', 'expired', 'email', 'error', 'social', 'confirm', 'closed').
- * - `email`     What the person typed to ask for the link.
+ * - `state`     What happened ('sent', 'social-pending', 'expired', 'email', 'error', 'social', 'confirm', 'closed').
+ * - `email`     On 'sent', what the person typed to ask for the link; on 'social-pending', the social account's address, masked.
  * - `providers` Available networks, for a theme that draws its own.
  * - `minutes`   How long the link is good for.
  * - `title`     Whether to draw the "Sign in" heading.
@@ -63,6 +63,49 @@ defined( 'ABSPATH' ) || exit;
 		<p class="diluxone-users-login__again">
 			<a class="diluxone-users-button diluxone-users-button--soft diluxone-users-button--wide" href="<?php echo esc_url( diluxone_users_login_url() ); ?>">
 				<?php esc_html_e( 'Use a different address', 'diluxone-users' ); ?>
+			</a>
+		</p>
+
+		<p class="diluxone-users-note diluxone-users-note--icon">
+			<?php echo wp_kses( diluxone_users_icon( 'info' ), diluxone_users_allowed_html() ); ?>
+			<span><?php echo esc_html( diluxone_users_text( 'diluxone_users_sent_note', __( 'Did not arrive? Check your spam or promotions folder.', 'diluxone-users' ) ) ); ?></span>
+		</p>
+
+	<?php elseif ( 'social-pending' === $args['state'] ) : ?>
+
+		<?php
+		/*
+		 * Back from a social network that did not confirm the address, on a
+		 * site that asks for confirmed ones: nothing is created or linked
+		 * until the link mailed to it is opened. The address is masked — it
+		 * came from the provider, not from what this person typed.
+		 */
+		?>
+		<p class="diluxone-users-login__icon <?php echo 'circle' === diluxone_users_option( 'diluxone_users_sent_icon' ) ? 'diluxone-users-login__icon--circle' : ''; ?>"><?php echo wp_kses( diluxone_users_icon( 'mail' ), diluxone_users_allowed_html() ); ?></p>
+		<h2 class="diluxone-users-login__title"><?php esc_html_e( 'Confirm your email', 'diluxone-users' ); ?></h2>
+		<p><?php esc_html_e( 'The social network did not confirm your email, so we sent a link to', 'diluxone-users' ); ?></p>
+		<?php if ( '' !== $args['email'] ) : ?>
+			<p class="diluxone-users-login__email"><strong><?php echo esc_html( $args['email'] ); ?></strong></p>
+		<?php endif; ?>
+		<p class="diluxone-users-note">
+			<?php
+			printf(
+				/* translators: %d: how many minutes the link lasts */
+				esc_html__( 'Open it in this browser to confirm the address and you are in. It expires in %d minutes and works once.', 'diluxone-users' ),
+				(int) $args['minutes']
+			);
+			?>
+		</p>
+
+		<form class="diluxone-users-form diluxone-users-login__again" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+			<input type="hidden" name="action" value="diluxone_users_sso_resend">
+			<?php wp_nonce_field( 'diluxone_users_sso_resend', 'diluxone_users_nonce' ); ?>
+			<button type="submit" class="diluxone-users-button diluxone-users-button--wide"><?php esc_html_e( 'Send it again', 'diluxone-users' ); ?></button>
+		</form>
+
+		<p class="diluxone-users-login__again">
+			<a class="diluxone-users-button diluxone-users-button--soft diluxone-users-button--wide" href="<?php echo esc_url( diluxone_users_login_url() ); ?>">
+				<?php esc_html_e( 'Use another address', 'diluxone-users' ); ?>
 			</a>
 		</p>
 

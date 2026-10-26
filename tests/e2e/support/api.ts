@@ -205,8 +205,8 @@ export class Site {
 		return this.call('post', '/log', { rows });
 	}
 
-	/** Moves a deadline into the past: 'link', '2fa' or 'resend'. */
-	expire(email: string, what: 'link' | '2fa' | 'resend'): Promise<unknown> {
+	/** Moves a deadline into the past: 'link', '2fa', 'resend' or 'sso-pending' (a social sign-in waiting on its address). */
+	expire(email: string, what: 'link' | '2fa' | 'resend' | 'sso-pending'): Promise<unknown> {
 		return this.call('post', '/expire', { email, what });
 	}
 }
