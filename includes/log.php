@@ -443,12 +443,13 @@ function diluxone_users_log_site_name( int $site ): string {
 /* ── What there is to record ───────────────────────────────────────── */
 
 /**
- * The three groups, each a tick box on the settings tab.
+ * The four groups, each a tick box on the settings tab.
  *
  * They are groups and not thirteen separate switches because nobody wants to
  * answer thirteen questions about a log: what a site decides is whether it
- * cares about the door, about what people change in their account, or about
- * what they change in their security. `writes` is the half of the answer that
+ * cares about the door, about what people change in their account, about
+ * what they change in their security, or about the social sign-ins that
+ * failed. `writes` is the half of the answer that
  * is usually missing — roughly how many rows this group costs — and it is said
  * per group because that is the unit somebody is ticking.
  *
@@ -471,6 +472,11 @@ function diluxone_users_log_groups(): array {
 			'help'   => __( 'Two-step verification turned on or off, a way in added or removed, sessions closed.', 'diluxone-users' ),
 			'writes' => __( 'Almost nothing, and it is the group worth having when an account is taken over.', 'diluxone-users' ),
 		),
+		'social'   => array(
+			'label'  => __( 'Social sign-in failures', 'diluxone-users' ),
+			'help'   => __( 'Every return from a social network that signed nobody in, with the network and why. Already part of the ways in and out; this keeps them on their own.', 'diluxone-users' ),
+			'writes' => __( 'Only the failures: a few rows a day while a network is being set up, and almost nothing once it works.', 'diluxone-users' ),
+		),
 	);
 }
 
@@ -491,6 +497,7 @@ function diluxone_users_log_events(): array {
 		'signed_out'       => 'access',
 		'sign_in_failed'   => 'access',
 		'2fa_failed'       => 'access',
+		'sso_failed'       => 'social',
 		'email_changed'    => 'account',
 		'password_changed' => 'account',
 		'name_changed'     => 'account',
@@ -505,7 +512,7 @@ function diluxone_users_log_events(): array {
 	 *
 	 * An add-on that reports events of its own through
 	 * `diluxone_users_log_record()` adds them here, each in one of the
-	 * groups a site ticks (`access`, `account` or `security`); an event in no
+	 * groups a site ticks (`access`, `account`, `security` or `social`); an event in no
 	 * group that exists is never written. The plugin's own are kept as they
 	 * are.
 	 *
@@ -540,6 +547,7 @@ function diluxone_users_log_labels(): array {
 		'signed_out'       => __( 'Signed out', 'diluxone-users' ),
 		'sign_in_failed'   => __( 'Sign-in refused', 'diluxone-users' ),
 		'2fa_failed'       => __( 'Second step refused', 'diluxone-users' ),
+		'sso_failed'       => __( 'Social sign-in refused', 'diluxone-users' ),
 		'email_changed'    => __( 'E-mail address changed', 'diluxone-users' ),
 		'password_changed' => __( 'Password changed', 'diluxone-users' ),
 		'name_changed'     => __( 'Public name changed', 'diluxone-users' ),
@@ -608,6 +616,14 @@ function diluxone_users_log_records( string $event ): bool {
 		return false;
 	}
 
+	$on = diluxone_users_log_levels();
+
+	// Ways in and out are every attempt that was refused, social ones too:
+	// `social` is the switch for keeping those alone, not a hole in `access`.
+	if ( in_array( 'access', $on, true ) ) {
+		$on[] = 'social';
+	}
+
 	/**
 	 * Filters whether one event is recorded.
 	 *
@@ -623,7 +639,7 @@ function diluxone_users_log_records( string $event ): bool {
 	 */
 	return (bool) apply_filters(
 		'diluxone_users_log_records',
-		in_array( $events[ $event ], diluxone_users_log_levels(), true ),
+		in_array( $events[ $event ], $on, true ),
 		$event,
 		$events[ $event ]
 	);

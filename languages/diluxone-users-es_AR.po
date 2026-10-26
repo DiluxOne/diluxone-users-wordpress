@@ -758,29 +758,29 @@ msgstr "días"
 msgid "In their account"
 msgstr "En su cuenta"
 
-#: includes/admin-log.php:623
-#: includes/admin-log.php:665
+#: includes/admin-log.php:629
+#: includes/admin-log.php:671
 #: includes/admin-sessions.php:275
 #: includes/admin-sessions.php:277
 msgid "Search"
 msgstr "Buscar"
 
-#: includes/admin-log.php:624
+#: includes/admin-log.php:630
 #: includes/admin-sessions.php:276
 msgid "Email, username or name…"
 msgstr "Correo, usuario o nombre…"
 
-#: includes/admin-log.php:679
+#: includes/admin-log.php:685
 #: includes/admin-sessions.php:291
 msgid "Clear"
 msgstr "Limpiar"
 
-#: includes/admin-log.php:682
+#: includes/admin-log.php:688
 #: includes/admin-sessions.php:294
 msgid "Show"
 msgstr "Mostrar"
 
-#: includes/admin-log.php:688
+#: includes/admin-log.php:694
 #: includes/admin-sessions.php:300
 msgid "per page"
 msgstr "por página"
@@ -795,7 +795,7 @@ msgstr "Actualizar"
 msgid "%1$s people with an open session · page %2$d of %3$d"
 msgstr "%1$s personas con la sesión abierta · página %2$d de %3$d"
 
-#: includes/admin-log.php:725
+#: includes/admin-log.php:731
 #: includes/admin-sessions.php:337
 msgid "Person"
 msgstr "Persona"
@@ -808,13 +808,13 @@ msgstr "Último ingreso"
 msgid "Expires"
 msgstr "Vence"
 
-#: includes/admin-log.php:728
+#: includes/admin-log.php:734
 #: includes/admin-sessions.php:341
 #: includes/log-privacy.php:84
 msgid "IP"
 msgstr "IP"
 
-#: includes/admin-log.php:729
+#: includes/admin-log.php:735
 #: includes/admin-sessions.php:342
 #: includes/log-privacy.php:88
 msgid "Device"
@@ -1168,8 +1168,8 @@ msgstr "Pegá esto en un pedido de soporte y te ahorrás la mitad de las idas y 
 #: includes/admin-account.php:638
 #: includes/admin-account.php:713
 #: includes/admin-account.php:737
-#: includes/admin-log.php:815
-#: includes/admin-log.php:846
+#: includes/admin-log.php:821
+#: includes/admin-log.php:852
 #: includes/admin-membership.php:394
 #: includes/admin-panels.php:158
 #: includes/admin-social.php:1037
@@ -1813,55 +1813,55 @@ msgstr "Copiá el \"Valor\" del secreto, no su \"Id. de secreto\". El valor se m
 msgid "The openid, email and profile permissions are already there by default — you do not have to add anything under “API permissions”."
 msgstr "Los permisos openid, email y profile ya vienen por defecto: no hace falta agregar nada en \"Permisos de API\"."
 
-#: includes/sso.php:980
+#: includes/sso.php:1027
 msgid "The provider did not hand over an access token. Check the client ID and the secret."
 msgstr "El proveedor no entregó un token de acceso. Revisá el ID de cliente y el secreto."
 
-#: includes/sso.php:992
+#: includes/sso.php:1039
 msgid "The token worked but the profile came back empty. The app is probably missing the permissions this provider needs."
 msgstr "El token funcionó pero el perfil volvió vacío. Lo más probable es que a la aplicación le falten los permisos que pide este proveedor."
 
 #. translators: %s: name of the social network
-#: includes/sso.php:1025
+#: includes/sso.php:1072
 #, php-format
 msgid "The %s account was linked, and it now gets into this account."
 msgstr "Se vinculó la cuenta de %s, y ahora entra a esta cuenta."
 
 #. translators: %s: name of the social network
-#: includes/sso.php:1126
+#: includes/sso.php:1174
 #, php-format
 msgid "The %s account was unlinked."
 msgstr "Se desvinculó la cuenta de %s."
 
-#: includes/sso.php:1167
+#: includes/sso.php:1215
 msgid "It works"
 msgstr "Funciona"
 
-#: includes/sso.php:1168
+#: includes/sso.php:1216
 msgid "It did not work"
 msgstr "No funcionó"
 
 #. translators: %s: provider name
-#: includes/sso.php:1173
+#: includes/sso.php:1221
 #, php-format
 msgid "The round trip with %s finished correctly. You can enable the button now."
 msgstr "El ida y vuelta con %s terminó bien. Ya podés prender el botón."
 
 #. translators: %s: provider name
-#: includes/sso.php:1178
+#: includes/sso.php:1226
 #, php-format
 msgid "The round trip with %s failed."
 msgstr "El ida y vuelta con %s falló."
 
 #. translators: %s: e-mail address
-#: includes/sso.php:1184
+#: includes/sso.php:1232
 #, php-format
 msgid "The provider handed over this email: %s"
 msgstr "El proveedor entregó este correo: %s"
 
 #: includes/admin-fields.php:706
 #: includes/admin-panels.php:841
-#: includes/sso.php:1209
+#: includes/sso.php:1257
 #: templates/sessions.php:67
 msgid "Close"
 msgstr "Cerrar"
@@ -4546,50 +4546,50 @@ msgid "Social account"
 msgstr "Cuenta social"
 
 #. translators: %s: how many sessions were closed at once.
-#: includes/admin-log.php:476
+#: includes/admin-log.php:482
 #, php-format
 msgid "%s closed"
 msgstr "%s cerradas"
 
-#: includes/admin-log.php:615
+#: includes/admin-log.php:621
 msgid "What happened on this site, newest first. It shows only what was being recorded at the time: a group ticked this morning has nothing in it from yesterday."
 msgstr "Qué pasó en este sitio, lo más nuevo primero. Muestra sólo lo que se estaba registrando en ese momento: un grupo tildado esta mañana no tiene nada de ayer."
 
-#: includes/admin-log.php:643
-#: includes/admin-log.php:726
+#: includes/admin-log.php:649
+#: includes/admin-log.php:732
 #: includes/log-privacy.php:80
 msgid "What happened"
 msgstr "Qué pasó"
 
-#: includes/admin-log.php:645
+#: includes/admin-log.php:651
 msgid "Anything that happened"
 msgstr "Cualquier cosa que haya pasado"
 
-#: includes/admin-log.php:659
-#: includes/admin-log.php:723
+#: includes/admin-log.php:665
+#: includes/admin-log.php:729
 msgid "From"
 msgstr "Desde"
 
-#: includes/admin-log.php:662
+#: includes/admin-log.php:668
 msgid "To"
 msgstr "Hasta"
 
 #. translators: 1: number of rows, 2: current page, 3: total pages
-#: includes/admin-log.php:695
+#: includes/admin-log.php:701
 #, php-format
 msgid "%1$s rows · page %2$d of %3$d"
 msgstr "%1$s filas · página %2$d de %3$d"
 
-#: includes/admin-log.php:720
+#: includes/admin-log.php:726
 #: includes/log-privacy.php:76
 msgid "When"
 msgstr "Cuándo"
 
-#: includes/admin-log.php:727
+#: includes/admin-log.php:733
 msgid "Detail"
 msgstr "Detalle"
 
-#: includes/admin-log.php:734
+#: includes/admin-log.php:740
 msgid "Nothing matches that."
 msgstr "No hay nada que coincida."
 
@@ -4653,75 +4653,75 @@ msgstr "Tildalo y guardá: se descarta lo que esté escrito arriba y esto vuelve
 msgid "Activity log"
 msgstr "Registro de actividad"
 
-#: includes/log.php:460
+#: includes/log.php:461
 msgid "Ways in and out"
 msgstr "Entradas y salidas"
 
-#: includes/log.php:461
+#: includes/log.php:462
 msgid "Every sign-in, every sign-out, and every attempt that was refused."
 msgstr "Cada ingreso, cada salida y cada intento rechazado."
 
-#: includes/log.php:462
+#: includes/log.php:463
 msgid "A few rows per person per day: this is the group that grows with how often people come back."
 msgstr "Unas pocas filas por persona por día: este es el grupo que crece con la frecuencia con que la gente vuelve."
 
-#: includes/log.php:465
+#: includes/log.php:466
 msgid "Changes to the account"
 msgstr "Cambios en la cuenta"
 
-#: includes/log.php:466
+#: includes/log.php:467
 msgid "The e-mail address, the password, the public name, and the details this site asks people for."
 msgstr "La dirección de correo, la contraseña, el nombre público y los datos que este sitio le pide a la gente."
 
-#: includes/log.php:467
+#: includes/log.php:468
 msgid "Almost nothing: most people change these once and never again."
 msgstr "Casi nada: la mayoría cambia esto una vez y nunca más."
 
-#: includes/log.php:470
+#: includes/log.php:471
 msgid "Changes to the security"
 msgstr "Cambios en la seguridad"
 
-#: includes/log.php:472
+#: includes/log.php:473
 msgid "Almost nothing, and it is the group worth having when an account is taken over."
 msgstr "Casi nada, y es el grupo que vale la pena tener cuando le roban una cuenta a alguien."
 
-#: includes/log.php:539
+#: includes/log.php:546
 msgid "Signed in"
 msgstr "Entró"
 
-#: includes/log.php:540
+#: includes/log.php:547
 msgid "Signed out"
 msgstr "Salió"
 
-#: includes/log.php:541
+#: includes/log.php:548
 msgid "Sign-in refused"
 msgstr "Ingreso rechazado"
 
-#: includes/log.php:543
+#: includes/log.php:551
 msgid "E-mail address changed"
 msgstr "Cambió la dirección de correo"
 
-#: includes/log.php:544
+#: includes/log.php:552
 msgid "Password changed"
 msgstr "Cambió la contraseña"
 
-#: includes/log.php:545
+#: includes/log.php:553
 msgid "Public name changed"
 msgstr "Cambió el nombre público"
 
-#: includes/log.php:546
+#: includes/log.php:554
 msgid "Details saved"
 msgstr "Se guardaron los datos"
 
-#: includes/log.php:547
+#: includes/log.php:555
 msgid "Two-step verification turned on"
 msgstr "Se activó la verificación en dos pasos"
 
-#: includes/log.php:548
+#: includes/log.php:556
 msgid "Two-step verification turned off"
 msgstr "Se desactivó la verificación en dos pasos"
 
-#: includes/log.php:549
+#: includes/log.php:557
 msgid "Sessions closed"
 msgstr "Se cerraron sesiones"
 
@@ -5257,7 +5257,7 @@ msgstr "Borrar el plugin va a dejar los datos donde están."
 msgid "None — read the connection"
 msgstr "Ninguna — leer la conexión"
 
-#: includes/log.php:542
+#: includes/log.php:549
 msgid "Second step refused"
 msgstr "Segundo paso rechazado"
 
@@ -5982,8 +5982,8 @@ msgstr "Estos sitios tienen un dominio propio: %s."
 msgid "People have to sign in again on these sites: a session opened on the rest of the network does not reach a domain of its own. That is not supported in this version."
 msgstr "En estos sitios la gente tiene que volver a iniciar sesión: una sesión abierta en el resto de la red no llega a un dominio propio. Eso no está soportado en esta versión."
 
-#: includes/admin-log.php:630
-#: includes/admin-log.php:722
+#: includes/admin-log.php:636
+#: includes/admin-log.php:728
 #: includes/log-privacy.php:97
 msgid "Site"
 msgstr "Sitio"
@@ -6072,15 +6072,15 @@ msgstr "Este sitio tiene %1$s filas en la tabla de la red, que ocupa %2$s para t
 msgid "Every site of the network records %s and nothing else, in one table for the whole network."
 msgstr "Cada sitio de la red registra %s y nada más, en una sola tabla para toda la red."
 
-#: includes/admin-log.php:614
+#: includes/admin-log.php:620
 msgid "What happened on every site of the network, newest first, with the site each row happened on. It shows only what was being recorded at the time: a group ticked this morning has nothing in it from yesterday."
 msgstr "Qué pasó en cada sitio de la red, lo más nuevo primero, con el sitio donde pasó cada fila. Muestra sólo lo que se estaba registrando en ese momento: un grupo tildado esta mañana no tiene nada de ayer."
 
-#: includes/admin-log.php:632
+#: includes/admin-log.php:638
 msgid "Site ID"
 msgstr "ID del sitio"
 
-#: includes/admin-log.php:635
+#: includes/admin-log.php:641
 #: includes/admin-membership.php:128
 msgid "Every site"
 msgstr "Todos los sitios"
@@ -6128,7 +6128,7 @@ msgid "Open your account"
 msgstr "Abrí tu cuenta"
 
 #. translators: %s: the name of the site where the person signed in
-#: includes/admin-log.php:450
+#: includes/admin-log.php:457
 #, php-format
 msgid "on %s"
 msgstr "en %s"
@@ -6555,7 +6555,7 @@ msgstr "Los enlaces de ingreso, las cookies de sesión y los códigos viajan sin
 msgid "By default, nothing. The settings stay, the activity log stays, and so does everything in people’s profiles — their details, their public names, the ways in they set up and their second factors. That is on purpose: a plugin deleted by accident, or deleted to be installed again, should not be what loses somebody their account. Tick this only when the plugin is going for good and the data is meant to go with it. It cannot be undone, and it runs on delete, not on deactivate."
 msgstr "Por omisión, nada. Quedan los ajustes, queda el registro de actividad y queda todo lo que hay en los perfiles: los datos de cada persona, sus nombres públicos, las formas de entrar que configuraron y sus segundos factores. Es a propósito: un plugin borrado por error, o borrado para volver a instalarlo, no tiene que ser lo que le haga perder la cuenta a alguien. Marcá esto solo si el plugin se va para siempre y los datos se van con él. No se puede deshacer, y corre al borrar, no al desactivar."
 
-#: includes/log.php:471
+#: includes/log.php:472
 msgid "Two-step verification turned on or off, a way in added or removed, sessions closed."
 msgstr "Verificación en dos pasos activada o desactivada, una forma de entrar agregada o borrada, sesiones cerradas."
 
@@ -7409,7 +7409,7 @@ msgstr "la red estaba desactivada"
 msgid "the provider handed over no access token"
 msgstr "el proveedor no entregó ningún token de acceso"
 
-#: includes/admin-log.php:408
+#: includes/admin-log.php:415
 msgid "no account found or created"
 msgstr "no se encontró ni se creó ninguna cuenta"
 
@@ -7534,3 +7534,47 @@ msgstr "Abrilo en este navegador para confirmar la dirección y entrás. Vence e
 #: templates/login.php:108
 msgid "Use another address"
 msgstr "Usar otra dirección"
+
+#: includes/admin-log.php:408
+msgid "the account’s role may not use social sign-in"
+msgstr "el rol de la cuenta no puede usar el acceso con redes sociales"
+
+#: includes/admin-log.php:409
+msgid "the provider gave no valid e-mail address"
+msgstr "la red no dio una dirección de correo válida"
+
+#: includes/admin-log.php:410
+msgid "an account has the address and linking by e-mail is off"
+msgstr "una cuenta tiene esa dirección y la vinculación por correo está apagada"
+
+#: includes/admin-log.php:411
+msgid "the provider did not verify the address"
+msgstr "la red no verificó la dirección"
+
+#: includes/admin-log.php:412
+msgid "new accounts from social sign-in are off"
+msgstr "las cuentas nuevas desde redes sociales están apagadas"
+
+#: includes/admin-log.php:413
+msgid "the role new accounts get may not use social sign-in"
+msgstr "el rol que reciben las cuentas nuevas no puede usar el acceso con redes sociales"
+
+#: includes/admin-log.php:414
+msgid "the account could not be created"
+msgstr "no se pudo crear la cuenta"
+
+#: includes/log.php:476
+msgid "Social sign-in failures"
+msgstr "Fallos del acceso con redes sociales"
+
+#: includes/log.php:477
+msgid "Every return from a social network that signed nobody in, with the network and why. Already part of the ways in and out; this keeps them on their own."
+msgstr "Cada vuelta desde una red social que no hizo entrar a nadie, con la red y el motivo. Ya forman parte de las entradas y salidas; esto los guarda aparte."
+
+#: includes/log.php:478
+msgid "Only the failures: a few rows a day while a network is being set up, and almost nothing once it works."
+msgstr "Solo los fallos: unas pocas filas por día mientras se configura una red, y casi nada cuando ya funciona."
+
+#: includes/log.php:550
+msgid "Social sign-in refused"
+msgstr "Acceso con redes sociales rechazado"

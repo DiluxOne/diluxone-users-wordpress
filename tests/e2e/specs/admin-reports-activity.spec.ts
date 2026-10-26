@@ -234,6 +234,7 @@ test.describe('Reports › Log settings', () => {
 			await levels(page, 'access').check();
 			await levels(page, 'account').uncheck();
 			await levels(page, 'security').uncheck();
+			await levels(page, 'social').uncheck();
 			await savePanel(page);
 			expect((await site.getOptions(['diluxone_users_log_levels'])).diluxone_users_log_levels).toEqual(['access']);
 
@@ -264,6 +265,16 @@ test.describe('Reports › Log settings', () => {
 			await twoStep('on');
 			expect((await site.user(other)).meta.diluxone_users_2fa_on, 'it is on').toBe('1');
 			expect(await count(other, '2fa_on'), 'the security group records the second step turned on').toBe(1);
+
+			// Social sign-in failures on their own: a tick box of its own, saved alone.
+			await page.goto(adminUrl(REPORT, 'logging'));
+			await expect(levels(page, 'social'), 'social sign-in failures have a group of their own').toHaveCount(1);
+			await levels(page, 'access').uncheck();
+			await levels(page, 'account').uncheck();
+			await levels(page, 'security').uncheck();
+			await levels(page, 'social').check();
+			await savePanel(page);
+			expect((await site.getOptions(['diluxone_users_log_levels'])).diluxone_users_log_levels).toEqual(['social']);
 		} finally {
 			await context.close();
 		}

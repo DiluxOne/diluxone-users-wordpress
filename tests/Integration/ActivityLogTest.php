@@ -247,6 +247,31 @@ class ActivityLogTest extends IntegrationTestCase {
 		$this->assertSame( array( 'signed_in' ), $this->events() );
 	}
 
+	public function test_a_refused_social_sign_in_is_written_with_only_social_on(): void {
+		$this->recording( array( 'social' ) );
+
+		$user = $this->make_user();
+
+		diluxone_users_log_record( 'signed_in', $user );
+		diluxone_users_sso_log_refused( 'google', 'email_unverified' );
+
+		$this->assertSame( array( 'sso_failed' ), $this->events() );
+
+		$row = $this->rows()[0];
+
+		$this->assertSame( 0, $row['user_id'] );
+		$this->assertSame( 'google', $row['detail']['provider'] );
+		$this->assertSame( 'email_unverified', $row['detail']['reason'] );
+	}
+
+	public function test_a_refused_social_sign_in_is_a_way_in_and_out_too(): void {
+		$this->recording( array( 'access' ) );
+
+		diluxone_users_sso_log_refused( 'microsoft', 'cancelled' );
+
+		$this->assertSame( array( 'sso_failed' ), $this->events() );
+	}
+
 	public function test_the_site_can_veto_one_event_it_otherwise_records(): void {
 		$quiet = static function ( bool $records, string $event ): bool {
 			return 'signed_in' === $event ? false : $records;

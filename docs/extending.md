@@ -521,15 +521,26 @@ the accounts linked to it (`diluxone_users_sso_{id}` user meta): kept,
 exported with their value withheld and erased with everything else of the
 person, like any other key under the prefix.
 
-A return from a provider that signs nobody in writes a `sign_in_failed` row
-to the activity log (group `access`, account 0) whose detail carries `via`
-(`sso`), `provider` (the provider id) and `reason`: `cancelled` (the provider
-answered `access_denied`), `state` (a state nobody issued, already spent or
-issued for another provider), `browser` (another browser or session than the
-one that left), `off` (the provider was turned off on the way), `token` (no
-access token), `account` (no account found or created), or else the
-provider's own OAuth error code. The code, the state and the provider's
-error description are never kept. The administrator's live test writes no
+A return from a provider that signs nobody in writes an `sso_failed` row
+("Social sign-in refused") to the activity log (group `social`, also written
+while `access` is ticked; account 0) whose detail carries `provider` (the
+provider id) and `reason`: `cancelled` (the provider answered
+`access_denied`), `state` (a state nobody issued, already spent or issued for
+another provider), `browser` (another browser or session than the one that
+left), `off` (the provider was turned off on the way), `token` (no access
+token), one of the reasons `diluxone_users_sso_user( $id, $identity, &$why )`
+or `diluxone_users_sso_target()` gives when it finds nobody — `role` (the account's role may not use social
+sign-in), `no_email` (no valid address from the provider), `link_off` (an
+account has the address and linking by e-mail is off), `email_unverified`
+(the provider did not verify the address; under "Only verified addresses" the
+return is held for the address to be proved by mail, and that hold writes this
+row too, since nobody is signed in yet: the link in the mail may still sign the
+person in), `register_off` (new accounts from social
+sign-in are off), `register_role` (the role new accounts get may not use
+social sign-in), `create_failed` (creating the account failed) — `account`
+when nothing said why, or else the provider's own OAuth error code. The code,
+the state and the provider's error description are never kept. The
+administrator's live test writes no
 row.
 
 ## Account area sections
@@ -685,8 +696,8 @@ account has. An add-on that keeps a way in on it adds to both:
 `diluxone_users_log_record( $event, $user_id, $detail )` writes a row when the
 site records that event's group. An add-on's events are its own:
 
-- `diluxone_users_log_events` (filter) — event => group (`access`, `account`
-  or `security`). An event in no group that exists is never written; the
+- `diluxone_users_log_events` (filter) — event => group (`access`, `account`,
+  `security` or `social`; `access` also records `social`'s events). An event in no group that exists is never written; the
   plugin's own keep theirs.
 - `diluxone_users_log_labels` (filter) — what each event is called.
 - `diluxone_users_log_says` (filter, `( string $says, array $row, bool $network )`)

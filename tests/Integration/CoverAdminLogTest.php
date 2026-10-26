@@ -63,6 +63,18 @@ class CoverAdminLogTest extends IntegrationTestCase {
 		$this->assertSame( 30, diluxone_users_log_days() );
 	}
 
+	public function test_social_sign_in_failures_are_saved_on_their_own(): void {
+		$this->where_network_screens_are();
+		$this->the_admin();
+
+		$this->postPanel( DILUXONE_USERS_REPORTS, array( 'diluxone_users_log_levels' => array( 'social' ) ) );
+
+		$this->assertSame( 'returned', $this->ended( 'diluxone_users_log_settings_save' )[0] );
+		$this->assertSame( array( 'social' ), diluxone_users_log_levels() );
+		$this->assertTrue( diluxone_users_log_records( 'sso_failed' ) );
+		$this->assertFalse( diluxone_users_log_records( 'signed_in' ) );
+	}
+
 	/**
 	 * `diluxone_users_log_levels[0][]=access` is a list inside the list: no
 	 * group, and no "Array to string" warning on the way to finding that out.

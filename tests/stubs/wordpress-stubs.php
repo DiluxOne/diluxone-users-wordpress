@@ -246,7 +246,16 @@ if (!function_exists('wp_generate_password')) {
 }
 
 if (!function_exists('add_query_arg')) {
-	function add_query_arg(array $args, string $url): string {
+	// Both of WordPress's forms: ( $args, $url ) and ( $key, $value, $url ).
+	function add_query_arg(...$given): string {
+		if (is_array($given[0] ?? null)) {
+			$args = $given[0];
+			$url  = (string) ($given[1] ?? '');
+		} else {
+			$args = array((string) ($given[0] ?? '') => $given[1] ?? '');
+			$url  = (string) ($given[2] ?? '');
+		}
+
 		return $url . (str_contains($url, '?') ? '&' : '?') . http_build_query($args);
 	}
 }
