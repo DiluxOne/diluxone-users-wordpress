@@ -7065,11 +7065,11 @@ msgstr "Depois de entrar, pedir os campos obrigatórios que a conta não preench
 msgid "Accounts made by the e-mail link or a social network were never asked for them. Once signed in, they are shown those fields alone on the account page, and then go on to where they were going. They can skip it, and are asked again at the next sign-in."
 msgstr "Contas criadas pelo link por e-mail ou por uma rede social nunca foram perguntadas. Depois de entrar, veem só esses campos na página da conta e então seguem para onde iam. Dá para pular, e é perguntado de novo na próxima entrada."
 
-#: includes/fields-missing.php:166
+#: includes/fields-missing.php:179
 msgid "Before you go on, the site needs a few details it does not have yet."
 msgstr "Antes de continuar, o site precisa de alguns dados que ainda não tem."
 
-#: includes/fields-missing.php:174
+#: includes/fields-missing.php:178
 msgid "Complete your details"
 msgstr "Complete seus dados"
 
