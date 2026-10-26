@@ -1885,19 +1885,19 @@ msgstr "Secciones de la cuenta"
 msgid "Member since %s"
 msgstr "Miembro desde %s"
 
-#: templates/account/accounts.php:13
+#: templates/account/accounts.php:22
 msgid "Networks you can sign in with"
 msgstr "Redes con las que podés entrar"
 
-#: templates/account/accounts.php:14
+#: templates/account/accounts.php:23
 msgid "Any of these opens this same account. Unlink the ones you do not use."
 msgstr "Cualquiera de éstas abre esta misma cuenta. Desvinculá las que no uses."
 
-#: templates/account/accounts.php:18
+#: templates/account/accounts.php:27
 msgid "Networks you can link"
 msgstr "Redes que podés vincular"
 
-#: templates/account/accounts.php:19
+#: templates/account/accounts.php:29
 msgid "Add one and from then on it opens this account too. Nothing gets duplicated: it is the same account with another way in."
 msgstr "Sumá una y de ahí en más abre esta cuenta también. No se duplica nada: es la misma cuenta con otra forma de entrar."
 

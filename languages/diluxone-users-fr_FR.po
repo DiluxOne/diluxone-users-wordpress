@@ -1908,19 +1908,19 @@ msgstr "Sections du compte"
 msgid "Member since %s"
 msgstr "Membre depuis %s"
 
-#: templates/account/accounts.php:13
+#: templates/account/accounts.php:22
 msgid "Networks you can sign in with"
 msgstr "Réseaux avec lesquels vous pouvez vous connecter"
 
-#: templates/account/accounts.php:14
+#: templates/account/accounts.php:23
 msgid "Any of these opens this same account. Unlink the ones you do not use."
 msgstr "N’importe lequel ouvre ce même compte. Déliez ceux que vous n’utilisez pas."
 
-#: templates/account/accounts.php:18
+#: templates/account/accounts.php:27
 msgid "Networks you can link"
 msgstr "Réseaux que vous pouvez lier"
 
-#: templates/account/accounts.php:19
+#: templates/account/accounts.php:29
 msgid "Add one and from then on it opens this account too. Nothing gets duplicated: it is the same account with another way in."
 msgstr "Ajoutez-en un et à partir de là il ouvre aussi ce compte. Rien n’est dupliqué : c’est le même compte avec une autre façon d’entrer."
 

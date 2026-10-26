@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-26T20:29:37+00:00\n"
+"POT-Creation-Date: 2026-10-26T21:21:26+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: diluxone-users\n"
@@ -6939,19 +6939,19 @@ msgstr ""
 msgid "Edit profile"
 msgstr ""
 
-#: templates/account/accounts.php:13
+#: templates/account/accounts.php:22
 msgid "Networks you can sign in with"
 msgstr ""
 
-#: templates/account/accounts.php:14
+#: templates/account/accounts.php:23
 msgid "Any of these opens this same account. Unlink the ones you do not use."
 msgstr ""
 
-#: templates/account/accounts.php:18
+#: templates/account/accounts.php:27
 msgid "Networks you can link"
 msgstr ""
 
-#: templates/account/accounts.php:19
+#: templates/account/accounts.php:29
 msgid "Add one and from then on it opens this account too. Nothing gets duplicated: it is the same account with another way in."
 msgstr ""
 

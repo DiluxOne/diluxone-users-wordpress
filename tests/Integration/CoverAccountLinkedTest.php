@@ -4,7 +4,8 @@
  *
  * Linked accounts: nothing for somebody signed out, the two boxes the tab is
  * split into, a linked network with its Unlink form and nonce, one not linked
- * with its Link button, and what each box says when it has nothing in it.
+ * with its Link button, what each box says when it has nothing in it, and the
+ * box to link opening on its own once every network is linked.
  * Notifications: the saved notice, a site that leaves nothing to choose, and
  * one that sends nothing at all.
  */
@@ -77,6 +78,32 @@ class CoverAccountLinkedTest extends IntegrationTestCase {
 		$this->assertStringContainsString( 'value="' . wp_create_nonce( 'diluxone_users_sso_unlink' ) . '"', $html );
 		$this->assertStringContainsString( 'You already have them all linked.', $html );
 		$this->assertStringContainsString( '--diluxone-users-brand: #000000', $html );
+	}
+
+	public function test_with_every_network_linked_the_box_to_link_opens_on_its_note(): void {
+		$user = $this->make_user();
+		update_user_meta( $user, 'diluxone_users_sso_' . MockProvider::ID, 'sub-1' );
+		wp_set_current_user( $user );
+
+		ob_start();
+		diluxone_users_section_accounts( get_userdata( $user ) );
+		$html = (string) ob_get_clean();
+
+		$this->assertMatchesRegularExpression( '#<details class="diluxone-users-panel "\s*open><summary class="diluxone-users-panel__head"><span class="diluxone-users-panel__title">Networks you can link</span>#', $html );
+		$this->assertStringContainsString( 'You already have them all linked.', $html );
+		$this->assertStringNotContainsString( 'Add one and from then on it opens this account too.', $html, 'Nothing left to add, so nothing explains adding one' );
+	}
+
+	public function test_with_a_network_left_to_link_the_box_to_link_stays_closed(): void {
+		$user = $this->make_user();
+		wp_set_current_user( $user );
+
+		ob_start();
+		diluxone_users_section_accounts( get_userdata( $user ) );
+		$html = (string) ob_get_clean();
+
+		$this->assertStringContainsString( '<details class="diluxone-users-panel "><summary class="diluxone-users-panel__head"><span class="diluxone-users-panel__title">Networks you can link</span>', $html );
+		$this->assertStringContainsString( 'Add one and from then on it opens this account too.', $html );
 	}
 
 	/** @return array<string, array{0: string, 1: string, 2: string}> */
