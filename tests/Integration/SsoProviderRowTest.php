@@ -54,7 +54,7 @@ class SsoProviderRowTest extends IntegrationTestCase {
 		$this->assertArrayNotHasKey( 'notrow', $providers, 'a row is a row' );
 
 		foreach ( array( 'acme', 'broken', 'google' ) as $id ) {
-			foreach ( array( 'name', 'color', 'authorize', 'token', 'profile', 'scope', 'extra', 'pkce', 'token_auth', 'map', 'console', 'guide' ) as $field ) {
+			foreach ( array( 'name', 'color', 'authorize', 'token', 'profile', 'scope', 'extra', 'pkce', 'pkce_support', 'token_auth', 'map', 'console', 'guide' ) as $field ) {
 				$this->assertArrayHasKey( $field, $providers[ $id ], "{$id} has {$field}" );
 			}
 
@@ -72,6 +72,9 @@ class SsoProviderRowTest extends IntegrationTestCase {
 		$this->assertSame( 'post', $providers['google']['token_auth'] );
 		$this->assertSame( 'diluxone_users_sso_map_oidc', $providers['google']['map'], 'the plugin’s own rows are as they were' );
 		$this->assertSame( array( 'prompt' => 'select_account' ), $providers['google']['extra'] );
+		$this->assertTrue( $providers['google']['pkce_support'], 'Google accepts PKCE' );
+		$this->assertTrue( $providers['microsoft']['pkce_support'], 'and Microsoft' );
+		$this->assertFalse( $providers['acme']['pkce_support'], 'a row that says nothing is never sent it' );
 	}
 
 	public function test_the_example_provider_sends_somebody_to_sign_in(): void {

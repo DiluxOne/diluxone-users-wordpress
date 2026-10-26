@@ -26,7 +26,7 @@ const SOCIAL = 'diluxone-users-social';
 const ID = 'e2e-client-id';
 const SECRET = 'e2e-client-secret-ui';
 
-type Stored = { active?: number; id?: string; secret?: string; tested?: number };
+type Stored = { active?: number; id?: string; secret?: string; tested?: number; pkce?: number };
 
 const providerUrl = (tab = '') => `/wp-admin/admin.php?page=${SOCIAL}&provider=mock${tab ? `&tab=${tab}` : ''}`;
 
@@ -147,7 +147,7 @@ test.describe('Social login › a provider’s own screen', () => {
 		await page.locator('input[name="diluxone_users_active"]').check();
 		await savePanel(page);
 
-		expect(await stored(site)).toEqual({ active: 0, id: ID, secret: SECRET, tested: 0 });
+		expect(await stored(site)).toEqual({ active: 0, id: ID, secret: SECRET, tested: 0, pkce: 1 });
 
 		// The screen it comes back to, and the same screen loaded again.
 		for (const round of ['after the save', 'after a reload']) {
@@ -368,6 +368,50 @@ test.describe('Social login › turning a provider’s button on and off', () =>
 
 		await guest.goto(pages.login.url);
 		await expect(ssoButton(guest, 'mock')).toBeVisible();
+	});
+
+	test('Use PKCE: ticked for a provider that supports it with nothing saved, and unticking it is saved', async ({ page, site, options }) => {
+		await options.set({ diluxone_users_sso: { mock: { active: 0, id: ID, secret: SECRET, tested: 1 } } });
+		await page.goto(providerUrl('settings'));
+
+		const box = page.locator('input[name="diluxone_users_pkce"]');
+
+		await expect(box, 'nothing saved: on').toBeChecked();
+		await expect(box).toBeEnabled();
+
+		await box.uncheck();
+		await savePanel(page);
+		expect((await stored(site))?.pkce, 'unticked').toBe(0);
+		await expect(page.locator('input[name="diluxone_users_pkce"]')).not.toBeChecked();
+
+		await page.locator('input[name="diluxone_users_pkce"]').check();
+		await savePanel(page);
+		expect((await stored(site))?.pkce, 'ticked again').toBe(1);
+		expect((await stored(site))?.tested, 'no live test asked for again').toBe(1);
+	});
+
+	test('Use PKCE: a provider that does not support it has the box locked, says so, and a forged tick is not saved', async ({
+		page,
+		site,
+		options,
+	}) => {
+		await options.set({ diluxone_e2e_sso_no_pkce: 1, diluxone_users_sso: { mock: { active: 0, id: ID, secret: SECRET, tested: 1 } } });
+
+		await page.goto(providerUrl('settings'));
+
+		const box = page.locator('input[name="diluxone_users_pkce"]');
+
+		await expect(box).toBeDisabled();
+		await expect(box).not.toBeChecked();
+		await expect(page.locator('label.du-choice', { has: box })).toContainText('This provider does not support PKCE.');
+
+		// The box switched back on and ticked by hand, as a forged request would.
+		await box.evaluate((input: HTMLInputElement) => {
+			input.disabled = false;
+			input.checked = true;
+		});
+		await savePanel(page);
+		expect((await stored(site))?.pkce, 'stored off whatever was sent').toBe(0);
 	});
 
 	test('a provider that has not passed the test is not turned on, even by its own link', async ({ page, site, options }) => {

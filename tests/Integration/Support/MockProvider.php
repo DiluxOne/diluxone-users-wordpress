@@ -65,6 +65,8 @@ final class MockProvider {
 			'scope'     => 'openid email profile',
 			'extra'     => array(),
 			'pkce'      => false,
+			// It accepts PKCE, as Google and Microsoft do: "Use PKCE" decides.
+			'pkce_support' => true,
 			'map'       => 'diluxone_users_sso_map_oidc',
 			'console'   => self::BASE,
 			'guide'     => self::BASE,
