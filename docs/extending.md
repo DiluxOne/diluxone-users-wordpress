@@ -529,11 +529,13 @@ provider id) and `reason`: `cancelled` (the provider answered
 another provider), `browser` (another browser or session than the one that
 left), `off` (the provider was turned off on the way), `token` (no access
 token), one of the reasons `diluxone_users_sso_user( $id, $identity, &$why )`
-gives when it finds nobody — `role` (the account's role may not use social
+or `diluxone_users_sso_target()` gives when it finds nobody — `role` (the account's role may not use social
 sign-in), `no_email` (no valid address from the provider), `link_off` (an
 account has the address and linking by e-mail is off), `email_unverified`
-(the provider did not verify the address: always needed to link, and under
-"Only verified addresses" to create), `register_off` (new accounts from social
+(the provider did not verify the address; under "Only verified addresses" the
+return is held for the address to be proved by mail, and that hold writes this
+row too, since nobody is signed in yet: the link in the mail may still sign the
+person in), `register_off` (new accounts from social
 sign-in are off), `register_role` (the role new accounts get may not use
 social sign-in), `create_failed` (creating the account failed) — `account`
 when nothing said why, or else the provider's own OAuth error code. The code,
