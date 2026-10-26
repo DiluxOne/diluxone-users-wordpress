@@ -86,7 +86,7 @@ test.describe('Social login › Rules', () => {
 		expect(after.meta.diluxone_users_sso_mock).toBe('mock|rules-link');
 	});
 
-	test('“refuse when the e-mail is not said to be verified” ticked: a provider that says nothing creates nobody', async ({
+	test('“only verified addresses” ticked: a provider that says nothing creates nobody until the address is confirmed by mail', async ({
 		page,
 		guest,
 		site,
@@ -105,7 +105,7 @@ test.describe('Social login › Rules', () => {
 		await comeBackFromTheNetwork(guest, pages.login.url);
 
 		await expectSignedOut(guest);
-		expect(stateOf(guest.url())).toBe('social');
+		expect(stateOf(guest.url()), 'waiting on the mail (sso-pending.spec.ts)').toBe('social-pending');
 		expect((await site.user(email)).exists, 'no account').toBe(false);
 
 		// Unticked: the same provider makes the account.

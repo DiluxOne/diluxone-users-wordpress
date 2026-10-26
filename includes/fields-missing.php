@@ -162,7 +162,20 @@ function diluxone_users_ask_missing_form(): bool {
 
 	diluxone_users_enqueue_styles();
 
-	echo '<div class="diluxone-users diluxone-users-complete">';
+	// In the account area's own frame, so it is as wide as the page it stands
+	// in for, follows the "how wide" setting and takes a shape's stylesheet.
+	// It draws no menu, hence the layout 'none', and no header.
+	$template = diluxone_users_account_template();
+	$classes  = diluxone_users_account_classes( $template, 'none', diluxone_users_account_width(), false );
+	$style    = diluxone_users_account_style( $template );
+
+	echo '<div class="' . esc_attr( implode( ' ', $classes ) ) . '"' . ( '' === $style ? '' : ' style="' . esc_attr( $style ) . '"' ) . '>';
+	echo '<div class="diluxone-users-account__body">';
+	echo '<div class="diluxone-users diluxone-users-account__section diluxone-users-complete">';
+
+	// The title first and the line under it; the template is asked for no
+	// title of its own, so a theme's copy of it keeps working unchanged.
+	echo '<h2 class="diluxone-users-fields__title">' . esc_html__( 'Complete your details', 'diluxone-users' ) . '</h2>';
 	echo '<p class="diluxone-users-complete__intro">' . esc_html__( 'Before you go on, the site needs a few details it does not have yet.', 'diluxone-users' ) . '</p>';
 
 	diluxone_users_template_part(
@@ -171,14 +184,14 @@ function diluxone_users_ask_missing_form(): bool {
 			'user_id'  => $user_id,
 			'fields'   => $fields,
 			'group'    => '',
-			'title'    => __( 'Complete your details', 'diluxone-users' ),
+			'title'    => '',
 			'state'    => diluxone_users_state(),
 			'redirect' => $to,
 			'skip'     => $to,
 		)
 	);
 
-	echo '</div>';
+	echo '</div></div></div>';
 
 	return true;
 }

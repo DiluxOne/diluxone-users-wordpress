@@ -393,6 +393,127 @@ class CoverSignInSsoTest extends IntegrationTestCase {
 		$this->assertSame( 64, strlen( $stored['verifier'] ) );
 	}
 
+	/** The token exchange MockProvider answered, or nothing. */
+	private function exchange(): array {
+		foreach ( MockProvider::$requests as $request ) {
+			if ( false !== strpos( $request['url'], '/token' ) ) {
+				return (array) $request['args']['body'];
+			}
+		}
+
+		return array();
+	}
+
+	/**
+	 * Saves "Use PKCE" for the mock as the provider form does, and starts and
+	 * finishes a trip; the address, the state it kept and where it ended.
+	 *
+	 * @return array{url: string, stored: array<string, mixed>, end: string}
+	 */
+	private function trip_with_pkce( ?int $pkce ): array {
+		$values = array(
+			'active' => 1,
+			'id'     => 'client-id',
+			'secret' => 'client-secret',
+		);
+
+		if ( null !== $pkce ) {
+			$values['pkce'] = $pkce;
+		}
+
+		diluxone_users_sso_save_credentials( MockProvider::ID, $values );
+
+		$trip   = $this->start();
+		$stored = (array) get_transient( 'diluxone_users_sso_' . $trip['state'] );
+		$this->back( $trip );
+
+		return array(
+			'url'    => $trip['url'],
+			'stored' => $stored,
+			'end'    => $this->expectRedirect( 'diluxone_users_sso_handle' ),
+		);
+	}
+
+	/** The trip with PKCE: the challenge in the address, the verifier kept and sent. */
+	private function assert_pkce_trip( array $trip ): void {
+		$this->assertSame( 'S256', $this->queryArg( $trip['url'], 'code_challenge_method' ) );
+		$this->assertSame( 64, strlen( (string) ( $trip['stored']['verifier'] ?? '' ) ), 'the verifier is kept with the state' );
+		$this->assertSame( diluxone_users_sso_pkce_challenge( $trip['stored']['verifier'] ), $this->queryArg( $trip['url'], 'code_challenge' ) );
+		$this->assertStringNotContainsString( $trip['stored']['verifier'], $trip['url'], 'the verifier never travels in the address' );
+		$this->assertSame( $trip['stored']['verifier'], $this->exchange()['code_verifier'] ?? null, 'the exchange sends it' );
+		$this->assertGreaterThan( 0, get_current_user_id(), 'and the sign-in goes through' );
+	}
+
+	public function test_with_use_pkce_on_the_challenge_goes_out_the_verifier_is_kept_and_the_exchange_sends_it(): void {
+		$this->assert_pkce_trip( $this->trip_with_pkce( 1 ) );
+	}
+
+	public function test_with_use_pkce_off_neither_the_challenge_nor_the_verifier_is_sent(): void {
+		$trip = $this->trip_with_pkce( 0 );
+
+		$this->assertStringNotContainsString( 'code_challenge', $trip['url'], 'neither the challenge nor its method' );
+		$this->assertArrayNotHasKey( 'verifier', $trip['stored'] );
+		$this->assertNotSame( array(), $this->exchange(), 'the code was exchanged' );
+		$this->assertArrayNotHasKey( 'code_verifier', $this->exchange() );
+		$this->assertGreaterThan( 0, get_current_user_id(), 'and the sign-in goes through as before' );
+	}
+
+	public function test_a_provider_saved_before_use_pkce_existed_gets_it_with_nothing_written(): void {
+		// The row MockProvider::install() wrote is what a site had before the
+		// box: no `pkce` in it. Saving it again from elsewhere keeps it so.
+		$this->assertArrayNotHasKey( 'pkce', diluxone_users_raw_get( 'diluxone_users_sso', array() )[ MockProvider::ID ] );
+
+		$this->assert_pkce_trip( $this->trip_with_pkce( null ) );
+		$this->assertArrayNotHasKey( 'pkce', diluxone_users_raw_get( 'diluxone_users_sso', array() )[ MockProvider::ID ] );
+	}
+
+	public function test_on_a_network_use_pkce_is_the_network_s_and_the_hub_s_trip_carries_it(): void {
+		if ( ! is_multisite() ) {
+			$this->markTestSkipped( 'A single site is its own hub: test_with_use_pkce_on_the_challenge_goes_out_the_verifier_is_kept_and_the_exchange_sends_it is this there.' );
+		}
+
+		$hub  = get_current_blog_id();
+		$site = (int) wp_insert_site(
+			array(
+				'domain' => (string) get_network()->domain,
+				'path'   => '/cover-signin-pkce-' . strtolower( wp_generate_password( 6, false ) ) . '/',
+			)
+		);
+
+		// Saved with the site of the network the administrator happened to be on.
+		switch_to_blog( $site );
+		diluxone_users_sso_save_credentials(
+			MockProvider::ID,
+			array(
+				'active' => 1,
+				'id'     => 'client-id',
+				'secret' => 'client-secret',
+				'pkce'   => 1,
+			)
+		);
+		$this->assertFalse( get_option( 'diluxone_users_sso' ), 'nothing in the site’s own options' );
+		$this->assertSame( 1, get_site_option( 'diluxone_users_sso' )[ MockProvider::ID ]['pkce'], 'the network’s' );
+
+		// That site's button goes to the hub, where the trip is.
+		$this->assertSame( diluxone_users_login_url(), $this->start()['url'] );
+		$this->assertSame( array(), MockProvider::$requests );
+		restore_current_blog();
+
+		$this->assertSame( $hub, get_current_blog_id() );
+
+		$trip   = $this->start();
+		$stored = (array) get_transient( 'diluxone_users_sso_' . $trip['state'] );
+		$this->back( $trip );
+
+		$this->assert_pkce_trip(
+			array(
+				'url'    => $trip['url'],
+				'stored' => $stored,
+				'end'    => $this->expectRedirect( 'diluxone_users_sso_handle' ),
+			)
+		);
+	}
+
 	/* ── Who is behind an identity ───────────────────────────────────── */
 
 	public function test_an_empty_identity_is_nobody_s(): void {
@@ -967,5 +1088,45 @@ class CoverSignInSsoTest extends IntegrationTestCase {
 		$this->trip();
 
 		$this->assertInstanceOf( \WP_User::class, get_user_by( 'email', MockProvider::$profile['email'] ), 'the plugin’s switch, not WordPress’s, on a single site' );
+	}
+
+	/* ── "Only verified addresses" off: as before, no mail ───────────── */
+
+	/** Silence makes a new account and signs in, as before: nothing waits and nothing is mailed. */
+	public function test_with_verified_only_off_silence_still_makes_a_new_account(): void {
+		diluxone_users_update_option( 'diluxone_users_sso_verified_only', 0 );
+		unset( MockProvider::$profile['email_verified'] );
+
+		$this->assertSame( home_url( '/' ), $this->trip() );
+		$this->assertInstanceOf( \WP_User::class, get_user_by( 'email', MockProvider::$profile['email'] ) );
+		$this->assertGreaterThan( 0, get_current_user_id() );
+		$this->assertSame( array(), self::$mail );
+	}
+
+	/** Silence does not open an existing account, as before: the social error, no mail. */
+	public function test_with_verified_only_off_silence_still_does_not_open_an_existing_account(): void {
+		diluxone_users_update_option( 'diluxone_users_sso_verified_only', 0 );
+		unset( MockProvider::$profile['email_verified'] );
+		$user = (int) wp_insert_user(
+			array(
+				'user_login' => 'diluxone_users_' . wp_generate_password( 8, false ),
+				'user_email' => MockProvider::$profile['email'],
+				'user_pass'  => wp_generate_password( 16 ),
+			)
+		);
+
+		$this->assertSame( 'social', $this->redirectState( $this->trip() ) );
+		$this->assertSame( '', get_user_meta( $user, 'diluxone_users_sso_mock', true ) );
+		$this->assertSame( array(), self::$mail );
+	}
+
+	/** A no is refused, as before: the social error, no account, no mail. */
+	public function test_with_verified_only_off_a_no_is_still_refused(): void {
+		diluxone_users_update_option( 'diluxone_users_sso_verified_only', 0 );
+		MockProvider::$profile['email_verified'] = false;
+
+		$this->assertSame( 'social', $this->redirectState( $this->trip() ) );
+		$this->assertFalse( get_user_by( 'email', MockProvider::$profile['email'] ) );
+		$this->assertSame( array(), self::$mail );
 	}
 }
