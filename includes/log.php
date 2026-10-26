@@ -443,12 +443,13 @@ function diluxone_users_log_site_name( int $site ): string {
 /* ── What there is to record ───────────────────────────────────────── */
 
 /**
- * The three groups, each a tick box on the settings tab.
+ * The four groups, each a tick box on the settings tab.
  *
  * They are groups and not thirteen separate switches because nobody wants to
  * answer thirteen questions about a log: what a site decides is whether it
- * cares about the door, about what people change in their account, or about
- * what they change in their security. `writes` is the half of the answer that
+ * cares about the door, about what people change in their account, about
+ * what they change in their security, or about the social sign-ins that
+ * failed. `writes` is the half of the answer that
  * is usually missing — roughly how many rows this group costs — and it is said
  * per group because that is the unit somebody is ticking.
  *
