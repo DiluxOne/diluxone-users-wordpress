@@ -1413,7 +1413,7 @@ msgid "Additional details"
 msgstr "Informations complémentaires"
 
 #. translators: %s: field name
-#: includes/fields-forms.php:594
+#: includes/fields-forms.php:595
 #, php-format
 msgid "Error: “%s” is required."
 msgstr "Erreur : « %s » est obligatoire."
@@ -5423,7 +5423,7 @@ msgstr "Ses sessions sont fermées : la personne est déconnectée partout."
 msgid "The photo is too large: at most %d pixels a side."
 msgstr "La photo est trop grande : %d pixels de côté au maximum."
 
-#: includes/fields-forms.php:561
+#: includes/fields-forms.php:562
 msgid "Error: the form expired. Load the page again and send it once more."
 msgstr "Erreur : le formulaire a expiré. Rechargez la page et envoyez-le à nouveau."
 
@@ -7360,8 +7360,8 @@ msgid "Country code"
 msgstr "Indicatif du pays"
 
 #. translators: 1: field name, 2: what is wrong with it
-#: includes/fields-forms.php:443
-#: includes/fields-forms.php:575
+#: includes/fields-forms.php:444
+#: includes/fields-forms.php:576
 #, php-format
 msgid "Error: “%1$s”: %2$s"
 msgstr "Erreur : « %1$s » : %2$s"

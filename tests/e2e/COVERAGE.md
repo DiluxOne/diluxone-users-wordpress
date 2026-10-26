@@ -157,6 +157,7 @@ everybody, with the code by e-mail, and skips it for nobody.
 | The phone as one control: the height, border and corners of the e-mail input on the registration form, the account area, the step after a sign-in and the wp-admin profile, in light, dark and at 390px | `phone-field` › The phone field is one control · `signin-dark-fields` › the phone on the registration form · `my-account-mobile` › the phone is one box |
 | The phone's country picker: “arg” and “54” narrow the list, the live count; keyboard only (open, arrows, Home/End, Enter, Escape, Tab), its roles and `aria-activedescendant`; a pointer and a click outside | `phone-field` › The country picker |
 | The phone grouped as it is typed (AR `11 2345 6789`), the caret kept, saved as `+541123456789`; a trunk prefix typed out of habit shown apart and not saved | `phone-field` › The number as it is typed and saved |
+| The phone grouped by its area code (AR `221 412 3456`, not `22 1412 3456`); a mobile typed with its 15 (`0 11 15 4123 4567`) accepted, saved as `+5491141234567` and drawn back `9 11 4123 4567` | `phone-field` › The number as it is typed and saved |
 | A phone too short or too long: the server refuses the whole form (`diluxone-users=phone`), the error under the number with `aria-invalid`, nothing saved; the browser stops it first with the same words; on the registration form no account is made | `phone-field` › A number the wrong length for its country |
 | A saved phone shown grouped with its country picked | `phone-field` › A saved number |
 | The phone with JavaScript off: the native list in the same box, a short number refused by the server with the error under it, a good one saved joined and drawn back grouped | `phone-field` › With JavaScript off |
@@ -423,6 +424,7 @@ In the browser, case by case:
 | A site on a domain of its own: its door is its own wp-login.php | `signin-doors` › A site on a domain of its own |
 | Required fields missing, asked on the hub's account page after a sign-in by link from /beta/, and the save goes back to /beta/; the step in the hub's account frame, title before its line | `missing-fields` |
 | The phone on the hub's registration form is one control drawn like the e-mail input, wide and at 390px | `phone-field` |
+| The phone on the hub's registration form grouped by its area code (`221 412 3456`) and a mobile typed with its 15 (`0 11 15 4123 4567`) not too long | `phone-field` |
 
 ## Network settings, and the network's screens
 

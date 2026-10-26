@@ -822,13 +822,20 @@ stylesheet off, the native list stays.
 
 What is particular to each country is data, in `includes/data-phone.php`:
 `diluxone_users_phone_rule( $iso )` gives its national number's shortest and
-longest length, how it is grouped and its trunk prefix (the `0` dialled at
-home, dropped when it is typed). `diluxone_users_phone_check( $iso, $number )`
+longest length, how it is grouped, its trunk prefix (the `0` dialled at
+home, dropped when it is typed) and its mobile token. A grouping is one
+pattern of group sizes per length, apart by `|`, and a pattern can name the
+digits it is for before a colon, so an area code of two, three or four digits
+is written apart (`11:2 4 4|221,341:3 3 4|4 2 4`; the one with no prefix is
+for every other number of that length). The mobile token is the one written
+at home between the area code and a mobile's number, with what the number
+carries in front instead (`15:9`: "011 15 4123 4567" is stored as
+`+5491141234567`). `diluxone_users_phone_check( $iso, $number )`
 answers `''`, `'short'` or `'long'`, `diluxone_users_phone_format( $iso,
 $number )` writes it in groups, and `diluxone_users_phone_errors( $sent,
 $fields )` gives the message for each phone of a form that is the wrong
 length. Each `<option>` carries its rule as `data-dial`, `data-min`,
-`data-max`, `data-group` and `data-trunk`; the server reads its own table.
+`data-max`, `data-group`, `data-trunk` and `data-mobile`; the server reads its own table.
 
 A number the wrong length refuses the whole form it was sent with, before
 anything on it is saved. The plugin's forms come back with

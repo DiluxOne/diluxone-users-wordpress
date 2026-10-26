@@ -8,7 +8,8 @@
  * is posted; the picker only writes it.
  *
  * Every country's rule — its dialling code, how long its numbers are, how
- * they are grouped, the trunk prefix people dial at home — rides on its
+ * they are grouped, the trunk prefix people dial at home, the token a mobile
+ * is written with there — rides on its
  * <option>, and the words the picker says on the box, translated by the
  * server. Nothing is asked of anybody and nothing comes from elsewhere.
  *
@@ -35,7 +36,7 @@
 
 	function ruleOf( option ) {
 		if ( ! option ) {
-			return { dial: '', min: 4, max: 15, group: '', trunk: '' };
+			return { dial: '', min: 4, max: 15, group: '', trunk: '', mobile: '' };
 		}
 
 		return {
@@ -43,38 +44,81 @@
 			min: parseInt( option.getAttribute( 'data-min' ), 10 ) || 4,
 			max: parseInt( option.getAttribute( 'data-max' ), 10 ) || 15,
 			group: option.getAttribute( 'data-group' ) || '',
-			trunk: option.getAttribute( 'data-trunk' ) || ''
+			trunk: option.getAttribute( 'data-trunk' ) || '',
+			mobile: option.getAttribute( 'data-mobile' ) || ''
 		};
 	}
 
 	/**
 	 * The national number and the trunk prefix typed before it, if any: the
 	 * prefix goes only when what is left is still long enough to be a number
-	 * of the country. The same rule as diluxone_users_phone_national().
+	 * of the country. A mobile token typed right after the area code goes too,
+	 * and the lead a mobile carries goes in front: `typed` is the number as it
+	 * was written, `token` the token and `area` how long the area code is. The
+	 * same rule as diluxone_users_phone_national().
 	 */
 	function split( rule, number ) {
 		var digits = digitsOf( number );
+		var trunk = '';
+		var parts = rule.mobile.indexOf( ':' ) > 0 ? rule.mobile.split( ':' ) : null;
+		var length, area, mobile;
 
 		if ( rule.trunk && 0 === digits.indexOf( rule.trunk ) && digits.length - rule.trunk.length >= rule.min ) {
-			return { trunk: rule.trunk, digits: digits.slice( rule.trunk.length ) };
+			trunk = rule.trunk;
+			digits = digits.slice( trunk.length );
 		}
 
-		return { trunk: '', digits: digits };
+		if ( parts ) {
+			length = digits.length - parts[ 0 ].length;
+
+			if ( length >= rule.min && length <= rule.max ) {
+				area = pattern( rule, length, digits )[ 0 ];
+				mobile = parts[ 1 ] + digits.slice( 0, area ) + digits.slice( area + parts[ 0 ].length );
+
+				if ( digits.substr( area, parts[ 0 ].length ) === parts[ 0 ] && mobile.length <= rule.max ) {
+					return { trunk: trunk, digits: mobile, typed: digits, token: parts[ 0 ], area: area };
+				}
+			}
+		}
+
+		return { trunk: trunk, digits: digits, typed: digits, token: '', area: 0 };
 	}
 
 	/** The sizes of the groups: diluxone_users_phone_groups(). */
-	function groups( rule, length ) {
-		var target = Math.min( Math.max( length, rule.min ), rule.max );
+	function groups( rule, length, digits ) {
+		return pattern( rule, Math.min( Math.max( length, rule.min ), rule.max ), digits || '' );
+	}
+
+	/** The groups of a number of exactly this length: diluxone_users_phone_pattern(). */
+	function pattern( rule, target, digits ) {
 		var patterns = rule.group ? rule.group.split( '|' ) : [];
-		var i, sizes, sum, fours, out;
+		var fallback = null;
+		var i, j, at, starts, sizes, sum, fours, out;
 
 		for ( i = 0; i < patterns.length; i++ ) {
-			sizes = patterns[ i ].split( ' ' ).map( function ( n ) { return parseInt( n, 10 ); } );
+			at = patterns[ i ].indexOf( ':' );
+			starts = at < 0 ? [] : patterns[ i ].slice( 0, at ).split( ',' );
+			sizes = patterns[ i ].slice( at + 1 ).split( ' ' ).map( function ( n ) { return parseInt( n, 10 ); } );
 			sum = sizes.reduce( function ( a, b ) { return a + b; }, 0 );
 
-			if ( sum === target ) {
-				return sizes;
+			if ( sum !== target ) {
+				continue;
 			}
+
+			if ( ! starts.length ) {
+				fallback = sizes;
+				continue;
+			}
+
+			for ( j = 0; j < starts.length; j++ ) {
+				if ( 0 === digits.indexOf( starts[ j ] ) ) {
+					return sizes;
+				}
+			}
+		}
+
+		if ( fallback ) {
+			return fallback;
 		}
 
 		if ( target <= 4 ) {
@@ -99,14 +143,18 @@
 		return out;
 	}
 
-	/** The number written in groups: diluxone_users_phone_format(), with a typed trunk prefix kept in front. */
+	/**
+	 * The number written in groups: diluxone_users_phone_format(), with a
+	 * typed trunk prefix kept in front, and a typed mobile token kept after the
+	 * area code, as the person wrote them.
+	 */
 	function format( rule, number ) {
 		var parts = split( rule, number );
-		var digits = parts.digits;
+		var digits = parts.token ? parts.typed.slice( 0, parts.area ) + parts.typed.slice( parts.area + parts.token.length ) : parts.digits;
 		var out = [];
 		var at = 0;
 
-		groups( rule, digits.length ).forEach( function ( size ) {
+		groups( rule, digits.length, digits ).forEach( function ( size ) {
 			if ( at < digits.length ) {
 				out.push( digits.slice( at, at + size ) );
 				at += size;
@@ -115,6 +163,10 @@
 
 		if ( at < digits.length ) {
 			out.push( digits.slice( at ) );
+		}
+
+		if ( parts.token ) {
+			out.splice( 1, 0, parts.token );
 		}
 
 		return ( parts.trunk && out.length ? parts.trunk + ' ' : parts.trunk ) + out.join( ' ' );

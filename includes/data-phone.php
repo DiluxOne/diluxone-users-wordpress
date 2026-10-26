@@ -8,7 +8,7 @@
  * from a wrong one is here, one row per country of that list. Nothing in the
  * code names a country; whatever is particular to one is in its row.
  *
- * A row is `ISO => [min, max, grouping, trunk]`:
+ * A row is `ISO => [min, max, grouping, trunk, mobile]`, the last one optional:
  *
  * - min, max: how many digits the national number has, the part after the
  *   dialling code, as the ITU-T E.164 national numbering plans give them (in
@@ -18,10 +18,20 @@
  * - grouping: how the digits are written, as sizes of groups — `2 4 4` is
  *   "11 2345 6789" — one pattern per length, separated by `|`. A country with
  *   none, or a length with none, is written in groups of three ending in four.
+ *   Where the length alone does not tell (area codes of two, three or four
+ *   digits), a pattern can carry the leading digits it is for, before a colon:
+ *   `11:2 4 4|221,341:3 3 4|4 2 4` writes a number that starts with 11 as
+ *   2 4 4, one that starts with 221 or 341 as 3 3 4, and any other of that
+ *   length as 4 2 4. The first group of the pattern is the area code.
  * - trunk: the prefix dialled before a national number inside the country
  *   (0 in most, 1 across the North American plan, 8 in some, 06 in Hungary,
  *   none in many). It is never part of the number: typed out of habit, it is
  *   dropped before the length is checked and before the number is stored.
+ * - mobile: the token some countries dial at home between the area code and a
+ *   mobile's number, and what the number carries in front instead when it is
+ *   dialled from anywhere, as `token:lead`. `15:9` reads "011 15 4123 4567"
+ *   as 9 11 4123 4567. The token counts only right after the area code, and
+ *   only when the number without it is a number of the country.
  *
  * Plain functions over a static table, without WordPress, so it is tested
  * as it is.
@@ -34,7 +44,7 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Every country's rule.
  *
- * @return array<string, array{0: int, 1: int, 2: string, 3: string}> ISO => [min, max, grouping, trunk].
+ * @return array<string, array{0: int, 1: int, 2: string, 3: string, 4?: string}> ISO => [min, max, grouping, trunk, mobile].
  */
 function diluxone_users_phone_rules(): array {
 	static $rules = null;
@@ -47,7 +57,13 @@ function diluxone_users_phone_rules(): array {
 			'AD' => array( 6, 9, '', '' ),
 			'AO' => array( 9, 9, '', '' ),
 			'AG' => array( 7, 7, '', '1' ),
-			'AR' => array( 10, 11, '2 4 4|1 2 4 4', '0' ),
+			'AR' => array(
+				10,
+				11,
+				'11:2 4 4|220,221,223,230,236,237,249,260,261,263,264,266,280,291,294,297,298,299,336,341,342,343,345,348,351,353,358,362,364,370,376,379,380,381,383,385,387,388:3 3 4|4 2 4|911:1 2 4 4|9220,9221,9223,9230,9236,9237,9249,9260,9261,9263,9264,9266,9280,9291,9294,9297,9298,9299,9336,9341,9342,9343,9345,9348,9351,9353,9358,9362,9364,9370,9376,9379,9380,9381,9383,9385,9387,9388:1 3 3 4|1 4 2 4',
+				'0',
+				'15:9',
+			),
 			'AM' => array( 8, 8, '2 6', '0' ),
 			'AW' => array( 7, 7, '', '' ),
 			'AU' => array( 9, 9, '1 4 4', '0' ),
@@ -301,7 +317,7 @@ function diluxone_users_phone_rules(): array {
  * held to what E.164 says of every number: at most fifteen digits counting the
  * dialling code.
  *
- * @return array{min: int, max: int, group: string, trunk: string}
+ * @return array{min: int, max: int, group: string, trunk: string, mobile: string}
  */
 function diluxone_users_phone_rule( string $iso ): array {
 	$iso   = strtoupper( $iso );
@@ -309,18 +325,20 @@ function diluxone_users_phone_rule( string $iso ): array {
 
 	if ( isset( $rules[ $iso ] ) ) {
 		return array(
-			'min'   => $rules[ $iso ][0],
-			'max'   => $rules[ $iso ][1],
-			'group' => $rules[ $iso ][2],
-			'trunk' => $rules[ $iso ][3],
+			'min'    => $rules[ $iso ][0],
+			'max'    => $rules[ $iso ][1],
+			'group'  => $rules[ $iso ][2],
+			'trunk'  => $rules[ $iso ][3],
+			'mobile' => $rules[ $iso ][4] ?? '',
 		);
 	}
 
 	return array(
-		'min'   => 4,
-		'max'   => max( 4, 15 - strlen( diluxone_users_country_dial( $iso ) ) ),
-		'group' => '',
-		'trunk' => '',
+		'min'    => 4,
+		'max'    => max( 4, 15 - strlen( diluxone_users_country_dial( $iso ) ) ),
+		'group'  => '',
+		'trunk'  => '',
+		'mobile' => '',
 	);
 }
 
@@ -333,6 +351,10 @@ function diluxone_users_phone_rule( string $iso ): array {
  * of that country. A number that itself starts with the same digit — a
  * Russian 800, which begins with the 8 a Russian dials as a trunk prefix — is
  * left whole.
+ *
+ * A mobile written with the country's token after the area code ("011 15
+ * 4123 4567" in Argentina) is the number as it is dialled from anywhere:
+ * 9 11 4123 4567.
  */
 function diluxone_users_phone_national( string $iso, string $number ): string {
 	$digits = (string) preg_replace( '/\D/', '', $number );
@@ -340,10 +362,42 @@ function diluxone_users_phone_national( string $iso, string $number ): string {
 	$trunk  = $rule['trunk'];
 
 	if ( '' !== $trunk && 0 === strpos( $digits, $trunk ) && strlen( $digits ) - strlen( $trunk ) >= $rule['min'] ) {
-		return substr( $digits, strlen( $trunk ) );
+		$digits = substr( $digits, strlen( $trunk ) );
 	}
 
-	return $digits;
+	return diluxone_users_phone_mobile( $rule, $digits );
+}
+
+/**
+ * The number with the mobile token typed after its area code taken out, and
+ * the lead the country puts in front of a mobile instead; the number as it
+ * was when it has no token there, or when without it it is no number of the
+ * country.
+ *
+ * @param array{min: int, max: int, group: string, trunk: string, mobile: string} $rule   The country's rule.
+ * @param string                                                                  $digits The national number, digits only, without the trunk prefix.
+ */
+function diluxone_users_phone_mobile( array $rule, string $digits ): string {
+	if ( '' === $rule['mobile'] || false === strpos( $rule['mobile'], ':' ) ) {
+		return $digits;
+	}
+
+	list( $token, $lead ) = explode( ':', $rule['mobile'], 2 );
+	$length               = strlen( $digits ) - strlen( $token );
+
+	if ( '' === $token || $length < $rule['min'] || $length > $rule['max'] ) {
+		return $digits;
+	}
+
+	$area = diluxone_users_phone_pattern( $rule, $length, $digits )[0];
+
+	if ( substr( $digits, $area, strlen( $token ) ) !== $token ) {
+		return $digits;
+	}
+
+	$mobile = $lead . substr( $digits, 0, $area ) . substr( $digits, $area + strlen( $token ) );
+
+	return strlen( $mobile ) <= $rule['max'] ? $mobile : $digits;
 }
 
 /**
@@ -372,25 +426,62 @@ function diluxone_users_phone_check( string $iso, string $national ): string {
 /**
  * The sizes of the groups a number of this length is written in.
  *
- * The country's pattern for that length when it has one; a number still
- * being typed is written as the shortest number of the country would be, and
- * one past the longest as the longest, with what is left over as a last group.
+ * The country's pattern for that length when it has one, the one for the
+ * digits the number starts with first; a number still being typed is written
+ * as the shortest number of the country would be, and one past the longest as
+ * the longest, with what is left over as a last group.
  *
+ * @param string $iso    The country.
+ * @param int    $length How many digits the number has.
+ * @param string $digits The number, when the country's patterns depend on how it starts.
  * @return array<int, int>
  */
-function diluxone_users_phone_groups( string $iso, int $length ): array {
-	$rule     = diluxone_users_phone_rule( $iso );
-	$target   = min( max( $length, $rule['min'] ), $rule['max'] );
-	$patterns = array();
+function diluxone_users_phone_groups( string $iso, int $length, string $digits = '' ): array {
+	$rule = diluxone_users_phone_rule( $iso );
+
+	return diluxone_users_phone_pattern( $rule, min( max( $length, $rule['min'] ), $rule['max'] ), $digits );
+}
+
+/**
+ * The sizes of the groups of a number of exactly this length, under a rule:
+ * diluxone_users_phone_groups() once the length is one the country has.
+ *
+ * @param array{min: int, max: int, group: string, trunk: string, mobile: string} $rule   The country's rule.
+ * @param int                                                                     $target The length.
+ * @param string                                                                  $digits The number, for the patterns that depend on how it starts.
+ * @return array<int, int>
+ */
+function diluxone_users_phone_pattern( array $rule, int $target, string $digits ): array {
+	$fallback = null;
 
 	foreach ( '' === $rule['group'] ? array() : explode( '|', $rule['group'] ) as $pattern ) {
+		$starts = array();
+
+		if ( false !== strpos( $pattern, ':' ) ) {
+			list( $prefixes, $pattern ) = explode( ':', $pattern, 2 );
+			$starts                     = explode( ',', $prefixes );
+		}
+
 		$sizes = array_map( 'intval', explode( ' ', $pattern ) );
 
-		$patterns[ array_sum( $sizes ) ] = $sizes;
+		if ( array_sum( $sizes ) !== $target ) {
+			continue;
+		}
+
+		if ( ! $starts ) {
+			$fallback = $sizes;
+			continue;
+		}
+
+		foreach ( $starts as $start ) {
+			if ( 0 === strpos( $digits, $start ) ) {
+				return $sizes;
+			}
+		}
 	}
 
-	if ( isset( $patterns[ $target ] ) ) {
-		return $patterns[ $target ];
+	if ( null !== $fallback ) {
+		return $fallback;
 	}
 
 	// Threes, and a four at the end: 3 4, 4 4, 3 3 3, 3 3 4, 3 4 4.
@@ -419,7 +510,7 @@ function diluxone_users_phone_format( string $iso, string $national ): string {
 	$parts  = array();
 	$at     = 0;
 
-	foreach ( diluxone_users_phone_groups( $iso, $length ) as $size ) {
+	foreach ( diluxone_users_phone_groups( $iso, $length, $digits ) as $size ) {
 		if ( $at >= $length ) {
 			break;
 		}
