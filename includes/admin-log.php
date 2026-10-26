@@ -99,7 +99,7 @@ function diluxone_users_log_settings_save(): void {
 	);
 }
 
-/** The three tick boxes and the number of days. */
+/** The groups' tick boxes and the number of days. */
 function diluxone_users_screen_log_settings(): void {
 	$on = diluxone_users_log_levels();
 

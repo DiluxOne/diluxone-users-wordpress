@@ -69,6 +69,7 @@ class CoverAdminLogTest extends IntegrationTestCase {
 
 		$this->postPanel( DILUXONE_USERS_REPORTS, array( 'diluxone_users_log_levels' => array( 'social' ) ) );
 
+		$this->assertSame( 'returned', $this->ended( 'diluxone_users_log_settings_save' )[0] );
 		$this->assertSame( array( 'social' ), diluxone_users_log_levels() );
 		$this->assertTrue( diluxone_users_log_records( 'sso_failed' ) );
 		$this->assertFalse( diluxone_users_log_records( 'signed_in' ) );
