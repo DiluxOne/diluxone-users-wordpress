@@ -157,6 +157,33 @@ class CoverSettingsDesignTest extends IntegrationTestCase {
 		$this->assertSame( 'plain', diluxone_users_option( 'diluxone_users_login_template' ), 'nothing sent is the plain page' );
 	}
 
+	public function test_c2_a_page_of_its_own_says_where_it_is_drawn_and_the_save_writes_no_address(): void {
+		$this->the_admin();
+		diluxone_users_update_option( 'diluxone_users_login_template', 'own' );
+		diluxone_users_update_option( 'diluxone_users_login_page', 0 );
+		diluxone_users_update_option( 'diluxone_users_login_slug', 'entrar' );
+		diluxone_users_update_option( 'diluxone_users_login_slug_old', array() );
+
+		$html = $this->draw( 'diluxone_users_screen_login_shape' );
+
+		$this->assertStringNotContainsString( 'name="diluxone_users_login_slug"', $html, 'no address field' );
+		$this->assertStringContainsString( 'Drawn at <a href="' . esc_url( diluxone_users_door_url() ) . '"><code>' . esc_html( diluxone_users_door_url() ) . '</code></a>', $html );
+		$this->assertMatchesRegularExpression( '#<a href="[^"]*page=diluxone-users-login[^"]*tab=page">Access › The sign-in page →</a>#', $html );
+
+		// A form that sends an address anyway writes none.
+		$this->send_panel(
+			DILUXONE_USERS_DESIGN,
+			array(
+				'diluxone_users_login_template' => 'own',
+				'diluxone_users_login_slug'     => 'acceso',
+			)
+		);
+		diluxone_users_design_login_save();
+
+		$this->assertSame( 'entrar', diluxone_users_raw_get( 'diluxone_users_login_slug' ) );
+		$this->assertSame( array(), diluxone_users_raw_get( 'diluxone_users_login_slug_old' ) );
+	}
+
 	public function test_without_a_logo_the_switch_is_off_and_points_at_your_brand(): void {
 		$this->the_admin();
 		diluxone_users_update_option( 'diluxone_users_login_logo', 0 );

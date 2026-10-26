@@ -249,14 +249,15 @@ test.describe('User fields › every type, added from the screen', () => {
 		const email = await signInMember(guest, site, pages.login.url, 'type-phone2');
 
 		await details(guest, pages.account.url);
-		await guest.locator(`select[name="${field.key}_dial"]`).selectOption('UY');
+		// The list is hidden behind the picker and still what is posted.
+		await guest.locator(`select[name="${field.key}_dial"]`).selectOption('UY', { force: true });
 		await guest.locator(`input[name="${field.key}"]`).fill('(099) 123-456');
 		expect(await saveFieldsForm(guest)).toBe('saved');
-		expect(await answer(site, email, field.key), 'the dial code and the digits, nothing else').toBe('+598099123456');
+		expect(await answer(site, email, field.key), 'the dial code and the digits, nothing else, without the trunk 0').toBe('+59899123456');
 
 		await details(guest, pages.account.url);
 		await expect(guest.locator(`select[name="${field.key}_dial"]`), 'read back, the stored code is chosen again').toHaveValue('UY');
-		await expect(guest.locator(`input[name="${field.key}"]`)).toHaveValue('099123456');
+		await expect(guest.locator(`input[name="${field.key}"]`), 'written as the country writes it').toHaveValue('9912 3456');
 	});
 
 	test('a required closed list refuses a value from outside it and keeps the answer it had', async ({ page, guest, site, pages, options }) => {
