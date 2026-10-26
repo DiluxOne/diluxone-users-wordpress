@@ -311,4 +311,27 @@ class MissingFieldsTest extends IntegrationTestCase {
 
 		$this->assertSame( $before, array_keys( (array) get_user_meta( $this->user ) ), 'nothing written on the person' );
 	}
+
+	/** #139: the step is drawn in the account area's frame, its title before its line. */
+	public function test_the_step_is_drawn_in_the_account_frame_with_its_title_first(): void {
+		wp_set_current_user( $this->user );
+		$_GET = array( 'diluxone-users-complete' => '1' );
+
+		$html = diluxone_users_shortcode_account();
+
+		$this->assertStringContainsString( 'diluxone-users-account--contained', $html, 'the frame and its width' );
+		$this->assertStringContainsString( 'diluxone-users-account__body', $html );
+		$this->assertStringContainsString( 'diluxone-users-account__section diluxone-users-complete', $html );
+		$this->assertStringNotContainsString( 'diluxone-users-account__nav', $html, 'no menu' );
+		$this->assertSame( 1, substr_count( $html, 'diluxone-users-fields__title' ), 'one title' );
+
+		$title = strpos( $html, 'diluxone-users-fields__title' );
+		$intro = strpos( $html, 'diluxone-users-complete__intro' );
+		$this->assertNotFalse( $title );
+		$this->assertNotFalse( $intro );
+		$this->assertLessThan( $intro, $title, 'the title comes before the line' );
+
+		diluxone_users_update_option( 'diluxone_users_account_width', 'full' );
+		$this->assertStringContainsString( 'diluxone-users-account--full', diluxone_users_shortcode_account(), 'it follows the width setting' );
+	}
 }

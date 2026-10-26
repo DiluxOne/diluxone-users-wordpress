@@ -40,6 +40,14 @@ test('signing in by link from /beta/ asks for the name on the hub, and the save 
 	await expect(form.locator('input[name="first_name"]')).toBeVisible();
 	await expect(form.locator('input[name="last_name"]'), 'only what is missing').toHaveCount(0);
 
+	// In the account area's frame, its title before its line (#139).
+	const frame = guest.locator('.diluxone-users-account--contained .diluxone-users-account__body .diluxone-users-complete');
+	await expect(frame).toHaveCount(1);
+	const titleBox = await frame.locator('.diluxone-users-fields__title').boundingBox();
+	const introBox = await frame.locator('.diluxone-users-complete__intro').boundingBox();
+	expect(titleBox!.y, 'the title comes before the line').toBeLessThan(introBox!.y);
+	expect((await form.boundingBox())!.width, 'held to the reading width').toBeLessThanOrEqual(981);
+
 	await form.locator('input[name="first_name"]').fill('Ada');
 	await navigated(guest, () => form.locator('button[type="submit"]').click());
 

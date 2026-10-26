@@ -426,6 +426,7 @@ add_filter( 'diluxone_users_sso_providers', function ( array $providers ): array
         'scope'      => 'openid email profile',
         'extra'      => array(),                                  // optional: odd parameters the provider wants
         'pkce'       => false,                                    // optional: true when it requires PKCE
+        'pkce_support' => true,                                   // optional: true when it accepts PKCE (false if left out)
         'token_auth' => 'post',                                   // optional: 'basic' when it wants the secret in a Basic header
         'map'        => 'diluxone_users_sso_map_oidc',            // optional: reads the profile (below)
         'console'    => 'https://id.acme.example/developers',     // optional: where the application is made
@@ -441,6 +442,15 @@ add-on's (DiluxOne Users+ Pro registers ten this way). `token_auth` says how
 the code is exchanged: `post` (the default) sends the client ID and the secret
 in the body, `basic` sends them in an HTTP Basic `Authorization` header and
 leaves the secret out of the body, for a provider that accepts only that.
+
+PKCE (S256) is per provider. A row with `pkce_support` true gets a "Use PKCE"
+box on its Settings tab, ticked until an administrator unticks it, and its
+trip sends `code_challenge` and the exchange `code_verifier` while it is
+ticked; Google and Microsoft are such rows. A row that leaves it out is never
+sent PKCE and its box is locked, saying the provider does not support it. A
+row with `pkce` true requires it: it is always sent, and the box is ticked and
+locked. `diluxone_users_sso_pkce( $id, $row )` says whether a provider's trip
+uses it.
 
 `map` is a callable that receives the profile (decoded JSON) and the access
 token and returns `id`, `email`, `name` (the first name), `last_name` and
@@ -848,7 +858,11 @@ marked as required. Once it is signed in, it is sent first to the account
 page with `?diluxone-users-complete=1&redirect_to=<where it was going>`,
 which draws only those fields (`templates/fields.php`, the same form, checks
 and save as Details) in place of the sections and their nav, with a "Skip
-for now" link. Saved with nothing required still missing, it goes on to
+for now" link. The step is drawn in the account area's own frame (the
+classes of `diluxone_users_account_classes` with the layout `none` and no
+header, and the properties of `diluxone_users_account_style`), so it follows
+the width setting and a shape's stylesheet; it prints its own title, then its
+line, and asks `templates/fields.php` for no title. Saved with nothing required still missing, it goes on to
 `redirect_to`, checked with `wp_validate_redirect()` against the site's (and,
 on a network, the network's) hosts. Nothing is stored about the person: it is
 decided again at every sign-in, and no other request is held up.
