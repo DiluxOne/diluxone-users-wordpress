@@ -272,7 +272,7 @@ function diluxone_users_field_input( array $field, string $value, string $id = '
 				$rule = diluxone_users_phone_rule( (string) $iso );
 
 				printf(
-					'<option value="%1$s" data-dial="%4$s" data-min="%5$d" data-max="%6$d" data-group="%7$s" data-trunk="%8$s"%2$s>%3$s +%4$s</option>',
+					'<option value="%1$s" data-dial="%4$s" data-min="%5$d" data-max="%6$d" data-group="%7$s" data-trunk="%8$s" data-mobile="%9$s"%2$s>%3$s +%4$s</option>',
 					esc_attr( $iso ),
 					selected( $dial, $iso, false ),
 					esc_html( $country_name ),
@@ -280,7 +280,8 @@ function diluxone_users_field_input( array $field, string $value, string $id = '
 					(int) $rule['min'],
 					(int) $rule['max'],
 					esc_attr( $rule['group'] ),
-					esc_attr( $rule['trunk'] )
+					esc_attr( $rule['trunk'] ),
+					esc_attr( $rule['mobile'] )
 				);
 			}
 
