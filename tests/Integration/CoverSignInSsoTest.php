@@ -1089,4 +1089,44 @@ class CoverSignInSsoTest extends IntegrationTestCase {
 
 		$this->assertInstanceOf( \WP_User::class, get_user_by( 'email', MockProvider::$profile['email'] ), 'the plugin’s switch, not WordPress’s, on a single site' );
 	}
+
+	/* ── "Only verified addresses" off: as before, no mail ───────────── */
+
+	/** Silence makes a new account and signs in, as before: nothing waits and nothing is mailed. */
+	public function test_with_verified_only_off_silence_still_makes_a_new_account(): void {
+		diluxone_users_update_option( 'diluxone_users_sso_verified_only', 0 );
+		unset( MockProvider::$profile['email_verified'] );
+
+		$this->assertSame( home_url( '/' ), $this->trip() );
+		$this->assertInstanceOf( \WP_User::class, get_user_by( 'email', MockProvider::$profile['email'] ) );
+		$this->assertGreaterThan( 0, get_current_user_id() );
+		$this->assertSame( array(), self::$mail );
+	}
+
+	/** Silence does not open an existing account, as before: the social error, no mail. */
+	public function test_with_verified_only_off_silence_still_does_not_open_an_existing_account(): void {
+		diluxone_users_update_option( 'diluxone_users_sso_verified_only', 0 );
+		unset( MockProvider::$profile['email_verified'] );
+		$user = (int) wp_insert_user(
+			array(
+				'user_login' => 'diluxone_users_' . wp_generate_password( 8, false ),
+				'user_email' => MockProvider::$profile['email'],
+				'user_pass'  => wp_generate_password( 16 ),
+			)
+		);
+
+		$this->assertSame( 'social', $this->redirectState( $this->trip() ) );
+		$this->assertSame( '', get_user_meta( $user, 'diluxone_users_sso_mock', true ) );
+		$this->assertSame( array(), self::$mail );
+	}
+
+	/** A no is refused, as before: the social error, no account, no mail. */
+	public function test_with_verified_only_off_a_no_is_still_refused(): void {
+		diluxone_users_update_option( 'diluxone_users_sso_verified_only', 0 );
+		MockProvider::$profile['email_verified'] = false;
+
+		$this->assertSame( 'social', $this->redirectState( $this->trip() ) );
+		$this->assertFalse( get_user_by( 'email', MockProvider::$profile['email'] ) );
+		$this->assertSame( array(), self::$mail );
+	}
 }

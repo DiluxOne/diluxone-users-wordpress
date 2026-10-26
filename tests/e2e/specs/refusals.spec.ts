@@ -395,6 +395,17 @@ const ROWS: Row[] = [
 		probe: subscriberState,
 	},
 	{
+		id: 'a social sign-in’s link sent again (admin_post_nopriv_diluxone_users_sso_resend)',
+		method: 'POST',
+		url: () => ADMIN_POST,
+		fields: () => ({ action: 'diluxone_users_sso_resend' }),
+		nonce: { field: 'diluxone_users_nonce', action: 'diluxone_users_sso_resend' },
+		actor: 'guest',
+		// The holding screen again, whatever happened: it never says why.
+		expect: { 'no nonce': { state: 'social-pending' }, 'forged nonce': { state: 'social-pending' } },
+		probe: async (w) => ({ mail: await mails(w, w.subscriber.email) }),
+	},
+	{
 		id: '"Join this site" on a single site (admin_post_diluxone_users_join is Users+ Pro’s, and a network’s only)',
 		method: 'POST',
 		url: () => ADMIN_POST,

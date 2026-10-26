@@ -537,10 +537,19 @@ function diluxone_users_sso_token( string $id, array $provider, string $code, st
  * e-mail hands over nothing yet, so there the explicit no is what closes the
  * door, and the "verified only" setting decides what silence means.
  *
+ * An address proved by mail — the person opened the link sent to it, see
+ * sso-pending.php — is theirs whatever the provider said: the inbox is the
+ * proof the provider did not give. Only that path sets `proved`;
+ * diluxone_users_sso_clean() drops it from anything a provider sends.
+ *
  * @param array<string, mixed> $identity What the mapper returned.
  * @param bool                 $linking  Whether an existing account is at stake.
  */
 function diluxone_users_sso_email_trusted( array $identity, bool $linking ): bool {
+	if ( true === ( $identity['proved'] ?? null ) ) {
+		return true;
+	}
+
 	$verified = $identity['verified'] ?? null;
 
 	if ( true === $verified ) {
@@ -602,6 +611,51 @@ function diluxone_users_sso_clean( array $identity ): array {
 }
 
 /**
+ * Where an identity nobody has linked yet would land, without doing it.
+ *
+ * The rules of matching by e-mail and of creating, asked once: by
+ * diluxone_users_sso_user(), which then does it, and by the confirmation by
+ * mail (sso-pending.php), which has to know before it mails a link whether
+ * opening it would get the person anywhere.
+ *
+ * @param array<string, mixed> $identity
+ * @return int The existing account it would be linked to, -1 when a new one
+ *             would be created, 0 when it is refused.
+ */
+function diluxone_users_sso_target( array $identity ): int {
+	$email = (string) ( $identity['email'] ?? '' );
+
+	if ( '' === $email || ! is_email( $email ) ) {
+		return 0;
+	}
+
+	$known = get_user_by( 'email', $email );
+
+	// The account already exists with that e-mail but without this network
+	// linked: it is the same person, and the network is added to it. That is
+	// what makes signing in with Google today and Microsoft tomorrow one account.
+	if ( $known ) {
+		if ( ! diluxone_users_option( 'diluxone_users_sso_link_by_email' ) || ! diluxone_users_sso_email_trusted( $identity, true ) ) {
+			return 0;
+		}
+
+		return diluxone_users_sso_role_blocked( (int) $known->ID ) ? 0 : (int) $known->ID;
+	}
+
+	if ( ! diluxone_users_option( 'diluxone_users_sso_register' ) || ! diluxone_users_sso_email_trusted( $identity, false ) || ! diluxone_users_network_takes_accounts() ) {
+		return 0;
+	}
+
+	// An account social sign-in would then refuse is not created: the
+	// role a new account gets has to be one that may use it.
+	if ( 'some' === diluxone_users_scope( 'diluxone_users_sso' ) && ! in_array( diluxone_users_register_role(), (array) diluxone_users_option( 'diluxone_users_sso_roles' ), true ) ) {
+		return 0;
+	}
+
+	return -1;
+}
+
+/**
  * Finds or creates the account behind a social identity, and links it.
  *
  * Linking is by e-mail, the same as Nextend's "Link accounts by email"
@@ -613,41 +667,22 @@ function diluxone_users_sso_clean( array $identity ): array {
  */
 function diluxone_users_sso_user( string $id, array $identity ): int {
 	$meta     = 'diluxone_users_sso_' . $id;
-	$existing = diluxone_users_sso_owner( $id, $identity['id'] );
+	$existing = diluxone_users_sso_owner( $id, (string) ( $identity['id'] ?? '' ) );
 
 	if ( $existing > 0 ) {
 		return diluxone_users_sso_role_blocked( $existing ) ? 0 : $existing;
 	}
 
-	if ( '' === $identity['email'] || ! is_email( $identity['email'] ) ) {
+	$user_id = diluxone_users_sso_target( $identity );
+
+	if ( 0 === $user_id ) {
 		return 0;
 	}
 
-	$known = get_user_by( 'email', $identity['email'] );
-
-	// The account already exists with that e-mail but without this network
-	// linked: it is the same person, and the network is added to it. That is
-	// what makes signing in with Google today and Microsoft tomorrow one account.
-	if ( $known ) {
-		if ( ! diluxone_users_option( 'diluxone_users_sso_link_by_email' ) || ! diluxone_users_sso_email_trusted( $identity, true ) ) {
-			return 0;
-		}
-
-		$user_id = (int) $known->ID;
-	} else {
-		if ( ! diluxone_users_option( 'diluxone_users_sso_register' ) || ! diluxone_users_sso_email_trusted( $identity, false ) ) {
-			return 0;
-		}
-
-		// An account social sign-in would then refuse is not created: the
-		// role a new account gets has to be one that may use it.
-		if ( 'some' === diluxone_users_scope( 'diluxone_users_sso' ) && ! in_array( diluxone_users_register_role(), (array) diluxone_users_option( 'diluxone_users_sso_roles' ), true ) ) {
-			return 0;
-		}
-
-		// Its own switch decides, not the e-mail link's: a site can create
-		// accounts from social sign-in and not from a typed address.
-		$user_id = diluxone_users_create_account( $identity['email'] );
+	// Its own switch decides, not the e-mail link's: a site can create
+	// accounts from social sign-in and not from a typed address.
+	if ( $user_id < 0 ) {
+		$user_id = diluxone_users_create_account( (string) $identity['email'] );
 	}
 
 	if ( $user_id <= 0 || diluxone_users_sso_role_blocked( $user_id ) ) {
@@ -995,6 +1030,13 @@ function diluxone_users_sso_handle( $wp = null ): void {
 
 		wp_safe_redirect( add_query_arg( 'diluxone-users', 'linked', $back ) );
 		exit;
+	}
+
+	// A provider that did not vouch for the address, on a site that asks for
+	// it to be vouched for: the address is proved by mail before anything is
+	// created or linked (sso-pending.php). This ends the request.
+	if ( diluxone_users_sso_pending_wanted( $id, $identity ) ) {
+		diluxone_users_sso_pending_start( $id, $identity );
 	}
 
 	$user_id = diluxone_users_sso_user( $id, $identity );

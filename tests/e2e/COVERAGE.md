@@ -43,7 +43,7 @@ everybody, with the code by e-mail, and skips it for nobody.
 | Reset: `wp`, `site` (whole chain, reused key), `link` | `password-reset` |
 | Second step by e-mail: code, reuse, five tries, resend wait, timeout, link skip | `two-factor` › by e-mail |
 | Backup codes: handed over when the step is turned on, one gets in once, another still works | `two-factor` › Backup codes |
-| Social: new account, known verified address, H-01, silence, verified-only, social registration off, cancel, roles, link/unlink, H-02, forged state, buttons off | `sso` |
+| Social: new account, known verified address, H-01, silence, verified-only (waits on the mail), social registration off, cancel, roles, link/unlink, H-02, forged state, buttons off | `sso` |
 | WP-CLI `wp diluxone-users login` link | `network/lifecycle` › WP-CLI |
 | Nobody's form for somebody signed in; `title="yes"`; the site's heading, intro, small print, logo; the logo switched off (no logo on the sign-in or the registration page); a Pro layout stored is the card | `signin-page` › What the sign-in page draws, and for whom |
 | The centred card on Twenty Twenty-Five and Astra, light and dark, colours the theme's and no site CSS: the edge at 3:1 or more against the page, the logo, heading, intro and form centred, the e-mail note and the small print at least a field's gap apart, a site's `--diluxone-users-field-gap` followed (single site and the hub) | `signin-card` › C4: the centred card on …; network `signin-card` |
@@ -76,6 +76,7 @@ everybody, with the code by e-mail, and skips it for nobody.
 | Social: link-by-email off, linked identity with another address, scope some with a disallowed role, social buttons on the registration form | `signin-social` › Who a social identity opens |
 | Social linking: `taken`, `linked` + security mails on link/unlink, unlink without its nonce | `signin-social` › Linking from the account, off the plain path |
 | Social then 2FA; new device after social | `signin-social` › What a social sign-in sets off |
+| Social, an address the provider does not confirm with “Only verified addresses” on: nothing yet, the mail, the holding screen with the masked address; the link opened in the browser that waits (new account, existing account), and in another browser expired with nothing made; the link expired; the setting off as before; “Send it again” past the wait, only the newest link works; “Use another address” | `sso-pending` |
 | Required fields missing after a sign-in: a new account by link lands on the account page with only the required field, its save goes on to `redirect_to`; a social account with no name lands there too; an account with every field filled goes straight on; skipped, the site is open and the next sign-in asks again; the step drawn in the account area's frame, as wide as its reading width, with its title before its line | `missing-fields` › After signing in, the required fields missing; `repro/issue-139` |
 | …turned off on User fields › After sign-in; the box switched off and saying why while no field is required | `missing-fields` › After signing in, turned off on User fields |
 | Social button skin/shape/contents/rows/words on the real page | `signin-social` › The buttons on the real page |
@@ -347,6 +348,7 @@ everybody, with the code by e-mail, and skips it for nobody.
 | Photo removed on the hub's account deletes no /beta/ file with the same id | `isolation` |
 | 2FA required of administrators: an administrator of /alpha/ signing in for /beta/ as a subscriber is asked, on the hub; a password posted to /beta/'s own wp-login.php is asked too | `isolation` › The second step is the network’s |
 | Social identity linked on the hub's account reaches the same account from /beta/ | `social` |
+| From /beta/, an address the provider does not confirm: the hub's holding screen and link; expired in another browser, signed in back on /beta/ in the one that waited | `sso-pending` |
 | A new site used from its public pages first, nothing in debug.log | `lifecycle` |
 | Only for the whole network: a site's Plugins screen has no Activate; left on for one site alone it does nothing there and asks super admins to network-activate; back on for the network; nothing in debug.log | `lifecycle` › only for the whole network… |
 | The pieces of the account on a page of /beta/: a door to the account on the hub for each, nothing to a stranger; on the hub the forms | `account-pieces` |
@@ -630,6 +632,7 @@ its row, and its spec, in the same pull request.
 | shortcode | `diluxone_users_notifications` | `specs/account-pieces` › the photo and the notifications alone…; `network/account-pieces` |
 | shortcode | `diluxone_users_join` | `network/membership` › A Pro answer stored without Users+ Pro; `specs/single-site` › there is no membership… |
 | admin-post | `diluxone_users_link_request` | `specs/magic-link`; `network/doors`; `specs/refusals` (every refusal) |
+| admin-post | `diluxone_users_sso_resend` | `specs/sso-pending` › “Send it again”…; `specs/refusals` (every refusal); `network/refusals` (posted to /beta/) |
 | admin-post | `diluxone_users_signup` | `specs/register`; `network/doors` › register from /beta/…; `specs/refusals` (every refusal) |
 | admin-post | `diluxone_users_reset` | `specs/password-reset`; `specs/refusals` (every refusal) |
 | admin-post | `diluxone_users_fields_save` | `specs/account-area` › Your details; `specs/account-pieces` › the fields alone…; `specs/refusals` (every refusal) |
@@ -659,7 +662,7 @@ its row, and its spec, in the same pull request.
 | address | `diluxone_users_sso` | `specs/sso`; `network/social` |
 | wp-cli | `wp diluxone-users login` | `network/lifecycle` › WP-CLI |
 | wp-cli | `wp diluxone-users network membership sync` | `network/membership` › `wp diluxone-users network membership sync`… |
-| template | `templates/login.php` | `specs/magic-link`, `specs/password-login`; `specs/front-snapshots` (pictures) |
+| template | `templates/login.php` | `specs/magic-link`, `specs/password-login`, `specs/sso-pending` (the `social-pending` state); `specs/front-snapshots` (pictures) |
 | template | `templates/login-2fa.php` | `specs/two-factor`; `specs/front-snapshots` (pictures) |
 | template | `templates/login-reset.php` | `specs/password-reset` › `site`; `specs/front-snapshots` (pictures) |
 | template | `templates/register.php` | `specs/register`; `specs/front-snapshots` (pictures) |

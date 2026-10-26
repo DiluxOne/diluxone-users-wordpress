@@ -153,6 +153,9 @@ class SsoLinkTest extends IntegrationTestCase {
 	}
 
 	public function test_a_new_account_is_created_when_the_provider_says_nothing_unless_the_site_asked_for_more(): void {
+		// "Only verified addresses" off, saved that way: it is on by default.
+		diluxone_users_update_option( 'diluxone_users_sso_verified_only', 0 );
+
 		$id = diluxone_users_sso_user( MockProvider::ID, $this->identity( 'new-one-' . $this->sub . '@example.test', null ) );
 
 		$this->assertGreaterThan( 0, $id );
