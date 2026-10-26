@@ -8,7 +8,8 @@ import { NETWORK_ADMIN_STATE } from '../../../playwright.network.config';
  * the network signs in, and the other sites send people there.
  */
 
-const SHAPE = { diluxone_users_login_template: 'own', diluxone_users_login_slug: 'sign-in', diluxone_users_login_slug_old: [] };
+// "No page" on Access, so the page of its own is at /sign-in/.
+const SHAPE = { diluxone_users_login_template: 'own', diluxone_users_login_page: 0, diluxone_users_login_slug: 'sign-in', diluxone_users_login_slug_old: [] };
 
 test.describe('A page of its own, on a network', () => {
 	test('C1: the hub’s /sign-in/ draws the form with no theme header or footer; another site has no such page', async ({ hub, alpha, guest }) => {
@@ -23,6 +24,22 @@ test.describe('A page of its own, on a network', () => {
 
 		await guest.goto(alpha.path('sign-in/'));
 		await expect(guest.locator('body.diluxone-users-door'), 'only the hub answers it').toHaveCount(0);
+	});
+
+	test('C1: the page chosen on the hub draws the page of its own at its own address, with no redirect', async ({ hub, guest }) => {
+		await hub.set({ ...SHAPE, diluxone_users_login_page: hub.pages.login.id });
+
+		const direct = await guest.request.get(hub.pages.login.url, { maxRedirects: 0 });
+
+		expect(direct.status(), 'answered there, not sent anywhere').toBe(200);
+
+		const response = await guest.goto(hub.pages.login.url);
+
+		expect(response?.status()).toBe(200);
+		expect(response?.request().redirectedFrom(), 'nothing redirects').toBeNull();
+		expect(guest.url()).toBe(hub.pages.login.url);
+		await expect(guest.locator('body.diluxone-users-door'), 'the page of its own, drawn there').toHaveCount(1);
+		await expect(guest.locator('.diluxone-users-login-frame--own .diluxone-users-login')).toBeVisible();
 	});
 
 	test('C2: another site’s door leads to the hub’s /sign-in/, with the way back', async ({ hub, alpha, guest }) => {
