@@ -416,6 +416,7 @@ In the browser, case by case:
 | A site on a domain of its own: its door is its own wp-login.php | `signin-doors` › A site on a domain of its own |
 | Required fields missing, asked on the hub's account page after a sign-in by link from /beta/, and the save goes back to /beta/ | `missing-fields` |
 | The phone on the hub's registration form is one control drawn like the e-mail input, wide and at 390px | `phone-field` |
+| The phone on the hub's registration form grouped by its area code (`221 412 3456`) and a mobile typed with its 15 (`0 11 15 4123 4567`) not too long | `phone-field` |
 
 ## Network settings, and the network's screens
 
