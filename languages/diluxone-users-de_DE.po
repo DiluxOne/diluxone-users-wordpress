@@ -44,6 +44,7 @@ msgid "There is no social network turned on, so there is nothing to link."
 msgstr "Es ist kein soziales Netzwerk aktiviert, also gibt es nichts zu verknüpfen."
 
 #: includes/account-sections.php:51
+#: includes/admin-social.php:786
 #: includes/admin.php:80
 msgid "Security"
 msgstr "Sicherheit"
@@ -520,11 +521,11 @@ msgstr "Die Vorwahl, mit der das Feld kommt. Die Person kann sie ändern: Die vo
 msgid "Save field"
 msgstr "Feld speichern"
 
-#: includes/admin-social.php:766
+#: includes/admin-social.php:815
 msgid "The email sign-in form and the social buttons."
 msgstr "Das Anmeldeformular per E-Mail und die Social-Schaltflächen."
 
-#: includes/admin-social.php:771
+#: includes/admin-social.php:820
 msgid "Linked providers, to link or unlink."
 msgstr "Verknüpfte Anbieter, zum Verknüpfen oder Lösen."
 
@@ -938,88 +939,88 @@ msgstr "Loslegen"
 msgid "Usage"
 msgstr "Verwendung"
 
-#: includes/admin-social.php:647
+#: includes/admin-social.php:655
 msgid "Provider saved."
 msgstr "Anbieter gespeichert."
 
-#: includes/admin-social.php:656
+#: includes/admin-social.php:664
 msgid "Back to all providers"
 msgstr "Zurück zu allen Anbietern"
 
-#: includes/admin-social.php:701
+#: includes/admin-social.php:711
 msgid "Client ID"
 msgstr "Client-ID"
 
-#: includes/admin-social.php:717
+#: includes/admin-social.php:727
 msgid "Secret"
 msgstr "Secret"
 
-#: includes/admin-social.php:744
+#: includes/admin-social.php:754
 msgid "Show the button"
 msgstr "Die Schaltfläche anzeigen"
 
-#: includes/admin-social.php:760
+#: includes/admin-social.php:809
 msgid "The buttons are drawn by the sign-in shortcode, together with the email form. There is nothing else to place."
 msgstr "Die Schaltflächen werden vom Anmelde-Shortcode gezeichnet, zusammen mit dem E-Mail-Formular. Es gibt nichts weiter zu platzieren."
 
 #. translators: %s: provider name
-#: includes/admin-social.php:796
+#: includes/admin-social.php:845
 #, php-format
 msgid "To let people sign in with their %s account you have to create an app there. Below is the whole thing, click by click."
 msgstr "Damit die Leute sich mit ihrem %s-Konto anmelden können, musst du dort eine App anlegen. Hier steht alles, Klick für Klick."
 
-#: includes/admin-social.php:802
+#: includes/admin-social.php:851
 msgid "The URL they are going to ask you for"
 msgstr "Die URL, nach der man dich fragen wird"
 
-#: includes/admin-social.php:803
+#: includes/admin-social.php:852
 msgid "Keep it at hand: one of the steps below asks for it, and it has to be pasted exactly as it is."
 msgstr "Halte sie bereit: Einer der Schritte unten fragt danach, und sie muss genau so eingefügt werden, wie sie ist."
 
-#: includes/admin-social.php:813
+#: includes/admin-social.php:862
 msgid "Depending on the provider it is called redirect URI, callback URL, return URL or authorized redirect URL."
 msgstr "Je nach Anbieter heißt sie redirect URI, callback URL, return URL oder authorized redirect URL."
 
 #. translators: %s: provider name
-#: includes/admin-social.php:820
+#: includes/admin-social.php:869
 #, php-format
 msgid "Step by step in %s"
 msgstr "Schritt für Schritt in %s"
 
-#: includes/admin-social.php:827
+#: includes/admin-social.php:876
 msgid "Open the console"
 msgstr "Konsole öffnen"
 
-#: includes/admin-social.php:968
+#: includes/admin-social.php:1017
 msgid "Watch out:"
 msgstr "Achtung:"
 
-#: includes/admin-social.php:837
+#: includes/admin-social.php:886
 msgid "And then, here"
 msgstr "Und dann hier"
 
-#: includes/admin-social.php:838
+#: includes/admin-social.php:887
 msgid "Paste the client ID and the secret in Settings, run the live test, and turn the button on."
 msgstr "Füge die Client-ID und das Secret in den Einstellungen ein, starte den Live-Test und schalte die Schaltfläche ein."
 
-#: includes/admin-social.php:851
+#: includes/admin-social.php:900
 msgid "I already created the app"
 msgstr "Ich habe die App schon angelegt"
 
-#: includes/admin-social.php:874
+#: includes/admin-social.php:923
 msgid "Run the live test"
 msgstr "Live-Test starten"
 
-#: includes/admin-social.php:875
+#: includes/admin-social.php:924
 msgid "Test it again"
 msgstr "Erneut testen"
 
-#: includes/admin-social.php:949
+#: includes/admin-social.php:998
 msgid "Create the app, load the redirect URL and paste the client ID and the secret in Settings."
 msgstr "Lege die App an, hinterlege die Rücksprung-URL und füge die Client-ID und das Secret in den Einstellungen ein."
 
 #. translators: %s: provider name
-#: includes/admin-social.php:956
+#: includes/admin-social.php:1005
 #, php-format
 msgid "A window opens, %s asks you to authorise, and it comes back here. Nobody is signed in and nothing is saved to your account — it only checks that the round trip works. Until it does, the button cannot be enabled."
 msgstr "Ein Fenster geht auf, %s bittet dich um Autorisierung, und es kommt hierher zurück. Niemand wird angemeldet und nichts wird in deinem Konto gespeichert — es wird nur geprüft, ob der Hin- und Rückweg funktioniert. Bis er das tut, kann die Schaltfläche nicht aktiviert werden."
@@ -1185,7 +1186,7 @@ msgstr "Kopiere das in eine Support-Anfrage und die Hälfte des Hin und Her entf
 #: includes/admin-log.php:846
 #: includes/admin-membership.php:394
 #: includes/admin-panels.php:158
-#: includes/admin-social.php:988
+#: includes/admin-social.php:1037
 #: includes/admin-tools.php:106
 #: includes/admin-tools.php:178
 #: includes/admin-tools.php:215
@@ -1843,55 +1844,55 @@ msgstr "Kopiere den „Wert“ des Secrets, nicht seine „Geheimnis-ID“. Der 
 msgid "The openid, email and profile permissions are already there by default — you do not have to add anything under “API permissions”."
 msgstr "Die Berechtigungen openid, email und profile sind standardmäßig schon da — unter „API-Berechtigungen“ musst du nichts hinzufügen."
 
-#: includes/sso.php:906
+#: includes/sso.php:945
 msgid "The provider did not hand over an access token. Check the client ID and the secret."
 msgstr "Der Anbieter hat kein Zugriffstoken herausgegeben. Prüfe die Client-ID und das Secret."
 
-#: includes/sso.php:918
+#: includes/sso.php:957
 msgid "The token worked but the profile came back empty. The app is probably missing the permissions this provider needs."
 msgstr "Das Token hat funktioniert, aber das Profil kam leer zurück. Wahrscheinlich fehlen der App die Berechtigungen, die dieser Anbieter braucht."
 
 #. translators: %s: name of the social network
-#: includes/sso.php:951
+#: includes/sso.php:990
 #, php-format
 msgid "The %s account was linked, and it now gets into this account."
 msgstr "Das Konto %s wurde verknüpft und kommt jetzt in dieses Konto herein."
 
 #. translators: %s: name of the social network
-#: includes/sso.php:1045
+#: includes/sso.php:1084
 #, php-format
 msgid "The %s account was unlinked."
 msgstr "Die Verknüpfung mit dem Konto %s wurde gelöst."
 
-#: includes/sso.php:1086
+#: includes/sso.php:1125
 msgid "It works"
 msgstr "Es funktioniert"
 
-#: includes/sso.php:1087
+#: includes/sso.php:1126
 msgid "It did not work"
 msgstr "Es hat nicht funktioniert"
 
 #. translators: %s: provider name
-#: includes/sso.php:1092
+#: includes/sso.php:1131
 #, php-format
 msgid "The round trip with %s finished correctly. You can enable the button now."
 msgstr "Der Hin- und Rückweg mit %s ist korrekt beendet worden. Du kannst die Schaltfläche jetzt aktivieren."
 
 #. translators: %s: provider name
-#: includes/sso.php:1097
+#: includes/sso.php:1136
 #, php-format
 msgid "The round trip with %s failed."
 msgstr "Der Hin- und Rückweg mit %s ist gescheitert."
 
 #. translators: %s: e-mail address
-#: includes/sso.php:1103
+#: includes/sso.php:1142
 #, php-format
 msgid "The provider handed over this email: %s"
 msgstr "Der Anbieter hat diese E-Mail herausgegeben: %s"
 
 #: includes/admin-fields.php:706
 #: includes/admin-panels.php:841
-#: includes/sso.php:1128
+#: includes/sso.php:1167
 #: templates/sessions.php:67
 msgid "Close"
 msgstr "Schließen"
@@ -2496,7 +2497,7 @@ msgstr "Ein Panel in der Seite, so wie ein Einstellungsbildschirm aussieht. Es b
 msgid "With a cover"
 msgstr "Mit Titelbild"
 
-#: includes/admin-social.php:770
+#: includes/admin-social.php:819
 msgid "The account area"
 msgstr "Der Kontobereich"
 
@@ -3281,7 +3282,7 @@ msgstr "Zugang › Übersicht →"
 #: includes/admin-login.php:51
 #: includes/admin-login.php:338
 #: includes/admin-login.php:510
-#: includes/admin-social.php:765
+#: includes/admin-social.php:814
 msgid "The sign-in page"
 msgstr "Die Anmeldeseite"
 
@@ -4264,37 +4265,37 @@ msgstr "Was sie sagen"
 msgid "Recognising somebody who is already here"
 msgstr "Jemanden erkennen, der schon hier ist"
 
-#: includes/admin-social.php:695
+#: includes/admin-social.php:705
 msgid "What the app gave you"
 msgstr "Was die App dir gegeben hat"
 
-#: includes/admin-social.php:696
+#: includes/admin-social.php:706
 msgid "Both come from the provider’s console, and changing either of them asks for the live test again."
 msgstr "Beide kommen aus der Konsole des Anbieters, und eines davon zu ändern verlangt den Live-Test erneut."
 
-#: includes/admin-social.php:731
+#: includes/admin-social.php:741
 msgid "The button on the sign-in page"
 msgstr "Die Schaltfläche auf der Anmeldeseite"
 
-#: includes/admin-social.php:734
+#: includes/admin-social.php:744
 msgid "This provider has not passed the live test, so its button cannot go up yet. What is ticked here applies the day it does."
 msgstr "Dieser Anbieter hat den Live-Test nicht bestanden, seine Schaltfläche kann also noch nicht hoch. Was hier angehakt ist, gilt an dem Tag, an dem er ihn besteht."
 
-#: includes/admin-social.php:745
+#: includes/admin-social.php:755
 msgid "It goes with the email form, wherever the sign-in page is."
 msgstr "Sie steht beim E-Mail-Formular, wo auch immer die Anmeldeseite ist."
 
-#: includes/admin-social.php:762
+#: includes/admin-social.php:811
 msgid "The shortcodes that draw them"
 msgstr "Die Shortcodes, die sie zeichnen"
 
 #. translators: %s: provider name
-#: includes/admin-social.php:777
+#: includes/admin-social.php:826
 #, php-format
 msgid "A direct link to sign in with %s, if you want it somewhere else"
 msgstr "Ein direkter Link, um sich mit %s anzumelden, falls du ihn woanders willst"
 
-#: includes/admin-social.php:808
+#: includes/admin-social.php:857
 msgid "Redirect URL"
 msgstr "Redirect-URL"
 
@@ -5232,7 +5233,7 @@ msgstr "Niemand ist es"
 msgid "Leave it on “None” unless this site really is behind a proxy: a header nobody is writing is a header the visitor can write. When there is one, pick the one it writes — X-Forwarded-For for nginx, Traefik and most load balancers, CF-Connecting-IP behind Cloudflare, True-Client-IP behind Akamai."
 msgstr "Lassen Sie „Keiner“ stehen, sofern diese Website nicht wirklich hinter einem Proxy läuft: einen Header, den niemand schreibt, schreibt der Besucher. Gibt es einen Proxy, wählen Sie den Header, den er schreibt — X-Forwarded-For für nginx, Traefik und die meisten Load Balancer, CF-Connecting-IP hinter Cloudflare, True-Client-IP hinter Akamai."
 
-#: includes/admin-social.php:727
+#: includes/admin-social.php:737
 msgid "A secret is saved. Leave this empty to keep it, or paste a new one to replace it."
 msgstr "Es ist ein Secret gespeichert. Leer lassen, um es zu behalten, oder ein neues einfügen, um es zu ersetzen."
 
@@ -5901,7 +5902,7 @@ msgstr "Die Schaltfläche „Weiter mit %s“ verschwindet von der Anmeldeseite,
 msgid "The client ID, the secret and the test of %s are deleted and its button disappears. Using it again means pasting them and testing it again. Accounts already linked to it are not touched."
 msgstr "Client-ID, Secret und Test von %s werden gelöscht und die Schaltfläche verschwindet. Um sie wieder zu nutzen, müssen sie erneut eingefügt und getestet werden. Bereits verknüpfte Konten bleiben unberührt."
 
-#: includes/admin-social.php:919
+#: includes/admin-social.php:968
 msgid "Delete its settings"
 msgstr "Konfiguration löschen"
 
@@ -5914,13 +5915,13 @@ msgid "Discard the changes"
 msgstr "Änderungen verwerfen"
 
 #: includes/admin-social.php:261
-#: includes/admin-social.php:908
+#: includes/admin-social.php:957
 msgctxt "a sign-in provider"
 msgid "Turn it off"
 msgstr "Deaktivieren"
 
 #: includes/admin-social.php:262
-#: includes/admin-social.php:912
+#: includes/admin-social.php:961
 msgctxt "a sign-in provider"
 msgid "Turn it on"
 msgstr "Aktivieren"
@@ -7027,7 +7028,7 @@ msgid "Seen"
 msgstr "Gesehen"
 
 #. translators: 1: provider name, 2: how it stands, in a sentence
-#: includes/admin-social.php:941
+#: includes/admin-social.php:990
 #, php-format
 msgid "%1$s: %2$s"
 msgstr "%1$s: %2$s"
@@ -7447,3 +7448,19 @@ msgstr "Zugang › Die Anmeldeseite →"
 #: includes/admin-login.php:1377
 msgid "It is chosen on Access › The sign-in page: the page chosen there, at its own address, or with no page the address typed there. Sign in, registration, the second step and a new password are all answered there, and an address used before keeps sending people to it."
 msgstr "Sie wird unter Zugang › Die Anmeldeseite gewählt: die dort gewählte Seite, unter ihrer eigenen Adresse, oder ohne Seite die dort eingegebene Adresse. Anmeldung, Registrierung, der zweite Schritt und ein neues Passwort werden alle dort beantwortet, und eine vorher verwendete Adresse leitet weiter dorthin."
+
+#: includes/admin-social.php:779
+msgid "This provider requires PKCE."
+msgstr "Dieser Anbieter verlangt PKCE."
+
+#: includes/admin-social.php:781
+msgid "This provider does not support PKCE."
+msgstr "Dieser Anbieter unterstützt PKCE nicht."
+
+#: includes/admin-social.php:783
+msgid "The sign-in sends a one-time proof with the code, so a code stolen on its way back cannot be used by anyone else."
+msgstr "Die Anmeldung sendet mit dem Code einen einmaligen Nachweis, sodass ein auf dem Rückweg gestohlener Code für niemand anderen nutzbar ist."
+
+#: includes/admin-social.php:796
+msgid "Use PKCE"
+msgstr "PKCE verwenden"
