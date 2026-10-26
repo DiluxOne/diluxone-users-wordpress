@@ -1594,7 +1594,7 @@ msgstr "Wird geprüft…"
 msgid "We could not check it right now."
 msgstr "Wir konnten es gerade nicht prüfen."
 
-#: includes/login.php:560
+#: includes/login.php:622
 msgid "Someone"
 msgstr "Jemand"
 

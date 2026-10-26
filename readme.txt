@@ -270,6 +270,7 @@ Unreleased.
 First public release.
 
 * A social sign-in that fails, because it was cancelled at the provider or came back with a state nobody issued here, now leaves a row in the activity log with the network and why, without the code or the state.
+* Asking for a sign-in link with an address that has no account no longer creates the account: it is created when the person opens the link mailed to them, so nobody can make an account for somebody else's address.
 * With Colours › the theme's, on a theme whose buttons keep a dark brand colour in dark mode, the links of the account area's home cards stay readable: the accent used as text is one that reads on the card, while buttons keep the theme's colour.
 * The social sign-in buttons open the provider in a popup and the page you were on stays where it was: once you are in, it reloads signed in or goes on to where the sign-in leads, and the second step, the required fields or an error show up on it. A browser that blocks popups makes the trip in the whole window, as before.
 * In the account area's Your data, the pills of a done and a failed request keep their text readable in the dark scheme as in the light one: their green and red lean towards the text's colour.
