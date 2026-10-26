@@ -496,6 +496,17 @@ the accounts linked to it (`diluxone_users_sso_{id}` user meta): kept,
 exported with their value withheld and erased with everything else of the
 person, like any other key under the prefix.
 
+A return from a provider that signs nobody in writes a `sign_in_failed` row
+to the activity log (group `access`, account 0) whose detail carries `via`
+(`sso`), `provider` (the provider id) and `reason`: `cancelled` (the provider
+answered `access_denied`), `state` (a state nobody issued, already spent or
+issued for another provider), `browser` (another browser or session than the
+one that left), `off` (the provider was turned off on the way), `token` (no
+access token), `account` (no account found or created), or else the
+provider's own OAuth error code. The code, the state and the provider's
+error description are never kept. The administrator's live test writes no
+row.
+
 ## Account area sections
 
 ```php

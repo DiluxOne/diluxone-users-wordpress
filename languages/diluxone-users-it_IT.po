@@ -763,29 +763,29 @@ msgstr "giorni"
 msgid "In their account"
 msgstr "Nel loro account"
 
-#: includes/admin-log.php:591
-#: includes/admin-log.php:633
+#: includes/admin-log.php:623
+#: includes/admin-log.php:665
 #: includes/admin-sessions.php:275
 #: includes/admin-sessions.php:277
 msgid "Search"
 msgstr "Cerca"
 
-#: includes/admin-log.php:592
+#: includes/admin-log.php:624
 #: includes/admin-sessions.php:276
 msgid "Email, username or name…"
 msgstr "E-mail, nome utente o nome…"
 
-#: includes/admin-log.php:647
+#: includes/admin-log.php:679
 #: includes/admin-sessions.php:291
 msgid "Clear"
 msgstr "Pulisci"
 
-#: includes/admin-log.php:650
+#: includes/admin-log.php:682
 #: includes/admin-sessions.php:294
 msgid "Show"
 msgstr "Mostra"
 
-#: includes/admin-log.php:656
+#: includes/admin-log.php:688
 #: includes/admin-sessions.php:300
 msgid "per page"
 msgstr "per pagina"
@@ -800,7 +800,7 @@ msgstr "Aggiorna"
 msgid "%1$s people with an open session · page %2$d of %3$d"
 msgstr "%1$s persone con una sessione aperta · pagina %2$d di %3$d"
 
-#: includes/admin-log.php:693
+#: includes/admin-log.php:725
 #: includes/admin-sessions.php:337
 msgid "Person"
 msgstr "Persona"
@@ -813,13 +813,13 @@ msgstr "Ultimo accesso"
 msgid "Expires"
 msgstr "Scade"
 
-#: includes/admin-log.php:696
+#: includes/admin-log.php:728
 #: includes/admin-sessions.php:341
 #: includes/log-privacy.php:84
 msgid "IP"
 msgstr "IP"
 
-#: includes/admin-log.php:697
+#: includes/admin-log.php:729
 #: includes/admin-sessions.php:342
 #: includes/log-privacy.php:88
 msgid "Device"
@@ -1181,8 +1181,8 @@ msgstr "Incolla questo in una richiesta di supporto e metà dei botta e risposta
 #: includes/admin-account.php:638
 #: includes/admin-account.php:713
 #: includes/admin-account.php:737
-#: includes/admin-log.php:783
-#: includes/admin-log.php:814
+#: includes/admin-log.php:815
+#: includes/admin-log.php:846
 #: includes/admin-membership.php:394
 #: includes/admin-panels.php:158
 #: includes/admin-social.php:988
@@ -1843,55 +1843,55 @@ msgstr "Copia il «Valore» del segreto, non il suo «ID segreto». Il valore si
 msgid "The openid, email and profile permissions are already there by default — you do not have to add anything under “API permissions”."
 msgstr "I permessi openid, email e profile ci sono già per impostazione predefinita — in «Autorizzazioni API» non devi aggiungere niente."
 
-#: includes/sso.php:896
+#: includes/sso.php:906
 msgid "The provider did not hand over an access token. Check the client ID and the secret."
 msgstr "Il provider non ha consegnato nessun token di accesso. Controlla il client ID e il secret."
 
-#: includes/sso.php:907
+#: includes/sso.php:918
 msgid "The token worked but the profile came back empty. The app is probably missing the permissions this provider needs."
 msgstr "Il token ha funzionato ma il profilo è tornato vuoto. Probabilmente all’app mancano i permessi di cui questo provider ha bisogno."
 
 #. translators: %s: name of the social network
-#: includes/sso.php:940
+#: includes/sso.php:951
 #, php-format
 msgid "The %s account was linked, and it now gets into this account."
 msgstr "L’account %s è stato collegato, e adesso entra in questo account."
 
 #. translators: %s: name of the social network
-#: includes/sso.php:1010
+#: includes/sso.php:1045
 #, php-format
 msgid "The %s account was unlinked."
 msgstr "L’account %s è stato scollegato."
 
-#: includes/sso.php:1051
+#: includes/sso.php:1086
 msgid "It works"
 msgstr "Funziona"
 
-#: includes/sso.php:1052
+#: includes/sso.php:1087
 msgid "It did not work"
 msgstr "Non ha funzionato"
 
 #. translators: %s: provider name
-#: includes/sso.php:1057
+#: includes/sso.php:1092
 #, php-format
 msgid "The round trip with %s finished correctly. You can enable the button now."
 msgstr "L’andata e ritorno con %s si è chiusa correttamente. Ora puoi attivare il pulsante."
 
 #. translators: %s: provider name
-#: includes/sso.php:1062
+#: includes/sso.php:1097
 #, php-format
 msgid "The round trip with %s failed."
 msgstr "L’andata e ritorno con %s è fallita."
 
 #. translators: %s: e-mail address
-#: includes/sso.php:1068
+#: includes/sso.php:1103
 #, php-format
 msgid "The provider handed over this email: %s"
 msgstr "Il provider ha consegnato questa e-mail: %s"
 
 #: includes/admin-fields.php:706
 #: includes/admin-panels.php:841
-#: includes/sso.php:1093
+#: includes/sso.php:1128
 #: templates/sessions.php:67
 msgid "Close"
 msgstr "Chiudi"
@@ -4551,50 +4551,50 @@ msgid "Social account"
 msgstr "Account social"
 
 #. translators: %s: how many sessions were closed at once.
-#: includes/admin-log.php:444
+#: includes/admin-log.php:476
 #, php-format
 msgid "%s closed"
 msgstr "%s chiuse"
 
-#: includes/admin-log.php:583
+#: includes/admin-log.php:615
 msgid "What happened on this site, newest first. It shows only what was being recorded at the time: a group ticked this morning has nothing in it from yesterday."
 msgstr "Che cosa è successo in questo sito, dal più recente. Mostra solo quello che era in registrazione in quel momento: un gruppo spuntato stamattina non ha nulla di ieri."
 
-#: includes/admin-log.php:611
-#: includes/admin-log.php:694
+#: includes/admin-log.php:643
+#: includes/admin-log.php:726
 #: includes/log-privacy.php:80
 msgid "What happened"
 msgstr "Che cosa è successo"
 
-#: includes/admin-log.php:613
+#: includes/admin-log.php:645
 msgid "Anything that happened"
 msgstr "Qualunque cosa sia successa"
 
-#: includes/admin-log.php:627
-#: includes/admin-log.php:691
+#: includes/admin-log.php:659
+#: includes/admin-log.php:723
 msgid "From"
 msgstr "Da"
 
-#: includes/admin-log.php:630
+#: includes/admin-log.php:662
 msgid "To"
 msgstr "A"
 
 #. translators: 1: number of rows, 2: current page, 3: total pages
-#: includes/admin-log.php:663
+#: includes/admin-log.php:695
 #, php-format
 msgid "%1$s rows · page %2$d of %3$d"
 msgstr "%1$s righe · pagina %2$d di %3$d"
 
-#: includes/admin-log.php:688
+#: includes/admin-log.php:720
 #: includes/log-privacy.php:76
 msgid "When"
 msgstr "Quando"
 
-#: includes/admin-log.php:695
+#: includes/admin-log.php:727
 msgid "Detail"
 msgstr "Dettaglio"
 
-#: includes/admin-log.php:702
+#: includes/admin-log.php:734
 msgid "Nothing matches that."
 msgstr "Non corrisponde nulla."
 
@@ -5987,8 +5987,8 @@ msgstr "Questi siti hanno un dominio proprio: %s."
 msgid "People have to sign in again on these sites: a session opened on the rest of the network does not reach a domain of its own. That is not supported in this version."
 msgstr "Su questi siti le persone devono accedere di nuovo: una sessione aperta nel resto della rete non arriva a un dominio proprio. In questa versione non è supportato."
 
-#: includes/admin-log.php:598
-#: includes/admin-log.php:690
+#: includes/admin-log.php:630
+#: includes/admin-log.php:722
 #: includes/log-privacy.php:97
 msgid "Site"
 msgstr "Sito"
@@ -6077,15 +6077,15 @@ msgstr "Questo sito ha %1$s righe nella tabella della rete, che occupa %2$s per 
 msgid "Every site of the network records %s and nothing else, in one table for the whole network."
 msgstr "Ogni sito della rete registra %s e nient’altro, in un’unica tabella per tutta la rete."
 
-#: includes/admin-log.php:582
+#: includes/admin-log.php:614
 msgid "What happened on every site of the network, newest first, with the site each row happened on. It shows only what was being recorded at the time: a group ticked this morning has nothing in it from yesterday."
 msgstr "Che cosa è successo su ogni sito della rete, dal più recente, con il sito in cui è avvenuta ogni riga. Mostra solo quello che era in registrazione in quel momento: un gruppo spuntato stamattina non ha nulla di ieri."
 
-#: includes/admin-log.php:600
+#: includes/admin-log.php:632
 msgid "Site ID"
 msgstr "ID del sito"
 
-#: includes/admin-log.php:603
+#: includes/admin-log.php:635
 #: includes/admin-membership.php:128
 msgid "Every site"
 msgstr "Tutti i siti"
@@ -6133,7 +6133,7 @@ msgid "Open your account"
 msgstr "Apri il tuo account"
 
 #. translators: %s: the name of the site where the person signed in
-#: includes/admin-log.php:422
+#: includes/admin-log.php:450
 #, php-format
 msgid "on %s"
 msgstr "su %s"
@@ -7406,3 +7406,27 @@ msgstr "Controlla il numero di telefono: non ha la lunghezza giusta per il suo p
 #: templates/fields.php:46
 msgid "Nothing was saved: a phone number is not the right length for its country."
 msgstr "Non è stato salvato nulla: un numero di telefono non ha la lunghezza giusta per il suo paese."
+
+#: includes/admin-log.php:403
+msgid "cancelled at the provider"
+msgstr "annullato presso il provider"
+
+#: includes/admin-log.php:404
+msgid "a return nobody started here"
+msgstr "un ritorno che nessuno ha avviato qui"
+
+#: includes/admin-log.php:405
+msgid "came back in another browser or session"
+msgstr "tornato in un altro browser o in un’altra sessione"
+
+#: includes/admin-log.php:406
+msgid "the network was turned off"
+msgstr "la rete era disattivata"
+
+#: includes/admin-log.php:407
+msgid "the provider handed over no access token"
+msgstr "il provider non ha consegnato alcun token di accesso"
+
+#: includes/admin-log.php:408
+msgid "no account found or created"
+msgstr "nessun account trovato o creato"
