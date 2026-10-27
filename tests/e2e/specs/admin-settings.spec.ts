@@ -165,7 +165,7 @@ test.describe('Saving a tab changes the public page', () => {
 			'diluxone_users_rewrite_version',
 		]);
 
-		await page.goto(adminUrl('diluxone-users-login', 'register'));
+		await page.goto(adminUrl('diluxone-users-register', 'who'));
 		await page.locator('input[name="diluxone_users_register_form"]').check();
 		await page.locator('select[name="diluxone_users_register_page"]').selectOption(String(pages.register.id));
 		await page.locator('input[name="diluxone_users_login_register"]').check();
@@ -175,7 +175,7 @@ test.describe('Saving a tab changes the public page', () => {
 		await expect(guest.locator('input[name="diluxone_users_email"]')).toBeVisible();
 
 		// Now close both doors and the same page says so instead.
-		await page.goto(adminUrl('diluxone-users-login', 'register'));
+		await page.goto(adminUrl('diluxone-users-register', 'who'));
 		await page.locator('input[name="diluxone_users_register_form"]').uncheck();
 		await page.locator('input[name="diluxone_users_login_register"]').uncheck();
 		await savePanel(page);
@@ -366,7 +366,7 @@ test.describe('A screen that refuses what it cannot save', () => {
 
 		const before = await site.getOptions(doors);
 
-		await page.goto(adminUrl('diluxone-users-login', 'register'));
+		await page.goto(adminUrl('diluxone-users-register', 'who'));
 		await page.locator('input[name="diluxone_users_register_open"][value="open"]').check();
 
 		const group = needsOne(page, 'diluxone_users_login_register');
@@ -483,7 +483,7 @@ test.describe('Access › Registration: the role a stranger becomes', () => {
 		// this pass or fail for a reason that is not the rule.
 		await options.set({ [ROLE]: 'subscriber' });
 
-		await page.goto(adminUrl('diluxone-users-login', 'register'));
+		await page.goto(adminUrl('diluxone-users-register', 'who'));
 
 		await expect(roleSelect(page)).toBeVisible();
 		await expect(roleSelect(page).locator('option[value="subscriber"]')).toHaveCount(1);
@@ -507,7 +507,7 @@ test.describe('Access › Registration: the role a stranger becomes', () => {
 			diluxone_users_login_register: 1,
 		});
 
-		await page.goto(adminUrl('diluxone-users-login', 'register'));
+		await page.goto(adminUrl('diluxone-users-register', 'who'));
 
 		// The option was never drawn, so sending it means putting it there
 		// first — which is exactly the move an inspector makes it take.

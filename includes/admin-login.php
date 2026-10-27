@@ -1,15 +1,13 @@
 <?php
 /**
- * The Access screen: how somebody gets into this site, and how they get an
- * account to get into.
+ * The Access screen: how somebody who has an account gets into this site.
  *
- * One screen for the whole door. Registration was a screen of its own for a
- * while, on the argument that opening it changes nothing about signing in —
- * true, and beside the point: they are two questions asked at the same
- * moment, they share half their settings (whether the link creates the
- * account, whether a social account does, what happens to wp-login.php), and
- * a person setting up a site asks them together. So they are tabs of one
- * screen, under one summary that shows the door whole.
+ * How they get an account to get into is the Registration screen, right above
+ * this one (admin-register.php). The two were tabs of one screen for a while,
+ * on the argument that they are asked at the same moment; they are, and a
+ * person looking for either still had to read both — one summary for signing
+ * in and for registering, one list of messages for both. So each has its own
+ * screen, its own summary and its own messages.
  *
  * Every tab answers one question and its label says which. The first tab
  * edits nothing: it is the state of everything the others decide, read from
@@ -26,10 +24,10 @@ function diluxone_users_screen_login(): void {
 }
 
 /**
- * Its tabs. Registration registers its own from its own file, onto this
- * screen; two-step verification lives on Security and is shown here only as
- * state. An add-on's way in is switched on here, with the other ways in
- * (`diluxone_users_way_switches`), and set up where the feature lives:
+ * Its tabs. Registration is a screen of its own; two-step verification lives
+ * on Security and is shown here only as state. An add-on's way in is switched
+ * on here, with the other ways in (`diluxone_users_way_switches`), and set up
+ * where the feature lives:
  * turning a door on is a question about doors.
  */
 function diluxone_users_login_panels(): void {
@@ -307,7 +305,8 @@ function diluxone_users_sso_working_names(): array {
 }
 
 /**
- * Every way into this site and the state each one is in.
+ * Every way into this site for somebody with an account, and the state each
+ * one is in. How an account is made is the Registration screen's summary.
  *
  * The settings that open and close these are spread over the tabs of this
  * screen and over Security; what nobody could see was the result. This reads
@@ -319,7 +318,6 @@ function diluxone_users_sso_working_names(): array {
 function diluxone_users_doors(): array {
 	$page   = (int) diluxone_users_option( 'diluxone_users_login_page' );
 	$title  = $page > 0 ? (string) get_the_title( $page ) : '';
-	$mode   = diluxone_users_register_mode();
 	$social = diluxone_users_sso_working_names();
 	$tab    = static fn( string $id ): string => diluxone_users_admin_url( 'diluxone-users-login', array( 'tab' => $id ) );
 
@@ -395,7 +393,7 @@ function diluxone_users_doors(): array {
 	);
 
 	/**
-	 * Filters the ways in on Access › Summary, before how an account is made.
+	 * Filters the ways in on Access › Summary.
 	 *
 	 * An add-on's way in says here whether it is open, in the shape of a
 	 * summary row (label, state, and optionally why, word, detail, url and
@@ -406,35 +404,6 @@ function diluxone_users_doors(): array {
 	 * @param array<int, array<string, string>> $rows The page and the plugin's own ways in.
 	 */
 	$rows = array_values( (array) apply_filters( 'diluxone_users_doors', $rows ) );
-
-	// The same reading the registration tab does, and the same one it calls
-	// open or closed: this row is that answer said in a line.
-	$made = diluxone_users_register_doors_open();
-
-	// WordPress's own door is WordPress's own switch, and it is always
-	// decided: the row is about the plugin's three, and reads as decided
-	// once any of them is.
-	$rows[] = diluxone_users_summary_row(
-		array( 'diluxone_users_login_register', 'diluxone_users_sso_register', 'diluxone_users_register_form' ),
-		array(
-			'label'  => __( 'Creating an account', 'diluxone-users' ),
-			'state'  => array() !== $made ? ( 'form' === $mode && '' === diluxone_users_register_url() ? 'pending' : 'active' ) : 'off',
-			'why'    => 'form' === $mode && '' === diluxone_users_register_url() ? __( 'the form has no page yet', 'diluxone-users' ) : '',
-			'detail' => array() !== $made
-				? esc_html(
-					sprintf(
-					/* translators: %s: the ways an account gets created, comma separated */
-						__( 'Accounts are created by: %s.', 'diluxone-users' ),
-						implode( ', ', $made )
-					)
-				)
-				: esc_html__( 'Nobody registers themselves: accounts are made under Users.', 'diluxone-users' ),
-			'url'    => $tab( 'register' ),
-		),
-		get_option( 'users_can_register' )
-			? esc_html__( 'WordPress’s own form, open as Settings › General has it; the plugin opens no door of its own.', 'diluxone-users' )
-			: esc_html__( 'WordPress’s own form, closed as Settings › General has it; the plugin opens no door of its own.', 'diluxone-users' )
-	);
 
 	$rows[] = diluxone_users_summary_row(
 		'diluxone_users_2fa_mode',
@@ -768,7 +737,7 @@ function diluxone_users_screen_login_ways(): void {
 		$nothing = $nothing && ! $decided( $key );
 	}
 
-	diluxone_users_intro( __( 'With what somebody who already has an account gets in. Every way in is a box: tick the ones this site offers. What each one does once it is on is set where that feature lives, and who gets an account at all is the Registration tab.', 'diluxone-users' ) );
+	diluxone_users_intro( __( 'With what somebody who already has an account gets in. Every way in is a box: tick the ones this site offers. What each one does once it is on is set where that feature lives, and who gets an account at all is the Registration screen.', 'diluxone-users' ) );
 
 	if ( $nothing ) {
 		diluxone_users_ui_waits( __( 'No way in is chosen yet: the sign-in form is WordPress’s own, a username and a password on wp-login.php, until one is ticked here and saved.', 'diluxone-users' ) );

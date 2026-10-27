@@ -1937,8 +1937,8 @@ function diluxone_users_ui_paragraphs( $body ): array {
  *
  * Not `diluxone_users_notice()`, which is WordPress's strip at the top of the
  * page and belongs to what just happened — saved, failed. This one belongs to
- * a place: the registration tab saying this site has WordPress's own sign-ups
- * closed sits with the tick boxes it is about, three inches from them, not
+ * a place: Registration › Who can register saying this site has WordPress's
+ * own sign-ups closed sits with the tick boxes it is about, three inches from them, not
  * above the title where it reads as news.
  *
  * Two tones and no more. A warning is something that will bite: a setting

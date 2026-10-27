@@ -49,6 +49,7 @@ function diluxone_users_2fa_wp_login(): void {
 
 	// The three states the page shows, in the words the site may have
 	// rewritten on Access › Messages: one list of sentences for both screens.
+	// (Registration's sentences are rewritten on Registration › Messages.)
 	$says   = array(
 		'locked' => 'two_step_locked',
 		'code'   => 'two_step_wrong',

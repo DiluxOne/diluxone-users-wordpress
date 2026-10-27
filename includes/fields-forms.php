@@ -471,9 +471,9 @@ add_action( 'user_new_form', 'diluxone_users_new_user_fields' );
 /**
  * Does WordPress's own registration form carry the plugin's fields?
  *
- * Only when an administrator asked for it on Access › Registration. Until
- * then wp-login.php?action=register is WordPress's form, as it was before the
- * plugin: no field drawn, none required, none saved.
+ * Only when an administrator asked for it on Registration › Who can
+ * register. Until then wp-login.php?action=register is WordPress's form, as it
+ * was before the plugin: no field drawn, none required, none saved.
  */
 function diluxone_users_wp_register_fields_on(): bool {
 	return (bool) diluxone_users_option( 'diluxone_users_wp_register_fields' ) && array() !== diluxone_users_fields();

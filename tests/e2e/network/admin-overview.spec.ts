@@ -54,7 +54,7 @@ test.describe('A site’s Overview on a network', () => {
 
 		await expect(elsewhere(guest, 'network')).toHaveCount(5);
 		await expect(elsewhere(guest, 'network').locator('a'), 'a way into Network Admin for somebody who cannot open it').toHaveCount(0);
-		await expect(elsewhere(guest, 'hub')).toHaveCount(4);
+		await expect(elsewhere(guest, 'hub'), 'registration, access, account area, design and notices').toHaveCount(5);
 		await expect(elsewhere(guest, 'hub').locator('a'), 'a way onto the hub for somebody who is not its administrator').toHaveCount(0);
 
 		// The top cards: the accounts are this site's, and the rest are the

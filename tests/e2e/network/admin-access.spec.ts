@@ -26,6 +26,7 @@ test.use({ storageState: NETWORK_ADMIN_STATE });
 /** An address of the hub's dashboard. */
 const onHub = (rest: string) => `${NETWORK_URL}/wp-admin/${rest.replace(/^\//, '')}`;
 const accessOnHub = (tab: string) => onHub(`admin.php?page=diluxone-users-login&tab=${tab}`);
+const registrationOnHub = (tab = 'who') => onHub(`admin.php?page=diluxone-users-register&tab=${tab}`);
 
 test.describe('The hub’s Access', () => {
 	for (const tab of SCREENS['diluxone-users-login']) {
@@ -94,7 +95,7 @@ test.describe('The hub’s Access', () => {
 		await hub.set({ diluxone_users_login_register: 1 });
 
 		await network.set('registration', 'user');
-		await page.goto(accessOnHub('register'));
+		await page.goto(registrationOnHub());
 
 		const box = control(page, 'diluxone_users_wp_register');
 
@@ -123,7 +124,7 @@ test.describe('The hub’s Access', () => {
 		});
 		await hub.keep(['diluxone_users_register_page', 'diluxone_users_login_role', 'diluxone_users_rewrite_version']);
 
-		await page.goto(accessOnHub('register'));
+		await page.goto(registrationOnHub());
 		await control(page, 'diluxone_users_register_open', 'closed').check();
 		await savePanel(page);
 
@@ -212,13 +213,13 @@ test.describe('The hub’s Access', () => {
 
 		const rows = page.locator('table.diluxone-users-summary tbody tr');
 
-		await expect(rows, 'page, link, password, social, registration, after').toHaveCount(6);
-		await expectPill(rows.nth(5).locator('.diluxone-users-summary__state'), 'active');
-		await expect(rows.nth(5).locator('a'), 'the second step is set in Network Admin').toHaveAttribute('href', /\/wp-admin\/network\/admin\.php\?page=diluxone-users-security/);
+		await expect(rows, 'page, link, password, social, after: registration is on its own screen').toHaveCount(5);
+		await expectPill(rows.nth(4).locator('.diluxone-users-summary__state'), 'active');
+		await expect(rows.nth(4).locator('a'), 'the second step is set in Network Admin').toHaveAttribute('href', /\/wp-admin\/network\/admin\.php\?page=diluxone-users-security/);
 
 		await hub.set({ diluxone_users_2fa_mode: 'off' });
 		await page.reload();
-		await expectPill(rows.nth(5).locator('.diluxone-users-summary__state'), 'off');
+		await expectPill(rows.nth(4).locator('.diluxone-users-summary__state'), 'off');
 	});
 });
 
@@ -298,7 +299,7 @@ test.describe('Create the page, on a network', () => {
 		await hub.set({ diluxone_users_register_page: 0, diluxone_users_register_form: 1, diluxone_users_login_register: 1 });
 		await hub.keep(['diluxone_users_rewrite_version']);
 
-		await page.goto(accessOnHub('register'));
+		await page.goto(registrationOnHub());
 
 		const create = page.locator('a.button[href*="action=diluxone_users_create_page"][href*="diluxone_users_register_page"]');
 
@@ -327,7 +328,7 @@ test.describe('Create the page, on a network', () => {
 	test('on another site: refused, nothing made there, and the hub’s page left alone', async ({ page, hub, alpha }) => {
 		await hub.set({ diluxone_users_register_page: 0, diluxone_users_register_form: 1, diluxone_users_login_register: 1 });
 
-		await page.goto(accessOnHub('register'));
+		await page.goto(registrationOnHub());
 
 		// The super admin's own nonce, which is good on every site of the
 		// network: what refuses is that the pages are the hub's.

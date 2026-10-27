@@ -23,7 +23,7 @@ test('the registration page is made, chosen and announced, and draws the form to
 	// The page lives inside the box that turns the site's own form on.
 	await options.set({ diluxone_users_register_page: 0, diluxone_users_register_form: 1 });
 
-	await page.goto(adminUrl('diluxone-users-login', 'register'));
+	await page.goto(adminUrl('diluxone-users-register', 'who'));
 
 	const create = page.locator('a.button[href*="action=diluxone_users_create_page"][href*="diluxone_users_register_page"]');
 
@@ -35,7 +35,7 @@ test('the registration page is made, chosen and announced, and draws the form to
 	const id = Number(new URL(page.url()).searchParams.get('diluxone_users_created'));
 
 	try {
-		expect(new URL(page.url()).searchParams.get('page'), 'back on the screen the button was on').toBe('diluxone-users-login');
+		expect(new URL(page.url()).searchParams.get('page'), 'back on the screen the button was on').toBe('diluxone-users-register');
 		expect(Number((await site.getOptions(['diluxone_users_register_page'])).diluxone_users_register_page)).toBe(id);
 		await expect(page.locator('.notice-success a').filter({ hasText: /\S/ })).toBeVisible();
 

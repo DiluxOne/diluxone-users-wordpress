@@ -301,8 +301,8 @@ function diluxone_users_wp_registration_notice(): void {
 
 	printf(
 		'<div class="notice notice-info"><p>%1$s <a href="%2$s">%3$s</a></p></div>',
-		esc_html__( '“Anyone can register” is off and locked: on this site the e-mail link is the only way in, and that form would create accounts with a password. The same switch, and the reason, are on the Access screen.', 'diluxone-users' ),
-		esc_url( diluxone_users_admin_url( 'diluxone-users-login', array( 'tab' => 'register' ) ) ),
+		esc_html__( '“Anyone can register” is off and locked: on this site the e-mail link is the only way in, and that form would create accounts with a password. The same switch, and the reason, are on the Registration screen.', 'diluxone-users' ),
+		esc_url( diluxone_users_admin_url( 'diluxone-users-register', array( 'tab' => 'who' ) ) ),
 		esc_html__( 'Open it →', 'diluxone-users' )
 	);
 }

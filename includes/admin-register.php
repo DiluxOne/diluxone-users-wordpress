@@ -1,11 +1,13 @@
 <?php
 /**
- * Who gets an account, and how. A tab of the Access screen.
+ * Who gets an account, and how. A screen of its own, right above Access.
  *
- * It was a screen of its own for a while, on the argument that opening
- * registration changes nothing about signing in. True and beside the point:
- * they are asked at the same moment and they share half their settings. So
- * it is the third tab of the door, after where people sign in and with what.
+ * It was a tab of the Access screen for a while, on the argument that the two
+ * questions are asked at the same moment and share half their settings. They
+ * do share them, and a person looking for either one still had to read both:
+ * one summary for the door and the account, one list of messages for signing
+ * in and for registering. So registration is a screen again, with its own
+ * summary and its own sentences, and Access is left with signing in.
  *
  * The question is asked in two steps, because that is how it is thought
  * about. First: does this site let people in at all, or does an administrator
@@ -26,14 +28,30 @@
 
 defined( 'ABSPATH' ) || exit;
 
-/** Its tab, on the Access screen. */
+/** The Registration screen. */
+function diluxone_users_screen_registration(): void {
+	diluxone_users_screen_panels( 'diluxone-users-register', diluxone_users_screens()['diluxone-users-register'] );
+}
+
+/** Its tabs: the state, who can register, and what registering says. */
 function diluxone_users_register_panels(): void {
 	diluxone_users_register_panel(
-		'diluxone-users-login',
-		'register',
+		'diluxone-users-register',
+		'summary',
 		array(
-			'label'    => __( 'Registration', 'diluxone-users' ),
-			'position' => 30,
+			'label'    => __( 'Summary', 'diluxone-users' ),
+			'position' => 0,
+			'render'   => 'diluxone_users_screen_register_summary',
+			'form'     => false,
+		)
+	);
+
+	diluxone_users_register_panel(
+		'diluxone-users-register',
+		'who',
+		array(
+			'label'    => __( 'Who can register', 'diluxone-users' ),
+			'position' => 10,
 			'render'   => 'diluxone_users_screen_register',
 			'save'     => 'diluxone_users_screen_register_save',
 		)
@@ -42,13 +60,48 @@ function diluxone_users_register_panels(): void {
 add_action( 'diluxone_users_register_panels', 'diluxone_users_register_panels' );
 
 /**
+ * The old address of the tab this screen was, sent here.
+ *
+ * Registration was Access's tab, `page=diluxone-users-login&tab=register`,
+ * and a bookmark or a link written down somewhere still says so. Without this
+ * it would open Access's first tab, which says nothing about registering. The
+ * address is only compared with two fixed strings and the target is built
+ * from the screen's slug, so nothing from the request travels on; nothing is
+ * written either, so there is no request to forge. Only for whoever could
+ * open the screen it is sent to.
+ */
+function diluxone_users_register_old_address(): void {
+	$method = isset( $_SERVER['REQUEST_METHOD'] ) ? strtoupper( sanitize_key( wp_unslash( $_SERVER['REQUEST_METHOD'] ) ) ) : '';
+
+	if ( 'GET' !== $method || ! current_user_can( diluxone_users_admin_cap() ) ) {
+		return;
+	}
+
+	// phpcs:disable WordPress.Security.NonceVerification.Recommended -- an address compared with two fixed strings to send it to the screen it became; nothing from it is used and nothing is written.
+	$page = isset( $_GET['page'] ) ? sanitize_key( wp_unslash( $_GET['page'] ) ) : '';
+	$tab  = isset( $_GET['tab'] ) ? sanitize_key( wp_unslash( $_GET['tab'] ) ) : '';
+	// phpcs:enable
+
+	if ( 'diluxone-users-login' !== $page || 'register' !== $tab ) {
+		return;
+	}
+
+	wp_safe_redirect( diluxone_users_admin_url( 'diluxone-users-register', array( 'tab' => 'who' ) ) );
+	exit;
+}
+add_action( 'admin_init', 'diluxone_users_register_old_address' );
+// Network Admin has no Access screen, so WordPress refuses the old address
+// before admin_init runs; the redirect is asked there too.
+add_action( 'admin_page_access_denied', 'diluxone_users_register_old_address' );
+
+/**
  * The doors into an account that are open right now, named.
  *
  * WordPress's own form is read through `get_option()` and not copied into an
  * option of the plugin's: it is WordPress's switch, and while the plugin has
  * it locked shut that read already answers 0. Empty means nobody creates an
- * account by themselves, which is the whole of the first question this tab
- * asks and the one fact the Access summary needs.
+ * account by themselves, which is the whole of the first question this
+ * screen asks and the one fact its summary and Overview need.
  *
  * @return array<int, string>
  */
@@ -74,6 +127,174 @@ function diluxone_users_register_doors_open(): array {
 	}
 
 	return $open;
+}
+
+/**
+ * Whether anybody can register, said in one row.
+ *
+ * The Registration screen's rail and Overview's row read the same thing, so
+ * it is written once: open through the doors that are, waiting while the
+ * only door is a form with no page, shut otherwise. WordPress's own door is
+ * WordPress's own switch, and it is always decided: the row is about the
+ * plugin's three, and reads as decided once any of them is.
+ *
+ * @return array<string, string>
+ */
+function diluxone_users_register_state(): array {
+	$made    = diluxone_users_register_doors_open();
+	$waiting = 'form' === diluxone_users_register_mode() && '' === diluxone_users_register_url();
+
+	return diluxone_users_summary_row(
+		array( 'diluxone_users_login_register', 'diluxone_users_sso_register', 'diluxone_users_register_form' ),
+		array(
+			'label'  => __( 'Registration', 'diluxone-users' ),
+			'state'  => array() !== $made ? ( $waiting ? 'pending' : 'active' ) : 'off',
+			'why'    => $waiting ? __( 'the form has no page yet', 'diluxone-users' ) : '',
+			'detail' => array() !== $made
+				? esc_html(
+					sprintf(
+						/* translators: %s: the ways an account gets created, comma separated */
+						__( 'Open: accounts are created by %s.', 'diluxone-users' ),
+						implode( ', ', $made )
+					)
+				)
+				: esc_html__( 'Nobody registers themselves: accounts are made under Users.', 'diluxone-users' ),
+			'url'    => diluxone_users_admin_url( 'diluxone-users-register' ),
+		),
+		get_option( 'users_can_register' )
+			? esc_html__( 'WordPress’s own form, open as Settings › General has it; the plugin opens no door of its own.', 'diluxone-users' )
+			: esc_html__( 'WordPress’s own form, closed as Settings › General has it; the plugin opens no door of its own.', 'diluxone-users' )
+	);
+}
+
+/**
+ * Every door into an account and the state each one is in, and the role an
+ * account gets through any of them.
+ *
+ * The same reading the Who can register tab does — there is no second source
+ * of truth — split by door, and every row links to that tab.
+ *
+ * @return array<int, array<string, string>>
+ */
+function diluxone_users_register_summary_rows(): array {
+	$who    = diluxone_users_admin_url( 'diluxone-users-register', array( 'tab' => 'who' ) );
+	$social = diluxone_users_sso_working_names();
+	$rows   = array();
+
+	$link   = (bool) diluxone_users_option( 'diluxone_users_login_register' );
+	$rows[] = diluxone_users_summary_row(
+		'diluxone_users_login_register',
+		array(
+			'label'  => __( 'The e-mail link', 'diluxone-users' ),
+			'state'  => ! $link ? 'off' : ( diluxone_users_login_has_link() ? 'active' : 'pending' ),
+			'why'    => $link && ! diluxone_users_login_has_link() ? __( 'the e-mail link is not one of the ways in, so nobody gets one', 'diluxone-users' ) : '',
+			'detail' => $link
+				? esc_html__( 'An address the site has never seen gets a link, and the account exists by the time they are in.', 'diluxone-users' )
+				: esc_html__( 'A link lets in only somebody who already has an account.', 'diluxone-users' ),
+			'url'    => $who,
+		),
+		esc_html__( 'Not offered: WordPress has no sign-in link of its own.', 'diluxone-users' )
+	);
+
+	$sso     = (bool) diluxone_users_option( 'diluxone_users_sso_register' );
+	$sso_why = array() === $social
+		? __( 'no provider is working yet', 'diluxone-users' )
+		: ( diluxone_users_option( 'diluxone_users_sso_login' ) ? '' : __( 'social sign-in is not one of the ways in', 'diluxone-users' ) );
+	$rows[]  = diluxone_users_summary_row(
+		'diluxone_users_sso_register',
+		array(
+			'label'  => __( 'A social account', 'diluxone-users' ),
+			'state'  => ! $sso ? 'off' : ( '' === $sso_why ? 'active' : 'pending' ),
+			'why'    => $sso ? $sso_why : '',
+			'detail' => $sso && array() !== $social
+				? esc_html(
+					sprintf(
+						/* translators: %s: the social providers working, comma separated */
+						__( 'Signing in with %s for the first time creates the account.', 'diluxone-users' ),
+						implode( ', ', $social )
+					)
+				)
+				: esc_html__( 'A social account lets in only somebody who already has one here.', 'diluxone-users' ),
+			'url'    => $who,
+		),
+		esc_html__( 'No buttons: WordPress has none of its own.', 'diluxone-users' )
+	);
+
+	$form   = (bool) diluxone_users_option( 'diluxone_users_register_form' );
+	$url    = diluxone_users_register_url();
+	$rows[] = diluxone_users_summary_row(
+		'diluxone_users_register_form',
+		array(
+			'label'  => __( 'The site’s own form', 'diluxone-users' ),
+			'state'  => ! $form ? 'off' : ( '' !== $url ? 'active' : 'pending' ),
+			'why'    => $form && '' === $url ? __( 'the form has no page yet', 'diluxone-users' ) : '',
+			'detail' => ! $form
+				? esc_html__( 'No form of the site’s own.', 'diluxone-users' )
+				: ( '' !== $url
+					? sprintf( '<a href="%1$s">%1$s</a>', esc_url( $url ) )
+					: esc_html__( 'No page holds it yet, so nobody can reach it.', 'diluxone-users' ) ),
+			'url'    => $who,
+		),
+		esc_html__( 'No form of the site’s own: WordPress has only its own.', 'diluxone-users' )
+	);
+
+	// WordPress's own switch, always decided: by Settings › General on a site,
+	// by Network Admin on a network.
+	$wp     = (bool) get_option( 'users_can_register' );
+	$rows[] = array(
+		'label'  => __( 'WordPress’s own form', 'diluxone-users' ),
+		'state'  => $wp ? 'active' : 'off',
+		'detail' => is_multisite()
+			? ( $wp
+				? esc_html__( 'Open for the whole network: Network Admin › Settings decides it.', 'diluxone-users' )
+				: esc_html__( 'Closed for the whole network: Network Admin › Settings decides it.', 'diluxone-users' ) )
+			: ( $wp
+				? esc_html__( 'Open: wp-login.php takes new accounts, as Settings › General has it.', 'diluxone-users' )
+				: ( diluxone_users_wp_registration_locked()
+					? esc_html__( 'Locked shut: the e-mail link is the only way in, and that form hands out passwords.', 'diluxone-users' )
+					: esc_html__( 'Closed, as Settings › General has it.', 'diluxone-users' ) ) ),
+		'url'    => is_multisite() ? network_admin_url( 'settings.php' ) : $who,
+	);
+
+	$role   = diluxone_users_register_role();
+	$names  = wp_roles()->get_names();
+	$rows[] = diluxone_users_summary_row(
+		'diluxone_users_login_role',
+		array(
+			'label'  => __( 'The role given', 'diluxone-users' ),
+			'state'  => 'active',
+			'detail' => esc_html(
+				sprintf(
+					/* translators: %s: a role's name */
+					__( '%s, whichever door they came through.', 'diluxone-users' ),
+					translate_user_role( (string) ( $names[ $role ] ?? $role ) )
+				)
+			),
+			'url'    => $who,
+		),
+		esc_html__( 'Subscriber, whichever door they came through.', 'diluxone-users' )
+	);
+
+	return $rows;
+}
+
+/** The state of every door into an account. Nothing is edited here. */
+function diluxone_users_screen_register_summary(): void {
+	diluxone_users_ui_aside_open();
+
+	diluxone_users_intro( __( 'Every way an account gets made on this site and the state each one is in, read from the settings the Who can register tab writes. Nothing is edited here.', 'diluxone-users' ) );
+
+	diluxone_users_summary_table( diluxone_users_register_summary_rows() );
+
+	$now = diluxone_users_register_state();
+
+	// The rail says one thing: whether anybody can register right now, and
+	// through which doors. Signing in is Access's to report.
+	diluxone_users_ui_aside_close(
+		static function () use ( $now ): void {
+			diluxone_users_ui_aside_state( (string) $now['detail'], (string) $now['state'], (string) ( $now['why'] ?? '' ) );
+		}
+	);
 }
 
 /**
@@ -156,7 +377,7 @@ function diluxone_users_register_roles(): array {
  *              case nothing was written.
  */
 function diluxone_users_screen_register_save(): bool {
-	check_admin_referer( 'diluxone_users_panel_diluxone-users-login', 'diluxone_users_panel_nonce' );
+	check_admin_referer( 'diluxone_users_panel_diluxone-users-register', 'diluxone_users_panel_nonce' );
 	diluxone_users_panel_allowed();
 
 	$open  = 'open' === sanitize_key( wp_unslash( $_POST['diluxone_users_register_open'] ?? '' ) );

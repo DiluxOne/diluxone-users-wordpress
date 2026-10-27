@@ -161,6 +161,11 @@ msgstr[1] ""
 msgid "%s%%"
 msgstr ""
 
+#. translators: %s: a role's name
+#, php-format
+msgid "%s, whichever door they came through."
+msgstr ""
+
 #. translators: Accessibility text.
 msgid "(opens in a new tab)"
 msgstr ""
@@ -271,6 +276,9 @@ msgstr ""
 msgid "A link e-mailed to the address on the account"
 msgstr ""
 
+msgid "A link lets in only somebody who already has an account."
+msgstr ""
+
 msgid "A link, like the rest of the menu"
 msgstr ""
 
@@ -326,6 +334,9 @@ msgid "A single-use link, good for %d minutes."
 msgstr ""
 
 msgid "A social account"
+msgstr ""
+
+msgid "A social account lets in only somebody who already has one here."
 msgstr ""
 
 msgid "A social account only signs in people who already have one here."
@@ -402,11 +413,6 @@ msgid "Account sections"
 msgstr ""
 
 msgid "Accounts"
-msgstr ""
-
-#. translators: %s: the ways an account gets created, comma separated
-#, php-format
-msgid "Accounts are created by: %s."
 msgstr ""
 
 #. translators: %s: the name of the site where the network's accounts live
@@ -532,6 +538,9 @@ msgid "An account belongs to the whole network; being a member of a site — hav
 msgstr ""
 
 msgid "An account with admin permissions cannot ask for its own deletion."
+msgstr ""
+
+msgid "An address the site has never seen gets a link, and the account exists by the time they are in."
 msgstr ""
 
 msgid "An authenticator app"
@@ -946,6 +955,12 @@ msgid "Close the others"
 msgstr ""
 
 msgid "Close them"
+msgstr ""
+
+msgid "Closed for the whole network: Network Admin › Settings decides it."
+msgstr ""
+
+msgid "Closed, as Settings › General has it."
 msgstr ""
 
 msgid "Closed: details are edited on the site only."
@@ -1461,6 +1476,9 @@ msgid "Every suggested field is already on the list."
 msgstr ""
 
 msgid "Every suggested field is on the list."
+msgstr ""
+
+msgid "Every way an account gets made on this site and the state each one is in, read from the settings the Who can register tab writes. Nothing is edited here."
 msgstr ""
 
 msgid "Every way into this site and the state each one is in, read from the settings the other tabs write. Nothing is edited here."
@@ -2198,6 +2216,9 @@ msgstr ""
 msgid "Loading…"
 msgstr ""
 
+msgid "Locked shut: the e-mail link is the only way in, and that form hands out passwords."
+msgstr ""
+
 msgid "Log settings"
 msgstr ""
 
@@ -2456,6 +2477,12 @@ msgstr ""
 msgid "No file uploaded."
 msgstr ""
 
+msgid "No form of the site’s own."
+msgstr ""
+
+msgid "No form of the site’s own: WordPress has only its own."
+msgstr ""
+
 msgid "No menu — the site places it with [diluxone_users_account_nav]"
 msgstr ""
 
@@ -2463,6 +2490,9 @@ msgid "No open session."
 msgstr ""
 
 msgid "No page chosen yet."
+msgstr ""
+
+msgid "No page holds it yet, so nobody can reach it."
 msgstr ""
 
 msgid "No provider has been set up yet."
@@ -2886,6 +2916,9 @@ msgstr ""
 msgid "Open any of them to create the app, paste what it gives back and test it."
 msgstr ""
 
+msgid "Open for the whole network: Network Admin › Settings decides it."
+msgstr ""
+
 msgid "Open it"
 msgstr ""
 
@@ -2916,6 +2949,14 @@ msgid "Open the page it belongs on, or make one: Pages › Add page."
 msgstr ""
 
 msgid "Open your account"
+msgstr ""
+
+#. translators: %s: the ways an account gets created, comma separated
+#, php-format
+msgid "Open: accounts are created by %s."
+msgstr ""
+
+msgid "Open: wp-login.php takes new accounts, as Settings › General has it."
 msgstr ""
 
 msgid "Opening it lands them on the account page. One screen for their details, and it is the one this plugin knows the rules of."
@@ -3201,6 +3242,9 @@ msgid "Registration is open"
 msgstr ""
 
 msgid "Registration is shut"
+msgstr ""
+
+msgid "Registration › Summary →"
 msgstr ""
 
 msgid "Remember a browser"
@@ -3678,6 +3722,11 @@ msgstr ""
 msgid "Signing in to confirm a request"
 msgstr ""
 
+#. translators: %s: the social providers working, comma separated
+#, php-format
+msgid "Signing in with %s for the first time creates the account."
+msgstr ""
+
 msgid "Signing in with a network did not finish"
 msgstr ""
 
@@ -3861,6 +3910,9 @@ msgid "Subdomains"
 msgstr ""
 
 msgid "Subject"
+msgstr ""
+
+msgid "Subscriber, whichever door they came through."
 msgstr ""
 
 msgid "Sudan"
@@ -4483,6 +4535,9 @@ msgstr ""
 msgid "The registration form, in the frame the sign-in tab chose for both."
 msgstr ""
 
+msgid "The role given"
+msgstr ""
+
 msgid "The roles it is hidden from"
 msgstr ""
 
@@ -4553,6 +4608,9 @@ msgstr ""
 msgid "The sentence under a field, a date, the help beside a tick box."
 msgstr ""
 
+msgid "The sentences a person reads when creating an account does not work. Each one starts as the text the plugin ships in this language, so a site that changes nothing still reads correctly — and an update that improves a sentence improves it here too. Rewrite one and that is what is shown, until you put it back."
+msgstr ""
+
 msgid "The sentences a person reads when the way in does not work. Each one starts as the text the plugin ships in this language, so a site that changes nothing still reads correctly — and an update that improves a sentence improves it here too. Rewrite one and that is what is shown, until you put it back."
 msgstr ""
 
@@ -4571,7 +4629,7 @@ msgstr ""
 msgid "The short name that goes in the address of their profile. Without one, the site falls back to their first and last name."
 msgstr ""
 
-msgid "The short version: the page, what the form takes, whether the e-mail this site depends on is going out, and whether any door is open at all."
+msgid "The short version: the page, what the form takes, whether the e-mail this site depends on is going out, whether any door is open at all, and whether anybody can register."
 msgstr ""
 
 msgid "The shortcode still works wherever somebody puts it."
@@ -4641,6 +4699,9 @@ msgid "The site writes it"
 msgstr ""
 
 msgid "The site’s logo."
+msgstr ""
+
+msgid "The site’s own form"
 msgstr ""
 
 msgid "The site’s own switch"
@@ -5564,6 +5625,9 @@ msgstr ""
 msgid "Who can create an account on this site, and what that account is once it exists. First whether anybody can at all; then, if they can, through which doors — they are independent, and a site can open as many as it likes."
 msgstr ""
 
+msgid "Who can register"
+msgstr ""
+
 msgid "Who can sign in with a network"
 msgstr ""
 
@@ -5633,7 +5697,7 @@ msgstr ""
 msgid "With what"
 msgstr ""
 
-msgid "With what somebody who already has an account gets in. Every way in is a box: tick the ones this site offers. What each one does once it is on is set where that feature lives, and who gets an account at all is the Registration tab."
+msgid "With what somebody who already has an account gets in. Every way in is a box: tick the ones this site offers. What each one does once it is on is set where that feature lives, and who gets an account at all is the Registration screen."
 msgstr ""
 
 msgid "With “remember me”"
@@ -6303,7 +6367,7 @@ msgstr ""
 msgid "“%s” is not published, so nobody can reach it."
 msgstr ""
 
-msgid "“Anyone can register” is off and locked: on this site the e-mail link is the only way in, and that form would create accounts with a password. The same switch, and the reason, are on the Access screen."
+msgid "“Anyone can register” is off and locked: on this site the e-mail link is the only way in, and that form would create accounts with a password. The same switch, and the reason, are on the Registration screen."
 msgstr ""
 
 msgid "“Country” shows the full list with its dial codes; “Phone with country code” splits the number in two and stores it in international format."
