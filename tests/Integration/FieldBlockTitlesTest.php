@@ -118,4 +118,45 @@ class FieldBlockTitlesTest extends IntegrationTestCase {
 		$this->assertStringContainsString( 'data-diluxone-users-dialog', $html, 'The dialog is still drawn' );
 		$this->assertStringContainsString( 'form="' . DILUXONE_USERS_PANEL_FORM . '"', $html, 'Its Save is in the rail' );
 	}
+
+	public function test_with_no_title_typed_the_boxes_keep_the_plugins_titles(): void {
+		$this->assertSame( array( 'About you', 'A bit more about you' ), $this->titles( $this->details() ), 'Nothing stored' );
+
+		$this->save(
+			array(
+				'main'  => '',
+				'extra' => '  ',
+			)
+		);
+
+		$this->assertNull( diluxone_users_raw_get( 'diluxone_users_field_block_titles', null ), 'Both empty: nothing is stored' );
+
+		diluxone_users_update_option(
+			'diluxone_users_field_block_titles',
+			array(
+				'main'  => '',
+				'extra' => '',
+			)
+		);
+
+		$this->assertSame( array( 'About you', 'A bit more about you' ), $this->titles( $this->details() ), 'Stored empty' );
+	}
+
+	public function test_the_plugins_titles_are_translated(): void {
+		$this->hook(
+			'gettext',
+			static function ( string $translation, string $text, string $domain ): string {
+				$words = array(
+					'About you'            => 'Sobre vos',
+					'A bit more about you' => 'Un poco más sobre vos',
+				);
+
+				return 'diluxone-users' === $domain && isset( $words[ $text ] ) ? $words[ $text ] : $translation;
+			},
+			10,
+			3
+		);
+
+		$this->assertSame( array( 'Sobre vos', 'Un poco más sobre vos' ), $this->titles( $this->details() ) );
+	}
 }
