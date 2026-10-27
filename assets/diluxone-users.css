@@ -134,7 +134,14 @@
 	background: var(--diluxone-users-surface);
 	border: 1px solid var(--diluxone-users-border);
 	border-radius: var(--diluxone-users-radius);
+	color: var(--diluxone-users-text);
 }
+/* The box paints its own ground, so it sets the colour of the text on it too:
+   a theme that colours its headings directly (`html.is-dark h3`, at 0,1,2)
+   beats plain inheritance and would put a white heading on the box's white.
+   This outranks such a rule without !important; text with a colour of its
+   own on purpose is raised to match (the danger box's heading, below). */
+.diluxone-users-account .diluxone-users-panel :is(h1, h2, h3, h4, h5, h6, legend, label) { color: inherit; }
 .diluxone-users-panel > :first-child { margin-top: 0; }
 .diluxone-users-panel > :last-child { margin-bottom: 0; }
 
@@ -1367,7 +1374,8 @@ body.diluxone-users-door {
 /* The block that deletes the account is set apart from the one that
    downloads: they are two very different things and cannot look alike. */
 .diluxone-users-panel--danger { border-color: color-mix( in srgb, var(--diluxone-users-danger) 35%, var(--diluxone-users-border) ); }
-.diluxone-users-panel--danger h3 { color: var(--diluxone-users-danger); }
+.diluxone-users-panel--danger h3,
+.diluxone-users-account .diluxone-users-panel--danger h3 { color: var(--diluxone-users-danger); }
 
 .diluxone-users-list-plain { margin: 10px 0 14px; padding-left: 20px; }
 .diluxone-users-list-plain li { margin-bottom: 6px; }
