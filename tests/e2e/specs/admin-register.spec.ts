@@ -282,3 +282,33 @@ test.describe('Registration › Who can register', () => {
 		await expect(adminError(page)).toHaveCount(0);
 	});
 });
+
+test.describe('Registration › Messages', () => {
+	test.beforeEach(async ({ options }) => {
+		await options.keep(['diluxone_users_login_messages']);
+		await options.set({ diluxone_users_login_messages: [] });
+	});
+
+	test('it holds the seven registration messages and no other, and a rewrite is saved', async ({ page, site }) => {
+		await page.goto(registerTab('messages'));
+
+		const boxes = page.locator('textarea[name^="diluxone_users_message["]');
+		const names = await boxes.evaluateAll((areas) => areas.map((area) => (area as HTMLTextAreaElement).name));
+
+		expect(names).toHaveLength(7);
+		expect(names.every((name) => name.startsWith('diluxone_users_message[register_')), names.join(', ')).toBe(true);
+
+		const box = page.locator('details[data-diluxone-users-rewritable="register_closed"]');
+
+		await box.locator('> summary').click();
+		await box.locator('textarea').fill('E2E: registration is closed for now.');
+		await savePanel(page);
+
+		await expect(page, 'the save came back to the same tab').toHaveURL(/page=diluxone-users-register&tab=messages/);
+		await expect(page.locator('textarea[name="diluxone_users_message[register_closed]"]')).toHaveValue('E2E: registration is closed for now.');
+
+		const stored = (await site.getOptions(['diluxone_users_login_messages'])).diluxone_users_login_messages as Record<string, Record<string, string>>;
+
+		expect(Object.values(stored).map((one) => one.register_closed)).toContain('E2E: registration is closed for now.');
+	});
+});

@@ -16,7 +16,11 @@
 
 namespace Tests\Integration;
 
+use Tests\Integration\Support\CoverSettingsSupport;
+
 class LoginMessagesTest extends IntegrationTestCase {
+
+	use CoverSettingsSupport;
 
 	protected function setUp(): void {
 		parent::setUp();
@@ -29,8 +33,67 @@ class LoginMessagesTest extends IntegrationTestCase {
 
 	protected function tearDown(): void {
 		delete_option( DILUXONE_USERS_LOGIN_MESSAGES );
+		diluxone_users_delete_option( DILUXONE_USERS_LOGIN_MESSAGES );
+		$this->cover_settings_reset();
 
 		parent::tearDown();
+	}
+
+	/**
+	 * The message boxes one screen's Messages tab draws, by key.
+	 *
+	 * @return array<int, string>
+	 */
+	private function boxes( string $screen ): array {
+		do_action( 'diluxone_users_register_panels' );
+
+		$_GET = array(
+			'page' => $screen,
+			'tab'  => 'messages',
+		);
+
+		$html = $this->draw( 'diluxone-users-register' === $screen ? 'diluxone_users_screen_registration' : 'diluxone_users_screen_login' );
+
+		preg_match_all( '#name="diluxone_users_message\[([a-z0-9_]+)\]"#', $html, $found );
+
+		return $found[1];
+	}
+
+	/* ── Which screen holds which sentences ─────────────────────────── */
+
+	public function test_c2_the_registration_screen_draws_the_seven_registration_messages_and_no_other(): void {
+		$this->the_admin();
+
+		$register = array_keys( wp_list_filter( diluxone_users_login_messages(), array( 'group' => 'register' ) ) );
+
+		$this->assertCount( 7, $register );
+		$this->assertSame( $register, $this->boxes( 'diluxone-users-register' ) );
+	}
+
+	public function test_c2_the_registration_messages_are_saved_there_behind_its_own_nonce(): void {
+		$this->the_admin();
+		diluxone_users_login_message_rewrite( 'login_expired', 'en_US', 'Signing in says this.' );
+
+		$post = array(
+			'diluxone_users_message_locale' => 'en_US',
+			'diluxone_users_message'        => array(
+				'register_taken' => 'That address has an account: sign in instead.',
+				'login_expired'  => 'Not this screen’s to write.',
+			),
+		);
+
+		$this->send_panel( 'diluxone-users-login', $post );
+		$this->assertSame( array( 'died', self::EXPIRED ), $this->ended( 'diluxone_users_register_messages_save' ), 'Access’s nonce does not save it' );
+
+		$this->send_panel( 'diluxone-users-register', $post );
+		$this->ended( 'diluxone_users_register_messages_save' );
+
+		$store = diluxone_users_login_messages_store()['en_US'] ?? array();
+
+		$this->assertSame( 'That address has an account: sign in instead.', $store['register_taken'] ?? null );
+		$this->assertSame( 'Signing in says this.', $store['login_expired'] ?? null, 'a sentence of Access is left as it was' );
+		$this->assertSame( 'That address has an account: sign in instead.', diluxone_users_login_message( 'register_taken' ), 'and the form reads it' );
+		$this->assertSame( 1, diluxone_users_login_messages_own( 'en_US', 'diluxone-users-register' ) );
 	}
 
 	/** Every message the plugin registers has everything the screen needs. */

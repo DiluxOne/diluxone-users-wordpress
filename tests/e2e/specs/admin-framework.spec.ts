@@ -3,7 +3,7 @@ import { test, expect, expectSignedIn } from '../support/fixtures';
 import { freshEmail } from '../support/api';
 import { adminSaved, adminUrl, answeringDialog, fillCredentials, navigated, saveButton, savePanel } from '../support/ui';
 import { adminTabs } from '../support/screens';
-import { MOCK_SSO, accessTab, control } from '../support/admin-access';
+import { MOCK_SSO, accessTab, control, registerTab } from '../support/admin-access';
 import { ADMIN_STATE } from '../../../playwright.config';
 
 /**

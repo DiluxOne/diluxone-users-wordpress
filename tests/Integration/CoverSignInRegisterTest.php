@@ -10,9 +10,12 @@
 
 namespace Tests\Integration;
 
+use Tests\Integration\Support\CoverSettingsSupport;
 use Tests\Integration\Support\MockProvider;
 
 class CoverSignInRegisterTest extends IntegrationTestCase {
+
+	use CoverSettingsSupport;
 
 	/** @var array<int, array<string, mixed>> */
 	private const FIELDS = array(
@@ -67,7 +70,84 @@ class CoverSignInRegisterTest extends IntegrationTestCase {
 		remove_action( 'diluxone_users_registered', array( $this, 'heard' ), 10 );
 		MockProvider::remove();
 
+		if ( null !== $this->users_can_register ) {
+			update_option( 'users_can_register', $this->users_can_register );
+		}
+
+		$this->cover_settings_reset();
+
 		parent::tearDown();
+	}
+
+	/** @var mixed WordPress's own registration switch, when a test changes it. */
+	private $users_can_register = null;
+
+	/* ── The Registration screen saves what the tab used to ─────────── */
+
+	public function test_c2_every_setting_of_who_can_register_is_saved_through_the_registration_screen(): void {
+		require_once ABSPATH . 'wp-admin/includes/admin.php';
+
+		$this->users_can_register = get_option( 'users_can_register' );
+
+		do_action( 'diluxone_users_register_panels' );
+		$this->the_admin();
+
+		$panel = diluxone_users_panels( 'diluxone-users-register' )['who'] ?? array();
+		$this->assertSame( 'diluxone_users_screen_register_save', $panel['save'] ?? '', 'the tab’s own save, on the new screen' );
+
+		$page = (int) wp_insert_post(
+			array(
+				'post_type'   => 'page',
+				'post_status' => 'publish',
+				'post_title'  => 'Join',
+			)
+		);
+		$post = array(
+			'diluxone_users_register_open'      => 'open',
+			'diluxone_users_login_register'     => '1',
+			'diluxone_users_sso_register'       => '1',
+			'diluxone_users_register_form'      => '1',
+			'diluxone_users_wp_register'        => '1',
+			'diluxone_users_wp_register_fields' => '1',
+			'diluxone_users_register_page'      => (string) $page,
+			'diluxone_users_login_role'         => 'subscriber',
+		);
+
+		diluxone_users_update_option( 'diluxone_users_login_method', 'both' );
+		diluxone_users_update_option( 'diluxone_users_register_form', 0 );
+		diluxone_users_update_option( 'diluxone_users_wp_register_fields', 0 );
+
+		// Access's nonce no longer saves it.
+		$this->send_panel( 'diluxone-users-login', $post );
+		$this->assertSame( array( 'died', self::EXPIRED ), $this->ended( 'diluxone_users_screen_register_save' ) );
+		$this->assertSame( 0, (int) diluxone_users_option( 'diluxone_users_register_form' ) );
+
+		$this->send_panel( 'diluxone-users-register', $post );
+		$this->assertSame( array( 'returned', true ), $this->ended( 'diluxone_users_screen_register_save' ) );
+
+		$this->assertSame( 1, (int) diluxone_users_option( 'diluxone_users_login_register' ) );
+		$this->assertSame( 1, (int) diluxone_users_option( 'diluxone_users_sso_register' ) );
+		$this->assertSame( 1, (int) diluxone_users_option( 'diluxone_users_register_form' ) );
+		$this->assertSame( $page, (int) diluxone_users_option( 'diluxone_users_register_page' ) );
+		$this->assertSame( 'subscriber', diluxone_users_option( 'diluxone_users_login_role' ) );
+
+		if ( is_multisite() ) {
+			$this->assertSame( 0, (int) diluxone_users_option( 'diluxone_users_wp_register_fields' ), 'WordPress’s own form is the network’s: nothing added to it' );
+		} else {
+			$this->assertSame( 1, (int) diluxone_users_option( 'diluxone_users_wp_register_fields' ) );
+			$this->assertSame( '1', (string) get_option( 'users_can_register' ), 'WordPress’s own switch, written there' );
+		}
+
+		// The screen draws back what was saved.
+		$_GET = array(
+			'page' => 'diluxone-users-register',
+			'tab'  => 'who',
+		);
+		$html = $this->draw( 'diluxone_users_screen_registration' );
+
+		$this->assertMatchesRegularExpression( '#name="diluxone_users_register_open"\s+value="open"[^>]*checked#', $html );
+		$this->assertMatchesRegularExpression( '#name="diluxone_users_register_form"\s+value="1"[^>]*checked#', $html );
+		$this->assertStringContainsString( wp_create_nonce( 'diluxone_users_panel_diluxone-users-register' ), $html, 'the form carries the screen’s own nonce' );
 	}
 
 	/** The `diluxone_users_registered` action. */
