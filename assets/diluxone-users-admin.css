@@ -1637,6 +1637,9 @@
    but the line, and the room under it. */
 .du-waits { margin: 0 0 var(--du-2); color: var(--du-muted); }
 .du-waits[hidden] { display: none; }
+/* One that takes turns with another in the same place is not dimmed but
+   gone while it waits: only the answer that is true is read. */
+.du-waits-on--hides.is-waiting { display: none; }
 
 /* The "everybody / only some roles" control keeps WordPress's plain radios:
    it is a qualifier on the question above it, not a question of its own, and

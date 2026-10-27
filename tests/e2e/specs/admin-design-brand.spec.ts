@@ -110,7 +110,7 @@ test.describe('Design › Your brand', () => {
 		await expect(anyColour.locator('input[type="color"]')).toBeDisabled();
 		await expect(anyColour.locator('[name]'), 'nothing in it posts').toHaveCount(0);
 		await expect(anyColour.locator('.diluxone-users-state--pro'), 'the badge').toHaveCount(1);
-		await expect(anyColour.locator('a')).toHaveAttribute('href', /diluxone\.com\/users-pro\/.*utm_medium=design/);
+		await expect(anyColour.locator('a')).toHaveAttribute('href', /diluxone\.com\/wordpress-plugins\/users\/.*utm_medium=design/);
 
 		await savePanel(page);
 		expect((await site.getOptions(['diluxone_users_style_accent'])).diluxone_users_style_accent, 'kept by the save').toBe('#008671');
@@ -324,7 +324,7 @@ test.describe('Design › Your brand', () => {
 		await expect(picture.locator('select:enabled'), 'none of them can be changed').toHaveCount(0);
 		await expect(picture.locator('[name]'), 'nothing in the rows sends').toHaveCount(0);
 		await expect(picture.locator('.diluxone-users-state--pro'), 'the badge').toHaveCount(1);
-		await expect(picture.locator('a')).toHaveAttribute('href', /diluxone\.com\/users-pro\/.*utm_medium=design/);
+		await expect(picture.locator('a')).toHaveAttribute('href', /diluxone\.com\/wordpress-plugins\/users\/.*utm_medium=design/);
 		await expect(page.locator('select[name^="diluxone_users_color_map"]')).toHaveCount(0);
 
 		// The chip of the accent in the rows is the palette colour its names gave it.

@@ -677,27 +677,57 @@ function diluxone_users_screen_login_page(): void {
 }
 
 /**
- * The address of the page of its own with "No page": the site's address and
- * the path after it.
+ * The address the page of its own is drawn at.
  *
- * Waiting for "No page" in the drop-down above: with a page chosen, the page
- * of its own is drawn at that page's address, and this is drawn disabled
- * under a line saying so, and sends nothing.
+ * One label over three blocks, each waiting on the drop-down above and hidden
+ * while it waits, so only the true one is read. With the saved page chosen,
+ * the address in use, as a link: the page's. With "No page", the site's
+ * address and the path typed after it. With a page picked and not yet saved,
+ * a line saying the address is that page's once saved, since the page's
+ * address is not known here until it is. The server draws the right one from
+ * the stored value; the script switches them as the drop-down changes, and a
+ * hidden slug field stays disabled, so it sends nothing.
  *
  * @param int $page The page chosen, or 0.
  */
 function diluxone_users_screen_login_page_address( int $page ): void {
-	$waits = array(
+	$slug = sanitize_title( (string) diluxone_users_option( 'diluxone_users_login_slug' ) );
+	$wait = static fn( string $key, array $values, bool $waiting ): array => array(
 		'name'    => 'diluxone_users_login_page',
-		'is'      => array( '0' ),
-		'waiting' => $page > 0,
-		'why'     => __( 'Used when no page is chosen above: the page of its own is then drawn at this address.', 'diluxone-users' ),
+		$key      => $values,
+		'waiting' => $waiting,
+		'hides'   => true,
 	);
 
-	$waiting = diluxone_users_ui_waits_open( $waits );
-	$slug    = sanitize_title( (string) diluxone_users_option( 'diluxone_users_login_slug' ) );
-
 	diluxone_users_ui_field_open( __( 'Its address', 'diluxone-users' ), 'diluxone_users_login_slug' );
+
+	if ( $page > 0 ) {
+		$saved = $wait( 'is', array( (string) $page ), false );
+		$url   = diluxone_users_door_url();
+
+		diluxone_users_ui_waits_open( $saved );
+
+		echo wp_kses(
+			sprintf(
+				'<p><a href="%1$s"><code>%2$s</code></a></p><p class="du-field__help">%3$s</p>',
+				esc_url( $url ),
+				esc_html( $url ),
+				esc_html__( 'It is the address of the page chosen above, and it changes with that page.', 'diluxone-users' )
+			),
+			diluxone_users_allowed_html()
+		);
+
+		diluxone_users_ui_waits_close( $saved );
+	}
+
+	$other = $wait( 'not', $page > 0 ? array( '0', (string) $page ) : array( '0' ), true );
+
+	diluxone_users_ui_waits_open( $other );
+	printf( '<p class="du-field__help">%s</p>', esc_html__( 'Once saved, it is the address of the page chosen above.', 'diluxone-users' ) );
+	diluxone_users_ui_waits_close( $other );
+
+	$none    = $wait( 'is', array( '0' ), $page > 0 );
+	$waiting = diluxone_users_ui_waits_open( $none );
 
 	echo wp_kses(
 		sprintf(
@@ -709,9 +739,11 @@ function diluxone_users_screen_login_page_address( int $page ): void {
 		diluxone_users_allowed_html()
 	);
 
-	diluxone_users_ui_field_close( __( 'Letters, numbers and dashes. Sign in, registration, the second step and a new password are all answered there, and an address you used before keeps sending people to it.', 'diluxone-users' ) );
+	printf( '<p class="du-field__help">%s</p>', esc_html__( 'Letters, numbers and dashes. Sign in, registration, the second step and a new password are all answered there, and an address you used before keeps sending people to it.', 'diluxone-users' ) );
 
-	diluxone_users_ui_waits_close( $waits );
+	diluxone_users_ui_waits_close( $none );
+
+	diluxone_users_ui_field_close();
 }
 
 /** With what somebody who already has an account gets in. */

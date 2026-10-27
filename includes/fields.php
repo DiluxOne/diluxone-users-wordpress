@@ -765,13 +765,14 @@ function diluxone_users_phone_codes( array $sent, array $fields ): array {
 			continue;
 		}
 
-		$iso = strtoupper( sanitize_text_field( (string) ( $sent[ $key . '_dial' ] ?? '' ) ) );
+		$iso                  = strtoupper( sanitize_text_field( (string) ( $sent[ $key . '_dial' ] ?? '' ) ) );
+		list( $iso, $number ) = diluxone_users_phone_resolve( $iso, (string) $sent[ $key ] );
 
 		if ( '' === diluxone_users_country_dial( $iso ) ) {
 			continue;
 		}
 
-		$code = diluxone_users_phone_check( $iso, (string) $sent[ $key ] );
+		$code = diluxone_users_phone_check( $iso, $number );
 
 		if ( '' !== $code ) {
 			$wrong[ $key ] = $code;
@@ -965,15 +966,18 @@ function diluxone_users_save( int $user_id, array $input, string $group = '' ): 
 		// it also holds when the form arrives without JavaScript. The number
 		// goes in as the country writes it after its code: digits only, and
 		// without the trunk prefix ("011…" in Argentina) typed out of habit.
+		// A number written with its own code ("+56 …", "0056 …") belongs to
+		// the country of that code, whichever was picked, as in the browser.
 		if ( 'phone' === $field['type'] && '' !== trim( $raw ) ) {
-			$iso  = sanitize_text_field( (string) ( $input[ $key . '_dial' ] ?? '' ) );
-			$dial = diluxone_users_country_dial( $iso );
-			$raw  = '+' . $dial . ( '' === $dial ? preg_replace( '/\D/', '', $raw ) : diluxone_users_phone_national( $iso, $raw ) );
+			$iso                  = sanitize_text_field( (string) ( $input[ $key . '_dial' ] ?? '' ) );
+			list( $iso, $number ) = diluxone_users_phone_resolve( $iso, $raw );
+			$dial                 = diluxone_users_country_dial( $iso );
+			$raw                  = '+' . $dial . ( '' === $dial ? preg_replace( '/\D/', '', $number ) : diluxone_users_phone_national( $iso, $number ) );
 
 			// A number the wrong length for its country is not saved, whoever
 			// called: the forms check first and say so, and a caller that does
 			// not (Users → Add New, an add-on) keeps what was there.
-			if ( '' !== $dial && '' !== diluxone_users_phone_check( $iso, (string) $input[ $key ] ) ) {
+			if ( '' !== $dial && '' !== diluxone_users_phone_check( $iso, $number ) ) {
 				continue;
 			}
 		}

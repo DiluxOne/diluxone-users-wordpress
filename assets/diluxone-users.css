@@ -277,6 +277,16 @@ details.diluxone-users-panel[open] > .diluxone-users-panel__head .diluxone-users
 .diluxone-users-panel .diluxone-users-form select,
 .diluxone-users-panel .diluxone-users-form textarea { max-width: 34rem; }
 .diluxone-users-form label { font-weight: 600; }
+/* The "Your details" tab: one form holding a box per block of fields. The
+   boxes keep the panel's own spacing between them, and each lays its fields
+   out like a form of its own, controls at the reading width. */
+.diluxone-users-fields--boxed .diluxone-users-form { display: block; }
+.diluxone-users-fields__block { display: flex; flex-direction: column; align-items: stretch; gap: 8px; }
+.diluxone-users-fields__block > h3 { margin-bottom: 4px; }
+.diluxone-users-fields__block > .diluxone-users-panel__save { margin-bottom: 0; }
+.diluxone-users-fields__block input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]),
+.diluxone-users-fields__block select,
+.diluxone-users-fields__block textarea { max-width: 34rem; }
 /* A button inside a column form stretches to the full width and looks like a
    banner. It takes the room it says, and starts on the left. */
 .diluxone-users-form > .diluxone-users-button,
@@ -569,8 +579,10 @@ details.diluxone-users-panel[open] > .diluxone-users-panel__head .diluxone-users
 .diluxone-users-button--danger:focus { background: var(--diluxone-users-danger); color: var(--diluxone-users-danger-ink); }
 .diluxone-users-button--danger:hover { color: var(--diluxone-users-danger-ink); }
 
-/* The way past the step that asks for the required fields after a sign-in. */
-.diluxone-users-fields__skip { display: inline-block; margin-inline-start: 1rem; }
+/* The way past the step that asks for the required fields after a sign-in.
+   The form is a column, so it starts at the button's edge, as wide as its
+   text; the form's gap keeps it apart from the button. */
+.diluxone-users-fields__skip { align-self: flex-start; }
 
 /* ── A question asked in the page ───────────────────────────────────── */
 

@@ -39,3 +39,4 @@ phpcs.json
 # AI tooling
 .claude/
 .cursor/
+languages/*.mo
