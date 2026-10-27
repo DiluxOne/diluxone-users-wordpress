@@ -1836,55 +1836,55 @@ msgstr "Copiez la « Valeur » du secret, pas son « ID de secret ». La valeur 
 msgid "The openid, email and profile permissions are already there by default — you do not have to add anything under “API permissions”."
 msgstr "Les permissions openid, email et profile sont déjà là par défaut — vous n’avez rien à ajouter dans « Autorisations d’API »."
 
-#: includes/sso.php:1027
+#: includes/sso.php:1056
 msgid "The provider did not hand over an access token. Check the client ID and the secret."
 msgstr "Le fournisseur n’a pas délivré de jeton d’accès. Vérifiez l’identifiant client et le secret."
 
-#: includes/sso.php:1039
+#: includes/sso.php:1068
 msgid "The token worked but the profile came back empty. The app is probably missing the permissions this provider needs."
 msgstr "Le jeton a fonctionné mais le profil est revenu vide. Il manque probablement à l’application les permissions dont ce fournisseur a besoin."
 
 #. translators: %s: name of the social network
-#: includes/sso.php:1072
+#: includes/sso.php:1101
 #, php-format
 msgid "The %s account was linked, and it now gets into this account."
 msgstr "Le compte %s a été lié, et il ouvre désormais ce compte."
 
 #. translators: %s: name of the social network
-#: includes/sso.php:1174
+#: includes/sso.php:1205
 #, php-format
 msgid "The %s account was unlinked."
 msgstr "Le compte %s a été délié."
 
-#: includes/sso.php:1215
+#: includes/sso.php:1246
 msgid "It works"
 msgstr "Ça marche"
 
-#: includes/sso.php:1216
+#: includes/sso.php:1247
 msgid "It did not work"
 msgstr "Ça n’a pas marché"
 
 #. translators: %s: provider name
-#: includes/sso.php:1221
+#: includes/sso.php:1252
 #, php-format
 msgid "The round trip with %s finished correctly. You can enable the button now."
 msgstr "L’aller-retour avec %s s’est terminé correctement. Vous pouvez activer le bouton."
 
 #. translators: %s: provider name
-#: includes/sso.php:1226
+#: includes/sso.php:1257
 #, php-format
 msgid "The round trip with %s failed."
 msgstr "L’aller-retour avec %s a échoué."
 
 #. translators: %s: e-mail address
-#: includes/sso.php:1232
+#: includes/sso.php:1263
 #, php-format
 msgid "The provider handed over this email: %s"
 msgstr "Le fournisseur a délivré cet e-mail : %s"
 
 #: includes/admin-fields.php:706
 #: includes/admin-panels.php:841
-#: includes/sso.php:1257
+#: includes/sso.php:1288
 #: templates/sessions.php:67
 msgid "Close"
 msgstr "Fermer"
@@ -7579,3 +7579,991 @@ msgstr "Seulement les échecs : quelques lignes par jour pendant qu’un réseau
 #: includes/log.php:550
 msgid "Social sign-in refused"
 msgstr "Connexion par réseau social refusée"
+
+#: includes/data-countries.php:29
+msgid "Afghanistan"
+msgstr "Afghanistan"
+
+#: includes/data-countries.php:30
+msgid "Albania"
+msgstr "Albanie"
+
+#: includes/data-countries.php:31
+msgid "Algeria"
+msgstr "Algérie"
+
+#: includes/data-countries.php:32
+msgid "Andorra"
+msgstr "Andorre"
+
+#: includes/data-countries.php:33
+msgid "Angola"
+msgstr "Angola"
+
+#: includes/data-countries.php:34
+msgid "Antigua and Barbuda"
+msgstr "Antigua-et-Barbuda"
+
+#: includes/data-countries.php:35
+msgid "Argentina"
+msgstr "Argentine"
+
+#: includes/data-countries.php:36
+msgid "Armenia"
+msgstr "Arménie"
+
+#: includes/data-countries.php:37
+msgid "Aruba"
+msgstr "Aruba"
+
+#: includes/data-countries.php:38
+msgid "Australia"
+msgstr "Australie"
+
+#: includes/data-countries.php:39
+msgid "Austria"
+msgstr "Autriche"
+
+#: includes/data-countries.php:40
+msgid "Azerbaijan"
+msgstr "Azerbaïdjan"
+
+#: includes/data-countries.php:41
+msgid "Bahamas"
+msgstr "Bahamas"
+
+#: includes/data-countries.php:42
+msgid "Bahrain"
+msgstr "Bahreïn"
+
+#: includes/data-countries.php:43
+msgid "Bangladesh"
+msgstr "Bangladesh"
+
+#: includes/data-countries.php:44
+msgid "Barbados"
+msgstr "Barbade"
+
+#: includes/data-countries.php:45
+msgid "Belarus"
+msgstr "Biélorussie"
+
+#: includes/data-countries.php:46
+msgid "Belgium"
+msgstr "Belgique"
+
+#: includes/data-countries.php:47
+msgid "Belize"
+msgstr "Belize"
+
+#: includes/data-countries.php:48
+msgid "Benin"
+msgstr "Bénin"
+
+#: includes/data-countries.php:49
+msgid "Bermuda"
+msgstr "Bermudes"
+
+#: includes/data-countries.php:50
+msgid "Bhutan"
+msgstr "Bhoutan"
+
+#: includes/data-countries.php:51
+msgid "Bolivia"
+msgstr "Bolivie"
+
+#: includes/data-countries.php:52
+msgid "Bosnia and Herzegovina"
+msgstr "Bosnie-Herzégovine"
+
+#: includes/data-countries.php:53
+msgid "Botswana"
+msgstr "Botswana"
+
+#: includes/data-countries.php:54
+msgid "Brazil"
+msgstr "Brésil"
+
+#: includes/data-countries.php:55
+msgid "Brunei"
+msgstr "Brunei"
+
+#: includes/data-countries.php:56
+msgid "Bulgaria"
+msgstr "Bulgarie"
+
+#: includes/data-countries.php:57
+msgid "Burkina Faso"
+msgstr "Burkina Faso"
+
+#: includes/data-countries.php:58
+msgid "Burundi"
+msgstr "Burundi"
+
+#: includes/data-countries.php:59
+msgid "Cambodia"
+msgstr "Cambodge"
+
+#: includes/data-countries.php:60
+msgid "Cameroon"
+msgstr "Cameroun"
+
+#: includes/data-countries.php:61
+msgid "Canada"
+msgstr "Canada"
+
+#: includes/data-countries.php:62
+msgid "Cape Verde"
+msgstr "Cap-Vert"
+
+#: includes/data-countries.php:63
+msgid "Cayman Islands"
+msgstr "Îles Caïmans"
+
+#: includes/data-countries.php:64
+msgid "Central African Republic"
+msgstr "République centrafricaine"
+
+#: includes/data-countries.php:65
+msgid "Chad"
+msgstr "Tchad"
+
+#: includes/data-countries.php:66
+msgid "Chile"
+msgstr "Chili"
+
+#: includes/data-countries.php:67
+msgid "China"
+msgstr "Chine"
+
+#: includes/data-countries.php:68
+msgid "Colombia"
+msgstr "Colombie"
+
+#: includes/data-countries.php:69
+msgid "Comoros"
+msgstr "Comores"
+
+#: includes/data-countries.php:70
+msgid "Congo"
+msgstr "Congo"
+
+#: includes/data-countries.php:71
+msgid "Congo (DRC)"
+msgstr "Congo (RDC)"
+
+#: includes/data-countries.php:72
+msgid "Costa Rica"
+msgstr "Costa Rica"
+
+#: includes/data-countries.php:73
+msgid "Côte d'Ivoire"
+msgstr "Côte d’Ivoire"
+
+#: includes/data-countries.php:74
+msgid "Croatia"
+msgstr "Croatie"
+
+#: includes/data-countries.php:75
+msgid "Cuba"
+msgstr "Cuba"
+
+#: includes/data-countries.php:76
+msgid "Curacao"
+msgstr "Curaçao"
+
+#: includes/data-countries.php:77
+msgid "Cyprus"
+msgstr "Chypre"
+
+#: includes/data-countries.php:78
+msgid "Czechia"
+msgstr "Tchéquie"
+
+#: includes/data-countries.php:79
+msgid "Denmark"
+msgstr "Danemark"
+
+#: includes/data-countries.php:80
+msgid "Djibouti"
+msgstr "Djibouti"
+
+#: includes/data-countries.php:81
+msgid "Dominica"
+msgstr "Dominique"
+
+#: includes/data-countries.php:82
+msgid "Dominican Republic"
+msgstr "République dominicaine"
+
+#: includes/data-countries.php:83
+msgid "Ecuador"
+msgstr "Équateur"
+
+#: includes/data-countries.php:84
+msgid "Egypt"
+msgstr "Égypte"
+
+#: includes/data-countries.php:85
+msgid "El Salvador"
+msgstr "Salvador"
+
+#: includes/data-countries.php:86
+msgid "Equatorial Guinea"
+msgstr "Guinée équatoriale"
+
+#: includes/data-countries.php:87
+msgid "Eritrea"
+msgstr "Érythrée"
+
+#: includes/data-countries.php:88
+msgid "Estonia"
+msgstr "Estonie"
+
+#: includes/data-countries.php:89
+msgid "Eswatini"
+msgstr "Eswatini"
+
+#: includes/data-countries.php:90
+msgid "Ethiopia"
+msgstr "Éthiopie"
+
+#: includes/data-countries.php:91
+msgid "Fiji"
+msgstr "Fidji"
+
+#: includes/data-countries.php:92
+msgid "Finland"
+msgstr "Finlande"
+
+#: includes/data-countries.php:93
+msgid "France"
+msgstr "France"
+
+#: includes/data-countries.php:94
+msgid "Gabon"
+msgstr "Gabon"
+
+#: includes/data-countries.php:95
+msgid "Gambia"
+msgstr "Gambie"
+
+#: includes/data-countries.php:96
+msgid "Georgia"
+msgstr "Géorgie"
+
+#: includes/data-countries.php:97
+msgid "Germany"
+msgstr "Allemagne"
+
+#: includes/data-countries.php:98
+msgid "Ghana"
+msgstr "Ghana"
+
+#: includes/data-countries.php:99
+msgid "Gibraltar"
+msgstr "Gibraltar"
+
+#: includes/data-countries.php:100
+msgid "Greece"
+msgstr "Grèce"
+
+#: includes/data-countries.php:101
+msgid "Greenland"
+msgstr "Groenland"
+
+#: includes/data-countries.php:102
+msgid "Grenada"
+msgstr "Grenade"
+
+#: includes/data-countries.php:103
+msgid "Guatemala"
+msgstr "Guatemala"
+
+#: includes/data-countries.php:104
+msgid "Guinea"
+msgstr "Guinée"
+
+#: includes/data-countries.php:105
+msgid "Guinea-Bissau"
+msgstr "Guinée-Bissau"
+
+#: includes/data-countries.php:106
+msgid "Guyana"
+msgstr "Guyana"
+
+#: includes/data-countries.php:107
+msgid "Haiti"
+msgstr "Haïti"
+
+#: includes/data-countries.php:108
+msgid "Honduras"
+msgstr "Honduras"
+
+#: includes/data-countries.php:109
+msgid "Hong Kong"
+msgstr "Hong Kong"
+
+#: includes/data-countries.php:110
+msgid "Hungary"
+msgstr "Hongrie"
+
+#: includes/data-countries.php:111
+msgid "Iceland"
+msgstr "Islande"
+
+#: includes/data-countries.php:112
+msgid "India"
+msgstr "Inde"
+
+#: includes/data-countries.php:113
+msgid "Indonesia"
+msgstr "Indonésie"
+
+#: includes/data-countries.php:114
+msgid "Iran"
+msgstr "Iran"
+
+#: includes/data-countries.php:115
+msgid "Iraq"
+msgstr "Irak"
+
+#: includes/data-countries.php:116
+msgid "Ireland"
+msgstr "Irlande"
+
+#: includes/data-countries.php:117
+msgid "Israel"
+msgstr "Israël"
+
+#: includes/data-countries.php:118
+msgid "Italy"
+msgstr "Italie"
+
+#: includes/data-countries.php:119
+msgid "Jamaica"
+msgstr "Jamaïque"
+
+#: includes/data-countries.php:120
+msgid "Japan"
+msgstr "Japon"
+
+#: includes/data-countries.php:121
+msgid "Jordan"
+msgstr "Jordanie"
+
+#: includes/data-countries.php:122
+msgid "Kazakhstan"
+msgstr "Kazakhstan"
+
+#: includes/data-countries.php:123
+msgid "Kenya"
+msgstr "Kenya"
+
+#: includes/data-countries.php:124
+msgid "Kuwait"
+msgstr "Koweït"
+
+#: includes/data-countries.php:125
+msgid "Kyrgyzstan"
+msgstr "Kirghizistan"
+
+#: includes/data-countries.php:126
+msgid "Laos"
+msgstr "Laos"
+
+#: includes/data-countries.php:127
+msgid "Latvia"
+msgstr "Lettonie"
+
+#: includes/data-countries.php:128
+msgid "Lebanon"
+msgstr "Liban"
+
+#: includes/data-countries.php:129
+msgid "Lesotho"
+msgstr "Lesotho"
+
+#: includes/data-countries.php:130
+msgid "Liberia"
+msgstr "Liberia"
+
+#: includes/data-countries.php:131
+msgid "Libya"
+msgstr "Libye"
+
+#: includes/data-countries.php:132
+msgid "Liechtenstein"
+msgstr "Liechtenstein"
+
+#: includes/data-countries.php:133
+msgid "Lithuania"
+msgstr "Lituanie"
+
+#: includes/data-countries.php:134
+msgid "Luxembourg"
+msgstr "Luxembourg"
+
+#: includes/data-countries.php:135
+msgid "Macao"
+msgstr "Macao"
+
+#: includes/data-countries.php:136
+msgid "Madagascar"
+msgstr "Madagascar"
+
+#: includes/data-countries.php:137
+msgid "Malawi"
+msgstr "Malawi"
+
+#: includes/data-countries.php:138
+msgid "Malaysia"
+msgstr "Malaisie"
+
+#: includes/data-countries.php:139
+msgid "Maldives"
+msgstr "Maldives"
+
+#: includes/data-countries.php:140
+msgid "Mali"
+msgstr "Mali"
+
+#: includes/data-countries.php:141
+msgid "Malta"
+msgstr "Malte"
+
+#: includes/data-countries.php:142
+msgid "Mauritania"
+msgstr "Mauritanie"
+
+#: includes/data-countries.php:143
+msgid "Mauritius"
+msgstr "Maurice"
+
+#: includes/data-countries.php:144
+msgid "Mexico"
+msgstr "Mexique"
+
+#: includes/data-countries.php:145
+msgid "Moldova"
+msgstr "Moldavie"
+
+#: includes/data-countries.php:146
+msgid "Monaco"
+msgstr "Monaco"
+
+#: includes/data-countries.php:147
+msgid "Mongolia"
+msgstr "Mongolie"
+
+#: includes/data-countries.php:148
+msgid "Montenegro"
+msgstr "Monténégro"
+
+#: includes/data-countries.php:149
+msgid "Morocco"
+msgstr "Maroc"
+
+#: includes/data-countries.php:150
+msgid "Mozambique"
+msgstr "Mozambique"
+
+#: includes/data-countries.php:151
+msgid "Myanmar"
+msgstr "Myanmar"
+
+#: includes/data-countries.php:152
+msgid "Namibia"
+msgstr "Namibie"
+
+#: includes/data-countries.php:153
+msgid "Nepal"
+msgstr "Népal"
+
+#: includes/data-countries.php:154
+msgid "Netherlands"
+msgstr "Pays-Bas"
+
+#: includes/data-countries.php:155
+msgid "New Zealand"
+msgstr "Nouvelle-Zélande"
+
+#: includes/data-countries.php:156
+msgid "Nicaragua"
+msgstr "Nicaragua"
+
+#: includes/data-countries.php:157
+msgid "Niger"
+msgstr "Niger"
+
+#: includes/data-countries.php:158
+msgid "Nigeria"
+msgstr "Nigeria"
+
+#: includes/data-countries.php:159
+msgid "North Macedonia"
+msgstr "Macédoine du Nord"
+
+#: includes/data-countries.php:160
+msgid "Norway"
+msgstr "Norvège"
+
+#: includes/data-countries.php:161
+msgid "Oman"
+msgstr "Oman"
+
+#: includes/data-countries.php:162
+msgid "Pakistan"
+msgstr "Pakistan"
+
+#: includes/data-countries.php:163
+msgid "Palestine"
+msgstr "Palestine"
+
+#: includes/data-countries.php:164
+msgid "Panama"
+msgstr "Panama"
+
+#: includes/data-countries.php:165
+msgid "Papua New Guinea"
+msgstr "Papouasie-Nouvelle-Guinée"
+
+#: includes/data-countries.php:166
+msgid "Paraguay"
+msgstr "Paraguay"
+
+#: includes/data-countries.php:167
+msgid "Peru"
+msgstr "Pérou"
+
+#: includes/data-countries.php:168
+msgid "Philippines"
+msgstr "Philippines"
+
+#: includes/data-countries.php:169
+msgid "Poland"
+msgstr "Pologne"
+
+#: includes/data-countries.php:170
+msgid "Portugal"
+msgstr "Portugal"
+
+#: includes/data-countries.php:171
+msgid "Puerto Rico"
+msgstr "Porto Rico"
+
+#: includes/data-countries.php:172
+msgid "Qatar"
+msgstr "Qatar"
+
+#: includes/data-countries.php:173
+msgid "Romania"
+msgstr "Roumanie"
+
+#: includes/data-countries.php:174
+msgid "Russia"
+msgstr "Russie"
+
+#: includes/data-countries.php:175
+msgid "Rwanda"
+msgstr "Rwanda"
+
+#: includes/data-countries.php:176
+msgid "San Marino"
+msgstr "Saint-Marin"
+
+#: includes/data-countries.php:177
+msgid "Saudi Arabia"
+msgstr "Arabie saoudite"
+
+#: includes/data-countries.php:178
+msgid "Senegal"
+msgstr "Sénégal"
+
+#: includes/data-countries.php:179
+msgid "Serbia"
+msgstr "Serbie"
+
+#: includes/data-countries.php:180
+msgid "Seychelles"
+msgstr "Seychelles"
+
+#: includes/data-countries.php:181
+msgid "Sierra Leone"
+msgstr "Sierra Leone"
+
+#: includes/data-countries.php:182
+msgid "Singapore"
+msgstr "Singapour"
+
+#: includes/data-countries.php:183
+msgid "Slovakia"
+msgstr "Slovaquie"
+
+#: includes/data-countries.php:184
+msgid "Slovenia"
+msgstr "Slovénie"
+
+#: includes/data-countries.php:185
+msgid "Somalia"
+msgstr "Somalie"
+
+#: includes/data-countries.php:186
+msgid "South Africa"
+msgstr "Afrique du Sud"
+
+#: includes/data-countries.php:187
+msgid "South Korea"
+msgstr "Corée du Sud"
+
+#: includes/data-countries.php:188
+msgid "South Sudan"
+msgstr "Soudan du Sud"
+
+#: includes/data-countries.php:189
+msgid "Spain"
+msgstr "Espagne"
+
+#: includes/data-countries.php:190
+msgid "Sri Lanka"
+msgstr "Sri Lanka"
+
+#: includes/data-countries.php:191
+msgid "Sudan"
+msgstr "Soudan"
+
+#: includes/data-countries.php:192
+msgid "Suriname"
+msgstr "Suriname"
+
+#: includes/data-countries.php:193
+msgid "Sweden"
+msgstr "Suède"
+
+#: includes/data-countries.php:194
+msgid "Switzerland"
+msgstr "Suisse"
+
+#: includes/data-countries.php:195
+msgid "Syria"
+msgstr "Syrie"
+
+#: includes/data-countries.php:196
+msgid "Taiwan"
+msgstr "Taïwan"
+
+#: includes/data-countries.php:197
+msgid "Tajikistan"
+msgstr "Tadjikistan"
+
+#: includes/data-countries.php:198
+msgid "Tanzania"
+msgstr "Tanzanie"
+
+#: includes/data-countries.php:199
+msgid "Thailand"
+msgstr "Thaïlande"
+
+#: includes/data-countries.php:200
+msgid "Timor-Leste"
+msgstr "Timor oriental"
+
+#: includes/data-countries.php:201
+msgid "Togo"
+msgstr "Togo"
+
+#: includes/data-countries.php:202
+msgid "Trinidad and Tobago"
+msgstr "Trinité-et-Tobago"
+
+#: includes/data-countries.php:203
+msgid "Tunisia"
+msgstr "Tunisie"
+
+#: includes/data-countries.php:204
+msgid "Turkiye"
+msgstr "Turquie"
+
+#: includes/data-countries.php:205
+msgid "Turkmenistan"
+msgstr "Turkménistan"
+
+#: includes/data-countries.php:206
+msgid "Uganda"
+msgstr "Ouganda"
+
+#: includes/data-countries.php:207
+msgid "Ukraine"
+msgstr "Ukraine"
+
+#: includes/data-countries.php:208
+msgid "United Arab Emirates"
+msgstr "Émirats arabes unis"
+
+#: includes/data-countries.php:209
+msgid "United Kingdom"
+msgstr "Royaume-Uni"
+
+#: includes/data-countries.php:210
+msgid "United States"
+msgstr "États-Unis"
+
+#: includes/data-countries.php:211
+msgid "Uruguay"
+msgstr "Uruguay"
+
+#: includes/data-countries.php:212
+msgid "Uzbekistan"
+msgstr "Ouzbékistan"
+
+#: includes/data-countries.php:213
+msgid "Venezuela"
+msgstr "Venezuela"
+
+#: includes/data-countries.php:214
+msgid "Vietnam"
+msgstr "Viêt Nam"
+
+#: includes/data-countries.php:215
+msgid "Yemen"
+msgstr "Yémen"
+
+#: includes/data-countries.php:216
+msgid "Zambia"
+msgstr "Zambie"
+
+#: includes/data-countries.php:217
+msgid "Zimbabwe"
+msgstr "Zimbabwe"
+
+#: includes/data-countries.php:218
+msgid "Anguilla"
+msgstr "Anguilla"
+
+#: includes/data-countries.php:219
+msgid "Antarctica"
+msgstr "Antarctique"
+
+#: includes/data-countries.php:220
+msgid "American Samoa"
+msgstr "Samoa américaines"
+
+#: includes/data-countries.php:221
+msgid "Aland Islands"
+msgstr "Îles Åland"
+
+#: includes/data-countries.php:222
+msgid "Saint Barthelemy"
+msgstr "Saint-Barthélemy"
+
+#: includes/data-countries.php:223
+msgid "Caribbean Netherlands"
+msgstr "Pays-Bas caribéens"
+
+#: includes/data-countries.php:224
+msgid "Cocos (Keeling) Islands"
+msgstr "Îles Cocos"
+
+#: includes/data-countries.php:225
+msgid "Cook Islands"
+msgstr "Îles Cook"
+
+#: includes/data-countries.php:226
+msgid "Christmas Island"
+msgstr "Île Christmas"
+
+#: includes/data-countries.php:227
+msgid "Western Sahara"
+msgstr "Sahara occidental"
+
+#: includes/data-countries.php:228
+msgid "Falkland Islands"
+msgstr "Îles Malouines"
+
+#: includes/data-countries.php:229
+msgid "Micronesia"
+msgstr "Micronésie"
+
+#: includes/data-countries.php:230
+msgid "Faroe Islands"
+msgstr "Îles Féroé"
+
+#: includes/data-countries.php:231
+msgid "French Guiana"
+msgstr "Guyane française"
+
+#: includes/data-countries.php:232
+msgid "Guernsey"
+msgstr "Guernesey"
+
+#: includes/data-countries.php:233
+msgid "Guadeloupe"
+msgstr "Guadeloupe"
+
+#: includes/data-countries.php:234
+msgid "South Georgia"
+msgstr "Géorgie du Sud"
+
+#: includes/data-countries.php:235
+msgid "Guam"
+msgstr "Guam"
+
+#: includes/data-countries.php:236
+msgid "Isle of Man"
+msgstr "Île de Man"
+
+#: includes/data-countries.php:237
+msgid "British Indian Ocean Territory"
+msgstr "Territoire britannique de l’océan Indien"
+
+#: includes/data-countries.php:238
+msgid "Jersey"
+msgstr "Jersey"
+
+#: includes/data-countries.php:239
+msgid "Kiribati"
+msgstr "Kiribati"
+
+#: includes/data-countries.php:240
+msgid "Saint Kitts and Nevis"
+msgstr "Saint-Christophe-et-Niévès"
+
+#: includes/data-countries.php:241
+msgid "North Korea"
+msgstr "Corée du Nord"
+
+#: includes/data-countries.php:242
+msgid "Saint Lucia"
+msgstr "Sainte-Lucie"
+
+#: includes/data-countries.php:243
+msgid "Saint Martin"
+msgstr "Saint-Martin"
+
+#: includes/data-countries.php:244
+msgid "Marshall Islands"
+msgstr "Îles Marshall"
+
+#: includes/data-countries.php:245
+msgid "Northern Mariana Islands"
+msgstr "Îles Mariannes du Nord"
+
+#: includes/data-countries.php:246
+msgid "Martinique"
+msgstr "Martinique"
+
+#: includes/data-countries.php:247
+msgid "Montserrat"
+msgstr "Montserrat"
+
+#: includes/data-countries.php:248
+msgid "New Caledonia"
+msgstr "Nouvelle-Calédonie"
+
+#: includes/data-countries.php:249
+msgid "Norfolk Island"
+msgstr "Île Norfolk"
+
+#: includes/data-countries.php:250
+msgid "Nauru"
+msgstr "Nauru"
+
+#: includes/data-countries.php:251
+msgid "Niue"
+msgstr "Niue"
+
+#: includes/data-countries.php:252
+msgid "French Polynesia"
+msgstr "Polynésie française"
+
+#: includes/data-countries.php:253
+msgid "Saint Pierre and Miquelon"
+msgstr "Saint-Pierre-et-Miquelon"
+
+#: includes/data-countries.php:254
+msgid "Pitcairn"
+msgstr "Îles Pitcairn"
+
+#: includes/data-countries.php:255
+msgid "Palau"
+msgstr "Palaos"
+
+#: includes/data-countries.php:256
+msgid "Reunion"
+msgstr "La Réunion"
+
+#: includes/data-countries.php:257
+msgid "Solomon Islands"
+msgstr "Îles Salomon"
+
+#: includes/data-countries.php:258
+msgid "Saint Helena"
+msgstr "Sainte-Hélène"
+
+#: includes/data-countries.php:259
+msgid "Svalbard and Jan Mayen"
+msgstr "Svalbard et Jan Mayen"
+
+#: includes/data-countries.php:260
+msgid "Sao Tome and Principe"
+msgstr "Sao Tomé-et-Principe"
+
+#: includes/data-countries.php:261
+msgid "Sint Maarten"
+msgstr "Saint-Martin (partie néerlandaise)"
+
+#: includes/data-countries.php:262
+msgid "Turks and Caicos"
+msgstr "Îles Turques-et-Caïques"
+
+#: includes/data-countries.php:263
+msgid "French Southern Territories"
+msgstr "Terres australes françaises"
+
+#: includes/data-countries.php:264
+msgid "Tokelau"
+msgstr "Tokelau"
+
+#: includes/data-countries.php:265
+msgid "Tonga"
+msgstr "Tonga"
+
+#: includes/data-countries.php:266
+msgid "Tuvalu"
+msgstr "Tuvalu"
+
+#: includes/data-countries.php:267
+msgid "U.S. Minor Outlying Islands"
+msgstr "Îles mineures éloignées des États-Unis"
+
+#: includes/data-countries.php:268
+msgid "Saint Vincent and the Grenadines"
+msgstr "Saint-Vincent-et-les-Grenadines"
+
+#: includes/data-countries.php:269
+msgid "British Virgin Islands"
+msgstr "Îles Vierges britanniques"
+
+#: includes/data-countries.php:270
+msgid "U.S. Virgin Islands"
+msgstr "Îles Vierges des États-Unis"
+
+#: includes/data-countries.php:271
+msgid "Vanuatu"
+msgstr "Vanuatu"
+
+#: includes/data-countries.php:272
+msgid "Wallis and Futuna"
+msgstr "Wallis-et-Futuna"
+
+#: includes/data-countries.php:273
+msgid "Samoa"
+msgstr "Samoa"
+
+#: includes/data-countries.php:274
+msgid "Kosovo"
+msgstr "Kosovo"
+
+#: includes/data-countries.php:275
+msgid "Mayotte"
+msgstr "Mayotte"
