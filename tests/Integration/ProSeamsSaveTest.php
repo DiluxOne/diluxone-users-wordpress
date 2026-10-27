@@ -9,9 +9,34 @@ namespace Tests\Integration;
 
 class ProSeamsSaveTest extends IntegrationTestCase {
 
+	protected function setUp(): void {
+		parent::setUp();
+
+		do_action( 'diluxone_users_register_panels' );
+	}
+
+	/**
+	 * A tab as the screen that draws it sees it: on a network a tab of the
+	 * network's is Network Admin's, so it is looked for there.
+	 *
+	 * @return array<string, mixed>|null
+	 */
+	private function tab( string $screen, string $tab ): ?array {
+		$panel = diluxone_users_panels( $screen )[ $tab ] ?? null;
+
+		if ( null === $panel && is_multisite() ) {
+			$was = $GLOBALS['current_screen'] ?? null;
+			$this->in_network_admin();
+			$panel                     = diluxone_users_panels( $screen )[ $tab ] ?? null;
+			$GLOBALS['current_screen'] = $was;
+		}
+
+		return $panel;
+	}
+
 	/** The tab on User fields › After sign-in, as the screen would draw it. */
 	private function missing_tab(): array {
-		return diluxone_users_panels( 'diluxone-users-fields' )['missing'];
+		return (array) $this->tab( 'diluxone-users-fields', 'missing' );
 	}
 
 	public function test_after_sign_in_is_a_form_only_while_an_add_on_draws_there(): void {
@@ -36,7 +61,7 @@ class ProSeamsSaveTest extends IntegrationTestCase {
 		);
 
 		foreach ( $tabs as list( $screen, $tab ) ) {
-			$panel = diluxone_users_panels( $screen )[ $tab ] ?? null;
+			$panel = $this->tab( $screen, $tab );
 
 			$this->assertIsArray( $panel, "$screen/$tab is a tab here" );
 			$this->assertTrue( ! empty( $panel['form'] ) && is_callable( $panel['save'] ), "$screen/$tab is a form with a save" );
@@ -56,7 +81,7 @@ class ProSeamsSaveTest extends IntegrationTestCase {
 
 		$before = wp_load_alloptions();
 		$this->postPanel( 'diluxone-users-fields', array( 'diluxone_users_pro_ask' => '1' ) );
-		$this->assertNotFalse( diluxone_users_panel_save( diluxone_users_panels( 'diluxone-users-fields' )['missing'], 'diluxone-users-fields', 'missing' ) );
+		$this->assertNotFalse( diluxone_users_panel_save( $this->missing_tab(), 'diluxone-users-fields', 'missing' ) );
 
 		$this->assertSame( array( 'diluxone-users-fields/missing' ), $heard );
 		$this->assertSame( array_keys( $before ), array_keys( wp_load_alloptions() ), 'the plugin stored nothing' );
