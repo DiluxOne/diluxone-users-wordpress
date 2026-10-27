@@ -1,15 +1,13 @@
 <?php
 /**
- * The Access screen: how somebody gets into this site, and how they get an
- * account to get into.
+ * The Access screen: how somebody who has an account gets into this site.
  *
- * One screen for the whole door. Registration was a screen of its own for a
- * while, on the argument that opening it changes nothing about signing in —
- * true, and beside the point: they are two questions asked at the same
- * moment, they share half their settings (whether the link creates the
- * account, whether a social account does, what happens to wp-login.php), and
- * a person setting up a site asks them together. So they are tabs of one
- * screen, under one summary that shows the door whole.
+ * How they get an account to get into is the Registration screen, right above
+ * this one (admin-register.php). The two were tabs of one screen for a while,
+ * on the argument that they are asked at the same moment; they are, and a
+ * person looking for either still had to read both — one summary for signing
+ * in and for registering, one list of messages for both. So each has its own
+ * screen, its own summary and its own messages.
  *
  * Every tab answers one question and its label says which. The first tab
  * edits nothing: it is the state of everything the others decide, read from
@@ -26,9 +24,8 @@ function diluxone_users_screen_login(): void {
 }
 
 /**
- * Its tabs. Registration registers its own from its own file, onto this
- * screen; two-step verification lives on Security and is shown here only as
- * state. An add-on's way in is switched on here, with the other ways in
+ * Its tabs. Registration is a screen of its own; two-step verification lives
+ * on Security and is shown here only as state. An add-on's way in is switched on here, with the other ways in
  * (`diluxone_users_way_switches`), and set up where the feature lives:
  * turning a door on is a question about doors.
  */
@@ -733,7 +730,7 @@ function diluxone_users_screen_login_ways(): void {
 		$nothing = $nothing && ! $decided( $key );
 	}
 
-	diluxone_users_intro( __( 'With what somebody who already has an account gets in. Every way in is a box: tick the ones this site offers. What each one does once it is on is set where that feature lives, and who gets an account at all is the Registration tab.', 'diluxone-users' ) );
+	diluxone_users_intro( __( 'With what somebody who already has an account gets in. Every way in is a box: tick the ones this site offers. What each one does once it is on is set where that feature lives, and who gets an account at all is the Registration screen.', 'diluxone-users' ) );
 
 	if ( $nothing ) {
 		diluxone_users_ui_waits( __( 'No way in is chosen yet: the sign-in form is WordPress’s own, a username and a password on wp-login.php, until one is ticked here and saved.', 'diluxone-users' ) );

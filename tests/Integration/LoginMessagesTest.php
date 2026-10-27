@@ -70,6 +70,48 @@ class LoginMessagesTest extends IntegrationTestCase {
 		$this->assertSame( $register, $this->boxes( 'diluxone-users-register' ) );
 	}
 
+	public function test_c3_access_draws_the_sign_in_reset_and_second_step_messages_and_no_registration_one(): void {
+		$this->the_admin();
+
+		$boxes = $this->boxes( 'diluxone-users-login' );
+		$want  = array_keys(
+			array_filter(
+				diluxone_users_login_messages(),
+				static fn( array $one ): bool => 'register' !== $one['group']
+			)
+		);
+
+		$this->assertSame( $want, $boxes );
+		$this->assertSame( array(), preg_grep( '/^register_/', $boxes ) );
+		$this->assertSame( array( 'login', 'two_step', 'reset' ), diluxone_users_login_message_screen_groups( 'diluxone-users-login' ) );
+	}
+
+	public function test_c3_saving_access_messages_leaves_every_registration_message_untouched(): void {
+		$this->the_admin();
+
+		foreach ( array_keys( wp_list_filter( diluxone_users_login_messages(), array( 'group' => 'register' ) ) ) as $key ) {
+			diluxone_users_login_message_rewrite( (string) $key, 'en_US', 'Kept: ' . $key );
+		}
+
+		$before = diluxone_users_login_messages_store()['en_US'];
+
+		$this->send_panel(
+			'diluxone-users-login',
+			array(
+				'diluxone_users_message_locale'  => 'en_US',
+				'diluxone_users_message'         => array_fill_keys( array_keys( $before ), 'From Access' ) + array( 'login_expired' => 'Ours' ),
+				'diluxone_users_message_shipped' => array_fill_keys( array_keys( $before ), '1' ),
+			)
+		);
+		$this->ended( 'diluxone_users_login_messages_save' );
+
+		$after = diluxone_users_login_messages_store()['en_US'];
+
+		$this->assertSame( 'Ours', $after['login_expired'] ?? null );
+		unset( $after['login_expired'] );
+		$this->assertSame( $before, $after );
+	}
+
 	public function test_c2_the_registration_messages_are_saved_there_behind_its_own_nonce(): void {
 		$this->the_admin();
 		diluxone_users_login_message_rewrite( 'login_expired', 'en_US', 'Signing in says this.' );

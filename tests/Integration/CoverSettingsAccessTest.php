@@ -760,6 +760,55 @@ class CoverSettingsAccessTest extends IntegrationTestCase {
 		return $messages;
 	}
 
+	/* ── What Access no longer holds ───────────────────────────────── */
+
+	public function test_c3_access_has_no_registration_tab_and_its_old_address_draws_the_summary(): void {
+		$this->the_admin();
+
+		$tabs = diluxone_users_panels( 'diluxone-users-login' );
+
+		$this->assertArrayNotHasKey( 'register', $tabs );
+		$this->assertSame( array( 'summary', 'page', 'ways', 'arrangement', 'messages' ), array_keys( $tabs ) );
+
+		$this->assertStringNotContainsString( 'name="diluxone_users_register_open"', $this->screen( 'register' ), 'an old tab address draws Access’s first tab, not the registration form' );
+	}
+
+	public function test_c3_access_messages_hold_no_registration_message_and_saving_them_leaves_those_alone(): void {
+		$this->the_admin();
+
+		$html = $this->screen( 'messages' );
+
+		$this->assertStringContainsString( 'name="diluxone_users_message[login_expired]"', $html );
+		$this->assertStringContainsString( 'name="diluxone_users_message[reset_mismatch]"', $html );
+		$this->assertStringNotContainsString( 'name="diluxone_users_message[register_', $html );
+		$this->assertStringNotContainsString( 'Creating an account', $html, 'no section of registration messages either' );
+
+		diluxone_users_login_message_rewrite( 'register_taken', 'en_US', 'Written on Registration.' );
+		diluxone_users_login_message_rewrite( 'register_closed', 'en_US', 'Also written there.' );
+
+		// A form sent by hand with Registration's sentences in it: they are not
+		// Access's to write, nor to put back.
+		$this->send_panel(
+			'diluxone-users-login',
+			array(
+				'diluxone_users_message_locale'  => 'en_US',
+				'diluxone_users_message'         => array(
+					'login_expired'  => 'Ours',
+					'register_taken' => 'Overwritten from Access',
+				),
+				'diluxone_users_message_shipped' => array( 'register_closed' => '1' ),
+			)
+		);
+		diluxone_users_login_messages_save();
+
+		$store = diluxone_users_login_messages_store()['en_US'] ?? array();
+
+		$this->assertSame( 'Ours', $store['login_expired'] ?? null );
+		$this->assertSame( 'Written on Registration.', $store['register_taken'] ?? null );
+		$this->assertSame( 'Also written there.', $store['register_closed'] ?? null );
+		$this->assertMatchesRegularExpression( '/This site writes 1 of the \d+ messages itself/', $this->screen( 'messages' ), 'the rail counts Access’s own' );
+	}
+
 	public function test_the_messages_tab_draws_every_message_and_whatever_an_add_on_added(): void {
 		$this->the_admin();
 
