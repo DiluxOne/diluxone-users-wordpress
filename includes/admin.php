@@ -74,7 +74,8 @@ function diluxone_users_screens(): array {
 		// which sites they are a member of (a network only), how they are
 		// protected once in, what they have inside, how it looks, what
 		// reaches them by e-mail, who is actually in right now, keeping it
-		// all alive.
+		// all alive. Getting an account comes before using it to get in.
+		'diluxone-users-register'   => __( 'Registration', 'diluxone-users' ),
 		'diluxone-users-login'      => __( 'Access', 'diluxone-users' ),
 		'diluxone-users-membership' => __( 'Membership', 'diluxone-users' ),
 		'diluxone-users-security'   => __( 'Security', 'diluxone-users' ),
@@ -103,6 +104,7 @@ function diluxone_users_screens(): array {
 function diluxone_users_screen_callbacks(): array {
 	return array(
 		'diluxone-users'            => 'diluxone_users_screen_home',
+		'diluxone-users-register'   => 'diluxone_users_screen_registration',
 		'diluxone-users-login'      => 'diluxone_users_screen_login',
 		'diluxone-users-membership' => 'diluxone_users_screen_membership',
 		'diluxone-users-security'   => 'diluxone_users_screen_security',
@@ -564,9 +566,8 @@ function diluxone_users_admin_styles( string $hook ): void {
 	// server with what is on the form (see diluxone_users_preview_request()),
 	// and a template has to be able to show either answer.
 	//
-	// The registration screen is not on this list because it is not a screen:
-	// it became a tab of the sign-in one, which is here. A slug no `$hook` can
-	// ever contain is a line that reads like it does something.
+	// The Registration screen is not on this list: none of its tabs draws a
+	// preview of the public pages.
 	$previews = array( 'diluxone-users-account', 'diluxone-users-login', 'diluxone-users-design' );
 
 	foreach ( $previews as $diluxone_users_screen ) {

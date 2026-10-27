@@ -109,13 +109,13 @@ class CoverSettingsAccessTest extends IntegrationTestCase {
 
 	/* ── The panels' saves refuse a bad request ────────────────────── */
 
-	/** @return array<string, array{0: string, 1: array<string, mixed>, 2: string}> */
+	/** @return array<string, array{0: string, 1: array<string, mixed>, 2: string, 3?: string}> */
 	public static function saves(): array {
 		return array(
 			'the page'         => array( 'diluxone_users_login_page_save', array( 'diluxone_users_lost_password' => 'link' ), 'diluxone_users_lost_password' ),
 			'the ways in'      => array( 'diluxone_users_login_ways_save', array( 'diluxone_users_login_method' => array( 'link' ) ), 'diluxone_users_login_method' ),
 			'the arrangement'  => array( 'diluxone_users_login_arrangement_save', array( 'diluxone_users_login_layout' => 'tabs' ), 'diluxone_users_login_layout' ),
-			'registration'     => array( 'diluxone_users_screen_register_save', array( 'diluxone_users_register_open' => 'open', 'diluxone_users_register_form' => '1' ), 'diluxone_users_register_form' ),
+			'registration'     => array( 'diluxone_users_screen_register_save', array( 'diluxone_users_register_open' => 'open', 'diluxone_users_register_form' => '1' ), 'diluxone_users_register_form', 'diluxone-users-register' ),
 			'the messages'     => array( 'diluxone_users_login_messages_save', array( 'diluxone_users_message' => array( 'login_expired' => 'Mine' ) ), 'diluxone_users_login_messages' ),
 		);
 	}
@@ -125,7 +125,7 @@ class CoverSettingsAccessTest extends IntegrationTestCase {
 	 *
 	 * @param array<string, mixed> $post
 	 */
-	public function test_each_save_stops_on_a_bad_nonce_or_a_missing_capability( string $save, array $post, string $option ): void {
+	public function test_each_save_stops_on_a_bad_nonce_or_a_missing_capability( string $save, array $post, string $option, string $screen = 'diluxone-users-login' ): void {
 		$before = diluxone_users_raw_get( $option );
 
 		$this->the_admin();
@@ -136,7 +136,7 @@ class CoverSettingsAccessTest extends IntegrationTestCase {
 		$this->assertSame( array( 'died', self::EXPIRED ), $this->ended( $save ), 'another screen’s nonce' );
 
 		$this->not_allowed();
-		$this->send_panel( 'diluxone-users-login', $post );
+		$this->send_panel( $screen, $post );
 		$this->assertSame( array( 'died', 'You are not allowed to do this.' ), $this->ended( $save ), 'a subscriber' );
 
 		$this->assertSame( $before, diluxone_users_raw_get( $option ) );
@@ -467,7 +467,7 @@ class CoverSettingsAccessTest extends IntegrationTestCase {
 		}
 		diluxone_users_update_option( 'diluxone_users_register_form', 1 );
 
-		$this->send_panel( 'diluxone-users-login', array( 'diluxone_users_register_open' => 'open' ) );
+		$this->send_panel( 'diluxone-users-register', array( 'diluxone_users_register_open' => 'open' ) );
 
 		$this->assertSame( array( 'returned', false ), $this->ended( 'diluxone_users_screen_register_save' ) );
 		$this->assertSame( 1, (int) diluxone_users_option( 'diluxone_users_register_form' ), 'nothing written' );
@@ -480,7 +480,7 @@ class CoverSettingsAccessTest extends IntegrationTestCase {
 		$page = $this->page( 'Cover register' );
 
 		$this->send_panel(
-			'diluxone-users-login',
+			'diluxone-users-register',
 			array(
 				'diluxone_users_register_open'  => 'open',
 				'diluxone_users_login_register' => '1',
@@ -527,7 +527,7 @@ class CoverSettingsAccessTest extends IntegrationTestCase {
 		add_filter( 'diluxone_users_register_roles', array( $this, 'author_offered' ) );
 
 		$this->send_panel(
-			'diluxone-users-login',
+			'diluxone-users-register',
 			array(
 				'diluxone_users_register_open' => 'open',
 				'diluxone_users_register_form' => '1',
@@ -544,7 +544,7 @@ class CoverSettingsAccessTest extends IntegrationTestCase {
 		$this->assertArrayHasKey( 'author', diluxone_users_register_roles(), 'the saved one stays on the list' );
 
 		$this->send_panel(
-			'diluxone-users-login',
+			'diluxone-users-register',
 			array(
 				'diluxone_users_register_open' => 'open',
 				'diluxone_users_register_form' => '1',
@@ -568,7 +568,7 @@ class CoverSettingsAccessTest extends IntegrationTestCase {
 			$this->assertArrayNotHasKey( 'editor', diluxone_users_register_roles() );
 
 			$this->send_panel(
-				'diluxone-users-login',
+				'diluxone-users-register',
 				array(
 					'diluxone_users_register_open' => 'open',
 					'diluxone_users_register_form' => '1',
@@ -588,7 +588,7 @@ class CoverSettingsAccessTest extends IntegrationTestCase {
 	public function test_registration_closed_says_where_the_network_keeps_it_open(): void {
 		$this->the_admin();
 
-		$this->send_panel( 'diluxone-users-login', array( 'diluxone_users_register_open' => 'closed' ) );
+		$this->send_panel( 'diluxone-users-register', array( 'diluxone_users_register_open' => 'closed' ) );
 
 		ob_start();
 		diluxone_users_screen_register_save();
@@ -608,7 +608,7 @@ class CoverSettingsAccessTest extends IntegrationTestCase {
 		diluxone_users_update_option( 'diluxone_users_register_form', 1 );
 
 		$this->send_panel(
-			'diluxone-users-login',
+			'diluxone-users-register',
 			array(
 				'diluxone_users_register_open' => 'closed',
 				'diluxone_users_register_form' => '1',
@@ -645,7 +645,7 @@ class CoverSettingsAccessTest extends IntegrationTestCase {
 		$this->assertFalse( $card['checked'], 'shown as the network has it' );
 
 		$this->send_panel(
-			'diluxone-users-login',
+			'diluxone-users-register',
 			array(
 				'diluxone_users_register_open'  => 'open',
 				'diluxone_users_login_register' => '1',
@@ -667,7 +667,7 @@ class CoverSettingsAccessTest extends IntegrationTestCase {
 		diluxone_users_update_option( 'diluxone_users_login_method', 'link' );
 
 		$this->send_panel(
-			'diluxone-users-login',
+			'diluxone-users-register',
 			array(
 				'diluxone_users_register_open' => 'open',
 				'diluxone_users_sso_register'  => '1',

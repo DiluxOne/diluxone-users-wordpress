@@ -18,7 +18,8 @@ import { adminUrl } from './ui';
  */
 export const SCREENS: Record<string, string[]> = {
 	'diluxone-users': ['usage', 'doors', 'asked'],
-	'diluxone-users-login': ['summary', 'page', 'ways', 'arrangement', 'register', 'messages'],
+	'diluxone-users-register': ['summary', 'who', 'messages'],
+	'diluxone-users-login': ['summary', 'page', 'ways', 'arrangement', 'messages'],
 	'diluxone-users-security': ['summary', '2fa', 'sessions', 'proxy'],
 	'diluxone-users-social': ['providers', 'general'],
 	'diluxone-users-account': ['summary', 'page', 'sections', 'handle', 'menu', 'dashboard'],
@@ -57,6 +58,7 @@ export const NETWORK_SCREENS: Record<string, string[]> = {
 export const SITE_SCREENS_ON_A_NETWORK: Record<'hub' | 'site', string[]> = {
 	hub: [
 		'diluxone-users',
+		'diluxone-users-register',
 		'diluxone-users-login',
 		'diluxone-users-account',
 		'diluxone-users-design',

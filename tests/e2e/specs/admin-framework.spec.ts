@@ -194,7 +194,7 @@ test.describe('What hangs off an answer', () => {
 	test('the children of an option show only while it is chosen', async ({ page, options }) => {
 		await options.set({ diluxone_users_login_register: 1 });
 
-		await page.goto(accessTab('register'));
+		await page.goto(registerTab());
 
 		const group = page.locator('.du-choice-group').filter({ has: control(page, 'diluxone_users_register_open', 'open') });
 		const children = group.locator('> .du-choice__children');

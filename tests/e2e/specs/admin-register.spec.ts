@@ -1,11 +1,11 @@
 import { test, expect, expectSignedOut, stateOf } from '../support/fixtures';
 import { freshEmail } from '../support/api';
 import { adminError, adminSaved, askForLink, needsOne, registerScreen, savePanel, navigated, ssoButton } from '../support/ui';
-import { MOCK_SSO, PLAIN_FIELDS, accessTab, card, control, expectPill, notNow, rail, storedNumbers } from '../support/admin-access';
+import { MOCK_SSO, PLAIN_FIELDS, registerTab, card, control, expectPill, notNow, rail, storedNumbers } from '../support/admin-access';
 import { ADMIN_STATE } from '../../../playwright.config';
 
 /**
- * Access › Registration, driven through its controls.
+ * Registration › Who can register, driven through its controls.
  *
  * Every door into an account is a box on this tab, and the answer above them
  * — open, or nobody registers — decides whether they count. Each test changes
@@ -18,7 +18,25 @@ test.use({ storageState: ADMIN_STATE });
 
 const DOORS = ['diluxone_users_login_register', 'diluxone_users_sso_register', 'diluxone_users_register_form'];
 
-test.describe('Access › Registration', () => {
+test.describe('Registration in the menu', () => {
+	test('it is right above Access, and opens on its own screen', async ({ page }) => {
+		await page.goto('/wp-admin/admin.php?page=diluxone-users');
+
+		const entries = page.locator('#toplevel_page_diluxone-users .wp-submenu a');
+		const slugs = (await entries.evaluateAll((links) => links.map((a) => new URL((a as HTMLAnchorElement).href).searchParams.get('page') ?? ''))).filter(Boolean);
+		const at = slugs.indexOf('diluxone-users-register');
+
+		expect(at, 'Registration is in the menu').toBeGreaterThan(-1);
+		expect(slugs[at + 1], 'Access is the next entry').toBe('diluxone-users-login');
+		await expect(entries.nth(at)).toHaveText('Registration');
+
+		await entries.nth(at).click();
+		await expect(page.locator('.wrap.diluxone-users-admin h1')).toContainText('Registration');
+		await expect(page.locator('.nav-tab-wrapper a.nav-tab')).toHaveText(['Summary', 'Who can register', 'Messages']);
+	});
+});
+
+test.describe('Registration › Who can register', () => {
 	test.beforeEach(async ({ options }) => {
 		await options.set({ diluxone_users_fields: PLAIN_FIELDS });
 		await options.keep([...DOORS, 'users_can_register', 'diluxone_users_register_page', 'diluxone_users_login_role', 'diluxone_users_rewrite_version']);
@@ -41,7 +59,7 @@ test.describe('Access › Registration', () => {
 			users_can_register: 1,
 		});
 
-		await page.goto(accessTab('register'));
+		await page.goto(registerTab());
 
 		const group = needsOne(page, 'diluxone_users_login_register');
 
@@ -98,7 +116,7 @@ test.describe('Access › Registration', () => {
 	test('the social door, unticked and ticked again through the tab', async ({ page, guest, site, pages, options }) => {
 		await options.set({ ...MOCK_SSO, diluxone_users_sso_login: 1, diluxone_users_sso_register: 1, diluxone_users_login_register: 1, diluxone_users_2fa_mode: 'off' });
 
-		await page.goto(accessTab('register'));
+		await page.goto(registerTab());
 		await control(page, 'diluxone_users_register_open', 'open').check();
 		await control(page, 'diluxone_users_sso_register').uncheck();
 		await savePanel(page);
@@ -133,7 +151,7 @@ test.describe('Access › Registration', () => {
 	test('WordPress’s own form: the box is WordPress’s switch, and wp-login.php follows it', async ({ page, guest, site, options }) => {
 		await options.set({ diluxone_users_login_method: 'both', diluxone_users_wp_screens: 'auto', users_can_register: 0 });
 
-		await page.goto(accessTab('register'));
+		await page.goto(registerTab());
 		await expect(control(page, 'diluxone_users_wp_register')).toBeEnabled();
 		await control(page, 'diluxone_users_register_open', 'open').check();
 		await control(page, 'diluxone_users_wp_register').check();
@@ -150,7 +168,7 @@ test.describe('Access › Registration', () => {
 		await guest.goto('/wp-login.php?action=register');
 		await expect(guest.locator('#registerform')).toBeVisible();
 
-		await page.goto(accessTab('register'));
+		await page.goto(registerTab());
 		await control(page, 'diluxone_users_wp_register').uncheck();
 		await savePanel(page);
 
@@ -169,7 +187,7 @@ test.describe('Access › Registration', () => {
 	test('WordPress’s own form is locked while the link is the only way in, and the save leaves its answer alone', async ({ page, guest, site, options }) => {
 		await options.set({ diluxone_users_login_method: 'link', users_can_register: 1, diluxone_users_login_register: 1 });
 
-		await page.goto(accessTab('register'));
+		await page.goto(registerTab());
 
 		await expect(control(page, 'diluxone_users_wp_register')).toBeDisabled();
 		await expectPill(card(page, 'diluxone_users_wp_register'), 'off');
@@ -185,7 +203,7 @@ test.describe('Access › Registration', () => {
 
 		// Settings › General says so, next to its own box, with the way here.
 		await page.goto('/wp-admin/options-general.php');
-		await expect(page.locator('.notice-info a[href*="page=diluxone-users-login"][href*="tab=register"]')).toHaveCount(1);
+		await expect(page.locator('.notice-info a[href*="page=diluxone-users-register"]')).toHaveCount(1);
 		await expect(page.locator('#users_can_register')).not.toBeChecked();
 
 		// The lock goes with its reason, and the answer stored under it is the
@@ -194,7 +212,7 @@ test.describe('Access › Registration', () => {
 		expect(Number((await site.getOptions(['users_can_register'])).users_can_register), 'the save wrote over the answer under the lock').toBe(1);
 
 		await page.goto('/wp-admin/options-general.php');
-		await expect(page.locator('.notice-info a[href*="tab=register"]'), 'the lock notice outlived the lock').toHaveCount(0);
+		await expect(page.locator('.notice-info a[href*="page=diluxone-users-register"]'), 'the lock notice outlived the lock').toHaveCount(0);
 		await expect(page.locator('#users_can_register')).toBeChecked();
 	});
 
@@ -212,7 +230,7 @@ test.describe('Access › Registration', () => {
 			],
 		});
 
-		await page.goto(accessTab('register'));
+		await page.goto(registerTab());
 
 		// No link way in: the link door waits on it.
 		await expectPill(card(page, 'diluxone_users_login_register'), 'pending');
@@ -242,7 +260,7 @@ test.describe('Access › Registration', () => {
 	test('open with every door unticked: the sentence shows on the press and goes with the first tick', async ({ page, site, options }) => {
 		await options.set({ diluxone_users_login_register: 1, diluxone_users_sso_register: 0, diluxone_users_register_form: 0, users_can_register: 0 });
 
-		await page.goto(accessTab('register'));
+		await page.goto(registerTab());
 
 		const group = needsOne(page, 'diluxone_users_login_register');
 		const said = group.locator('[data-diluxone-users-atleast-one-said]');
@@ -253,7 +271,7 @@ test.describe('Access › Registration', () => {
 
 		await expect(group).toHaveClass(/is-short/);
 		await expect(said).toBeVisible();
-		await expect(page, 'the press left the page').toHaveURL(/tab=register/);
+		await expect(page, 'the press left the page').toHaveURL(/page=diluxone-users-register&tab=who/);
 		await expect(adminSaved(page)).toHaveCount(0);
 
 		await control(page, 'diluxone_users_register_form').check();

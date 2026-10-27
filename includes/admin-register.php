@@ -1,11 +1,13 @@
 <?php
 /**
- * Who gets an account, and how. A tab of the Access screen.
+ * Who gets an account, and how. A screen of its own, right above Access.
  *
- * It was a screen of its own for a while, on the argument that opening
- * registration changes nothing about signing in. True and beside the point:
- * they are asked at the same moment and they share half their settings. So
- * it is the third tab of the door, after where people sign in and with what.
+ * It was a tab of the Access screen for a while, on the argument that the two
+ * questions are asked at the same moment and share half their settings. They
+ * do share them, and a person looking for either one still had to read both:
+ * one summary for the door and the account, one list of messages for signing
+ * in and for registering. So registration is a screen again, with its own
+ * summary and its own sentences, and Access is left with signing in.
  *
  * The question is asked in two steps, because that is how it is thought
  * about. First: does this site let people in at all, or does an administrator
@@ -26,14 +28,19 @@
 
 defined( 'ABSPATH' ) || exit;
 
-/** Its tab, on the Access screen. */
+/** The Registration screen. */
+function diluxone_users_screen_registration(): void {
+	diluxone_users_screen_panels( 'diluxone-users-register', diluxone_users_screens()['diluxone-users-register'] );
+}
+
+/** Its tabs: the state, who can register, and what registering says. */
 function diluxone_users_register_panels(): void {
 	diluxone_users_register_panel(
-		'diluxone-users-login',
-		'register',
+		'diluxone-users-register',
+		'who',
 		array(
-			'label'    => __( 'Registration', 'diluxone-users' ),
-			'position' => 30,
+			'label'    => __( 'Who can register', 'diluxone-users' ),
+			'position' => 10,
 			'render'   => 'diluxone_users_screen_register',
 			'save'     => 'diluxone_users_screen_register_save',
 		)
@@ -156,7 +163,7 @@ function diluxone_users_register_roles(): array {
  *              case nothing was written.
  */
 function diluxone_users_screen_register_save(): bool {
-	check_admin_referer( 'diluxone_users_panel_diluxone-users-login', 'diluxone_users_panel_nonce' );
+	check_admin_referer( 'diluxone_users_panel_diluxone-users-register', 'diluxone_users_panel_nonce' );
 	diluxone_users_panel_allowed();
 
 	$open  = 'open' === sanitize_key( wp_unslash( $_POST['diluxone_users_register_open'] ?? '' ) );
