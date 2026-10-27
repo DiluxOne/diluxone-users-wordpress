@@ -421,7 +421,7 @@ pcp-env: dist
 # read from a checkout of it (DX_CENTRAL, cloned at DX_CENTRAL_REF when absent),
 # never copied here.
 DX_CENTRAL ?= $(CURDIR)/build/dx-central
-DX_CENTRAL_REF ?= v3
+DX_CENTRAL_REF ?= v7
 
 .PHONY: review-rules
 review-rules: ## Run the organisation's review rules (wordpress-plugin pack) on this checkout.
@@ -431,6 +431,19 @@ review-rules: ## Run the organisation's review rules (wordpress-plugin pack) on 
 .PHONY: plugin-check
 plugin-check: pcp-env ## Run wordpress.org's Plugin Check on the built dist.
 	@cd "$(PCP_DIR)" && npx @wordpress/env run cli wp plugin check diluxone-users --format=table --severity=5
+
+# As the pull request runs it (the wordpress-plugin pack's `plugin-check`):
+# strict, so a warning fails as an error does, the same categories, the
+# experimental checks included, and only stable_tag_mismatch left out.
+PCP_STRICT_CATEGORIES := plugin_repo,security,performance,accessibility,general
+
+.PHONY: plugin-check-strict
+plugin-check-strict: pcp-env ## Plugin Check as the pull request runs it: strict, a warning fails.
+	@cd "$(PCP_DIR)" && res=$$(npx @wordpress/env run cli wp plugin check diluxone-users --format=csv --fields=type,code,file,line,message --categories=$(PCP_STRICT_CATEGORIES) --include-experimental --ignore-codes=stable_tag_mismatch 2>&1); \
+	  out=$$(echo "$$res" | grep -E '^(ERROR|WARNING),'); \
+	  if [ -n "$$out" ]; then echo "$$out"; echo "✗ Plugin Check (strict): $$(echo "$$out" | wc -l) finding(s)"; exit 1; fi; \
+	  if ! echo "$$res" | grep -q 'No errors found'; then echo "$$res" | tail -20; echo "✗ Plugin Check (strict) did not finish: no verdict, so no pass."; exit 1; fi; \
+	  echo "✔ Plugin Check (strict): nothing found."
 
 .PHONY: plugin-check-all
 plugin-check-all: pcp-env ## Plugin Check on the built dist, including warnings and notices.
@@ -442,8 +455,49 @@ plugin-check-down: ## Stop the Plugin Check environment.
 
 # -- Aggregate ---------------------------------------------------------
 .PHONY: check
-check: lint stan psalm test ## Run every quality gate CI runs (lint, stan, psalm, unit tests).
+check: lint stan psalm test ## The fast gates: lint, stan, psalm, unit tests (pre-pr runs everything).
 	@echo "✔ All checks passed."
+
+# Everything the pull request and the merge queue run, one after the other,
+# stopping at the first failure (DiluxOne/.github#479, the wordpress-plugin
+# pack's `pre-pr` list). It needs nothing started before it: it installs what
+# a fresh clone lacks, starts the wp-env sites it drives and stops them at the
+# end. Long (the two E2E suites are most of it), so it is the last thing
+# before a pull request, not the habit after every edit: that is `make check`.
+.PHONY: pre-pr pre-pr-deps design-lint i18n-form
+pre-pr: pre-pr-deps ## Every check the pull request and the merge queue run, from a fresh clone.
+	$(MAKE) lint stan psalm test test-unit-min
+	$(MAKE) i18n-form i18n-check
+	$(MAKE) design-lint review-rules
+	$(MAKE) plugin-check-strict
+	$(MAKE) plugin-check-down
+	$(MAKE) test-integration-single
+	$(MAKE) test-integration-single-down
+	npx wp-env start
+	$(MAKE) test-e2e
+	$(MAKE) env-multisite
+	$(MAKE) test-integration
+	$(MAKE) test-e2e-network
+	npx wp-env stop
+	@echo "✔ pre-pr: every check of the pull request and the merge queue passed."
+
+pre-pr-deps:
+	@[ -f vendor/autoload.php ] || $(MAKE) install
+	@[ -d node_modules/@playwright/test ] || npm ci --no-audit --no-fund
+	@npx playwright install chromium >/dev/null
+	@[ -d "$(DX_CENTRAL)/kinds" ] || git clone -q --depth 1 --branch $(DX_CENTRAL_REF) https://github.com/DiluxOne/.github.git "$(DX_CENTRAL)"
+
+# The translations in the form two pull requests merge (DiluxOne/.github#452),
+# as the queue checks them: no source references, sorted, no .mo committed.
+i18n-form:
+	bash "$(DX_CENTRAL)/scripts/plugin-i18n.sh" check .
+
+# The CSS this branch changes against the design system, as the pull
+# request's `Design system (stylelint)` reads it, with stylelint pinned by the
+# organisation's lockfile and nothing of this repository's own.
+design-lint:
+	@[ -d "$(DX_CENTRAL)/scripts/stylelint/node_modules" ] || npm ci --prefix "$(DX_CENTRAL)/scripts/stylelint" --ignore-scripts --no-audit --no-fund
+	python3 "$(DX_CENTRAL)/scripts/design-lint.py" check --repo diluxone-users-wordpress --base "$$(git merge-base HEAD origin/main)" --head HEAD
 
 # -- Local dev environment (wp-env) ------------------------------------
 .PHONY: env env-up
