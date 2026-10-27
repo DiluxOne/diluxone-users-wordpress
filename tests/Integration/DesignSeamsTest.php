@@ -23,7 +23,6 @@ class DesignSeamsTest extends IntegrationTestCase {
 		'diluxone_users_style_accent',
 		'diluxone_users_account_ground',
 		'diluxone_users_wp_login_bg',
-		'diluxone_users_colors',
 		'diluxone_users_pro_previews',
 	);
 
@@ -335,7 +334,7 @@ class DesignSeamsTest extends IntegrationTestCase {
 				),
 			)
 		);
-		diluxone_users_update_option( 'diluxone_users_colors', 'theme' );
+		$this->theme_colors( true );
 		update_option( 'diluxone_users_color_map', array( 'accent' => 'brand' ) );
 
 		$this->assertSame( array( 'accent' => 'primary' ), diluxone_users_color_map(), 'the guess: a stored map is not the plugin’s to read' );
@@ -438,10 +437,10 @@ class DesignSeamsTest extends IntegrationTestCase {
 		$this->assertStringContainsString( '.diluxone-users-account{background:var(--diluxone-users-ground,#f5f6f8);}', diluxone_users_account_css() );
 
 		// With the theme's colours the shade is mixed from them, still through the property.
-		diluxone_users_update_option( 'diluxone_users_colors', 'theme' );
+		$this->theme_colors( true );
 		$this->assertStringContainsString( '.diluxone-users-account{background:var(--diluxone-users-ground,' . diluxone_users_ground_tint( '#f5f6f8' ) . ');}', diluxone_users_account_css() );
 		$this->assertStringContainsString( 'follow the theme’s dark mode', $this->draw( 'diluxone_users_screen_appearance_template' ) );
-		diluxone_users_update_option( 'diluxone_users_colors', 'own' );
+		$this->theme_colors( false );
 		$this->assertStringNotContainsString( 'follow the theme’s dark mode', $this->draw( 'diluxone_users_screen_appearance_template' ) );
 
 		$this->postPanel( DILUXONE_USERS_DESIGN, array( 'diluxone_users_account_ground' => '#EEF6F1' ) );
@@ -456,7 +455,7 @@ class DesignSeamsTest extends IntegrationTestCase {
 		$this->assertSame( '', diluxone_users_account_ground() );
 
 		foreach ( array( 'own', 'theme' ) as $colours ) {
-			diluxone_users_update_option( 'diluxone_users_colors', $colours );
+			$this->theme_colors( 'theme' === $colours );
 
 			$css = diluxone_users_account_css();
 
@@ -477,7 +476,7 @@ class DesignSeamsTest extends IntegrationTestCase {
 
 	public function test_each_design_placeholder_is_one_an_addon_turns_off(): void {
 		$this->the_admin();
-		diluxone_users_update_option( 'diluxone_users_colors', 'theme' );
+		$this->theme_colors( true );
 		$this->hook(
 			'diluxone_users_theme_palette',
 			static fn(): array => array(

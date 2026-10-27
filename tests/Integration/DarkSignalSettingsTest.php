@@ -20,7 +20,7 @@ class DarkSignalSettingsTest extends IntegrationTestCase {
 
 		// A theme with no palette: every part is measured, so both scripts run.
 		$this->hook( 'diluxone_users_theme_palette', '__return_empty_array', 100 );
-		diluxone_users_update_option( 'diluxone_users_colors', 'theme' );
+		$this->theme_colors( true );
 	}
 
 	protected function tearDown(): void {
@@ -74,7 +74,7 @@ class DarkSignalSettingsTest extends IntegrationTestCase {
 	}
 
 	public function test_c1_the_plugins_own_colours_have_no_dark_scheme_to_follow(): void {
-		diluxone_users_update_option( 'diluxone_users_colors', 'own' );
+		$this->theme_colors( false );
 		diluxone_users_update_option( 'diluxone_users_dark_follows', 'site' );
 		diluxone_users_update_option( 'diluxone_users_dark_signal', 'html data-theme="dark"' );
 
@@ -275,7 +275,7 @@ class DarkSignalSettingsTest extends IntegrationTestCase {
 		diluxone_users_update_option( 'diluxone_users_dark_signal', 'body data-theme="dark"' );
 
 		foreach ( array( 'theme', 'own' ) as $look ) {
-			diluxone_users_update_option( 'diluxone_users_colors', $look );
+			$this->theme_colors( 'theme' === $look );
 
 			ob_start();
 			diluxone_users_brand_dark_follows();

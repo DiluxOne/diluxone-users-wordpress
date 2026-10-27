@@ -116,7 +116,6 @@ function diluxone_users_option_scopes(): array {
 		'diluxone_users_avatar_upload'         => 'hub',
 		'diluxone_users_button_icons'          => 'hub',
 		'diluxone_users_button_style'          => 'hub',
-		'diluxone_users_colors'                => 'hub',
 		'diluxone_users_dark_follows'          => 'hub',
 		'diluxone_users_dark_signal'           => 'hub',
 		'diluxone_users_handle_enabled'        => 'hub',

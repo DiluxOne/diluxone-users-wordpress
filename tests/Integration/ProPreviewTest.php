@@ -260,6 +260,7 @@ class ProPreviewTest extends IntegrationTestCase {
 			'account/handle/locked'   => array( 'diluxone_users_screen_account_handle', 'Once chosen, it cannot be changed' ),
 			'fields/missing/ask'      => array( 'diluxone_users_screen_fields_missing', 'ask for the required fields the account has no answer for' ),
 			'fields/missing/skip'     => array( 'diluxone_users_screen_fields_missing', 'Let them skip it' ),
+			'design/brand/theme'      => array( 'diluxone_users_screen_design_brand', 'From your theme' ),
 		);
 	}
 

@@ -1080,9 +1080,13 @@ Set them wherever you like — `:root`, the page, the block:
 
 ### The theme's colours
 
-The plugin can take its palette from the active theme instead of having one:
-Design → Your brand → "Use my theme's colours". It reads what the theme
-publishes in its `theme.json`, through `wp_get_global_settings()`, and maps it
+The plugin alone paints itself with its own palette and the accent chosen on
+Design → Your brand, light and dark. Taking the palette from the active theme
+instead is Users+ Pro's "From your theme", drawn there as a disabled preview
+(`design/brand/theme`); an add-on turns it on through the filter
+`diluxone_users_colors_from_theme` (below), and everything this section
+describes, the measuring and the dark signal included, runs only then. It
+reads what the theme publishes in its `theme.json`, through `wp_get_global_settings()`, and maps it
 onto `--diluxone-users-accent` and the rest.
 
 Which colour plays which part is asked and not assumed. A theme whose slugs
@@ -1433,7 +1437,8 @@ them answers false for all. Each placeholder's outer element carries
 | `fields/missing/ask` | A disabled tick box on User fields › After sign-in: asking an account for the required fields it has no answer for, right after it signs in. |
 | `fields/missing/skip` | A disabled tick box after it on User fields › After sign-in: letting them skip that step. |
 | `account/sections/more` | A disabled "Add a section" button beside the heading on Account › Sections, where `diluxone_users_account_sections_head` draws Pro's real one. |
-| `design/brand/color-map` | The rows under "From your theme" on Design › Your brand, their selects disabled: which colour of the theme's palette does what. |
+| `design/brand/theme` | A disabled radio after the two answers to where the look comes from on Design › Your brand: "From your theme", the plugin painted with the theme's colours. |
+| `design/brand/color-map` | The rows right after "From your theme" on Design › Your brand, while the theme publishes a palette, their selects disabled: which colour of the theme's palette does what. `diluxone_users_design_theme_colors` ( `$palette` ) fires after them, whether they are drawn or not. |
 
 ### The behaviours Users+ Pro brings back
 
@@ -1449,6 +1454,7 @@ gets, and the plugin stores nothing for it and names no setting of Pro's.
 | `diluxone_users_reset_ends_sessions` | `( bool $end, WP_User $user )` | false: a new password leaves the account's other sessions open, as WordPress does. |
 | `diluxone_users_handle_cooldown` | `( int $days, int $user_id )` | 0: a public name is changed whenever its owner likes; more days lock the box until then and refuse a change sent anyway. |
 | `diluxone_users_ask_missing` | `( bool $ask )` | false: a sign-in sends an account missing a required field straight to where it was going; true sends it first to the step on the account page (see Required fields missing after a sign-in). |
+| `diluxone_users_colors_from_theme` | `( bool $theme )` | false: the plugin paints itself with its own palette and the accent chosen on Design › Your brand, light and dark; true takes the theme's colours, measured where the palette cannot say them (see The theme's colours). |
 | `diluxone_users_sso_role_allowed` | `( bool $allowed, int $user_id, string $context )` | true: every role may sign in with a social account. `$context` is `account` for an existing account, or `register` (with `$user_id` 0) for one about to be created with `diluxone_users_register_role()`; false there creates no account and logs `register_role`. |
 
 ## The emergency switch

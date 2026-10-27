@@ -91,7 +91,7 @@ class CoverFieldsStyleTest extends IntegrationTestCase {
 		$this->assertStringStartsWith( ':root{', diluxone_users_style_css() );
 
 		// With the colours taken from the theme, the accent picked here is not printed.
-		diluxone_users_update_option( 'diluxone_users_colors', 'theme' );
+		$this->theme_colors( true );
 		$this->assertStringNotContainsString( '--diluxone-users-accent:', diluxone_users_style_tokens() );
 	}
 

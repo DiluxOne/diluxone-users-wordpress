@@ -464,6 +464,19 @@ class IntegrationTestCase extends TestCase {
 	}
 
 	/**
+	 * The theme's colours on or off, as an add-on answers
+	 * `diluxone_users_colors_from_theme` (Users+ Pro's "From your theme"),
+	 * for this test only.
+	 */
+	protected function theme_colors( bool $on ): void {
+		remove_filter( 'diluxone_users_colors_from_theme', '__return_true' );
+
+		if ( $on ) {
+			$this->hook( 'diluxone_users_colors_from_theme', '__return_true' );
+		}
+	}
+
+	/**
 	 * A filter or an action for this test only, taken off after it.
 	 *
 	 * Taken off in tearDown(), so an assertion that fails halfway through

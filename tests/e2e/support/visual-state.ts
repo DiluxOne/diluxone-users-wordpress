@@ -54,7 +54,7 @@ export const VISUAL_OPTIONS: Record<string, unknown> = {
 	diluxone_users_bar_account: "0",
 	diluxone_users_button_icons: "0",
 	diluxone_users_button_style: "solid",
-	diluxone_users_colors: "own",
+	diluxone_e2e_colors_from_theme: 0,
 	diluxone_users_fields: [{"key": "first_name", "label": "First name", "type": "text", "help": "", "options": [], "required": 1, "group": "main", "active": 1}, {"key": "last_name", "label": "Last name", "type": "text", "help": "", "options": [], "required": 0, "group": "main", "active": 1}, {"key": "phone", "label": "Phone", "type": "phone", "options": ["AR"], "group": "contact", "required": 1, "active": 1, "edit": "always", "help": "With the area code, so we can reach you about a booking."}, {"key": "birthday", "label": "Date of birth", "type": "date", "group": "personal", "required": 0, "active": 1, "edit": "limited", "edit_max": 1}, {"key": "country", "label": "Country", "type": "country", "group": "contact", "required": 0, "active": 1, "edit": "always"}, {"key": "membership", "label": "Membership", "type": "select", "group": "personal", "options": ["Full member", "Family", "Student", "Honorary"], "required": 1, "active": 1, "edit": "never", "help": "Set by the office. Ask at the desk to change it."}, {"key": "dietary", "label": "Anything we should know for the asado", "type": "textarea", "group": "personal", "required": 0, "active": 1, "edit": "always"}, {"key": "newsletter", "label": "Send me the monthly newsletter", "type": "checkbox", "group": "preferences", "required": 0, "active": 1, "edit": "always"}],
 	diluxone_users_handle_max: null,
 	diluxone_users_handle_min: null,

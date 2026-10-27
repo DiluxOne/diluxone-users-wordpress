@@ -14,7 +14,7 @@ test.use({ storageState: ADMIN_STATE });
 
 const BRAND_KEYS = [
 	'diluxone_users_styles',
-	'diluxone_users_colors',
+	'diluxone_e2e_colors_from_theme',
 	'diluxone_users_pro_previews',
 	'diluxone_users_style_accent',
 	'diluxone_users_style_radius',
@@ -29,7 +29,7 @@ const BRAND_KEYS = [
 	'diluxone_users_light_signal',
 ];
 
-const look = (page: Page, answer: 'theme' | 'own' | 'site') => page.locator(`input[name="diluxone_users_look"][value="${answer}"]`);
+const look = (page: Page, answer: 'own' | 'site') => page.locator(`input[name="diluxone_users_look"][value="${answer}"]`);
 
 /** The sign-in form's own button, the one the brand paints. */
 const linkButton = (page: Page) => linkForm(page).locator('button[type="submit"]');
@@ -38,7 +38,7 @@ test.beforeEach(async ({ options }) => {
 	await options.keep(BRAND_KEYS);
 	await options.set({
 		diluxone_users_styles: 1,
-		diluxone_users_colors: 'own',
+		diluxone_e2e_colors_from_theme: 0,
 		diluxone_users_style_accent: '',
 		diluxone_users_style_radius: '',
 		diluxone_users_style_control: '',
@@ -311,10 +311,14 @@ test.describe('Design › Your brand', () => {
 		}
 	});
 
-	test('the theme’s palette: the accent is the colour its names say, and choosing which does what is Users+ Pro’s, its selects disabled', async ({ page, guest, pages, options }) => {
+	test('the theme’s palette is Users+ Pro’s: “from your theme” and which colour does what are disabled previews; with an add-on’s theme colours the accent is the colour its names say', async ({ page, guest, pages, options }) => {
 		await page.goto(adminUrl('diluxone-users-design', 'brand'));
-		await look(page, 'theme').check({ force: true });
-		await savePanel(page);
+
+		const theme = page.locator('[data-diluxone-users-pro="design/brand/theme"]');
+
+		await expect(theme.locator('input[type="radio"]')).toBeDisabled();
+		await expect(theme.locator('[name]'), 'nothing in it sends').toHaveCount(0);
+		await expect(theme.locator('.diluxone-users-state--pro'), 'the badge').toHaveCount(1);
 
 		const picture = page.locator('[data-diluxone-users-pro="design/brand/color-map"]');
 
@@ -327,15 +331,19 @@ test.describe('Design › Your brand', () => {
 		await expect(picture.locator('a')).toHaveAttribute('href', /diluxone\.com\/users-pro\/.*utm_medium=design/);
 		await expect(page.locator('select[name^="diluxone_users_color_map"]')).toHaveCount(0);
 
-		// The chip of the accent in the rows is the palette colour its names gave it.
+		// The chip of the accent in the rows is the palette colour its names
+		// gave it, and the page's accent once an add-on turns the theme's
+		// colours on, as Users+ Pro does.
 		const chip = await picture.locator('.diluxone-users-palette__chip').first().evaluate((one) => getComputedStyle(one).backgroundColor);
 
+		await options.set({ diluxone_e2e_colors_from_theme: 1 });
 		await guest.goto(pages.login.url);
 		expect(await resolvedColour(guest, '--diluxone-users-accent'), 'the accent on the page is the palette colour guessed').toBe(chip);
 
 		await options.set({ diluxone_users_pro_previews: 0 });
 		await page.goto(adminUrl('diluxone-users-design', 'brand'));
 		await expect(picture).toHaveCount(0);
+		await expect(theme).toHaveCount(0);
 	});
 });
 

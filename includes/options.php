@@ -327,11 +327,6 @@ function diluxone_users_option_defaults_own(): array {
 		// ── Appearance ────────────────────────────────────────────────
 		// The plugin stylesheet. Off, the site styles the diluxone-users-* classes.
 		'diluxone_users_styles'                => 1,
-		// Where the colours come from: 'own' the ones below, 'theme' the
-		// palette the active theme publishes in its theme.json. The second is
-		// what stops a site from having to write a stylesheet that repoints
-		// every token by hand and then goes stale.
-		'diluxone_users_colors'                => 'own',
 		// How the site says it is dark: 'device', the visitor's system
 		// (`prefers-color-scheme`), or 'site', its own switch, written in the
 		// two below as where it goes and what it is: `html .is-dark`,

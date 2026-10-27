@@ -19,7 +19,7 @@ test.describe.configure({ mode: 'serial' });
 const CARD = {
 	diluxone_users_login_template: 'card',
 	diluxone_users_styles: 1,
-	diluxone_users_colors: 'theme',
+	diluxone_e2e_colors_from_theme: 1,
 	diluxone_users_login_method: 'link',
 	diluxone_users_login_title: 'E2E card heading',
 	diluxone_users_login_intro: 'E2E card introduction, long enough to run onto a second line inside the box',

@@ -15,8 +15,8 @@ test.use({ storageState: NETWORK_ADMIN_STATE });
 const PASSWORD = 'e2e-DesignHub-1!';
 
 test('the hub’s sign-in words and accent are what somebody sent from /alpha/ meets, and /alpha/’s door wears the same accent', async ({ page, guest, hub, alpha }) => {
-	await hub.keep(['diluxone_users_login_title', 'diluxone_users_style_accent', 'diluxone_users_styles', 'diluxone_users_colors']);
-	await hub.set({ diluxone_users_styles: 1, diluxone_users_colors: 'own' });
+	await hub.keep(['diluxone_users_login_title', 'diluxone_users_style_accent', 'diluxone_users_styles', 'diluxone_e2e_colors_from_theme']);
+	await hub.set({ diluxone_users_styles: 1, diluxone_e2e_colors_from_theme: 0 });
 
 	const heading = `E2E hub heading ${Date.now().toString(36)}`;
 

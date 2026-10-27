@@ -41,8 +41,8 @@ Only the plugin's own screens appear, in the dashboard.
   again on a browser that passed it.
 * **Design**: the sign-in page left in your page, in a centred card or on a
   screen of its own at an address you choose, a
-  simple account area, the colours from your theme or from a short palette
-  that always reads, and the sizes and spacing — or no stylesheet at all, for
+  simple account area, the colours from a short palette that always reads,
+  light and dark (DiluxOne Users+ Pro adds the colours from your theme), and the sizes and spacing — or no stylesheet at all, for
   a site that styles everything itself.
 * **Sessions**: how long they last (WordPress's length until you choose one), where they are open and how to close them. DiluxOne Users+ Pro adds a new password that closes every one of them.
 * **An activity log** of its own, off until you tick what to record: who

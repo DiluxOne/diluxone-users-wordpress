@@ -69,7 +69,7 @@ test.describe('The preview takes the colours the site takes', () => {
 	test('from the theme', async ({ page, options, pages }) => {
 		await options.set({
 			diluxone_users_styles: 1,
-			diluxone_users_colors: 'theme',
+			diluxone_e2e_colors_from_theme: 1,
 		});
 
 		await page.goto(pages.account.url);
@@ -94,7 +94,7 @@ test.describe('The preview takes the colours the site takes', () => {
 	test('including what is written on it', async ({ page, options, pages }) => {
 		await options.set({
 			diluxone_users_styles: 1,
-			diluxone_users_colors: 'theme',
+			diluxone_e2e_colors_from_theme: 1,
 		});
 
 		await page.goto(pages.account.url);

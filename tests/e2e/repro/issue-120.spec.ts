@@ -62,7 +62,7 @@ test.describe('Issue 120: the back link of the sign-in page of its own', () => {
 		const image = await uploadImage(browser, baseURL!, ADMIN_STATE);
 
 		try {
-			await options.set({ ...DARK_SITE, diluxone_users_colors: 'own', ...OWN_PAGE, diluxone_users_login_logo: image.id });
+			await options.set({ ...DARK_SITE, diluxone_e2e_colors_from_theme: 0, ...OWN_PAGE, diluxone_users_login_logo: image.id });
 			await page.emulateMedia({ colorScheme: 'dark' });
 			await drawn(page, false);
 

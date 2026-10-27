@@ -269,13 +269,28 @@ function diluxone_users_color_map(): array {
 /**
  * Is the plugin taking its colours from the theme?
  *
+ * Not, as the plugin has it: it paints itself with its own palette and the
+ * accent chosen on Design › Your brand, light and dark. The theme's colours
+ * are Users+ Pro's "From your theme", through
+ * `diluxone_users_colors_from_theme`, and everything below that reads or
+ * measures them is reached only through this answer.
+ *
  * A theme with no palette to read, or one whose colours are not named in a
  * way that says which does what, still has colours: the ones it paints. What
  * the palette cannot answer is measured on the site (see theme-measure.php),
- * so the answer no longer depends on the palette being there.
+ * so the answer does not depend on the palette being there.
  */
 function diluxone_users_colors_from_theme(): bool {
-	return 'theme' === (string) diluxone_users_option( 'diluxone_users_colors' );
+	/**
+	 * Filters whether the plugin takes its colours from the theme.
+	 *
+	 * False, as the plugin has it: its own palette and accent.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param bool $theme Whether the colours are the theme's.
+	 */
+	return (bool) apply_filters( 'diluxone_users_colors_from_theme', false );
 }
 
 /**

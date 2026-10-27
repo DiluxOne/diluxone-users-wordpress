@@ -99,9 +99,9 @@ test.describe('Every screen looks like it did', () => {
  */
 test.describe('Your brand looks like it did', () => {
 	const ANSWERS: Record<string, Record<string, unknown>> = {
-		theme: { diluxone_users_styles: 1, diluxone_users_colors: 'theme' },
-		own: { diluxone_users_styles: 1, diluxone_users_colors: 'own' },
-		site: { diluxone_users_styles: 0, diluxone_users_colors: 'own' },
+		theme: { diluxone_users_styles: 1, diluxone_e2e_colors_from_theme: 1 },
+		own: { diluxone_users_styles: 1, diluxone_e2e_colors_from_theme: 0 },
+		site: { diluxone_users_styles: 0, diluxone_e2e_colors_from_theme: 0 },
 	};
 
 	for (const [answer, settings] of Object.entries(ANSWERS)) {

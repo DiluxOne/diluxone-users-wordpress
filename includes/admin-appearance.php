@@ -424,8 +424,9 @@ function diluxone_users_screen_appearance_template(): void {
  * The one answer this screen asks for, read back out of the two it is kept in.
  *
  * Where the look comes from is one question to the person answering it and two
- * settings to the plugin: whether the stylesheet is loaded at all, and whether
- * the colours are the theme’s or this screen’s. Both of those are read
+ * answers to the plugin: whether the stylesheet is loaded at all, and whether
+ * the colours are the theme’s (an add-on’s answer, Users+ Pro’s) or this
+ * screen’s. Both of those are read
  * elsewhere — by the enqueue, by the token printer — and both have to stay
  * where they are read.
  *
@@ -651,27 +652,68 @@ function diluxone_users_screen_design_brand(): void {
 
 	diluxone_users_ui_section( __( 'Where the plugin’s look comes from', 'diluxone-users' ) );
 
-	$theme = array(
-		'name'    => 'diluxone_users_look',
-		'value'   => 'theme',
-		'id'      => 'diluxone_users_look_theme',
-		'checked' => 'theme' === $look,
-
-		'title'   => sprintf(
-			/* translators: %s: the active theme's name. */
-			__( 'From your theme — %s', 'diluxone-users' ),
-			(string) wp_get_theme()->get( 'Name' )
-		),
-		'help'    => array() === $palette
-			? __( 'Your theme publishes no palette, so the plugin takes the colours your theme paints: the colour of its links and buttons, of its text, its page ground and the edge of its fields, measured on the site itself. There is nothing else to choose.', 'diluxone-users' )
-			: __( 'The plugin paints itself with the palette your theme publishes, and goes on following it — into the theme’s own dark mode as well, where it hands over a variable rather than a colour. Any part the palette does not name is taken from what your theme paints on the site. There is nothing else to choose.', 'diluxone-users' ),
+	/*
+	 * The theme's colours are Users+ Pro's: the plugin paints itself with its
+	 * own palette and the accent below, light and dark. "From your theme" is
+	 * drawn after the real answers as the radio it would be, switched off,
+	 * and gone once Pro answers false to it.
+	 */
+	$theme = diluxone_users_ui_pro_choice(
+		array(
+			'where'  => 'design/brand/theme',
+			'screen' => 'design',
+			'title'  => sprintf(
+				/* translators: %s: the active theme's name. */
+				__( 'From your theme — %s', 'diluxone-users' ),
+				(string) wp_get_theme()->get( 'Name' )
+			),
+			'text'   => __( 'Users+ Pro paints the plugin with the palette your theme publishes, or with the colours it paints on the site, and follows the theme into its own dark mode.', 'diluxone-users' ),
+		)
 	);
 
-	// Offered only where there is a palette to map. With none, the answer above
-	// is switched off, and a fold hanging under a switched-off answer is a
-	// setting for something that cannot happen.
+	$choices = array(
+		array(
+			'name'     => 'diluxone_users_look',
+			'value'    => 'own',
+			'id'       => 'diluxone_users_look_own',
+			'checked'  => 'own' === $look,
+			'title'    => __( 'I choose it here', 'diluxone-users' ),
+			'help'     => __( 'One colour and one corner, and the plugin builds the rest around them. The panel beside this one is the account area itself, so what is chosen can be looked at rather than imagined.', 'diluxone-users' ),
+			'children' => 'diluxone_users_brand_own_colour',
+		),
+		array(
+			'name'     => 'diluxone_users_look',
+			'value'    => 'site',
+			'id'       => 'diluxone_users_look_site',
+			'checked'  => 'site' === $look,
+			'title'    => __( 'The site writes it', 'diluxone-users' ),
+			'help'     => __( 'The plugin’s stylesheet is not loaded and the plugin paints nothing: its panels, fields and buttons come out bare and the site’s own stylesheet dresses them. The most work, and the only way to match a design exactly.', 'diluxone-users' ),
+			'children' => static function (): void {
+				diluxone_users_ui_note(
+					__( 'The properties it reads', 'diluxone-users' ),
+					array(
+						'<code>--diluxone-users-accent</code> <code>--diluxone-users-accent-ink</code> <code>--diluxone-users-surface</code> <code>--diluxone-users-surface-alt</code> <code>--diluxone-users-border</code> <code>--diluxone-users-text</code> <code>--diluxone-users-muted</code> <code>--diluxone-users-radius</code> <code>--diluxone-users-control-h</code>',
+						__( 'Pointing these at the site’s own tokens, from the site’s own stylesheet, is almost always enough on its own — and unlike a sheet written by hand it survives the plugin growing a component next month. That is worth trying before this answer.', 'diluxone-users' ),
+					)
+				);
+			},
+		),
+	);
+
+	if ( array() !== $theme ) {
+		$choices[] = $theme;
+	}
+
+	diluxone_users_ui_choices( $choices );
+
+	/*
+	 * Which colour of the theme's palette plays which part, right after it
+	 * and not hung under it: a disabled answer is never the chosen one, so
+	 * whatever hangs under it would stay folded away. Only where there is a
+	 * palette to map.
+	 */
 	if ( array() !== $palette ) {
-		$theme['children'] = static function () use ( $palette ): void {
+		if ( array() !== $theme ) {
 			diluxone_users_ui_pro_control(
 				array(
 					'where'  => 'design/brand/color-map',
@@ -682,50 +724,18 @@ function diluxone_users_screen_design_brand(): void {
 					diluxone_users_brand_map_rows( $palette );
 				}
 			);
+		}
 
-			/**
-			 * Fires under "From your theme" on Design › Your brand, while the
-			 * theme publishes a palette.
-			 *
-			 * @since 1.0.0
-			 *
-			 * @param array<string, array<string, string>> $palette The theme's palette, keyed by slug.
-			 */
-			do_action( 'diluxone_users_design_theme_colors', $palette );
-		};
+		/**
+		 * Fires after the answers to where the look comes from on Design ›
+		 * Your brand, while the theme publishes a palette.
+		 *
+		 * @since 1.0.0
+		 *
+		 * @param array<string, array<string, string>> $palette The theme's palette, keyed by slug.
+		 */
+		do_action( 'diluxone_users_design_theme_colors', $palette );
 	}
-
-	diluxone_users_ui_choices(
-		array(
-			$theme,
-			array(
-				'name'     => 'diluxone_users_look',
-				'value'    => 'own',
-				'id'       => 'diluxone_users_look_own',
-				'checked'  => 'own' === $look,
-				'title'    => __( 'I choose it here', 'diluxone-users' ),
-				'help'     => __( 'One colour and one corner, and the plugin builds the rest around them. The panel beside this one is the account area itself, so what is chosen can be looked at rather than imagined.', 'diluxone-users' ),
-				'children' => 'diluxone_users_brand_own_colour',
-			),
-			array(
-				'name'     => 'diluxone_users_look',
-				'value'    => 'site',
-				'id'       => 'diluxone_users_look_site',
-				'checked'  => 'site' === $look,
-				'title'    => __( 'The site writes it', 'diluxone-users' ),
-				'help'     => __( 'The plugin’s stylesheet is not loaded and the plugin paints nothing: its panels, fields and buttons come out bare and the site’s own stylesheet dresses them. The most work of the three, and the only way to match a design exactly.', 'diluxone-users' ),
-				'children' => static function (): void {
-					diluxone_users_ui_note(
-						__( 'The properties it reads', 'diluxone-users' ),
-						array(
-							'<code>--diluxone-users-accent</code> <code>--diluxone-users-accent-ink</code> <code>--diluxone-users-surface</code> <code>--diluxone-users-surface-alt</code> <code>--diluxone-users-border</code> <code>--diluxone-users-text</code> <code>--diluxone-users-muted</code> <code>--diluxone-users-radius</code> <code>--diluxone-users-control-h</code>',
-							__( 'Pointing these at the site’s own tokens, from the site’s own stylesheet, is almost always enough on its own — and unlike a sheet written by hand it survives the plugin growing a component next month. That is worth trying before this answer.', 'diluxone-users' ),
-						)
-					);
-				},
-			),
-		)
-	);
 
 	diluxone_users_brand_dark_follows();
 
