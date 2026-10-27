@@ -142,6 +142,11 @@ function diluxone_users_login_page_save(): bool {
 		}
 
 		$saved['diluxone_users_wp_screens'] = $screens;
+	} elseif ( ! diluxone_users_login_has_password() && 'wp' === diluxone_users_wp_screens() ) {
+		// Without a password the group is drawn disabled and sends nothing,
+		// but a second door left from before that rule is shown moved to the
+		// answer in force, and this save writes it.
+		$saved['diluxone_users_wp_screens'] = 'auto';
 	}
 
 	if ( isset( $_POST['diluxone_users_lost_password'] ) ) {
@@ -510,10 +515,11 @@ function diluxone_users_screen_login_page(): void {
 	 * takes a password and nothing else, so leaving it open as a second door
 	 * would be leaving open the one door this site closed — and the runtime
 	 * does not (see diluxone_users_wp_screens_taken()). So the screen says
-	 * what is true: the third answer is the one in force, the second cannot
-	 * be picked. Turning the password off moves a stored second door to the
-	 * third answer; one left from before that rule is shown moved, and the
-	 * next save writes it.
+	 * what is true: the third answer is the one in force, and the whole group
+	 * waits for a password, drawn disabled like the lost-password one below
+	 * it. Turning the password off moves a stored second door to the third
+	 * answer; one left from before that rule is shown moved, and the next
+	 * save writes it.
 	 */
 	$password = diluxone_users_login_has_password();
 
@@ -547,11 +553,12 @@ function diluxone_users_screen_login_page(): void {
 	diluxone_users_ui_choices(
 		array(
 			array(
-				'name'    => 'diluxone_users_wp_screens',
-				'value'   => 'mine',
-				'checked' => 'mine' === $chosen,
-				'title'   => __( 'Send everybody to the sign-in page above', 'diluxone-users' ),
-				'help'    => __( 'wp-login.php stops being a screen: an old bookmark, a plugin’s link or its “register” link all land on this site’s own pages. Whoever administers the site keeps the emergency way in on the Summary tab.', 'diluxone-users' ),
+				'name'     => 'diluxone_users_wp_screens',
+				'value'    => 'mine',
+				'checked'  => 'mine' === $chosen,
+				'disabled' => ! $password,
+				'title'    => __( 'Send everybody to the sign-in page above', 'diluxone-users' ),
+				'help'     => __( 'wp-login.php stops being a screen: an old bookmark, a plugin’s link or its “register” link all land on this site’s own pages. Whoever administers the site keeps the emergency way in on the Summary tab.', 'diluxone-users' ),
 			),
 			array(
 				'name'     => 'diluxone_users_wp_screens',
@@ -564,11 +571,12 @@ function diluxone_users_screen_login_page(): void {
 				'note'     => $password ? '' : __( 'its form only takes a password, and this site takes none', 'diluxone-users' ),
 			),
 			array(
-				'name'    => 'diluxone_users_wp_screens',
-				'value'   => 'auto',
-				'checked' => 'auto' === $chosen,
-				'title'   => __( 'Send people to the page only while the e-mail link is the only way in', 'diluxone-users' ),
-				'help'    => __( 'While a password still opens something here, wp-login.php is left alone. The day the link is the only way in, its form could not work anyway.', 'diluxone-users' ),
+				'name'     => 'diluxone_users_wp_screens',
+				'value'    => 'auto',
+				'checked'  => 'auto' === $chosen,
+				'disabled' => ! $password,
+				'title'    => __( 'Send people to the page only while the e-mail link is the only way in', 'diluxone-users' ),
+				'help'     => __( 'While a password still opens something here, wp-login.php is left alone. The day the link is the only way in, its form could not work anyway.', 'diluxone-users' ),
 			),
 		),
 		'',
