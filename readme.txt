@@ -269,6 +269,7 @@ Unreleased.
 
 First public release.
 
+* Signed out on a page of the account area, the "Sign in" button now brings you back to that page and tab once you sign in, instead of to the home page.
 * A social sign-in that fails, because it was cancelled at the provider or came back with a state nobody issued here, now leaves a row in the activity log with the network and why, without the code or the state.
 * Asking for a sign-in link with an address that has no account no longer creates the account: it is created when the person opens the link mailed to them, so nobody can make an account for somebody else's address.
 * Social sign-in with Google and Microsoft uses PKCE, so a code stolen on its way back to your site cannot be used by anyone else. It is on after the update, also for a provider you set up before; Social › the provider › Settings › "Use PKCE" turns it off. A provider that does not support PKCE shows the box switched off and says so.
