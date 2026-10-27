@@ -159,6 +159,7 @@ everybody, with the code by e-mail, and skips it for nobody.
 | The phone grouped as it is typed (AR `11 2345 6789`), the caret kept, saved as `+541123456789`; a trunk prefix typed out of habit shown apart and not saved | `phone-field` › The number as it is typed and saved |
 | The phone grouped by its area code (AR `221 412 3456`, not `22 1412 3456`); a mobile typed with its 15 (`0 11 15 4123 4567`) accepted, saved as `+5491141234567` and drawn back `9 11 4123 4567` | `phone-field` › The number as it is typed and saved |
 | A phone too short or too long: the server refuses the whole form (`diluxone-users=phone`), the error under the number with `aria-invalid`, nothing saved; the browser stops it first with the same words; on the registration form no account is made | `phone-field` › A number the wrong length for its country |
+| The phone written with `+` and its dialling code, pasted or typed: the longest code that matches picks the country (`+54 9 11 4123 4567` → AR, `9 11 4123 4567` left in the box; `+56` typed with AR picked → CL) | `repro/issue-168` |
 | A saved phone shown grouped with its country picked | `phone-field` › A saved number |
 | The phone with JavaScript off: the native list in the same box, a short number refused by the server with the error under it, a good one saved joined and drawn back grouped | `phone-field` › With JavaScript off |
 | Forged closed-list, country, address, impossible date and infinite number not stored | `my-account-details` › a value off a closed list… |
