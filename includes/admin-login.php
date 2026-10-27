@@ -1,15 +1,13 @@
 <?php
 /**
- * The Access screen: how somebody gets into this site, and how they get an
- * account to get into.
+ * The Access screen: how somebody who has an account gets into this site.
  *
- * One screen for the whole door. Registration was a screen of its own for a
- * while, on the argument that opening it changes nothing about signing in —
- * true, and beside the point: they are two questions asked at the same
- * moment, they share half their settings (whether the link creates the
- * account, whether a social account does, what happens to wp-login.php), and
- * a person setting up a site asks them together. So they are tabs of one
- * screen, under one summary that shows the door whole.
+ * How they get an account to get into is the Registration screen, right above
+ * this one (admin-register.php). The two were tabs of one screen for a while,
+ * on the argument that they are asked at the same moment; they are, and a
+ * person looking for either still had to read both — one summary for signing
+ * in and for registering, one list of messages for both. So each has its own
+ * screen, its own summary and its own messages.
  *
  * Every tab answers one question and its label says which. The first tab
  * edits nothing: it is the state of everything the others decide, read from
@@ -26,10 +24,10 @@ function diluxone_users_screen_login(): void {
 }
 
 /**
- * Its tabs. Registration registers its own from its own file, onto this
- * screen; two-step verification lives on Security and is shown here only as
- * state. An add-on's way in is switched on here, with the other ways in
- * (`diluxone_users_way_switches`), and set up where the feature lives:
+ * Its tabs. Registration is a screen of its own; two-step verification lives
+ * on Security and is shown here only as state. An add-on's way in is switched
+ * on here, with the other ways in (`diluxone_users_way_switches`), and set up
+ * where the feature lives:
  * turning a door on is a question about doors.
  */
 function diluxone_users_login_panels(): void {
@@ -307,7 +305,8 @@ function diluxone_users_sso_working_names(): array {
 }
 
 /**
- * Every way into this site and the state each one is in.
+ * Every way into this site for somebody with an account, and the state each
+ * one is in. How an account is made is the Registration screen's summary.
  *
  * The settings that open and close these are spread over the tabs of this
  * screen and over Security; what nobody could see was the result. This reads
@@ -319,7 +318,6 @@ function diluxone_users_sso_working_names(): array {
 function diluxone_users_doors(): array {
 	$page   = (int) diluxone_users_option( 'diluxone_users_login_page' );
 	$title  = $page > 0 ? (string) get_the_title( $page ) : '';
-	$mode   = diluxone_users_register_mode();
 	$social = diluxone_users_sso_working_names();
 	$tab    = static fn( string $id ): string => diluxone_users_admin_url( 'diluxone-users-login', array( 'tab' => $id ) );
 
@@ -395,7 +393,7 @@ function diluxone_users_doors(): array {
 	);
 
 	/**
-	 * Filters the ways in on Access › Summary, before how an account is made.
+	 * Filters the ways in on Access › Summary.
 	 *
 	 * An add-on's way in says here whether it is open, in the shape of a
 	 * summary row (label, state, and optionally why, word, detail, url and
@@ -406,35 +404,6 @@ function diluxone_users_doors(): array {
 	 * @param array<int, array<string, string>> $rows The page and the plugin's own ways in.
 	 */
 	$rows = array_values( (array) apply_filters( 'diluxone_users_doors', $rows ) );
-
-	// The same reading the registration tab does, and the same one it calls
-	// open or closed: this row is that answer said in a line.
-	$made = diluxone_users_register_doors_open();
-
-	// WordPress's own door is WordPress's own switch, and it is always
-	// decided: the row is about the plugin's three, and reads as decided
-	// once any of them is.
-	$rows[] = diluxone_users_summary_row(
-		array( 'diluxone_users_login_register', 'diluxone_users_sso_register', 'diluxone_users_register_form' ),
-		array(
-			'label'  => __( 'Creating an account', 'diluxone-users' ),
-			'state'  => array() !== $made ? ( 'form' === $mode && '' === diluxone_users_register_url() ? 'pending' : 'active' ) : 'off',
-			'why'    => 'form' === $mode && '' === diluxone_users_register_url() ? __( 'the form has no page yet', 'diluxone-users' ) : '',
-			'detail' => array() !== $made
-				? esc_html(
-					sprintf(
-					/* translators: %s: the ways an account gets created, comma separated */
-						__( 'Accounts are created by: %s.', 'diluxone-users' ),
-						implode( ', ', $made )
-					)
-				)
-				: esc_html__( 'Nobody registers themselves: accounts are made under Users.', 'diluxone-users' ),
-			'url'    => $tab( 'register' ),
-		),
-		get_option( 'users_can_register' )
-			? esc_html__( 'WordPress’s own form, open as Settings › General has it; the plugin opens no door of its own.', 'diluxone-users' )
-			: esc_html__( 'WordPress’s own form, closed as Settings › General has it; the plugin opens no door of its own.', 'diluxone-users' )
-	);
 
 	$rows[] = diluxone_users_summary_row(
 		'diluxone_users_2fa_mode',
@@ -619,27 +588,30 @@ function diluxone_users_screen_login_page(): void {
 	diluxone_users_ui_choices(
 		array(
 			array(
-				'name'    => 'diluxone_users_lost_password',
-				'value'   => 'wp',
-				'checked' => 'wp' === $lost,
-				'title'   => __( 'WordPress’s screen', 'diluxone-users' ),
-				'help'    => __( 'They ask for a reset e-mail on wp-login.php, and the link in it lands on wp-login.php to type the new password. Two screens that look like WordPress, at the moment somebody is worried about their account.', 'diluxone-users' ),
+				'name'     => 'diluxone_users_lost_password',
+				'value'    => 'wp',
+				'disabled' => ! $password,
+				'checked'  => 'wp' === $lost,
+				'title'    => __( 'WordPress’s screen', 'diluxone-users' ),
+				'help'     => __( 'They ask for a reset e-mail on wp-login.php, and the link in it lands on wp-login.php to type the new password. Two screens that look like WordPress, at the moment somebody is worried about their account.', 'diluxone-users' ),
 			),
 			array(
-				'name'    => 'diluxone_users_lost_password',
-				'value'   => 'site',
-				'checked' => 'site' === $lost,
-				'title'   => __( 'This site’s screen', 'diluxone-users' ),
-				'help'    => __( 'They still ask on WordPress’s form — it is the only place that sends the e-mail — but the link lands on your sign-in page, and the new password is typed there, in your design.', 'diluxone-users' ),
+				'name'     => 'diluxone_users_lost_password',
+				'value'    => 'site',
+				'disabled' => ! $password,
+				'checked'  => 'site' === $lost,
+				'title'    => __( 'This site’s screen', 'diluxone-users' ),
+				'help'     => __( 'They still ask on WordPress’s form — it is the only place that sends the e-mail — but the link lands on your sign-in page, and the new password is typed there, in your design.', 'diluxone-users' ),
 			),
 			array(
-				'name'    => 'diluxone_users_lost_password',
-				'value'   => 'link',
-				'checked' => 'link' === $lost,
-				'title'   => __( 'Nowhere: “I forgot my password” leads to the sign-in page', 'diluxone-users' ),
-				'help'    => __( 'Nothing is reset and the password is left as it was. On a site where a link already opens the door, a reset asks for the same address to send a second e-mail doing what the first one does.', 'diluxone-users' ),
-				'state'   => $link ? '' : 'pending',
-				'note'    => $link ? '' : __( 'the e-mail link is not one of the ways in, so this sends them nowhere they can use', 'diluxone-users' ),
+				'name'     => 'diluxone_users_lost_password',
+				'value'    => 'link',
+				'disabled' => ! $password,
+				'checked'  => 'link' === $lost,
+				'title'    => __( 'Nowhere: “I forgot my password” leads to the sign-in page', 'diluxone-users' ),
+				'help'     => __( 'Nothing is reset and the password is left as it was. On a site where a link already opens the door, a reset asks for the same address to send a second e-mail doing what the first one does.', 'diluxone-users' ),
+				'state'    => $link ? '' : 'pending',
+				'note'     => $link ? '' : __( 'the e-mail link is not one of the ways in, so this sends them nowhere they can use', 'diluxone-users' ),
 			),
 		),
 		'',
@@ -674,27 +646,57 @@ function diluxone_users_screen_login_page(): void {
 }
 
 /**
- * The address of the page of its own with "No page": the site's address and
- * the path after it.
+ * The address the page of its own is drawn at.
  *
- * Waiting for "No page" in the drop-down above: with a page chosen, the page
- * of its own is drawn at that page's address, and this is drawn disabled
- * under a line saying so, and sends nothing.
+ * One label over three blocks, each waiting on the drop-down above and hidden
+ * while it waits, so only the true one is read. With the saved page chosen,
+ * the address in use, as a link: the page's. With "No page", the site's
+ * address and the path typed after it. With a page picked and not yet saved,
+ * a line saying the address is that page's once saved, since the page's
+ * address is not known here until it is. The server draws the right one from
+ * the stored value; the script switches them as the drop-down changes, and a
+ * hidden slug field stays disabled, so it sends nothing.
  *
  * @param int $page The page chosen, or 0.
  */
 function diluxone_users_screen_login_page_address( int $page ): void {
-	$waits = array(
+	$slug = sanitize_title( (string) diluxone_users_option( 'diluxone_users_login_slug' ) );
+	$wait = static fn( string $key, array $values, bool $waiting ): array => array(
 		'name'    => 'diluxone_users_login_page',
-		'is'      => array( '0' ),
-		'waiting' => $page > 0,
-		'why'     => __( 'Used when no page is chosen above: the page of its own is then drawn at this address.', 'diluxone-users' ),
+		$key      => $values,
+		'waiting' => $waiting,
+		'hides'   => true,
 	);
 
-	$waiting = diluxone_users_ui_waits_open( $waits );
-	$slug    = sanitize_title( (string) diluxone_users_option( 'diluxone_users_login_slug' ) );
-
 	diluxone_users_ui_field_open( __( 'Its address', 'diluxone-users' ), 'diluxone_users_login_slug' );
+
+	if ( $page > 0 ) {
+		$saved = $wait( 'is', array( (string) $page ), false );
+		$url   = diluxone_users_door_url();
+
+		diluxone_users_ui_waits_open( $saved );
+
+		echo wp_kses(
+			sprintf(
+				'<p><a href="%1$s"><code>%2$s</code></a></p><p class="du-field__help">%3$s</p>',
+				esc_url( $url ),
+				esc_html( $url ),
+				esc_html__( 'It is the address of the page chosen above, and it changes with that page.', 'diluxone-users' )
+			),
+			diluxone_users_allowed_html()
+		);
+
+		diluxone_users_ui_waits_close( $saved );
+	}
+
+	$other = $wait( 'not', $page > 0 ? array( '0', (string) $page ) : array( '0' ), true );
+
+	diluxone_users_ui_waits_open( $other );
+	printf( '<p class="du-field__help">%s</p>', esc_html__( 'Once saved, it is the address of the page chosen above.', 'diluxone-users' ) );
+	diluxone_users_ui_waits_close( $other );
+
+	$none    = $wait( 'is', array( '0' ), $page > 0 );
+	$waiting = diluxone_users_ui_waits_open( $none );
 
 	echo wp_kses(
 		sprintf(
@@ -706,9 +708,11 @@ function diluxone_users_screen_login_page_address( int $page ): void {
 		diluxone_users_allowed_html()
 	);
 
-	diluxone_users_ui_field_close( __( 'Letters, numbers and dashes. Sign in, registration, the second step and a new password are all answered there, and an address you used before keeps sending people to it.', 'diluxone-users' ) );
+	printf( '<p class="du-field__help">%s</p>', esc_html__( 'Letters, numbers and dashes. Sign in, registration, the second step and a new password are all answered there, and an address you used before keeps sending people to it.', 'diluxone-users' ) );
 
-	diluxone_users_ui_waits_close( $waits );
+	diluxone_users_ui_waits_close( $none );
+
+	diluxone_users_ui_field_close();
 }
 
 /** With what somebody who already has an account gets in. */
@@ -733,7 +737,7 @@ function diluxone_users_screen_login_ways(): void {
 		$nothing = $nothing && ! $decided( $key );
 	}
 
-	diluxone_users_intro( __( 'With what somebody who already has an account gets in. Every way in is a box: tick the ones this site offers. What each one does once it is on is set where that feature lives, and who gets an account at all is the Registration tab.', 'diluxone-users' ) );
+	diluxone_users_intro( __( 'With what somebody who already has an account gets in. Every way in is a box: tick the ones this site offers. What each one does once it is on is set where that feature lives, and who gets an account at all is the Registration screen.', 'diluxone-users' ) );
 
 	if ( $nothing ) {
 		diluxone_users_ui_waits( __( 'No way in is chosen yet: the sign-in form is WordPress’s own, a username and a password on wp-login.php, until one is ticked here and saved.', 'diluxone-users' ) );
@@ -939,18 +943,23 @@ function diluxone_users_login_arrangement_save(): void {
 
 	$known  = array_keys( diluxone_users_login_arrangeable() );
 	$layout = sanitize_key( wp_unslash( $_POST['diluxone_users_login_layout'] ?? 'auto' ) );
-	$open   = sanitize_key( wp_unslash( $_POST['diluxone_users_login_open'] ?? '' ) );
 	$order  = array_map( 'sanitize_key', (array) wp_unslash( $_POST['diluxone_users_login_order'] ?? array() ) );
-
-	diluxone_users_save_options(
-		array(
-			'diluxone_users_login_layout' => in_array( $layout, array( 'auto', 'stack', 'tabs' ), true ) ? $layout : 'auto',
-			// Empty is an answer — "whichever is first" — and it is the one a
-			// site keeps until it has a reason not to.
-			'diluxone_users_login_open'   => in_array( $open, $known, true ) ? $open : '',
-			'diluxone_users_login_order'  => array_values( array_intersect( array_unique( $order ), $known ) ),
-		)
+	$save   = array(
+		'diluxone_users_login_layout' => in_array( $layout, array( 'auto', 'stack', 'tabs' ), true ) ? $layout : 'auto',
+		'diluxone_users_login_order'  => array_values( array_intersect( array_unique( $order ), $known ) ),
 	);
+
+	// Stacked, "Which tab opens" is drawn disabled and a disabled box sends
+	// nothing: its saved answer stays for the day the ways in are in tabs.
+	if ( isset( $_POST['diluxone_users_login_open'] ) ) {
+		$open = sanitize_key( wp_unslash( $_POST['diluxone_users_login_open'] ) );
+
+		// Empty is an answer — "whichever is first" — and it is the one a
+		// site keeps until it has a reason not to.
+		$save['diluxone_users_login_open'] = in_array( $open, $known, true ) ? $open : '';
+	}
+
+	diluxone_users_save_options( $save );
 }
 
 /**
@@ -1069,21 +1078,27 @@ function diluxone_users_screen_login_arrangement(): void {
 	 * quietly open the first one instead.
 	 */
 	$in_tabs = array_diff_key( $offered, $outside );
+	$stacked = 'stack' === diluxone_users_way_layout( count( $in_tabs ) );
 
-	if ( 'stack' === diluxone_users_way_layout( count( $in_tabs ) ) ) {
+	if ( $stacked ) {
 		diluxone_users_not_now( __( 'The ways in are stacked on this site, so there are no tabs and none opens first. What is chosen here applies the day they are in tabs.', 'diluxone-users' ) );
 	}
 
 	diluxone_users_ui_select(
 		array(
-			'label'   => __( 'For somebody this site has never seen', 'diluxone-users' ),
-			'name'    => 'diluxone_users_login_open',
-			'value'   => isset( $in_tabs[ $open ] ) ? $open : '',
-			'options' => array( '' => __( 'The first one in the order above', 'diluxone-users' ) ) + array_map(
+			'label'    => __( 'For somebody this site has never seen', 'diluxone-users' ),
+			'name'     => 'diluxone_users_login_open',
+			'value'    => isset( $in_tabs[ $open ] ) ? $open : '',
+			'options'  => array( '' => __( 'The first one in the order above', 'diluxone-users' ) ) + array_map(
 				static fn( array $way ): string => (string) $way['label'],
 				array_intersect_key( $ways, $in_tabs )
 			),
-			'help'    => __( 'A screen that comes back from a refused attempt ignores this and shows the way in that was refused, whatever it says here: a message about an address, read over a password form, explains nothing.', 'diluxone-users' ),
+			'help'     => __( 'A screen that comes back from a refused attempt ignores this and shows the way in that was refused, whatever it says here: a message about an address, read over a password form, explains nothing.', 'diluxone-users' ),
+			// Stacked there is nothing to choose between, so the box is drawn
+			// disabled, and the save keeps its answer (it is not sent). The
+			// script enables it the moment the layout above puts them in tabs.
+			'disabled' => $stacked,
+			'data'     => array( 'tab-picker' => (string) count( $in_tabs ) ),
 		)
 	);
 

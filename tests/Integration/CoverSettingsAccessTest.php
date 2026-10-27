@@ -109,13 +109,13 @@ class CoverSettingsAccessTest extends IntegrationTestCase {
 
 	/* ── The panels' saves refuse a bad request ────────────────────── */
 
-	/** @return array<string, array{0: string, 1: array<string, mixed>, 2: string}> */
+	/** @return array<string, array{0: string, 1: array<string, mixed>, 2: string, 3?: string}> */
 	public static function saves(): array {
 		return array(
 			'the page'         => array( 'diluxone_users_login_page_save', array( 'diluxone_users_lost_password' => 'link' ), 'diluxone_users_lost_password' ),
 			'the ways in'      => array( 'diluxone_users_login_ways_save', array( 'diluxone_users_login_method' => array( 'link' ) ), 'diluxone_users_login_method' ),
 			'the arrangement'  => array( 'diluxone_users_login_arrangement_save', array( 'diluxone_users_login_layout' => 'tabs' ), 'diluxone_users_login_layout' ),
-			'registration'     => array( 'diluxone_users_screen_register_save', array( 'diluxone_users_register_open' => 'open', 'diluxone_users_register_form' => '1' ), 'diluxone_users_register_form' ),
+			'registration'     => array( 'diluxone_users_screen_register_save', array( 'diluxone_users_register_open' => 'open', 'diluxone_users_register_form' => '1' ), 'diluxone_users_register_form', 'diluxone-users-register' ),
 			'the messages'     => array( 'diluxone_users_login_messages_save', array( 'diluxone_users_message' => array( 'login_expired' => 'Mine' ) ), 'diluxone_users_login_messages' ),
 		);
 	}
@@ -125,7 +125,7 @@ class CoverSettingsAccessTest extends IntegrationTestCase {
 	 *
 	 * @param array<string, mixed> $post
 	 */
-	public function test_each_save_stops_on_a_bad_nonce_or_a_missing_capability( string $save, array $post, string $option ): void {
+	public function test_each_save_stops_on_a_bad_nonce_or_a_missing_capability( string $save, array $post, string $option, string $screen = 'diluxone-users-login' ): void {
 		$before = diluxone_users_raw_get( $option );
 
 		$this->the_admin();
@@ -136,7 +136,7 @@ class CoverSettingsAccessTest extends IntegrationTestCase {
 		$this->assertSame( array( 'died', self::EXPIRED ), $this->ended( $save ), 'another screen’s nonce' );
 
 		$this->not_allowed();
-		$this->send_panel( 'diluxone-users-login', $post );
+		$this->send_panel( $screen, $post );
 		$this->assertSame( array( 'died', 'You are not allowed to do this.' ), $this->ended( $save ), 'a subscriber' );
 
 		$this->assertSame( $before, diluxone_users_raw_get( $option ) );
@@ -206,6 +206,82 @@ class CoverSettingsAccessTest extends IntegrationTestCase {
 		diluxone_users_update_option( 'diluxone_users_login_page', $this->page( 'Cover own page' ) );
 
 		$this->assertMatchesRegularExpression( '#name="diluxone_users_login_slug"[^>]* disabled data-diluxone-users-waited#', $this->screen( 'page' ), 'a page chosen: drawn at its address, the field waits' );
+	}
+
+	/**
+	 * The block of the address that waits on the drop-down for these values.
+	 *
+	 * @param string $key 'is' or 'not'.
+	 */
+	private function address_block( string $html, string $key, string $values ): string {
+		$this->assertMatchesRegularExpression(
+			'#<div class="du-waits-on du-waits-on--hides( is-waiting)?" data-diluxone-users-waits="diluxone_users_login_page" data-diluxone-users-waits-' . $key . '="' . preg_quote( $values, '#' ) . '">#',
+			$html,
+			"a block hidden while it waits, for {$key} {$values}"
+		);
+
+		preg_match( '#<div class="du-waits-on du-waits-on--hides( is-waiting)?" data-diluxone-users-waits="diluxone_users_login_page" data-diluxone-users-waits-' . $key . '="' . preg_quote( $values, '#' ) . '">(.*?)</div>#s', $html, $block );
+
+		return (string) $block[0];
+	}
+
+	/** Pretty permalinks or plain ones, as the rewrite object reads them. */
+	private function permalinks( string $structure ): void {
+		update_option( 'permalink_structure', $structure );
+		$GLOBALS['wp_rewrite']->init();
+	}
+
+	public function test_c1_a_page_chosen_shows_its_address_as_a_link_and_no_slug(): void {
+		$this->the_admin();
+		$before = (string) get_option( 'permalink_structure' );
+		$this->permalinks( '/%postname%/' );
+
+		try {
+			$page = (int) wp_insert_post(
+				array(
+					'post_type'   => 'page',
+					'post_status' => 'publish',
+					'post_title'  => 'Entrar',
+					'post_name'   => 'entrar',
+				)
+			);
+
+			diluxone_users_update_option( 'diluxone_users_login_template', 'own' );
+			diluxone_users_update_option( 'diluxone_users_login_page', $page );
+			diluxone_users_update_option( 'diluxone_users_login_slug', 'sign-in' );
+
+			$html = $this->screen( 'page' );
+			$url  = home_url( '/entrar/' );
+
+			$shown = $this->address_block( $html, 'is', (string) $page );
+			$this->assertStringNotContainsString( 'is-waiting', $shown, 'the address in use is shown' );
+			$this->assertStringContainsString( '<a href="' . esc_url( $url ) . '"><code>' . esc_html( $url ) . '</code></a>', $shown, 'as a link to the page' );
+			$this->assertStringContainsString( 'It is the address of the page chosen above, and it changes with that page.', $shown );
+			$this->assertStringNotContainsString( 'sign-in', $shown );
+
+			$this->assertStringContainsString( 'is-waiting', $this->address_block( $html, 'not', '0 ' . $page ), 'the line for a page not yet saved is hidden' );
+
+			$slug = $this->address_block( $html, 'is', '0' );
+			$this->assertStringContainsString( 'du-waits-on--hides is-waiting', $slug, 'the slug field is hidden' );
+			$this->assertMatchesRegularExpression( '#name="diluxone_users_login_slug"[^>]* disabled data-diluxone-users-waited#', $slug, 'and sends nothing' );
+		} finally {
+			$this->permalinks( $before );
+		}
+	}
+
+	public function test_c2_no_page_shows_the_slug_field_enabled(): void {
+		$this->the_admin();
+		diluxone_users_update_option( 'diluxone_users_login_template', 'own' );
+		diluxone_users_update_option( 'diluxone_users_login_page', 0 );
+		diluxone_users_update_option( 'diluxone_users_login_slug', 'entrar' );
+
+		$html = $this->screen( 'page' );
+		$slug = $this->address_block( $html, 'is', '0' );
+
+		$this->assertStringNotContainsString( 'is-waiting', $slug, 'the slug field is not waiting' );
+		$this->assertStringContainsString( '<input type="text" id="diluxone_users_login_slug" name="diluxone_users_login_slug" class="regular-text code" value="entrar" required>', $slug, 'and it is editable' );
+		$this->assertStringContainsString( 'is-waiting', $this->address_block( $html, 'not', '0' ), 'the line for a page picked is hidden' );
+		$this->assertStringNotContainsString( 'It is the address of the page chosen above', $html, 'no page, no page address' );
 	}
 
 	public function test_c3_no_page_and_an_address_saved_is_where_the_page_of_its_own_is_drawn(): void {
@@ -455,6 +531,40 @@ class CoverSettingsAccessTest extends IntegrationTestCase {
 		$this->assertSame( array(), diluxone_users_option( 'diluxone_users_login_order' ) );
 	}
 
+	public function test_which_tab_opens_is_disabled_while_stacked_and_keeps_its_answer(): void {
+		$this->the_admin();
+		diluxone_users_update_option( 'diluxone_users_login_method', 'both' );
+		diluxone_users_update_option( 'diluxone_users_login_layout', 'stack' );
+		diluxone_users_update_option( 'diluxone_users_login_open', 'password' );
+
+		$html = $this->draw( 'diluxone_users_screen_login_arrangement' );
+
+		$this->assertStringContainsString( 'diluxone-users-state--notnow', $html, 'the line says it does not apply' );
+		$this->assertStringNotContainsString( 'diluxone-users-state--pending', $html, 'not a task left to do' );
+		$this->assertMatchesRegularExpression( '/<select id="diluxone_users_login_open" name="diluxone_users_login_open"[^>]*disabled/', $html );
+		$this->assertMatchesRegularExpression( '/<option value="password" selected/', $html, 'it shows the saved answer' );
+		$this->assertSame( 1, substr_count( $html, 'name="diluxone_users_login_open"' ), 'one control by that name' );
+
+		// A disabled box sends nothing: the save keeps the saved answer.
+		$this->send_panel( 'diluxone-users-login', array( 'diluxone_users_login_layout' => 'stack' ) );
+		diluxone_users_login_arrangement_save();
+
+		$this->assertSame( 'password', diluxone_users_option( 'diluxone_users_login_open' ) );
+
+		diluxone_users_update_option( 'diluxone_users_login_layout', 'tabs' );
+
+		$html = $this->draw( 'diluxone_users_screen_login_arrangement' );
+
+		$this->assertStringNotContainsString( 'diluxone-users-not-now', $html );
+		$this->assertDoesNotMatchRegularExpression( '/<select id="diluxone_users_login_open"[^>]*disabled/', $html );
+
+		// Sent, even empty, it is the answer.
+		$this->send_panel( 'diluxone-users-login', array( 'diluxone_users_login_layout' => 'tabs', 'diluxone_users_login_open' => '' ) );
+		diluxone_users_login_arrangement_save();
+
+		$this->assertSame( '', diluxone_users_option( 'diluxone_users_login_open' ) );
+	}
+
 	/* ── Registration ──────────────────────────────────────────────── */
 
 	public function test_registration_open_with_no_door_is_refused(): void {
@@ -467,7 +577,7 @@ class CoverSettingsAccessTest extends IntegrationTestCase {
 		}
 		diluxone_users_update_option( 'diluxone_users_register_form', 1 );
 
-		$this->send_panel( 'diluxone-users-login', array( 'diluxone_users_register_open' => 'open' ) );
+		$this->send_panel( 'diluxone-users-register', array( 'diluxone_users_register_open' => 'open' ) );
 
 		$this->assertSame( array( 'returned', false ), $this->ended( 'diluxone_users_screen_register_save' ) );
 		$this->assertSame( 1, (int) diluxone_users_option( 'diluxone_users_register_form' ), 'nothing written' );
@@ -480,7 +590,7 @@ class CoverSettingsAccessTest extends IntegrationTestCase {
 		$page = $this->page( 'Cover register' );
 
 		$this->send_panel(
-			'diluxone-users-login',
+			'diluxone-users-register',
 			array(
 				'diluxone_users_register_open'  => 'open',
 				'diluxone_users_login_register' => '1',
@@ -527,7 +637,7 @@ class CoverSettingsAccessTest extends IntegrationTestCase {
 		add_filter( 'diluxone_users_register_roles', array( $this, 'author_offered' ) );
 
 		$this->send_panel(
-			'diluxone-users-login',
+			'diluxone-users-register',
 			array(
 				'diluxone_users_register_open' => 'open',
 				'diluxone_users_register_form' => '1',
@@ -544,7 +654,7 @@ class CoverSettingsAccessTest extends IntegrationTestCase {
 		$this->assertArrayHasKey( 'author', diluxone_users_register_roles(), 'the saved one stays on the list' );
 
 		$this->send_panel(
-			'diluxone-users-login',
+			'diluxone-users-register',
 			array(
 				'diluxone_users_register_open' => 'open',
 				'diluxone_users_register_form' => '1',
@@ -568,7 +678,7 @@ class CoverSettingsAccessTest extends IntegrationTestCase {
 			$this->assertArrayNotHasKey( 'editor', diluxone_users_register_roles() );
 
 			$this->send_panel(
-				'diluxone-users-login',
+				'diluxone-users-register',
 				array(
 					'diluxone_users_register_open' => 'open',
 					'diluxone_users_register_form' => '1',
@@ -588,7 +698,7 @@ class CoverSettingsAccessTest extends IntegrationTestCase {
 	public function test_registration_closed_says_where_the_network_keeps_it_open(): void {
 		$this->the_admin();
 
-		$this->send_panel( 'diluxone-users-login', array( 'diluxone_users_register_open' => 'closed' ) );
+		$this->send_panel( 'diluxone-users-register', array( 'diluxone_users_register_open' => 'closed' ) );
 
 		ob_start();
 		diluxone_users_screen_register_save();
@@ -608,7 +718,7 @@ class CoverSettingsAccessTest extends IntegrationTestCase {
 		diluxone_users_update_option( 'diluxone_users_register_form', 1 );
 
 		$this->send_panel(
-			'diluxone-users-login',
+			'diluxone-users-register',
 			array(
 				'diluxone_users_register_open' => 'closed',
 				'diluxone_users_register_form' => '1',
@@ -645,7 +755,7 @@ class CoverSettingsAccessTest extends IntegrationTestCase {
 		$this->assertFalse( $card['checked'], 'shown as the network has it' );
 
 		$this->send_panel(
-			'diluxone-users-login',
+			'diluxone-users-register',
 			array(
 				'diluxone_users_register_open'  => 'open',
 				'diluxone_users_login_register' => '1',
@@ -667,7 +777,7 @@ class CoverSettingsAccessTest extends IntegrationTestCase {
 		diluxone_users_update_option( 'diluxone_users_login_method', 'link' );
 
 		$this->send_panel(
-			'diluxone-users-login',
+			'diluxone-users-register',
 			array(
 				'diluxone_users_register_open' => 'open',
 				'diluxone_users_sso_register'  => '1',
@@ -758,6 +868,55 @@ class CoverSettingsAccessTest extends IntegrationTestCase {
 		);
 
 		return $messages;
+	}
+
+	/* ── What Access no longer holds ───────────────────────────────── */
+
+	public function test_c3_access_has_no_registration_tab_and_its_old_address_draws_the_summary(): void {
+		$this->the_admin();
+
+		$tabs = diluxone_users_panels( 'diluxone-users-login' );
+
+		$this->assertArrayNotHasKey( 'register', $tabs );
+		$this->assertSame( array( 'summary', 'page', 'ways', 'arrangement', 'messages' ), array_keys( $tabs ) );
+
+		$this->assertStringNotContainsString( 'name="diluxone_users_register_open"', $this->screen( 'register' ), 'an old tab address draws Access’s first tab, not the registration form' );
+	}
+
+	public function test_c3_access_messages_hold_no_registration_message_and_saving_them_leaves_those_alone(): void {
+		$this->the_admin();
+
+		$html = $this->screen( 'messages' );
+
+		$this->assertStringContainsString( 'name="diluxone_users_message[login_expired]"', $html );
+		$this->assertStringContainsString( 'name="diluxone_users_message[reset_mismatch]"', $html );
+		$this->assertStringNotContainsString( 'name="diluxone_users_message[register_', $html );
+		$this->assertStringNotContainsString( 'Creating an account', $html, 'no section of registration messages either' );
+
+		diluxone_users_login_message_rewrite( 'register_taken', 'en_US', 'Written on Registration.' );
+		diluxone_users_login_message_rewrite( 'register_closed', 'en_US', 'Also written there.' );
+
+		// A form sent by hand with Registration's sentences in it: they are not
+		// Access's to write, nor to put back.
+		$this->send_panel(
+			'diluxone-users-login',
+			array(
+				'diluxone_users_message_locale'  => 'en_US',
+				'diluxone_users_message'         => array(
+					'login_expired'  => 'Ours',
+					'register_taken' => 'Overwritten from Access',
+				),
+				'diluxone_users_message_shipped' => array( 'register_closed' => '1' ),
+			)
+		);
+		diluxone_users_login_messages_save();
+
+		$store = diluxone_users_login_messages_store()['en_US'] ?? array();
+
+		$this->assertSame( 'Ours', $store['login_expired'] ?? null );
+		$this->assertSame( 'Written on Registration.', $store['register_taken'] ?? null );
+		$this->assertSame( 'Also written there.', $store['register_closed'] ?? null );
+		$this->assertMatchesRegularExpression( '/This site writes 1 of the \d+ messages itself/', $this->screen( 'messages' ), 'the rail counts Access’s own' );
 	}
 
 	public function test_the_messages_tab_draws_every_message_and_whatever_an_add_on_added(): void {

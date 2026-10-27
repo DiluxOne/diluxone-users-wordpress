@@ -48,6 +48,7 @@ function diluxone_users_admin_cap(): string {
 function diluxone_users_screen_scopes(): array {
 	return array(
 		DILUXONE_USERS_MENU         => 'site',
+		'diluxone-users-register'   => 'hub',
 		'diluxone-users-login'      => 'hub',
 		'diluxone-users-membership' => 'network',
 		'diluxone-users-security'   => 'network',

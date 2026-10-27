@@ -75,7 +75,7 @@ class ProPreviewTest extends IntegrationTestCase {
 
 		// Printed through wp_kses() in some shapes, which writes the ampersand
 		// its own way; the address is the same.
-		$link = '/href="https:\/\/diluxone\.com\/users-pro\/\?utm_source=diluxone-users(&#038;|&amp;)utm_medium=diluxone-users-design(&#038;|&amp;)utm_campaign=free"/';
+		$link = '/href="https:\/\/diluxone\.com\/wordpress-plugins\/users\/\?utm_source=diluxone-users(&#038;|&amp;)utm_medium=diluxone-users-design(&#038;|&amp;)utm_campaign=free"/';
 
 		foreach ( $this->shapes() as $shape => $html ) {
 			$this->assertStringContainsString( 'data-diluxone-users-pro="design/login/shapes"', $html, "$shape: marked for the filter" );
@@ -194,7 +194,7 @@ class ProPreviewTest extends IntegrationTestCase {
 
 	public function test_the_address_is_escaped_and_says_where_it_came_from(): void {
 		$this->assertSame(
-			'https://diluxone.com/users-pro/?utm_source=diluxone-users&utm_medium=scriptalertxscript&utm_campaign=free',
+			'https://diluxone.com/wordpress-plugins/users/?utm_source=diluxone-users&utm_medium=scriptalertxscript&utm_campaign=free',
 			diluxone_users_pro_url( '"><script>alert(x)</script>' ),
 			'a screen name is a word in the address and nothing else'
 		);

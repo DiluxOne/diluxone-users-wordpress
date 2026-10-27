@@ -279,6 +279,40 @@ diluxoneUsersFieldTypes( document );
 }() );
 
 /**
+ * "Which tab opens" is there to choose from only while the ways in are in tabs.
+ *
+ * The server draws it disabled while they are stacked, and the save keeps its
+ * answer since a disabled box sends nothing. Choosing a layout above that puts
+ * them in tabs enables it at once; going back disables it again.
+ */
+( function () {
+	'use strict';
+
+	var picker = document.querySelector( '[data-diluxone-users-tab-picker]' );
+
+	if ( ! picker || ! picker.form ) {
+		return;
+	}
+
+	var form   = picker.form;
+	var tabs   = parseInt( picker.dataset.diluxoneUsersTabPicker, 10 ) || 0;
+	var radios = form.querySelectorAll( 'input[type="radio"][name="diluxone_users_login_layout"]' );
+
+	function sync() {
+		var chosen = form.querySelector( 'input[type="radio"][name="diluxone_users_login_layout"]:checked' );
+		var layout = chosen ? chosen.value : 'auto';
+
+		// What diluxone_users_way_layout() answers: "whichever suits" puts
+		// three or more behind tabs.
+		picker.disabled = 'stack' === layout || ( 'tabs' !== layout && tabs < 3 );
+	}
+
+	radios.forEach( function ( radio ) {
+		radio.addEventListener( 'change', sync );
+	} );
+}() );
+
+/**
  * A template is a starting point: pressing one fills in the pieces below it.
  *
  * The screen has said so since it was written and it was not true — the

@@ -38,6 +38,12 @@ class PhoneRulesTest extends TestCase {
 		$this->assertSame( '', diluxone_users_phone_format( 'AR', '' ) );
 	}
 
+	public function test_a_chilean_number_is_grouped_as_it_is_written_there(): void {
+		$this->assertSame( '9 6123 4567', diluxone_users_phone_format( 'CL', '961234567' ), 'a mobile' );
+		$this->assertSame( '2 2123 4567', diluxone_users_phone_format( 'CL', '221234567' ), 'Santiago' );
+		$this->assertSame( '32 212 3456', diluxone_users_phone_format( 'CL', '322123456' ), 'any other area code has two digits' );
+	}
+
 	public function test_an_area_code_of_two_three_or_four_digits_is_written_apart(): void {
 		$this->assertSame( '11 4123 4567', diluxone_users_phone_format( 'AR', '1141234567' ), 'Buenos Aires, 11' );
 		$this->assertSame( '221 412 3456', diluxone_users_phone_format( 'AR', '2214123456' ), 'La Plata, 221' );

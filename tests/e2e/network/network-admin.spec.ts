@@ -204,6 +204,30 @@ test.describe('A site’s menu keeps only what is its own', () => {
 		expect((await menuOf(page)).sort()).toEqual([...SITE_SCREENS_ON_A_NETWORK.hub].sort());
 	});
 
+	test('Registration is on the hub, right above Access, and in neither Network Admin nor another site', async ({ page, hub, alpha }) => {
+		await page.goto(`${hub.url}wp-admin/admin.php?page=diluxone-users`);
+
+		const menu = await menuOf(page);
+		const at = menu.indexOf('diluxone-users-register');
+
+		expect(at, 'Registration is on the hub').toBeGreaterThan(-1);
+		expect(menu[at + 1], 'right above Access').toBe('diluxone-users-login');
+
+		await page.goto(`${hub.url}wp-admin/admin.php?page=diluxone-users-register`);
+		await expect(page.locator('.nav-tab-wrapper a.nav-tab')).toHaveText(['Summary', 'Who can register', 'Messages']);
+
+		// The old address of the tab, asked for in Network Admin, lands there too.
+		await page.goto(network('admin.php?page=diluxone-users-login&tab=register'));
+		await page.waitForURL(/page=diluxone-users-register/);
+		expect(page.url()).toBe(`${hub.url}wp-admin/admin.php?page=diluxone-users-register&tab=who`);
+
+		await page.goto(network('admin.php?page=diluxone-users'));
+		expect(await menuOf(page)).not.toContain('diluxone-users-register');
+
+		await page.goto(alpha.admin('admin.php?page=diluxone-users'));
+		expect(await menuOf(page)).not.toContain('diluxone-users-register');
+	});
+
 	test('another site keeps its menus, its reports and its maintenance, and says where the rest went', async ({ page, alpha }) => {
 		await page.goto(alpha.admin('admin.php?page=diluxone-users'));
 
@@ -219,7 +243,7 @@ test.describe('A site’s menu keeps only what is its own', () => {
 		// And each of the main site's screens, with the way to it.
 		const onTheHub = page.locator('.diluxone-users-card').filter({ hasText: 'the site where people sign in' });
 
-		await expect(onTheHub).toHaveCount(4);
+		await expect(onTheHub, 'registration, access, account area, design and notices').toHaveCount(5);
 		await expect(onTheHub.first().locator('a')).toHaveAttribute('href', new RegExp(`^${NETWORK_URL}/wp-admin/admin\\.php\\?page=diluxone-users-`));
 
 		// And its Reports have the rows but not the rules about them — and the

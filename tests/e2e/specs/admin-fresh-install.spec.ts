@@ -31,6 +31,7 @@ const NOTHING_SAVED: Record<string, null> = Object.fromEntries(
 		'diluxone_users_login_register',
 		'diluxone_users_sso_register',
 		'diluxone_users_register_form',
+		'diluxone_users_login_role',
 		'diluxone_users_wp_screens',
 		'diluxone_users_lost_password',
 		'diluxone_users_2fa_mode',
@@ -70,7 +71,7 @@ test.describe('A fresh install says nothing was chosen', () => {
 		await options.set(NOTHING_SAVED);
 	});
 
-	test('the overview and Access › Summary read Not configured on every setting, and say what WordPress does', async ({ page }) => {
+	test('the overview, Access › Summary and Registration › Summary read Not configured on every setting, and say what WordPress does', async ({ page }) => {
 		await page.goto(adminUrl('diluxone-users', 'doors'));
 
 		// The page, the method and the doors; the mail row is not a setting.
@@ -80,12 +81,27 @@ test.describe('A fresh install says nothing was chosen', () => {
 		await expect(summaryRowAt(page, 0).locator('.diluxone-users-summary__detail')).toContainText('wp-login.php');
 		await expect(summaryRowAt(page, 0).locator('.diluxone-users-summary__change a')).toHaveAttribute('href', /page=diluxone-users-login/);
 
+		// Registration, a row of its own, decided by nobody either.
+		await expectPill(summaryRowAt(page, 4), 'unset');
+		await expect(summaryRowAt(page, 4).locator('.diluxone-users-summary__change a')).toHaveAttribute('href', /page=diluxone-users-register/);
+
 		await page.goto(adminUrl('diluxone-users-login', 'summary'));
 
 		const states = await pills(page);
 
-		expect(states.length).toBeGreaterThanOrEqual(6);
+		expect(states.length).toBeGreaterThanOrEqual(5);
 		expect(states.every((state) => state === 'unset'), `every row: ${states.join(', ')}`).toBe(true);
+		await expect(page.locator('table.diluxone-users-summary .diluxone-users-state__why'), 'a Not configured pill carries no reason').toHaveCount(0);
+
+		// Registration › Summary: every door of the plugin's and the role read
+		// Not configured; WordPress's own form is WordPress's switch, always
+		// decided (the fourth row).
+		await page.goto(adminUrl('diluxone-users-register', 'summary'));
+
+		const doors = await pills(page);
+
+		expect(doors).toHaveLength(5);
+		expect([...doors.slice(0, 3), doors[4]].every((state) => state === 'unset'), `every row but WordPress’s form: ${doors.join(', ')}`).toBe(true);
 		await expect(page.locator('table.diluxone-users-summary .diluxone-users-state__why'), 'a Not configured pill carries no reason').toHaveCount(0);
 	});
 

@@ -40,6 +40,9 @@ function diluxone_users_states(): array {
 		'off'     => __( 'Off', 'diluxone-users' ),
 		'unknown' => __( 'Cannot tell', 'diluxone-users' ),
 		'unset'   => __( 'Not configured', 'diluxone-users' ),
+		// Not a task: something that does not apply while the site is set up
+		// the way it is (diluxone_users_not_now()).
+		'notnow'  => __( 'Not in use now', 'diluxone-users' ),
 		// Not how something here is doing: what it would take. A feature of
 		// Users+ Pro, drawn where it belongs (diluxone_users_ui_pro()).
 		'pro'     => __( 'Pro', 'diluxone-users' ),
@@ -58,7 +61,7 @@ function diluxone_users_states(): array {
  * three states stay the one vocabulary every screen speaks, and the word says
  * what the thing beside it actually does.
  *
- * @param string $state One of active|pending|off|unknown|unset|pro.
+ * @param string $state One of active|pending|off|unknown|unset|notnow|pro.
  * @param string $why   The reason, for a pending one: it is never shown bare.
  * @param string $word  The verb of the thing, when the state's own word would
  *                      name a switch that is not there.
@@ -190,9 +193,11 @@ function diluxone_users_ui_waits( string $why, string $url = '', string $go = ''
  * would be a sentence with nothing to point at. So it stays in the main
  * column, above what it is about.
  *
- * The control itself stays enabled and saves as always — what is chosen today
- * applies the day the reason goes away — and the reason and the way out are
- * the first thing read, not a line at the foot.
+ * The control keeps its saved answer — what is chosen today applies the day
+ * the reason goes away — and may be drawn disabled while it does not apply,
+ * as "Which tab opens" and the lost-password choices are; the reason and the
+ * way out are the first thing read, not a line at the foot. Its pill says
+ * "Not in use now", never "Pending": nothing here is a task left to do.
  *
  * @param string $why The reason, in the present tense.
  * @param string $url Where to fix it, if anywhere.
@@ -200,7 +205,7 @@ function diluxone_users_ui_waits( string $why, string $url = '', string $go = ''
  */
 function diluxone_users_not_now( string $why, string $url = '', string $go = '' ): void {
 	echo '<p class="diluxone-users-not-now">';
-	echo wp_kses( diluxone_users_state_pill( 'pending' ), diluxone_users_allowed_html() );
+	echo wp_kses( diluxone_users_state_pill( 'notnow' ), diluxone_users_allowed_html() );
 	echo ' ' . esc_html( $why );
 
 	if ( '' !== $url ) {

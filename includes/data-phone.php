@@ -94,7 +94,7 @@ function diluxone_users_phone_rules(): array {
 			'KY' => array( 7, 7, '', '1' ),
 			'CF' => array( 8, 8, '2 2 2 2', '' ),
 			'TD' => array( 8, 8, '2 2 2 2', '' ),
-			'CL' => array( 9, 9, '', '' ),
+			'CL' => array( 9, 9, '2,9:1 4 4|2 3 4', '' ),
 			'CN' => array( 7, 11, '2 4 4|3 4 4', '0' ),
 			'CO' => array( 8, 10, '3 7', '0' ),
 			'KM' => array( 7, 7, '3 2 2', '' ),
@@ -524,4 +524,46 @@ function diluxone_users_phone_format( string $iso, string $national ): string {
 	}
 
 	return implode( ' ', $parts );
+}
+
+/**
+ * The country a number belongs to, and the number to read for it, as the
+ * browser reads them: a number written in international form ("+54 9 11 …"
+ * or "0054 9 11 …") picks its country by the longest dialling code it starts
+ * with, and what follows the code is its national number. Between countries
+ * that share a code (+1, +7, +44) the one chosen stays if it has it, else the
+ * first in the list. A number not written so, or one whose code no country
+ * has, is left with the country chosen, as it was typed.
+ *
+ * @param string $iso    The country chosen.
+ * @param string $number The number as typed.
+ * @return array{0: string, 1: string} The country and the number.
+ */
+function diluxone_users_phone_resolve( string $iso, string $number ): array {
+	if ( ! preg_match( '/^\s*(\+|0\D*0)/', $number, $match ) ) {
+		return array( $iso, $number );
+	}
+
+	$digits = (string) preg_replace( '/\D/', '', substr( $number, strlen( $match[0] ) ) );
+	$best   = '';
+	$code   = '';
+
+	foreach ( diluxone_users_countries() as $country => $data ) {
+		$dial = (string) $data[1];
+
+		if ( '' !== $dial && 0 === strpos( $digits, $dial ) && strlen( $dial ) > strlen( $code ) ) {
+			$best = (string) $country;
+			$code = $dial;
+		}
+	}
+
+	if ( '' === $best ) {
+		return array( $iso, $number );
+	}
+
+	if ( diluxone_users_country_dial( $iso ) === $code ) {
+		$best = strtoupper( $iso );
+	}
+
+	return array( $best, substr( $digits, strlen( $code ) ) );
 }

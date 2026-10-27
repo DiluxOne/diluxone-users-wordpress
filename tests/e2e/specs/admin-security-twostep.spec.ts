@@ -177,7 +177,7 @@ test.describe('Security › Two-step verification: what the screen says about it
 			await expect(pro.locator(`input[type="${type}"]`), `${where}: the control it would be`).toBeDisabled();
 			await expect(pro.locator('[name]'), `${where}: nothing in it posts`).toHaveCount(0);
 			await expect(pro.locator('.diluxone-users-state--pro'), `${where}: the badge`).toHaveCount(1);
-			await expect(pro.locator('a'), `${where}: the one link`).toHaveAttribute('href', /diluxone\.com\/users-pro\/.*utm_medium=security-2fa/);
+			await expect(pro.locator('a'), `${where}: the one link`).toHaveAttribute('href', /diluxone\.com\/wordpress-plugins\/users\/.*utm_medium=security-2fa/);
 		}
 
 		// Each inside the group it belongs to, after that group's real answers.

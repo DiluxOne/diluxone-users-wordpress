@@ -82,12 +82,16 @@ the preview, or a rail of its own when the tab has neither — so it stays in
 view while the settings scroll, in the same place on every tab.
 
 Every screen takes panels, with no exceptions left: `diluxone-users`
-(Overview), `diluxone-users-login` (Access — sign-in page, ways in,
-registration), `diluxone-users-security`, `diluxone-users-social`,
-`diluxone-users-account`, `diluxone-users-fields`, `diluxone-users-design`,
-`diluxone-users-notices`, `diluxone-users-status` (Maintenance — status,
-tools, lockout). `diluxone-users-register` and `diluxone-users-tools` are not
-screens any more; their slugs redirect to the tab they became.
+(Overview), `diluxone-users-register` (Registration — summary, who can
+register, messages), `diluxone-users-login` (Access — summary, sign-in page,
+ways in, how they are arranged, messages), `diluxone-users-security`,
+`diluxone-users-social`, `diluxone-users-account`, `diluxone-users-fields`,
+`diluxone-users-design`, `diluxone-users-notices`, `diluxone-users-status`
+(Maintenance — status, tools, lockout). `diluxone-users-register` is a screen
+again, right above Access, and the old address of the tab it was,
+`page=diluxone-users-login&tab=register`, redirects to it;
+`diluxone-users-tools` is not a screen any more, and its slug redirects to the
+tab it became.
 
 A tab that draws its own markup — a list with its own actions, a form with a
 nonce of its own — registers with `'form' => false` and the screen stays out
@@ -210,9 +214,13 @@ says what that state is called there. A summary row carries it as `word`,
 the row it belongs to whenever it is a single adjective: the same "None" has to
 agree with a masculine name and a feminine key, and it cannot do both.
 
-A control that does not apply right now stays on the screen and keeps saving —
-what is chosen applies the day the reason goes away — but it is dimmed and
-`diluxone_users_not_now( $why, $url )` says why, above it, with the way out.
+A control that does not apply right now stays on the screen and keeps its
+saved answer — what is chosen applies the day the reason goes away — but it is
+dimmed, and may be drawn disabled, with its save keeping the answer a
+disabled control does not send, as "Which tab opens" and the lost-password
+choices are. `diluxone_users_not_now( $why, $url )` says why, above it, with the way
+out, under a "Not in use now" pill (the `notnow` state): not "Pending", since
+nothing there is a task left to do.
 
 A group that has no answer until another one is given — what becomes of
 wp-login.php while no sign-in page is chosen, who the second step reaches
@@ -322,8 +330,9 @@ only while the box is drawn, so an add-on that is off never has its setting
 turned off by somebody saving the tab. On a network a box whose setting is
 not editable from the hub is drawn as it stands, and switched where the
 add-on's own tab is (in Network Admin). `diluxone_users_doors` (filter)
-receives Access › Summary's rows before how an account is made; an add-on
-adds its way in there, as a summary row.
+receives Access › Summary's rows; an add-on adds its way in there, as a
+summary row. How an account is made is Registration › Summary's, not one of
+these rows.
 
 ### Doors on a network
 
@@ -644,6 +653,12 @@ behaves like the plugin's own doors:
   `diluxone_users_complete_login( $user_id, $via, $remember, $redirect )`,
   which also asks for the second step unless the way is `strong`.
 - `diluxone_users_login_redirect` (filter) — where they go next.
+  When the sign-in page was opened with a `redirect_to` that stays on the
+  site (or the network, through `allowed_redirect_hosts`), that address is
+  the value this filter receives, in place of the home page: the password
+  form passes it as is, and the e-mail link keeps it on the server with its
+  token. A filter still decides, as on a network, where the hub sends the
+  person back to the site they came from.
 - `diluxone_users_notify_security( $user_id, $event )` — the e-mail that tells
   somebody their security changed; `$event` is a callable that returns the
   sentence, called in their language.
@@ -1225,6 +1240,18 @@ optional and read with a default, so a copy made before it keeps working:
 `templates/fields.php` takes `redirect` (where its save goes on to) and
 `skip` (a "Skip for now" link), both used by the step that asks for the
 required fields missing after a sign-in.
+`templates/fields.php` draws its fields with `templates/fields-list.php`
+(`user_id`, `fields`, and `refused`, the message under each phone the form
+came back for), and so does the "Your details" tab
+(`templates/account/details.php`): one fields form, the same action, nonce
+and save as `[diluxone_users_fields]` with no group, holding a
+`diluxone-users-panel` per block that has active fields, under the titles
+`diluxone_users_field_blocks()` gives ("About you" for main, "A bit more about
+you" for extra), each ending in a Save button that sends the whole form.
+The tab no longer goes through `templates/fields.php`, so a theme's copy of
+that file stops applying there: to change how the fields look everywhere,
+copy `templates/fields-list.php`; to change the tab's boxes, copy
+`templates/account/details.php`.
 `templates/login.php` has a `social-pending` state, the holding screen of a
 social sign-in waiting on its address: `$args['email']` is then that address
 already masked (`a•••@e•••.com`), and the form posts `diluxone_users_sso_resend`
@@ -1403,7 +1430,9 @@ the control it would be, switched off: the radio or the tick box among the
 real answers, the button where the real one goes, the network's card beside
 Google and Microsoft, the shape in the row of shapes, the row of the summary.
 Each carries the "Pro" badge, a line about what it adds and one "Learn about
-Users+ Pro" link to diluxone.com, the same on every screen. Nothing in it has
+Users+ Pro" link to the plugin's page on diluxone.com in the admin's language
+(the Spanish page for any `es_*` locale, the English one for every other), the
+same on every screen. Nothing in it has
 a name, so nothing posts it; being disabled, a keyboard passes over it and a
 screen reader announces it as unavailable, and the link is what the keyboard
 lands on. Only administrators see them, only on the plugin's screens, never

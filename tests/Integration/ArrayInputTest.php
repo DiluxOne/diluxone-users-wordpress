@@ -129,7 +129,7 @@ class ArrayInputTest extends IntegrationTestCase {
 			'the sign-in page'                 => array( 'diluxone_users_login_page_save', 'diluxone-users-login', 'diluxone_users_login_page', 0, array() ),
 			'the life of a link'               => array( 'diluxone_users_login_ways_save', 'diluxone-users-login', 'diluxone_users_login_expiry', 15, array( 'diluxone_users_login_method' => array( 'link', 'password' ) ) ),
 			'the wait between links'           => array( 'diluxone_users_login_ways_save', 'diluxone-users-login', 'diluxone_users_login_throttle', 60, array( 'diluxone_users_login_method' => array( 'link', 'password' ) ) ),
-			'the registration page'            => array( 'diluxone_users_screen_register_save', 'diluxone-users-login', 'diluxone_users_register_page', 0, array() ),
+			'the registration page'            => array( 'diluxone_users_screen_register_save', 'diluxone-users-register', 'diluxone_users_register_page', 0, array() ),
 			'the account page'                 => array( 'diluxone_users_account_page_save', 'diluxone-users-account', 'diluxone_users_account_page', 0, array() ),
 			'the shortest public name'         => array( 'diluxone_users_account_handle_save', 'diluxone-users-account', 'diluxone_users_handle_min', 3, array() ),
 			'the longest public name'          => array( 'diluxone_users_account_handle_save', 'diluxone-users-account', 'diluxone_users_handle_max', 30, array() ),

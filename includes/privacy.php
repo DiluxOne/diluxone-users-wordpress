@@ -431,6 +431,7 @@ function diluxone_users_privacy_keys( int $user_id ): array {
 		'diluxone_users_backup_codes',
 		'_diluxone_users_link_hash',
 		'_diluxone_users_link_expires',
+		'_diluxone_users_link_return',
 	);
 
 	foreach ( diluxone_users_fields( '', false ) as $field ) {

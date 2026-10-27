@@ -293,9 +293,10 @@ function diluxone_users_panel_usage(): void {
  * the sessions — lives on the Access screen, and it used to be repeated here
  * with a different rule for what counts as ready, which is how the two came
  * to disagree. This is the short version: the page, the method, the mail that
- * the method depends on, and one line that says whether any door is open at
- * all. The page row and the mail row are the very same checks the maintenance
- * screen runs, so they cannot say something different here — the page row used
+ * the method depends on, one line that says whether any door is open at all,
+ * and one that says whether anybody can register. The page row and the mail
+ * row are the very same checks the maintenance screen runs, so they cannot
+ * say something different here — the page row used
  * to be written out again, and did: it called a page nobody had chosen "off",
  * where the check calls it pending, and it could not tell that apart from a
  * page that was chosen and then left as a draft.
@@ -313,7 +314,7 @@ function diluxone_users_panel_doors(): void {
 
 	$doors = diluxone_users_check_ways_in();
 
-	diluxone_users_intro( __( 'The short version: the page, what the form takes, whether the e-mail this site depends on is going out, and whether any door is open at all.', 'diluxone-users' ) );
+	diluxone_users_intro( __( 'The short version: the page, what the form takes, whether the e-mail this site depends on is going out, whether any door is open at all, and whether anybody can register.', 'diluxone-users' ) );
 
 	diluxone_users_summary_table(
 		array(
@@ -341,6 +342,12 @@ function diluxone_users_panel_doors(): void {
 				'detail' => $doors['detail'],
 				'url'    => $access,
 				'change' => __( 'Access › Summary →', 'diluxone-users' ),
+			),
+			// Signing in and getting an account are two questions with two
+			// screens, and two rows: the same reading Registration's rail says.
+			array_merge(
+				diluxone_users_register_state(),
+				array( 'change' => __( 'Registration › Summary →', 'diluxone-users' ) )
 			),
 		)
 	);

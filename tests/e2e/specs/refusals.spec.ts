@@ -887,7 +887,7 @@ const PANELS: PanelRow[] = [
 		change: { diluxone_users_login_layout: 'tabs' },
 		options: ['diluxone_users_login_layout', 'diluxone_users_login_order'],
 	},
-	{ screen: 'diluxone-users-login', tab: 'register', change: { diluxone_users_register_form: '1' }, options: ['diluxone_users_register_form', 'diluxone_users_login_register'] },
+	{ screen: 'diluxone-users-register', tab: 'who', change: { diluxone_users_register_form: '1' }, options: ['diluxone_users_register_form', 'diluxone_users_login_register'] },
 	{ screen: 'diluxone-users-login', tab: 'messages', change: { 'diluxone_users_message[login_error]': 'Hacked' }, options: ['diluxone_users_login_messages'] },
 	{ screen: 'diluxone-users-security', tab: '2fa', change: { diluxone_users_2fa_mode: 'off' }, options: ['diluxone_users_2fa_mode', 'diluxone_users_2fa_methods'] },
 	{ screen: 'diluxone-users-security', tab: 'sessions', change: { diluxone_users_session_long_days: '99' }, options: ['diluxone_users_session_long_days', 'diluxone_users_sessions_show'] },

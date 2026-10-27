@@ -105,6 +105,7 @@ everybody, with the code by e-mail, and skips it for nobody.
 | Menu reaches every section, current tab marked | `account-area` › the menu reaches every section |
 | Your data / Linked accounts exist only while offered | `account-area` › The account page itself |
 | Details: fields saved, display name rebuilt, `missing` from the server | `account-area` › Your details |
+| Details: each block with fields in its own titled box (main, extra), in one form | `repro/issue-166` › each block with fields is drawn in its own box…; integration `AccountDetailsBlocksTest` |
 | Photo: upload, drawn, removed with its attachment, not-a-picture refused | `account-area` › Your photo |
 | Public name: saved, reserved refused | `account-area` › The public name |
 | Notifications: new device announced (link), switch off, rule `always` hides the switch | `account-area` › Notifications |
@@ -159,6 +160,8 @@ everybody, with the code by e-mail, and skips it for nobody.
 | The phone grouped as it is typed (AR `11 2345 6789`), the caret kept, saved as `+541123456789`; a trunk prefix typed out of habit shown apart and not saved | `phone-field` › The number as it is typed and saved |
 | The phone grouped by its area code (AR `221 412 3456`, not `22 1412 3456`); a mobile typed with its 15 (`0 11 15 4123 4567`) accepted, saved as `+5491141234567` and drawn back `9 11 4123 4567` | `phone-field` › The number as it is typed and saved |
 | A phone too short or too long: the server refuses the whole form (`diluxone-users=phone`), the error under the number with `aria-invalid`, nothing saved; the browser stops it first with the same words; on the registration form no account is made | `phone-field` › A number the wrong length for its country |
+| The phone written with `+` and its dialling code, pasted or typed: the longest code that matches picks the country (`+54 9 11 4123 4567` → AR, `9 11 4123 4567` left in the box; `+56` typed with AR picked → CL) | `repro/issue-168` |
+| The phone written with `00` in place of the `+` reads the same (`0054 9 11 4123 4567` → AR, `9 11 4123 4567` left in the box); a Chilean mobile grouped as Chile writes it (`9 6123 4567`) | `repro/issue-193` |
 | A saved phone shown grouped with its country picked | `phone-field` › A saved number |
 | The phone with JavaScript off: the native list in the same box, a short number refused by the server with the error under it, a good one saved joined and drawn back grouped | `phone-field` › With JavaScript off |
 | Forged closed-list, country, address, impossible date and infinite number not stored | `my-account-details` › a value off a closed list… |
@@ -222,8 +225,8 @@ everybody, with the code by e-mail, and skips it for nobody.
 | The same public pages and the dashboard's phone-layout screens at 390px | `front-snapshots`, `admin-mobile-snapshots` (`visual-mobile`, `make test-visual`) |
 | What the pictures are drawn from: every setting they show and the ten example people, pinned before each | `support/visual-state.ts` |
 | The public pages measured at 640, 560, 480 and 390 as well (sign-in stacked and in tabs, registration, account to a stranger, every section on both menus) | `admin-layout` › The public pages hold together |
-| Access › Ways in / Registration / Messages / Arrangement saves | `admin-settings`, `login-ways`, `login-screen` |
-| A fresh install: Not configured on every summary row (overview, Access, Security, account area, notices) with what WordPress does meanwhile; Ways in ticks nothing and says the form is WordPress's; the sign-in page's two groups, the second step's methods and link rule and "for whom" wait for their answer (disabled, nothing chosen, no pending pill), go the moment it is given on the tab and come back if it is taken away; a save leaves a waiting group's setting alone; a tab saved at its defaults reads as decided; sessions at 0 and 0: WordPress decides, Off once saved so | `admin-fresh-install` · integration: `NotConfiguredTest`; unit: `OptionIsSetTest` |
+| Access › Ways in / Messages / Arrangement and Registration › Who can register saves | `admin-settings`, `login-ways`, `login-screen` |
+| A fresh install: Not configured on every summary row (overview, Access, Registration — WordPress's own form aside, always decided —, Security, account area, notices) with what WordPress does meanwhile; Ways in ticks nothing and says the form is WordPress's; the sign-in page's two groups, the second step's methods and link rule and "for whom" wait for their answer (disabled, nothing chosen, no pending pill), go the moment it is given on the tab and come back if it is taken away; a save leaves a waiting group's setting alone; a tab saved at its defaults reads as decided; sessions at 0 and 0: WordPress decides, Off once saved so | `admin-fresh-install` · integration: `NotConfiguredTest`; unit: `OptionIsSetTest` |
 | Every tab that saves has its button in the box beside it, first in the column, in view | `admin-layout` › Every tab saves from beside itself |
 | The save box: changed back is clean, discard, leaving asks | `admin-settings` › The box that saves |
 | The tabs on a phone stay in one row | `admin-settings` › The tabs on a phone |
@@ -266,14 +269,19 @@ everybody, with the code by e-mail, and skips it for nobody.
 | E-mail notices: subject per language, put back, the mail follows; summary reads rules and the link's delivery | `admin-framework-more` › E-mail notices: the languages and the summary |
 | Overview: cards (accounts, sessions, fields, social), the 15-minute cache, card links | `admin-overview` › the cards |
 | Overview: first steps (button only on the first undone, gone when done) | `admin-overview` › first steps |
-| Overview: usage "N of M (x%)" and bar width; doors panel (method, mail failing, all doors); asked panel (active fields, none); rail links | `admin-overview` › what your people use; how your people get in; what is asked of them |
-| Access › Summary: six rows by pill and link for three door shapes; no Save; emergency URL and WP-CLI line | `admin-access-summary` |
-| Access › The sign-in page: page selector (and None), `auto`, hand-sent `wp` without a password stored as `auto`, lost password `wp`/`site`/`link` through the tab, not-now notes and the wp-login look note; with “A page of its own”, "No page" and the address field waiting for it, a refused address writing nothing; with “In the page” and “A centred card”, no address field and the save as before | `admin-access-page` › Access › The sign-in page, … with “A page of its own”, … with “In the page”, … with “A centred card” |
+| Overview: usage "N of M (x%)" and bar width; doors panel (method, mail failing, all doors, and registration as a row of its own linking to Registration); asked panel (active fields, none); rail links | `admin-overview` › what your people use; how your people get in (signing in and registration are two rows…); what is asked of them. Integration: `RegistrationScreenTest` |
+| Access › Summary: five rows by pill and link for three door shapes, none of them registration; no Save; emergency URL and WP-CLI line | `admin-access-summary` |
+| Registration › Summary: with registration open by the e-mail link, one row per door and the role given, no row of signing in, a “Right now” rail saying only whether registration is open and through which doors; no Save | `admin-access-summary` › with registration open by the e-mail link…. Integration: `RegistrationScreenTest` |
+| Access › The sign-in page: page selector (and None), `auto`, hand-sent `wp` without a password stored as `auto`, lost password `wp`/`site`/`link` through the tab, not-now notes and the wp-login look note; with “A page of its own”, a page chosen showing its address as a link and no address field, "No page" showing the address field, the drop-down switching the two with no reload (another page not yet saved: "Once saved"), a refused address writing nothing; with “In the page” and “A centred card”, no address field and the save as before | `admin-access-page` › Access › The sign-in page, … with “A page of its own”, … with “In the page”, … with “A centred card” · `network/admin-access` › The hub’s Access › The sign-in page, with “A page of its own”. Integration: `CoverSettingsAccessTest` |
+| Access › The sign-in page with the e-mail link as the only way in and a page chosen: the three lost-password choices (`wp`, `site`, `link`) drawn disabled, waiting for a password | `repro/issue-165` |
+| A section of Access that does not apply now wears “Not in use now”, never “Pending”; Arrangement › “Which tab opens” drawn disabled while the ways in are stacked | `repro/issue-192` |
 | Create the page: the sign-in page; the account page's sections answer at once; an unknown page role is refused | `admin-access-page` › Create the page |
 | Access › Ways in: neither box refused (browser and server); throttle; public-name sign-in on/off; handles-off note; password off drops the second screen; a setting pinned from code; the Users+ Pro card after the real ways in (`login/ways/more`) | `admin-access-ways` |
-| Access › Arrangement: `tabs`, `auto` threshold, first tab, junk posted by hand, real drag saves on drop, live preview | `admin-access-arrangement` |
-| Access › Registration: nobody registers with every door unticked (all doors shut, public effects); social door through the tab; WordPress's own form ↔ `users_can_register`; locked while link-only (Settings › General notice); door notes and rail; the at-least-one sentence | `admin-access-register` |
-| Access › Messages: one wording per language, leaving with an edit asks, an emptied box is the plugin's words, the rail count | `admin-access-messages` |
+| Access › Arrangement: `tabs`, `auto` threshold, first tab (disabled while stacked, enabled live by “tabs”, kept by a save made stacked), junk posted by hand, real drag saves on drop, live preview | `admin-access-arrangement` |
+| Registration in the menu: right above Access, its three tabs; the old address `page=diluxone-users-login&tab=register` lands on Registration › Who can register, Design › Registration stays on Design | `admin-register` › Registration in the menu. Integration: `RegistrationScreenTest` |
+| Registration › Who can register: nobody registers with every door unticked (all doors shut, public effects); social door through the tab; WordPress's own form ↔ `users_can_register`; locked while link-only (Settings › General notice, linking here); door notes and rail; the at-least-one sentence | `admin-register` › Registration › Who can register. Integration: `CoverSignInRegisterTest`, `CoverSettingsAccessTest` |
+| Registration › Messages: the seven registration messages and no other, a rewrite saved behind the screen's own nonce | `admin-register` › Registration › Messages. Integration: `LoginMessagesTest` |
+| Access › Messages: one wording per language, leaving with an edit asks, an emptied box is the plugin's words, the rail count; no Registration tab and no registration message, and its save leaves Registration's sentences alone | `admin-access-messages`. Integration: `LoginMessagesTest`, `CoverSettingsAccessTest` |
 | Security › 2FA the e-mail method ticked on the screen is the account's, the app is the Users+ Pro card; off with none saved — (a method that is off cannot be ticked back on) | `admin-security-twostep` › with what |
 | Security › 2FA: the e-mail link always asks the second step (a saved "work it out" or "never" is not read), said as a line; "Let it decide" a disabled Users+ Pro preview; rail and summary agree | `admin-security-twostep` › somebody who came by link · `signin-second-step` › the e-mail link asks · integration: `TwoFactorFlowTest`, `CoverSettingsSecurityTest`, `ProPreviewTest`; unit: `TwoFactorPolicyTest` |
 | Security › 2FA: the three Users+ Pro cards (roles, app, remember), nothing in them posts, no scope or days control | `admin-security-twostep` › Users+ Pro’s three cards |
@@ -362,7 +370,8 @@ everybody, with the code by e-mail, and skips it for nobody.
 | Copy asked for by a member of /alpha/ on the account area, handed over by the main site | `account-export` |
 | A site on a domain of its own: named on the network's Overview, warned on its own dashboard, its wp-login.php its own | `network-admin` › A site on a domain of its own |
 | Uninstall | not covered in a browser: deleting the plugin removes the code the suite runs against. Integration: `UninstallNetworkTest` (network: ticked and not), `UninstallSiteTest` (single site, ticked and not) |
-| The hub's Access: every tab renders; refused on /alpha/ and /beta/; Ways in draws the network's doors locked with the notice; Registration shows WordPress's form as the network has it | `admin-access` › The hub’s Access |
+| The hub's Access: every tab renders; refused on /alpha/ and /beta/; Ways in draws the network's doors locked with the notice; Registration › Who can register shows WordPress's form as the network has it | `admin-access` › The hub’s Access |
+| Registration on a network: on the hub right above Access with its three tabs, in neither Network Admin nor another site; the old address asked for in Network Admin lands on the hub's | `network-admin` › Registration is on the hub, right above Access…. Integration: `CoverAdminNetworkTest`; unit: `NetworkPlacesTest` |
 | "Nobody can register" saved on the hub shuts the doors /alpha/ and /beta/ lead to | `admin-access` › “nobody can register”, saved on the hub… |
 | The sign-in page and the wp-login.php answers chosen on the hub are what /beta/ gets | `admin-access` › the sign-in page chosen on the hub… |
 | Create the page on the hub; refused on another site | `admin-access` › Create the page, on a network |
@@ -688,6 +697,7 @@ its row, and its spec, in the same pull request.
 | template | `templates/account/accounts.php` | `specs/sso` › linking from the account area… |
 | template | `templates/accounts.php` | `specs/account-pieces` › the social networks alone… |
 | template | `templates/fields.php` | `specs/account-pieces` › the fields alone… |
+| template | `templates/fields-list.php` | `specs/account-area` › Your details; `specs/account-pieces` › the fields alone… |
 | template | `templates/sessions.php` | `specs/account-pieces` › the sessions alone… |
 
 ## Not coverable in a browser
