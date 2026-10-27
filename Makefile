@@ -439,8 +439,10 @@ PCP_STRICT_CATEGORIES := plugin_repo,security,performance,accessibility,general
 
 .PHONY: plugin-check-strict
 plugin-check-strict: pcp-env ## Plugin Check as the pull request runs it: strict, a warning fails.
-	@cd "$(PCP_DIR)" && out=$$(npx @wordpress/env run cli wp plugin check diluxone-users --format=csv --fields=type,code,file,line,message --categories=$(PCP_STRICT_CATEGORIES) --include-experimental --ignore-codes=stable_tag_mismatch 2>/dev/null | grep -E '^(ERROR|WARNING),'); \
+	@cd "$(PCP_DIR)" && res=$$(npx @wordpress/env run cli wp plugin check diluxone-users --format=csv --fields=type,code,file,line,message --categories=$(PCP_STRICT_CATEGORIES) --include-experimental --ignore-codes=stable_tag_mismatch 2>&1); \
+	  out=$$(echo "$$res" | grep -E '^(ERROR|WARNING),'); \
 	  if [ -n "$$out" ]; then echo "$$out"; echo "✗ Plugin Check (strict): $$(echo "$$out" | wc -l) finding(s)"; exit 1; fi; \
+	  if ! echo "$$res" | grep -q 'No errors found'; then echo "$$res" | tail -20; echo "✗ Plugin Check (strict) did not finish: no verdict, so no pass."; exit 1; fi; \
 	  echo "✔ Plugin Check (strict): nothing found."
 
 .PHONY: plugin-check-all
