@@ -644,6 +644,12 @@ behaves like the plugin's own doors:
   `diluxone_users_complete_login( $user_id, $via, $remember, $redirect )`,
   which also asks for the second step unless the way is `strong`.
 - `diluxone_users_login_redirect` (filter) — where they go next.
+  When the sign-in page was opened with a `redirect_to` that stays on the
+  site (or the network, through `allowed_redirect_hosts`), that address is
+  the value this filter receives, in place of the home page: the password
+  form passes it as is, and the e-mail link keeps it on the server with its
+  token. A filter still decides, as on a network, where the hub sends the
+  person back to the site they came from.
 - `diluxone_users_notify_security( $user_id, $event )` — the e-mail that tells
   somebody their security changed; `$event` is a callable that returns the
   sentence, called in their language.
