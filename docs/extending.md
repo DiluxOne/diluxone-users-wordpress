@@ -1388,6 +1388,7 @@ The hooks above are the way in; these are the functions an add-on calls once it 
 | --- | --- |
 | `diluxone_users_scope( string $prefix ): string` | `all` or `some`, for a `{prefix}_scope` / `{prefix}_roles` pair. |
 | `diluxone_users_scope_includes( int $user_id, string $prefix ): bool` | Whether that person is in it, by any of their roles (on a network, on any of their sites). |
+| `diluxone_users_scope_roles_of( int $user_id, string $prefix ): array` | Every role the person holds that the pair asks about: on a network, for a pair whose `{prefix}_roles` is the network's, every role on all their sites; otherwise their roles on this site. A super admin counts as `administrator`. For a rule that refuses when any one of them is outside the list, which `diluxone_users_scope_includes()` (one is enough) does not answer. |
 
 **Signing in and the second step**
 
