@@ -316,6 +316,18 @@ function diluxone_users_token_burn( int $user_id ): bool {
 	return $burned;
 }
 
+/**
+ * The address the sign-in page was opened for: its `redirect_to`, when it
+ * stays on the site (or the network, through `allowed_redirect_hosts`), and
+ * `''` otherwise.
+ */
+function diluxone_users_login_asked_redirect(): string {
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- a read-only display read of the page's own address: it only fills a form field, and the address is cleaned and kept to the site's hosts.
+	$url = isset( $_GET['redirect_to'] ) && is_string( $_GET['redirect_to'] ) ? esc_url_raw( wp_unslash( $_GET['redirect_to'] ) ) : '';
+
+	return '' !== $url ? (string) wp_validate_redirect( $url, '' ) : '';
+}
+
 /** URL of the sign-in link. */
 function diluxone_users_login_link( int $user_id, string $token ): string {
 	return add_query_arg(

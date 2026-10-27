@@ -579,9 +579,13 @@ function diluxone_users_way_social(): void {
 
 /** The address, and the link that goes to it. */
 function diluxone_users_way_email(): void {
+	$asked = diluxone_users_login_asked_redirect();
 	?>
 	<form class="diluxone-users-form" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 		<input type="hidden" name="action" value="diluxone_users_link_request">
+		<?php if ( '' !== $asked ) : ?>
+			<input type="hidden" name="redirect_to" value="<?php echo esc_attr( $asked ); ?>">
+		<?php endif; ?>
 		<?php wp_nonce_field( 'diluxone_users_login', 'diluxone_users_nonce' ); ?>
 
 		<?php if ( diluxone_users_handle_login_on() ) : ?>
@@ -613,9 +617,11 @@ function diluxone_users_way_password(): void {
 	// WordPress's own form, not one of ours: it already brings the "remember
 	// me", the redirect and the nonce, and it is the part that least needs
 	// touching.
+	$asked = diluxone_users_login_asked_redirect();
+
 	wp_login_form(
 		array(
-			'redirect'       => (string) apply_filters( 'diluxone_users_login_redirect', home_url( '/' ), 0 ),
+			'redirect'       => '' !== $asked ? $asked : (string) apply_filters( 'diluxone_users_login_redirect', home_url( '/' ), 0 ),
 			'label_username' => __( 'Email or username', 'diluxone-users' ),
 			'label_password' => __( 'Password', 'diluxone-users' ),
 			'label_log_in'   => __( 'Sign in', 'diluxone-users' ),
