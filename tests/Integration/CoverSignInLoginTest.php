@@ -25,12 +25,15 @@ class CoverSignInLoginTest extends IntegrationTestCase {
 	}
 
 	/** Asks for a link as this text, signed out, with the form's nonce, and returns where it went. */
-	private function ask( string $typed ): string {
+	private function ask( string $typed, string $back = '' ): string {
 		$this->postAs(
 			0,
-			array(
-				'diluxone_users_nonce' => wp_create_nonce( 'diluxone_users_login' ),
-				'diluxone_users_email' => $typed,
+			array_filter(
+				array(
+					'diluxone_users_nonce' => wp_create_nonce( 'diluxone_users_login' ),
+					'diluxone_users_email' => $typed,
+					'redirect_to'          => $back,
+				)
 			)
 		);
 
@@ -166,6 +169,39 @@ class CoverSignInLoginTest extends IntegrationTestCase {
 		$again = $this->expectRedirect( 'diluxone_users_login_consume' );
 		$this->assertSame( 'expired', $this->redirectState( $again ) );
 		$this->assertSame( 0, get_current_user_id() );
+	}
+
+	/** #191: the address the sign-in page was opened for is where the link lands. */
+	public function test_the_link_lands_where_the_sign_in_page_was_opened_for(): void {
+		$user   = $this->make_user();
+		$wanted = home_url( '/perfil/datos/' );
+
+		$this->ask( get_userdata( $user )->user_email, $wanted );
+		preg_match( '/diluxone_users_token=([A-Za-z0-9]+)/', (string) self::$mail[0]['message'], $m );
+		$this->assertStringNotContainsString( 'perfil', (string) self::$mail[0]['message'], 'the link does not say where it lands' );
+
+		$_GET = array(
+			'diluxone_users_login' => (string) $user,
+			'diluxone_users_token' => $m[1],
+		);
+
+		$this->assertSame( $wanted, $this->expectRedirect( 'diluxone_users_login_consume' ) );
+		$this->assertSame( '', (string) get_user_meta( $user, DILUXONE_USERS_META_RETURN, true ), 'and it is spent with the token' );
+	}
+
+	/** #191: an address off the site is never where the link lands. */
+	public function test_the_link_never_lands_off_the_site(): void {
+		$user = $this->make_user();
+
+		$this->ask( get_userdata( $user )->user_email, 'https://example.org/elsewhere/' );
+		preg_match( '/diluxone_users_token=([A-Za-z0-9]+)/', (string) self::$mail[0]['message'], $m );
+
+		$_GET = array(
+			'diluxone_users_login' => (string) $user,
+			'diluxone_users_token' => $m[1],
+		);
+
+		$this->assertSame( home_url( '/' ), $this->expectRedirect( 'diluxone_users_login_consume' ) );
 	}
 
 	/* ── The link's refusals ─────────────────────────────────────────── */

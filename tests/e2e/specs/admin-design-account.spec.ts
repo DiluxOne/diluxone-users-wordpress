@@ -107,7 +107,7 @@ test.describe('Design › The account area', () => {
 		await expect(card.locator('input[type="radio"]'), 'nothing to pick').toBeDisabled();
 		await expect(card.locator('[name]'), 'nothing posts').toHaveCount(0);
 		await expect(card.locator('.diluxone-users-state--pro'), 'the badge').toHaveCount(1);
-		await expect(card.locator('a')).toHaveAttribute('href', /diluxone\.com\/users-pro\/.*utm_medium=design/);
+		await expect(card.locator('a')).toHaveAttribute('href', /diluxone\.com\/wordpress-plugins\/users\/.*utm_medium=design/);
 		await expect(page.locator('[name="diluxone_users_account_cover"], [name="diluxone_users_account_cover_kind"]'), 'nothing of the cover is a control here').toHaveCount(0);
 
 		await options.set({ diluxone_users_pro_previews: 0 });

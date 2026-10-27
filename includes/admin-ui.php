@@ -2034,6 +2034,9 @@ function diluxone_users_pro_shown( string $where ): bool {
 /**
  * Where "Learn about Users+ Pro" goes, saying which screen it came from.
  *
+ * The link follows the admin's locale: the plugin's Spanish page on
+ * diluxone.com for any `es_*` locale, its English page for every other.
+ *
  * @param string $screen The screen the link is on: it becomes the campaign's medium.
  */
 function diluxone_users_pro_url( string $screen ): string {
@@ -2043,7 +2046,9 @@ function diluxone_users_pro_url( string $screen ): string {
 			'utm_medium'   => sanitize_key( $screen ),
 			'utm_campaign' => 'free',
 		),
-		'https://diluxone.com/users-pro/'
+		0 === strpos( get_user_locale(), 'es_' )
+			? 'https://diluxone.com/es/wordpress/users/'
+			: 'https://diluxone.com/wordpress-plugins/users/'
 	);
 }
 

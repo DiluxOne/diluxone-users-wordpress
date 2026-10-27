@@ -77,7 +77,7 @@ everybody, with the code by e-mail, and skips it for nobody.
 | Social linking: `taken`, `linked` + security mails on link/unlink, unlink without its nonce | `signin-social` › Linking from the account, off the plain path |
 | Social then 2FA; new device after social | `signin-social` › What a social sign-in sets off |
 | Social, an address the provider does not confirm with “Only verified addresses” on: nothing yet, the mail, the holding screen with the masked address; the link opened in the browser that waits (new account, existing account), and in another browser expired with nothing made; the link expired; the setting off as before; “Send it again” past the wait, only the newest link works; “Use another address” | `sso-pending` |
-| Required fields missing after a sign-in: a new account by link lands on the account page with only the required field, its save goes on to `redirect_to`; a social account with no name lands there too; an account with every field filled goes straight on; skipped, the site is open and the next sign-in asks again; the step drawn in the account area's frame, as wide as its reading width, with its title before its line | `missing-fields` › After signing in, the required fields missing; `repro/issue-139` |
+| Required fields missing after a sign-in: a new account by link lands on the account page with only the required field, its save goes on to `redirect_to`; a social account with no name lands there too; an account with every field filled goes straight on; skipped, the site is open and the next sign-in asks again; the step drawn in the account area's frame, as wide as its reading width, with its title before its line; "Skip for now" starting at the Save button's left edge | `missing-fields` › After signing in, the required fields missing; `repro/issue-139`; `repro/issue-171` |
 | …turned off on User fields › After sign-in; the box switched off and saying why while no field is required | `missing-fields` › After signing in, turned off on User fields |
 | Social button skin/shape/contents/rows/words on the real page | `signin-social` › The buttons on the real page |
 | Icon-only social buttons on the card: one row, centred on the card like the logo | `repro/issue-70` |
@@ -105,6 +105,7 @@ everybody, with the code by e-mail, and skips it for nobody.
 | Menu reaches every section, current tab marked | `account-area` › the menu reaches every section |
 | Your data / Linked accounts exist only while offered | `account-area` › The account page itself |
 | Details: fields saved, display name rebuilt, `missing` from the server | `account-area` › Your details |
+| Details: each block with fields in its own titled box (main, extra), in one form | `repro/issue-166` › each block with fields is drawn in its own box…; integration `AccountDetailsBlocksTest` |
 | Photo: upload, drawn, removed with its attachment, not-a-picture refused | `account-area` › Your photo |
 | Public name: saved, reserved refused | `account-area` › The public name |
 | Notifications: new device announced (link), switch off, rule `always` hides the switch | `account-area` › Notifications |
@@ -688,6 +689,7 @@ its row, and its spec, in the same pull request.
 | template | `templates/account/accounts.php` | `specs/sso` › linking from the account area… |
 | template | `templates/accounts.php` | `specs/account-pieces` › the social networks alone… |
 | template | `templates/fields.php` | `specs/account-pieces` › the fields alone… |
+| template | `templates/fields-list.php` | `specs/account-area` › Your details; `specs/account-pieces` › the fields alone… |
 | template | `templates/sessions.php` | `specs/account-pieces` › the sessions alone… |
 
 ## Not coverable in a browser

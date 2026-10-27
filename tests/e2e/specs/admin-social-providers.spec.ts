@@ -80,7 +80,7 @@ test.describe('Social login › a provider’s own screen', () => {
 			await expect(one.locator('h3'), `${network}: its name`).not.toBeEmpty();
 			await expect(one.locator('.diluxone-users-state--pro'), `${network}: the badge`).toHaveCount(1);
 			await expect(one.locator('a'), `${network}: the one way out`).toHaveCount(1);
-			await expect(one.locator('a')).toHaveAttribute('href', /diluxone\.com\/users-pro\/.*utm_medium=social/);
+			await expect(one.locator('a')).toHaveAttribute('href', /diluxone\.com\/wordpress-plugins\/users\/.*utm_medium=social/);
 			await expect(one, `${network}: nothing to get started with`).not.toContainText('Get started');
 			await expect(one.locator('input, select, textarea, button'), `${network}: nothing in it is a control`).toHaveCount(0);
 		}

@@ -716,7 +716,7 @@ function diluxone_users_screen_status_checks(): void {
 
 	echo '<p class="description">';
 
-	$diluxone_users_files = array( 'account.php', 'account-nav.php', 'account/*.php', 'login.php', 'login-2fa.php', 'fields.php', 'accounts.php', 'sessions.php' );
+	$diluxone_users_files = array( 'account.php', 'account-nav.php', 'account/*.php', 'login.php', 'login-2fa.php', 'fields.php', 'fields-list.php', 'accounts.php', 'sessions.php' );
 
 	echo wp_kses_post( '<code>' . implode( '</code> · <code>', $diluxone_users_files ) . '</code>' );
 
