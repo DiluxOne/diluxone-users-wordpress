@@ -76,6 +76,10 @@ suppressions:
     sniff: WordPress.Security.NonceVerification.Recommended
     fingerprint: 902d26558f6c
     reason: "A preview link carries no nonce of its own: the random key in it is the credential, made by a request that verified its nonce and capability, stored against this administrator's user id and valid for one minute. It is honoured only for that same signed-in administrator with manage_options, it only changes what this one request draws, and nothing is written."
+  - file: includes/admin-register.php
+    sniff: WordPress.Security.NonceVerification.Recommended
+    fingerprint: d354090d5312
+    reason: "Two GET parameters of an old bookmark (page=diluxone-users-login&tab=register), read only on a GET by somebody with the screen's capability, sanitised and compared with two fixed strings to send the browser to the screen the tab became; the target is built by diluxone_users_admin_url(), nothing from the request travels on, and nothing is written, so there is no request to forge."
   - file: includes/admin-sessions.php
     sniff: WordPress.Security.NonceVerification.Recommended
     fingerprint: 7c173b25eb21
