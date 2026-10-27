@@ -278,6 +278,17 @@ test.describe('Access › The sign-in page, with “A page of its own”', () =>
 		}
 	});
 
+	test('C2: with “No page” the address field is shown and editable, and no page’s address', async ({ page, options }) => {
+		await options.set({ diluxone_users_login_page: 0 });
+		await page.goto(accessTab('page'));
+
+		await expect(slug(page)).toBeVisible();
+		await expect(slug(page)).toBeEditable();
+		await expect(slug(page)).toHaveValue('sign-in');
+		await expect(address(page).locator('a code')).toHaveCount(0);
+		await expect(address(page).getByText(UNSAVED)).toBeHidden();
+	});
+
 	test('C3: an address a page already has is refused, naming the page, and nothing is written', async ({ page, site }) => {
 		const plain = await site.page('signin-taken', '<p>Taken.</p>');
 		const taken = new URL(plain.url).pathname.replace(/^\/|\/$/g, '');

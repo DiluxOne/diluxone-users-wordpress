@@ -269,6 +269,21 @@ class CoverSettingsAccessTest extends IntegrationTestCase {
 		}
 	}
 
+	public function test_c2_no_page_shows_the_slug_field_enabled(): void {
+		$this->the_admin();
+		diluxone_users_update_option( 'diluxone_users_login_template', 'own' );
+		diluxone_users_update_option( 'diluxone_users_login_page', 0 );
+		diluxone_users_update_option( 'diluxone_users_login_slug', 'entrar' );
+
+		$html = $this->screen( 'page' );
+		$slug = $this->address_block( $html, 'is', '0' );
+
+		$this->assertStringNotContainsString( 'is-waiting', $slug, 'the slug field is not waiting' );
+		$this->assertStringContainsString( '<input type="text" id="diluxone_users_login_slug" name="diluxone_users_login_slug" class="regular-text code" value="entrar" required>', $slug, 'and it is editable' );
+		$this->assertStringContainsString( 'is-waiting', $this->address_block( $html, 'not', '0' ), 'the line for a page picked is hidden' );
+		$this->assertStringNotContainsString( 'It is the address of the page chosen above', $html, 'no page, no page address' );
+	}
+
 	public function test_c3_no_page_and_an_address_saved_is_where_the_page_of_its_own_is_drawn(): void {
 		$this->the_admin();
 		diluxone_users_update_option( 'diluxone_users_login_template', 'own' );
