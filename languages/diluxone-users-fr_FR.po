@@ -5298,12 +5298,12 @@ msgid "how they got in: a link, a password, a social account"
 msgstr "comment la personne est entrée : un lien, un mot de passe, un compte social"
 
 #. Author URI of the plugin
-msgid "https://diluxone.com/plugins-wordpress"
-msgstr "https://diluxone.com/plugins-wordpress"
+msgid "https://diluxone.com/wordpress-plugins/"
+msgstr "https://diluxone.com/wordpress-plugins/"
 
 #. Plugin URI of the plugin
-msgid "https://github.com/DiluxOne/diluxone-users-wordpress"
-msgstr "https://github.com/DiluxOne/diluxone-users-wordpress"
+msgid "https://diluxone.com/wordpress-plugins/users/"
+msgstr "https://diluxone.com/wordpress-plugins/users/"
 
 msgid "it has no page yet"
 msgstr "il n’a pas encore de page"

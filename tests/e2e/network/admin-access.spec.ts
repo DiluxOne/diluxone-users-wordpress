@@ -80,7 +80,7 @@ test.describe('The hub’s Access', () => {
 		const pro = page.locator('[data-diluxone-users-pro="login/ways/more"]');
 
 		await expect(pro).toHaveCount(1);
-		await expect(pro.locator('a')).toHaveAttribute('href', /diluxone\.com\/users-pro\/.*utm_medium=login/);
+		await expect(pro.locator('a')).toHaveAttribute('href', /diluxone\.com\/wordpress-plugins\/users\/.*utm_medium=login/);
 		await expect(pro.locator('input[type="checkbox"]'), 'the box it would be').toBeDisabled();
 		await expect(pro.locator('[name]'), 'nothing in it posts').toHaveCount(0);
 		await expect(control(page, 'diluxone_users_passkey_enabled'), 'no passkey box, drawn or switchable').toHaveCount(0);

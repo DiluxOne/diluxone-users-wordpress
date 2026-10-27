@@ -5246,11 +5246,11 @@ msgid "how they got in: a link, a password, a social account"
 msgstr ""
 
 #. Author URI of the plugin
-msgid "https://diluxone.com/plugins-wordpress"
+msgid "https://diluxone.com/wordpress-plugins/"
 msgstr ""
 
 #. Plugin URI of the plugin
-msgid "https://github.com/DiluxOne/diluxone-users-wordpress"
+msgid "https://diluxone.com/wordpress-plugins/users/"
 msgstr ""
 
 msgid "it has no page yet"
