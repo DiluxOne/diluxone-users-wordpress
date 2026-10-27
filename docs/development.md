@@ -44,6 +44,7 @@ When `make env` finishes, open <http://localhost:8892> and log in with `admin` /
 | `make test` / `make test-unit` | The unit suite, on the composer image's PHP (the newest). |
 | `make test-unit-min` | The unit suite on PHP 8.0, the oldest the plugin supports, as CI runs it: without the analysis tools, in a vendor of its own under `build/unit-min/`. |
 | `make check` | The fast gates: lint + stan + psalm + unit tests. |
+| `make pre-pr` | Everything the pull request and the merge queue run, one after the other, stopping at the first failure: the fast gates, the unit suite on PHP 8.0, the translations (complete and in the form that merges), the design system's stylelint on the CSS this branch changes, the review rules, Plugin Check, integration on a single site and on a network, and both end-to-end suites. It needs nothing started before it: it installs what a fresh clone lacks and starts and stops the wp-env sites. Run it last, before the pull request. |
 | `make test-integration` | The integration suite on a network, in the tests site's container. Run `make env-multisite` first. |
 | `make test-integration-single` | The same suite on a single site, in a throwaway `wp-env` under `build/integration-single/` (ports 8886/8887) that it starts itself. `make test-integration-single-down` stops it, `make test-integration-single-clean` destroys it. |
 | `make test-integration-all` | Both: `make env-multisite`, the network run, then the single-site run. What CI runs, and what to run before pushing. |

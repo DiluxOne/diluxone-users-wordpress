@@ -164,6 +164,7 @@ everybody, with the code by e-mail, and skips it for nobody.
 | The phone written with `+` and its dialling code, pasted or typed: the longest code that matches picks the country (`+54 9 11 4123 4567` → AR, `9 11 4123 4567` left in the box; `+56` typed with AR picked → CL) | `repro/issue-168` |
 | The phone written with `00` in place of the `+` reads the same (`0054 9 11 4123 4567` → AR, `9 11 4123 4567` left in the box); a Chilean mobile grouped as Chile writes it (`9 6123 4567`) | `repro/issue-193` |
 | A saved phone shown grouped with its country picked | `phone-field` › A saved number |
+| The phone on "Your details" no wider than the text fields beside it (the 34rem reading width) | `repro/issue-207` |
 | The phone with JavaScript off: the native list in the same box, a short number refused by the server with the error under it, a good one saved joined and drawn back grouped | `phone-field` › With JavaScript off |
 | Forged closed-list, country, address, impossible date and infinite number not stored | `my-account-details` › a value off a closed list… |
 | A ticked tick box cannot be unticked from the account | `my-account-details` › a tick box ticked can be unticked… |
@@ -267,6 +268,7 @@ everybody, with the code by e-mail, and skips it for nobody.
 | Dark mode with the theme's colours and the ground "The theme's": the area on the page's own ground, every heading at 4.5:1, measured again when the system or the theme's class switches, each scheme opening with its own kept colours (single site and the hub) | `account-dark-mode` › the ground “The theme’s”; network `account-dark-mode` |
 | Dark mode with the theme's colours and a shade of the palette: the shade turns with the system's scheme and the theme's class, the area's text and every heading at 4.5:1 on it (each shade on a single site, Sky on the hub) | `account-dark-mode` › a shade of the palette; network `account-dark-mode` |
 | Dark mode with the theme's colours, on a theme whose button keeps a mid-dark ground and whose links turn light: the home cards' links, in the accent, keep 4.5:1 against the card, the button keeping its own ground | `repro/issue-126` |
+| The plugin's own colours on a theme whose dark scheme turns headings light under a class on `<html>`: every heading, label, legend and paragraph in the account area's boxes keeps 4.5:1 against the box, in the site's dark and light scheme | `repro/issue-213` |
 | E-mail notices: subject per language, put back, the mail follows; summary reads rules and the link's delivery | `admin-framework-more` › E-mail notices: the languages and the summary |
 | Overview: cards (accounts, sessions, fields, social), the 15-minute cache, card links | `admin-overview` › the cards |
 | Overview: first steps (button only on the first undone, gone when done) | `admin-overview` › first steps |
