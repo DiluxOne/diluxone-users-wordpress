@@ -1658,6 +1658,9 @@ msgstr "Si imposta in Il tuo marchio →"
 msgid "It is shown to them and cannot be typed in. For what the site decides and not the person: a membership number, a category."
 msgstr "Viene mostrato loro e non si può scrivere. Per ciò che decide il sito e non la persona: un numero di socio, una categoria."
 
+msgid "It is the address of the page chosen above, and it changes with that page."
+msgstr "È l’indirizzo della pagina scelta sopra, e cambia con quella pagina."
+
 #. translators: %d: maximum number of characters
 #, php-format
 msgid "It is too long: at most %d characters."
@@ -2310,6 +2313,9 @@ msgstr "In questa rete si accendono o si spengono per tutti i siti insieme, in A
 
 msgid "Once it is done"
 msgstr "Una volta fatto"
+
+msgid "Once saved, it is the address of the page chosen above."
+msgstr "Una volta salvato, è l’indirizzo della pagina scelta sopra."
 
 msgid "One address or range per line, such as 203.0.113.0/24. Private and local ranges are always trusted, so a proxy on the same machine or network needs nothing here. A CDN’s edges do."
 msgstr "Un indirizzo o un intervallo per riga, come 203.0.113.0/24. Gli intervalli privati e locali sono sempre fidati, quindi un proxy sulla stessa macchina o rete non ha bisogno di nulla qui. I bordi di una CDN, sì."
@@ -4499,9 +4505,6 @@ msgstr "Usa un altro indirizzo"
 
 msgid "Use this when a section of the account area returns a 404. The account area routes its sections through rewrite rules, and those go stale when permalinks change or another plugin rewrites them."
 msgstr "Usalo quando una sezione dell’area account dà 404. L’area account instrada le sue sezioni con regole di riscrittura, e quelle invecchiano quando cambiano i permalink o un altro plugin le riscrive."
-
-msgid "Used when no page is chosen above: the page of its own is then drawn at this address."
-msgstr "Usato quando sopra non è scelta nessuna pagina: la pagina a sé viene allora mostrata a questo indirizzo."
 
 msgid "Used when the shape is “A page of its own”."
 msgstr "Usato quando la forma è «Una pagina a sé»."

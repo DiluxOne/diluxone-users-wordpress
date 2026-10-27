@@ -1658,6 +1658,9 @@ msgstr "Se configura en Tu marca →"
 msgid "It is shown to them and cannot be typed in. For what the site decides and not the person: a membership number, a category."
 msgstr "Se les muestra y no se puede escribir. Para lo que decide el sitio y no la persona: un número de socio, una categoría."
 
+msgid "It is the address of the page chosen above, and it changes with that page."
+msgstr "Es la dirección de la página elegida arriba, y cambia con esa página."
+
 #. translators: %d: maximum number of characters
 #, php-format
 msgid "It is too long: at most %d characters."
@@ -2310,6 +2313,9 @@ msgstr "En esta red, esto se prende o se apaga para todos los sitios a la vez, e
 
 msgid "Once it is done"
 msgstr "Una vez que está hecho"
+
+msgid "Once saved, it is the address of the page chosen above."
+msgstr "Una vez guardado, es la dirección de la página elegida arriba."
 
 msgid "One address or range per line, such as 203.0.113.0/24. Private and local ranges are always trusted, so a proxy on the same machine or network needs nothing here. A CDN’s edges do."
 msgstr "Una dirección o rango por línea, como 203.0.113.0/24. Los rangos privados y locales siempre son de confianza, así que un proxy en la misma máquina o red no necesita nada acá. Los bordes de un CDN, sí."
@@ -4499,9 +4505,6 @@ msgstr "Usar otra dirección"
 
 msgid "Use this when a section of the account area returns a 404. The account area routes its sections through rewrite rules, and those go stale when permalinks change or another plugin rewrites them."
 msgstr "Usalo cuando una sección del área de cuenta da 404. El área de cuenta rutea sus secciones con reglas de reescritura, y esas quedan viejas cuando cambian los enlaces permanentes o cuando otro plugin las reescribe."
-
-msgid "Used when no page is chosen above: the page of its own is then drawn at this address."
-msgstr "Se usa cuando no hay ninguna página elegida arriba: la página propia se muestra entonces en esta dirección."
 
 msgid "Used when the shape is “A page of its own”."
 msgstr "Se usa cuando la forma es «Una página propia»."

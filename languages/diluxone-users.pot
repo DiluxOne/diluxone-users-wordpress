@@ -1651,6 +1651,9 @@ msgstr ""
 msgid "It is shown to them and cannot be typed in. For what the site decides and not the person: a membership number, a category."
 msgstr ""
 
+msgid "It is the address of the page chosen above, and it changes with that page."
+msgstr ""
+
 #. translators: %d: maximum number of characters
 #, php-format
 msgid "It is too long: at most %d characters."
@@ -2302,6 +2305,9 @@ msgid "On this network these are switched on or off for every site at once, in N
 msgstr ""
 
 msgid "Once it is done"
+msgstr ""
+
+msgid "Once saved, it is the address of the page chosen above."
 msgstr ""
 
 msgid "One address or range per line, such as 203.0.113.0/24. Private and local ranges are always trusted, so a proxy on the same machine or network needs nothing here. A CDN’s edges do."
@@ -4471,9 +4477,6 @@ msgid "Use another address"
 msgstr ""
 
 msgid "Use this when a section of the account area returns a 404. The account area routes its sections through rewrite rules, and those go stale when permalinks change or another plugin rewrites them."
-msgstr ""
-
-msgid "Used when no page is chosen above: the page of its own is then drawn at this address."
 msgstr ""
 
 msgid "Used when the shape is “A page of its own”."
