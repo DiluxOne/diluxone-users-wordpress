@@ -621,7 +621,7 @@ function diluxone_users_way_password(): void {
 
 	wp_login_form(
 		array(
-			'redirect'       => '' !== $asked ? $asked : (string) apply_filters( 'diluxone_users_login_redirect', home_url( '/' ), 0 ),
+			'redirect'       => (string) apply_filters( 'diluxone_users_login_redirect', '' !== $asked ? $asked : home_url( '/' ), 0 ),
 			'label_username' => __( 'Email or username', 'diluxone-users' ),
 			'label_password' => __( 'Password', 'diluxone-users' ),
 			'label_log_in'   => __( 'Sign in', 'diluxone-users' ),

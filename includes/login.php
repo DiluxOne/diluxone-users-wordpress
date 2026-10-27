@@ -891,7 +891,10 @@ function diluxone_users_login_consume(): void {
 
 	delete_user_meta( $user_id, DILUXONE_USERS_META_RETURN );
 
-	$redirect = '' !== $back ? $back : (string) apply_filters( 'diluxone_users_login_redirect', home_url( '/' ), $user_id );
+	// The address asked for is where the link lands by default, so the
+	// filter still has its say: on a network the hub sends the person back to
+	// the site they came from and makes them a member there.
+	$redirect = (string) apply_filters( 'diluxone_users_login_redirect', '' !== $back ? $back : home_url( '/' ), $user_id );
 
 	// The session is not opened here: diluxone_users_complete_login() opens it,
 	// and also decides whether a second factor has to be asked for first. Every
