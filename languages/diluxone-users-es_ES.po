@@ -1524,6 +1524,9 @@ msgstr "Vencida"
 msgid "Expires"
 msgstr "Vence"
 
+msgid "Extra block"
+msgstr "Bloque adicional"
+
 msgid "Extra block — “if you like, tell us more”"
 msgstr "Bloque adicional — «si quieres, cuéntanos un poco más»"
 
@@ -2246,6 +2249,9 @@ msgstr "Madagascar"
 
 msgid "Made by you, it waits in Tools → Export Personal Data."
 msgstr "Si lo generas tú, espera en Herramientas → Exportar datos personales."
+
+msgid "Main block"
+msgstr "Bloque principal"
 
 msgid "Main block — what the site needs"
 msgstr "Bloque principal — lo que el sitio necesita"
@@ -5091,6 +5097,9 @@ msgstr "Marcada aquí, se va cuando se guarda el perfil."
 msgid "Timor-Leste"
 msgstr "Timor Oriental"
 
+msgid "Titles of the boxes"
+msgstr "Títulos de las cajas"
+
 msgid "To"
 msgstr "Hasta"
 
@@ -5459,6 +5468,9 @@ msgstr "Cómo puede ser un nombre"
 
 msgid "What a shortcode is, if you have never used one"
 msgstr "Qué es un shortcode, si nunca has usado uno"
+
+msgid "What each block is called on the account’s “Your details” tab. Left empty, it keeps the title shown in grey."
+msgstr "Cómo se llama cada bloque en la pestaña «Datos personales» de la cuenta. Si lo dejas vacío, conserva el título que se ve en gris."
 
 msgid "What every site of the network writes down about what people do, and how long it keeps it. The rows are one table for the whole network: each site sees its own on its Reports › Activity, and the Activity tab beside this one has them all. A group that is not ticked here is not recorded on any site."
 msgstr "Lo que cada sitio de la red anota sobre lo que hace la gente, y cuánto tiempo lo guarda. Las filas son una sola tabla para toda la red: cada sitio ve las suyas en su Informes › Actividad, y la pestaña Actividad, junto a esta, las tiene todas. Un grupo que no está marcado aquí no se registra en ningún sitio."
