@@ -289,6 +289,39 @@ test.describe('Access › The sign-in page, with “A page of its own”', () =>
 		await expect(address(page).getByText(UNSAVED)).toBeHidden();
 	});
 
+	test('C3: the drop-down switches between the page’s address and the address field, with no reload', async ({ page, site, pages, options }) => {
+		const chosen = await site.page('entrar', '<!-- wp:shortcode -->[diluxone_users_login]<!-- /wp:shortcode -->');
+		const link = address(page).locator(`a[href="${chosen.url}"]`);
+		const select = page.locator('#diluxone_users_login_page');
+
+		try {
+			await options.set({ diluxone_users_login_page: chosen.id });
+			await page.goto(accessTab('page'));
+			await expect(link).toBeVisible();
+			await page.evaluate(() => ((window as unknown as { stayed: boolean }).stayed = true));
+
+			await select.selectOption('0');
+			await expect(slug(page), '“No page”: the field appears').toBeVisible();
+			await expect(slug(page), 'and is let go').toBeEditable();
+			await expect(link).toBeHidden();
+
+			await select.selectOption(String(chosen.id));
+			await expect(slug(page), 'the page again: the field hides').toBeHidden();
+			await expect(slug(page)).toBeDisabled();
+			await expect(link, 'and the link returns').toBeVisible();
+
+			// Another page, not saved yet: its address is not known here, so none is said.
+			await select.selectOption(String(pages.login.id));
+			await expect(slug(page)).toBeHidden();
+			await expect(link).toBeHidden();
+			await expect(address(page).getByText(UNSAVED)).toBeVisible();
+
+			expect(await page.evaluate(() => (window as unknown as { stayed?: boolean }).stayed), 'no reload').toBe(true);
+		} finally {
+			await site.forgetPage('entrar');
+		}
+	});
+
 	test('C3: an address a page already has is refused, naming the page, and nothing is written', async ({ page, site }) => {
 		const plain = await site.page('signin-taken', '<p>Taken.</p>');
 		const taken = new URL(plain.url).pathname.replace(/^\/|\/$/g, '');

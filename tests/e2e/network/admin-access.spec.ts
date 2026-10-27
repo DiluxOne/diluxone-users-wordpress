@@ -258,6 +258,39 @@ test.describe('The hub’s Access › The sign-in page, with “A page of its ow
 		await expect(address(page).locator('a code')).toHaveCount(0);
 		await expect(address(page).getByText(UNSAVED)).toBeHidden();
 	});
+
+	test('C3: on the hub the drop-down switches between the page’s address and the address field, with no reload', async ({ page, hub }) => {
+		const chosen = await hub.site.page('entrar', '<!-- wp:shortcode -->[diluxone_users_login]<!-- /wp:shortcode -->');
+		const link = address(page).locator(`a[href="${chosen.url}"]`);
+		const select = page.locator('#diluxone_users_login_page');
+
+		try {
+			await hub.set({ ...SHAPE, diluxone_users_login_page: chosen.id });
+			await page.goto(accessOnHub('page'));
+			await expect(link).toBeVisible();
+			await page.evaluate(() => ((window as unknown as { stayed: boolean }).stayed = true));
+
+			await select.selectOption('0');
+			await expect(slug(page), '“No page”: the field appears').toBeVisible();
+			await expect(slug(page), 'and is let go').toBeEditable();
+			await expect(link).toBeHidden();
+
+			await select.selectOption(String(chosen.id));
+			await expect(slug(page), 'the page again: the field hides').toBeHidden();
+			await expect(slug(page)).toBeDisabled();
+			await expect(link, 'and the link returns').toBeVisible();
+
+			// Another page, not saved yet: its address is not known here, so none is said.
+			await select.selectOption(String(hub.pages.login.id));
+			await expect(slug(page)).toBeHidden();
+			await expect(link).toBeHidden();
+			await expect(address(page).getByText(UNSAVED)).toBeVisible();
+
+			expect(await page.evaluate(() => (window as unknown as { stayed?: boolean }).stayed), 'no reload').toBe(true);
+		} finally {
+			await hub.site.forgetPage('entrar');
+		}
+	});
 });
 
 test.describe('Create the page, on a network', () => {
