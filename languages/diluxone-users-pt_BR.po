@@ -1494,6 +1494,9 @@ msgstr "Agora todos são membros de todos os sites ativos."
 msgid "Everybody on every site"
 msgstr "Todos em todos os sites"
 
+msgid "Everybody signs in on wp-login.php with a username and password, as WordPress has it."
+msgstr "Todos entram por wp-login.php com usuário e senha, como vem do WordPress."
+
 msgid "Everybody signs in on wp-login.php, as WordPress has it."
 msgstr "Todos entram por wp-login.php, como vem do WordPress."
 
@@ -2517,6 +2520,9 @@ msgstr "Ninguém pode pedir um link."
 msgid "Nobody can register on their own"
 msgstr "Ninguém pode se cadastrar sozinho"
 
+msgid "Nobody can sign in here."
+msgstr "Ninguém pode entrar aqui."
+
 msgid "Nobody can turn it off: a code that does not arrive leaves you out."
 msgstr "Ninguém pode desligar: um código que não chega deixa você de fora."
 
@@ -2950,6 +2956,11 @@ msgstr "Abrir sua conta"
 #, php-format
 msgid "Open: accounts are created by %s."
 msgstr "Aberto: as contas são criadas por %s."
+
+#. translators: %s: the ways people sign in, comma separated
+#, php-format
+msgid "Open: people sign in with %s."
+msgstr "Aberto: entra-se com %s."
 
 msgid "Open: wp-login.php takes new accounts, as Settings › General has it."
 msgstr "Aberto: o wp-login.php aceita contas novas, como está em Configurações › Geral."
@@ -3710,6 +3721,9 @@ msgstr "Com a sessão iniciada, o site mostra mais uma vez o que se perde e não
 
 msgid "Signed out"
 msgstr "Saiu"
+
+msgid "Signing in"
+msgstr "Entrar"
 
 msgid "Signing in across the network"
 msgstr "Login em toda a rede"
@@ -6042,6 +6056,9 @@ msgstr "um tamanho que este banco de dados não informa"
 
 msgid "a social account"
 msgstr "uma conta social"
+
+msgid "a username and password"
+msgstr "um usuário e uma senha"
 
 #. translators: %s: the name of the site where the network's accounts live
 #, php-format

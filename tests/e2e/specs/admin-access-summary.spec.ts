@@ -98,7 +98,7 @@ test.describe('Access › Summary', () => {
 		});
 	}
 
-	test('is the first tab, saves nothing, and has no rail: the table is the whole of it', async ({ page }) => {
+	test('is the first tab, saves nothing, and its rail says only how signing in stands', async ({ page }) => {
 		await page.goto(adminUrl('diluxone-users-login'));
 
 		await expect(page.locator('.nav-tab-wrapper .nav-tab').first()).toHaveClass(/nav-tab-active/);
@@ -106,7 +106,9 @@ test.describe('Access › Summary', () => {
 		await expect(page.locator('table.diluxone-users-summary')).toBeVisible();
 		await expect(saveButton(page), 'a Save button on a tab that edits nothing').toHaveCount(0);
 		await expect(page.locator('.diluxone-users-studio form[method="post"]')).toHaveCount(0);
-		await expect(rail(page), 'the way back in when locked out is Maintenance’s tab').toHaveCount(0);
+		await expect(rail(page).locator('.du-state'), 'one state: whether anybody can sign in').toHaveCount(1);
+		await expect(rail(page).locator('.du-state__line')).not.toHaveText('');
+		await expect(rail(page)).not.toContainText('accounts are created');
 	});
 
 	test('with registration open by the e-mail link, it speaks only of signing in, and Registration’s summary only of registering', async ({ page, options }) => {
