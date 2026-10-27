@@ -27,6 +27,7 @@ class NotNowTest extends TestCase {
 
 		// WordPress, which the unit bootstrap does not stub.
 		Functions\when( 'wp_kses' )->returnArg( 1 );
+		Functions\when( 'wp_kses_allowed_html' )->justReturn( array_fill_keys( array( 'a', 'img', 'p', 'span' ), array() ) );
 	}
 
 	protected function tearDown(): void {
