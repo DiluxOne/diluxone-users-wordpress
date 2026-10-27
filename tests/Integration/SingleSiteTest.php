@@ -152,11 +152,11 @@ class SingleSiteTest extends IntegrationTestCase {
 
 	/** "Only some roles" reaches whoever holds one of them here. */
 	public function test_a_chosen_role_puts_somebody_in_scope(): void {
-		diluxone_users_update_option( 'diluxone_users_sso_scope', 'some' );
-		diluxone_users_update_option( 'diluxone_users_sso_roles', array( 'administrator' ) );
+		diluxone_users_update_option( 'diluxone_users_wp_profile_scope', 'some' );
+		diluxone_users_update_option( 'diluxone_users_wp_profile_roles', array( 'administrator' ) );
 
-		$this->assertTrue( diluxone_users_scope_includes( $this->make_user( 'administrator' ), 'diluxone_users_sso' ) );
-		$this->assertFalse( diluxone_users_scope_includes( $this->make_user( 'subscriber' ), 'diluxone_users_sso' ) );
+		$this->assertTrue( diluxone_users_scope_includes( $this->make_user( 'administrator' ), 'diluxone_users_wp_profile' ) );
+		$this->assertFalse( diluxone_users_scope_includes( $this->make_user( 'subscriber' ), 'diluxone_users_wp_profile' ) );
 	}
 
 	/** Add New User takes the e-mail as the username, as every other door does. */

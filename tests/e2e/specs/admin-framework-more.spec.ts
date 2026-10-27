@@ -150,7 +150,7 @@ test.describe('The account area’s own question', () => {
 
 test.describe('The theme’s colours, remembered', () => {
 	test('measured once and kept in the browser; the next page paints them before any script measures again', async ({ guest, pages, options }) => {
-		await options.set({ diluxone_users_styles: 1, diluxone_users_colors: 'theme' });
+		await options.set({ diluxone_users_styles: 1, diluxone_e2e_colors_from_theme: 1 });
 
 		await guest.goto(pages.login.url);
 
@@ -178,6 +178,16 @@ test.describe('The theme’s colours, remembered', () => {
 		await guest.goto(pages.register.url);
 
 		expect(await guest.evaluate((name) => document.documentElement.style.getPropertyValue(`--diluxone-users-${name}`).trim(), role)).toBe(String(value).trim());
+	});
+});
+
+test.describe('Security › Sessions: what a new password does', () => {
+	test('what WordPress does is said as a line, with nothing to choose', async ({ page }) => {
+		await page.goto(adminUrl('diluxone-users-security', 'sessions'));
+
+		await expect(page.getByText('A new password signs the account out on every other device, as WordPress does, and the list forgets them.')).toBeVisible();
+		await expect(page.locator('input[name="diluxone_users_reset_ends_sessions"]'), 'no setting').toHaveCount(0);
+		await expect(page.locator('[data-diluxone-users-pro="security/sessions/reset"]'), 'no Users+ Pro preview').toHaveCount(0);
 	});
 });
 

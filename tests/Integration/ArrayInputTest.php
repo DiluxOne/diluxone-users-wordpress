@@ -133,7 +133,6 @@ class ArrayInputTest extends IntegrationTestCase {
 			'the account page'                 => array( 'diluxone_users_account_page_save', 'diluxone-users-account', 'diluxone_users_account_page', 0, array() ),
 			'the shortest public name'         => array( 'diluxone_users_account_handle_save', 'diluxone-users-account', 'diluxone_users_handle_min', 3, array() ),
 			'the longest public name'          => array( 'diluxone_users_account_handle_save', 'diluxone-users-account', 'diluxone_users_handle_max', 30, array() ),
-			'the wait between public names'    => array( 'diluxone_users_account_handle_save', 'diluxone-users-account', 'diluxone_users_handle_cooldown', 30, array() ),
 			'the sign-in logo'                 => array( 'diluxone_users_design_brand_save', $design, 'diluxone_users_login_logo', 0, array() ),
 			'the largest photo'                => array( 'diluxone_users_design_photo_save', $design, 'diluxone_users_avatar_max_kb', 2048, array() ),
 			'the wp-login.php logo'            => array( 'diluxone_users_design_wp_save', $design, 'diluxone_users_wp_login_logo', 0, array() ),

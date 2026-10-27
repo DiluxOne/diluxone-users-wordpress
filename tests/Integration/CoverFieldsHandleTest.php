@@ -152,7 +152,32 @@ class CoverFieldsHandleTest extends IntegrationTestCase {
 
 	/* ── The save and the cooldown ───────────────────────────────────── */
 
-	public function test_a_saved_name_is_the_address_and_waits_out_the_cooldown(): void {
+	/**
+	 * The name is changed whenever they like, twice in a row too, even on a
+	 * site that had a wait saved before it became Users+ Pro's.
+	 */
+	public function test_a_name_changes_twice_in_a_row_with_no_wait(): void {
+		update_option( 'diluxone_users_handle_cooldown', 30 );
+		update_site_option( 'diluxone_users_handle_cooldown', 30 );
+		$user = $this->make_user();
+
+		$this->assertSame( 0, diluxone_users_handle_cooldown( $user ) );
+		$this->assertTrue( diluxone_users_handle_save( $user, 'first-name' ) );
+		$this->assertTrue( diluxone_users_handle_can_change( $user ) );
+		$this->assertSame( 0, diluxone_users_handle_next_change( $user ), 'nothing to wait for' );
+		$this->assertTrue( diluxone_users_handle_save( $user, 'second-name' ), 'changed again straight away' );
+		$this->assertSame( 'second-name', diluxone_users_handle( $user ) );
+
+		$this->names_on();
+		$this->assertStringContainsString( 'data-diluxone-users-handle-check', diluxone_users_handle_field( $user ), 'the field stays open' );
+
+		delete_option( 'diluxone_users_handle_cooldown' );
+		delete_site_option( 'diluxone_users_handle_cooldown' );
+	}
+
+	/** With an add-on's wait, as Users+ Pro's "How often it can change". */
+	public function test_a_saved_name_is_the_address_and_waits_out_an_add_ons_cooldown(): void {
+		$this->hook( 'diluxone_users_handle_cooldown', static fn(): int => 30 );
 		$user = $this->make_user();
 
 		$this->assertSame( get_userdata( $user )->user_nicename, diluxone_users_public_handle( $user ), 'Before choosing, WordPress’s' );
@@ -185,7 +210,7 @@ class CoverFieldsHandleTest extends IntegrationTestCase {
 
 		// No cooldown at all.
 		update_user_meta( $user, 'diluxone_users_handle_changed', time() );
-		diluxone_users_update_option( 'diluxone_users_handle_cooldown', 0 );
+		$this->hook( 'diluxone_users_handle_cooldown', '__return_zero', 20 );
 		$this->assertTrue( diluxone_users_handle_can_change( $user ) );
 	}
 
@@ -235,7 +260,8 @@ class CoverFieldsHandleTest extends IntegrationTestCase {
 		diluxone_users_update_option( 'diluxone_users_handle_spaces', 'reject' );
 		$this->assertStringContainsString( 'No spaces: this goes in a web address.', diluxone_users_handle_field( $user ) );
 
-		// Changed recently: locked, and it says until when.
+		// Changed recently, with an add-on's wait: locked, and it says until when.
+		$this->hook( 'diluxone_users_handle_cooldown', static fn(): int => 30 );
 		update_user_meta( $user, 'diluxone_users_handle_changed', time() );
 		$locked = diluxone_users_handle_field( $user );
 		$this->assertStringContainsString( "disabled='disabled'", $locked );
@@ -264,6 +290,12 @@ class CoverFieldsHandleTest extends IntegrationTestCase {
 		$this->assertStringNotContainsString( 'diluxone-users-notice--error', $again, 'Read once' );
 
 		diluxone_users_handle_save( $user, 'ana-lopez' );
+		$open = diluxone_users_shortcode_handle();
+		$this->assertStringContainsString( 'value="ana-lopez"', $open );
+		$this->assertStringContainsString( 'type="submit"', $open, 'no wait: it can be saved again' );
+
+		// With an add-on's wait, locked until then.
+		$this->hook( 'diluxone_users_handle_cooldown', static fn(): int => 30 );
 		$locked = diluxone_users_shortcode_handle();
 		$this->assertStringContainsString( 'value="ana-lopez"', $locked );
 		$this->assertStringNotContainsString( 'type="submit"', $locked );

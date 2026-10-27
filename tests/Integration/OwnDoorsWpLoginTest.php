@@ -101,7 +101,6 @@ class OwnDoorsWpLoginTest extends IntegrationTestCase {
 	public function test_the_second_step_is_asked_once_and_wp_login_fires_when_it_is_done(): void {
 		diluxone_users_update_option( 'diluxone_users_2fa_mode', 'required' );
 		diluxone_users_update_option( 'diluxone_users_2fa_methods', array( 'email' ) );
-		diluxone_users_update_option( 'diluxone_users_2fa_link', 'always' );
 		diluxone_users_update_option( 'diluxone_users_2fa_remember_days', 0 );
 
 		$challenge = $this->expectRedirect( fn() => diluxone_users_complete_login( $this->user, 'link', true, home_url( '/after/' ) ) );

@@ -22,6 +22,8 @@ test.describe('Issue 139: the required-fields step after sign-in', () => {
 		await options.set({
 			diluxone_users_fields: FIRST_NAME_REQUIRED,
 			diluxone_users_2fa_mode: 'off',
+			// An add-on that asks for them, as Users+ Pro does.
+			diluxone_e2e_ask_missing: 1,
 		});
 
 		await signInMember(guest, site, pages.login.url, 'step-frame');

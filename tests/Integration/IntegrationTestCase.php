@@ -252,7 +252,6 @@ class IntegrationTestCase extends TestCase {
 		'diluxone_users_privacy_export'      => 1,
 		'diluxone_users_privacy_delete'      => 1,
 		'diluxone_users_avatar_upload'       => 1,
-		'diluxone_users_reset_ends_sessions' => 1,
 		'diluxone_users_wp_register_fields'  => 1,
 	);
 
@@ -462,6 +461,19 @@ class IntegrationTestCase extends TestCase {
 		}
 
 		$this->fail( 'A redirect was expected and none happened.' );
+	}
+
+	/**
+	 * The theme's colours on or off, as an add-on answers
+	 * `diluxone_users_colors_from_theme` (Users+ Pro's "From your theme"),
+	 * for this test only.
+	 */
+	protected function theme_colors( bool $on ): void {
+		remove_filter( 'diluxone_users_colors_from_theme', '__return_true' );
+
+		if ( $on ) {
+			$this->hook( 'diluxone_users_colors_from_theme', '__return_true' );
+		}
 	}
 
 	/**

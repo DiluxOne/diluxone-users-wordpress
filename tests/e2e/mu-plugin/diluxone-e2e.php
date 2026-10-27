@@ -397,6 +397,20 @@ function diluxone_e2e_switches(): void {
 	if ( get_option( 'diluxone_e2e_no_wp_login_2fa' ) ) {
 		add_filter( 'diluxone_users_2fa_on_wp_login', '__return_false' );
 	}
+
+	// Two answers of an add-on, as Users+ Pro gives them: asking for the
+	// required fields an account has no answer for, and the theme's colours.
+	// The plugin alone does neither. Read from the main site, the network's
+	// hub, so every site of a network gets the same answer.
+	$switch = static fn( string $key ): bool => (bool) ( is_multisite() ? get_blog_option( get_main_site_id(), $key ) : get_option( $key ) );
+
+	if ( $switch( 'diluxone_e2e_ask_missing' ) ) {
+		add_filter( 'diluxone_users_ask_missing', '__return_true' );
+	}
+
+	if ( $switch( 'diluxone_e2e_colors_from_theme' ) ) {
+		add_filter( 'diluxone_users_colors_from_theme', '__return_true' );
+	}
 }
 add_action( 'plugins_loaded', 'diluxone_e2e_switches' );
 

@@ -36,6 +36,10 @@ class MissingFieldsTest extends IntegrationTestCase {
 		$this->required( true );
 
 		$this->user = $this->make_user();
+
+		// Asking is an add-on's (Users+ Pro's): the walks below are with one
+		// that asks; the plugin alone is walked on its own.
+		$this->hook( 'diluxone_users_ask_missing', '__return_true' );
 	}
 
 	protected function tearDown(): void {
@@ -92,6 +96,14 @@ class MissingFieldsTest extends IntegrationTestCase {
 		$this->assertStringNotContainsString( 'Account sections', $html, 'in place of the sections and their nav' );
 		$this->assertStringContainsString( 'name="diluxone_users_redirect" value="' . esc_url( $going ) . '"', $html );
 		$this->assertStringContainsString( 'Skip for now', $html );
+
+		// An add-on that does not let them skip leaves them a way out.
+		add_filter( 'diluxone_users_ask_missing_skippable', '__return_false' );
+		$closed = diluxone_users_shortcode_account();
+		remove_filter( 'diluxone_users_ask_missing_skippable', '__return_false' );
+		$this->assertStringNotContainsString( 'Skip for now', $closed );
+		$this->assertStringContainsString( 'Sign out', $closed );
+		$this->assertStringContainsString( 'action=logout', $closed );
 
 		// Saved with nothing, it stays on the step and says so.
 		$post = array(
@@ -186,44 +198,30 @@ class MissingFieldsTest extends IntegrationTestCase {
 		$this->assertSame( home_url( '/course/' ), $this->expectRedirect( fn() => diluxone_users_complete_login( $this->user, 'link', true, home_url( '/course/' ) ) ) );
 	}
 
-	/** C5: the setting off, nobody sees it. */
-	public function test_with_the_setting_off_nobody_sees_it(): void {
-		diluxone_users_update_option( 'diluxone_users_ask_missing', 0 );
+	/**
+	 * #188 C5: the plugin alone asks nothing. An account missing a required
+	 * field goes straight on from every door, even on a site that had the
+	 * setting saved, and the account page asked for the step draws its
+	 * sections.
+	 */
+	public function test_the_plugin_alone_asks_nothing(): void {
+		remove_filter( 'diluxone_users_ask_missing', '__return_true' );
+		update_option( 'diluxone_users_ask_missing', 1 );
+		update_site_option( 'diluxone_users_ask_missing', 1 );
 
-		$this->assertSame( home_url( '/course/' ), $this->expectRedirect( fn() => diluxone_users_complete_login( $this->user, 'link', true, home_url( '/course/' ) ) ) );
-	}
+		$going = home_url( '/course/' );
 
-	/** The setting is saved from User fields, and its box is drawn only while a field is required. */
-	public function test_the_setting_is_saved_from_user_fields(): void {
-		// A network setting, saved where the network's are: Network Admin.
-		if ( is_multisite() ) {
-			$this->in_network_admin();
-		}
+		$this->assertNotSame( array(), diluxone_users_missing_required( $this->user ), 'something is missing' );
+		$this->assertArrayNotHasKey( 'diluxone_users_ask_missing', diluxone_users_option_defaults(), 'no setting' );
+		$this->assertSame( $going, $this->expectRedirect( fn() => diluxone_users_complete_login( $this->user, 'link', true, $going ) ) );
+		$this->assertSame( $going, (string) apply_filters( 'login_redirect', $going, $going, get_userdata( $this->user ) ) );
 
-		$this->postPanel( 'diluxone-users-fields', array( 'diluxone_users_panel_drawn' => array( 'diluxone_users_ask_missing' ) ) );
-		diluxone_users_screen_fields_missing_save();
-		$this->assertSame( 0, (int) diluxone_users_option( 'diluxone_users_ask_missing' ) );
+		wp_set_current_user( $this->user );
+		$_GET = array( 'diluxone-users-complete' => '1' );
+		$this->assertStringNotContainsString( 'diluxone-users-complete', diluxone_users_shortcode_account(), 'no step drawn' );
 
-		$this->postPanel( 'diluxone-users-fields', array( 'diluxone_users_ask_missing' => '1' ) );
-		diluxone_users_screen_fields_missing_save();
-		$this->assertSame( 1, (int) diluxone_users_option( 'diluxone_users_ask_missing' ) );
-
-		ob_start();
-		diluxone_users_screen_fields_missing();
-		$this->assertStringContainsString( 'name="diluxone_users_ask_missing"', (string) ob_get_clean() );
-
-		$this->required( false );
-		ob_start();
-		diluxone_users_screen_fields_missing();
-		$html = (string) ob_get_clean();
-		$this->assertStringNotContainsString( 'name="diluxone_users_ask_missing"', $html, 'switched off while nothing is required' );
-		$this->assertStringContainsString( 'No field is required yet', $html );
-
-		$this->required( true );
-		diluxone_users_update_option( 'diluxone_users_account_page', 0 );
-		ob_start();
-		diluxone_users_screen_fields_missing();
-		$this->assertStringContainsString( 'No account page is chosen', (string) ob_get_clean() );
+		delete_option( 'diluxone_users_ask_missing' );
+		delete_site_option( 'diluxone_users_ask_missing' );
 	}
 
 	/** With no account page, there is nowhere to ask, and the sign-in goes on. */

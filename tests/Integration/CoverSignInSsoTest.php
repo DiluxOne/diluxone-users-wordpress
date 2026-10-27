@@ -549,8 +549,13 @@ class CoverSignInSsoTest extends IntegrationTestCase {
 		$demote = static function ( int $user_id ): void {
 			( new \WP_User( $user_id ) )->set_role( 'contributor' );
 		};
-		diluxone_users_update_option( 'diluxone_users_sso_scope', 'some' );
-		diluxone_users_update_option( 'diluxone_users_sso_roles', array( diluxone_users_register_role() ) );
+		// An add-on that keeps contributors out, as Users+ Pro's "only some roles".
+		$this->hook(
+			'diluxone_users_sso_role_allowed',
+			static fn( bool $allowed, int $user_id ): bool => $allowed && ! ( 0 !== $user_id && user_can( $user_id, 'edit_posts' ) && ! user_can( $user_id, 'publish_posts' ) ),
+			10,
+			2
+		);
 		add_action( 'user_register', $demote );
 
 		try {
@@ -939,12 +944,42 @@ class CoverSignInSsoTest extends IntegrationTestCase {
 		return $this->expectRedirect( 'diluxone_users_sso_handle' );
 	}
 
+	/**
+	 * Every role signs in with a network, administrators included, even on a
+	 * site that had "only some roles" saved before it became Users+ Pro's.
+	 */
+	public function test_every_role_signs_in_with_a_network_even_where_only_some_roles_was_saved(): void {
+		update_option( 'diluxone_users_sso_scope', 'some' );
+		update_site_option( 'diluxone_users_sso_scope', 'some' );
+		update_option( 'diluxone_users_sso_roles', array( 'subscriber' ) );
+		update_site_option( 'diluxone_users_sso_roles', array( 'subscriber' ) );
+
+		foreach ( array( 'administrator', 'editor', 'subscriber' ) as $n => $role ) {
+			$user = $this->make_user( $role );
+			$this->sub = 'every-role-' . $n . '-' . wp_generate_password( 6, false );
+			MockProvider::$profile['sub'] = $this->sub;
+			update_user_meta( $user, 'diluxone_users_sso_mock', $this->sub );
+			wp_set_current_user( 0 );
+
+			$this->assertFalse( diluxone_users_sso_role_blocked( $user ), $role );
+			$this->trip();
+			$this->assertSame( $user, get_current_user_id(), "$role: signed in" );
+		}
+
+		$this->assertTrue( diluxone_users_sso_role_allowed( 0, 'register' ), 'and the role a new account gets may use it' );
+
+		foreach ( array( 'diluxone_users_sso_scope', 'diluxone_users_sso_roles' ) as $key ) {
+			delete_option( $key );
+			delete_site_option( $key );
+		}
+	}
+
 	/** An account linked before its role was kept out of social sign-in does not get in by it. */
 	public function test_a_linked_account_whose_role_is_now_kept_out_does_not_get_in(): void {
 		$admin = $this->make_user( 'administrator' );
 		update_user_meta( $admin, 'diluxone_users_sso_mock', $this->sub );
-		diluxone_users_update_option( 'diluxone_users_sso_scope', 'some' );
-		diluxone_users_update_option( 'diluxone_users_sso_roles', array( 'subscriber' ) );
+		// An add-on that keeps administrators out, as Users+ Pro's "only some roles".
+		$this->hook( 'diluxone_users_sso_role_allowed', static fn( bool $allowed, int $user_id ): bool => $allowed && ! user_can( $user_id, 'manage_options' ), 10, 2 );
 
 		$this->assertSame( 'social', $this->redirectState( $this->trip() ) );
 		$this->assertSame( 0, get_current_user_id() );

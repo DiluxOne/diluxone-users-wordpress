@@ -61,6 +61,26 @@ class TwoFactorFlowTest extends IntegrationTestCase {
 		$this->assertSame( array(), \WP_Session_Tokens::get_instance( $this->user )->get_all() );
 	}
 
+	/**
+	 * The e-mail link asks the second step as every other way in does, even
+	 * with the code going back to the same inbox, and even on a site that
+	 * had "Let it decide" saved before it became Users+ Pro's: nobody is
+	 * signed in until it is answered.
+	 */
+	public function test_the_link_asks_the_second_step_even_where_let_it_decide_was_saved(): void {
+		update_option( 'diluxone_users_2fa_link', 'auto' );
+		update_site_option( 'diluxone_users_2fa_link', 'auto' );
+		wp_set_current_user( 0 );
+
+		$url = $this->expectRedirect( fn() => diluxone_users_complete_login( $this->user, 'link', true, home_url( '/after/' ) ) );
+
+		$this->assertSame( (string) $this->user, $this->queryArg( $url, 'diluxone_users_2fa' ), 'sent to the second step' );
+		$this->assertSame( 0, get_current_user_id(), 'and nobody signed in yet' );
+
+		delete_option( 'diluxone_users_2fa_link' );
+		delete_site_option( 'diluxone_users_2fa_link' );
+	}
+
 	/** Starts the challenge and returns the key the screen would carry. */
 	private function challenge(): string {
 		wp_set_current_user( 0 );

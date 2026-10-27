@@ -34,11 +34,12 @@ function diluxone_users_design_brand_save(): void {
 	diluxone_users_panel_allowed();
 
 	/*
-	 * One question on the screen, two settings underneath it. Where the look
-	 * comes from is asked once because that is how it is understood, and kept
-	 * as the two answers that are actually read — whether the stylesheet is
-	 * loaded, and whose colours are used. Storing the question as well would
-	 * be a third answer able to disagree with the two.
+	 * One question on the screen, one setting underneath it: whether the
+	 * stylesheet is loaded. The colours are the plugin's own; the theme's
+	 * are Users+ Pro's, drawn as a preview that sends nothing, or as Pro's
+	 * own radio once it is active: a posted `theme` is the plugin's own
+	 * stylesheet for what is saved here, and Pro saves its part on
+	 * `diluxone_users_panel_saved`.
 	 */
 	$look   = sanitize_key( wp_unslash( $_POST['diluxone_users_look'] ?? '' ) );
 	$accent = isset( $_POST['diluxone_users_style_accent'] ) && is_string( $_POST['diluxone_users_style_accent'] ) ? sanitize_text_field( wp_unslash( $_POST['diluxone_users_style_accent'] ) ) : '';
@@ -48,7 +49,6 @@ function diluxone_users_design_brand_save(): void {
 			DILUXONE_USERS_DESIGN,
 			array(
 				'diluxone_users_styles'        => 'site' === $look ? 0 : 1,
-				'diluxone_users_colors'        => 'theme' === $look ? 'theme' : 'own',
 				// One of the palette's, the colour already stored coming back as
 				// it went out, or any colour while any colour is an answer.
 				'diluxone_users_style_accent'  => diluxone_users_color_answer( $accent, (string) diluxone_users_option( 'diluxone_users_style_accent' ), diluxone_users_accent_palette(), diluxone_users_any_color() ),
@@ -63,7 +63,6 @@ function diluxone_users_design_brand_save(): void {
 			),
 			array(
 				'diluxone_users_styles' => 'diluxone_users_look',
-				'diluxone_users_colors' => 'diluxone_users_look',
 			)
 		)
 	);

@@ -140,10 +140,9 @@ function diluxone_users_sessions_save(): void {
 
 	diluxone_users_save_options(
 		array(
-			'diluxone_users_session_long_days'   => ( isset( $_POST['diluxone_users_session_long_days'] ) && is_scalar( $_POST['diluxone_users_session_long_days'] ) ? absint( wp_unslash( $_POST['diluxone_users_session_long_days'] ) ) : 0 ),
-			'diluxone_users_session_short_days'  => ( isset( $_POST['diluxone_users_session_short_days'] ) && is_scalar( $_POST['diluxone_users_session_short_days'] ) ? absint( wp_unslash( $_POST['diluxone_users_session_short_days'] ) ) : 0 ),
-			'diluxone_users_sessions_show'       => isset( $_POST['diluxone_users_sessions_show'] ) ? 1 : 0,
-			'diluxone_users_reset_ends_sessions' => isset( $_POST['diluxone_users_reset_ends_sessions'] ) ? 1 : 0,
+			'diluxone_users_session_long_days'  => ( isset( $_POST['diluxone_users_session_long_days'] ) && is_scalar( $_POST['diluxone_users_session_long_days'] ) ? absint( wp_unslash( $_POST['diluxone_users_session_long_days'] ) ) : 0 ),
+			'diluxone_users_session_short_days' => ( isset( $_POST['diluxone_users_session_short_days'] ) && is_scalar( $_POST['diluxone_users_session_short_days'] ) ? absint( wp_unslash( $_POST['diluxone_users_session_short_days'] ) ) : 0 ),
+			'diluxone_users_sessions_show'      => isset( $_POST['diluxone_users_sessions_show'] ) ? 1 : 0,
 		)
 	);
 }
@@ -206,18 +205,7 @@ function diluxone_users_screen_sessions(): void {
 
 	diluxone_users_ui_section( __( 'When a password changes', 'diluxone-users' ) );
 
-	diluxone_users_ui_choices(
-		array(
-			array(
-				'type'    => 'checkbox',
-				'name'    => 'diluxone_users_reset_ends_sessions',
-				'value'   => '1',
-				'checked' => (bool) diluxone_users_option( 'diluxone_users_reset_ends_sessions' ),
-				'title'   => __( 'A new password closes every session the account had open', 'diluxone-users' ),
-				'help'    => __( 'Whoever reset it because the old one got out signs in again everywhere, and so would anybody who was using it. Unticked, the other sessions stay open, as WordPress leaves them.', 'diluxone-users' ),
-			),
-		)
-	);
+	diluxone_users_ui_note( '', __( 'A new password signs the account out on every other device, as WordPress does, and the list forgets them.', 'diluxone-users' ) );
 
 	/*
 	 * How long a session lasts today is a thing this screen tells rather than

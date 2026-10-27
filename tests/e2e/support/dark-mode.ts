@@ -13,7 +13,7 @@ import { Page } from '@playwright/test';
 export const DARK_SITE = {
 	diluxone_e2e_dark: 1,
 	diluxone_users_styles: 1,
-	diluxone_users_colors: 'theme',
+	diluxone_e2e_colors_from_theme: 1,
 };
 
 /** The ground the stand-in paints in dark mode, as the browser reports it. */
@@ -135,7 +135,7 @@ export function switchSite(kind: SwitchKind, dark: string, light = '', extra: Re
 		diluxone_e2e_switch: kind,
 		diluxone_e2e_switch_off_door: 0,
 		diluxone_users_styles: 1,
-		diluxone_users_colors: 'theme',
+		diluxone_e2e_colors_from_theme: 1,
 		diluxone_users_dark_follows: 'site',
 		diluxone_users_dark_signal: dark,
 		diluxone_users_light_signal: light,

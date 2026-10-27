@@ -448,7 +448,6 @@ test.describe('Public name', () => {
 	test.beforeEach(async ({ options }) => {
 		await options.set({
 			diluxone_users_handle_enabled: 1,
-			diluxone_users_handle_cooldown: 0,
 			diluxone_users_handle_min: 3,
 			diluxone_users_handle_max: 50,
 			diluxone_users_handle_spaces: 'dash',
@@ -576,7 +575,8 @@ test.describe('Public name', () => {
 		expect(await handleOf(site, email), 'the name they had stays').toBe(name);
 	});
 
-	test('changed recently: the box is locked with no Save, and a change posted anyway is refused', async ({ page, site, pages, options }) => {
+	test('changed a moment ago: the box stays open with its Save, and a second change goes through, even where a wait was saved', async ({ page, site, pages, options }) => {
+		// "How often it can change" is Users+ Pro's: a wait saved before is not read.
 		await options.set({ diluxone_users_handle_cooldown: 30 });
 
 		const now = Math.floor(Date.now() / 1000);
@@ -585,21 +585,18 @@ test.describe('Public name', () => {
 		});
 
 		await page.goto(accountSection(pages.account.url, 'details'));
-		await expect(handleBox(page)).toBeDisabled();
-		await expect(handleForm(page).locator('button[type="submit"]')).toHaveCount(0);
-		await expect(page.locator('[data-diluxone-users-handle-check]')).toHaveCount(0);
+		await expect(handleBox(page)).toBeEnabled();
+		await expect(handleForm(page).locator('button[type="submit"]')).toHaveCount(1);
 
+		const name = `new-${Date.now().toString(36)}`;
 		const answer = await postByHand(page, {
 			action: 'diluxone_users_handle',
 			_wpnonce: await nonceOf(page, 'diluxone_users_handle'),
-			diluxone_users_handle: `new-${Date.now().toString(36)}`,
+			diluxone_users_handle: name,
 		});
 
-		expect(answer.state).not.toBe('saved');
-		expect(await handleOf(site, email)).toBe('old-name');
-
-		await page.reload();
-		await expect(handleError(page), 'and the account says why').toBeVisible();
+		expect(answer.state).toBe('saved');
+		expect(await handleOf(site, email)).toBe(name);
 	});
 
 	test('switched off: no form, and a name posted by hand writes nothing', async ({ page, site, pages, options }) => {
@@ -661,7 +658,7 @@ test.describe('Public name', () => {
 
 test.describe('Public name: the box as it is typed in', () => {
 	test.beforeEach(async ({ options }) => {
-		await options.set({ diluxone_users_handle_enabled: 1, diluxone_users_handle_cooldown: 0, diluxone_users_handle_min: 3, diluxone_users_handle_max: 50 });
+		await options.set({ diluxone_users_handle_enabled: 1, diluxone_users_handle_min: 3, diluxone_users_handle_max: 50 });
 	});
 
 	const isCheck = (r: { url(): string; request(): { postData(): string | null } }) =>

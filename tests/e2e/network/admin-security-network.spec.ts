@@ -110,45 +110,31 @@ test.describe('Network Admin › Security › Two-step verification', () => {
 		expect(await alpha.site.getOptions(['diluxone_users_2fa_methods'])).toEqual(before);
 	});
 
-	test('somebody who came by link: “never” lets them in from /beta/, “always” asks', async ({ page, guest, hub, beta }) => {
+	test('somebody who came by link from /beta/ is asked, even where “work it out” was saved, and “Let it decide” is a Pro preview', async ({
+		page,
+		guest,
+		hub,
+		beta,
+	}) => {
 		await hub.set({ diluxone_users_2fa_mode: 'optional', diluxone_users_2fa_methods: ['email'], diluxone_users_2fa_link: 'auto' });
 
-		// One person per round: a second link to the same address within a
-		// minute is refused on purpose (the per-address wait), and that is
-		// not what this test is about.
-		const asked = freshEmail('nlink-asked');
-		const email = freshEmail('nlink');
+		const email = freshEmail('nlink-asked');
 
-		await beta.site.makeUser({ email: asked, meta: { diluxone_users_2fa_on: 1 } });
 		await beta.site.makeUser({ email, meta: { diluxone_users_2fa_on: 1 } });
 
-		const follow = async (email: string) => {
-			const before = Date.now() / 1000;
-
-			await guest.context().clearCookies();
-			await toTheHub(guest, beta, hub);
-			await askForLink(guest, guest.url(), email);
-			await guest.goto(linkIn(await waitForMail(hub.site, email, { after: before })));
-			await guest.waitForLoadState('domcontentloaded');
-		};
-
 		await page.goto(tab('2fa'));
-		await page.locator('input[name="diluxone_users_2fa_link"][value="always"]').check();
-		await savePanel(page);
-		expect((await beta.site.getOptions(['diluxone_users_2fa_link'])).diluxone_users_2fa_link).toBe('always');
+		await expect(page.locator('input[name="diluxone_users_2fa_link"]'), 'no choice of its own').toHaveCount(0);
+		await expect(page.locator('[data-diluxone-users-pro="security/2fa/link"] input')).toBeDisabled();
 		expect(await stateIn(rail(page))).toBe('active');
 
-		await follow(asked);
-		await expect(challengeScreen(guest), '“always” asks after the link').toBeVisible();
+		const before = Date.now() / 1000;
 
-		await page.goto(tab('2fa'));
-		await page.locator('input[name="diluxone_users_2fa_link"][value="never"]').check();
-		await savePanel(page);
-		expect((await beta.site.getOptions(['diluxone_users_2fa_link'])).diluxone_users_2fa_link).toBe('never');
-
-		await follow(email);
-		await expect(challengeScreen(guest)).toHaveCount(0);
-		expect(await whoOn(guest, beta.url)).toBe(email);
+		await guest.context().clearCookies();
+		await toTheHub(guest, beta, hub);
+		await askForLink(guest, guest.url(), email);
+		await guest.goto(linkIn(await waitForMail(hub.site, email, { after: before })));
+		await guest.waitForLoadState('domcontentloaded');
+		await expect(challengeScreen(guest), 'asked after the link').toBeVisible();
 	});
 
 	test('the Summary in Network Admin reads the network’s settings, and its rail stays on Network Admin', async ({ page, hub }) => {

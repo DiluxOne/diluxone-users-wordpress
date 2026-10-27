@@ -85,14 +85,15 @@ class CoverSettingsSecurityTest extends IntegrationTestCase {
 			DILUXONE_USERS_SECURITY,
 			array(
 				'diluxone_users_2fa_mode'    => 'bogus',
-				'diluxone_users_2fa_link'    => 'sometimes',
+				'diluxone_users_2fa_link'    => 'never',
 				'diluxone_users_2fa_methods' => array( 'email', 'sms_unknown', array( 'totp' ) ),
 			)
 		);
 		$this->assertNotFalse( $this->ended( 'diluxone_users_2fa_save' ) );
 
 		$this->assertSame( 'optional', diluxone_users_raw_get( 'diluxone_users_2fa_mode' ) );
-		$this->assertSame( 'auto', diluxone_users_raw_get( 'diluxone_users_2fa_link' ) );
+		$this->assertFalse( get_option( 'diluxone_users_2fa_link' ), 'the rule for the link is Users+ Pro’s: a forged one is not written' );
+		$this->assertFalse( get_site_option( 'diluxone_users_2fa_link' ) );
 		$this->assertSame( array( 'email' ), diluxone_users_raw_get( 'diluxone_users_2fa_methods' ) );
 
 		$this->send_panel(
@@ -188,7 +189,6 @@ class CoverSettingsSecurityTest extends IntegrationTestCase {
 			DILUXONE_USERS_SECURITY,
 			array(
 				'diluxone_users_2fa_mode' => 'off',
-				'diluxone_users_2fa_link' => 'never',
 			)
 		);
 
@@ -197,7 +197,6 @@ class CoverSettingsSecurityTest extends IntegrationTestCase {
 		// The boxes under "off" wait for it, disabled, so none was drawn:
 		// the methods are left as they were rather than emptied.
 		$this->assertFalse( diluxone_users_option_is_set( 'diluxone_users_2fa_methods' ), 'not asked, not written' );
-		$this->assertSame( 'never', diluxone_users_option( 'diluxone_users_2fa_link' ) );
 	}
 
 	/* ── The second step, drawn ────────────────────────────────────── */
@@ -213,17 +212,36 @@ class CoverSettingsSecurityTest extends IntegrationTestCase {
 		$this->assertStringContainsString( 'Nothing is asked: the second step is off for the whole site', $html );
 	}
 
-	public function test_a_link_always_or_never_asked_is_said_as_such(): void {
+	/**
+	 * The link asks it: said as a sentence and not offered as a choice, with
+	 * "Let it decide" after it as a Users+ Pro preview, disabled and
+	 * nameless. A rule saved before is not read.
+	 */
+	public function test_the_link_always_asks_and_let_it_decide_is_a_pro_preview(): void {
 		$this->where_the_network_is_set();
 		$this->the_admin();
+		update_option( 'diluxone_users_2fa_link', 'auto' );
+		update_site_option( 'diluxone_users_2fa_link', 'auto' );
 
-		diluxone_users_update_option( 'diluxone_users_2fa_link', 'always' );
 		$this->assertSame( 'active', diluxone_users_2fa_link_today()['state'] );
-		$this->assertStringContainsString( 'The second step is asked of somebody who came in by link, whichever one they have.', $this->draw( 'diluxone_users_screen_login_2fa' ) );
 
-		diluxone_users_update_option( 'diluxone_users_2fa_link', 'never' );
+		$html = $this->draw( 'diluxone_users_screen_login_2fa' );
+
+		$this->assertStringContainsString( 'The second step is asked of somebody who came in by link, as on every other way in', $html );
+		$this->assertStringNotContainsString( 'name="diluxone_users_2fa_link"', $html, 'no choice to make' );
+
+		$pro = substr( $html, (int) strpos( $html, 'data-diluxone-users-pro="security/2fa/link"' ) );
+		$this->assertNotSame( $html, $pro, 'the preview is drawn' );
+		$this->assertStringContainsString( 'Let it decide', substr( $pro, 0, 2000 ) );
+		$this->assertMatchesRegularExpression( '/^[^>]*>\s*<input[^>]*\sdisabled/', $pro, 'switched off' );
+
+		// An add-on that lets the link alone in is said as such.
+		$this->hook( 'diluxone_users_2fa_on_link', '__return_false' );
 		$this->assertSame( 'off', diluxone_users_2fa_link_today()['state'] );
 		$this->assertStringContainsString( 'Nothing is asked of somebody who came in by link: following it is the whole of it.', $this->draw( 'diluxone_users_screen_login_2fa' ) );
+
+		delete_option( 'diluxone_users_2fa_link' );
+		delete_site_option( 'diluxone_users_2fa_link' );
 	}
 
 	public function test_with_nowhere_to_answer_it_required_cannot_be_picked(): void {
@@ -282,7 +300,7 @@ class CoverSettingsSecurityTest extends IntegrationTestCase {
 			$at( '/name="diluxone_users_2fa_methods\[\]"/' ),
 			$at( '/data-diluxone-users-pro="security\/2fa\/app"/' ),
 			$at( '/data-place="methods"/' ),
-			$at( '/name="diluxone_users_2fa_link"\s+value="never"/' ),
+			$at( '/data-diluxone-users-pro="security\/2fa\/link"/' ),
 			$at( '/data-diluxone-users-pro="security\/2fa\/remember"/' ),
 			$at( '/data-place="end"/' ),
 		);

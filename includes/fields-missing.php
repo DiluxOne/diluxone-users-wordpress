@@ -5,7 +5,8 @@
  * An account made by the e-mail link or by a social network was never shown
  * the registration form, so it has nothing in the fields the site marked as
  * required — the name a certificate needs, say. Nothing asked for them
- * afterwards either. Now, at the moment a sign-in hands the person their
+ * afterwards either. Asking is Users+ Pro's (`diluxone_users_ask_missing`,
+ * false here); when it asks, at the moment a sign-in hands the person their
  * destination, the destination is wrapped: they go first to a short step on
  * the account page that asks for those fields and nothing else, and from it on
  * to where they were going.
@@ -65,17 +66,51 @@ function diluxone_users_has_required_fields(): bool {
 /**
  * Is the step asked for at all?
  *
- * On by default, and only ever acting while a field is required: a site with
- * none never sees it, and the first field it marks required turns it on
- * without anything stored changing by itself. It needs the account page too,
- * which is where it is drawn. In safe mode nothing of the plugin's
- * redirects, so neither does this.
+ * Not, as the plugin has it: a sign-in sends somebody straight to where they
+ * were going. Asking is Users+ Pro's, through `diluxone_users_ask_missing`,
+ * and even then only while a field is required and an account page is
+ * chosen, which is where the step is drawn. In safe mode nothing of the
+ * plugin's redirects, so neither does this.
  */
 function diluxone_users_ask_missing_on(): bool {
+	/**
+	 * Filters whether a sign-in asks for the required fields an account has
+	 * no answer for.
+	 *
+	 * False, as the plugin has it: nobody is asked.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param bool $ask Whether to ask.
+	 */
 	return ! diluxone_users_safe_mode()
-		&& (bool) diluxone_users_option( 'diluxone_users_ask_missing' )
+		&& (bool) apply_filters( 'diluxone_users_ask_missing', false )
 		&& '' !== diluxone_users_page_url( 'diluxone_users_account_page' )
 		&& diluxone_users_has_required_fields();
+}
+
+/**
+ * May this person leave the step for later?
+ *
+ * Yes, as the plugin has it: "Skip for now" goes on to where they were
+ * going. Making the required fields a condition is Users+ Pro's, through
+ * `diluxone_users_ask_missing_skippable`; with no link to skip, keeping them
+ * on the step until it is done is the add-on's too.
+ *
+ * @param int $user_id Who is asked.
+ */
+function diluxone_users_ask_missing_skippable( int $user_id ): bool {
+	/**
+	 * Filters whether the required-fields step can be skipped.
+	 *
+	 * True, as the plugin has it: a "Skip for now" link under the form.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param bool $skip    Whether it can be skipped.
+	 * @param int  $user_id Who is asked.
+	 */
+	return (bool) apply_filters( 'diluxone_users_ask_missing_skippable', true, $user_id );
 }
 
 /**
@@ -145,7 +180,7 @@ function diluxone_users_ask_missing_asked(): bool {
  * @return bool Whether it drew it; the account area draws its sections when not.
  */
 function diluxone_users_ask_missing_form(): bool {
-	if ( ! is_user_logged_in() || ! diluxone_users_ask_missing_asked() ) {
+	if ( ! is_user_logged_in() || ! diluxone_users_ask_missing_asked() || ! diluxone_users_ask_missing_on() ) {
 		return false;
 	}
 
@@ -178,6 +213,8 @@ function diluxone_users_ask_missing_form(): bool {
 	echo '<h2 class="diluxone-users-fields__title">' . esc_html__( 'Complete your details', 'diluxone-users' ) . '</h2>';
 	echo '<p class="diluxone-users-complete__intro">' . esc_html__( 'Before you go on, the site needs a few details it does not have yet.', 'diluxone-users' ) . '</p>';
 
+	$skippable = diluxone_users_ask_missing_skippable( $user_id );
+
 	diluxone_users_template_part(
 		'fields.php',
 		array(
@@ -187,7 +224,9 @@ function diluxone_users_ask_missing_form(): bool {
 			'title'    => '',
 			'state'    => diluxone_users_state(),
 			'redirect' => $to,
-			'skip'     => $to,
+			'skip'     => $skippable ? $to : '',
+			// A step that cannot be skipped still has a way out: signing out.
+			'leave'    => $skippable ? '' : wp_logout_url( home_url( '/' ) ),
 		)
 	);
 

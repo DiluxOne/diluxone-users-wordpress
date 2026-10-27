@@ -97,10 +97,6 @@ function diluxone_users_option_defaults_own(): array {
 		// Whether WordPress's own registration form, wp-login.php?action=register,
 		// asks for the fields too. Off, that form is exactly WordPress's.
 		'diluxone_users_wp_register_fields'    => 0,
-		// After a sign-in, ask for the required fields the account has no
-		// answer for (includes/fields-missing.php). On, and only ever acting
-		// while some field is required.
-		'diluxone_users_ask_missing'           => 1,
 		// Role of the accounts created that way.
 		'diluxone_users_login_role'            => 'subscriber',
 
@@ -219,16 +215,6 @@ function diluxone_users_option_defaults_own(): array {
 		// mailed to the address and opened (sso-pending.php). On by default,
 		// because the mail makes it cost nobody a way in.
 		'diluxone_users_sso_verified_only'     => 1,
-		// Who may sign in with a social account: everybody, or only the
-		// roles ticked. Said the other way round until now — a list of roles
-		// that could NOT — which is the only question on these screens
-		// answered by the negative, and the one place the reader had to work
-		// out what an empty list meant. `all` / `some` plus the roles is the
-		// shape the second step and the dashboard profile already use, so it
-		// is the same control and the same answer everywhere.
-		'diluxone_users_sso_scope'             => 'all',
-		'diluxone_users_sso_roles'             => array(),
-
 		/* How the network buttons look. */
 		'diluxone_users_sso_button_skin'       => 'brand',
 		'diluxone_users_sso_button_shape'      => 'rounded',
@@ -325,9 +311,6 @@ function diluxone_users_option_defaults_own(): array {
 		// What to do with spaces: 'dash' turns them into hyphens — an address
 		// cannot contain spaces — or 'reject' refuses them and says so.
 		'diluxone_users_handle_spaces'         => 'dash',
-		// Days to wait between one change and the next. 0 = no wait; a name
-		// that changes every day identifies nobody.
-		'diluxone_users_handle_cooldown'       => 30,
 		'diluxone_users_handle_reserved'       => '',
 
 		// ── The profile picture ───────────────────────────────────────
@@ -344,11 +327,6 @@ function diluxone_users_option_defaults_own(): array {
 		// ── Appearance ────────────────────────────────────────────────
 		// The plugin stylesheet. Off, the site styles the diluxone-users-* classes.
 		'diluxone_users_styles'                => 1,
-		// Where the colours come from: 'own' the ones below, 'theme' the
-		// palette the active theme publishes in its theme.json. The second is
-		// what stops a site from having to write a stylesheet that repoints
-		// every token by hand and then goes stale.
-		'diluxone_users_colors'                => 'own',
 		// How the site says it is dark: 'device', the visitor's system
 		// (`prefers-color-scheme`), or 'site', its own switch, written in the
 		// two below as where it goes and what it is: `html .is-dark`,
@@ -421,13 +399,6 @@ function diluxone_users_option_defaults_own(): array {
 		'diluxone_users_2fa_mode'              => 'off',
 		// The methods this site offers. Empty is equivalent to off.
 		'diluxone_users_2fa_methods'           => array( 'email' ),
-		// What to do when somebody comes in by e-mail link:
-		// 'auto'   ask only if the second step is NOT another e-mail. A code
-		// to the same inbox that was just opened proves nothing
-		// new; a method that does not arrive by e-mail does.
-		// 'always' always ask.
-		// 'never'  never ask.
-		'diluxone_users_2fa_link'              => 'auto',
 
 		// ── Privacy ─────────────────────────────────────────────────
 		// What somebody can do with their own data without asking anyone,
@@ -461,10 +432,6 @@ function diluxone_users_option_defaults_own(): array {
 		// Whether each person sees where their sessions are open and can
 		// close them. Off until an administrator offers it.
 		'diluxone_users_sessions_show'         => 0,
-		// Whether choosing a new password signs the account out everywhere.
-		// WordPress keeps the other sessions open, and so does the plugin
-		// until an administrator says otherwise.
-		'diluxone_users_reset_ends_sessions'   => 0,
 
 		// What happens when somebody opens the WordPress dashboard profile:
 		// 'allow' nothing, 'redirect' sends them to the site account area,

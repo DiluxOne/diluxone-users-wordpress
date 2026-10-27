@@ -309,6 +309,10 @@ function diluxone_users_fields_panels(): void {
 			'label'    => __( 'After sign-in', 'diluxone-users' ),
 			'position' => 18,
 			'render'   => 'diluxone_users_screen_fields_missing',
+			// The plugin alone has nothing to save here: a form, and its
+			// Save, only while an add-on draws its controls in the tab
+			// (diluxone_users_fields_missing_form()).
+			'form'     => false,
 			'save'     => 'diluxone_users_screen_fields_missing_save',
 		)
 	);
@@ -327,58 +331,79 @@ function diluxone_users_fields_panels(): void {
 add_action( 'diluxone_users_register_panels', 'diluxone_users_fields_panels' );
 
 /**
- * Whether a sign-in asks for the required fields an account has no answer for.
+ * What a sign-in does about the required fields an account has no answer for.
  *
- * The box is on by default and only ever acts while a field is required, so
- * while none is it is drawn switched off, with the reason beside it — and the
- * same while no account page is chosen, which is where the step is drawn.
+ * Nothing, as the plugin has it: the person goes straight to where they were
+ * going. Asking for them, and letting them skip it, are Users+ Pro's, drawn as
+ * the tick boxes they would be, switched off, and gone once Pro answers false
+ * to them. Nothing here is a setting, so the panel has nothing to save.
  */
 function diluxone_users_screen_fields_missing(): void {
-	$required = diluxone_users_has_required_fields();
-	$page     = '' !== diluxone_users_page_url( 'diluxone_users_account_page' );
-
-	if ( ! $required ) {
-		$why = __( 'No field is required yet, so there is nothing to ask for: it starts working when a field is marked as required.', 'diluxone-users' );
-	} elseif ( ! $page ) {
-		$why = __( 'No account page is chosen, so there is nowhere to ask: it starts working when one is chosen in Account area › The page.', 'diluxone-users' );
-	} else {
-		$why = '';
-	}
-
 	diluxone_users_ui_fields_open();
 
-	diluxone_users_ui_choices(
+	if ( diluxone_users_free_note_shown( 'fields/missing/ask' ) ) {
+		diluxone_users_ui_note( '', __( 'After signing in, people go straight to where they were going, whatever their account is missing.', 'diluxone-users' ) );
+	}
+
+	$pro = diluxone_users_ui_pro_choices(
+		array(),
 		array(
 			array(
-				'type'     => 'checkbox',
-				// Disabled, it leaves no line for the save, and the setting
-				// keeps what it had.
-				'name'     => '' === $why ? 'diluxone_users_ask_missing' : '',
-				'value'    => '1',
-				'checked'  => (bool) diluxone_users_option( 'diluxone_users_ask_missing' ),
-				'disabled' => '' !== $why,
-				'title'    => __( 'After signing in, ask for the required fields the account has no answer for', 'diluxone-users' ),
-				'help'     => '' !== $why
-					? $why
-					: __( 'Accounts made by the e-mail link or a social network were never asked for them. Once signed in, they are shown those fields alone on the account page, and then go on to where they were going. They can skip it, and are asked again at the next sign-in.', 'diluxone-users' ),
+				'type'   => 'checkbox',
+				'where'  => 'fields/missing/ask',
+				'screen' => 'fields-missing',
+				'title'  => __( 'After signing in, ask for the required fields the account has no answer for', 'diluxone-users' ),
+				'text'   => __( 'Users+ Pro asks accounts made by the e-mail link or a social network for what they were never asked: they are shown those fields alone on the account page, and then go on to where they were going.', 'diluxone-users' ),
+			),
+			array(
+				'type'   => 'checkbox',
+				'where'  => 'fields/missing/skip',
+				'screen' => 'fields-missing',
+				'title'  => __( 'Let them skip it', 'diluxone-users' ),
+				'text'   => __( 'Users+ Pro decides whether they can leave it for later, and are asked again at the next sign-in.', 'diluxone-users' ),
 			),
 		)
 	);
 
+	if ( array() !== $pro ) {
+		diluxone_users_ui_choices( $pro );
+	}
+
 	diluxone_users_ui_fields_close();
 }
 
-/** Saves it. */
-function diluxone_users_screen_fields_missing_save(): void {
+/**
+ * User fields › After sign-in is a form while an add-on draws there.
+ *
+ * Asked when the screen is drawn and saved, not when the tab is registered,
+ * so it follows whatever hooked in after the plugin.
+ *
+ * @param array<string, array<string, mixed>> $panels
+ * @param string                              $screen
+ * @return array<string, array<string, mixed>>
+ */
+function diluxone_users_fields_missing_form( $panels, $screen ): array {
+	$panels = (array) $panels;
+
+	if ( 'diluxone-users-fields' === $screen && isset( $panels['missing'] ) ) {
+		$panels['missing']['form'] = diluxone_users_pro_draws();
+	}
+
+	return $panels;
+}
+add_filter( 'diluxone_users_panels', 'diluxone_users_fields_missing_form', 10, 2 );
+
+/**
+ * Saves User fields › After sign-in: nothing of the plugin's.
+ *
+ * The tab holds only what an add-on draws there, and the add-on saves it on
+ * `diluxone_users_panel_saved`, which fires after this answers.
+ */
+function diluxone_users_screen_fields_missing_save(): bool {
 	check_admin_referer( 'diluxone_users_panel_diluxone-users-fields', 'diluxone_users_panel_nonce' );
 	diluxone_users_panel_allowed();
 
-	diluxone_users_save_options(
-		diluxone_users_panel_drawn(
-			'diluxone-users-fields',
-			array( 'diluxone_users_ask_missing' => isset( $_POST['diluxone_users_ask_missing'] ) ? 1 : 0 )
-		)
-	);
+	return true;
 }
 
 /**

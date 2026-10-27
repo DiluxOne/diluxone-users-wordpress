@@ -85,8 +85,9 @@ test.describe('The account on the hub, used by a person of another site', () => 
 		expect(read.meta.last_name).toBe('Hopper');
 	});
 
-	test('the public name chosen on the hub is the account’s, on every site', async ({ page, hub, alpha, beta }) => {
-		await hub.set({ diluxone_users_handle_enabled: 1, diluxone_users_handle_cooldown: 0 });
+	test('the public name chosen on the hub is the account’s, on every site, and changes again straight away', async ({ page, hub, alpha, beta }) => {
+		// A wait saved before it became Users+ Pro's is not read.
+		await hub.set({ diluxone_users_handle_enabled: 1, diluxone_users_handle_cooldown: 30 });
 
 		const email = freshEmail('hub-acct-handle');
 		const handle = `hub-${Date.now().toString(36)}`;
@@ -103,6 +104,15 @@ test.describe('The account on the hub, used by a person of another site', () => 
 		expect(await send(page, form)).toBe('saved');
 
 		expect((await beta.site.user(email, ['diluxone_users_handle'])).fields.diluxone_users_handle, '/beta/ reads it').toBe(handle);
+
+		await page.goto(accountSection(hub.pages.account.url, 'details'));
+		await openAllPanels(page);
+
+		const again = formFor(page, 'diluxone_users_handle');
+
+		await again.locator('input[name="diluxone_users_handle"]').fill(`${handle}-2`);
+		expect(await send(page, again), 'a second change, straight after').toBe('saved');
+		expect((await beta.site.user(email, ['diluxone_users_handle'])).fields.diluxone_users_handle).toBe(`${handle}-2`);
 	});
 
 	test('the other sessions closed from the hub are closed on /beta/ too', async ({ browser, page, hub, beta }) => {

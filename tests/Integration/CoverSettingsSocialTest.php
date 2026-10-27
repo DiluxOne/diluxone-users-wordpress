@@ -121,7 +121,7 @@ class CoverSettingsSocialTest extends IntegrationTestCase {
 		$this->the_admin();
 
 		// Unticked: saved, it would turn "Only verified addresses" off.
-		$post = array( 'diluxone_users_sso_scope' => 'all' );
+		$post = array( 'diluxone_users_sso_link_by_email' => '1' );
 
 		$this->postAs( get_current_user_id(), $post + array( 'diluxone_users_panel_nonce' => 'not-a-nonce' ) );
 		$this->assertSame( array( 'died', self::EXPIRED ), $this->ended( 'diluxone_users_social_rules_save' ) );
@@ -173,8 +173,8 @@ class CoverSettingsSocialTest extends IntegrationTestCase {
 
 		$this->assertSame( 0, (int) diluxone_users_option( 'diluxone_users_sso_link_by_email' ), 'unticked' );
 		$this->assertSame( 1, (int) diluxone_users_option( 'diluxone_users_sso_verified_only' ) );
-		$this->assertSame( 'some', diluxone_users_option( 'diluxone_users_sso_scope' ) );
-		$this->assertSame( array( 'subscriber' ), diluxone_users_option( 'diluxone_users_sso_roles' ) );
+		$this->assertFalse( get_option( 'diluxone_users_sso_scope' ), 'the roles are Users+ Pro’s: a forged choice is not written' );
+		$this->assertFalse( get_option( 'diluxone_users_sso_roles' ) );
 		$this->assertSame( 1, (int) diluxone_users_option( 'diluxone_users_sso_login' ), 'not on this form: left as it was' );
 	}
 
@@ -196,7 +196,7 @@ class CoverSettingsSocialTest extends IntegrationTestCase {
 
 		$this->the_admin();
 		// Unticked: saved, it would turn "Only verified addresses" off.
-		$this->send_panel( 'diluxone-users-social', array( 'diluxone_users_sso_scope' => 'all' ) );
+		$this->send_panel( 'diluxone-users-social', array( 'diluxone_users_sso_link_by_email' => '1' ) );
 
 		diluxone_users_social_rules_save();
 
@@ -216,7 +216,10 @@ class CoverSettingsSocialTest extends IntegrationTestCase {
 		$this->assertStringContainsString( 'name="diluxone_users_sso_link_by_email"', $html );
 		$this->assertStringContainsString( 'name="diluxone_users_sso_verified_only"', $html );
 		$this->assertStringContainsString( 'A social account only signs in people who already have one here.', $html );
-		$this->assertStringContainsString( 'Subscriber', $html, 'the role a new account gets, by its name' );
+		$this->assertStringContainsString( 'Every role can use the buttons, administrators included.', $html );
+		$this->assertStringNotContainsString( 'name="diluxone_users_sso_scope"', $html, 'the roles are Users+ Pro’s' );
+		$this->assertStringNotContainsString( 'name="diluxone_users_sso_roles[]"', $html );
+		$this->assertMatchesRegularExpression( '/data-diluxone-users-pro="social\/general\/roles">\s*<input type="radio" value="" disabled/', $html, '“only some roles” a disabled Pro preview' );
 
 		if ( is_multisite() ) {
 			$this->assertStringContainsString( 'name="diluxone_users_sso_login"', $html, 'in Network Admin the switch is here' );

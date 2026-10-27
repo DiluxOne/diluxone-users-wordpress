@@ -159,7 +159,6 @@ test.describe('Who a social identity opens', () => {
 			diluxone_users_sso_register: 1,
 			diluxone_users_sso_link_by_email: 1,
 			diluxone_users_sso_verified_only: 0,
-			diluxone_users_sso_scope: 'all',
 			diluxone_users_2fa_mode: 'off',
 		});
 	});
@@ -194,21 +193,20 @@ test.describe('Who a social identity opens', () => {
 		await expectSignedIn(page, email);
 	});
 
-	test('with social sign-in for some roles, a newcomer whose role would not be one of them gets no account', async ({ page, site, pages, options }) => {
+	test('a newcomer gets an account whatever role it would get, even where “only some roles” was saved', async ({ page, site, pages, options }) => {
 		await options.set({
 			diluxone_users_sso_scope: 'some',
 			diluxone_users_sso_roles: ['editor'],
 			diluxone_users_login_role: 'subscriber',
 		});
 
-		const email = freshEmail('sso-norole');
+		const email = freshEmail('sso-anyrole');
 
 		await site.setIdentity({ sub: `mock|${email}`, email, email_verified: true });
 		await pressMock(page, pages.login.url);
 
-		expect(stateOf(page.url())).toBe('social');
-		await expectSignedOut(page);
-		expect((await site.user(email)).exists, 'no account it could not then use').toBe(false);
+		await expectSignedIn(page, email);
+		expect((await site.user(email)).exists, 'the account is made').toBe(true);
 	});
 
 	test('the registration form offers the social buttons, and one of them makes the account', async ({ page, site, pages, options }) => {

@@ -166,7 +166,6 @@ test.describe('Network Admin › Social login › Rules', () => {
 			diluxone_users_sso_register: 1,
 			diluxone_users_sso_link_by_email: 1,
 			diluxone_users_sso_verified_only: 0,
-			diluxone_users_sso_scope: 'all',
 			diluxone_users_2fa_mode: 'off',
 			diluxone_users_login_method: 'both',
 		});
@@ -223,26 +222,18 @@ test.describe('Network Admin › Social login › Rules', () => {
 		expect((await hub.site.user(email)).exists, 'no account').toBe(false);
 	});
 
-	test('“only some roles” saved there: an editor of /alpha/ with the network linked is sent to the other ways in', async ({
+	test('every role signs in with the network, even where “only some roles” was saved there; the role choice is a disabled Users+ Pro preview', async ({
 		page,
 		guest,
 		hub,
 		alpha,
-		beta,
 	}) => {
+		await hub.set({ diluxone_users_sso_scope: 'some', diluxone_users_sso_roles: ['subscriber'] });
+
 		await page.goto(networkScreen(NETWORK_URL, SOCIAL, 'general'));
-		await page.locator('input[name="diluxone_users_sso_scope"][value="some"]').check();
-
-		for (const box of await page.locator('input[name="diluxone_users_sso_roles[]"]').all()) {
-			await box.uncheck();
-		}
-
-		await page.locator('input[name="diluxone_users_sso_roles[]"][value="subscriber"]').check();
-		await savePanel(page);
-		expect(await alpha.site.getOptions(['diluxone_users_sso_scope', 'diluxone_users_sso_roles'])).toEqual({
-			diluxone_users_sso_scope: 'some',
-			diluxone_users_sso_roles: ['subscriber'],
-		});
+		await expect(page.locator('input[name="diluxone_users_sso_scope"], input[name="diluxone_users_sso_roles[]"]'), 'no choice of its own').toHaveCount(0);
+		await expect(page.locator('[data-diluxone-users-pro="social/general/roles"] input[type="radio"]')).toBeDisabled();
+		await expect(page.locator('[data-diluxone-users-pro="social/general/roles"] [name]')).toHaveCount(0);
 
 		const email = freshEmail('net-rules-ed');
 
@@ -252,11 +243,6 @@ test.describe('Network Admin › Social login › Rules', () => {
 		await toTheHub(guest, alpha, hub);
 		await navigated(guest, () => ssoButton(guest, 'mock').click());
 
-		const elsewhere = JSON.stringify({ hub: (await hub.site.user(email)).roles, beta: (await beta.site.user(email)).roles });
-
-		expect(
-			await whoOn(guest, alpha.url),
-			`bug: includes/options.php:487 reads an "only these roles may" list against the roles of every site, so an editor of /alpha/ who is a subscriber elsewhere (${elsewhere}) comes in through the network the list was meant to keep editors off`
-		).toBeNull();
+		expect(await whoOn(guest, alpha.url), 'an editor of /alpha/ comes in through the network').toBe(email);
 	});
 });

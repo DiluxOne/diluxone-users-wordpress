@@ -37,12 +37,6 @@ const CONTROLS: Array<{
 	after: Record<string, unknown>;
 }> = [
 	{
-		tab: 'diluxone-users-security&tab=2fa',
-		keys: { diluxone_users_2fa_link: 'auto' },
-		act: (page) => page.locator('input[name="diluxone_users_2fa_link"][value="never"]').check(),
-		after: { diluxone_users_2fa_link: 'never' },
-	},
-	{
 		tab: 'diluxone-users-security&tab=sessions',
 		keys: { diluxone_users_session_short_days: 0, diluxone_users_sessions_show: 1 },
 		act: async (page) => {
@@ -62,18 +56,14 @@ const CONTROLS: Array<{
 	},
 	{
 		tab: 'diluxone-users-social&tab=general',
-		keys: { diluxone_users_sso_link_by_email: 1, diluxone_users_sso_verified_only: 0, diluxone_users_sso_scope: 'all', diluxone_users_sso_roles: [] },
+		keys: { diluxone_users_sso_link_by_email: 1, diluxone_users_sso_verified_only: 0 },
 		act: async (page) => {
 			await page.locator('input[name="diluxone_users_sso_link_by_email"]').uncheck();
 			await page.locator('input[name="diluxone_users_sso_verified_only"]').check();
-			await page.locator('input[name="diluxone_users_sso_scope"][value="some"]').check();
-			await page.locator('input[name="diluxone_users_sso_roles[]"][value="subscriber"]').check();
 		},
 		after: {
 			diluxone_users_sso_link_by_email: 0,
 			diluxone_users_sso_verified_only: 1,
-			diluxone_users_sso_scope: 'some',
-			diluxone_users_sso_roles: ['subscriber'],
 		},
 	},
 ];

@@ -128,9 +128,13 @@ if (!function_exists('did_action')) {
 	}
 }
 
+// A pass-through, unless a test answers the filter itself: a callable in
+// $GLOBALS['_test_wp_filters'][$hook_name] is given what apply_filters() is,
+// as an add-on hooked to it would be.
 if (!function_exists('apply_filters')) {
 	function apply_filters(string $hook_name, $value, ...$args) {
-		return $value;
+		$answer = $GLOBALS['_test_wp_filters'][$hook_name] ?? null;
+		return is_callable($answer) ? $answer($value, ...$args) : $value;
 	}
 }
 

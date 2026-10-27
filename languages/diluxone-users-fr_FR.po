@@ -176,9 +176,6 @@ msgstr "0 pour ce que décide WordPress, 14 jours. Le lien de connexion compte t
 msgid "0 for what WordPress decides, 2 days. What somebody gets when they leave the box unticked on a form that offers it."
 msgstr "0 pour ce que décide WordPress, 2 jours. Ce qu’obtient quelqu’un qui laisse la case décochée sur un formulaire qui la propose."
 
-msgid "0 means whenever they like. A name that changes every day does not identify anybody, and the old address stops working each time."
-msgstr "0 signifie quand ils veulent. Un nom qui change tous les jours n’identifie personne, et l’ancienne adresse cesse de fonctionner à chaque fois."
-
 msgid "2FA"
 msgstr "2FA"
 
@@ -217,9 +214,6 @@ msgstr "Un code par e-mail"
 
 msgid "A code is on its way"
 msgstr "Un code est en route"
-
-msgid "A code sent to the inbox the person has just opened to follow the link proves nothing the link did not prove already. An app does, so on an app it asks."
-msgstr "Un code envoyé dans la boîte que la personne vient d’ouvrir pour suivre le lien ne prouve rien que le lien n’ait déjà prouvé. Une application, si : avec une application, il demande."
 
 msgid "A colour of its own"
 msgstr "Une couleur à elle"
@@ -290,8 +284,8 @@ msgstr "Un menu sur le côté"
 msgid "A new account, %s, on every site"
 msgstr "Un nouveau compte, %s, sur chaque site"
 
-msgid "A new password closes every session the account had open"
-msgstr "Un nouveau mot de passe ferme toutes les sessions ouvertes du compte"
+msgid "A new password signs the account out on every other device, as WordPress does, and the list forgets them."
+msgstr "Un nouveau mot de passe déconnecte le compte sur tous les autres appareils, comme le fait WordPress, et la liste les oublie."
 
 msgid "A page of its own"
 msgstr "Une page à part"
@@ -423,9 +417,6 @@ msgstr "Les comptes se créent sur %s, pour tous les sites du réseau. Vous reve
 msgid "Accounts are made by whoever administers the site, under Users. Every door below is shut, WordPress’s own form on Settings → General included."
 msgstr "Les comptes sont créés par la personne qui administre le site, sous Utilisateurs. Toutes les portes ci-dessous sont fermées, y compris le formulaire propre à WordPress dans Réglages → Général."
 
-msgid "Accounts made by the e-mail link or a social network were never asked for them. Once signed in, they are shown those fields alone on the account page, and then go on to where they were going. They can skip it, and are asked again at the next sign-in."
-msgstr "Les comptes créés par le lien par e-mail ou par un réseau social ne les ont jamais remplis. Une fois connectés, ils voient ces seuls champs sur la page du compte, puis continuent là où ils allaient. L’étape peut être passée, et revient à la connexion suivante."
-
 msgid "Across the top, where the row begins, sits in the middle or ends. Down the side it is where the words in each line begin, which is the same question asked of a column."
 msgstr "En haut, là où la rangée commence, se tient au milieu ou se termine. Sur le côté, c’est là où commencent les mots de chaque ligne, la même question posée à une colonne."
 
@@ -486,6 +477,9 @@ msgstr "Après la connexion"
 msgid "After signing in, ask for the required fields the account has no answer for"
 msgstr "Après la connexion, demander les champs obligatoires auxquels le compte n’a pas répondu"
 
+msgid "After signing in, people go straight to where they were going, whatever their account is missing."
+msgstr "Après la connexion, les gens vont directement là où ils allaient, quoi qu’il manque à leur compte."
+
 msgid "After the door"
 msgstr "Après la porte"
 
@@ -515,9 +509,6 @@ msgstr "Presque rien : la plupart des gens changent cela une fois et plus jamais
 
 msgid "Already have an account?"
 msgstr "Vous avez déjà un compte ?"
-
-msgid "Always ask"
-msgstr "Toujours demander"
 
 msgid "Always in tabs"
 msgstr "Toujours en onglets"
@@ -1437,6 +1428,9 @@ msgstr "Chacun des %1$s comptes devient membre de chacun des %2$s sites actifs d
 msgid "Every return from a social network that signed nobody in, with the network and why. Already part of the ways in and out; this keeps them on their own."
 msgstr "Chaque retour d’un réseau social qui n’a connecté personne, avec le réseau et la raison. Ils font déjà partie des entrées et sorties ; ceci les garde à part."
 
+msgid "Every role can use the buttons, administrators included. Whoever would rather not signs in with the site’s other ways in."
+msgstr "Tous les rôles peuvent utiliser les boutons, administrateurs compris. Ceux qui préfèrent ne pas le faire se connectent par les autres moyens du site."
+
 msgid "Every row goes, whatever its age, and the Activity tab starts again from nothing. What is recorded from then on follows the settings above."
 msgstr "Toutes les lignes partent, quel que soit leur âge, et l’onglet Activité repart de zéro. Ce qui est enregistré ensuite suit les réglages ci-dessus."
 
@@ -1505,9 +1499,6 @@ msgstr "Tout le monde se connecte sur wp-login.php, comme dans WordPress."
 
 msgid "Everybody with an account, or only the roles ticked. Nobody who is not signed in reaches the account area at all."
 msgstr "Toutes les personnes ayant un compte, ou seulement les rôles cochés. Qui n'est pas connecté n'atteint pas du tout l'espace compte."
-
-msgid "Everybody, or only the roles you pick. Whoever is left out signs in with the email link as always, so nobody is shut out of the site — and it is the account with the most power that is worth thinking about: an administrator who signs in with Google depends on that Google account never being taken over."
-msgstr "Tout le monde, ou seulement les rôles que vous choisissez. Qui reste en dehors se connecte avec le lien par e-mail comme toujours, donc personne n’est exclu du site — et le compte auquel il faut penser est celui qui a le plus de pouvoir : un administrateur qui se connecte avec Google dépend de ce que ce compte Google ne soit jamais pris par quelqu’un d’autre."
 
 msgid "Everyone on the network, me included"
 msgstr "Tout le monde sur le réseau, moi compris"
@@ -1591,9 +1582,6 @@ msgstr "Premiers pas"
 
 msgid "Fixed list"
 msgstr "Liste fermée"
-
-msgid "Following the link is the whole of it. The quickest way in, and the weakest of the three."
-msgstr "Suivre le lien, c’est tout. La façon la plus rapide d’entrer, et la plus faible des trois."
 
 #. translators: %s: the account's e-mail address
 #, php-format
@@ -2163,11 +2151,17 @@ msgstr "Longueur"
 msgid "Lesotho"
 msgstr "Lesotho"
 
+msgid "Let it decide"
+msgstr "Laisser décider"
+
 msgid "Let people choose their public name"
 msgstr "Laisser les gens choisir leur nom public"
 
 msgid "Let people upload their own"
 msgstr "Laisser les gens envoyer la leur"
+
+msgid "Let them skip it"
+msgstr "Leur permettre de passer"
 
 msgid "Letters, numbers and dashes. Sign in, registration, the second step and a new password are all answered there, and an address you used before keeps sending people to it."
 msgstr "Lettres, chiffres et tirets. La connexion, l’inscription, la deuxième étape et un nouveau mot de passe y sont tous traités, et une adresse que vous utilisiez avant continue d’y mener."
@@ -2399,9 +2393,6 @@ msgstr "Réseaux que vous pouvez lier"
 msgid "Networks you can sign in with"
 msgstr "Réseaux avec lesquels vous pouvez vous connecter"
 
-msgid "Never ask"
-msgstr "Ne jamais demander"
-
 msgid "Never sent"
 msgstr "Jamais envoyé"
 
@@ -2457,9 +2448,6 @@ msgstr "Non"
 msgid "No account area: people edit their details on the dashboard profile, as WordPress has it."
 msgstr "Pas d’espace compte : les gens modifient leurs informations dans le profil du tableau de bord, comme dans WordPress."
 
-msgid "No account page is chosen, so there is nowhere to ask: it starts working when one is chosen in Account area › The page."
-msgstr "Aucune page de compte n’est choisie, il n’y a donc nulle part où demander : cela fonctionne dès qu’une page est choisie dans Espace compte › La page."
-
 msgid "No account with that e-mail address."
 msgstr "Aucun compte avec cette adresse e-mail."
 
@@ -2471,9 +2459,6 @@ msgstr "Pas de boutons : WordPress n’en a aucun à lui."
 
 msgid "No country matches that."
 msgstr "Aucun pays ne correspond."
-
-msgid "No field is required yet, so there is nothing to ask for: it starts working when a field is marked as required."
-msgstr "Aucun champ n’est encore obligatoire, il n’y a donc rien à demander : cela fonctionne dès qu’un champ est marqué comme obligatoire."
 
 msgid "No fields yet."
 msgstr "Pas encore de champs."
@@ -2689,9 +2674,6 @@ msgstr "Rien ici ne change quoi que ce soit : ça regarde et ça compte. Ce qui 
 msgid "Nothing is asked of somebody who came in by link: following it is the whole of it."
 msgstr "Rien n’est demandé à qui est entré par lien : suivre le lien, c’est tout."
 
-msgid "Nothing is asked: every method that is on arrives by e-mail, at the inbox the person just opened."
-msgstr "Rien n’est demandé : toutes les méthodes actives arrivent par e-mail, dans la boîte que la personne vient d’ouvrir."
-
 msgid "Nothing is asked: the second step is off for the whole site, whatever is chosen here."
 msgstr "Rien n’est demandé : la deuxième étape est désactivée pour tout le site, quel que soit le choix fait ici."
 
@@ -2847,6 +2829,9 @@ msgstr "Sur ce réseau, les règles concernant les gens sont celles du réseau :
 
 msgid "On this network these are switched on or off for every site at once, in Network Admin, where each feature lives: social accounts under Social login › Rules."
 msgstr "Sur ce réseau, ces options sont activées ou désactivées pour tous les sites à la fois, dans l’administration du réseau, là où vit chaque fonctionnalité : les comptes sociaux dans Connexion sociale › Règles."
+
+msgid "Once chosen, it cannot be changed"
+msgstr "Une fois choisi, il ne peut plus être changé"
 
 msgid "Once it is done"
 msgstr "Une fois que c'est fait"
@@ -3057,6 +3042,9 @@ msgstr "En attente"
 
 msgid "People can sign in with a social account"
 msgstr "Les gens peuvent se connecter avec un compte social"
+
+msgid "People change their public name whenever they like."
+msgstr "Les gens changent leur nom public quand ils veulent."
 
 msgid "People choose the short name they appear under."
 msgstr "Les gens choisissent le nom court sous lequel ils apparaissent."
@@ -4515,11 +4503,8 @@ msgstr "La photo est trop lourde : %s au maximum."
 msgid "The photo is too large: at most %d pixels a side."
 msgstr "La photo est trop grande : %d pixels de côté au maximum."
 
-msgid "The plugin paints itself with the palette your theme publishes, and goes on following it — into the theme’s own dark mode as well, where it hands over a variable rather than a colour. Any part the palette does not name is taken from what your theme paints on the site. There is nothing else to choose."
-msgstr "Le plugin se peint avec la palette que publie votre thème et continue de la suivre — y compris dans le mode sombre du thème, où il transmet une variable plutôt qu’une couleur. Ce que la palette ne nomme pas est pris de ce que votre thème peint sur le site. Il n’y a rien d’autre à choisir."
-
-msgid "The plugin’s stylesheet is not loaded and the plugin paints nothing: its panels, fields and buttons come out bare and the site’s own stylesheet dresses them. The most work of the three, and the only way to match a design exactly."
-msgstr "La feuille de styles de l’extension n’est pas chargée et l’extension ne peint rien : ses panneaux, ses champs et ses boutons sortent nus et c’est la feuille de styles du site qui les habille. La plus exigeante des trois, et la seule façon de coller exactement à une maquette."
+msgid "The plugin’s stylesheet is not loaded and the plugin paints nothing: its panels, fields and buttons come out bare and the site’s own stylesheet dresses them. The most work, and the only way to match a design exactly."
+msgstr "La feuille de style de l’extension n’est pas chargée et l’extension ne peint rien : ses panneaux, champs et boutons sortent bruts et la feuille de style du site les habille. Le plus de travail, et la seule façon de coller exactement à un design."
 
 #. translators: %s: the name of the site where the network's accounts live
 #, php-format
@@ -4564,9 +4549,6 @@ msgstr "Le rôle donné"
 msgid "The roles it is hidden from"
 msgstr "Les rôles à qui elle est masquée"
 
-msgid "The roles ticked can use the buttons. Everybody else uses the site’s other ways in."
-msgstr "Les rôles cochés peuvent utiliser les boutons. Les autres se connectent par les autres moyens du site."
-
 #. translators: %s: provider name
 #, php-format
 msgid "The round trip with %s failed."
@@ -4601,17 +4583,14 @@ msgstr "L’écran répond qu’il n’est pas disponible. Pour un site où le t
 msgid "The screen somebody lands on once the e-mail is on its way."
 msgstr "L'écran sur lequel on arrive une fois le courriel parti."
 
+msgid "The second step is asked of somebody who came in by link, as on every other way in, whichever method they have."
+msgstr "La deuxième étape est demandée à qui arrive par lien, comme pour tout autre moyen de connexion, quelle que soit sa méthode."
+
 msgid "The second step is asked of somebody who came in by link, whichever one they have."
 msgstr "La deuxième étape est demandée à qui est entré par lien, quelle que soit celle dont la personne dispose."
 
-msgid "The second step is asked: a method that is on does not arrive by e-mail, so it proves something the link did not."
-msgstr "La deuxième étape est demandée : une méthode active n’arrive pas par e-mail, elle prouve donc quelque chose que le lien n’a pas prouvé."
-
 msgid "The second step is off, so nothing below is asked of anybody. Turn it on above and this applies."
 msgstr "La deuxième étape est désactivée : rien de ce qui suit n’est demandé à personne. Activez-la ci-dessus et ceci s’applique."
-
-msgid "The second step on every link, including the errand of a code going back to the same inbox."
-msgstr "La deuxième étape à chaque lien, y compris la corvée d’un code qui repart vers la même boîte."
 
 msgid "The second step, for somebody who came in by link."
 msgstr "La deuxième étape, pour quelqu’un arrivé par lien."
@@ -5342,8 +5321,23 @@ msgstr "Users+ Pro ajoute l’espace compte avec une bannière : la personne sur
 msgid "Users+ Pro adds the six digits that change every thirty seconds, from Google Authenticator, 1Password or Aegis: the code never travels, so it is asked on the e-mail link too."
 msgstr "Users+ Pro ajoute les six chiffres qui changent toutes les trente secondes, depuis Google Authenticator, 1Password ou Aegis : le code ne voyage jamais, il est donc aussi demandé avec le lien par e-mail."
 
+msgid "Users+ Pro asks accounts made by the e-mail link or a social network for what they were never asked: they are shown those fields alone on the account page, and then go on to where they were going."
+msgstr "Users+ Pro demande aux comptes créés par le lien par e-mail ou un réseau social ce qu’on ne leur a jamais demandé : ils ne voient que ces champs sur la page du compte, puis continuent là où ils allaient."
+
+msgid "Users+ Pro asks it on the link only when it proves something the link did not: an app does, a code back to the inbox the person just opened does not."
+msgstr "Users+ Pro la demande après le lien seulement quand elle prouve ce que le lien n’a pas prouvé : une application, oui ; un code envoyé à la boîte que la personne vient d’ouvrir, non."
+
 msgid "Users+ Pro asks the second step of the roles you choose — the ones that can change things — and not of everybody with an account."
 msgstr "Users+ Pro demande la deuxième étape aux rôles que vous choisissez — ceux qui peuvent modifier des choses — et non à tous ceux qui ont un compte."
+
+msgid "Users+ Pro decides whether they can leave it for later, and are asked again at the next sign-in."
+msgstr "Users+ Pro décide s’ils peuvent remettre à plus tard, et la question revient à la connexion suivante."
+
+msgid "Users+ Pro keeps the first name somebody picks for good: the address it gives them never moves."
+msgstr "Users+ Pro garde pour de bon le premier nom choisi : l’adresse qu’il donne ne change jamais."
+
+msgid "Users+ Pro lets only the roles you pick use the buttons: an administrator who signs in with Google depends on that Google account never being taken over. Whoever is left out signs in with the email link as always."
+msgstr "Users+ Pro ne laisse utiliser les boutons qu’aux rôles que vous choisissez : un administrateur qui se connecte avec Google dépend de ce que ce compte Google ne soit jamais piraté. Ceux qui restent à l’écart se connectent avec le lien par e-mail, comme toujours."
 
 msgid "Users+ Pro lets people skip the second step for a few days on a browser that already passed it, with a signed cookie that lets nobody in on its own."
 msgstr "Users+ Pro permet de sauter la deuxième étape pendant quelques jours sur un navigateur qui l’a déjà passée, avec un cookie signé qui ne laisse entrer personne à lui seul."
@@ -5353,6 +5347,12 @@ msgstr "Users+ Pro vous laisse choisir quelle couleur de la palette de votre th�
 
 msgid "Users+ Pro on these screens"
 msgstr "Users+ Pro sur ces écrans"
+
+msgid "Users+ Pro paints the plugin with the palette your theme publishes, or with the colours it paints on the site, and follows the theme into its own dark mode."
+msgstr "Users+ Pro peint l’extension avec la palette publiée par votre thème, ou avec les couleurs qu’il applique au site, et suit le thème dans son propre mode sombre."
+
+msgid "Users+ Pro sets the days between one change and the next: a name that changes every day does not identify anybody, and the old address stops working each time."
+msgstr "Users+ Pro fixe les jours entre un changement et le suivant : un nom qui change chaque jour n’identifie personne, et l’ancienne adresse cesse de fonctionner à chaque fois."
 
 msgid "Uzbekistan"
 msgstr "Ouzbékistan"
@@ -5670,9 +5670,6 @@ msgstr "Qui est sur ce site, ce qu’on leur demande et comment ils entrent."
 msgid "Who is signed in right now, from where, and until when. Closing somebody’s sessions signs them out everywhere at once; they can come back in as always."
 msgstr "Qui est connecté en ce moment, depuis où, et jusqu’à quand. Fermer les sessions de quelqu’un le déconnecte partout d’un coup ; il peut revenir comme toujours."
 
-msgid "Who it reaches"
-msgstr "Qui cela concerne"
-
 msgid "Who sees it"
 msgstr "Qui la voit"
 
@@ -5687,9 +5684,6 @@ msgstr "Quiconque peut modifier les comptes n’est jamais concerné : c’est l
 
 msgid "Whoever is signed in sees the strip on the site, with the way back to the dashboard in it."
 msgstr "Qui est connecté voit la bande sur le site, avec le chemin de retour vers le tableau de bord dedans."
-
-msgid "Whoever reset it because the old one got out signs in again everywhere, and so would anybody who was using it. Unticked, the other sessions stay open, as WordPress leaves them."
-msgstr "Celui qui l’a réinitialisé parce que l’ancien a fuité se reconnecte partout, et quiconque l’utilisait devrait le faire aussi. Décoché, les autres sessions restent ouvertes, comme WordPress les laisse."
 
 msgid "Why we are asking. Shown under the field."
 msgstr "Pourquoi nous le demandons. Affiché sous le champ."
@@ -5783,9 +5777,6 @@ msgstr "Le formulaire propre à WordPress : un identifiant et un mot de passe su
 
 msgid "WordPress’s screen"
 msgstr "L’écran de WordPress"
-
-msgid "Work it out: ask, unless the second step is another email"
-msgstr "Décider : demander, sauf si la deuxième étape est un autre e-mail"
 
 #. translators: %s: providers working, comma separated
 #, php-format
@@ -6006,6 +5997,9 @@ msgstr "Votre profil :"
 msgid "Your public name"
 msgstr "Votre nom public"
 
+msgid "Your public name cannot be changed."
+msgstr "Votre nom public ne peut pas être modifié."
+
 #. translators: %s: site name
 #, php-format
 msgid "Your security on %s changed"
@@ -6030,9 +6024,6 @@ msgstr ""
 #, php-format
 msgid "Your sign-in link for %s"
 msgstr "Votre lien de connexion pour %s"
-
-msgid "Your theme publishes no palette, so the plugin takes the colours your theme paints: the colour of its links and buttons, of its text, its page ground and the edge of its fields, measured on the site itself. There is nothing else to choose."
-msgstr "Votre thème ne publie pas de palette : le plugin prend donc les couleurs que votre thème peint — celle de ses liens et boutons, de son texte, le fond de la page et le bord de ses champs, mesurées sur le site même. Il n’y a rien d’autre à choisir."
 
 msgid "Zambia"
 msgstr "Zambie"

@@ -52,12 +52,10 @@ defined( 'ABSPATH' ) || exit;
 function diluxone_users_option_scopes(): array {
 	return array(
 		// ── Network: who gets in, and how safely ─────────────────────
-		'diluxone_users_2fa_link'              => 'network',
 		'diluxone_users_2fa_methods'           => 'network',
 		'diluxone_users_2fa_mode'              => 'network',
 		'diluxone_users_fields'                => 'network',
 		// Asking for them after a sign-in: the fields' own scope.
-		'diluxone_users_ask_missing'           => 'network',
 		'diluxone_users_ip_header'             => 'network',
 		'diluxone_users_log_days'              => 'network',
 		'diluxone_users_membership'            => 'network',
@@ -73,8 +71,6 @@ function diluxone_users_option_scopes(): array {
 		'diluxone_users_sso'                   => 'network',
 		'diluxone_users_sso_link_by_email'     => 'network',
 		'diluxone_users_sso_login'             => 'network',
-		'diluxone_users_sso_roles'             => 'network',
-		'diluxone_users_sso_scope'             => 'network',
 		'diluxone_users_sso_verified_only'     => 'network',
 		'diluxone_users_trusted_proxies'       => 'network',
 		// The wipe takes people's data, and people are the network's: it is
@@ -91,7 +87,6 @@ function diluxone_users_option_scopes(): array {
 		'diluxone_users_log_schema'            => 'network',
 		// Whether the other sites send people to the hub (network-hub.php).
 		'diluxone_users_network_hub'           => 'network',
-		'diluxone_users_reset_ends_sessions'   => 'network',
 
 		// ── Hub: the screens people sign in, register and live on ───
 		'diluxone_users_account_action'        => 'hub',
@@ -121,10 +116,8 @@ function diluxone_users_option_scopes(): array {
 		'diluxone_users_avatar_upload'         => 'hub',
 		'diluxone_users_button_icons'          => 'hub',
 		'diluxone_users_button_style'          => 'hub',
-		'diluxone_users_colors'                => 'hub',
 		'diluxone_users_dark_follows'          => 'hub',
 		'diluxone_users_dark_signal'           => 'hub',
-		'diluxone_users_handle_cooldown'       => 'hub',
 		'diluxone_users_handle_enabled'        => 'hub',
 		'diluxone_users_handle_login'          => 'hub',
 		'diluxone_users_handle_max'            => 'hub',

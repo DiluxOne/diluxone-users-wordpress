@@ -1625,7 +1625,6 @@ function diluxone_users_account_handle_save(): void {
 			'diluxone_users_handle_min'      => ( isset( $_POST['diluxone_users_handle_min'] ) && is_scalar( $_POST['diluxone_users_handle_min'] ) ? absint( wp_unslash( $_POST['diluxone_users_handle_min'] ) ) : 3 ),
 			'diluxone_users_handle_max'      => ( isset( $_POST['diluxone_users_handle_max'] ) && is_scalar( $_POST['diluxone_users_handle_max'] ) ? absint( wp_unslash( $_POST['diluxone_users_handle_max'] ) ) : 30 ),
 			'diluxone_users_handle_spaces'   => sanitize_key( wp_unslash( $_POST['diluxone_users_handle_spaces'] ?? 'dash' ) ),
-			'diluxone_users_handle_cooldown' => ( isset( $_POST['diluxone_users_handle_cooldown'] ) && is_scalar( $_POST['diluxone_users_handle_cooldown'] ) ? absint( wp_unslash( $_POST['diluxone_users_handle_cooldown'] ) ) : 30 ),
 			'diluxone_users_handle_reserved' => sanitize_textarea_field( wp_unslash( $_POST['diluxone_users_handle_reserved'] ?? '' ) ),
 		)
 	);
@@ -1703,16 +1702,47 @@ function diluxone_users_screen_account_handle(): void {
 		__( 'A web address cannot have spaces, so one of the two has to happen. The first is what almost everybody expects; the second is for a site that would rather nobody ends up with a name they did not type.', 'diluxone-users' )
 	);
 
-	diluxone_users_ui_number(
+	/*
+	 * How often it can change is Users+ Pro's: here people change it
+	 * whenever they like. What Pro brings is drawn as the controls it would
+	 * be, switched off, and gone once Pro answers false to them.
+	 */
+	if ( diluxone_users_free_note_shown( 'account/handle/cooldown' ) ) {
+		diluxone_users_ui_note( '', __( 'People change their public name whenever they like.', 'diluxone-users' ) );
+	}
+
+	diluxone_users_ui_pro_control(
 		array(
-			'label'  => __( 'How often it can change', 'diluxone-users' ),
-			'name'   => 'diluxone_users_handle_cooldown',
-			'value'  => (string) diluxone_users_option( 'diluxone_users_handle_cooldown' ),
-			'suffix' => __( 'days between one change and the next', 'diluxone-users' ),
-			'min'    => 0,
-			'help'   => __( '0 means whenever they like. A name that changes every day does not identify anybody, and the old address stops working each time.', 'diluxone-users' ),
+			'where'  => 'account/handle/cooldown',
+			'screen' => 'account-handle',
+			'text'   => __( 'Users+ Pro sets the days between one change and the next: a name that changes every day does not identify anybody, and the old address stops working each time.', 'diluxone-users' ),
+		),
+		static function (): void {
+			diluxone_users_ui_field_open( __( 'How often it can change', 'diluxone-users' ) );
+			printf(
+				'<input type="number" class="small-text" value="30" disabled> %s',
+				esc_html__( 'days between one change and the next', 'diluxone-users' )
+			);
+			diluxone_users_ui_field_close();
+		}
+	);
+
+	$locked = diluxone_users_ui_pro_choices(
+		array(),
+		array(
+			array(
+				'type'   => 'checkbox',
+				'where'  => 'account/handle/locked',
+				'screen' => 'account-handle',
+				'title'  => __( 'Once chosen, it cannot be changed', 'diluxone-users' ),
+				'text'   => __( 'Users+ Pro keeps the first name somebody picks for good: the address it gives them never moves.', 'diluxone-users' ),
+			),
 		)
 	);
+
+	if ( array() !== $locked ) {
+		diluxone_users_ui_choices( $locked );
+	}
 
 	diluxone_users_ui_textarea(
 		array(

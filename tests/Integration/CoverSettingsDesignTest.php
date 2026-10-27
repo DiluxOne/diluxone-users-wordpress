@@ -341,7 +341,7 @@ class CoverSettingsDesignTest extends IntegrationTestCase {
 				'good' => array( 'name' => 'Good <b>one</b>', 'color' => '#123456' ),
 			)
 		);
-		diluxone_users_update_option( 'diluxone_users_colors', 'theme' );
+		$this->theme_colors( true );
 
 		$palette = diluxone_users_theme_palette();
 
@@ -356,7 +356,7 @@ class CoverSettingsDesignTest extends IntegrationTestCase {
 			'diluxone_users_theme_palette',
 			static fn(): array => array( 'contrast' => array( 'name' => 'Ink', 'color' => '#111111' ) )
 		);
-		diluxone_users_update_option( 'diluxone_users_colors', 'theme' );
+		$this->theme_colors( true );
 
 		$this->assertSame( ':root{--diluxone-users-text:#111111;}', diluxone_users_theme_colors_css() );
 		$this->assertContains( 'accent', diluxone_users_color_measured_roles() );
@@ -529,7 +529,7 @@ class CoverSettingsDesignTest extends IntegrationTestCase {
 
 		$this->assertSame( array(), diluxone_users_color_measured_roles(), 'nothing is measured while the colours are the plugin’s' );
 
-		diluxone_users_update_option( 'diluxone_users_colors', 'theme' );
+		$this->theme_colors( true );
 
 		$this->assertSame( array( 'accent' => 'primary' ), diluxone_users_color_map(), 'a name that says so; a numbered or unknown one is not guessed at' );
 
@@ -541,6 +541,59 @@ class CoverSettingsDesignTest extends IntegrationTestCase {
 	}
 
 	/* ── Measuring what the palette does not name ──────────────────── */
+
+	/**
+	 * #188 C6: the plugin alone paints with its own palette and the accent,
+	 * light and dark, even on a site that had "the theme's" saved: nothing of
+	 * the theme's palette, no measuring, no dark signal read from the theme.
+	 * Design › Your brand draws "From your theme" as a disabled Users+ Pro
+	 * preview, and its save writes no colour source.
+	 */
+	public function test_the_plugin_alone_paints_with_the_palette_accent(): void {
+		$this->palette = array(
+			'primary' => array(
+				'name'  => 'Primary',
+				'color' => '#ff0000',
+			),
+		);
+		add_filter( 'diluxone_users_theme_palette', array( $this, 'the_palette' ) );
+		update_option( 'diluxone_users_colors', 'theme' );
+		update_site_option( 'diluxone_users_colors', 'theme' );
+		diluxone_users_update_option( 'diluxone_users_style_accent', '#15803d' );
+		diluxone_users_update_option( 'diluxone_users_dark_follows', 'site' );
+		diluxone_users_update_option( 'diluxone_users_dark_signal', 'html .is-dark' );
+
+		$this->assertArrayNotHasKey( 'diluxone_users_colors', diluxone_users_option_defaults(), 'no setting' );
+		$this->assertFalse( diluxone_users_colors_from_theme() );
+		$this->assertSame( '', diluxone_users_theme_colors_css(), 'nothing of the theme’s palette' );
+		$this->assertStringContainsString( '--diluxone-users-accent:#15803d;', diluxone_users_style_tokens(), 'the accent chosen here' );
+		$this->assertSame( array(), diluxone_users_dark_signal(), 'light and dark are the device’s, with the plugin’s own palette' );
+
+		wp_enqueue_style( 'diluxone-users', DILUXONE_USERS_URL . 'assets/diluxone-users.css', array(), DILUXONE_USERS_VERSION );
+		$this->as_front_end();
+		diluxone_users_measure_early();
+		diluxone_users_measure();
+		$this->assertFalse( wp_script_is( 'diluxone-users-theme-colors-early', 'enqueued' ), 'the theme is not measured' );
+		$this->assertFalse( wp_script_is( 'diluxone-users-theme-colors', 'enqueued' ) );
+
+		require_once ABSPATH . 'wp-admin/includes/class-wp-screen.php';
+		require_once ABSPATH . 'wp-admin/includes/screen.php';
+		$GLOBALS['current_screen'] = \WP_Screen::get( 'dashboard' );
+
+		$this->the_admin();
+		$html = $this->draw( 'diluxone_users_screen_design_brand' );
+		$this->assertMatchesRegularExpression( '#value="own"[^>]*checked#', $html, 'the plugin’s own colours are the answer' );
+		$this->assertDoesNotMatchRegularExpression( '#name="diluxone_users_look"\s+value="theme"#', $html );
+		$this->assertStringContainsString( 'data-diluxone-users-pro="design/brand/theme"', $html );
+
+		delete_option( 'diluxone_users_colors' );
+		delete_site_option( 'diluxone_users_colors' );
+		$this->send_panel( DILUXONE_USERS_DESIGN, array( 'diluxone_users_look' => 'theme' ) );
+		diluxone_users_design_brand_save();
+		$this->assertFalse( get_option( 'diluxone_users_colors' ), 'a forged "theme" writes nothing' );
+		$this->assertFalse( get_site_option( 'diluxone_users_colors' ) );
+		$this->assertFalse( diluxone_users_colors_from_theme() );
+	}
 
 	public function test_the_measured_colours_are_kept_per_theme_and_version(): void {
 		$theme = wp_get_theme();
@@ -561,7 +614,7 @@ class CoverSettingsDesignTest extends IntegrationTestCase {
 	public function test_the_theme_is_measured_on_the_pages_that_carry_the_plugin(): void {
 		$this->palette = array();
 		add_filter( 'diluxone_users_theme_palette', array( $this, 'the_palette' ) );
-		diluxone_users_update_option( 'diluxone_users_colors', 'theme' );
+		$this->theme_colors( true );
 		$this->as_front_end();
 
 		diluxone_users_measure_early();
@@ -583,7 +636,7 @@ class CoverSettingsDesignTest extends IntegrationTestCase {
 	public function test_nothing_is_measured_in_the_dashboard(): void {
 		$this->palette = array();
 		add_filter( 'diluxone_users_theme_palette', array( $this, 'the_palette' ) );
-		diluxone_users_update_option( 'diluxone_users_colors', 'theme' );
+		$this->theme_colors( true );
 		wp_enqueue_style( 'diluxone-users', DILUXONE_USERS_URL . 'assets/diluxone-users.css', array(), DILUXONE_USERS_VERSION );
 
 		require_once ABSPATH . 'wp-admin/includes/class-wp-screen.php';

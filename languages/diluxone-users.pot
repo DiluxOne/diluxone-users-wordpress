@@ -176,9 +176,6 @@ msgstr ""
 msgid "0 for what WordPress decides, 2 days. What somebody gets when they leave the box unticked on a form that offers it."
 msgstr ""
 
-msgid "0 means whenever they like. A name that changes every day does not identify anybody, and the old address stops working each time."
-msgstr ""
-
 msgid "2FA"
 msgstr ""
 
@@ -216,9 +213,6 @@ msgid "A code by email"
 msgstr ""
 
 msgid "A code is on its way"
-msgstr ""
-
-msgid "A code sent to the inbox the person has just opened to follow the link proves nothing the link did not prove already. An app does, so on an app it asks."
 msgstr ""
 
 msgid "A colour of its own"
@@ -290,7 +284,7 @@ msgstr ""
 msgid "A new account, %s, on every site"
 msgstr ""
 
-msgid "A new password closes every session the account had open"
+msgid "A new password signs the account out on every other device, as WordPress does, and the list forgets them."
 msgstr ""
 
 msgid "A page of its own"
@@ -423,9 +417,6 @@ msgstr ""
 msgid "Accounts are made by whoever administers the site, under Users. Every door below is shut, WordPress’s own form on Settings → General included."
 msgstr ""
 
-msgid "Accounts made by the e-mail link or a social network were never asked for them. Once signed in, they are shown those fields alone on the account page, and then go on to where they were going. They can skip it, and are asked again at the next sign-in."
-msgstr ""
-
 msgid "Across the top, where the row begins, sits in the middle or ends. Down the side it is where the words in each line begin, which is the same question asked of a column."
 msgstr ""
 
@@ -486,6 +477,9 @@ msgstr ""
 msgid "After signing in, ask for the required fields the account has no answer for"
 msgstr ""
 
+msgid "After signing in, people go straight to where they were going, whatever their account is missing."
+msgstr ""
+
 msgid "After the door"
 msgstr ""
 
@@ -514,9 +508,6 @@ msgid "Almost nothing: most people change these once and never again."
 msgstr ""
 
 msgid "Already have an account?"
-msgstr ""
-
-msgid "Always ask"
 msgstr ""
 
 msgid "Always in tabs"
@@ -1430,6 +1421,9 @@ msgstr ""
 msgid "Every return from a social network that signed nobody in, with the network and why. Already part of the ways in and out; this keeps them on their own."
 msgstr ""
 
+msgid "Every role can use the buttons, administrators included. Whoever would rather not signs in with the site’s other ways in."
+msgstr ""
+
 msgid "Every row goes, whatever its age, and the Activity tab starts again from nothing. What is recorded from then on follows the settings above."
 msgstr ""
 
@@ -1497,9 +1491,6 @@ msgid "Everybody signs in on wp-login.php, as WordPress has it."
 msgstr ""
 
 msgid "Everybody with an account, or only the roles ticked. Nobody who is not signed in reaches the account area at all."
-msgstr ""
-
-msgid "Everybody, or only the roles you pick. Whoever is left out signs in with the email link as always, so nobody is shut out of the site — and it is the account with the most power that is worth thinking about: an administrator who signs in with Google depends on that Google account never being taken over."
 msgstr ""
 
 msgid "Everyone on the network, me included"
@@ -1583,9 +1574,6 @@ msgid "First steps"
 msgstr ""
 
 msgid "Fixed list"
-msgstr ""
-
-msgid "Following the link is the whole of it. The quickest way in, and the weakest of the three."
 msgstr ""
 
 #. translators: %s: the account's e-mail address
@@ -2156,10 +2144,16 @@ msgstr ""
 msgid "Lesotho"
 msgstr ""
 
+msgid "Let it decide"
+msgstr ""
+
 msgid "Let people choose their public name"
 msgstr ""
 
 msgid "Let people upload their own"
+msgstr ""
+
+msgid "Let them skip it"
 msgstr ""
 
 msgid "Letters, numbers and dashes. Sign in, registration, the second step and a new password are all answered there, and an address you used before keeps sending people to it."
@@ -2392,9 +2386,6 @@ msgstr ""
 msgid "Networks you can sign in with"
 msgstr ""
 
-msgid "Never ask"
-msgstr ""
-
 msgid "Never sent"
 msgstr ""
 
@@ -2450,9 +2441,6 @@ msgstr ""
 msgid "No account area: people edit their details on the dashboard profile, as WordPress has it."
 msgstr ""
 
-msgid "No account page is chosen, so there is nowhere to ask: it starts working when one is chosen in Account area › The page."
-msgstr ""
-
 msgid "No account with that e-mail address."
 msgstr ""
 
@@ -2463,9 +2451,6 @@ msgid "No buttons: WordPress has none of its own."
 msgstr ""
 
 msgid "No country matches that."
-msgstr ""
-
-msgid "No field is required yet, so there is nothing to ask for: it starts working when a field is marked as required."
 msgstr ""
 
 msgid "No fields yet."
@@ -2682,9 +2667,6 @@ msgstr ""
 msgid "Nothing is asked of somebody who came in by link: following it is the whole of it."
 msgstr ""
 
-msgid "Nothing is asked: every method that is on arrives by e-mail, at the inbox the person just opened."
-msgstr ""
-
 msgid "Nothing is asked: the second step is off for the whole site, whatever is chosen here."
 msgstr ""
 
@@ -2839,6 +2821,9 @@ msgid "On this network the rules about people are the network’s: they apply to
 msgstr ""
 
 msgid "On this network these are switched on or off for every site at once, in Network Admin, where each feature lives: social accounts under Social login › Rules."
+msgstr ""
+
+msgid "Once chosen, it cannot be changed"
 msgstr ""
 
 msgid "Once it is done"
@@ -3049,6 +3034,9 @@ msgid "Pending"
 msgstr ""
 
 msgid "People can sign in with a social account"
+msgstr ""
+
+msgid "People change their public name whenever they like."
 msgstr ""
 
 msgid "People choose the short name they appear under."
@@ -4495,10 +4483,7 @@ msgstr ""
 msgid "The photo is too large: at most %d pixels a side."
 msgstr ""
 
-msgid "The plugin paints itself with the palette your theme publishes, and goes on following it — into the theme’s own dark mode as well, where it hands over a variable rather than a colour. Any part the palette does not name is taken from what your theme paints on the site. There is nothing else to choose."
-msgstr ""
-
-msgid "The plugin’s stylesheet is not loaded and the plugin paints nothing: its panels, fields and buttons come out bare and the site’s own stylesheet dresses them. The most work of the three, and the only way to match a design exactly."
+msgid "The plugin’s stylesheet is not loaded and the plugin paints nothing: its panels, fields and buttons come out bare and the site’s own stylesheet dresses them. The most work, and the only way to match a design exactly."
 msgstr ""
 
 #. translators: %s: the name of the site where the network's accounts live
@@ -4544,9 +4529,6 @@ msgstr ""
 msgid "The roles it is hidden from"
 msgstr ""
 
-msgid "The roles ticked can use the buttons. Everybody else uses the site’s other ways in."
-msgstr ""
-
 #. translators: %s: provider name
 #, php-format
 msgid "The round trip with %s failed."
@@ -4581,16 +4563,13 @@ msgstr ""
 msgid "The screen somebody lands on once the e-mail is on its way."
 msgstr ""
 
+msgid "The second step is asked of somebody who came in by link, as on every other way in, whichever method they have."
+msgstr ""
+
 msgid "The second step is asked of somebody who came in by link, whichever one they have."
 msgstr ""
 
-msgid "The second step is asked: a method that is on does not arrive by e-mail, so it proves something the link did not."
-msgstr ""
-
 msgid "The second step is off, so nothing below is asked of anybody. Turn it on above and this applies."
-msgstr ""
-
-msgid "The second step on every link, including the errand of a code going back to the same inbox."
 msgstr ""
 
 msgid "The second step, for somebody who came in by link."
@@ -5315,7 +5294,22 @@ msgstr ""
 msgid "Users+ Pro adds the six digits that change every thirty seconds, from Google Authenticator, 1Password or Aegis: the code never travels, so it is asked on the e-mail link too."
 msgstr ""
 
+msgid "Users+ Pro asks accounts made by the e-mail link or a social network for what they were never asked: they are shown those fields alone on the account page, and then go on to where they were going."
+msgstr ""
+
+msgid "Users+ Pro asks it on the link only when it proves something the link did not: an app does, a code back to the inbox the person just opened does not."
+msgstr ""
+
 msgid "Users+ Pro asks the second step of the roles you choose — the ones that can change things — and not of everybody with an account."
+msgstr ""
+
+msgid "Users+ Pro decides whether they can leave it for later, and are asked again at the next sign-in."
+msgstr ""
+
+msgid "Users+ Pro keeps the first name somebody picks for good: the address it gives them never moves."
+msgstr ""
+
+msgid "Users+ Pro lets only the roles you pick use the buttons: an administrator who signs in with Google depends on that Google account never being taken over. Whoever is left out signs in with the email link as always."
 msgstr ""
 
 msgid "Users+ Pro lets people skip the second step for a few days on a browser that already passed it, with a signed cookie that lets nobody in on its own."
@@ -5325,6 +5319,12 @@ msgid "Users+ Pro lets you choose which colour of your theme’s palette plays e
 msgstr ""
 
 msgid "Users+ Pro on these screens"
+msgstr ""
+
+msgid "Users+ Pro paints the plugin with the palette your theme publishes, or with the colours it paints on the site, and follows the theme into its own dark mode."
+msgstr ""
+
+msgid "Users+ Pro sets the days between one change and the next: a name that changes every day does not identify anybody, and the old address stops working each time."
 msgstr ""
 
 msgid "Uzbekistan"
@@ -5643,9 +5643,6 @@ msgstr ""
 msgid "Who is signed in right now, from where, and until when. Closing somebody’s sessions signs them out everywhere at once; they can come back in as always."
 msgstr ""
 
-msgid "Who it reaches"
-msgstr ""
-
 msgid "Who sees it"
 msgstr ""
 
@@ -5659,9 +5656,6 @@ msgid "Whoever can edit users is never reached: they are the person who has to b
 msgstr ""
 
 msgid "Whoever is signed in sees the strip on the site, with the way back to the dashboard in it."
-msgstr ""
-
-msgid "Whoever reset it because the old one got out signs in again everywhere, and so would anybody who was using it. Unticked, the other sessions stay open, as WordPress leaves them."
 msgstr ""
 
 msgid "Why we are asking. Shown under the field."
@@ -5755,9 +5749,6 @@ msgid "WordPress’s own form: a username and a password on wp-login.php."
 msgstr ""
 
 msgid "WordPress’s screen"
-msgstr ""
-
-msgid "Work it out: ask, unless the second step is another email"
 msgstr ""
 
 #. translators: %s: providers working, comma separated
@@ -5959,6 +5950,9 @@ msgstr ""
 msgid "Your public name"
 msgstr ""
 
+msgid "Your public name cannot be changed."
+msgstr ""
+
 #. translators: %s: site name
 #, php-format
 msgid "Your security on %s changed"
@@ -5977,9 +5971,6 @@ msgstr ""
 #. translators: %s: site name
 #, php-format
 msgid "Your sign-in link for %s"
-msgstr ""
-
-msgid "Your theme publishes no palette, so the plugin takes the colours your theme paints: the colour of its links and buttons, of its text, its page ground and the edge of its fields, measured on the site itself. There is nothing else to choose."
 msgstr ""
 
 msgid "Zambia"

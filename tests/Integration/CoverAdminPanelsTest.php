@@ -239,7 +239,7 @@ class CoverAdminPanelsTest extends IntegrationTestCase {
 		);
 		add_filter( 'diluxone_users_theme_palette', $palette );
 
-		diluxone_users_update_option( 'diluxone_users_colors', 'theme' );
+		$this->theme_colors( true );
 		diluxone_users_update_option( 'diluxone_users_account_row_w', 640 );
 
 		diluxone_users_preview_scripts( 'diluxone-users-ways' );
@@ -285,7 +285,7 @@ class CoverAdminPanelsTest extends IntegrationTestCase {
 			}
 		);
 
-		diluxone_users_update_option( 'diluxone_users_colors', 'theme' );
+		$this->theme_colors( true );
 
 		$body = diluxone_users_preview_vars_body();
 

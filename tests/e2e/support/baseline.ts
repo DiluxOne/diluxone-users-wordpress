@@ -45,14 +45,11 @@ export const BASELINE = (pages: { login: number; register: number; account: numb
 
 	diluxone_users_2fa_mode: 'optional',
 	diluxone_users_2fa_methods: ['email'],
-	diluxone_users_2fa_link: 'auto',
 
 	diluxone_users_sso_login: 1,
 	diluxone_users_sso_register: 1,
 	diluxone_users_sso_link_by_email: 1,
 	diluxone_users_sso_verified_only: 0,
-	diluxone_users_sso_scope: 'all',
-	diluxone_users_sso_roles: [],
 
 	// On a network, a policy the network confirmed: the specs about one that
 	// has not are the ones that say so. On a single site it means nothing.
@@ -66,7 +63,6 @@ export const BASELINE = (pages: { login: number; register: number; account: numb
 	diluxone_users_log_levels: ['access'],
 	diluxone_users_notice_rules: {},
 	diluxone_users_sessions_show: 1,
-	diluxone_users_reset_ends_sessions: 1,
 	diluxone_users_privacy_export: 1,
 	diluxone_users_privacy_delete: 1,
 	diluxone_users_avatar_upload: 1,

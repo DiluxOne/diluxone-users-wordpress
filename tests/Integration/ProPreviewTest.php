@@ -242,6 +242,148 @@ class ProPreviewTest extends IntegrationTestCase {
 		$this->assertArrayNotHasKey( 'inert', diluxone_users_allowed_html()['div'], 'nothing the plugin prints is a picture any more' );
 	}
 
+	/* ── The settings that became Users+ Pro's ──────────────────────── */
+
+	/**
+	 * Each setting that left the plugin for Users+ Pro, as the preview drawn
+	 * where its control was: the place, the screen that draws it, and the
+	 * words it carries.
+	 *
+	 * @return array<string, array{0: callable, 1: string}>
+	 */
+	private function moved(): array {
+		return array(
+			'security/2fa/link'       => array( 'diluxone_users_screen_login_2fa', 'Let it decide' ),
+			'social/general/roles'    => array( 'diluxone_users_screen_social_general', 'Only some roles' ),
+			'account/handle/cooldown' => array( 'diluxone_users_screen_account_handle', 'How often it can change' ),
+			'account/handle/locked'   => array( 'diluxone_users_screen_account_handle', 'Once chosen, it cannot be changed' ),
+			'fields/missing/ask'      => array( 'diluxone_users_screen_fields_missing', 'ask for the required fields the account has no answer for' ),
+			'fields/missing/skip'     => array( 'diluxone_users_screen_fields_missing', 'Let them skip it' ),
+			'design/brand/theme'      => array( 'diluxone_users_screen_design_brand', 'From your theme' ),
+		);
+	}
+
+	public function test_each_setting_that_became_users_pros_is_a_disabled_preview_where_it_was(): void {
+		$this->the_admin();
+
+		foreach ( $this->moved() as $where => list( $screen, $title ) ) {
+			$html = $this->draw( $screen );
+			$at   = strpos( $html, 'data-diluxone-users-pro="' . $where . '"' );
+
+			$this->assertNotFalse( $at, "$where: drawn" );
+
+			$pro = substr( $html, (int) $at, 3000 );
+			$this->assertStringContainsString( esc_html( $title ), $pro, "$where: its words" );
+			$this->assertMatchesRegularExpression( '/<(input|button|select)[^>]*\sdisabled/', $pro, "$where: switched off" );
+			$this->assertStringContainsString( 'diluxone-users-state--pro', $pro, "$where: the badge" );
+			$this->assertStringContainsString( 'utm_campaign=free', $pro, "$where: the way out" );
+		}
+	}
+
+	/** #188 C7: with the setting off, none of them is drawn, and the screens still are. */
+	public function test_with_the_setting_off_none_of_the_settings_that_became_users_pros_is_drawn(): void {
+		$this->the_admin();
+		diluxone_users_update_option( 'diluxone_users_pro_previews', 0 );
+
+		foreach ( $this->moved() as $where => list( $screen ) ) {
+			$html = $this->draw( $screen );
+
+			$this->assertNotSame( '', $html, "$where: the screen is drawn" );
+			$this->assertStringNotContainsString( 'data-diluxone-users-pro="' . $where . '"', $html, "$where: not drawn" );
+			$this->assertStringNotContainsString( 'utm_campaign=free', $html, "$where: no way out to Pro either" );
+		}
+	}
+
+	/** And one answer of `diluxone_users_upsell` turns one of them off, the rest staying. */
+	public function test_an_add_on_turns_off_each_one_on_its_own(): void {
+		$this->the_admin();
+
+		foreach ( array_keys( $this->moved() ) as $off ) {
+			$hide = static fn( bool $show, string $where ): bool => $where !== $off && $show;
+			add_filter( 'diluxone_users_upsell', $hide, 10, 2 );
+
+			foreach ( $this->moved() as $where => list( $screen ) ) {
+				$drawn = str_contains( $this->draw( $screen ), 'data-diluxone-users-pro="' . $where . '"' );
+				$this->assertSame( $where !== $off, $drawn, "$off off: $where" );
+			}
+
+			remove_filter( 'diluxone_users_upsell', $hide, 10 );
+		}
+	}
+
+	/** Where a preview is not drawn, its place is the add-on's: the choice it answers joins the group. */
+	public function test_an_add_on_draws_its_real_choice_where_the_preview_was(): void {
+		$this->the_admin();
+		$this->hook( 'diluxone_users_upsell', static fn( bool $show, string $where ): bool => 'social/general/roles' !== $where && $show, 10, 2 );
+
+		$heard = array();
+		$this->hook(
+			'diluxone_users_pro_choice',
+			static function ( array $choice, string $where ) use ( &$heard ): array {
+				$heard[] = $where;
+
+				return 'social/general/roles' === $where
+					? array(
+						'name'  => 'diluxone_users_pro_sso_scope',
+						'value' => 'some',
+						'title' => 'Only some roles, for real',
+					)
+					: $choice;
+			},
+			10,
+			2
+		);
+
+		$html = $this->draw( 'diluxone_users_screen_social_general' );
+
+		$this->assertContains( 'social/general/roles', $heard, 'asked where the preview was' );
+		$this->assertStringContainsString( 'name="diluxone_users_pro_sso_scope"', $html, 'the add-on’s own control, with its name' );
+		$this->assertStringContainsString( 'Only some roles, for real', $html );
+		$this->assertStringNotContainsString( 'data-diluxone-users-pro="social/general/roles"', $html, 'and no preview' );
+	}
+
+	/** Where a preview is drawn, nothing is asked. */
+	public function test_the_add_on_is_not_asked_while_the_preview_is_drawn(): void {
+		$this->the_admin();
+
+		$asked = false;
+		$this->hook(
+			'diluxone_users_pro_choice',
+			static function ( array $choice ) use ( &$asked ): array {
+				$asked = true;
+
+				return $choice;
+			}
+		);
+
+		$this->assertNotSame( array(), diluxone_users_ui_pro_choice( self::ARGS ) );
+		$this->assertFalse( $asked );
+	}
+
+	/** A control of its own shape fires the action instead. */
+	public function test_a_control_of_its_own_shape_fires_where_the_preview_was(): void {
+		$this->the_admin();
+		$this->hook( 'diluxone_users_upsell', static fn(): bool => false );
+
+		$heard = '';
+		$this->hook(
+			'diluxone_users_pro_control',
+			static function ( string $where ) use ( &$heard ): void {
+				$heard = $where;
+				echo '<input name="diluxone_users_pro_map">';
+			}
+		);
+
+		$html = $this->draw(
+			static function (): void {
+				diluxone_users_ui_pro_control( array( 'where' => 'design/brand/color-map' ), static function (): void {} );
+			}
+		);
+
+		$this->assertSame( 'design/brand/color-map', $heard );
+		$this->assertStringContainsString( 'name="diluxone_users_pro_map"', $html );
+	}
+
 	/* ── The setting ───────────────────────────────────────────────── */
 
 	public function test_the_setting_is_the_networks_and_on_by_default(): void {
@@ -282,5 +424,33 @@ class ProPreviewTest extends IntegrationTestCase {
 		$this->ended( 'diluxone_users_network_previews_save' );
 		$this->assertSame( 1, (int) get_site_option( 'diluxone_users_pro_previews' ) );
 		$this->assertMatchesRegularExpression( '/name="diluxone_users_pro_previews"\s+value="1"\s+checked/', $this->draw( 'diluxone_users_screen_network_previews' ) );
+	}
+
+	/**
+	 * The line that says what the plugin alone does goes with its preview:
+	 * with the previews off and no add-on it stays, and once an add-on draws
+	 * its own control there it goes, so the screen does not contradict it.
+	 */
+	public function test_the_free_line_goes_with_its_preview(): void {
+		$this->the_admin();
+
+		$lines = array(
+			'security/2fa/link'       => array( 'diluxone_users_screen_login_2fa', 'as on every other way in' ),
+			'social/general/roles'    => array( 'diluxone_users_screen_social_general', 'Every role can use the buttons' ),
+			'account/handle/cooldown' => array( 'diluxone_users_screen_account_handle', 'whenever they like' ),
+			'fields/missing/ask'      => array( 'diluxone_users_screen_fields_missing', 'go straight to where they were going' ),
+		);
+
+		diluxone_users_update_option( 'diluxone_users_pro_previews', 0 );
+
+		foreach ( $lines as $where => list( $screen, $line ) ) {
+			$this->assertStringContainsString( $line, $this->draw( $screen ), "$where: the plugin alone says what it does" );
+		}
+
+		$this->hook( 'diluxone_users_pro_choice', static fn( array $choice ): array => $choice );
+
+		foreach ( $lines as $where => list( $screen, $line ) ) {
+			$this->assertStringNotContainsString( $line, $this->draw( $screen ), "$where: an add-on drawing there speaks for itself" );
+		}
 	}
 }

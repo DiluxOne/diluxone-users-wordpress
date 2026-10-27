@@ -780,6 +780,10 @@ browser"):
   is a site that reaches nobody, and the summary says so.
 - `diluxone_users_2fa_skip` (filter, `( bool $skip, int $user_id, string $via )`,
   false) lets a sign-in that needs the step skip it.
+- `diluxone_users_2fa_on_link` (filter, `( bool $ask, int $user_id )`, true)
+  decides whether the step is asked of somebody who came in by e-mail link.
+  The plugin asks it on the link as on every other way in; Users+ Pro's
+  "Let it decide" answers false when the only method is another e-mail.
 - `diluxone_users_2fa_form` (action, `( int $user_id, string $screen )`) fires
   inside the second step's form, after the code box, on the sign-in page
   (`page`) and on wp-login.php (`wp-login`). Name your fields
@@ -793,7 +797,7 @@ browser"):
 
 On **Security → Two-step verification**, `diluxone_users_2fa_screen` (action,
 `( string $place )`) fires at `who` (under the three modes), `methods` (under
-the methods) and `end` (after the e-mail link's rule). What you draw there is
+the methods) and `end` (after the e-mail link's line). What you draw there is
 saved with the tab, on `diluxone_users_panel_saved`.
 
 ## Profile fields
@@ -887,7 +891,9 @@ the list is not offered again; one ticked is added at the end of the list by
 
 An account made by the e-mail link, a social network or an add-on's way in
 never saw the registration form, so it has nothing in the fields the site
-marked as required. Once it is signed in, it is sent first to the account
+marked as required. The plugin alone sends it straight on; asking is an
+add-on's (Users+ Pro's), through the filter `diluxone_users_ask_missing`
+(below). With one that asks, once it is signed in, it is sent first to the account
 page with `?diluxone-users-complete=1&redirect_to=<where it was going>`,
 which draws only those fields (`templates/fields.php`, the same form, checks
 and save as Details) in place of the sections and their nav, with a "Skip
@@ -910,9 +916,12 @@ priority 99 for a password with no second step. What an add-on may call:
 - `diluxone_users_ask_missing_url( $user_id, $redirect )` — the step's
   address carrying `$redirect`, or `$redirect` itself when nothing is owed.
 
-It is the setting `diluxone_users_ask_missing` (User fields › After sign-in,
-scope `network`), on by default and only ever acting while some field is
-required and an account page is chosen. In safe mode it is never asked.
+It is asked only while `diluxone_users_ask_missing` answers true (false in the
+plugin alone, so nothing is stored for it and no setting names it), some field
+is required and an account page is chosen; the account page asked for the
+step draws it only then. In safe mode it is never asked. User fields › After
+sign-in says people go straight on and draws Users+ Pro's two settings as
+previews (`fields/missing/ask`, `fields/missing/skip`).
 
 ## Looks
 
@@ -1086,9 +1095,13 @@ Set them wherever you like — `:root`, the page, the block:
 
 ### The theme's colours
 
-The plugin can take its palette from the active theme instead of having one:
-Design → Your brand → "Use my theme's colours". It reads what the theme
-publishes in its `theme.json`, through `wp_get_global_settings()`, and maps it
+The plugin alone paints itself with its own palette and the accent chosen on
+Design → Your brand, light and dark. Taking the palette from the active theme
+instead is Users+ Pro's "From your theme", drawn there as a disabled preview
+(`design/brand/theme`); an add-on turns it on through the filter
+`diluxone_users_colors_from_theme` (below), and everything this section
+describes, the measuring and the dark signal included, runs only then. It
+reads what the theme publishes in its `theme.json`, through `wp_get_global_settings()`, and maps it
 onto `--diluxone-users-accent` and the rest.
 
 Which colour plays which part is asked and not assumed. A theme whose slugs
@@ -1375,6 +1388,7 @@ The hooks above are the way in; these are the functions an add-on calls once it 
 | --- | --- |
 | `diluxone_users_scope( string $prefix ): string` | `all` or `some`, for a `{prefix}_scope` / `{prefix}_roles` pair. |
 | `diluxone_users_scope_includes( int $user_id, string $prefix ): bool` | Whether that person is in it, by any of their roles (on a network, on any of their sites). |
+| `diluxone_users_scope_roles_of( int $user_id, string $prefix ): array` | Every role the person holds that the pair asks about: on a network, for a pair whose `{prefix}_roles` is the network's, every role on all their sites; otherwise their roles on this site. A super admin counts as `administrator`. For a rule that refuses when any one of them is outside the list, which `diluxone_users_scope_includes()` (one is enough) does not answer. |
 
 **Signing in and the second step**
 
@@ -1433,6 +1447,17 @@ answers false for every feature it draws for real; a site that wants none of
 them answers false for all. Each placeholder's outer element carries
 `data-diluxone-users-pro="<where>"`.
 
+Where a preview is not drawn, its place is the add-on's. A radio or a tick box
+(`diluxone_users_ui_pro_choice()`) asks `diluxone_users_pro_choice` (filter,
+`( array $choice, string $where, array $args )`, empty by default): the choice
+it answers, as `diluxone_users_ui_choices()` takes one (`name`, `value`,
+`checked`, `title`, `help`, `children`), goes into the same group as the free
+answers, and an empty one draws nothing. A control of its own shape
+(`diluxone_users_ui_pro_control()`) fires `diluxone_users_pro_control` (action,
+`( string $where, array $args )`) there instead. Every screen that carries a
+preview is a form and fires `diluxone_users_panel_saved` on its save, which is
+where the add-on saves what it drew.
+
 | `$where` | What it is |
 | --- | --- |
 | `social/providers/<network>` | One greyed card per network on Social login › Providers, after Google and Microsoft: `linkedin`, `twitter` (X), `facebook`, `github`, `wordpress`, `yahoo`, `twitch`, `discord`, `gitlab` and `amazon`, each with its logo and its name and nothing to open. Pro answers false for each one it brings. |
@@ -1442,11 +1467,36 @@ them answers false for all. Each placeholder's outer element carries
 | `design/account/shapes` | A disabled shape after the real ones on Design › Account area: the account area with a cover. |
 | `design/brand/any-color` | A disabled colour picker after the accent's swatches on Design › Your brand: any colour. |
 | `network/membership/rules` | Two disabled radios after the answers on Network Admin › Membership: "whoever asks" and "by invitation". One answer turns both off. |
+| `social/general/roles` | A disabled radio under "Who can sign in with a network" on Social login › Rules: only some roles. |
 | `security/2fa/roles` | A disabled radio among the three modes on Security › Two-step verification: asking only some roles. |
 | `security/2fa/app` | A disabled tick box among the methods on Security › Two-step verification: the authenticator app. |
-| `security/2fa/remember` | A disabled tick box after the link rule on Security › Two-step verification: not asking again on a browser. |
+| `security/2fa/link` | A disabled radio under the e-mail link's line on Security › Two-step verification: "Let it decide", asking on the link only when the code proves something the link did not. |
+| `security/2fa/remember` | A disabled tick box after it on Security › Two-step verification: not asking again on a browser. |
+| `account/handle/cooldown` | The days between one change and the next, a disabled number box on Account area › Public name. |
+| `account/handle/locked` | A disabled tick box after it on Account area › Public name: once chosen, the name cannot be changed. |
+| `fields/missing/ask` | A disabled tick box on User fields › After sign-in: asking an account for the required fields it has no answer for, right after it signs in. |
+| `fields/missing/skip` | A disabled tick box after it on User fields › After sign-in: letting them skip that step. |
 | `account/sections/more` | A disabled "Add a section" button beside the heading on Account › Sections, where `diluxone_users_account_sections_head` draws Pro's real one. |
-| `design/brand/color-map` | The rows under "From your theme" on Design › Your brand, their selects disabled: which colour of the theme's palette does what. |
+| `design/brand/theme` | A disabled radio after the two answers to where the look comes from on Design › Your brand: "From your theme", the plugin painted with the theme's colours. |
+| `design/brand/color-map` | The rows right after "From your theme" on Design › Your brand, while the theme publishes a palette, their selects disabled: which colour of the theme's palette does what. `diluxone_users_design_theme_colors` ( `$palette` ) fires after them, whether they are drawn or not. |
+
+### The behaviours Users+ Pro brings back
+
+A few answers the plugin does not offer as settings: it has one behaviour,
+fixed, and the setting that would change it is Users+ Pro's, drawn as its
+preview where it would be. Each fixed behaviour is read through a filter
+whose default is that behaviour, so an add-on that answers it is what the site
+gets, and the plugin stores nothing for it and names no setting of Pro's.
+
+| Filter | Arguments | The plugin's answer |
+| --- | --- | --- |
+| `diluxone_users_2fa_on_link` | `( bool $ask, int $user_id )` | true: the second step is asked after the e-mail link too. |
+| `diluxone_users_handle_cooldown` | `( int $days, int $user_id )` | 0: a public name is changed whenever its owner likes; more days lock the box until then and refuse a change sent anyway. |
+| `diluxone_users_handle_locked` | `( bool $locked, int $user_id )` | false: a public name can always change. True, once a name is chosen, disables the box, refuses a change sent anyway and says "Your public name cannot be changed."; somebody with no name yet can still choose one. |
+| `diluxone_users_ask_missing` | `( bool $ask )` | false: a sign-in sends an account missing a required field straight to where it was going; true sends it first to the step on the account page (see Required fields missing after a sign-in). |
+| `diluxone_users_ask_missing_skippable` | `( bool $skip, int $user_id )` | true: the step ends in a "Skip for now" link to where they were going. False draws a "Sign out" link in its place, so the step always has a way out; keeping the person on the step until it is done is the add-on's. |
+| `diluxone_users_colors_from_theme` | `( bool $theme )` | false: the plugin paints itself with its own palette and the accent chosen on Design › Your brand, light and dark; true takes the theme's colours, measured where the palette cannot say them (see The theme's colours). |
+| `diluxone_users_sso_role_allowed` | `( bool $allowed, int $user_id, string $context )` | true: every role may sign in with a social account. `$context` is `account` for an existing account, or `register` (with `$user_id` 0) for one about to be created with `diluxone_users_register_role()`; false there creates no account and logs `register_role`. |
 
 ## The emergency switch
 

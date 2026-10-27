@@ -48,7 +48,7 @@ class PreviewPaletteTest extends IntegrationTestCase {
 			}
 		);
 
-		diluxone_users_update_option( 'diluxone_users_colors', 'theme' );
+		$this->theme_colors( true );
 	}
 
 	/** The properties the plugin's own colours are standing on are asked for. */
@@ -83,7 +83,7 @@ class PreviewPaletteTest extends IntegrationTestCase {
 			}
 		);
 
-		diluxone_users_update_option( 'diluxone_users_colors', 'theme' );
+		$this->theme_colors( true );
 
 		$this->assertSame( array(), diluxone_users_preview_theme_vars() );
 		$this->assertSame( '', diluxone_users_preview_theme_url() );

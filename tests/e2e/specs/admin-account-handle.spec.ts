@@ -2,7 +2,7 @@ import { Page } from '@playwright/test';
 import { test, expect } from '../support/fixtures';
 import { Site } from '../support/api';
 import { accountSection, adminUrl, navigated, savePanel } from '../support/ui';
-import { railNotice, setUserMeta, signInMember } from '../support/admin-content';
+import { railNotice, signInMember } from '../support/admin-content';
 import { ADMIN_STATE } from '../../../playwright.config';
 
 /**
@@ -21,7 +21,6 @@ const RULES = [
 	'diluxone_users_handle_min',
 	'diluxone_users_handle_max',
 	'diluxone_users_handle_spaces',
-	'diluxone_users_handle_cooldown',
 	'diluxone_users_handle_reserved',
 ];
 
@@ -74,7 +73,7 @@ async function stored(site: Site, email: string): Promise<string> {
 const refusal = (page: Page) => page.locator('.diluxone-users-handle .diluxone-users-notice--error');
 
 /** Opens the tab and saves the rules given, by their controls. */
-async function setRules(page: Page, rules: { enabled?: boolean; min?: number; max?: number; spaces?: 'dash' | 'reject'; cooldown?: number; reserved?: string }) {
+async function setRules(page: Page, rules: { enabled?: boolean; min?: number; max?: number; spaces?: 'dash' | 'reject'; reserved?: string }) {
 	await page.goto(adminUrl('diluxone-users-account', 'handle'));
 
 	if (rules.enabled !== undefined) {
@@ -93,10 +92,6 @@ async function setRules(page: Page, rules: { enabled?: boolean; min?: number; ma
 		await page.locator(`input[name="diluxone_users_handle_spaces"][value="${rules.spaces}"]`).check({ force: true });
 	}
 
-	if (rules.cooldown !== undefined) {
-		await page.locator('[name="diluxone_users_handle_cooldown"]').fill(String(rules.cooldown));
-	}
-
 	if (rules.reserved !== undefined) {
 		await page.locator('[name="diluxone_users_handle_reserved"]').fill(rules.reserved);
 	}
@@ -106,7 +101,7 @@ async function setRules(page: Page, rules: { enabled?: boolean; min?: number; ma
 
 test.beforeEach(async ({ options }) => {
 	await options.keep(RULES);
-	await options.set({ diluxone_users_handle_enabled: 0, diluxone_users_handle_cooldown: 0, diluxone_users_handle_min: 3, diluxone_users_handle_max: 30, diluxone_users_handle_spaces: 'dash', diluxone_users_handle_reserved: '' });
+	await options.set({ diluxone_users_handle_enabled: 0, diluxone_users_handle_min: 3, diluxone_users_handle_max: 30, diluxone_users_handle_spaces: 'dash', diluxone_users_handle_reserved: '' });
 });
 
 test.describe('Account area › Public name', () => {
@@ -195,30 +190,44 @@ test.describe('Account area › Public name', () => {
 		expect(await stored(site, email), 'nothing written').toBe(`${first}-${last}`);
 	});
 
-	test('how often it can change: a second change inside the days is refused; once they have passed, it goes through', async ({ page, guest, site, pages }) => {
-		await setRules(page, { enabled: true, cooldown: 30 });
-		expect(Number((await site.getOptions(['diluxone_users_handle_cooldown'])).diluxone_users_handle_cooldown)).toBe(30);
+	test('how often it can change: whenever they like, twice in a row, even where a wait was saved; the wait and “cannot be changed” are disabled Users+ Pro previews', async ({
+		page,
+		guest,
+		site,
+		pages,
+		options,
+	}) => {
+		// A site that had a wait saved before it became Users+ Pro's.
+		await options.set({ diluxone_users_handle_cooldown: 30 });
+		await setRules(page, { enabled: true });
 
-		const email = await signInMember(guest, site, pages.login.url, 'handle-cooldown');
+		await page.goto(adminUrl('diluxone-users-account', 'handle'));
+		await expect(page.getByText('People change their public name whenever they like.')).toBeVisible();
+		await expect(page.locator('[name="diluxone_users_handle_cooldown"]'), 'no setting of its own').toHaveCount(0);
+
+		for (const where of ['account/handle/cooldown', 'account/handle/locked']) {
+			const pro = page.locator(`[data-diluxone-users-pro="${where}"]`);
+
+			await expect(pro, where).toBeVisible();
+			await expect(pro.locator('input'), `${where}: switched off`).toBeDisabled();
+			await expect(pro.locator('[name]'), `${where}: nothing in it posts`).toHaveCount(0);
+			await expect(pro.locator('.diluxone-users-state--pro'), `${where}: the badge`).toHaveCount(1);
+			await expect(pro.locator('a'), `${where}: the one link`).toHaveAttribute('href', /diluxone\.com\/wordpress-plugins\/users\/.*utm_medium=account-handle/);
+		}
+
+		await expect(page.locator('[data-diluxone-users-pro="account/handle/cooldown"]')).toContainText('How often it can change');
+		await expect(page.locator('[data-diluxone-users-pro="account/handle/locked"]')).toContainText('cannot be changed');
+
+		const email = await signInMember(guest, site, pages.login.url, 'handle-twice');
 		const first = fresh();
-
-		expect(await choose(guest, pages.account.url, first)).toBe('saved');
-
-		// Straight after, the form says until when and offers no button.
-		await openHandle(guest, pages.account.url);
-		await expect(handleForm(guest).locator('button[type="submit"]')).toHaveCount(0);
-
-		// Sent anyway: refused, and the name is the first one.
-		const nonce = await handleForm(guest).locator('input[name="_wpnonce"]').inputValue();
-
-		await guest.request.post('/wp-admin/admin-post.php', { form: { action: 'diluxone_users_handle', _wpnonce: nonce, diluxone_users_handle: fresh() } });
-		expect(await stored(site, email)).toBe(first);
-
-		// Thirty-one days later, as far as the account knows.
-		await setUserMeta(guest.request, email, { diluxone_users_handle_changed: Math.floor(Date.now() / 1000) - 31 * 86400 });
-
 		const second = fresh();
 
+		expect(await choose(guest, pages.account.url, first)).toBe('saved');
+		expect(await stored(site, email)).toBe(first);
+
+		// Straight after, the form is open again and the second change goes through.
+		await openHandle(guest, pages.account.url);
+		await expect(handleForm(guest).locator('button[type="submit"]')).toHaveCount(1);
 		expect(await choose(guest, pages.account.url, second)).toBe('saved');
 		expect(await stored(site, email)).toBe(second);
 	});

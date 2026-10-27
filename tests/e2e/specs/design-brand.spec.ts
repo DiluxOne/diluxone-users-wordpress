@@ -1,10 +1,12 @@
 import type { Locator, Page } from '@playwright/test';
 import { test, expect } from '../support/fixtures';
 import { adminUrl, savePanel } from '../support/ui';
+import { resolvedColour, rgb } from '../support/admin-content';
 import { ADMIN_STATE } from '../../../playwright.config';
 
 /**
- * Your brand: one question, three answers, and what hangs off each of them.
+ * Your brand: one question, two answers and Users+ Pro's third, and what
+ * hangs off each of them.
  *
  * The screen used to be six blocks in a column and it was read as six
  * questions, which is what it was. Now it is one — where the plugin's look
@@ -26,8 +28,8 @@ test.use({ storageState: ADMIN_STATE });
 
 const BRAND = adminUrl('diluxone-users-design', 'brand');
 
-/** The three answers, by the value each one posts. */
-type Look = 'theme' | 'own' | 'site';
+/** The two answers, by the value each one posts. */
+type Look = 'own' | 'site';
 
 function look(page: Page, answer: Look): Locator {
 	return page.locator(`input[name="diluxone_users_look"][value="${answer}"]`);
@@ -43,7 +45,12 @@ function accent(page: Page): Locator {
 	return page.locator('[data-diluxone-users-swatches="diluxone_users_style_accent"]');
 }
 
-/** What belongs to "from your theme": the rows of which colour does what, Users+ Pro's. */
+/** "From your theme": Users+ Pro's, the radio it would be, switched off. */
+function fromTheme(page: Page): Locator {
+	return page.locator('[data-diluxone-users-pro="design/brand/theme"]');
+}
+
+/** After it, the rows of which colour does what, Users+ Pro's too. */
 function fineTuning(page: Page): Locator {
 	return page.locator('[data-diluxone-users-pro="design/brand/color-map"]');
 }
@@ -54,29 +61,28 @@ function properties(page: Page): Locator {
 }
 
 test.describe('Your brand › one question, and what hangs off the answer', () => {
-	test('each answer shows its own and hides the other two', async ({ page, options }) => {
+	test('each answer shows its own and hides the other, and “from your theme” is a disabled Users+ Pro preview', async ({ page, options }) => {
 		// From a known answer rather than from whatever the last run left: the
-		// assertion is about what changes when the answer changes.
-		await options.set({ diluxone_users_styles: 1, diluxone_users_colors: 'own' });
+		// assertion is about what changes when the answer changes. A site
+		// that had the theme's colours saved gets the plugin's own.
+		await options.set({ diluxone_users_styles: 1, diluxone_users_colors: 'theme', diluxone_users_pro_previews: 1 });
 
 		await page.goto(BRAND);
 
 		await expect(look(page, 'own')).toBeChecked();
 		await expect(accent(page)).toBeVisible();
-		await expect(fineTuning(page)).toBeHidden();
 		await expect(properties(page)).toBeHidden();
 
-		await look(page, 'theme').check();
-
-		await expect(fineTuning(page)).toBeVisible();
-		await expect(accent(page)).toBeHidden();
-		await expect(properties(page)).toBeHidden();
+		await expect(page.locator('input[name="diluxone_users_look"][value="theme"]'), 'no answer to post').toHaveCount(0);
+		await expect(fromTheme(page).locator('input[type="radio"]')).toBeDisabled();
+		await expect(fromTheme(page).locator('[name]'), 'nothing in it posts').toHaveCount(0);
+		await expect(fromTheme(page).locator('.diluxone-users-state--pro'), 'the badge').toHaveCount(1);
+		await expect(fromTheme(page).locator('a')).toHaveAttribute('href', /diluxone\.com\/wordpress-plugins\/users\/.*utm_medium=design/);
 
 		await look(page, 'site').check();
 
 		await expect(properties(page)).toBeVisible();
 		await expect(accent(page)).toBeHidden();
-		await expect(fineTuning(page)).toBeHidden();
 	});
 
 	/**
@@ -90,7 +96,6 @@ test.describe('Your brand › one question, and what hangs off the answer', () =
 	test('no colour square is left empty', async ({ page, options }) => {
 		await options.set({
 			diluxone_users_styles: 1,
-			diluxone_users_colors: 'theme',
 			diluxone_users_pro_previews: 1,
 		});
 
@@ -117,27 +122,20 @@ test.describe('Your brand › what the one question is kept as', () => {
 	const KEYS = ['diluxone_users_styles', 'diluxone_users_colors'];
 
 	/**
-	 * One question on the screen, two settings underneath it.
-	 *
-	 * The stylesheet being loaded and the colours coming from the theme are
-	 * read in two other files, and they stay where they are read. This is the
-	 * proof that the screen's single question still writes both of them — the
-	 * failure it guards is a screen that looks right and saves nothing.
+	 * One question on the screen, one setting underneath it: whether the
+	 * stylesheet is loaded. The colours are the plugin's own, and no answer
+	 * writes a source for them.
 	 */
-	test('each answer writes the two settings that are actually read', async ({
-		page,
-		site,
-		options,
-	}) => {
+	test('each answer writes the setting that is actually read, and no colour source', async ({ page, site, options }) => {
 		await options.keep(KEYS);
+		await options.set({ diluxone_users_colors: null });
 
-		const expected: Array<[Look, string, string]> = [
-			['site', '0', 'own'],
-			['theme', '1', 'theme'],
-			['own', '1', 'own'],
+		const expected: Array<[Look, string]> = [
+			['site', '0'],
+			['own', '1'],
 		];
 
-		for (const [answer, styles, colors] of expected) {
+		for (const [answer, styles] of expected) {
 			await page.goto(BRAND);
 			await look(page, answer).check();
 			await savePanel(page);
@@ -145,26 +143,25 @@ test.describe('Your brand › what the one question is kept as', () => {
 			const got = await site.getOptions(KEYS);
 
 			expect(String(got.diluxone_users_styles), answer).toBe(styles);
-			expect(String(got.diluxone_users_colors), answer).toBe(colors);
+			expect(got.diluxone_users_colors ?? null, answer).toBeNull();
 		}
 	});
 
 	/**
 	 * Trying the theme's palette for an afternoon does not cost you your colour.
 	 *
-	 * The picker is switched off while the colours are the theme's, and a
-	 * switched-off control is not posted at all — so the save read an absence
-	 * as "no colour" and wrote the accent away. Whoever went back to choosing
-	 * it here found the plugin's blue and no way of knowing what had happened.
+	 * With an add-on's theme colours (Users+ Pro's), the picker is folded
+	 * away and a folded control may not be posted at all — so the save must
+	 * not read an absence as "no colour" and write the accent away.
 	 */
-	test('the accent, a colour kept from Users+ Pro included, survives a save made while the theme’s palette is in use', async ({
+	test('the accent, a colour kept from Users+ Pro included, survives a save made while an add-on’s theme palette is in use', async ({
 		page,
 		site,
 		options,
 	}) => {
 		await options.set({
 			diluxone_users_styles: 1,
-			diluxone_users_colors: 'theme',
+			diluxone_e2e_colors_from_theme: 1,
 			diluxone_users_style_accent: '#123456',
 		});
 
@@ -178,4 +175,28 @@ test.describe('Your brand › what the one question is kept as', () => {
 
 		expect(String(got.diluxone_users_style_accent)).toBe('#123456');
 	});
+});
+
+test.describe('Your brand › the plugin’s own colours on the front end', () => {
+	/**
+	 * #188 C6: the plugin alone paints with its palette and the accent chosen
+	 * here, light and dark, even on a site that had the theme's colours saved;
+	 * the theme is not measured.
+	 */
+	for (const scheme of ['light', 'dark'] as const) {
+		test(`the sign-in page is drawn with the palette accent, ${scheme}`, async ({ guest, pages, options }) => {
+			await options.set({
+				diluxone_users_styles: 1,
+				diluxone_users_colors: 'theme',
+				diluxone_users_style_accent: '#6d28d9',
+			});
+
+			await guest.emulateMedia({ colorScheme: scheme });
+			await guest.goto(pages.login.url);
+
+			expect(await resolvedColour(guest, '--diluxone-users-accent')).toBe(rgb('#6d28d9'));
+			expect(await guest.locator('.diluxone-users-login form button[type="submit"]').first().evaluate((button) => getComputedStyle(button).backgroundColor)).toBe(rgb('#6d28d9'));
+			await expect(guest.locator('script#diluxone-users-theme-colors-js'), 'the theme is not measured').toHaveCount(0);
+		});
+	}
 });

@@ -348,7 +348,7 @@ test.describe('Two-step verification', () => {
 		expect((await site.user(email)).meta.diluxone_users_2fa_on).toBe('1');
 	});
 
-	test('with the e-mail link a way in, the panel says where the second step is asked', async ({ page, site, pages, options }) => {
+	test('with the e-mail link a way in, the panel makes no exception for it: the second step is asked on the link too', async ({ page, site, pages, options }) => {
 		await options.set({ diluxone_users_2fa_methods: ['email'] });
 		await signedIn(page, site, pages.login.url, 't-info');
 
@@ -357,21 +357,15 @@ test.describe('Two-step verification', () => {
 		await page.goto(accountSection(pages.account.url, 'security'));
 		await reveal(page, 'button[name="diluxone_users_security"][value="on"]');
 		expect(await send(page, twoStep(page, 'on'))).toBe('on');
-		await openAllPanels(page);
-		await expect(info).toBeVisible();
 
-		const withPassword = await info.innerText();
-
-		await options.set({ diluxone_users_login_method: 'link' });
-		await page.goto(accountSection(pages.account.url, 'security'));
-		await openAllPanels(page);
-		await expect(info).toBeVisible();
-		expect(await info.innerText(), 'link only: it is asked nowhere, which is another sentence').not.toBe(withPassword);
-
-		// The password only: no link, so nothing to explain.
-		await options.set({ diluxone_users_login_method: 'password' });
-		await page.goto(accountSection(pages.account.url, 'security'));
-		await expect(info).toHaveCount(0);
+		// The free plugin always asks after the link (diluxone_users_2fa_on_link
+		// is Users+ Pro's way to say otherwise), so no way in is left out.
+		for (const method of ['both', 'link', 'password']) {
+			await options.set({ diluxone_users_login_method: method });
+			await page.goto(accountSection(pages.account.url, 'security'));
+			await openAllPanels(page);
+			await expect(info, `${method}: nothing says the link is spared`).toHaveCount(0);
+		}
 	});
 });
 

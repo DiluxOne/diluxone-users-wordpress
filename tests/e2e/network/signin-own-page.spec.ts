@@ -78,7 +78,7 @@ test.describe('A page of its own, on a network', () => {
 		const image = await uploadImage(browser, hub.url, NETWORK_ADMIN_STATE);
 
 		try {
-			await hub.set({ ...DARK_SITE, diluxone_users_colors: 'own', ...SHAPE, diluxone_users_login_logo: image.id, diluxone_users_login_logo_show: 1 });
+			await hub.set({ ...DARK_SITE, diluxone_e2e_colors_from_theme: 0, ...SHAPE, diluxone_users_login_logo: image.id, diluxone_users_login_logo_show: 1 });
 			await guest.emulateMedia({ colorScheme: 'dark' });
 			await guest.goto(hub.path('sign-in/'));
 

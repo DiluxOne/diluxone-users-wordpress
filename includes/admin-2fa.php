@@ -100,18 +100,15 @@ function diluxone_users_2fa_save(): bool {
 
 	$chose_mode    = isset( $_POST['diluxone_users_2fa_mode'] );
 	$asked_methods = isset( $_POST['diluxone_users_2fa_methods'] ) || in_array( 'diluxone_users_2fa_methods', $drawn, true );
-	$asked_link    = isset( $_POST['diluxone_users_2fa_link'] );
 
 	$mode    = $chose_mode ? sanitize_key( wp_unslash( $_POST['diluxone_users_2fa_mode'] ) ) : (string) diluxone_users_option( 'diluxone_users_2fa_mode' );
 	$methods = array_map( 'sanitize_key', (array) wp_unslash( $_POST['diluxone_users_2fa_methods'] ?? array() ) );
-	$link    = sanitize_key( wp_unslash( $_POST['diluxone_users_2fa_link'] ?? 'auto' ) );
 
 	// Each answer is one of the answers the screen offers. Anything else read
 	// back later as something nobody chose: a mode of `bogus` behaved as
 	// optional while the screen showed no mode at all, and a method nothing
 	// registered was a method the site said it had.
 	$mode    = in_array( $mode, array( 'off', 'optional', 'required' ), true ) ? $mode : 'optional';
-	$link    = in_array( $link, array( 'auto', 'always', 'never' ), true ) ? $link : 'auto';
 	$methods = array_values( array_intersect( $methods, array_keys( diluxone_users_2fa_methods_offered() ) ) );
 	// Kept, and kept out of the question below: a method stored by something
 	// that is not running now is not one this screen drew, so it is not one
@@ -158,29 +155,23 @@ function diluxone_users_2fa_save(): bool {
 		$saved['diluxone_users_2fa_methods'] = array_values( array_unique( array_merge( $methods, $kept ) ) );
 	}
 
-	if ( $asked_link ) {
-		$saved['diluxone_users_2fa_link'] = $link;
-	}
-
 	diluxone_users_save_options( $saved );
 
 	return true;
 }
 
 /**
- * What the three settings above add up to for somebody arriving by link.
+ * What the settings above add up to for somebody arriving by link.
  *
- * The answer depends on the mode, on the rule for the link and on whether any
- * method that is turned on arrives somewhere other than the inbox — three
- * controls on one screen, and until this said so out loud the only way to
- * know was to work it out. It is the same rule the sign-in runs, read from
- * the saved settings instead of from a person.
+ * The answer depends on the mode and on the rule for the link: asked, as the
+ * plugin has it, unless an add-on answers `diluxone_users_2fa_on_link`
+ * otherwise. It is the same rule the sign-in runs, asked for nobody in
+ * particular instead of for a person.
  *
  * @return array{state: string, line: string} A state for the pill, and the sentence beside it.
  */
 function diluxone_users_2fa_link_today(): array {
 	$mode = (string) diluxone_users_option( 'diluxone_users_2fa_mode' );
-	$link = (string) diluxone_users_option( 'diluxone_users_2fa_link' );
 
 	// Nobody decided whether there is a second step: there is none, as
 	// WordPress has it, and that is not a thing somebody turned off.
@@ -198,32 +189,16 @@ function diluxone_users_2fa_link_today(): array {
 		);
 	}
 
-	if ( 'always' === $link ) {
+	if ( diluxone_users_2fa_worth_it_on_link( 0 ) ) {
 		return array(
 			'state' => 'active',
 			'line'  => __( 'The second step is asked of somebody who came in by link, whichever one they have.', 'diluxone-users' ),
 		);
 	}
 
-	if ( 'never' === $link ) {
-		return array(
-			'state' => 'off',
-			'line'  => __( 'Nothing is asked of somebody who came in by link: following it is the whole of it.', 'diluxone-users' ),
-		);
-	}
-
-	foreach ( diluxone_users_2fa_methods() as $method ) {
-		if ( 'email' !== ( $method['channel'] ?? 'email' ) ) {
-			return array(
-				'state' => 'active',
-				'line'  => __( 'The second step is asked: a method that is on does not arrive by e-mail, so it proves something the link did not.', 'diluxone-users' ),
-			);
-		}
-	}
-
 	return array(
 		'state' => 'off',
-		'line'  => __( 'Nothing is asked: every method that is on arrives by e-mail, at the inbox the person just opened.', 'diluxone-users' ),
+		'line'  => __( 'Nothing is asked of somebody who came in by link: following it is the whole of it.', 'diluxone-users' ),
 	);
 }
 
@@ -406,49 +381,42 @@ function diluxone_users_screen_login_2fa(): void {
 		);
 	}
 
-	$rules = array(
+	/*
+	 * The answer is not a choice: the second step is asked on the link as
+	 * on every other way in, so it is said, and the rule that works it out
+	 * is the one Users+ Pro brings, drawn after it as the radio it would be.
+	 */
+	if ( diluxone_users_free_note_shown( 'security/2fa/link' ) ) {
+		diluxone_users_ui_note(
+			'',
+			__( 'The second step is asked of somebody who came in by link, as on every other way in, whichever method they have.', 'diluxone-users' )
+		);
+	}
+
+	// The ones Users+ Pro brings, as the controls they would be: switched
+	// off, and gone once Pro answers false to them.
+	$pro = diluxone_users_ui_pro_choices(
+		array(),
 		array(
-			'name'    => 'diluxone_users_2fa_link',
-			'value'   => 'auto',
-			'checked' => 'auto' === (string) diluxone_users_option( 'diluxone_users_2fa_link' ),
-			'title'   => __( 'Work it out: ask, unless the second step is another email', 'diluxone-users' ),
-			'help'    => __( 'A code sent to the inbox the person has just opened to follow the link proves nothing the link did not prove already. An app does, so on an app it asks.', 'diluxone-users' ),
-		),
-		array(
-			'name'    => 'diluxone_users_2fa_link',
-			'value'   => 'always',
-			'checked' => 'always' === (string) diluxone_users_option( 'diluxone_users_2fa_link' ),
-			'title'   => __( 'Always ask', 'diluxone-users' ),
-			'help'    => __( 'The second step on every link, including the errand of a code going back to the same inbox.', 'diluxone-users' ),
-		),
-		array(
-			'name'    => 'diluxone_users_2fa_link',
-			'value'   => 'never',
-			'checked' => 'never' === (string) diluxone_users_option( 'diluxone_users_2fa_link' ),
-			'title'   => __( 'Never ask', 'diluxone-users' ),
-			'help'    => __( 'Following the link is the whole of it. The quickest way in, and the weakest of the three.', 'diluxone-users' ),
-		),
+			array(
+				'where'  => 'security/2fa/link',
+				'screen' => 'security-2fa',
+				'title'  => __( 'Let it decide', 'diluxone-users' ),
+				'text'   => __( 'Users+ Pro asks it on the link only when it proves something the link did not: an app does, a code back to the inbox the person just opened does not.', 'diluxone-users' ),
+			),
+			array(
+				'type'   => 'checkbox',
+				'where'  => 'security/2fa/remember',
+				'screen' => 'security-2fa',
+				'title'  => __( 'Remember a browser', 'diluxone-users' ),
+				'text'   => __( 'Users+ Pro lets people skip the second step for a few days on a browser that already passed it, with a signed cookie that lets nobody in on its own.', 'diluxone-users' ),
+			),
+		)
 	);
 
-	// After the three, the one Users+ Pro brings, as the box it would be:
-	// switched off, and gone once Pro answers false to it.
-	diluxone_users_ui_choices(
-		diluxone_users_ui_pro_choices(
-			$rules,
-			array(
-				array(
-					'type'   => 'checkbox',
-					'where'  => 'security/2fa/remember',
-					'screen' => 'security-2fa',
-					'title'  => __( 'Remember a browser', 'diluxone-users' ),
-					'text'   => __( 'Users+ Pro lets people skip the second step for a few days on a browser that already passed it, with a signed cookie that lets nobody in on its own.', 'diluxone-users' ),
-				),
-			)
-		),
-		'',
-		array(),
-		$waits
-	);
+	if ( array() !== $pro ) {
+		diluxone_users_ui_choices( $pro, '', array(), $waits );
+	}
 
 	diluxone_users_2fa_screen_place( 'end' );
 

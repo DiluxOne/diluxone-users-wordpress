@@ -221,15 +221,13 @@ class CoverSignInResetTest extends IntegrationTestCase {
 	}
 
 	/**
-	 * A new password ends every session the old one opened.
-	 *
-	 * Somebody resets a password because the old one may be in somebody
-	 * else's hands, and whoever holds it may already be signed in: a reset
-	 * that leaves those sessions open has changed the lock and left the door
-	 * ajar. The reset itself signs nobody in, so every session goes — on the
-	 * site's own page and through WordPress's wp-login.php alike.
+	 * A new password forgets every session the old one opened — on the
+	 * site's own page and through wp-login.php alike. WordPress signs those
+	 * devices out already; their records go with them.
 	 */
-	public function test_a_new_password_ends_every_session(): void {
+	public function test_a_new_password_forgets_the_other_sessions(): void {
+		diluxone_users_update_option( 'diluxone_users_sessions_show', 1 );
+
 		$sessions = \WP_Session_Tokens::get_instance( $this->user );
 		$sessions->create( time() + HOUR_IN_SECONDS );
 		$sessions->create( time() + HOUR_IN_SECONDS );
@@ -248,8 +246,7 @@ class CoverSignInResetTest extends IntegrationTestCase {
 		);
 		$this->assertSame( array(), \WP_Session_Tokens::get_instance( $this->user )->get_all(), 'the site’s own page' );
 
-		// WordPress's own reset form ends in the same place.
-		$sessions->create( time() + HOUR_IN_SECONDS );
+		\WP_Session_Tokens::get_instance( $this->user )->create( time() + HOUR_IN_SECONDS );
 		reset_password( get_userdata( $this->user ), 'and one more' );
 		$this->assertSame( array(), \WP_Session_Tokens::get_instance( $this->user )->get_all(), 'wp-login.php' );
 	}

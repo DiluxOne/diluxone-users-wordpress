@@ -1,7 +1,7 @@
 import { Page } from '@playwright/test';
 import { test, expect, expectSignedIn } from '../support/fixtures';
 import { Site, freshEmail, linkIn, waitForMail } from '../support/api';
-import { adminUrl, askForLink, navigated, savePanel, ssoButton } from '../support/ui';
+import { adminUrl, askForLink, navigated, saveButton, ssoButton } from '../support/ui';
 import { MOCK_ON } from '../support/signin';
 import { ADMIN_STATE } from '../../../playwright.config';
 
@@ -9,9 +9,11 @@ import { ADMIN_STATE } from '../../../playwright.config';
  * The required fields an account came in without, asked for after a sign-in.
  *
  * An account made by the e-mail link or a social network never saw the
- * registration form. Once the first name is required, signing in sends it to
- * the account page drawing that field alone, and from there on to where it
- * was going; skipping it leaves the whole site open and asks again next time.
+ * registration form. The plugin alone asks nothing: it goes straight on.
+ * Asking is an add-on's (Users+ Pro's, `diluxone_users_ask_missing`), and with
+ * one that asks, once the first name is required, signing in sends it to the
+ * account page drawing that field alone, and from there on to where it was
+ * going; skipping it leaves the whole site open and asks again next time.
  */
 
 /** The starter fields, with the first name required. */
@@ -44,13 +46,35 @@ async function signInByLink(page: Page, site: Site, loginUrl: string, email: str
 	await expectSignedIn(page, email);
 }
 
-test.describe('After signing in, the required fields missing', () => {
+test.describe('After signing in, the plugin alone', () => {
+	test('an account missing a required field goes straight on, with no step', async ({ page, site, pages, options }) => {
+		await options.set({
+			diluxone_users_fields: FIRST_NAME_REQUIRED,
+			diluxone_users_login_register: 1,
+			diluxone_users_login_role: 'subscriber',
+			diluxone_users_2fa_mode: 'off',
+			// Saved before asking became Users+ Pro's: no longer read.
+			diluxone_users_ask_missing: 1,
+		});
+
+		const email = freshEmail('missing-free');
+
+		await signInByLink(page, site, pages.login.url, email);
+
+		expect(onStep(page, pages.account.url), `straight on, at ${page.url()}`).toBe(false);
+		await expect(page.locator('.diluxone-users-complete')).toHaveCount(0);
+		expect((await site.user(email, ['first_name'])).fields.first_name ?? '', 'still missing').toBe('');
+	});
+});
+
+test.describe('After signing in, the required fields missing, with an add-on that asks', () => {
 	test.beforeEach(async ({ options }) => {
 		await options.set({
 			diluxone_users_fields: FIRST_NAME_REQUIRED,
 			diluxone_users_login_register: 1,
 			diluxone_users_login_role: 'subscriber',
 			diluxone_users_2fa_mode: 'off',
+			diluxone_e2e_ask_missing: 1,
 		});
 	});
 
@@ -139,36 +163,26 @@ test.describe('After signing in, the required fields missing', () => {
 	});
 });
 
-test.describe('After signing in, turned off on User fields', () => {
+test.describe('User fields › After sign-in', () => {
 	test.use({ storageState: ADMIN_STATE });
 
-	test('the box on User fields › After sign-in turns the step off', async ({ page, guest, site, pages, options }) => {
-		await options.set({
-			diluxone_users_fields: FIRST_NAME_REQUIRED,
-			diluxone_users_login_register: 1,
-			diluxone_users_2fa_mode: 'off',
-		});
-		await options.keep(['diluxone_users_ask_missing']);
+	test('says people go straight on, and shows the two settings as disabled Users+ Pro previews', async ({ page, options }) => {
+		await options.set({ diluxone_users_fields: FIRST_NAME_REQUIRED });
 
 		await page.goto(adminUrl('diluxone-users-fields', 'missing'));
-		const box = page.locator('input[name="diluxone_users_ask_missing"]');
-		await expect(box).toBeChecked();
-		await box.uncheck();
-		await savePanel(page);
-		await expect(page.locator('input[name="diluxone_users_ask_missing"]')).not.toBeChecked();
 
-		const email = freshEmail('missing-off');
-		await signInByLink(guest, site, pages.login.url, email);
-		expect(onStep(guest, pages.account.url), `no step, at ${guest.url()}`).toBe(false);
-	});
+		await expect(page.getByText('people go straight to where they were going')).toBeVisible();
+		await expect(page.locator('input[name="diluxone_users_ask_missing"]'), 'no setting').toHaveCount(0);
 
-	test('with no field required the box is switched off and says why', async ({ page, options }) => {
-		await options.set({
-			diluxone_users_fields: FIRST_NAME_REQUIRED.map((field) => ({ ...field, required: 0 })),
-		});
+		for (const where of ['fields/missing/ask', 'fields/missing/skip']) {
+			const pro = page.locator(`[data-diluxone-users-pro="${where}"]`);
 
-		await page.goto(adminUrl('diluxone-users-fields', 'missing'));
-		await expect(page.locator('.du-choice.is-locked input[type="checkbox"]')).toBeDisabled();
-		await expect(page.locator('input[name="diluxone_users_ask_missing"]')).toHaveCount(0);
+			await expect(pro, where).toBeVisible();
+			await expect(pro.locator('input[type="checkbox"]'), where).toBeDisabled();
+			await expect(pro.locator('a[href*="utm_campaign=free"]'), where).toHaveCount(1);
+		}
+
+		await expect(page.locator('[data-diluxone-users-pro="fields/missing/skip"]')).toContainText('Let them skip it');
+		await expect(saveButton(page), 'nothing to save').toHaveCount(0);
 	});
 });

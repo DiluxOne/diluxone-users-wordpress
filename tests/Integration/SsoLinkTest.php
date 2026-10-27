@@ -43,52 +43,40 @@ class SsoLinkTest extends IntegrationTestCase {
 		);
 	}
 
-	/** "Only some roles" refuses before it creates: no account is left behind that may not use it. */
+	/** An add-on that keeps the new account's role out refuses before it creates: no account is left behind that may not use it. */
 	public function test_an_account_social_sign_in_would_refuse_is_not_created(): void {
-		diluxone_users_update_option( 'diluxone_users_sso_scope', 'some' );
-		diluxone_users_update_option( 'diluxone_users_sso_roles', array( 'editor' ) );
-		diluxone_users_update_option( 'diluxone_users_login_role', 'subscriber' );
+		$asked = array();
+		$this->hook(
+			'diluxone_users_sso_role_allowed',
+			static function ( bool $allowed, int $user_id, string $context ) use ( &$asked ): bool {
+				$asked[] = array( $user_id, $context );
+
+				return 'register' === $context ? false : $allowed;
+			},
+			10,
+			3
+		);
 
 		$email = 'refused-' . wp_generate_password( 6, false, false ) . '@example.test';
 
 		$this->assertSame( 0, diluxone_users_sso_user( MockProvider::ID, $this->identity( $email, true ) ) );
 		$this->assertFalse( get_user_by( 'email', $email ), 'no account created' );
+		$this->assertContains( array( 0, 'register' ), $asked, 'asked for the account about to be made' );
 	}
 
-	/**
-	 * On a network the roles are every role on any of the person's sites, and
-	 * the social list, which lets people in, is asked of each of them: one
-	 * role left unticked anywhere keeps the person out — an editor of another
-	 * site does not get in through a door kept for subscribers.
-	 */
-	public function test_only_some_roles_is_asked_of_every_role_on_any_site_of_the_person(): void {
-		if ( ! is_multisite() ) {
-			$this->markTestSkipped( 'A network case; on a single site the person has the one role this site gives them.' );
-		}
+	/** Without an add-on, the role a new account gets may sign in with a network: the account is created. */
+	public function test_without_an_add_on_the_new_account_is_created(): void {
+		diluxone_users_update_option( 'diluxone_users_login_role', 'subscriber' );
+		update_option( 'diluxone_users_sso_scope', 'some' );
+		update_option( 'diluxone_users_sso_roles', array( 'editor' ) );
 
-		diluxone_users_update_option( 'diluxone_users_sso_scope', 'some' );
+		$email = 'made-' . wp_generate_password( 6, false, false ) . '@example.test';
 
-		$user = $this->make_user();
-		$site = (int) wp_insert_site(
-			array(
-				'domain' => (string) get_network()->domain,
-				'path'   => get_network()->path . 'sso-roles-' . wp_generate_password( 6, false, false ) . '/',
-			)
-		);
-		add_user_to_blog( $site, $user, 'editor' );
+		$this->assertGreaterThan( 0, diluxone_users_sso_user( MockProvider::ID, $this->identity( $email, true ) ) );
+		$this->assertInstanceOf( \WP_User::class, get_user_by( 'email', $email ), 'a role saved before is not read' );
 
-		diluxone_users_update_option( 'diluxone_users_sso_roles', array( 'subscriber' ) );
-		$this->assertTrue( diluxone_users_sso_role_blocked( $user ), 'a subscriber here who edits another site is kept out of the subscribers\' door' );
-
-		diluxone_users_update_option( 'diluxone_users_sso_roles', array( 'editor' ) );
-		$this->assertTrue( diluxone_users_sso_role_blocked( $user ), 'nor let in by the editors\' door while a role of theirs is left unticked' );
-
-		diluxone_users_update_option( 'diluxone_users_sso_roles', array( 'subscriber', 'editor' ) );
-		$this->assertFalse( diluxone_users_sso_role_blocked( $user ), 'every role of theirs ticked' );
-
-		remove_user_from_blog( $user, $site );
-		diluxone_users_update_option( 'diluxone_users_sso_roles', array( 'subscriber' ) );
-		$this->assertFalse( diluxone_users_sso_role_blocked( $user ), 'a subscriber everywhere' );
+		delete_option( 'diluxone_users_sso_scope' );
+		delete_option( 'diluxone_users_sso_roles' );
 	}
 
 	/** Unlinking takes off a provider's link and nothing else the prefix happens to cover. */
@@ -224,8 +212,8 @@ class SsoLinkTest extends IntegrationTestCase {
 	 */
 	public function test_an_account_found_by_address_whose_role_is_kept_out_is_not_linked(): void {
 		diluxone_users_update_option( 'diluxone_users_sso_link_by_email', 1 );
-		diluxone_users_update_option( 'diluxone_users_sso_scope', 'some' );
-		diluxone_users_update_option( 'diluxone_users_sso_roles', array( 'subscriber' ) );
+		// An add-on that keeps administrators out, as Users+ Pro's "only some roles".
+		$this->hook( 'diluxone_users_sso_role_allowed', static fn( bool $allowed, int $user_id ): bool => $allowed && ! user_can( $user_id, 'manage_options' ), 10, 2 );
 
 		$admin = $this->make_user( 'administrator' );
 

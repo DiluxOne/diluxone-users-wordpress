@@ -23,6 +23,7 @@ trait ResetsWpStubs {
 		$GLOBALS['_test_wp_transients']           = array();
 		$GLOBALS['_test_wp_users']                = array();
 		$GLOBALS['diluxone_users_test_user_meta'] = array();
+		$GLOBALS['_test_wp_filters']              = array();
 		unset( $GLOBALS['_test_multisite'], $GLOBALS['_test_wp_url_base'] );
 
 		$this->stub_request = array(

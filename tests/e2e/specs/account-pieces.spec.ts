@@ -60,7 +60,6 @@ test.beforeEach(async ({ options }) => {
 		diluxone_users_fields: FIELDS,
 		diluxone_users_avatar_upload: 1,
 		diluxone_users_handle_enabled: 1,
-		diluxone_users_handle_cooldown: 0,
 		diluxone_users_2fa_mode: 'off',
 		diluxone_e2e_sso: 1,
 		diluxone_users_sso: { mock: { active: 1, id: 'e2e-client-id', secret: 'e2e-client-secret', tested: 1 } },

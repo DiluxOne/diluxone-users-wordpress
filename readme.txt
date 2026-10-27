@@ -35,15 +35,15 @@ Only the plugin's own screens appear, in the dashboard.
   console and a live test before one is turned on. DiluxOne Users+ Pro, a
   separate add-on, adds ten more providers.
 * **Two-step verification**: a code by e-mail and backup codes, optional or
-  required, with a rule of its own for sign-ins by e-mail link. DiluxOne
-  Users+ Pro adds an authenticator app, asking it of some roles only, and
-  not asking again on a browser that passed it.
+  required, asked after the e-mail link as after a password. DiluxOne
+  Users+ Pro adds an authenticator app, asking it of some roles only,
+  deciding on the link whether the code proves anything new, and not asking
+  again on a browser that passed it.
 * **Design**: the sign-in page left in your page, in a centred card or on a
   screen of its own at an address you choose, a
-  simple account area, the colours from your theme or from a short palette
-  that always reads, and the sizes and spacing — or no stylesheet at all, for
+  simple account area, the colours from a short palette that always reads,
+  light and dark (DiluxOne Users+ Pro adds the colours from your theme), and the sizes and spacing — or no stylesheet at all, for
   a site that styles everything itself.
-* **Sessions**: how long they last (WordPress's length until you choose one), where they are open, how to close them, and, if you want it, a new password that closes every one of them.
 * **An activity log** of its own, off until you tick what to record: who
   signed in, who was refused and what changed. It records IP addresses; see
   Privacy below.
@@ -177,9 +177,7 @@ Yes. Activated for the whole network, the plugin applies one set of rules to
 every site: the second step, sessions, the proxy, the social sign-in
 apps and their rules, the user fields and what the activity log keeps are set
 once, in **Network Admin → DiluxOne Users+**, and a site administrator cannot
-change them for their own site. "Only some roles" means a role on any of the
-person's sites; the roles that may use social sign-in are asked of every one of
-them, so a role left unticked on any site keeps that person out. The sign-in, registration and account pages, and how they look
+change them for their own site. The sign-in, registration and account pages, and how they look
 and what they say, are set on the main site, and every site uses them. Each
 site keeps its own menus, admin bar, reports and maintenance. The activity
 log is one table for the whole network: each site's Reports › Activity shows
