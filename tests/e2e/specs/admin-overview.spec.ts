@@ -182,7 +182,7 @@ test.describe('Overview › how your people get in', () => {
 
 		const rows = page.locator('table.diluxone-users-summary tbody tr');
 
-		await expect(rows).toHaveCount(4);
+		await expect(rows).toHaveCount(5);
 		await expectPill(rows.nth(0), 'active');
 		await expect(rows.nth(1).locator('a')).toHaveAttribute('href', /tab=ways/);
 
@@ -206,6 +206,26 @@ test.describe('Overview › how your people get in', () => {
 		await expectPill(rows.nth(0), 'pending');
 
 		await expect(rail(page), 'no rail: the table is the whole of it').toHaveCount(0);
+	});
+
+	test('signing in and registration are two rows, each leading to its own screen', async ({ page, options }) => {
+		await options.keep(['diluxone_users_login_register', 'diluxone_users_sso_register', 'diluxone_users_register_form']);
+		await options.set({ diluxone_users_login_method: 'link', diluxone_users_login_register: 1, diluxone_users_sso_register: 0, diluxone_users_register_form: 0 });
+
+		await page.goto(adminUrl('diluxone-users', 'doors'));
+
+		const rows = page.locator('table.diluxone-users-summary tbody tr');
+		const doors = rows.filter({ has: page.locator('th', { hasText: 'All the doors' }) });
+		const registration = rows.filter({ has: page.locator('th', { hasText: /^Registration$/ }) });
+
+		await expect(doors.locator('.diluxone-users-summary__change a')).toHaveAttribute('href', /page=diluxone-users-login$/);
+		await expect(registration.locator('.diluxone-users-summary__change a')).toHaveAttribute('href', /page=diluxone-users-register$/);
+		await expect(registration.locator('.diluxone-users-summary__detail')).toContainText('the e-mail link');
+		await expectPill(registration, 'active');
+
+		await options.set({ diluxone_users_login_register: 0 });
+		await page.reload();
+		await expect(registration.locator('.diluxone-users-summary__detail')).toContainText('Nobody registers themselves');
 	});
 });
 

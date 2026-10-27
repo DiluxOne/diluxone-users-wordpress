@@ -304,7 +304,8 @@ function diluxone_users_sso_working_names(): array {
 }
 
 /**
- * Every way into this site and the state each one is in.
+ * Every way into this site for somebody with an account, and the state each
+ * one is in. How an account is made is the Registration screen's summary.
  *
  * The settings that open and close these are spread over the tabs of this
  * screen and over Security; what nobody could see was the result. This reads
@@ -316,7 +317,6 @@ function diluxone_users_sso_working_names(): array {
 function diluxone_users_doors(): array {
 	$page   = (int) diluxone_users_option( 'diluxone_users_login_page' );
 	$title  = $page > 0 ? (string) get_the_title( $page ) : '';
-	$mode   = diluxone_users_register_mode();
 	$social = diluxone_users_sso_working_names();
 	$tab    = static fn( string $id ): string => diluxone_users_admin_url( 'diluxone-users-login', array( 'tab' => $id ) );
 
@@ -392,7 +392,7 @@ function diluxone_users_doors(): array {
 	);
 
 	/**
-	 * Filters the ways in on Access › Summary, before how an account is made.
+	 * Filters the ways in on Access › Summary.
 	 *
 	 * An add-on's way in says here whether it is open, in the shape of a
 	 * summary row (label, state, and optionally why, word, detail, url and
@@ -403,35 +403,6 @@ function diluxone_users_doors(): array {
 	 * @param array<int, array<string, string>> $rows The page and the plugin's own ways in.
 	 */
 	$rows = array_values( (array) apply_filters( 'diluxone_users_doors', $rows ) );
-
-	// The same reading the registration tab does, and the same one it calls
-	// open or closed: this row is that answer said in a line.
-	$made = diluxone_users_register_doors_open();
-
-	// WordPress's own door is WordPress's own switch, and it is always
-	// decided: the row is about the plugin's three, and reads as decided
-	// once any of them is.
-	$rows[] = diluxone_users_summary_row(
-		array( 'diluxone_users_login_register', 'diluxone_users_sso_register', 'diluxone_users_register_form' ),
-		array(
-			'label'  => __( 'Creating an account', 'diluxone-users' ),
-			'state'  => array() !== $made ? ( 'form' === $mode && '' === diluxone_users_register_url() ? 'pending' : 'active' ) : 'off',
-			'why'    => 'form' === $mode && '' === diluxone_users_register_url() ? __( 'the form has no page yet', 'diluxone-users' ) : '',
-			'detail' => array() !== $made
-				? esc_html(
-					sprintf(
-					/* translators: %s: the ways an account gets created, comma separated */
-						__( 'Accounts are created by: %s.', 'diluxone-users' ),
-						implode( ', ', $made )
-					)
-				)
-				: esc_html__( 'Nobody registers themselves: accounts are made under Users.', 'diluxone-users' ),
-			'url'    => $tab( 'register' ),
-		),
-		get_option( 'users_can_register' )
-			? esc_html__( 'WordPress’s own form, open as Settings › General has it; the plugin opens no door of its own.', 'diluxone-users' )
-			: esc_html__( 'WordPress’s own form, closed as Settings › General has it; the plugin opens no door of its own.', 'diluxone-users' )
-	);
 
 	$rows[] = diluxone_users_summary_row(
 		'diluxone_users_2fa_mode',

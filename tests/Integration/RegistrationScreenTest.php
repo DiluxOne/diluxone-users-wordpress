@@ -83,4 +83,96 @@ class RegistrationScreenTest extends IntegrationTestCase {
 		$this->assertStringContainsString( 'DiluxOne Users+ | Registration', $html );
 		$this->assertArrayHasKey( 'who', diluxone_users_panels( 'diluxone-users-register' ) );
 	}
+
+	/* ── The summaries ─────────────────────────────────────────────── */
+
+	/** Registration open through the e-mail link, and the link the way in. */
+	private function open_by_the_link(): void {
+		diluxone_users_update_option( 'diluxone_users_login_method', 'link' );
+		diluxone_users_update_option( 'diluxone_users_login_register', 1 );
+		diluxone_users_update_option( 'diluxone_users_sso_register', 0 );
+		diluxone_users_update_option( 'diluxone_users_register_form', 0 );
+	}
+
+	/** One screen on one tab, drawn. */
+	private function screen( string $screen, string $tab ): string {
+		$_GET = array(
+			'page' => $screen,
+			'tab'  => $tab,
+		);
+
+		return $this->draw( 'diluxone-users-register' === $screen ? 'diluxone_users_screen_registration' : ( 'diluxone-users-login' === $screen ? 'diluxone_users_screen_login' : 'diluxone_users_screen_home' ) );
+	}
+
+	/**
+	 * The labels of a summary table's rows.
+	 *
+	 * @return array<int, string>
+	 */
+	private function rows( string $html ): array {
+		preg_match_all( '#<th scope="row" class="diluxone-users-summary__what">([^<]+)</th>#', $html, $found );
+
+		return array_map( 'html_entity_decode', $found[1] );
+	}
+
+	public function test_c4_registrations_summary_and_rail_speak_only_of_registration(): void {
+		$this->the_admin();
+		$this->open_by_the_link();
+
+		$html = $this->screen( 'diluxone-users-register', 'summary' );
+
+		$this->assertSame( array( 'The e-mail link', 'A social account', 'The site’s own form', 'WordPress’s own form', 'The role given' ), $this->rows( $html ) );
+		$this->assertStringContainsString( 'An address the site has never seen gets a link', $html );
+		$this->assertStringContainsString( 'Subscriber, whichever door they came through.', $html );
+		$this->assertStringNotContainsString( 'Username and password', $html, 'signing in is Access’s' );
+		$this->assertStringNotContainsString( 'The sign-in page', $html );
+		$this->assertStringNotContainsString( 'After the door', $html );
+
+		$this->assertSame( 1, preg_match( '#<p class="du-state__line">([^<]*)</p>#', $html, $rail ), 'a rail with one line' );
+		$this->assertStringStartsWith( 'Open: accounts are created by the e-mail link', html_entity_decode( $rail[1] ) );
+		$this->assertStringContainsString( 'diluxone-users-state--active', $html );
+	}
+
+	public function test_c4_the_rail_says_nobody_registers_when_every_door_is_shut(): void {
+		$this->the_admin();
+		$this->open_by_the_link();
+		diluxone_users_update_option( 'diluxone_users_login_register', 0 );
+
+		if ( is_multisite() ) {
+			update_site_option( 'registration', 'none' );
+		}
+
+		$html = $this->screen( 'diluxone-users-register', 'summary' );
+
+		$this->assertStringContainsString( '<p class="du-state__line">Nobody registers themselves: accounts are made under Users.</p>', $html );
+	}
+
+	public function test_c4_access_summary_speaks_only_of_signing_in(): void {
+		$this->the_admin();
+		$this->open_by_the_link();
+
+		$html = $this->screen( 'diluxone-users-login', 'summary' );
+		$rows = $this->rows( $html );
+
+		$this->assertContains( 'The e-mail link', $rows );
+		$this->assertContains( 'After the door', $rows );
+		$this->assertNotContains( 'Creating an account', $rows );
+		$this->assertNotContains( 'Registration', $rows );
+		$this->assertStringNotContainsString( 'Accounts are created by', $html );
+		$this->assertStringNotContainsString( 'diluxone-users-register', $html, 'no row links to registration' );
+		$this->assertStringNotContainsString( 'tab=register', $html );
+	}
+
+	public function test_c4_overview_shows_signing_in_and_registration_as_two_rows(): void {
+		$this->the_admin();
+		$this->open_by_the_link();
+
+		$html = $this->draw( 'diluxone_users_panel_doors' );
+		$rows = $this->rows( $html );
+
+		$this->assertContains( 'All the doors', $rows );
+		$this->assertContains( 'Registration', $rows );
+		$this->assertMatchesRegularExpression( '#Open: accounts are created by the e-mail link[^<]*</td>\s*<td class="diluxone-users-summary__change">\s*<a href="[^"]*page=diluxone-users-register">Registration › Summary →</a>#u', $html );
+		$this->assertMatchesRegularExpression( '#<a href="[^"]*page=diluxone-users-login">Access › Summary →</a>#u', $html );
+	}
 }
