@@ -2106,6 +2106,17 @@ function diluxone_users_ui_pro_line( array $args ): string {
 }
 
 /**
+ * Whether an add-on draws its own controls where the previews are.
+ *
+ * A tab that is a form only for them (User fields › After sign-in) is one
+ * while something listens on `diluxone_users_pro_choice` or
+ * `diluxone_users_pro_control`.
+ */
+function diluxone_users_pro_draws(): bool {
+	return has_filter( 'diluxone_users_pro_choice' ) || has_action( 'diluxone_users_pro_control' );
+}
+
+/**
  * A Pro answer among the real ones: the radio or the tick box it would be,
  * switched off.
  *

@@ -309,7 +309,11 @@ function diluxone_users_fields_panels(): void {
 			'label'    => __( 'After sign-in', 'diluxone-users' ),
 			'position' => 18,
 			'render'   => 'diluxone_users_screen_fields_missing',
+			// The plugin alone has nothing to save here: a form, and its
+			// Save, only while an add-on draws its controls in the tab
+			// (diluxone_users_fields_missing_form()).
 			'form'     => false,
+			'save'     => 'diluxone_users_screen_fields_missing_save',
 		)
 	);
 
@@ -364,6 +368,40 @@ function diluxone_users_screen_fields_missing(): void {
 	}
 
 	diluxone_users_ui_fields_close();
+}
+
+/**
+ * User fields › After sign-in is a form while an add-on draws there.
+ *
+ * Asked when the screen is drawn and saved, not when the tab is registered,
+ * so it follows whatever hooked in after the plugin.
+ *
+ * @param array<string, array<string, mixed>> $panels
+ * @param string                              $screen
+ * @return array<string, array<string, mixed>>
+ */
+function diluxone_users_fields_missing_form( $panels, $screen ): array {
+	$panels = (array) $panels;
+
+	if ( 'diluxone-users-fields' === $screen && isset( $panels['missing'] ) ) {
+		$panels['missing']['form'] = diluxone_users_pro_draws();
+	}
+
+	return $panels;
+}
+add_filter( 'diluxone_users_panels', 'diluxone_users_fields_missing_form', 10, 2 );
+
+/**
+ * Saves User fields › After sign-in: nothing of the plugin's.
+ *
+ * The tab holds only what an add-on draws there, and the add-on saves it on
+ * `diluxone_users_panel_saved`, which fires after this answers.
+ */
+function diluxone_users_screen_fields_missing_save(): bool {
+	check_admin_referer( 'diluxone_users_panel_diluxone-users-fields', 'diluxone_users_panel_nonce' );
+	diluxone_users_panel_allowed();
+
+	return true;
 }
 
 /**
