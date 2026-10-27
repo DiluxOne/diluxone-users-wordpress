@@ -2122,14 +2122,32 @@ function diluxone_users_ui_pro_line( array $args ): string {
  * @param array<string, mixed> $args where (the filter's id), screen (the
  *                                   link's medium), title, text and
  *                                   optionally type (radio or checkbox).
+ * While the preview is not drawn here, the place is an add-on's: the choice
+ * `diluxone_users_pro_choice` answers goes into the same group, a real one
+ * with its name and value, or nothing.
+ *
  * @return array<string, mixed> A choice for diluxone_users_ui_choices(), or
- *                              nothing while the preview is off here.
+ *                              nothing.
  */
 function diluxone_users_ui_pro_choice( array $args ): array {
 	$where = (string) ( $args['where'] ?? '' );
 
 	if ( ! diluxone_users_pro_shown( $where ) ) {
-		return array();
+		/**
+		 * Filters the choice drawn where a Users+ Pro preview would be.
+		 *
+		 * Asked only while the preview is not drawn there. Users+ Pro answers
+		 * its real control, as diluxone_users_ui_choices() takes one (name,
+		 * value, checked, title, help, children), and saves it on
+		 * `diluxone_users_panel_saved`. An empty array draws nothing.
+		 *
+		 * @since 1.0.0
+		 *
+		 * @param array<string, mixed> $choice The choice; empty by default.
+		 * @param string               $where  Which placeholder.
+		 * @param array<string, mixed> $args   What the preview was given.
+		 */
+		return (array) apply_filters( 'diluxone_users_pro_choice', array(), $where, $args );
 	}
 
 	return array(
@@ -2281,6 +2299,9 @@ function diluxone_users_ui_pro_row( array $args ): array {
  * name, which is the caller's to keep: this draws nothing over it and takes
  * nothing out of it.
  *
+ * While the preview is not drawn here, the place is an add-on's:
+ * `diluxone_users_pro_control` fires there instead.
+ *
  * @param array<string, mixed> $args    where, screen and text.
  * @param callable             $control Prints the control, disabled and nameless.
  */
@@ -2288,6 +2309,20 @@ function diluxone_users_ui_pro_control( array $args, callable $control ): void {
 	$where = (string) ( $args['where'] ?? '' );
 
 	if ( ! diluxone_users_pro_shown( $where ) ) {
+		/**
+		 * Fires where a Users+ Pro control of its own shape would be drawn.
+		 *
+		 * Only while the preview is not drawn there: Users+ Pro prints its
+		 * real control, with the screen's pieces, and saves it on
+		 * `diluxone_users_panel_saved`.
+		 *
+		 * @since 1.0.0
+		 *
+		 * @param string               $where Which placeholder.
+		 * @param array<string, mixed> $args  What the preview was given.
+		 */
+		do_action( 'diluxone_users_pro_control', $where, $args );
+
 		return;
 	}
 

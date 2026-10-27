@@ -311,6 +311,79 @@ class ProPreviewTest extends IntegrationTestCase {
 		}
 	}
 
+	/** Where a preview is not drawn, its place is the add-on's: the choice it answers joins the group. */
+	public function test_an_add_on_draws_its_real_choice_where_the_preview_was(): void {
+		$this->the_admin();
+		$this->hook( 'diluxone_users_upsell', static fn( bool $show, string $where ): bool => 'social/general/roles' !== $where && $show, 10, 2 );
+
+		$heard = array();
+		$this->hook(
+			'diluxone_users_pro_choice',
+			static function ( array $choice, string $where ) use ( &$heard ): array {
+				$heard[] = $where;
+
+				return 'social/general/roles' === $where
+					? array(
+						'name'  => 'diluxone_users_pro_sso_scope',
+						'value' => 'some',
+						'title' => 'Only some roles, for real',
+					)
+					: $choice;
+			},
+			10,
+			2
+		);
+
+		$html = $this->draw( 'diluxone_users_screen_social_general' );
+
+		$this->assertContains( 'social/general/roles', $heard, 'asked where the preview was' );
+		$this->assertStringContainsString( 'name="diluxone_users_pro_sso_scope"', $html, 'the add-on’s own control, with its name' );
+		$this->assertStringContainsString( 'Only some roles, for real', $html );
+		$this->assertStringNotContainsString( 'data-diluxone-users-pro="social/general/roles"', $html, 'and no preview' );
+	}
+
+	/** Where a preview is drawn, nothing is asked. */
+	public function test_the_add_on_is_not_asked_while_the_preview_is_drawn(): void {
+		$this->the_admin();
+
+		$asked = false;
+		$this->hook(
+			'diluxone_users_pro_choice',
+			static function ( array $choice ) use ( &$asked ): array {
+				$asked = true;
+
+				return $choice;
+			}
+		);
+
+		$this->assertNotSame( array(), diluxone_users_ui_pro_choice( self::ARGS ) );
+		$this->assertFalse( $asked );
+	}
+
+	/** A control of its own shape fires the action instead. */
+	public function test_a_control_of_its_own_shape_fires_where_the_preview_was(): void {
+		$this->the_admin();
+		$this->hook( 'diluxone_users_upsell', static fn(): bool => false );
+
+		$heard = '';
+		$this->hook(
+			'diluxone_users_pro_control',
+			static function ( string $where ) use ( &$heard ): void {
+				$heard = $where;
+				echo '<input name="diluxone_users_pro_map">';
+			}
+		);
+
+		$html = $this->draw(
+			static function (): void {
+				diluxone_users_ui_pro_control( array( 'where' => 'design/brand/color-map' ), static function (): void {} );
+			}
+		);
+
+		$this->assertSame( 'design/brand/color-map', $heard );
+		$this->assertStringContainsString( 'name="diluxone_users_pro_map"', $html );
+	}
+
 	/* ── The setting ───────────────────────────────────────────────── */
 
 	public function test_the_setting_is_the_networks_and_on_by_default(): void {

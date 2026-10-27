@@ -1446,6 +1446,17 @@ answers false for every feature it draws for real; a site that wants none of
 them answers false for all. Each placeholder's outer element carries
 `data-diluxone-users-pro="<where>"`.
 
+Where a preview is not drawn, its place is the add-on's. A radio or a tick box
+(`diluxone_users_ui_pro_choice()`) asks `diluxone_users_pro_choice` (filter,
+`( array $choice, string $where, array $args )`, empty by default): the choice
+it answers, as `diluxone_users_ui_choices()` takes one (`name`, `value`,
+`checked`, `title`, `help`, `children`), goes into the same group as the free
+answers, and an empty one draws nothing. A control of its own shape
+(`diluxone_users_ui_pro_control()`) fires `diluxone_users_pro_control` (action,
+`( string $where, array $args )`) there instead. Every screen that carries a
+preview is a form and fires `diluxone_users_panel_saved` on its save, which is
+where the add-on saves what it drew.
+
 | `$where` | What it is |
 | --- | --- |
 | `social/providers/<network>` | One greyed card per network on Social login › Providers, after Google and Microsoft: `linkedin`, `twitter` (X), `facebook`, `github`, `wordpress`, `yahoo`, `twitch`, `discord`, `gitlab` and `amazon`, each with its logo and its name and nothing to open. Pro answers false for each one it brings. |
