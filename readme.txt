@@ -269,7 +269,6 @@ Unreleased.
 
 First public release.
 
-* Access › The sign-in page, with "A page of its own" and a page chosen, now shows that page's address as a link under "Its address", the address people are actually sent to, instead of the /sign-in field nobody was sent to. The address field appears only with "No page", and switches as the drop-down changes, without a reload.
 * Signed out on a page of the account area, the "Sign in" button now brings you back to that page and tab once you sign in, instead of to the home page.
 * A social sign-in that fails, because it was cancelled at the provider or came back with a state nobody issued here, now leaves a row in the activity log with the network and why, without the code or the state.
 * Asking for a sign-in link with an address that has no account no longer creates the account: it is created when the person opens the link mailed to them, so nobody can make an account for somebody else's address.
