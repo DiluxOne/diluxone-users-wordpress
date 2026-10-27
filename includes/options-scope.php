@@ -120,7 +120,6 @@ function diluxone_users_option_scopes(): array {
 		'diluxone_users_colors'                => 'hub',
 		'diluxone_users_dark_follows'          => 'hub',
 		'diluxone_users_dark_signal'           => 'hub',
-		'diluxone_users_handle_cooldown'       => 'hub',
 		'diluxone_users_handle_enabled'        => 'hub',
 		'diluxone_users_handle_login'          => 'hub',
 		'diluxone_users_handle_max'            => 'hub',

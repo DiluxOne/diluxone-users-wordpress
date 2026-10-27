@@ -74,9 +74,30 @@ function diluxone_users_handle_changed( int $user_id ): int {
 	return (int) get_user_meta( $user_id, 'diluxone_users_handle_changed', true );
 }
 
+/**
+ * Days somebody waits between one change of their public name and the next.
+ *
+ * None, as the plugin has it: they change it whenever they like. A wait is
+ * Users+ Pro's "How often it can change", through
+ * `diluxone_users_handle_cooldown`.
+ */
+function diluxone_users_handle_cooldown( int $user_id ): int {
+	/**
+	 * Filters the days between one change of a public name and the next.
+	 *
+	 * 0, as the plugin has it: whenever they like.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param int $days    Days to wait; 0 for none.
+	 * @param int $user_id Whose name it is.
+	 */
+	return max( 0, (int) apply_filters( 'diluxone_users_handle_cooldown', 0, $user_id ) );
+}
+
 /** Can they change it today, or are they still waiting? */
 function diluxone_users_handle_can_change( int $user_id ): bool {
-	$days = (int) diluxone_users_option( 'diluxone_users_handle_cooldown' );
+	$days = diluxone_users_handle_cooldown( $user_id );
 	$last = diluxone_users_handle_changed( $user_id );
 
 	return $days <= 0 || 0 === $last || ( time() - $last ) >= $days * DAY_IN_SECONDS;
@@ -88,7 +109,7 @@ function diluxone_users_handle_next_change( int $user_id ): int {
 		return 0;
 	}
 
-	return diluxone_users_handle_changed( $user_id ) + (int) diluxone_users_option( 'diluxone_users_handle_cooldown' ) * DAY_IN_SECONDS;
+	return diluxone_users_handle_changed( $user_id ) + diluxone_users_handle_cooldown( $user_id ) * DAY_IN_SECONDS;
 }
 
 /**

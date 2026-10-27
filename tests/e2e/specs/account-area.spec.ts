@@ -256,7 +256,7 @@ test.describe('Your photo', () => {
 
 test.describe('The public name', () => {
 	test.beforeEach(async ({ options }) => {
-		await options.set({ diluxone_users_handle_enabled: 1, diluxone_users_handle_cooldown: 0 });
+		await options.set({ diluxone_users_handle_enabled: 1 });
 	});
 
 	test('chosen on the account, it is saved — and with “sign in with it” on, the link box takes it', async ({

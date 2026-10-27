@@ -142,7 +142,7 @@ everybody, with the code by e-mail, and skips it for nobody.
 | Your data: delete switch alone, both off | `admin-account-sections` › Account area › Your data |
 | Section and data save boxes: dirty, undo, leaving asks | `admin-account-sections` › the box that saves a section |
 | Public name: switch on/off, a hand-made POST with it off saves nothing | `admin-account-handle` › “let people choose” |
-| Public name: length, spaces dash/refuse, cooldown, the site's reserved names | `admin-account-handle` |
+| Public name: length, spaces dash/refuse, changed twice in a row (a saved wait not read; "How often it can change" and "cannot be changed" disabled Users+ Pro previews), the site's reserved names | `admin-account-handle` · `hub-account` (network) · integration: `CoverFieldsHandleTest`, `ProPreviewTest` |
 | Fields on details: every type drawn, a good answer stored in its shape, a bad one refused | `admin-fields-types` › every type, added from the screen |
 | Fields: phone halves read back, required closed list, date in another shape, yes/no unticked | `admin-fields-types` |
 | Fields: only a few times (counter, same answer free, closed, forced value refused, admin spends nothing) | `admin-fields-rules` › “only a few times” |
@@ -167,7 +167,7 @@ everybody, with the code by e-mail, and skips it for nobody.
 | A field keyed `wp_capabilities` / `diluxone_users_closed` never written | `my-account-details` › a field named after a key… |
 | `[diluxone_users_fields group="extra"]` draws and saves that block only; no active field draws nothing | `my-account-details` › [diluxone_users_fields group="extra"]…; with no active field… |
 | Photo: too heavy (limit in the note), over 6000 px, no file, replace deletes the old attachment, uploads off refused by hand, `[diluxone_users_avatar]` lands on details | `my-account-details` › Photo |
-| Public name: site's reserved list, taken by another account, min/max (box and server, capped 50), spaces dash/reject with the note, e-mail and empty refused, cooldown (locked, no Save, POST refused), switched off (POST writes nothing), handle login off sends no link, `[diluxone_users_handle]` lands on details | `my-account-details` › Public name |
+| Public name: site's reserved list, taken by another account, min/max (box and server, capped 50), spaces dash/reject with the note, e-mail and empty refused, changed a moment ago (open, Save there, a second change saved), switched off (POST writes nothing), handle login off sends no link, `[diluxone_users_handle]` lands on details | `my-account-details` › Public name |
 | Public name box: preview of the address, check link asks at once, own-name and too-short reasons, back to the saved value asks nothing, "could not check" | `my-account-details` › Public name: the box as it is typed in |
 | Notifications: `default_off` (unticked, quiet until ticked, then announced with the device and the account link), security notices off, locked "Always sent" rows, nothing to choose → no form | `my-account-security` › Notifications |
 | Sessions: another account's session cannot be closed with a good nonce; row names browser and system; a store that cannot address one session has no per-row Close | `my-account-security` › Sessions |

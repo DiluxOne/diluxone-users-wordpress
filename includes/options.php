@@ -315,9 +315,6 @@ function diluxone_users_option_defaults_own(): array {
 		// What to do with spaces: 'dash' turns them into hyphens — an address
 		// cannot contain spaces — or 'reject' refuses them and says so.
 		'diluxone_users_handle_spaces'         => 'dash',
-		// Days to wait between one change and the next. 0 = no wait; a name
-		// that changes every day identifies nobody.
-		'diluxone_users_handle_cooldown'       => 30,
 		'diluxone_users_handle_reserved'       => '',
 
 		// ── The profile picture ───────────────────────────────────────
