@@ -2,7 +2,7 @@ import { deflateSync } from 'node:zlib';
 import { APIRequestContext, Browser, Frame, Locator, Page } from '@playwright/test';
 import { expect, expectSignedIn } from './fixtures';
 import { E2E_HEADER, E2E_NS, Site, freshEmail } from './api';
-import { adminUrl, navigated, signInWithPassword, submitPluginForm } from './ui';
+import { adminUrl, navigated, setChoice, signInWithPassword, submitPluginForm } from './ui';
 
 /**
  * What the specs about the content screens share: the Account area, User
@@ -163,7 +163,7 @@ export async function fillField(page: Page, field: Partial<NewField>): Promise<v
 	}
 
 	if (field.edit !== undefined) {
-		await form.locator(`input[name="diluxone_users_field[edit]"][value="${field.edit}"]`).check({ force: true });
+		await setChoice(form.locator(`input[name="diluxone_users_field[edit]"][value="${field.edit}"]`));
 	}
 
 	if (field.editMax !== undefined) {
@@ -171,11 +171,11 @@ export async function fillField(page: Page, field: Partial<NewField>): Promise<v
 	}
 
 	if (field.required !== undefined) {
-		await form.locator('input[type="checkbox"][name="diluxone_users_field[required]"]').setChecked(field.required, { force: true });
+		await setChoice(form.locator('input[type="checkbox"][name="diluxone_users_field[required]"]'), field.required);
 	}
 
 	if (field.active !== undefined) {
-		await form.locator('input[type="checkbox"][name="diluxone_users_field[active]"]').setChecked(field.active, { force: true });
+		await setChoice(form.locator('input[type="checkbox"][name="diluxone_users_field[active]"]'), field.active);
 	}
 }
 

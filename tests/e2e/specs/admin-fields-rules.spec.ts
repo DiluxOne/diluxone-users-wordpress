@@ -1,7 +1,7 @@
 import { Page } from '@playwright/test';
 import { test, expect } from '../support/fixtures';
 import { Site } from '../support/api';
-import { accountSection, adminError, adminUrl, answeringDialog, navigated } from '../support/ui';
+import { accountSection, adminError, adminUrl, answeringDialog, navigated, setChoice } from '../support/ui';
 import {
 	NATIVE_FIELDS,
 	StoredField,
@@ -221,9 +221,9 @@ test.describe('User fields › who can change it', () => {
 
 		const max = fieldForm(page).locator('[name="diluxone_users_field[edit_max]"]');
 
-		await fieldForm(page).locator('input[name="diluxone_users_field[edit]"][value="always"]').check({ force: true });
+		await setChoice(fieldForm(page).locator('input[name="diluxone_users_field[edit]"][value="always"]'));
 		await expect(max, '“how many times” belongs to the answer that limits').toBeHidden();
-		await fieldForm(page).locator('input[name="diluxone_users_field[edit]"][value="limited"]').check({ force: true });
+		await setChoice(fieldForm(page).locator('input[name="diluxone_users_field[edit]"][value="limited"]'));
 		await expect(max).toBeVisible();
 
 		const label = unique('E2E Documento');
