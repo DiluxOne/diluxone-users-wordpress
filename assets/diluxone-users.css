@@ -275,7 +275,8 @@ details.diluxone-users-panel[open] > .diluxone-users-panel__head .diluxone-users
    there every box takes the card's width, the address as the password. */
 .diluxone-users-panel .diluxone-users-form input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]),
 .diluxone-users-panel .diluxone-users-form select,
-.diluxone-users-panel .diluxone-users-form textarea { max-width: 34rem; }
+.diluxone-users-panel .diluxone-users-form textarea,
+.diluxone-users-panel .diluxone-users-form .diluxone-users-phone { max-width: 34rem; }
 .diluxone-users-form label { font-weight: 600; }
 /* The "Your details" tab: one form holding a box per block of fields. The
    boxes keep the panel's own spacing between them, and each lays its fields
@@ -286,7 +287,8 @@ details.diluxone-users-panel[open] > .diluxone-users-panel__head .diluxone-users
 .diluxone-users-fields__block > .diluxone-users-panel__save { margin-bottom: 0; }
 .diluxone-users-fields__block input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]),
 .diluxone-users-fields__block select,
-.diluxone-users-fields__block textarea { max-width: 34rem; }
+.diluxone-users-fields__block textarea,
+.diluxone-users-fields__block .diluxone-users-phone { max-width: 34rem; }
 /* A button inside a column form stretches to the full width and looks like a
    banner. It takes the room it says, and starts on the left. */
 .diluxone-users-form > .diluxone-users-button,
