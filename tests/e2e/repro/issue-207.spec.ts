@@ -1,26 +1,37 @@
 import { test, expect } from '../support/fixtures';
-import { accessTab, rail } from '../support/admin-access';
-import { ADMIN_STATE } from '../../../playwright.config';
+import { signInMember } from '../support/admin-content';
+import { accountSection } from '../support/ui';
 
 /**
- * Issue #207, item 5: Access › Summary has an empty "Right now" rail since
- * Registration moved out, while Registration's has its own. The reporter
- * expects Access to keep a "Right now" of its own, with the state of signing
- * in, on any site.
+ * Issue #207, item 2: on the account area's "Your details" tab the phone
+ * control takes the box's whole width, while the other fields (first name,
+ * last name, country…) stop at about 390px. The reporter expects the phone
+ * control to be no wider than the text fields beside it.
  */
 
-test.use({ storageState: ADMIN_STATE });
+const FIELDS = [
+	{ key: 'first_name', label: 'First name', type: 'text', required: 0, active: 1, group: 'main', edit: 'always' },
+	{ key: 'last_name', label: 'Last name', type: 'text', required: 0, active: 1, group: 'main', edit: 'always' },
+	{ key: 'e2e_phone_207', label: 'Mobile', type: 'phone', options: ['AR'], required: 0, active: 1, group: 'main', edit: 'always' },
+];
 
-test.describe('Issue 207: the summary of Access', () => {
-	test('it has a "Right now" rail of its own that says something', async ({ page }) => {
-		await page.goto(accessTab('summary'));
+test.describe('Issue 207: the fields of "Your details"', () => {
+	test('the phone control is no wider than the text fields beside it', async ({ page, site, pages, options }) => {
+		await options.set({ diluxone_users_2fa_mode: 'off', diluxone_users_fields: FIELDS });
 
-		// The table of ways in is drawn, so this is the right screen.
-		await expect(page.locator('table.diluxone-users-summary')).toBeVisible();
+		await signInMember(page, site, pages.login.url, 'repro-207');
 
-		// The rail exists and is not empty.
-		await expect(rail(page), 'the summary has a rail').toHaveCount(1);
-		await expect(rail(page).locator('.du-state'), 'the rail says the state of signing in').toHaveCount(1);
-		await expect(rail(page).locator('.du-state__line'), 'and says it in words').not.toHaveText('');
+		await page.goto(accountSection(pages.account.url, 'details'));
+
+		const phone = page.locator('.diluxone-users-fields__block .diluxone-users-phone').first();
+		const text = page.locator('.diluxone-users-fields__block input[name="first_name"]').first();
+
+		await expect(phone, 'the phone control is drawn').toBeVisible();
+		await expect(text, 'the first name is drawn').toBeVisible();
+
+		const phoneBox = (await phone.boundingBox())!;
+		const textBox = (await text.boundingBox())!;
+
+		expect(phoneBox.width, 'the phone control is no wider than the first name beside it').toBeLessThanOrEqual(textBox.width + 1);
 	});
 });
