@@ -1417,6 +1417,7 @@ them answers false for all. Each placeholder's outer element carries
 | `design/account/shapes` | A disabled shape after the real ones on Design › Account area: the account area with a cover. |
 | `design/brand/any-color` | A disabled colour picker after the accent's swatches on Design › Your brand: any colour. |
 | `network/membership/rules` | Two disabled radios after the answers on Network Admin › Membership: "whoever asks" and "by invitation". One answer turns both off. |
+| `social/general/roles` | A disabled radio under "Who can sign in with a network" on Social login › Rules: only some roles. |
 | `security/2fa/roles` | A disabled radio among the three modes on Security › Two-step verification: asking only some roles. |
 | `security/2fa/app` | A disabled tick box among the methods on Security › Two-step verification: the authenticator app. |
 | `security/2fa/link` | A disabled radio under the e-mail link's line on Security › Two-step verification: "Let it decide", asking on the link only when the code proves something the link did not. |
@@ -1437,6 +1438,7 @@ gets, and the plugin stores nothing for it and names no setting of Pro's.
 | --- | --- | --- |
 | `diluxone_users_2fa_on_link` | `( bool $ask, int $user_id )` | true: the second step is asked after the e-mail link too. |
 | `diluxone_users_reset_ends_sessions` | `( bool $end, WP_User $user )` | false: a new password leaves the account's other sessions open, as WordPress does. |
+| `diluxone_users_sso_role_allowed` | `( bool $allowed, int $user_id, string $context )` | true: every role may sign in with a social account. `$context` is `account` for an existing account, or `register` (with `$user_id` 0) for one about to be created with `diluxone_users_register_role()`; false there creates no account and logs `register_role`. |
 
 ## The emergency switch
 

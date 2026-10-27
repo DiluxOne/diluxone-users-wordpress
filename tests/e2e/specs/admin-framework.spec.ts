@@ -211,36 +211,37 @@ test.describe('What hangs off an answer', () => {
 	});
 
 	test('“only some roles” shows the roles, “everybody” hides them, and the roles chosen are kept either way', async ({ page, site, options }) => {
-		await options.keep(['diluxone_users_sso_scope', 'diluxone_users_sso_roles']);
-		await options.set({ diluxone_users_sso_scope: 'all', diluxone_users_sso_roles: [] });
+		// The picker as Account area › Dashboard draws it for the dashboard profile.
+		await options.keep(['diluxone_users_wp_profile', 'diluxone_users_wp_profile_scope', 'diluxone_users_wp_profile_roles']);
+		await options.set({ diluxone_users_wp_profile: 'redirect', diluxone_users_wp_profile_scope: 'all', diluxone_users_wp_profile_roles: [] });
 
-		await page.goto(adminUrl('diluxone-users-social', 'general'));
+		await page.goto(adminUrl('diluxone-users-account', 'dashboard'));
 
-		const picker = page.locator('fieldset[data-diluxone-users-scope]').filter({ has: page.locator('[name="diluxone_users_sso_scope"]') });
+		const picker = page.locator('fieldset[data-diluxone-users-scope]').filter({ has: page.locator('[name="diluxone_users_wp_profile_scope"]') });
 		const roles = picker.locator('[data-diluxone-users-scope-roles]');
 
 		await expect(roles).toBeHidden();
 
-		await picker.locator('[name="diluxone_users_sso_scope"][value="some"]').check({ force: true });
+		await picker.locator('[name="diluxone_users_wp_profile_scope"][value="some"]').check({ force: true });
 		await expect(roles).toBeVisible();
 
-		await roles.locator('input[name="diluxone_users_sso_roles[]"][value="subscriber"]').check();
+		await roles.locator('input[name="diluxone_users_wp_profile_roles[]"][value="subscriber"]').check();
 		await savePanel(page);
 
-		expect(await site.getOptions(['diluxone_users_sso_scope', 'diluxone_users_sso_roles'])).toEqual({
-			diluxone_users_sso_scope: 'some',
-			diluxone_users_sso_roles: ['subscriber'],
+		expect(await site.getOptions(['diluxone_users_wp_profile_scope', 'diluxone_users_wp_profile_roles'])).toEqual({
+			diluxone_users_wp_profile_scope: 'some',
+			diluxone_users_wp_profile_roles: ['subscriber'],
 		});
 		await expect(roles).toBeVisible();
 		await expect(roles.locator('input[value="subscriber"]')).toBeChecked();
 
-		await picker.locator('[name="diluxone_users_sso_scope"][value="all"]').check({ force: true });
+		await picker.locator('[name="diluxone_users_wp_profile_scope"][value="all"]').check({ force: true });
 		await expect(roles).toBeHidden();
 		await savePanel(page);
 
-		expect(await site.getOptions(['diluxone_users_sso_scope', 'diluxone_users_sso_roles'])).toEqual({
-			diluxone_users_sso_scope: 'all',
-			diluxone_users_sso_roles: ['subscriber'],
+		expect(await site.getOptions(['diluxone_users_wp_profile_scope', 'diluxone_users_wp_profile_roles'])).toEqual({
+			diluxone_users_wp_profile_scope: 'all',
+			diluxone_users_wp_profile_roles: ['subscriber'],
 		});
 	});
 });

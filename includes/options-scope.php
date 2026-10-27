@@ -72,8 +72,6 @@ function diluxone_users_option_scopes(): array {
 		'diluxone_users_sso'                   => 'network',
 		'diluxone_users_sso_link_by_email'     => 'network',
 		'diluxone_users_sso_login'             => 'network',
-		'diluxone_users_sso_roles'             => 'network',
-		'diluxone_users_sso_scope'             => 'network',
 		'diluxone_users_sso_verified_only'     => 'network',
 		'diluxone_users_trusted_proxies'       => 'network',
 		// The wipe takes people's data, and people are the network's: it is

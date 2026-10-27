@@ -43,7 +43,7 @@ everybody, with the code by e-mail, and skips it for nobody.
 | Reset: `wp`, `site` (whole chain, reused key), `link` | `password-reset` |
 | Second step by e-mail: code, reuse, five tries, resend wait, timeout, link skip | `two-factor` › by e-mail |
 | Backup codes: handed over when the step is turned on, one gets in once, another still works | `two-factor` › Backup codes |
-| Social: new account, known verified address, H-01, silence, verified-only (waits on the mail), social registration off, cancel, roles, link/unlink, H-02, forged state, buttons off | `sso` |
+| Social: new account, known verified address, H-01, silence, verified-only (waits on the mail), social registration off, cancel, every role in (a saved list not read), link/unlink, H-02, forged state, buttons off | `sso` |
 | WP-CLI `wp diluxone-users login` link | `network/lifecycle` › WP-CLI |
 | Nobody's form for somebody signed in; `title="yes"`; the site's heading, intro, small print, logo; the logo switched off (no logo on the sign-in or the registration page); a Pro layout stored is the card | `signin-page` › What the sign-in page draws, and for whom |
 | The centred card on Twenty Twenty-Five and Astra, light and dark, colours the theme's and no site CSS: the edge at 3:1 or more against the page, the logo, heading, intro and form centred, the e-mail note and the small print at least a field's gap apart, a site's `--diluxone-users-field-gap` followed (single site and the hub) | `signin-card` › C4: the centred card on …; network `signin-card` |
@@ -73,7 +73,7 @@ everybody, with the code by e-mail, and skips it for nobody.
 | Reset: forged and spent key `expired`, cookie lost before saving, the optional-password note, a new password ends other sessions | `signin-reset-register` › Choosing a new password on the site's page |
 | Social: replayed return, return in another browser, network off mid-trip, unknown/unconfigured route, configured-but-off, trip burst | `signin-social` › A social return, tampered with |
 | Social in a popup: the sign-in, registration and account Link buttons open the provider in a popup and the page stays; the popup closes and the page reloads in place (a page with the form of its own) or goes on to the destination (the sign-in page); a blocked popup is the whole-window trip; the second step and the required fields shown on the page that opened it; a cancel and a forged state show the social error, signed out; a forged answer (another origin, another window) moves nothing and the real one carries only `type`/`kind` | `signin-social-popup` · integration: `SsoPopupTest` · unit: `SsoPopupTest` |
-| Social: link-by-email off, linked identity with another address, scope some with a disallowed role, social buttons on the registration form | `signin-social` › Who a social identity opens |
+| Social: link-by-email off, linked identity with another address, a newcomer made whatever role (a saved list not read), social buttons on the registration form | `signin-social` › Who a social identity opens |
 | Social linking: `taken`, `linked` + security mails on link/unlink, unlink without its nonce | `signin-social` › Linking from the account, off the plain path |
 | Social then 2FA; new device after social | `signin-social` › What a social sign-in sets off |
 | Social, an address the provider does not confirm with “Only verified addresses” on: nothing yet, the mail, the holding screen with the masked address; the link opened in the browser that waits (new account, existing account), and in another browser expired with nothing made; the link expired; the setting off as before; “Send it again” past the wait, only the newest link works; “Use another address” | `sso-pending` |
@@ -252,7 +252,7 @@ everybody, with the code by e-mail, and skips it for nobody.
 | The network's WP-CLI commands refuse a single site | `refusals` › The network’s WP-CLI commands refuse a single site |
 | Save box in the rail of every tab, button tied to a form; state line clean/dirty; leave with yes asks once; `beforeunload` on close, none after a save; two forms on one tab ask; a formtarget press keeps the warning armed | `admin-framework` › The box that saves |
 | A save refused by the server keeps the stored answer and shows only the error | `admin-framework` › A save the server refuses |
-| Choice groups open only while chosen; "only some roles" picker shows/hides roles and keeps them | `admin-framework` › What hangs off an answer |
+| Choice groups open only while chosen; "only some roles" picker (the dashboard profile's) shows/hides roles and keeps them | `admin-framework` › What hangs off an answer |
 | Copy box selects all; rows-per-page auto-submits; live provider test opens a pop-up; safe-mode notice hidden from an editor | `admin-framework` › The small behaviours |
 | Template pieces filled from the template; "Back to the default"; a colour from a short palette (one group of radios, the arrows move along it, saved it paints the account page); media picker stored by id and drawn on the sign-in page, removed | `admin-framework-design` › Templates and defaults; A colour from a short palette; The media picker |
 | Preview stage: phone/desktop widths, "See it big"; a late live answer never draws over a newer one | `admin-framework-design` › The stage |
@@ -290,7 +290,7 @@ everybody, with the code by e-mail, and skips it for nobody.
 | Social › live test fails: cancelled, no token, empty profile | `admin-social-providers` › the live test fails |
 | Social › Usage tab; grid's four card states; Turn it on / off from card and provider screen; untested not turned on | `admin-social-providers` › Usage, the grid’s card, “Turn it on” on the card…, a provider that has not passed the test |
 | Social › Use PKCE: ticked with nothing saved, unticked and ticked again (no new live test); a provider without support has it locked, says so, and a forged tick is stored off. The trip with it on carries the S256 challenge and the verifier that matches it, with it off neither; on a network, from /beta/ through the hub, and saved in Network Admin for every site | `admin-social-providers` › Use PKCE: …; `sso` › with “Use PKCE” on / off; `network/social` › from /beta/, a sign-in with “Use PKCE” on…; `network/admin-social-network` › Getting started… Settings saves… · integration: `CoverSettingsSocialTest`, `CoverSignInSsoTest` · unit: `SsoPkceTest` |
-| Social › Rules pressed on the screen: link by e-mail, verified only, some roles; rail follows registration | `admin-social-rules` › (all) |
+| Social › Rules pressed on the screen: link by e-mail, verified only; every role signs in, "only some roles" a disabled Users+ Pro preview; rail follows registration | `admin-social-rules` › (all) · integration: `CoverSignInSsoTest`, `SsoLinkTest`, `CoverSettingsSocialTest`, `ProPreviewTest` |
 | Status › page checks (none, gone, draft, right; a page without the shortcode draws its form) | `admin-status-checks` › the account page |
 | Status › mail unknown / going out / failing; ways in off with link only and mail failing; headline | `admin-status-checks` › outgoing mail…, mail failing… |
 | Status › the sign-in page of its own: the address in force, and taken, "Change the address →" to Access › The sign-in page | `admin-status-checks` › the sign-in page of its own. Integration: `CoverAdminStatusTest` |
@@ -514,7 +514,7 @@ In the browser, case by case:
 | Network Admin 2FA required asked from /alpha/ and /beta/ with the Users+ Pro cards, needs-one guard, the link asked from /beta/ with "Let it decide" a Pro preview, summary | `admin-security-network` › (Two-step describe) |
 | Network Admin session length, sessions box on the hub, proxy header and trusted range on /beta/, rail | `admin-security-network` › (Sessions and the proxy describe) |
 | Network Admin social provider: redirect, credentials, live test via hub, turn on/off, forget | `admin-social-network` › (a provider describe) |
-| Network Admin social rules: link by e-mail, verified only; some roles — | `admin-social-network` › (Rules describe) |
+| Network Admin social rules: link by e-mail, verified only; every role of /alpha/ signs in, "only some roles" a disabled Users+ Pro preview — | `admin-social-network` › (Rules describe) |
 | A site's Tools: rebuild, its own export/import; hub Tools close one / everyone; lockout door; usage counts members | `admin-status-network` › (all) |
 | Reports on a network: close from /alpha/'s report; network activity filters, pages; empty site and network (restored); account group | `admin-reports-network` › (all) |
 | Users screens on a network: /alpha/'s Access column and profile block; Network Admin user-edit takes ways in off; toolbar per site | `wp-screens-network` › (all) |

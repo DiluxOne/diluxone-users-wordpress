@@ -228,20 +228,19 @@ test.describe('Signing in with a social account', () => {
 		expect(stateOf(page.url())).toBe('social');
 	});
 
-	test('a role outside the list cannot come in through a network, even with the identity linked', async ({
+	test('every role comes in through a network with the identity linked, even where a list of roles was saved', async ({
 		page,
 		site,
 		pages,
 		options,
 	}) => {
-		// Said the way the screen says it: everybody, or only these. An
-		// editor is not on the list, so the editor uses the e-mail link.
+		// "Only some roles" is Users+ Pro's: a list saved before is not read.
 		await options.set({
 			diluxone_users_sso_scope: 'some',
 			diluxone_users_sso_roles: ['subscriber'],
 		});
 
-		const email = freshEmail('sso-blocked');
+		const email = freshEmail('sso-editor');
 		await site.makeUser({
 			email,
 			password: PASSWORD,
@@ -254,8 +253,7 @@ test.describe('Signing in with a social account', () => {
 		await page.goto(pages.login.url);
 		await navigated(page, () => ssoButton(page, 'mock').click());
 
-		await expectSignedOut(page);
-		expect(stateOf(page.url())).toBe('social');
+		await expectSignedIn(page, email);
 	});
 
 	test('linking from the account area, and unlinking again', async ({ page, site, pages }) => {

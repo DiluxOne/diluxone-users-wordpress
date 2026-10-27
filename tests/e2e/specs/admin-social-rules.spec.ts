@@ -40,7 +40,6 @@ test.describe('Social login › Rules', () => {
 			diluxone_users_sso_register: 1,
 			diluxone_users_sso_link_by_email: 1,
 			diluxone_users_sso_verified_only: 0,
-			diluxone_users_sso_scope: 'all',
 			diluxone_users_2fa_mode: 'off',
 		});
 	});
@@ -117,44 +116,37 @@ test.describe('Social login › Rules', () => {
 		await expectSignedIn(guest, email);
 	});
 
-	test('“only some roles”, subscriber ticked: an editor with the network linked is sent to the other ways in, a subscriber comes in', async ({
+	test('every role signs in with a network, even where “only some roles” was saved; the role choice is a disabled Users+ Pro preview', async ({
 		page,
 		guest,
 		site,
 		pages,
+		options,
 	}) => {
+		// A site that had "only some roles" saved before it became Users+ Pro's.
+		await options.set({ diluxone_users_sso_scope: 'some', diluxone_users_sso_roles: ['subscriber'] });
+
 		await page.goto(RULES);
-		await page.locator('input[name="diluxone_users_sso_scope"][value="some"]').check();
+		await expect(page.getByText('Every role can use the buttons, administrators included.')).toBeVisible();
+		await expect(page.locator('input[name="diluxone_users_sso_scope"], input[name="diluxone_users_sso_roles[]"]'), 'no choice of its own').toHaveCount(0);
 
-		for (const one of await page.locator('input[name="diluxone_users_sso_roles[]"]').all()) {
-			await one.uncheck();
+		const pro = page.locator('[data-diluxone-users-pro="social/general/roles"]');
+
+		await expect(pro).toBeVisible();
+		await expect(pro.locator('input[type="radio"]')).toBeDisabled();
+		await expect(pro.locator('[name]'), 'nothing in it posts').toHaveCount(0);
+		await expect(pro.locator('.diluxone-users-state--pro')).toHaveCount(1);
+		await expect(pro.locator('a')).toHaveAttribute('href', /diluxone\.com\/users-pro\/.*utm_medium=social-general/);
+
+		for (const role of ['administrator', 'editor', 'subscriber']) {
+			const email = freshEmail(`rules-${role}`);
+
+			await site.makeUser({ email, password: PASSWORD, role, meta: { diluxone_users_sso_mock: `mock|rules-${role}` } });
+			await site.setIdentity({ sub: `mock|rules-${role}`, email, email_verified: true });
+			await guest.context().clearCookies();
+			await comeBackFromTheNetwork(guest, pages.login.url);
+			await expectSignedIn(guest, email);
 		}
-
-		await page.locator('input[name="diluxone_users_sso_roles[]"][value="subscriber"]').check();
-		await savePanel(page);
-		await page.reload();
-		await expect(page.locator('input[name="diluxone_users_sso_scope"][value="some"]')).toBeChecked();
-		await expect(page.locator('input[name="diluxone_users_sso_roles[]"][value="subscriber"]')).toBeChecked();
-		expect(await site.getOptions(['diluxone_users_sso_scope', 'diluxone_users_sso_roles'])).toEqual({
-			diluxone_users_sso_scope: 'some',
-			diluxone_users_sso_roles: ['subscriber'],
-		});
-
-		const editor = freshEmail('rules-editor');
-
-		await site.makeUser({ email: editor, password: PASSWORD, role: 'editor', meta: { diluxone_users_sso_mock: 'mock|rules-editor' } });
-		await site.setIdentity({ sub: 'mock|rules-editor', email: editor, email_verified: true });
-		await comeBackFromTheNetwork(guest, pages.login.url);
-		await expectSignedOut(guest);
-		expect(stateOf(guest.url())).toBe('social');
-
-		const subscriber = freshEmail('rules-subscriber');
-
-		await site.makeUser({ email: subscriber, password: PASSWORD, meta: { diluxone_users_sso_mock: 'mock|rules-subscriber' } });
-		await site.setIdentity({ sub: 'mock|rules-subscriber', email: subscriber, email_verified: true });
-		await guest.context().clearCookies();
-		await comeBackFromTheNetwork(guest, pages.login.url);
-		await expectSignedIn(guest, subscriber);
 	});
 
 	test('the rail says whether a social sign-in creates the account, as Registration decides, and nothing else', async ({

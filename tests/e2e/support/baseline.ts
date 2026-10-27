@@ -50,8 +50,6 @@ export const BASELINE = (pages: { login: number; register: number; account: numb
 	diluxone_users_sso_register: 1,
 	diluxone_users_sso_link_by_email: 1,
 	diluxone_users_sso_verified_only: 0,
-	diluxone_users_sso_scope: 'all',
-	diluxone_users_sso_roles: [],
 
 	// On a network, a policy the network confirmed: the specs about one that
 	// has not are the ones that say so. On a single site it means nothing.

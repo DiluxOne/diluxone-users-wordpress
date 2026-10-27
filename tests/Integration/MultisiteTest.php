@@ -219,16 +219,20 @@ class MultisiteTest extends IntegrationTestCase {
 		$user = $this->make_user( 'subscriber' );
 		add_user_to_blog( $this->site, $user, 'administrator' );
 
-		// A rule about roles that is the network's — the social sign-in's here;
+		// A rule about roles that is the network's, as an add-on's would be:
 		// Users+ Pro's second step for some roles asks the same question.
-		diluxone_users_update_option( 'diluxone_users_sso_scope', 'some' );
-		diluxone_users_update_option( 'diluxone_users_sso_roles', array( 'administrator' ) );
+		$this->hook( 'diluxone_users_option_scope', static fn( string $scope, string $key ): string => 0 === strpos( $key, 'diluxone_users_addon_rule' ) ? 'network' : $scope, 10, 2 );
+		diluxone_users_update_option( 'diluxone_users_addon_rule_scope', 'some' );
+		diluxone_users_update_option( 'diluxone_users_addon_rule_roles', array( 'administrator' ) );
 
-		$this->assertTrue( diluxone_users_scope_includes( $user, 'diluxone_users_sso' ), 'A subscriber here, an administrator next door' );
+		$this->assertTrue( diluxone_users_scope_includes( $user, 'diluxone_users_addon_rule' ), 'A subscriber here, an administrator next door' );
 
 		$other = $this->make_user( 'subscriber' );
 
-		$this->assertFalse( diluxone_users_scope_includes( $other, 'diluxone_users_sso' ), 'A subscriber everywhere is not reached' );
+		$this->assertFalse( diluxone_users_scope_includes( $other, 'diluxone_users_addon_rule' ), 'A subscriber everywhere is not reached' );
+
+		diluxone_users_delete_option( 'diluxone_users_addon_rule_scope' );
+		diluxone_users_delete_option( 'diluxone_users_addon_rule_roles' );
 	}
 
 	/** A super admin is an administrator everywhere, member or not. */
@@ -236,10 +240,16 @@ class MultisiteTest extends IntegrationTestCase {
 		$admin = $this->make_user();
 		grant_super_admin( $admin );
 
-		diluxone_users_update_option( 'diluxone_users_sso_scope', 'some' );
-		diluxone_users_update_option( 'diluxone_users_sso_roles', array( 'administrator' ) );
+		// A rule about roles that is the network's, as an add-on's would be:
+		// Users+ Pro's second step for some roles asks the same question.
+		$this->hook( 'diluxone_users_option_scope', static fn( string $scope, string $key ): string => 0 === strpos( $key, 'diluxone_users_addon_rule' ) ? 'network' : $scope, 10, 2 );
+		diluxone_users_update_option( 'diluxone_users_addon_rule_scope', 'some' );
+		diluxone_users_update_option( 'diluxone_users_addon_rule_roles', array( 'administrator' ) );
 
-		$this->assertTrue( diluxone_users_scope_includes( $admin, 'diluxone_users_sso' ) );
+		$this->assertTrue( diluxone_users_scope_includes( $admin, 'diluxone_users_addon_rule' ) );
+
+		diluxone_users_delete_option( 'diluxone_users_addon_rule_scope' );
+		diluxone_users_delete_option( 'diluxone_users_addon_rule_roles' );
 
 		revoke_super_admin( $admin );
 	}

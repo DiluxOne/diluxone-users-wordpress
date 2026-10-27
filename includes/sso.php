@@ -674,7 +674,7 @@ function diluxone_users_sso_target( array $identity, ?string &$why = null ): int
 
 	// An account social sign-in would then refuse is not created: the
 	// role a new account gets has to be one that may use it.
-	if ( 'some' === diluxone_users_scope( 'diluxone_users_sso' ) && ! in_array( diluxone_users_register_role(), (array) diluxone_users_option( 'diluxone_users_sso_roles' ), true ) ) {
+	if ( ! diluxone_users_sso_role_allowed( 0, 'register' ) ) {
 		$why = 'register_role';
 
 		return 0;
@@ -782,40 +782,44 @@ function diluxone_users_sso_user( string $id, array $identity, ?string &$why = n
 }
 
 /**
- * Is this role kept out of signing in with a social account?
+ * May this person — or, with `register`, a new account — sign in with a
+ * social account?
  *
- * The account with the most power is the one most worth protecting, and an
- * administrator account that gets in through Google depends on that Google
- * account not being lost. With e-mail-link access always available, closing
- * the social door to a role leaves nobody out.
+ * Every role may, as the plugin has it. Keeping some out — the account with
+ * the most power is the one most worth protecting, and an administrator who
+ * gets in through Google depends on that Google account not being lost — is
+ * Users+ Pro's "only some roles", through `diluxone_users_sso_role_allowed`.
+ * With e-mail-link access always available, closing the social door to a role
+ * leaves nobody out.
  *
- * Asked of the allowed list and not of a blocked one. The setting used to be
- * the roles that could not — the only rule in the plugin written backwards,
- * where an empty list meant "everybody may" and a reader had to work that out
- * from the absence of anything.
+ * @param int    $user_id The account, or 0 for one about to be created.
+ * @param string $context 'account' for an existing account, 'register' for a
+ *                        new one, which gets diluxone_users_register_role().
+ */
+function diluxone_users_sso_role_allowed( int $user_id, string $context = 'account' ): bool {
+	/**
+	 * Filters whether an account may sign in with a social account.
+	 *
+	 * True, as the plugin has it: every role may. On `register` the account
+	 * is not there yet, `$user_id` is 0, and the role it would get is
+	 * diluxone_users_register_role(): false is no account created.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param bool   $allowed Whether it may.
+	 * @param int    $user_id The account, or 0 on `register`.
+	 * @param string $context 'account' or 'register'.
+	 */
+	return (bool) apply_filters( 'diluxone_users_sso_role_allowed', true, $user_id, $context );
+}
+
+/**
+ * Is this account kept out of signing in with a social account?
  *
  * @param int $user_id User to check.
  */
 function diluxone_users_sso_role_blocked( int $user_id ): bool {
-	if ( ! get_userdata( $user_id ) instanceof WP_User ) {
-		return false;
-	}
-
-	if ( 'all' === diluxone_users_scope( 'diluxone_users_sso' ) ) {
-		return false;
-	}
-
-	// The roles are read as every "only some roles" rule reads them: on a
-	// network every role on any of the person's sites, a super admin counted
-	// as an administrator, none ticked reaching nobody. But this rule keeps
-	// people out rather than bringing them in, so it is asked of every role
-	// the person holds: one role outside the list anywhere — an administrator
-	// of another site who is a subscriber here — keeps them out. Asked of any
-	// role instead, that administrator got in through the subscribers' door.
-	$allowed = (array) diluxone_users_option( 'diluxone_users_sso_roles' );
-	$has     = diluxone_users_scope_roles_of( $user_id, 'diluxone_users_sso' );
-
-	return array() === $has || array() !== array_diff( $has, $allowed );
+	return get_userdata( $user_id ) instanceof WP_User && ! diluxone_users_sso_role_allowed( $user_id, 'account' );
 }
 
 /**

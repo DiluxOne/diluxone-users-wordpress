@@ -219,16 +219,6 @@ function diluxone_users_option_defaults_own(): array {
 		// mailed to the address and opened (sso-pending.php). On by default,
 		// because the mail makes it cost nobody a way in.
 		'diluxone_users_sso_verified_only'     => 1,
-		// Who may sign in with a social account: everybody, or only the
-		// roles ticked. Said the other way round until now — a list of roles
-		// that could NOT — which is the only question on these screens
-		// answered by the negative, and the one place the reader had to work
-		// out what an empty list meant. `all` / `some` plus the roles is the
-		// shape the second step and the dashboard profile already use, so it
-		// is the same control and the same answer everywhere.
-		'diluxone_users_sso_scope'             => 'all',
-		'diluxone_users_sso_roles'             => array(),
-
 		/* How the network buttons look. */
 		'diluxone_users_sso_button_skin'       => 'brand',
 		'diluxone_users_sso_button_shape'      => 'rounded',

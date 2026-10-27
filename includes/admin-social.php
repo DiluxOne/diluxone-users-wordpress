@@ -86,7 +86,7 @@ function diluxone_users_social_rules_save(): void {
 	$saved = array(
 		'diluxone_users_sso_link_by_email' => isset( $_POST['diluxone_users_sso_link_by_email'] ) ? 1 : 0,
 		'diluxone_users_sso_verified_only' => isset( $_POST['diluxone_users_sso_verified_only'] ) ? 1 : 0,
-	) + diluxone_users_scope_posted( 'diluxone_users_sso', 'diluxone-users-social' );
+	);
 
 	// On a site, social sign-in is switched on with the other ways in, on
 	// Access; in Network Admin there is no Access, and this is where it is.
@@ -567,30 +567,27 @@ function diluxone_users_screen_social_general(): void {
 		)
 	);
 
-	diluxone_users_ui_section(
-		__( 'Who can sign in with a network', 'diluxone-users' ),
-		__( 'Everybody, or only the roles you pick. Whoever is left out signs in with the email link as always, so nobody is shut out of the site — and it is the account with the most power that is worth thinking about: an administrator who signs in with Google depends on that Google account never being taken over.', 'diluxone-users' )
+	diluxone_users_ui_section( __( 'Who can sign in with a network', 'diluxone-users' ) );
+
+	diluxone_users_ui_note( '', __( 'Every role can use the buttons, administrators included. Whoever would rather not signs in with the site’s other ways in.', 'diluxone-users' ) );
+
+	// The one Users+ Pro brings, as the radio it would be: switched off, and
+	// gone once Pro answers false to it.
+	$pro = diluxone_users_ui_pro_choices(
+		array(),
+		array(
+			array(
+				'where'  => 'social/general/roles',
+				'screen' => 'social-general',
+				'title'  => __( 'Only some roles', 'diluxone-users' ),
+				'text'   => __( 'Users+ Pro lets only the roles you pick use the buttons: an administrator who signs in with Google depends on that Google account never being taken over. Whoever is left out signs in with the email link as always.', 'diluxone-users' ),
+			),
+		)
 	);
 
-	/*
-	 * The same control as the second step and the dashboard profile, and it
-	 * says the same thing the same way round.
-	 *
-	 * This question was the odd one out: a heading reading "Roles that cannot
-	 * use it" over a permanent column of every role on the site, each with an
-	 * empty box. Nothing said what no ticks meant, the list was as long as the
-	 * site had roles whether or not anybody was going to narrow it, and it was
-	 * the one rule on these screens expressed by the negative — so a reader
-	 * arriving from the second-step tab had to turn it round in their head.
-	 */
-	diluxone_users_ui_field_open( __( 'Who it reaches', 'diluxone-users' ) );
-
-	diluxone_users_scope_control(
-		'diluxone_users_sso',
-		__( 'The roles ticked can use the buttons. Everybody else uses the site’s other ways in.', 'diluxone-users' )
-	);
-
-	diluxone_users_ui_field_close();
+	if ( array() !== $pro ) {
+		diluxone_users_ui_choices( $pro );
+	}
 
 	// The rail reports the one thing the rules come to on this site: whether
 	// a network creates an account or only opens one.
