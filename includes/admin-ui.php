@@ -2117,6 +2117,19 @@ function diluxone_users_pro_draws(): bool {
 }
 
 /**
+ * Whether the line that says what the plugin alone does is drawn by a preview.
+ *
+ * It describes the plugin without the add-on, so it goes with the preview:
+ * once an add-on draws its own control there, the control says what the site
+ * does, and the line would contradict it.
+ *
+ * @param string $where The preview the line belongs to.
+ */
+function diluxone_users_free_note_shown( string $where ): bool {
+	return diluxone_users_pro_shown( $where ) || ! diluxone_users_pro_draws();
+}
+
+/**
  * A Pro answer among the real ones: the radio or the tick box it would be,
  * switched off.
  *

@@ -1707,7 +1707,9 @@ function diluxone_users_screen_account_handle(): void {
 	 * whenever they like. What Pro brings is drawn as the controls it would
 	 * be, switched off, and gone once Pro answers false to them.
 	 */
-	diluxone_users_ui_note( '', __( 'People change their public name whenever they like.', 'diluxone-users' ) );
+	if ( diluxone_users_free_note_shown( 'account/handle/cooldown' ) ) {
+		diluxone_users_ui_note( '', __( 'People change their public name whenever they like.', 'diluxone-users' ) );
+	}
 
 	diluxone_users_ui_pro_control(
 		array(

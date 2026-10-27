@@ -569,7 +569,9 @@ function diluxone_users_screen_social_general(): void {
 
 	diluxone_users_ui_section( __( 'Who can sign in with a network', 'diluxone-users' ) );
 
-	diluxone_users_ui_note( '', __( 'Every role can use the buttons, administrators included. Whoever would rather not signs in with the site’s other ways in.', 'diluxone-users' ) );
+	if ( diluxone_users_free_note_shown( 'social/general/roles' ) ) {
+		diluxone_users_ui_note( '', __( 'Every role can use the buttons, administrators included. Whoever would rather not signs in with the site’s other ways in.', 'diluxone-users' ) );
+	}
 
 	// The one Users+ Pro brings, as the radio it would be: switched off, and
 	// gone once Pro answers false to it.

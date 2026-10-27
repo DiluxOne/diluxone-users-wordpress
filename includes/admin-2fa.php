@@ -386,10 +386,12 @@ function diluxone_users_screen_login_2fa(): void {
 	 * on every other way in, so it is said, and the rule that works it out
 	 * is the one Users+ Pro brings, drawn after it as the radio it would be.
 	 */
-	diluxone_users_ui_note(
-		'',
-		__( 'The second step is asked of somebody who came in by link, as on every other way in, whichever method they have.', 'diluxone-users' )
-	);
+	if ( diluxone_users_free_note_shown( 'security/2fa/link' ) ) {
+		diluxone_users_ui_note(
+			'',
+			__( 'The second step is asked of somebody who came in by link, as on every other way in, whichever method they have.', 'diluxone-users' )
+		);
+	}
 
 	// The ones Users+ Pro brings, as the controls they would be: switched
 	// off, and gone once Pro answers false to them.

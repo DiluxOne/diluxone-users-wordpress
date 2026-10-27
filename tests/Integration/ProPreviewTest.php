@@ -425,4 +425,32 @@ class ProPreviewTest extends IntegrationTestCase {
 		$this->assertSame( 1, (int) get_site_option( 'diluxone_users_pro_previews' ) );
 		$this->assertMatchesRegularExpression( '/name="diluxone_users_pro_previews"\s+value="1"\s+checked/', $this->draw( 'diluxone_users_screen_network_previews' ) );
 	}
+
+	/**
+	 * The line that says what the plugin alone does goes with its preview:
+	 * with the previews off and no add-on it stays, and once an add-on draws
+	 * its own control there it goes, so the screen does not contradict it.
+	 */
+	public function test_the_free_line_goes_with_its_preview(): void {
+		$this->the_admin();
+
+		$lines = array(
+			'security/2fa/link'       => array( 'diluxone_users_screen_login_2fa', 'as on every other way in' ),
+			'social/general/roles'    => array( 'diluxone_users_screen_social_general', 'Every role can use the buttons' ),
+			'account/handle/cooldown' => array( 'diluxone_users_screen_account_handle', 'whenever they like' ),
+			'fields/missing/ask'      => array( 'diluxone_users_screen_fields_missing', 'go straight to where they were going' ),
+		);
+
+		diluxone_users_update_option( 'diluxone_users_pro_previews', 0 );
+
+		foreach ( $lines as $where => list( $screen, $line ) ) {
+			$this->assertStringContainsString( $line, $this->draw( $screen ), "$where: the plugin alone says what it does" );
+		}
+
+		$this->hook( 'diluxone_users_pro_choice', static fn( array $choice ): array => $choice );
+
+		foreach ( $lines as $where => list( $screen, $line ) ) {
+			$this->assertStringNotContainsString( $line, $this->draw( $screen ), "$where: an add-on drawing there speaks for itself" );
+		}
+	}
 }

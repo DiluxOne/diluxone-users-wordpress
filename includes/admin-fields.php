@@ -341,7 +341,9 @@ add_action( 'diluxone_users_register_panels', 'diluxone_users_fields_panels' );
 function diluxone_users_screen_fields_missing(): void {
 	diluxone_users_ui_fields_open();
 
-	diluxone_users_ui_note( '', __( 'After signing in, people go straight to where they were going, whatever their account is missing.', 'diluxone-users' ) );
+	if ( diluxone_users_free_note_shown( 'fields/missing/ask' ) ) {
+		diluxone_users_ui_note( '', __( 'After signing in, people go straight to where they were going, whatever their account is missing.', 'diluxone-users' ) );
+	}
 
 	$pro = diluxone_users_ui_pro_choices(
 		array(),
