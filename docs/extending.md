@@ -1390,7 +1390,9 @@ the control it would be, switched off: the radio or the tick box among the
 real answers, the button where the real one goes, the network's card beside
 Google and Microsoft, the shape in the row of shapes, the row of the summary.
 Each carries the "Pro" badge, a line about what it adds and one "Learn about
-Users+ Pro" link to diluxone.com, the same on every screen. Nothing in it has
+Users+ Pro" link to the plugin's page on diluxone.com in the admin's language
+(the Spanish page for any `es_*` locale, the English one for every other), the
+same on every screen. Nothing in it has
 a name, so nothing posts it; being disabled, a keyboard passes over it and a
 screen reader announces it as unavailable, and the link is what the keyboard
 lands on. Only administrators see them, only on the plugin's screens, never

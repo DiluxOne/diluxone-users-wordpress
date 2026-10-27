@@ -125,7 +125,7 @@ test.describe('Security › Summary', () => {
 		await expect(summary(page).locator('tr').last(), 'after the real rows').toHaveAttribute('data-diluxone-users-pro', 'security/summary/more');
 		await expect(pro.locator('.diluxone-users-state--pro'), 'the badge where the state goes').toHaveCount(1);
 		await expect(pro.locator('[name]'), 'nothing in it is sent').toHaveCount(0);
-		await expect(pro.locator('a')).toHaveAttribute('href', /diluxone\.com\/users-pro\/.*utm_medium=security/);
+		await expect(pro.locator('a')).toHaveAttribute('href', /diluxone\.com\/wordpress-plugins\/users\/.*utm_medium=security/);
 		await expect(page.locator('table.diluxone-users-summary'), 'one table, not a picture of a second').toHaveCount(1);
 		await expect(page.locator('.du-pro__picture, [inert]')).toHaveCount(0);
 

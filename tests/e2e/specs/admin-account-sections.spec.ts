@@ -178,7 +178,7 @@ test.describe('Account area › where Users+ Pro’s sections would be', () => {
 		await expect(pro, 'beside the heading, where the real one goes').toBeVisible();
 		await expect(pro.locator('button', { hasText: 'Add a section' })).toBeDisabled();
 		await expect(pro.locator('.diluxone-users-state--pro'), 'the badge').toHaveCount(1);
-		await expect(pro.locator('a')).toHaveAttribute('href', /diluxone\.com\/users-pro\/.*utm_medium=account-sections/);
+		await expect(pro.locator('a')).toHaveAttribute('href', /diluxone\.com\/wordpress-plugins\/users\/.*utm_medium=account-sections/);
 		await expect(pro.locator('[name]'), 'nothing in it posts').toHaveCount(0);
 		await expect(page.locator('.du-pro-card'), 'and no card under the list').toHaveCount(0);
 

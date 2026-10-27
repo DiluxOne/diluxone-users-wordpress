@@ -281,7 +281,7 @@ class CoverSettingsSocialTest extends IntegrationTestCase {
 			$this->assertStringNotContainsString( 'provider=' . $slug, $card );
 		}
 
-		$this->assertStringContainsString( 'href="https://diluxone.com/users-pro/?utm_source=diluxone-users&amp;utm_medium=social&amp;utm_campaign=free"', $html );
+		$this->assertStringContainsString( 'href="https://diluxone.com/wordpress-plugins/users/?utm_source=diluxone-users&amp;utm_medium=social&amp;utm_campaign=free"', $html );
 		$this->assertStringNotContainsString( 'Ten more networks', $html );
 	}
 
