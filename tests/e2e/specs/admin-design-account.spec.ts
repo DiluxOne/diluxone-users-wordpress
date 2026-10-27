@@ -1,6 +1,6 @@
 import { Page } from '@playwright/test';
 import { test, expect } from '../support/fixtures';
-import { adminUrl, savePanel } from '../support/ui';
+import { adminUrl, savePanel, setChoice } from '../support/ui';
 import { previewAnswer, rgb, signInMember, stage } from '../support/admin-content';
 import { ADMIN_STATE } from '../../../playwright.config';
 
@@ -40,7 +40,7 @@ const ACCOUNT_KEYS = [
 
 const TAB = adminUrl('diluxone-users-design', 'account');
 const radio = (page: Page, name: string, value: string) => page.locator(`input[name="${name}"][value="${value}"]`);
-const tick = (page: Page, name: string, on: boolean) => page.locator(`input[type="checkbox"][name="${name}"]`).setChecked(on, { force: true });
+const tick = (page: Page, name: string, on: boolean) => setChoice(page.locator(`input[type="checkbox"][name="${name}"]`), on);
 const area = (page: Page) => page.locator('.diluxone-users-account');
 
 test.beforeEach(async ({ options, guest, site, pages }) => {
@@ -76,7 +76,7 @@ test.describe('Design › The account area', () => {
 		await page.goto(TAB);
 		await expect(page.locator('input[name="diluxone_users_account_template"]'), 'the one shape of the plugin’s own').toHaveCount(1);
 
-		await radio(page, 'diluxone_users_account_nav_style', 'underline').check({ force: true });
+		await setChoice(radio(page, 'diluxone_users_account_nav_style', 'underline'));
 		await tick(page, 'diluxone_users_account_action', true);
 
 		const plain = radio(page, 'diluxone_users_account_template', 'plain');
@@ -161,8 +161,8 @@ test.describe('Design › The account area', () => {
 
 	test('the menu: its style and its alignment are the classes and the place the account shows', async ({ page, guest, site, pages }) => {
 		await page.goto(TAB);
-		await radio(page, 'diluxone_users_account_nav_style', 'plain').check({ force: true });
-		await radio(page, 'diluxone_users_account_nav_align', 'center').check({ force: true });
+		await setChoice(radio(page, 'diluxone_users_account_nav_style', 'plain'));
+		await setChoice(radio(page, 'diluxone_users_account_nav_align', 'center'));
 		await savePanel(page);
 		expect(await site.getOptions(['diluxone_users_account_nav_style', 'diluxone_users_account_nav_align'])).toEqual({
 			diluxone_users_account_nav_style: 'plain',
@@ -291,7 +291,7 @@ test.describe('Design › The account area', () => {
 		await expect(row.locator('input[type="radio"]'), 'the theme’s and four shades').toHaveCount(5);
 		await expect(row.locator('input[value=""]')).toBeChecked();
 
-		await radio(page, 'diluxone_users_account_ground', '#eef6f1').check({ force: true });
+		await setChoice(radio(page, 'diluxone_users_account_ground', '#eef6f1'));
 		await savePanel(page);
 		expect((await site.getOptions(['diluxone_users_account_ground'])).diluxone_users_account_ground).toBe('#eef6f1');
 
@@ -304,7 +304,7 @@ test.describe('Design › The account area', () => {
 		await savePanel(page);
 		expect((await site.getOptions(['diluxone_users_account_ground'])).diluxone_users_account_ground, 'a shade nobody offered').toBe('');
 
-		await radio(page, 'diluxone_users_account_ground', '').check({ force: true });
+		await setChoice(radio(page, 'diluxone_users_account_ground', ''));
 		await savePanel(page);
 		expect((await site.getOptions(['diluxone_users_account_ground'])).diluxone_users_account_ground).toBe('');
 
@@ -320,7 +320,7 @@ test.describe('Design › The account area', () => {
 		expect(await limit(), 'held to a reading column').not.toBe('none');
 
 		await page.goto(TAB);
-		await radio(page, 'diluxone_users_account_width', 'full').check({ force: true });
+		await setChoice(radio(page, 'diluxone_users_account_width', 'full'));
 		await savePanel(page);
 		expect((await site.getOptions(['diluxone_users_account_width'])).diluxone_users_account_width).toBe('full');
 
@@ -363,7 +363,7 @@ test.describe('Design › The account area › the live preview', () => {
 
 		const redraw = previewAnswer(page);
 
-		await radio(page, 'diluxone_users_account_layout', 'side').check({ force: true });
+		await setChoice(radio(page, 'diluxone_users_account_layout', 'side'));
 		await redraw;
 
 		await expect.poll(async () => (await stage(page)).locator('.diluxone-users-account__nav').getAttribute('class').catch(() => ''), { message: 'the stage draws a column' }).toContain('--column');
@@ -378,7 +378,7 @@ test.describe('Design › The account area on a phone', () => {
 		await guest.setViewportSize({ width: 390, height: 844 });
 
 		await page.goto(TAB);
-		await radio(page, 'diluxone_users_account_nav_small', 'wrap').check({ force: true });
+		await setChoice(radio(page, 'diluxone_users_account_nav_small', 'wrap'));
 		await savePanel(page);
 		expect((await site.getOptions(['diluxone_users_account_nav_small'])).diluxone_users_account_nav_small).toBe('wrap');
 
@@ -390,7 +390,7 @@ test.describe('Design › The account area on a phone', () => {
 
 		expect(fits, 'every section on screen, nothing hidden past the edge').toBe(true);
 
-		await radio(page, 'diluxone_users_account_nav_small', 'scroll').check({ force: true });
+		await setChoice(radio(page, 'diluxone_users_account_nav_small', 'scroll'));
 		await savePanel(page);
 
 		await guest.goto(pages.account.url);

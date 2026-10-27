@@ -1,7 +1,7 @@
 import { Page } from '@playwright/test';
 import { test, expect } from '../support/fixtures';
 import { Site } from '../support/api';
-import { accountSection, adminError, adminSaved, adminUrl, navigated, saveButton } from '../support/ui';
+import { accountSection, adminError, adminSaved, adminUrl, navigated, saveButton, setChoice } from '../support/ui';
 import { memberElsewhere, railNotice, signInMember, unique } from '../support/admin-content';
 import { ADMIN_STATE } from '../../../playwright.config';
 
@@ -133,8 +133,8 @@ test.describe('Account area › a section’s words, address and who sees it', (
 
 		await page.goto(sectionUrl(id));
 		await box(page, 'intro').fill('e2e-editors-only');
-		await page.locator('input[name="diluxone_users_section_form[visibility]"][value="some"]').check({ force: true });
-		await page.locator('input[name="diluxone_users_section_form[roles][]"][value="editor"]').setChecked(true, { force: true });
+		await setChoice(page.locator('input[name="diluxone_users_section_form[visibility]"][value="some"]'));
+		await setChoice(page.locator('input[name="diluxone_users_section_form[roles][]"][value="editor"]'));
 		expect((await saveSection(page)).msg).toBe('saved');
 		expect((await sections(site))[id]).toMatchObject({ visibility: 'some', roles: ['editor'] });
 
@@ -158,7 +158,7 @@ test.describe('Account area › a section’s words, address and who sees it', (
 
 		// Back to everybody: the roles ticked are kept for the day it changes again.
 		await page.goto(sectionUrl(id));
-		await page.locator('input[name="diluxone_users_section_form[visibility]"][value="all"]').check({ force: true });
+		await setChoice(page.locator('input[name="diluxone_users_section_form[visibility]"][value="all"]'));
 		expect((await saveSection(page)).msg).toBe('saved');
 		expect((await sections(site))[id]).toMatchObject({ visibility: 'all', roles: ['editor'] });
 
@@ -340,7 +340,7 @@ test.describe('Account area › the front page’s cards', () => {
 
 		expect(ids).toContain('security');
 
-		await page.locator('input[name="diluxone_users_section_form[cards][]"][value="security"]').setChecked(false, { force: true });
+		await setChoice(page.locator('input[name="diluxone_users_section_form[cards][]"][value="security"]'), false);
 		expect((await saveSection(page)).msg).toBe('saved');
 		expect((await site.getOptions(['diluxone_users_home_cards_off'])).diluxone_users_home_cards_off).toEqual(['security']);
 
@@ -348,7 +348,7 @@ test.describe('Account area › the front page’s cards', () => {
 		await expect(guest.locator('a.diluxone-users-card-summary[href*="/security/"]')).toHaveCount(0);
 
 		for (const id of ids) {
-			await page.locator(`input[name="diluxone_users_section_form[cards][]"][value="${id}"]`).setChecked(false, { force: true });
+			await setChoice(page.locator(`input[name="diluxone_users_section_form[cards][]"][value="${id}"]`), false);
 		}
 
 		expect((await saveSection(page)).msg).toBe('saved');
@@ -431,7 +431,7 @@ test.describe('Account area › Your data', () => {
 		const save = () => navigated(page, () => page.locator('[data-diluxone-users-save] [form="diluxone-users-privacy-form"]').click());
 
 		await page.goto(sectionUrl('privacy'));
-		await page.locator('input[name="diluxone_users_privacy_delete"]').setChecked(true, { force: true });
+		await setChoice(page.locator('input[name="diluxone_users_privacy_delete"]'));
 		await save();
 		expect(new URL(page.url()).searchParams.get('diluxone_users_msg')).toBe('privacy');
 		const stored = await site.getOptions(['diluxone_users_privacy_export', 'diluxone_users_privacy_delete']);
@@ -443,7 +443,7 @@ test.describe('Account area › Your data', () => {
 		await expect(guest.locator('input[name="diluxone_users_request"][value="erase"]')).toHaveCount(1);
 		await expect(guest.locator('input[name="diluxone_users_request"][value="export"]')).toHaveCount(0);
 
-		await page.locator('input[name="diluxone_users_privacy_delete"]').setChecked(false, { force: true });
+		await setChoice(page.locator('input[name="diluxone_users_privacy_delete"]'), false);
 		await save();
 		expect(Number((await site.getOptions(['diluxone_users_privacy_delete'])).diluxone_users_privacy_delete)).toBe(0);
 
@@ -476,7 +476,7 @@ test.describe('Account area › the box that saves a section', () => {
 		const was = await exportBox.isChecked();
 
 		await expect(privacyBox).not.toHaveClass(/is-dirty/);
-		await exportBox.setChecked(!was, { force: true });
+		await setChoice(exportBox, !was);
 		await expect(privacyBox).toHaveClass(/is-dirty/);
 
 		// Undo puts the switch back, and the box is clean again.

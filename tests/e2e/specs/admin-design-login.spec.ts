@@ -1,7 +1,7 @@
 import { Page } from '@playwright/test';
 import { test, expect } from '../support/fixtures';
 import { freshEmail } from '../support/api';
-import { adminUrl, askForLink, registerForm, savePanel, sentScreen, submitPluginForm } from '../support/ui';
+import { adminUrl, askForLink, registerForm, savePanel, sentScreen, setChoice, submitPluginForm } from '../support/ui';
 import { previewAnswer, railNotice, stage, unique } from '../support/admin-content';
 import { ADMIN_STATE } from '../../../playwright.config';
 
@@ -48,7 +48,7 @@ test.describe('Design › The sign-in page', () => {
 	test('the card, chosen on the tab, frames the sign-in page; “plain” leaves it alone', async ({ page, guest, site, pages }) => {
 		await page.goto(LOGIN_TAB);
 		await expect(page.locator('input[name="diluxone_users_login_template"]'), 'the three shapes of the plugin’s own').toHaveCount(3);
-		await template(page, 'card').check({ force: true });
+		await setChoice(template(page, 'card'));
 		await savePanel(page);
 		await expect(template(page, 'card')).toBeChecked();
 		expect((await site.getOptions(['diluxone_users_login_template'])).diluxone_users_login_template).toBe('card');
@@ -57,7 +57,7 @@ test.describe('Design › The sign-in page', () => {
 		await expect(frame(guest)).toHaveAttribute('class', 'diluxone-users-login-frame diluxone-users-login-frame--card');
 		await expect(frame(guest)).not.toHaveAttribute('style', /./);
 
-		await template(page, 'plain').check({ force: true });
+		await setChoice(template(page, 'plain'));
 		await savePanel(page);
 
 		await guest.goto(pages.login.url);
@@ -146,7 +146,7 @@ test.describe('Design › The sign-in page', () => {
 		await savePanel(page);
 		expect((await site.getOptions(['diluxone_users_login_template'])).diluxone_users_login_template).toBe('e2e_addon_shape');
 
-		await template(page, 'plain').check({ force: true });
+		await setChoice(template(page, 'plain'));
 		await savePanel(page);
 		expect((await site.getOptions(['diluxone_users_login_template'])).diluxone_users_login_template, 'replaced once another is picked').toBe('plain');
 		await expect(page.locator('input[name="diluxone_users_login_template"][value="e2e_addon_shape"]')).toHaveCount(0);
@@ -192,7 +192,7 @@ test.describe('Design › The sign-in page', () => {
 		await page.goto(LOGIN_TAB);
 		await box(page, 'diluxone_users_sent_title').fill(title);
 		await box(page, 'diluxone_users_sent_note').fill(note);
-		await page.locator('input[name="diluxone_users_sent_icon"][value="circle"]').check({ force: true });
+		await setChoice(page.locator('input[name="diluxone_users_sent_icon"][value="circle"]'));
 		await savePanel(page);
 		expect((await site.getOptions(['diluxone_users_sent_icon'])).diluxone_users_sent_icon).toBe('circle');
 
