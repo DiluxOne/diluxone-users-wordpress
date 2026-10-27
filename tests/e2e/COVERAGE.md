@@ -106,7 +106,7 @@ everybody, with the code by e-mail, and skips it for nobody.
 | Your data / Linked accounts exist only while offered | `account-area` › The account page itself |
 | Details: fields saved, display name rebuilt, `missing` from the server | `account-area` › Your details |
 | Details: each block with fields in its own titled box (main, extra), in one form | `repro/issue-166` › each block with fields is drawn in its own box…; integration `AccountDetailsBlocksTest` |
-| Photo: upload, drawn, removed with its attachment, not-a-picture refused | `account-area` › Your photo |
+| Photo: upload, drawn, removed with its attachment, not-a-picture refused; its box on "Your details" has the same heading size as the other boxes and does not fold | `account-area` › Your photo; `repro/issue-207` |
 | Public name: saved, reserved refused | `account-area` › The public name |
 | Notifications: new device announced (link), switch off, rule `always` hides the switch | `account-area` › Notifications |
 | New device announced after a password sign-in | `account-area` › …with the password, too |
