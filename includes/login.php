@@ -272,6 +272,9 @@ function diluxone_users_text( string $key, string $fallback = '' ): string {
 const DILUXONE_USERS_META_HASH    = '_diluxone_users_link_hash';
 const DILUXONE_USERS_META_EXPIRES = '_diluxone_users_link_expires';
 
+/** Where the link lands: the `redirect_to` the sign-in page was opened with, kept on the server. */
+const DILUXONE_USERS_META_RETURN = '_diluxone_users_link_return';
+
 /**
  * Generates a token, stores its hash and returns the token in the clear.
  *
@@ -314,6 +317,18 @@ function diluxone_users_token_burn( int $user_id ): bool {
 	delete_user_meta( $user_id, DILUXONE_USERS_META_EXPIRES );
 
 	return $burned;
+}
+
+/**
+ * The address the sign-in page was opened for: its `redirect_to`, when it
+ * stays on the site (or the network, through `allowed_redirect_hosts`), and
+ * `''` otherwise.
+ */
+function diluxone_users_login_asked_redirect(): string {
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- a read-only display read of the page's own address: it only fills a form field, and the address is cleaned and kept to the site's hosts.
+	$url = isset( $_GET['redirect_to'] ) && is_string( $_GET['redirect_to'] ) ? esc_url_raw( wp_unslash( $_GET['redirect_to'] ) ) : '';
+
+	return '' !== $url ? (string) wp_validate_redirect( $url, '' ) : '';
 }
 
 /** URL of the sign-in link. */
@@ -811,7 +826,20 @@ function diluxone_users_login_request(): void {
 	$user_id = diluxone_users_user_for( $email );
 
 	if ( $user_id > 0 ) {
-		diluxone_users_login_send( $user_id, $email, diluxone_users_token_create( $user_id ) );
+		$token = diluxone_users_token_create( $user_id );
+
+		// Where the sign-in page was opened for goes with the token, on the
+		// server: the link itself never says where it lands, so nobody can
+		// mail somebody a link that signs them in and sends them elsewhere.
+		$back = isset( $_POST['redirect_to'] ) && is_string( $_POST['redirect_to'] ) ? (string) wp_validate_redirect( esc_url_raw( wp_unslash( $_POST['redirect_to'] ) ), '' ) : '';
+
+		if ( '' !== $back ) {
+			update_user_meta( $user_id, DILUXONE_USERS_META_RETURN, $back );
+		} else {
+			delete_user_meta( $user_id, DILUXONE_USERS_META_RETURN );
+		}
+
+		diluxone_users_login_send( $user_id, $email, $token );
 	} elseif ( diluxone_users_link_registers() && diluxone_users_network_takes_accounts() ) {
 		// No account is created here: the link mailed is a pending sign-up,
 		// and the account is created when it is opened
@@ -859,7 +887,14 @@ function diluxone_users_login_consume(): void {
 	 * @param string $redirect
 	 * @param int    $user_id
 	 */
-	$redirect = (string) apply_filters( 'diluxone_users_login_redirect', home_url( '/' ), $user_id );
+	$back = (string) wp_validate_redirect( (string) get_user_meta( $user_id, DILUXONE_USERS_META_RETURN, true ), '' );
+
+	delete_user_meta( $user_id, DILUXONE_USERS_META_RETURN );
+
+	// The address asked for is where the link lands by default, so the
+	// filter still has its say: on a network the hub sends the person back to
+	// the site they came from and makes them a member there.
+	$redirect = (string) apply_filters( 'diluxone_users_login_redirect', '' !== $back ? $back : home_url( '/' ), $user_id );
 
 	// The session is not opened here: diluxone_users_complete_login() opens it,
 	// and also decides whether a second factor has to be asked for first. Every

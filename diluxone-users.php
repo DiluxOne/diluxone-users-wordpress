@@ -1,11 +1,11 @@
 <?php
 /**
  * Plugin Name:       DiluxOne Users+
- * Plugin URI:        https://github.com/DiluxOne/diluxone-users-wordpress
+ * Plugin URI:        https://diluxone.com/wordpress-plugins/users/
  * Description:       Custom user fields, a front-end account area, passwordless sign-in, social login, two-step verification and session control.
  * Version:           1.0.0
  * Author:            Pablo Ariel Di Loreto
- * Author URI:        https://diluxone.com/plugins-wordpress
+ * Author URI:        https://diluxone.com/wordpress-plugins/
  * License:           GPLv2 or later
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain:       diluxone-users

@@ -180,6 +180,10 @@ suppressions:
     sniff: WordPress.Security.NonceVerification.Recommended
     fingerprint: e90027c10517
     reason: "The link that finishes a sign-up is opened from an e-mail by somebody who has no account yet, so it cannot carry a nonce: the single-use token in it is the credential, hashed at rest, compared in constant time and deleted when used, before any account is created."
+  - file: includes/login.php
+    sniff: WordPress.Security.NonceVerification.Recommended
+    fingerprint: f15bf5d34460
+    reason: "A GET parameter that only fills the address the sign-in forms send the person to afterwards; it is cleaned with esc_url_raw(), kept only when wp_validate_redirect() finds it on the site's own hosts, and nothing is written or acted on by this read, so there is no request to forge."
   - file: includes/membership.php
     sniff: WordPress.DB.PreparedSQL.NotPrepared
     fingerprint: ab524b8c3f81

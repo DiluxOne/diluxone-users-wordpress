@@ -95,6 +95,12 @@ if (!function_exists('__')) {
 	}
 }
 
+if (!function_exists('get_locale')) {
+	function get_locale(): string {
+		return 'en_US';
+	}
+}
+
 if (!function_exists('_e')) {
 	function _e(string $text, string $domain = 'default'): void {
 		echo $text;

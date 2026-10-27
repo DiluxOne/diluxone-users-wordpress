@@ -29,6 +29,16 @@
 		return String( text || '' ).replace( /\D/g, '' );
 	}
 
+	/**
+	 * Whether a number is written in international form: with its "+", or
+	 * with the ITU's prefix "00" in its place. No national number of a
+	 * country in the list starts with "00", so one typed for the country
+	 * chosen is never read as one.
+	 */
+	function international( text ) {
+		return /^\s*(\+|0\D*0)/.test( String( text || '' ) );
+	}
+
 	/** Lowercase and without accents, as a person searches. */
 	function plain( text ) {
 		return String( text || '' ).toLowerCase().normalize( 'NFD' ).replace( /[̀-ͯ]/g, '' ).trim();
@@ -195,7 +205,9 @@
 			var at = 0;
 			var seen = 0;
 
-			if ( next === value || input.readOnly ) {
+			// A number written with its "+" or "00" waits as it is, until its
+			// dialling code picks the country (dial()) or nothing ever could.
+			if ( next === value || input.readOnly || international( value ) ) {
 				return;
 			}
 
@@ -211,6 +223,69 @@
 
 			if ( document.activeElement === input ) {
 				input.setSelectionRange( at, at );
+			}
+		}
+
+		/**
+		 * A number written in international form ("+54 9 11 …" or
+		 * "0054 9 11 …"), pasted or typed, picks its country: the longest dialling code that matches, once
+		 * no longer one could still match what was written, and what follows it
+		 * stays in the box as the national number. Between countries that share
+		 * a code (+1, +7, +44) the one chosen stays if it has it, else the first
+		 * in the list, the field's own first: the server's rule on reading a
+		 * stored value back. A code no country has is left as written.
+		 */
+		function dial() {
+			var value = input.value;
+			var digits, best, wait;
+
+			if ( input.readOnly || select.disabled || ! international( value ) ) {
+				return;
+			}
+
+			digits = digitsOf( value );
+
+			if ( ! /^\s*\+/.test( value ) ) {
+				digits = digits.slice( 2 );
+			}
+
+			if ( '' === digits ) {
+				return;
+			}
+			best = null;
+			wait = false;
+
+			Array.prototype.forEach.call( select.options, function ( option ) {
+				var code = option.getAttribute( 'data-dial' ) || '';
+
+				if ( '' === code || option.disabled ) {
+					return;
+				}
+
+				if ( code.length > digits.length && 0 === code.indexOf( digits ) ) {
+					wait = true;
+				} else if ( 0 === digits.indexOf( code ) && ( ! best || code.length > best.getAttribute( 'data-dial' ).length ) ) {
+					best = option;
+				}
+			} );
+
+			if ( wait || ! best ) {
+				return;
+			}
+
+			if ( select.selectedIndex >= 0 && ruleOf( select.options[ select.selectedIndex ] ).dial === best.getAttribute( 'data-dial' ) ) {
+				best = select.options[ select.selectedIndex ];
+			}
+
+			input.value = digits.slice( best.getAttribute( 'data-dial' ).length );
+
+			if ( document.activeElement === input ) {
+				input.setSelectionRange( input.value.length, input.value.length );
+			}
+
+			if ( select.value !== best.value ) {
+				select.value = best.value;
+				select.dispatchEvent( new Event( 'change', { bubbles: true } ) );
 			}
 		}
 
@@ -263,6 +338,7 @@
 		}
 
 		input.addEventListener( 'input', function ( event ) {
+			dial();
 			regroup();
 			check( event );
 		} );
