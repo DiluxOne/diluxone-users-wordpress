@@ -1,7 +1,7 @@
 import { Page } from '@playwright/test';
 import { test, expect, expectSignedIn } from '../support/fixtures';
 import { freshEmail } from '../support/api';
-import { accountSection, adminUrl, navigated, savePanel, signInWithPassword, ssoButton } from '../support/ui';
+import { accountSection, adminUrl, navigated, savePanel, setChoice, signInWithPassword, ssoButton } from '../support/ui';
 import { MEMBER_PASSWORD, forgetPicture, mediaPicture, noisyPng, pickPicture, rgb, signInMember, stage } from '../support/admin-content';
 import { ADMIN_STATE } from '../../../playwright.config';
 
@@ -145,7 +145,7 @@ test.describe('Design › WordPress’s own screen', () => {
 
 	test('the background colour saved is exactly the background of wp-login.php', async ({ page, guest, site }) => {
 		await page.goto(adminUrl('diluxone-users-design', 'wp'));
-		await page.locator('input[name="diluxone_users_wp_login_bg"][value="#6d28d9"]').check({ force: true });
+		await setChoice(page.locator('input[name="diluxone_users_wp_login_bg"][value="#6d28d9"]'));
 		await savePanel(page);
 
 		await expect(page.locator('input[name="diluxone_users_wp_login_bg"][value="#6d28d9"]')).toBeChecked();
@@ -221,7 +221,7 @@ test.describe('Design › the stage', () => {
 
 		await page.goto(adminUrl('diluxone-users-design', 'wp'));
 		await page.locator('input[name="diluxone_users_wp_login_brand"]').check();
-		await page.locator('input[name="diluxone_users_wp_login_bg"][value="#6d28d9"]').check({ force: true });
+		await setChoice(page.locator('input[name="diluxone_users_wp_login_bg"][value="#6d28d9"]'));
 
 		const [answer] = await Promise.all([
 			page.waitForResponse((one) => one.url().includes('diluxone-users-try=')),

@@ -1,6 +1,6 @@
 import { Page } from '@playwright/test';
 import { test, expect } from '../support/fixtures';
-import { adminError, adminUrl, emailField, linkForm, navigated, saveButton, savePanel } from '../support/ui';
+import { adminError, adminUrl, emailField, linkForm, navigated, saveButton, savePanel, setChoice } from '../support/ui';
 import { forgetPicture, mediaPicture, previewAnswer, resolvedColour, rgb, stage } from '../support/admin-content';
 import { ADMIN_STATE } from '../../../playwright.config';
 
@@ -56,7 +56,7 @@ const swatch = (page: Page, hex: string) => page.locator(`input[name="diluxone_u
 test.describe('Design › Your brand', () => {
 	test('“the site writes it”: the plugin’s stylesheet leaves the public pages; back to “mine”, it returns', async ({ page, guest, site, pages }) => {
 		await page.goto(adminUrl('diluxone-users-design', 'brand'));
-		await look(page, 'site').check({ force: true });
+		await setChoice(look(page, 'site'));
 		await savePanel(page);
 		await expect(look(page, 'site')).toBeChecked();
 		expect(Number((await site.getOptions(['diluxone_users_styles'])).diluxone_users_styles)).toBe(0);
@@ -65,7 +65,7 @@ test.describe('Design › Your brand', () => {
 		await expect(guest.locator('link#diluxone-users-css')).toHaveCount(0);
 		await expect(guest.locator('style#diluxone-users-inline-css')).toHaveCount(0);
 
-		await look(page, 'own').check({ force: true });
+		await setChoice(look(page, 'own'));
 		await savePanel(page);
 
 		await guest.goto(pages.login.url);
@@ -74,14 +74,14 @@ test.describe('Design › Your brand', () => {
 
 	test('an accent chosen from the palette is the accent of the sign-in page and of its filled button', async ({ page, guest, site, pages }) => {
 		await page.goto(adminUrl('diluxone-users-design', 'brand'));
-		await look(page, 'own').check({ force: true });
+		await setChoice(look(page, 'own'));
 
 		const row = page.locator('[data-diluxone-users-swatches="diluxone_users_style_accent"]');
 
 		await expect(row.locator('input[type="radio"]'), 'eight accents').toHaveCount(8);
 		await expect(swatch(page, '#2b59d6'), 'nothing stored is the default').toBeChecked();
 
-		await swatch(page, '#6d28d9').check({ force: true });
+		await setChoice(swatch(page, '#6d28d9'));
 		await savePanel(page);
 
 		await expect(swatch(page, '#6d28d9')).toBeChecked();
@@ -115,7 +115,7 @@ test.describe('Design › Your brand', () => {
 		await savePanel(page);
 		expect((await site.getOptions(['diluxone_users_style_accent'])).diluxone_users_style_accent, 'kept by the save').toBe('#008671');
 
-		await swatch(page, '#15803d').check({ force: true });
+		await setChoice(swatch(page, '#15803d'));
 		await savePanel(page);
 		expect((await site.getOptions(['diluxone_users_style_accent'])).diluxone_users_style_accent).toBe('#15803d');
 		await expect(kept, 'gone once another is picked').toHaveCount(0);
@@ -184,9 +184,9 @@ test.describe('Design › Your brand', () => {
 	for (const style of ['outline', 'soft'] as const) {
 		test(`buttons “${style}”: the filled button is no longer filled with the accent`, async ({ page, guest, pages }) => {
 			await page.goto(adminUrl('diluxone-users-design', 'brand'));
-			await look(page, 'own').check({ force: true });
-			await swatch(page, '#6d28d9').check({ force: true });
-			await page.locator(`input[name="diluxone_users_button_style"][value="${style}"]`).check({ force: true });
+			await setChoice(look(page, 'own'));
+			await setChoice(swatch(page, '#6d28d9'));
+			await setChoice(page.locator(`input[name="diluxone_users_button_style"][value="${style}"]`));
 			await savePanel(page);
 			await expect(page.locator(`input[name="diluxone_users_button_style"][value="${style}"]`)).toBeChecked();
 
@@ -205,14 +205,14 @@ test.describe('Design › Your brand', () => {
 
 	test('icons in the doors: on, the link button carries an icon; off, it does not', async ({ page, guest, site, pages }) => {
 		await page.goto(adminUrl('diluxone-users-design', 'brand'));
-		await page.locator('input[type="checkbox"][name="diluxone_users_button_icons"]').setChecked(true, { force: true });
+		await setChoice(page.locator('input[type="checkbox"][name="diluxone_users_button_icons"]'));
 		await savePanel(page);
 		expect(Number((await site.getOptions(['diluxone_users_button_icons'])).diluxone_users_button_icons)).toBe(1);
 
 		await guest.goto(pages.login.url);
 		await expect(linkButton(guest).locator('svg')).toHaveCount(1);
 
-		await page.locator('input[type="checkbox"][name="diluxone_users_button_icons"]').setChecked(false, { force: true });
+		await setChoice(page.locator('input[type="checkbox"][name="diluxone_users_button_icons"]'), false);
 		await savePanel(page);
 
 		await guest.goto(pages.login.url);
@@ -233,14 +233,14 @@ test.describe('Design › Your brand', () => {
 		expect(bar, 'the plugin’s own notice has its bar').not.toBe('0px');
 
 		await page.goto(adminUrl('diluxone-users-design', 'brand'));
-		await page.locator('input[name="diluxone_users_notice_style"][value="soft"]').check({ force: true });
+		await setChoice(page.locator('input[name="diluxone_users_notice_style"][value="soft"]'));
 		await savePanel(page);
 		expect((await site.getOptions(['diluxone_users_notice_style'])).diluxone_users_notice_style).toBe('soft');
 
 		await guest.goto(expired);
 		expect(await notice.evaluate((element) => getComputedStyle(element).borderLeftWidth)).toBe('0px');
 
-		await page.locator('input[name="diluxone_users_notice_style"][value="bar"]').check({ force: true });
+		await setChoice(page.locator('input[name="diluxone_users_notice_style"][value="bar"]'));
 		await savePanel(page);
 
 		await guest.goto(expired);
@@ -350,11 +350,11 @@ test.describe('Design › Your brand', () => {
 test.describe('Design › Your brand › the live preview', () => {
 	test('changing the accent redraws the stage with it before anything is saved, and saves nothing', async ({ page, site }) => {
 		await page.goto(adminUrl('diluxone-users-design', 'brand'));
-		await look(page, 'own').check({ force: true });
+		await setChoice(look(page, 'own'));
 
 		const redraw = previewAnswer(page);
 
-		await swatch(page, '#b91c1c').check({ force: true });
+		await setChoice(swatch(page, '#b91c1c'));
 		await redraw;
 
 		await expect
@@ -391,7 +391,7 @@ test.describe('Design › Your brand › Dark mode follows', () => {
 		await expect(follows(page, 'device'), 'the visitor’s device, by default').toBeChecked();
 		await expect(darkField(page), 'no signal to ask for while the device decides').toBeHidden();
 
-		await follows(page, 'site').check({ force: true });
+		await setChoice(follows(page, 'site'));
 		await expect(darkField(page)).toBeVisible();
 		await page.locator('select[name="diluxone_users_dark_signal_on"]').selectOption('html');
 		await darkField(page).fill('data-tema="oscuro"');

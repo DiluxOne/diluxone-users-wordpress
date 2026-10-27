@@ -2,7 +2,7 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { Browser, Page } from '@playwright/test';
 import { test, expect, expectSignedIn } from '../support/fixtures';
 import { Site, codeIn, freshEmail, waitForMail } from '../support/api';
-import { accountSection, adminUrl, navigated, saveButton, signInWithPassword } from '../support/ui';
+import { accountSection, adminUrl, navigated, saveButton, setChoice, signInWithPassword } from '../support/ui';
 import { ADMIN_STATE } from '../../../playwright.config';
 
 /**
@@ -335,7 +335,7 @@ test.describe('User fields', () => {
 		await page.locator('[name="diluxone_users_field[type]"]').selectOption('text');
 		// Required, because the registration form asks only for what is
 		// required: everything else is asked for later, on the account.
-		await page.locator('input[type="checkbox"][name="diluxone_users_field[required]"]').setChecked(true, { force: true });
+		await setChoice(page.locator('input[type="checkbox"][name="diluxone_users_field[required]"]'));
 		await navigated(page, () => page.locator('#submit').click());
 
 		const fields = (await site.getOptions(['diluxone_users_fields'])).diluxone_users_fields as Array<{ key: string; label: string }>;
@@ -390,7 +390,7 @@ test.describe('Account area › Sections', () => {
 		await expectSignedIn(guest, email);
 
 		await page.goto(adminUrl('diluxone-users-account', 'sections') + '&section=privacy');
-		await page.locator('input[name="diluxone_users_privacy_export"]').setChecked(true, { force: true });
+		await setChoice(page.locator('input[name="diluxone_users_privacy_export"]'));
 		await navigated(page, () => page.locator('[data-diluxone-users-save] [form="diluxone-users-privacy-form"]').click());
 
 		await guest.goto(pages.account.url);

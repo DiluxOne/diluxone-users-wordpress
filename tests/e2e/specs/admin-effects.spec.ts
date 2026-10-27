@@ -1,7 +1,7 @@
 import { Page } from '@playwright/test';
 import { test, expect, expectSignedIn } from '../support/fixtures';
 import { freshEmail } from '../support/api';
-import { accountSection, adminUrl, answeringDialog, navigated, openWay, passwordForm, savePanel, signInWithPassword, ssoButton } from '../support/ui';
+import { accountSection, adminUrl, answeringDialog, navigated, openWay, passwordForm, savePanel, setChoice, signInWithPassword, ssoButton } from '../support/ui';
 import { ADMIN_STATE } from '../../../playwright.config';
 
 /**
@@ -34,7 +34,7 @@ async function subscriber(guest: Page, site: import('../support/api').Site, logi
 async function tick(page: Page, name: string, on: boolean): Promise<void> {
 	const box = page.locator(`input[type="checkbox"][name="${name}"]`);
 
-	await box.setChecked(on, { force: true });
+	await setChoice(box, on);
 }
 
 test.describe('Design › WordPress’s own screens', () => {
@@ -134,7 +134,7 @@ test.describe('Design › The account area', () => {
 		await expect(guest.locator('.diluxone-users-account__nav')).toHaveClass(/--row/);
 
 		await page.goto(adminUrl('diluxone-users-design', 'account'));
-		await page.locator('[name="diluxone_users_account_layout"][value="side"]').check({ force: true });
+		await setChoice(page.locator('[name="diluxone_users_account_layout"][value="side"]'));
 		await savePanel(page);
 
 		await guest.goto(pages.account.url);
@@ -158,7 +158,7 @@ test.describe('Account area › The WordPress dashboard', () => {
 		await expect(guest.locator('#wpadminbar')).toHaveCount(1);
 
 		await page.goto(adminUrl('diluxone-users-account', 'dashboard'));
-		await page.locator('[name="diluxone_users_admin_bar"][value="hide-all"]').check({ force: true });
+		await setChoice(page.locator('[name="diluxone_users_admin_bar"][value="hide-all"]'));
 		await savePanel(page);
 
 		await guest.goto('/');
@@ -180,7 +180,7 @@ test.describe('Account area › The WordPress dashboard', () => {
 		await subscriber(guest, site, pages.login.url, 'profile');
 
 		await page.goto(adminUrl('diluxone-users-account', 'dashboard'));
-		await page.locator('[name="diluxone_users_wp_profile"][value="redirect"]').check({ force: true });
+		await setChoice(page.locator('[name="diluxone_users_wp_profile"][value="redirect"]'));
 		await savePanel(page);
 
 		await guest.goto('/wp-admin/profile.php');
@@ -317,7 +317,7 @@ test.describe('Access › The sign-in page', () => {
 		expect(new URL(guest.url()).pathname, 'taken over before the save').not.toBe('/wp-login.php');
 
 		await page.goto(adminUrl('diluxone-users-login', 'page'));
-		await page.locator('[name="diluxone_users_wp_screens"][value="wp"]').check({ force: true });
+		await setChoice(page.locator('[name="diluxone_users_wp_screens"][value="wp"]'));
 		await savePanel(page);
 
 		expect((await site.getOptions(['diluxone_users_wp_screens'])).diluxone_users_wp_screens).toBe('wp');
@@ -360,7 +360,7 @@ test.describe('Access › The sign-in page', () => {
 		await options.set({ diluxone_users_login_method: 'both' });
 
 		await page.goto(adminUrl('diluxone-users-login', 'page'));
-		await page.locator('[name="diluxone_users_wp_screens"][value="mine"]').check({ force: true });
+		await setChoice(page.locator('[name="diluxone_users_wp_screens"][value="mine"]'));
 		await savePanel(page);
 
 		await guest.goto('/wp-login.php');

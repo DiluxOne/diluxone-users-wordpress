@@ -1,7 +1,7 @@
 import type { Locator, Page } from '@playwright/test';
 import { test, expect, expectSignedIn, expectSignedOut } from '../support/fixtures';
 import { freshEmail, linkIn, waitForMail } from '../support/api';
-import { adminError, adminSaved, adminUrl, challengeScreen, linkForm, loginWay, navigated, needsOne, openWay, passwordForm, registerScreen, saveButton, savePanel, signInWithPassword, ssoButton, submitPanelWithoutScript } from '../support/ui';
+import { adminError, adminSaved, adminUrl, challengeScreen, linkForm, loginWay, navigated, needsOne, openWay, passwordForm, registerScreen, saveButton, savePanel, setChoice, signInWithPassword, ssoButton, submitPanelWithoutScript } from '../support/ui';
 import { adminTabs } from '../support/screens';
 import { ADMIN_STATE } from '../../../playwright.config';
 
@@ -540,10 +540,10 @@ test.describe('The box that saves', () => {
 		const first = await chosen.getAttribute('value');
 		const other = page.locator(`[name="diluxone_users_wp_screens"]:not([value="${first}"]):not(:disabled)`).first();
 
-		await other.check({ force: true });
+		await setChoice(other);
 		await expect(box).toHaveClass(/is-dirty/);
 
-		await page.locator(`[name="diluxone_users_wp_screens"][value="${first}"]`).check({ force: true });
+		await setChoice(page.locator(`[name="diluxone_users_wp_screens"][value="${first}"]`));
 		await expect(box).not.toHaveClass(/is-dirty/);
 	});
 
