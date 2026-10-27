@@ -2600,6 +2600,9 @@ msgstr "Non décidé sur ce site. Tel que le plugin le livre : %1$s · %2$s"
 msgid "Not from here"
 msgstr "Pas d’ici"
 
+msgid "Not in use now"
+msgstr "Sans effet pour le moment"
+
 msgid "Not in use: a code by e-mail is not one of the second steps this site offers."
 msgstr "Sans usage : un code par e-mail n’est pas l’une des deuxièmes étapes que ce site propose."
 

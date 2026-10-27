@@ -2600,6 +2600,9 @@ msgstr "Sin decidir en este sitio. Como viene del plugin: %1$s · %2$s"
 msgid "Not from here"
 msgstr "Desde aquí no"
 
+msgid "Not in use now"
+msgstr "No aplica ahora"
+
 msgid "Not in use: a code by e-mail is not one of the second steps this site offers."
 msgstr "Sin uso: un código por correo no es uno de los segundos pasos que ofrece este sitio."
 
