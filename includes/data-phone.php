@@ -94,7 +94,7 @@ function diluxone_users_phone_rules(): array {
 			'KY' => array( 7, 7, '', '1' ),
 			'CF' => array( 8, 8, '2 2 2 2', '' ),
 			'TD' => array( 8, 8, '2 2 2 2', '' ),
-			'CL' => array( 9, 9, '', '' ),
+			'CL' => array( 9, 9, '2,9:1 4 4|2 3 4', '' ),
 			'CN' => array( 7, 11, '2 4 4|3 4 4', '0' ),
 			'CO' => array( 8, 10, '3 7', '0' ),
 			'KM' => array( 7, 7, '3 2 2', '' ),

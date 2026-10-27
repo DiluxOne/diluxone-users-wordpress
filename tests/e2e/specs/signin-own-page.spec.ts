@@ -72,7 +72,10 @@ test.describe('Sign in › A page of its own', () => {
 		const door = `${baseURL}/sign-in/`;
 
 		await guest.goto(pages.account.url);
-		await expect(guest.locator(`a[href="${door}"]`).first(), 'the account area, to a stranger, links to the page of its own').toBeVisible();
+		const link = guest.locator(`a[href^="${door}?"]`).first();
+		await expect(link, 'the account area, to a stranger, links to the page of its own').toBeVisible();
+		const back = new URL((await link.getAttribute('href')) ?? '', baseURL).searchParams.get('redirect_to') ?? '';
+		expect(new URL(back, baseURL).pathname, 'and back to the account area once signed in').toBe(new URL(pages.account.url, baseURL).pathname);
 	});
 
 	test('C3: the address changed from sign-in to entrar on Access, /sign-in/ redirects to /entrar/', async ({ page, guest, baseURL }) => {
