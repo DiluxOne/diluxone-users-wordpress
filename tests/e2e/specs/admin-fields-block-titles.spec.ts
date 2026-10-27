@@ -52,3 +52,27 @@ test('a title typed for the main block titles its box on the member’s details'
 	expect(titles[0]).toBe('Datos del curso');
 	expect(titles).toHaveLength(2);
 });
+
+test('a title typed with markup is shown on the member’s details as the text it is', async ({ page, guest, site, pages }) => {
+	await signInMember(guest, site, pages.login.url, 'block-titles-markup');
+
+	await typeTitles(page, 'Datos', '<em>Más</em>');
+
+	const titles = await boxTitles(guest, pages.account.url);
+
+	expect(titles).toEqual(['Datos', 'Más']);
+	await expect(guest.locator('.diluxone-users-fields__block em')).toHaveCount(0);
+});
+
+test('with both boxes emptied the member’s details keep the plugin’s titles', async ({ page, guest, site, pages, options }) => {
+	await options.set({ [TITLES]: { main: 'Old', extra: 'Older' } });
+	await signInMember(guest, site, pages.login.url, 'block-titles-empty');
+
+	await typeTitles(page, '', '');
+
+	const titles = await boxTitles(guest, pages.account.url);
+
+	expect(titles).toHaveLength(2);
+	expect(titles).not.toContain('Old');
+	expect(titles).not.toContain('Older');
+});

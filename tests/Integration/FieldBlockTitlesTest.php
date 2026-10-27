@@ -159,4 +159,35 @@ class FieldBlockTitlesTest extends IntegrationTestCase {
 
 		$this->assertSame( array( 'Sobre vos', 'Un poco más sobre vos' ), $this->titles( $this->details() ) );
 	}
+
+	public function test_a_title_with_markup_is_saved_and_drawn_as_text(): void {
+		$this->save(
+			array(
+				'main'  => '<b>Hi</b><script>x</script>',
+				'extra' => array( 'not', 'a', 'title' ),
+			)
+		);
+
+		$this->assertSame(
+			array(
+				'main'  => 'Hi',
+				'extra' => '',
+			),
+			diluxone_users_raw_get( 'diluxone_users_field_block_titles', null ),
+			'Tags stripped, an array is no title'
+		);
+
+		diluxone_users_update_option( 'diluxone_users_field_block_titles', array( 'main' => '<em>Course</em>' ) );
+
+		$html = $this->details();
+
+		$this->assertStringContainsString( '<h3>&lt;em&gt;Course&lt;/em&gt;</h3>', $html );
+		$this->assertStringNotContainsString( '<em>Course</em>', $html );
+	}
+
+	public function test_a_title_is_cut_at_a_hundred_characters(): void {
+		$this->save( array( 'main' => str_repeat( 'é', 150 ) ) );
+
+		$this->assertSame( str_repeat( 'é', 100 ), diluxone_users_field_block_titles()['main'] );
+	}
 }
