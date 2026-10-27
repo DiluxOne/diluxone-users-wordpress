@@ -88,8 +88,10 @@ test.describe('Access › How they are arranged', () => {
 
 		await page.goto(accessTab('arrangement'));
 		await expect(notNow(page), 'stacked: no tab opens first, and the tab says so').toHaveCount(1);
+		await expect(control(page, 'diluxone_users_login_open'), 'stacked: nothing to choose between').toBeDisabled();
 
 		await control(page, 'diluxone_users_login_layout', 'tabs').check();
+		await expect(control(page, 'diluxone_users_login_open'), 'in tabs: enabled at once, before a save').toBeEnabled();
 		await page.locator('select[name="diluxone_users_login_open"]').selectOption('password');
 		await save(page);
 
@@ -113,8 +115,27 @@ test.describe('Access › How they are arranged', () => {
 		expect(await openTab(guest)).toBe(first);
 	});
 
+	test('a save made while stacked keeps the tab chosen for the day they are in tabs', async ({ page, site, options }) => {
+		await options.set({ ...TWO_WAYS, diluxone_users_login_layout: 'tabs', diluxone_users_login_open: 'password' });
+
+		await page.goto(accessTab('arrangement'));
+		await expect(control(page, 'diluxone_users_login_open')).toBeEnabled();
+
+		await control(page, 'diluxone_users_login_layout', 'stack').check();
+		await expect(control(page, 'diluxone_users_login_open'), 'stacked: disabled at once').toBeDisabled();
+		await save(page);
+
+		const stored = await site.getOptions(['diluxone_users_login_layout', 'diluxone_users_login_open']);
+
+		expect(stored.diluxone_users_login_layout).toBe('stack');
+		expect(stored.diluxone_users_login_open, 'the saved answer went out with the form').toBe('password');
+		await expect(control(page, 'diluxone_users_login_open')).toBeDisabled();
+		await expect(control(page, 'diluxone_users_login_open')).toHaveValue('password');
+	});
+
 	test('a form sent with an unknown layout, an unknown first tab and a way in nobody has keeps none of them', async ({ page, site, options }) => {
-		await options.set({ ...TWO_WAYS, diluxone_users_login_layout: 'stack' });
+		// In tabs, so the first-tab box is enabled and sends what it is given.
+		await options.set({ ...TWO_WAYS, diluxone_users_login_layout: 'tabs', diluxone_users_login_open: '' });
 
 		await page.goto(accessTab('arrangement'));
 		await page.locator('#diluxone-users-arrangement').evaluate((form: HTMLFormElement) => {

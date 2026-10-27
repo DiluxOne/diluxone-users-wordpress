@@ -210,9 +210,13 @@ says what that state is called there. A summary row carries it as `word`,
 the row it belongs to whenever it is a single adjective: the same "None" has to
 agree with a masculine name and a feminine key, and it cannot do both.
 
-A control that does not apply right now stays on the screen and keeps saving —
-what is chosen applies the day the reason goes away — but it is dimmed and
-`diluxone_users_not_now( $why, $url )` says why, above it, with the way out.
+A control that does not apply right now stays on the screen and keeps its
+saved answer — what is chosen applies the day the reason goes away — but it is
+dimmed, and may be drawn disabled, with its save keeping the answer a
+disabled control does not send, as "Which tab opens" and the lost-password
+choices are. `diluxone_users_not_now( $why, $url )` says why, above it, with the way
+out, under a "Not in use now" pill (the `notnow` state): not "Pending", since
+nothing there is a task left to do.
 
 A group that has no answer until another one is given — what becomes of
 wp-login.php while no sign-in page is chosen, who the second step reaches
