@@ -15,7 +15,8 @@
 
 defined( 'ABSPATH' ) || exit;
 ?>
-<?php diluxone_users_panel_open( __( 'Your photo', 'diluxone-users' ), true, 'diluxone-users-avatar' ); ?>
+<div class="diluxone-users-panel diluxone-users-avatar">
+	<h3 class="diluxone-users-panel__title"><?php esc_html_e( 'Your photo', 'diluxone-users' ); ?></h3>
 
 	<?php if ( '' !== $args['error'] ) : ?>
 		<p class="diluxone-users-notice diluxone-users-notice--error"><?php echo esc_html( $args['error'] ); ?></p>
@@ -52,4 +53,4 @@ defined( 'ABSPATH' ) || exit;
 			?>
 		</p>
 	</form>
-<?php diluxone_users_panel_close(); ?>
+</div>
