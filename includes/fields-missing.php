@@ -213,6 +213,8 @@ function diluxone_users_ask_missing_form(): bool {
 	echo '<h2 class="diluxone-users-fields__title">' . esc_html__( 'Complete your details', 'diluxone-users' ) . '</h2>';
 	echo '<p class="diluxone-users-complete__intro">' . esc_html__( 'Before you go on, the site needs a few details it does not have yet.', 'diluxone-users' ) . '</p>';
 
+	$skippable = diluxone_users_ask_missing_skippable( $user_id );
+
 	diluxone_users_template_part(
 		'fields.php',
 		array(
@@ -222,7 +224,9 @@ function diluxone_users_ask_missing_form(): bool {
 			'title'    => '',
 			'state'    => diluxone_users_state(),
 			'redirect' => $to,
-			'skip'     => diluxone_users_ask_missing_skippable( $user_id ) ? $to : '',
+			'skip'     => $skippable ? $to : '',
+			// A step that cannot be skipped still has a way out: signing out.
+			'leave'    => $skippable ? '' : wp_logout_url( home_url( '/' ) ),
 		)
 	);
 

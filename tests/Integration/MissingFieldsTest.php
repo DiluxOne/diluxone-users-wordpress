@@ -97,6 +97,14 @@ class MissingFieldsTest extends IntegrationTestCase {
 		$this->assertStringContainsString( 'name="diluxone_users_redirect" value="' . esc_url( $going ) . '"', $html );
 		$this->assertStringContainsString( 'Skip for now', $html );
 
+		// An add-on that does not let them skip leaves them a way out.
+		add_filter( 'diluxone_users_ask_missing_skippable', '__return_false' );
+		$closed = diluxone_users_shortcode_account();
+		remove_filter( 'diluxone_users_ask_missing_skippable', '__return_false' );
+		$this->assertStringNotContainsString( 'Skip for now', $closed );
+		$this->assertStringContainsString( 'Sign out', $closed );
+		$this->assertStringContainsString( 'action=logout', $closed );
+
 		// Saved with nothing, it stays on the step and says so.
 		$post = array(
 			'action'                  => 'diluxone_users_fields_save',

@@ -15,8 +15,9 @@
  * - `redirect` (optional) where a save that leaves nothing required missing
  *   goes on to: the step that asks for the missing fields after a sign-in
  * - `skip` (optional) the address of a "Skip for now" link under the form
+ * - `leave` (optional) the address of a "Sign out" link in its place, for a step that cannot be skipped
  *
- * @var array{user_id: int, fields: array<int, array<string, mixed>>, group: string, title: string, state: string, redirect?: string, skip?: string} $args
+ * @var array{user_id: int, fields: array<int, array<string, mixed>>, group: string, title: string, state: string, redirect?: string, skip?: string, leave?: string} $args
  *
  * @package DiluxOneUsers
  */
@@ -29,6 +30,7 @@ if ( array() === $args['fields'] ) {
 
 $diluxone_users_redirect = (string) ( $args['redirect'] ?? '' );
 $diluxone_users_skip     = (string) ( $args['skip'] ?? '' );
+$diluxone_users_leave    = (string) ( $args['leave'] ?? '' );
 // The phone the form came back for, and why: said under the number.
 $diluxone_users_refused = diluxone_users_phone_refused( $args['fields'] );
 ?>
@@ -69,6 +71,8 @@ $diluxone_users_refused = diluxone_users_phone_refused( $args['fields'] );
 
 		<?php if ( '' !== $diluxone_users_skip ) : ?>
 			<a class="diluxone-users-fields__skip" href="<?php echo esc_url( $diluxone_users_skip ); ?>"><?php esc_html_e( 'Skip for now', 'diluxone-users' ); ?></a>
+		<?php elseif ( '' !== $diluxone_users_leave ) : ?>
+			<a class="diluxone-users-fields__skip" href="<?php echo esc_url( $diluxone_users_leave ); ?>"><?php esc_html_e( 'Sign out', 'diluxone-users' ); ?></a>
 		<?php endif; ?>
 	</form>
 </div>
