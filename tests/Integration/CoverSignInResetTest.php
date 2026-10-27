@@ -221,15 +221,14 @@ class CoverSignInResetTest extends IntegrationTestCase {
 	}
 
 	/**
-	 * A new password ends every session the old one opened.
-	 *
-	 * Somebody resets a password because the old one may be in somebody
-	 * else's hands, and whoever holds it may already be signed in: a reset
-	 * that leaves those sessions open has changed the lock and left the door
-	 * ajar. The reset itself signs nobody in, so every session goes — on the
-	 * site's own page and through WordPress's wp-login.php alike.
+	 * A new password leaves the account's other sessions open, as WordPress
+	 * does — on the site's own page and through wp-login.php alike, even on
+	 * a site that had "close them" saved before it became Users+ Pro's.
 	 */
-	public function test_a_new_password_ends_every_session(): void {
+	public function test_a_new_password_leaves_the_other_sessions_open(): void {
+		update_option( 'diluxone_users_reset_ends_sessions', 1 );
+		update_site_option( 'diluxone_users_reset_ends_sessions', 1 );
+
 		$sessions = \WP_Session_Tokens::get_instance( $this->user );
 		$sessions->create( time() + HOUR_IN_SECONDS );
 		$sessions->create( time() + HOUR_IN_SECONDS );
@@ -246,12 +245,13 @@ class CoverSignInResetTest extends IntegrationTestCase {
 				)
 			)
 		);
-		$this->assertSame( array(), \WP_Session_Tokens::get_instance( $this->user )->get_all(), 'the site’s own page' );
+		$this->assertCount( 2, \WP_Session_Tokens::get_instance( $this->user )->get_all(), 'the site’s own page' );
 
-		// WordPress's own reset form ends in the same place.
-		$sessions->create( time() + HOUR_IN_SECONDS );
 		reset_password( get_userdata( $this->user ), 'and one more' );
-		$this->assertSame( array(), \WP_Session_Tokens::get_instance( $this->user )->get_all(), 'wp-login.php' );
+		$this->assertCount( 2, \WP_Session_Tokens::get_instance( $this->user )->get_all(), 'wp-login.php' );
+
+		delete_option( 'diluxone_users_reset_ends_sessions' );
+		delete_site_option( 'diluxone_users_reset_ends_sessions' );
 	}
 
 	/** A key past its life is expired, on the way in and on the save, and the save forgets the cookie. */

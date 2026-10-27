@@ -41,7 +41,6 @@ class DefaultsTest extends TestCase {
 			'nothing is recorded'                => array( 'diluxone_users_log_levels', array() ),
 			'no second step offered'             => array( 'diluxone_users_2fa_mode', 'off' ),
 			'no list of sessions'                => array( 'diluxone_users_sessions_show', 0 ),
-			'sessions survive a reset'           => array( 'diluxone_users_reset_ends_sessions', 0 ),
 			'session length is WordPress\'s'     => array( 'diluxone_users_session_long_days', 0 ),
 			'no data export from the account'    => array( 'diluxone_users_privacy_export', 0 ),
 			'no account closing from it'         => array( 'diluxone_users_privacy_delete', 0 ),

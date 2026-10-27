@@ -252,7 +252,6 @@ class IntegrationTestCase extends TestCase {
 		'diluxone_users_privacy_export'      => 1,
 		'diluxone_users_privacy_delete'      => 1,
 		'diluxone_users_avatar_upload'       => 1,
-		'diluxone_users_reset_ends_sessions' => 1,
 		'diluxone_users_wp_register_fields'  => 1,
 	);
 

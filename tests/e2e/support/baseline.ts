@@ -65,7 +65,6 @@ export const BASELINE = (pages: { login: number; register: number; account: numb
 	diluxone_users_log_levels: ['access'],
 	diluxone_users_notice_rules: {},
 	diluxone_users_sessions_show: 1,
-	diluxone_users_reset_ends_sessions: 1,
 	diluxone_users_privacy_export: 1,
 	diluxone_users_privacy_delete: 1,
 	diluxone_users_avatar_upload: 1,

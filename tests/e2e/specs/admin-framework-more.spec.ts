@@ -181,6 +181,23 @@ test.describe('The theme’s colours, remembered', () => {
 	});
 });
 
+test.describe('Security › Sessions: what a new password does', () => {
+	test('the other sessions stay open, said as a line; closing them is a disabled Users+ Pro preview that posts nothing', async ({ page }) => {
+		await page.goto(adminUrl('diluxone-users-security', 'sessions'));
+
+		await expect(page.getByText('A new password leaves the account’s other sessions open, as WordPress does.')).toBeVisible();
+		await expect(page.locator('input[name="diluxone_users_reset_ends_sessions"]'), 'no setting of its own').toHaveCount(0);
+
+		const pro = page.locator('[data-diluxone-users-pro="security/sessions/reset"]');
+
+		await expect(pro).toBeVisible();
+		await expect(pro.locator('input[type="checkbox"]')).toBeDisabled();
+		await expect(pro.locator('[name]'), 'nothing in it posts').toHaveCount(0);
+		await expect(pro.locator('.diluxone-users-state--pro'), 'the badge').toHaveCount(1);
+		await expect(pro.locator('a'), 'the one link').toHaveAttribute('href', /diluxone\.com\/users-pro\/.*utm_medium=security-sessions/);
+	});
+});
+
 test.describe('E-mail notices: the languages and the summary', () => {
 	async function openMail(page: Page, key: string) {
 		const box = page.locator(`details:has(#diluxone_users_mail_${key}_subject)`);

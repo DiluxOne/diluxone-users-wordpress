@@ -454,10 +454,6 @@ function diluxone_users_option_defaults_own(): array {
 		// Whether each person sees where their sessions are open and can
 		// close them. Off until an administrator offers it.
 		'diluxone_users_sessions_show'         => 0,
-		// Whether choosing a new password signs the account out everywhere.
-		// WordPress keeps the other sessions open, and so does the plugin
-		// until an administrator says otherwise.
-		'diluxone_users_reset_ends_sessions'   => 0,
 
 		// What happens when somebody opens the WordPress dashboard profile:
 		// 'allow' nothing, 'redirect' sends them to the site account area,

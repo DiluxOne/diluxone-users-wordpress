@@ -280,6 +280,7 @@ everybody, with the code by e-mail, and skips it for nobody.
 | Security › 2FA not-now lines; rail links; Summary rail links | `admin-security-twostep` › “not now”, the rail’s links, the Summary’s rail |
 | Security › Sessions “without it” days → session expiry | `admin-security-sessions` › “without it” |
 | Security › Sessions summary rows (their own sessions, signed in now); rail links | `admin-security-sessions` › “each person sees…”, the rail leads |
+| Security › Sessions: a new password leaves the other sessions open (said as a line); closing them is a disabled Users+ Pro preview | `admin-framework-more` › Security › Sessions · integration: `CoverSignInResetTest`, `NothingTurnedOnTest`, `ProPreviewTest` |
 | Security › Proxy header used for the visitor's IP (sessions report, activity), another header and None ignored | `admin-security-sessions` › the header chosen is the address |
 | Security › Proxy trusted ranges walked past; summary active; forged header not saved; rail shows reader's IP | `admin-security-sessions` › a trusted proxy…, a header that is not on the list…, the rail says |
 | Social › provider Getting started (redirect URL, console, steps, to Settings) | `admin-social-providers` › Getting started |

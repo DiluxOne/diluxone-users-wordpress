@@ -90,7 +90,6 @@ function diluxone_users_option_scopes(): array {
 		'diluxone_users_log_schema'            => 'network',
 		// Whether the other sites send people to the hub (network-hub.php).
 		'diluxone_users_network_hub'           => 'network',
-		'diluxone_users_reset_ends_sessions'   => 'network',
 
 		// ── Hub: the screens people sign in, register and live on ───
 		'diluxone_users_account_action'        => 'hub',

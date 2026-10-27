@@ -253,7 +253,8 @@ class ProPreviewTest extends IntegrationTestCase {
 	 */
 	private function moved(): array {
 		return array(
-			'security/2fa/link' => array( 'diluxone_users_screen_login_2fa', 'Let it decide' ),
+			'security/2fa/link'       => array( 'diluxone_users_screen_login_2fa', 'Let it decide' ),
+			'security/sessions/reset' => array( 'diluxone_users_screen_sessions', 'A new password closes every session the account had open' ),
 		);
 	}
 

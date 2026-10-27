@@ -57,11 +57,6 @@ class NothingTurnedOnTest extends IntegrationTestCase {
 		do_action( 'after_password_reset', get_userdata( $user ), 'new-pass' );
 
 		$this->assertCount( 1, $manager->get_all() );
-
-		diluxone_users_update_option( 'diluxone_users_reset_ends_sessions', 1 );
-		do_action( 'after_password_reset', get_userdata( $user ), 'new-pass' );
-
-		$this->assertCount( 0, $manager->get_all(), 'once an administrator asks for it' );
 	}
 
 	public function test_wordpresss_registration_form_is_wordpresss(): void {
