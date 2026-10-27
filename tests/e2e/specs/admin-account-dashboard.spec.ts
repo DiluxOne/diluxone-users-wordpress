@@ -1,6 +1,6 @@
 import { Page } from '@playwright/test';
 import { test, expect } from '../support/fixtures';
-import { accountSection, adminUrl, savePanel } from '../support/ui';
+import { accountSection, adminUrl, savePanel, setChoice } from '../support/ui';
 import { memberElsewhere, railNotice, signInMember } from '../support/admin-content';
 import { ADMIN_STATE } from '../../../playwright.config';
 
@@ -24,7 +24,7 @@ const DASHBOARD = [
 ];
 
 const choice = (page: Page, name: string, value: string) => page.locator(`input[name="${name}"][value="${value}"]`);
-const tick = (page: Page, name: string, on: boolean) => page.locator(`input[type="checkbox"][name="${name}"]`).setChecked(on, { force: true });
+const tick = (page: Page, name: string, on: boolean) => setChoice(page.locator(`input[type="checkbox"][name="${name}"]`), on);
 
 /** The summary row whose link goes to a tab, by its state class. */
 const summaryState = (page: Page, href: string) =>
@@ -194,7 +194,7 @@ test.describe('Account area › The WordPress dashboard', () => {
 		await signInMember(guest, site, pages.login.url, 'profile-block');
 
 		await page.goto(adminUrl('diluxone-users-account', 'dashboard'));
-		await choice(page, 'diluxone_users_wp_profile', 'block').check({ force: true });
+		await setChoice(choice(page, 'diluxone_users_wp_profile', 'block'));
 		await savePanel(page);
 		expect((await site.getOptions(['diluxone_users_wp_profile'])).diluxone_users_wp_profile).toBe('block');
 
@@ -213,9 +213,9 @@ test.describe('Account area › The WordPress dashboard', () => {
 		await signInMember(guest, site, pages.login.url, 'scope-sub');
 
 		await page.goto(adminUrl('diluxone-users-account', 'dashboard'));
-		await choice(page, 'diluxone_users_wp_profile', 'redirect').check({ force: true });
-		await choice(page, 'diluxone_users_wp_profile_scope', 'some').check({ force: true });
-		await page.locator('input[name="diluxone_users_wp_profile_roles[]"][value="subscriber"]').setChecked(true, { force: true });
+		await setChoice(choice(page, 'diluxone_users_wp_profile', 'redirect'));
+		await setChoice(choice(page, 'diluxone_users_wp_profile_scope', 'some'));
+		await setChoice(page.locator('input[name="diluxone_users_wp_profile_roles[]"][value="subscriber"]'));
 		await savePanel(page);
 
 		expect(await site.getOptions(['diluxone_users_wp_profile', 'diluxone_users_wp_profile_scope', 'diluxone_users_wp_profile_roles'])).toEqual({
@@ -250,12 +250,12 @@ test.describe('Account area › The WordPress dashboard', () => {
 
 		const roles = page.locator('.diluxone-users-scope__roles').filter({ has: page.locator('input[name="diluxone_users_admin_bar_roles[]"]') });
 
-		await choice(page, 'diluxone_users_admin_bar', 'hide-all').check({ force: true });
+		await setChoice(choice(page, 'diluxone_users_admin_bar', 'hide-all'));
 		await expect(roles, 'the roles belong to “only some roles”').toBeHidden();
-		await choice(page, 'diluxone_users_admin_bar', 'hide-some').check({ force: true });
+		await setChoice(choice(page, 'diluxone_users_admin_bar', 'hide-some'));
 		await expect(roles).toBeVisible();
 
-		await page.locator('input[name="diluxone_users_admin_bar_roles[]"][value="subscriber"]').setChecked(true, { force: true });
+		await setChoice(page.locator('input[name="diluxone_users_admin_bar_roles[]"][value="subscriber"]'));
 		await savePanel(page);
 
 		expect(await site.getOptions(['diluxone_users_admin_bar', 'diluxone_users_admin_bar_scope', 'diluxone_users_admin_bar_roles'])).toEqual({
@@ -278,7 +278,7 @@ test.describe('Account area › The WordPress dashboard', () => {
 		}
 
 		await page.goto(adminUrl('diluxone-users-account', 'dashboard'));
-		await page.locator('input[name="diluxone_users_admin_bar_roles[]"][value="subscriber"]').setChecked(false, { force: true });
+		await setChoice(page.locator('input[name="diluxone_users_admin_bar_roles[]"][value="subscriber"]'), false);
 		await savePanel(page);
 
 		await guest.goto('/');
@@ -287,14 +287,24 @@ test.describe('Account area › The WordPress dashboard', () => {
 
 	test('“whoever can edit users keeps it”: ticked the administrator keeps the toolbar, unticked they lose it too', async ({ page, site }) => {
 		await page.goto(adminUrl('diluxone-users-account', 'dashboard'));
-		await choice(page, 'diluxone_users_admin_bar', 'hide-all').check({ force: true });
+		await setChoice(choice(page, 'diluxone_users_admin_bar', 'hide-all'));
 		await tick(page, 'diluxone_users_admin_bar_keep_admins', true);
 		await savePanel(page);
 
 		// Under “only some roles”, the administrator's row is fixed.
-		await choice(page, 'diluxone_users_admin_bar', 'hide-some').check({ force: true });
+		// Each answer is in place before the next step: the role list under
+		// “only some roles” opens and closes, and moves every box below it.
+		const fixed = page
+			.locator('.diluxone-users-scope__roles')
+			.filter({ has: page.locator('input[name="diluxone_users_admin_bar_roles[]"]') })
+			.locator('.diluxone-users-roles__item--fixed');
+
+		await setChoice(choice(page, 'diluxone_users_admin_bar', 'hide-some'));
 		await expect(page.locator('.diluxone-users-roles__item--fixed input:disabled').first()).toBeAttached();
-		await choice(page, 'diluxone_users_admin_bar', 'hide-all').check({ force: true });
+		await expect(fixed.first(), 'the fixed row shows under “only some roles”').toBeVisible();
+		await setChoice(choice(page, 'diluxone_users_admin_bar', 'hide-all'));
+		await expect(fixed.first(), '…and goes with them').toBeHidden();
+		await expect(page.locator('input[type="checkbox"][name="diluxone_users_admin_bar_keep_admins"]')).toBeChecked();
 
 		await page.goto('/');
 		await expect(page.locator('#wpadminbar'), 'the administrator keeps it').toHaveCount(1);
