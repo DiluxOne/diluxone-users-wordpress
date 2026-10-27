@@ -222,6 +222,77 @@ test.describe('The hub’s Access', () => {
 	});
 });
 
+test.describe('The hub’s Access › The sign-in page, with “A page of its own”', () => {
+	const SHAPE = { diluxone_users_login_template: 'own', diluxone_users_login_slug: 'sign-in', diluxone_users_login_slug_old: [] };
+	const slug = (page: import('@playwright/test').Page) => page.locator('input[name="diluxone_users_login_slug"]');
+	const address = (page: import('@playwright/test').Page) => page.locator('.du-field').filter({ hasText: 'Its address' });
+	const UNSAVED = 'Once saved, it is the address of the page chosen above.';
+
+	test('C1: a page chosen on the hub shows its address on the hub as a link, and no address field and no /sign-in', async ({ page, hub }) => {
+		const chosen = await hub.site.page('entrar', '<!-- wp:shortcode -->[diluxone_users_login]<!-- /wp:shortcode -->');
+		const link = address(page).locator(`a[href="${chosen.url}"]`);
+
+		try {
+			expect(chosen.url, 'the hub’s page').toBe(hub.path('e2e-entrar/'));
+			await hub.set({ ...SHAPE, diluxone_users_login_page: chosen.id });
+			await page.goto(accessOnHub('page'));
+
+			await expect(link, 'the page’s address, as a link').toBeVisible();
+			await expect(link).toHaveText(chosen.url);
+			await expect(slug(page), 'no address field with a page chosen').toBeHidden();
+			await expect(slug(page)).toBeDisabled();
+			await expect(address(page).getByText(UNSAVED)).toBeHidden();
+			expect(await address(page).innerText()).not.toContain('sign-in');
+		} finally {
+			await hub.site.forgetPage('entrar');
+		}
+	});
+
+	test('C2: with “No page” on the hub the address field is shown and editable, and no page’s address', async ({ page, hub }) => {
+		await hub.set({ ...SHAPE, diluxone_users_login_page: 0 });
+		await page.goto(accessOnHub('page'));
+
+		await expect(slug(page)).toBeVisible();
+		await expect(slug(page)).toBeEditable();
+		await expect(slug(page)).toHaveValue('sign-in');
+		await expect(address(page).locator('a code')).toHaveCount(0);
+		await expect(address(page).getByText(UNSAVED)).toBeHidden();
+	});
+
+	test('C3: on the hub the drop-down switches between the page’s address and the address field, with no reload', async ({ page, hub }) => {
+		const chosen = await hub.site.page('entrar', '<!-- wp:shortcode -->[diluxone_users_login]<!-- /wp:shortcode -->');
+		const link = address(page).locator(`a[href="${chosen.url}"]`);
+		const select = page.locator('#diluxone_users_login_page');
+
+		try {
+			await hub.set({ ...SHAPE, diluxone_users_login_page: chosen.id });
+			await page.goto(accessOnHub('page'));
+			await expect(link).toBeVisible();
+			await page.evaluate(() => ((window as unknown as { stayed: boolean }).stayed = true));
+
+			await select.selectOption('0');
+			await expect(slug(page), '“No page”: the field appears').toBeVisible();
+			await expect(slug(page), 'and is let go').toBeEditable();
+			await expect(link).toBeHidden();
+
+			await select.selectOption(String(chosen.id));
+			await expect(slug(page), 'the page again: the field hides').toBeHidden();
+			await expect(slug(page)).toBeDisabled();
+			await expect(link, 'and the link returns').toBeVisible();
+
+			// Another page, not saved yet: its address is not known here, so none is said.
+			await select.selectOption(String(hub.pages.login.id));
+			await expect(slug(page)).toBeHidden();
+			await expect(link).toBeHidden();
+			await expect(address(page).getByText(UNSAVED)).toBeVisible();
+
+			expect(await page.evaluate(() => (window as unknown as { stayed?: boolean }).stayed), 'no reload').toBe(true);
+		} finally {
+			await hub.site.forgetPage('entrar');
+		}
+	});
+});
+
 test.describe('Create the page, on a network', () => {
 	test('on the hub: made there, chosen there, and where /beta/’s registration door leads', async ({ page, browser, hub, beta }) => {
 		await hub.set({ diluxone_users_register_page: 0, diluxone_users_register_form: 1, diluxone_users_login_register: 1 });

@@ -1988,6 +1988,9 @@ msgstr "Il se règle dans Votre marque →"
 msgid "It is shown to them and cannot be typed in. For what the site decides and not the person: a membership number, a category."
 msgstr "Il leur est affiché et ne peut pas être saisi. Pour ce que décide le site et non la personne : un numéro d’adhérent, une catégorie."
 
+msgid "It is the address of the page chosen above, and it changes with that page."
+msgstr "C’est l’adresse de la page choisie ci-dessus, et elle change avec cette page."
+
 #. translators: %d: maximum number of characters
 #, php-format
 msgid "It is too long: at most %d characters."
@@ -2814,6 +2817,9 @@ msgstr "Sur ce réseau, ces options sont activées ou désactivées pour tous le
 
 msgid "Once it is done"
 msgstr "Une fois que c'est fait"
+
+msgid "Once saved, it is the address of the page chosen above."
+msgstr "Une fois enregistré, c’est l’adresse de la page choisie ci-dessus."
 
 msgid "One address or range per line, such as 203.0.113.0/24. Private and local ranges are always trusted, so a proxy on the same machine or network needs nothing here. A CDN’s edges do."
 msgstr "Une adresse ou une plage par ligne, par exemple 203.0.113.0/24. Les plages privées et locales sont toujours de confiance : un proxy sur la même machine ou le même réseau n’a besoin de rien ici. Les bordures d’un CDN, si."
@@ -5219,9 +5225,6 @@ msgstr "Utiliser une autre adresse"
 
 msgid "Use this when a section of the account area returns a 404. The account area routes its sections through rewrite rules, and those go stale when permalinks change or another plugin rewrites them."
 msgstr "Utilisez ceci quand une section de l’espace compte renvoie une 404. L’espace compte route ses sections par des règles de réécriture, et celles-ci deviennent obsolètes quand les permaliens changent ou qu’une autre extension les réécrit."
-
-msgid "Used when no page is chosen above: the page of its own is then drawn at this address."
-msgstr "Utilisée quand aucune page n’est choisie ci-dessus : la page à part s’affiche alors à cette adresse."
 
 msgid "Used when the shape is “A page of its own”."
 msgstr "Utilisée quand la forme est « Une page à part »."

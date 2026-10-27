@@ -1988,6 +1988,9 @@ msgstr "É definido em A tua marca →"
 msgid "It is shown to them and cannot be typed in. For what the site decides and not the person: a membership number, a category."
 msgstr "É-lhes mostrado e não se pode escrever. Para o que o site decide e não a pessoa: um número de sócio, uma categoria."
 
+msgid "It is the address of the page chosen above, and it changes with that page."
+msgstr "É o endereço da página escolhida acima, e muda com essa página."
+
 #. translators: %d: maximum number of characters
 #, php-format
 msgid "It is too long: at most %d characters."
@@ -2814,6 +2817,9 @@ msgstr "Nesta rede, estas opções são ativadas ou desativadas para todos os si
 
 msgid "Once it is done"
 msgstr "Assim que estiver feito"
+
+msgid "Once saved, it is the address of the page chosen above."
+msgstr "Depois de guardar, é o endereço da página escolhida acima."
 
 msgid "One address or range per line, such as 203.0.113.0/24. Private and local ranges are always trusted, so a proxy on the same machine or network needs nothing here. A CDN’s edges do."
 msgstr "Um endereço ou intervalo por linha, como 203.0.113.0/24. Os intervalos privados e locais são sempre de confiança, por isso um proxy na mesma máquina ou rede não precisa de nada aqui. As bordas de uma CDN, sim."
@@ -5219,9 +5225,6 @@ msgstr "Usar outro endereço"
 
 msgid "Use this when a section of the account area returns a 404. The account area routes its sections through rewrite rules, and those go stale when permalinks change or another plugin rewrites them."
 msgstr "Use isto quando uma secção da área de conta devolver 404. A área de conta roteia as suas seções por regras de reescrita, e elas ficam desatualizadas quando os links permanentes mudam ou outro plugin as reescreve."
-
-msgid "Used when no page is chosen above: the page of its own is then drawn at this address."
-msgstr "Usado quando nenhuma página está escolhida acima: a página própria é então mostrada neste endereço."
 
 msgid "Used when the shape is “A page of its own”."
 msgstr "Usado quando o formato é “Uma página própria”."
