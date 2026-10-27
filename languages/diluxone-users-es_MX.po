@@ -180,6 +180,9 @@ msgstr "2FA"
 msgid "A bar down the left"
 msgstr "Una barra a la izquierda"
 
+msgid "A bit more about you"
+msgstr "Un poco más sobre ti"
+
 msgid "A border and the text in the accent, on the page’s own ground. For a design where a block of colour would be too loud."
 msgstr "Un borde y el texto en el acento, sobre el fondo de la página. Para un diseño donde un bloque de color sería demasiado."
 
@@ -355,6 +358,9 @@ msgstr "Una palabra entre corchetes, escrita dentro de una página. Nadie que vi
 
 msgid "About"
 msgstr "Nosotros"
+
+msgid "About you"
+msgstr "Sobre ti"
 
 msgid "Above all of them, always"
 msgstr "Por encima de todas, siempre"
