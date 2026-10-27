@@ -44,7 +44,6 @@ Only the plugin's own screens appear, in the dashboard.
   simple account area, the colours from a short palette that always reads,
   light and dark (DiluxOne Users+ Pro adds the colours from your theme), and the sizes and spacing — or no stylesheet at all, for
   a site that styles everything itself.
-* **Sessions**: how long they last (WordPress's length until you choose one), where they are open and how to close them; a new password signs the account out everywhere else, as WordPress does, and the list forgets those sessions.
 * **An activity log** of its own, off until you tick what to record: who
   signed in, who was refused and what changed. It records IP addresses; see
   Privacy below.
