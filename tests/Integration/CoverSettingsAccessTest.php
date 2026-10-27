@@ -208,6 +208,67 @@ class CoverSettingsAccessTest extends IntegrationTestCase {
 		$this->assertMatchesRegularExpression( '#name="diluxone_users_login_slug"[^>]* disabled data-diluxone-users-waited#', $this->screen( 'page' ), 'a page chosen: drawn at its address, the field waits' );
 	}
 
+	/**
+	 * The block of the address that waits on the drop-down for these values.
+	 *
+	 * @param string $key 'is' or 'not'.
+	 */
+	private function address_block( string $html, string $key, string $values ): string {
+		$this->assertMatchesRegularExpression(
+			'#<div class="du-waits-on du-waits-on--hides( is-waiting)?" data-diluxone-users-waits="diluxone_users_login_page" data-diluxone-users-waits-' . $key . '="' . preg_quote( $values, '#' ) . '">#',
+			$html,
+			"a block hidden while it waits, for {$key} {$values}"
+		);
+
+		preg_match( '#<div class="du-waits-on du-waits-on--hides( is-waiting)?" data-diluxone-users-waits="diluxone_users_login_page" data-diluxone-users-waits-' . $key . '="' . preg_quote( $values, '#' ) . '">(.*?)</div>#s', $html, $block );
+
+		return (string) $block[0];
+	}
+
+	/** Pretty permalinks or plain ones, as the rewrite object reads them. */
+	private function permalinks( string $structure ): void {
+		update_option( 'permalink_structure', $structure );
+		$GLOBALS['wp_rewrite']->init();
+	}
+
+	public function test_c1_a_page_chosen_shows_its_address_as_a_link_and_no_slug(): void {
+		$this->the_admin();
+		$before = (string) get_option( 'permalink_structure' );
+		$this->permalinks( '/%postname%/' );
+
+		try {
+			$page = (int) wp_insert_post(
+				array(
+					'post_type'   => 'page',
+					'post_status' => 'publish',
+					'post_title'  => 'Entrar',
+					'post_name'   => 'entrar',
+				)
+			);
+
+			diluxone_users_update_option( 'diluxone_users_login_template', 'own' );
+			diluxone_users_update_option( 'diluxone_users_login_page', $page );
+			diluxone_users_update_option( 'diluxone_users_login_slug', 'sign-in' );
+
+			$html = $this->screen( 'page' );
+			$url  = home_url( '/entrar/' );
+
+			$shown = $this->address_block( $html, 'is', (string) $page );
+			$this->assertStringNotContainsString( 'is-waiting', $shown, 'the address in use is shown' );
+			$this->assertStringContainsString( '<a href="' . esc_url( $url ) . '"><code>' . esc_html( $url ) . '</code></a>', $shown, 'as a link to the page' );
+			$this->assertStringContainsString( 'It is the address of the page chosen above, and it changes with that page.', $shown );
+			$this->assertStringNotContainsString( 'sign-in', $shown );
+
+			$this->assertStringContainsString( 'is-waiting', $this->address_block( $html, 'not', '0 ' . $page ), 'the line for a page not yet saved is hidden' );
+
+			$slug = $this->address_block( $html, 'is', '0' );
+			$this->assertStringContainsString( 'du-waits-on--hides is-waiting', $slug, 'the slug field is hidden' );
+			$this->assertMatchesRegularExpression( '#name="diluxone_users_login_slug"[^>]* disabled data-diluxone-users-waited#', $slug, 'and sends nothing' );
+		} finally {
+			$this->permalinks( $before );
+		}
+	}
+
 	public function test_c3_no_page_and_an_address_saved_is_where_the_page_of_its_own_is_drawn(): void {
 		$this->the_admin();
 		diluxone_users_update_option( 'diluxone_users_login_template', 'own' );

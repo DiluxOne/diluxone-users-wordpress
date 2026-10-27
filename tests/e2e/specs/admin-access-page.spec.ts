@@ -254,6 +254,30 @@ test.describe('Access › The sign-in page, with “A page of its own”', () =>
 		await expect(guest.locator('body.diluxone-users-door'), 'the page of its own, at that address').toHaveCount(1);
 	});
 
+	/** The chosen page's address, its link, and the line under it. */
+	const address = (page: Page) => page.locator('.du-field').filter({ hasText: 'Its address' });
+	const UNSAVED = 'Once saved, it is the address of the page chosen above.';
+
+	test('C1: a page chosen shows its address as a link, and no address field and no /sign-in', async ({ page, site, options }) => {
+		const chosen = await site.page('entrar', '<!-- wp:shortcode -->[diluxone_users_login]<!-- /wp:shortcode -->');
+		const link = address(page).locator(`a[href="${chosen.url}"]`);
+
+		try {
+			await options.set({ diluxone_users_login_page: chosen.id });
+			await page.goto(accessTab('page'));
+
+			await expect(link, 'the page’s address, as a link').toBeVisible();
+			await expect(link).toHaveText(chosen.url);
+			await expect(address(page).getByText('It is the address of the page chosen above, and it changes with that page.')).toBeVisible();
+			await expect(slug(page), 'no address field with a page chosen').toBeHidden();
+			await expect(slug(page), 'and it sends nothing').toBeDisabled();
+			await expect(address(page).getByText(UNSAVED)).toBeHidden();
+			expect(await address(page).innerText()).not.toContain('sign-in');
+		} finally {
+			await site.forgetPage('entrar');
+		}
+	});
+
 	test('C3: an address a page already has is refused, naming the page, and nothing is written', async ({ page, site }) => {
 		const plain = await site.page('signin-taken', '<p>Taken.</p>');
 		const taken = new URL(plain.url).pathname.replace(/^\/|\/$/g, '');

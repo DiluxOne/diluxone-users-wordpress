@@ -891,6 +891,10 @@ function diluxone_users_ui_choices( array $choices, string $needs_one = '', arra
  * Shared by `diluxone_users_ui_choices()` and the roles picker, which is the
  * one block of controls that is not a group of choices.
  *
+ * With `hides`, the block is hidden while it waits rather than drawn
+ * disabled under its line: for two answers that take turns in one place,
+ * where only the one that is true is worth reading.
+ *
  * @param array<string, mixed> $waits As diluxone_users_ui_choices() takes it; empty for a block that waits for nothing.
  * @return bool Whether the block is waiting right now.
  */
@@ -912,12 +916,18 @@ function diluxone_users_ui_waits_open( array $waits ): bool {
 
 	echo wp_kses(
 		sprintf(
-			'<div class="du-waits-on%1$s"%2$s>',
+			'<div class="du-waits-on%1$s%2$s"%3$s>',
+			empty( $waits['hides'] ) ? '' : ' du-waits-on--hides',
 			$waiting ? ' is-waiting' : '',
 			diluxone_users_ui_data( $data )
 		),
 		diluxone_users_allowed_html()
 	);
+
+	// A block hidden while it waits has nobody to say why to.
+	if ( '' === (string) ( $waits['why'] ?? '' ) ) {
+		return $waiting;
+	}
 
 	ob_start();
 	diluxone_users_ui_waits( (string) ( $waits['why'] ?? '' ), (string) ( $waits['url'] ?? '' ), (string) ( $waits['go'] ?? '' ) );
