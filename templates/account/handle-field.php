@@ -7,8 +7,9 @@
  * - `can`
  * - `handle`
  * - `next`
+ * - `locked`: the name, once chosen, cannot change (`diluxone_users_handle_locked`)
  *
- * @var array{can: bool, handle: string, next: int} $args
+ * @var array{can: bool, handle: string, next: int, locked?: bool} $args
  *
  * @package DiluxOneUsers
  */
@@ -43,7 +44,9 @@ $diluxone_users_url_actual = diluxone_users_handle_base_url() . $args['handle'] 
 	<?php endif; ?>
 
 	<p class="diluxone-users-note">
-		<?php if ( ! $args['can'] ) : ?>
+		<?php if ( ! empty( $args['locked'] ) ) : ?>
+			<?php esc_html_e( 'Your public name cannot be changed.', 'diluxone-users' ); ?>
+		<?php elseif ( ! $args['can'] ) : ?>
 			<?php
 			echo esc_html(
 				sprintf(

@@ -95,17 +95,46 @@ function diluxone_users_handle_cooldown( int $user_id ): int {
 	return max( 0, (int) apply_filters( 'diluxone_users_handle_cooldown', 0, $user_id ) );
 }
 
+/**
+ * Is their public name, once chosen, theirs for good?
+ *
+ * No, as the plugin has it. A name that cannot change is Users+ Pro's,
+ * through `diluxone_users_handle_locked`; a person with no name yet can
+ * still choose one.
+ */
+function diluxone_users_handle_locked( int $user_id ): bool {
+	if ( '' === diluxone_users_handle( $user_id ) ) {
+		return false;
+	}
+
+	/**
+	 * Filters whether a public name, once chosen, can no longer be changed.
+	 *
+	 * False, as the plugin has it.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param bool $locked  Whether it is locked.
+	 * @param int  $user_id Whose name it is.
+	 */
+	return (bool) apply_filters( 'diluxone_users_handle_locked', false, $user_id );
+}
+
 /** Can they change it today, or are they still waiting? */
 function diluxone_users_handle_can_change( int $user_id ): bool {
+	if ( diluxone_users_handle_locked( $user_id ) ) {
+		return false;
+	}
+
 	$days = diluxone_users_handle_cooldown( $user_id );
 	$last = diluxone_users_handle_changed( $user_id );
 
 	return $days <= 0 || 0 === $last || ( time() - $last ) >= $days * DAY_IN_SECONDS;
 }
 
-/** When they will be able to change it. 0 when they already can. */
+/** When they will be able to change it. 0 when they already can, or never will. */
 function diluxone_users_handle_next_change( int $user_id ): int {
-	if ( diluxone_users_handle_can_change( $user_id ) ) {
+	if ( diluxone_users_handle_locked( $user_id ) || diluxone_users_handle_can_change( $user_id ) ) {
 		return 0;
 	}
 
@@ -228,6 +257,10 @@ function diluxone_users_handle_save( int $user_id, string $handle ) {
 		return true;
 	}
 
+	if ( diluxone_users_handle_locked( $user_id ) ) {
+		return new WP_Error( 'diluxone_users_handle_locked', __( 'Your public name cannot be changed.', 'diluxone-users' ) );
+	}
+
 	if ( ! diluxone_users_handle_can_change( $user_id ) ) {
 		return new WP_Error(
 			'diluxone_users_handle_cooldown',
@@ -312,6 +345,7 @@ function diluxone_users_handle_field( ?int $user_id = null ): string {
 			'handle' => diluxone_users_public_handle( $user_id ),
 			'can'    => diluxone_users_handle_can_change( $user_id ),
 			'next'   => diluxone_users_handle_next_change( $user_id ),
+			'locked' => diluxone_users_handle_locked( $user_id ),
 		)
 	);
 }

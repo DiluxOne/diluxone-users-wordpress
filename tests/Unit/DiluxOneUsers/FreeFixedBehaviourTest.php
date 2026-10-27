@@ -162,4 +162,60 @@ class FreeFixedBehaviourTest extends TestCase {
 
 		$this->assertTrue( diluxone_users_colors_from_theme() );
 	}
+
+	public function test_a_public_name_is_never_locked_by_the_plugin_alone(): void {
+		$GLOBALS['diluxone_users_test_user_meta'][ self::USER_ID ]['diluxone_users_handle'] = 'ana';
+
+		$this->assertFalse( diluxone_users_handle_locked( self::USER_ID ) );
+		$this->assertTrue( diluxone_users_handle_can_change( self::USER_ID ) );
+	}
+
+	public function test_an_add_on_locks_a_chosen_public_name(): void {
+		$GLOBALS['diluxone_users_test_user_meta'][ self::USER_ID ]['diluxone_users_handle'] = 'ana';
+		Functions\when( 'wp_date' )->justReturn( 'a date' );
+
+		$heard = 0;
+		$this->answer(
+			'diluxone_users_handle_locked',
+			static function ( bool $locked, int $user_id ) use ( &$heard ): bool {
+				$heard = $user_id;
+
+				return true;
+			}
+		);
+
+		$this->assertTrue( diluxone_users_handle_locked( self::USER_ID ) );
+		$this->assertSame( self::USER_ID, $heard, 'asked with the account' );
+		$this->assertFalse( diluxone_users_handle_can_change( self::USER_ID ), 'the box is disabled' );
+		$this->assertSame( 0, diluxone_users_handle_next_change( self::USER_ID ), 'and no date is promised' );
+
+		$refused = diluxone_users_handle_save( self::USER_ID, 'otra' );
+		$this->assertInstanceOf( \WP_Error::class, $refused, 'a change sent anyway is refused' );
+		$this->assertSame( 'diluxone_users_handle_locked', $refused->get_error_code() );
+		$this->assertSame( 'Your public name cannot be changed.', $refused->get_error_message() );
+	}
+
+	public function test_somebody_with_no_name_yet_can_choose_one_even_locked(): void {
+		unset( $GLOBALS['diluxone_users_test_user_meta'][ self::USER_ID ]['diluxone_users_handle'] );
+		$this->answer( 'diluxone_users_handle_locked', static fn(): bool => true );
+
+		$this->assertFalse( diluxone_users_handle_locked( self::USER_ID ) );
+	}
+
+	public function test_the_step_can_be_skipped_unless_an_add_on_says_no(): void {
+		$this->assertTrue( diluxone_users_ask_missing_skippable( self::USER_ID ) );
+
+		$heard = 0;
+		$this->answer(
+			'diluxone_users_ask_missing_skippable',
+			static function ( bool $skip, int $user_id ) use ( &$heard ): bool {
+				$heard = $user_id;
+
+				return false;
+			}
+		);
+
+		$this->assertFalse( diluxone_users_ask_missing_skippable( self::USER_ID ) );
+		$this->assertSame( self::USER_ID, $heard );
+	}
 }

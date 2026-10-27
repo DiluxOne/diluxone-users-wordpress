@@ -90,6 +90,30 @@ function diluxone_users_ask_missing_on(): bool {
 }
 
 /**
+ * May this person leave the step for later?
+ *
+ * Yes, as the plugin has it: "Skip for now" goes on to where they were
+ * going. Making the required fields a condition is Users+ Pro's, through
+ * `diluxone_users_ask_missing_skippable`; with no link to skip, keeping them
+ * on the step until it is done is the add-on's too.
+ *
+ * @param int $user_id Who is asked.
+ */
+function diluxone_users_ask_missing_skippable( int $user_id ): bool {
+	/**
+	 * Filters whether the required-fields step can be skipped.
+	 *
+	 * True, as the plugin has it: a "Skip for now" link under the form.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param bool $skip    Whether it can be skipped.
+	 * @param int  $user_id Who is asked.
+	 */
+	return (bool) apply_filters( 'diluxone_users_ask_missing_skippable', true, $user_id );
+}
+
+/**
  * Where a sign-in sends this person: the step first, when it is owed.
  *
  * @param int    $user_id  Who just signed in.
@@ -198,7 +222,7 @@ function diluxone_users_ask_missing_form(): bool {
 			'title'    => '',
 			'state'    => diluxone_users_state(),
 			'redirect' => $to,
-			'skip'     => $to,
+			'skip'     => diluxone_users_ask_missing_skippable( $user_id ) ? $to : '',
 		)
 	);
 
