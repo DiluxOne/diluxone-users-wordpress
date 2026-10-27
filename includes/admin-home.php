@@ -294,8 +294,9 @@ function diluxone_users_panel_usage(): void {
  * with a different rule for what counts as ready, which is how the two came
  * to disagree. This is the short version: the page, the method, the mail that
  * the method depends on, one line that says whether any door is open at all,
- * and one that says whether anybody can register. The page row and the mail row are the very same checks the maintenance
- * screen runs, so they cannot say something different here — the page row used
+ * and one that says whether anybody can register. The page row and the mail
+ * row are the very same checks the maintenance screen runs, so they cannot
+ * say something different here — the page row used
  * to be written out again, and did: it called a page nobody had chosen "off",
  * where the check calls it pending, and it could not tell that apart from a
  * page that was chosen and then left as a draft.

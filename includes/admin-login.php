@@ -25,8 +25,9 @@ function diluxone_users_screen_login(): void {
 
 /**
  * Its tabs. Registration is a screen of its own; two-step verification lives
- * on Security and is shown here only as state. An add-on's way in is switched on here, with the other ways in
- * (`diluxone_users_way_switches`), and set up where the feature lives:
+ * on Security and is shown here only as state. An add-on's way in is switched
+ * on here, with the other ways in (`diluxone_users_way_switches`), and set up
+ * where the feature lives:
  * turning a door on is a question about doors.
  */
 function diluxone_users_login_panels(): void {
