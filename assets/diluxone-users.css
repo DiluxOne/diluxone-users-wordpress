@@ -569,8 +569,10 @@ details.diluxone-users-panel[open] > .diluxone-users-panel__head .diluxone-users
 .diluxone-users-button--danger:focus { background: var(--diluxone-users-danger); color: var(--diluxone-users-danger-ink); }
 .diluxone-users-button--danger:hover { color: var(--diluxone-users-danger-ink); }
 
-/* The way past the step that asks for the required fields after a sign-in. */
-.diluxone-users-fields__skip { display: inline-block; margin-inline-start: 1rem; }
+/* The way past the step that asks for the required fields after a sign-in.
+   The form is a column, so it starts at the button's edge, as wide as its
+   text; the form's gap keeps it apart from the button. */
+.diluxone-users-fields__skip { align-self: flex-start; }
 
 /* ── A question asked in the page ───────────────────────────────────── */
 

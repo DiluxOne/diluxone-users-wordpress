@@ -6039,12 +6039,12 @@ msgid "how they got in: a link, a password, a social account"
 msgstr "cómo entró: un enlace, una contraseña, una cuenta social"
 
 #. Author URI of the plugin
-msgid "https://diluxone.com/plugins-wordpress"
-msgstr "https://diluxone.com/plugins-wordpress"
+msgid "https://diluxone.com/wordpress-plugins/"
+msgstr "https://diluxone.com/es/wordpress/"
 
 #. Plugin URI of the plugin
-msgid "https://github.com/DiluxOne/diluxone-users-wordpress"
-msgstr "https://github.com/DiluxOne/diluxone-users-wordpress"
+msgid "https://diluxone.com/wordpress-plugins/users/"
+msgstr "https://diluxone.com/es/wordpress/users/"
 
 msgid "it has no page yet"
 msgstr "todavía no tiene página"
