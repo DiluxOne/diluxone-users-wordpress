@@ -46,12 +46,36 @@ class NetworkPlacesTest extends TestCase {
 	}
 
 	public function test_the_screens_people_sign_in_on_are_the_hubs(): void {
-		foreach ( array( 'diluxone-users-login', 'diluxone-users-design', 'diluxone-users-notices' ) as $screen ) {
+		foreach ( array( 'diluxone-users-register', 'diluxone-users-login', 'diluxone-users-design', 'diluxone-users-notices' ) as $screen ) {
 			$this->assertSame( 'hub', diluxone_users_panel_scope( $screen ), $screen );
 			$this->assertTrue( diluxone_users_screen_here( $screen, 'hub' ), $screen );
 			$this->assertFalse( diluxone_users_screen_here( $screen, 'site' ), $screen );
 			$this->assertFalse( diluxone_users_screen_here( $screen, 'network' ), $screen );
 		}
+	}
+
+	/**
+	 * Registration goes where Access's Registration tab went, the hub, every
+	 * one of its tabs with it, and right above Access in the list every menu
+	 * is built from.
+	 */
+	public function test_c6_registration_is_the_hubs_and_right_above_access(): void {
+		foreach ( array( '', 'summary', 'who', 'messages' ) as $tab ) {
+			$this->assertSame( diluxone_users_panel_scope( 'diluxone-users-login', 'register' ), diluxone_users_panel_scope( 'diluxone-users-register', $tab ), $tab );
+			$this->assertSame( 'hub', diluxone_users_panel_scope( 'diluxone-users-register', $tab ), $tab );
+		}
+
+		$this->assertTrue( diluxone_users_screen_here( 'diluxone-users-register', 'hub' ) );
+		$this->assertTrue( diluxone_users_screen_here( 'diluxone-users-register', 'single' ) );
+		$this->assertFalse( diluxone_users_screen_here( 'diluxone-users-register', 'site' ) );
+		$this->assertFalse( diluxone_users_screen_here( 'diluxone-users-register', 'network' ) );
+
+		$slugs = array_keys( diluxone_users_screens() );
+		$at    = array_search( 'diluxone-users-register', $slugs, true );
+
+		$this->assertIsInt( $at );
+		$this->assertSame( 'diluxone-users-login', $slugs[ $at + 1 ] );
+		$this->assertArrayHasKey( 'diluxone-users-register', diluxone_users_screen_callbacks() );
 	}
 
 	/** The tabs that do not go where their screen goes. */

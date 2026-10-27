@@ -161,6 +161,11 @@ msgstr[1] "%s campos sugeridos no están en la lista."
 msgid "%s%%"
 msgstr "%s%%"
 
+#. translators: %s: a role's name
+#, php-format
+msgid "%s, whichever door they came through."
+msgstr "%s, sea cual sea la puerta por la que llegó."
+
 #. translators: Accessibility text.
 msgid "(opens in a new tab)"
 msgstr "(se abre en una pestaña nueva)"
@@ -271,6 +276,9 @@ msgstr "Una línea debajo de la sección abierta. A un costado se convierte en u
 msgid "A link e-mailed to the address on the account"
 msgstr "Un enlace por correo a la dirección de la cuenta"
 
+msgid "A link lets in only somebody who already has an account."
+msgstr "Un enlace deja entrar solo a quien ya tiene una cuenta."
+
 msgid "A link, like the rest of the menu"
 msgstr "Un enlace, como el resto del menú"
 
@@ -327,6 +335,9 @@ msgstr "Un enlace de un solo uso, válido durante %d minutos."
 
 msgid "A social account"
 msgstr "Una red social"
+
+msgid "A social account lets in only somebody who already has one here."
+msgstr "Una red social deja entrar solo a quien ya tiene una cuenta aquí."
 
 msgid "A social account only signs in people who already have one here."
 msgstr "Una cuenta social solo hace entrar a quien ya tiene una aquí."
@@ -403,11 +414,6 @@ msgstr "Secciones de la cuenta"
 
 msgid "Accounts"
 msgstr "Cuentas"
-
-#. translators: %s: the ways an account gets created, comma separated
-#, php-format
-msgid "Accounts are created by: %s."
-msgstr "Las cuentas las crea: %s."
 
 #. translators: %s: the name of the site where the network's accounts live
 #, php-format
@@ -533,6 +539,9 @@ msgstr "Una cuenta pertenece a toda la red; ser miembro de un sitio —tener un 
 
 msgid "An account with admin permissions cannot ask for its own deletion."
 msgstr "Una cuenta con permisos de administración no puede pedir que la borren."
+
+msgid "An address the site has never seen gets a link, and the account exists by the time they are in."
+msgstr "Una dirección que el sitio nunca vio recibe un enlace, y la cuenta existe para cuando la persona entra."
 
 msgid "An authenticator app"
 msgstr "Una aplicación autenticadora"
@@ -954,6 +963,12 @@ msgstr "Cerrar las demás"
 
 msgid "Close them"
 msgstr "Cerrarlas"
+
+msgid "Closed for the whole network: Network Admin › Settings decides it."
+msgstr "Cerrado para toda la red: lo decide Administración de la red › Ajustes."
+
+msgid "Closed, as Settings › General has it."
+msgstr "Cerrado, como lo tiene Ajustes › Generales."
 
 msgid "Closed: details are edited on the site only."
 msgstr "Cerrado: los datos se editan solo en el sitio."
@@ -1469,6 +1484,9 @@ msgstr "Todos los campos sugeridos ya están en la lista."
 
 msgid "Every suggested field is on the list."
 msgstr "Todos los campos sugeridos están en la lista."
+
+msgid "Every way an account gets made on this site and the state each one is in, read from the settings the Who can register tab writes. Nothing is edited here."
+msgstr "Cada forma en que se crea una cuenta en este sitio y el estado en que está cada una, leído de los ajustes que escribe la pestaña Quién puede registrarse. Aquí no se edita nada."
 
 msgid "Every way into this site and the state each one is in, read from the settings the other tabs write. Nothing is edited here."
 msgstr "Cada forma de entrar en este sitio y el estado en que está cada una, leído de los ajustes que escriben las otras pestañas. Aquí no se edita nada."
@@ -2205,6 +2223,9 @@ msgstr "Lituania"
 msgid "Loading…"
 msgstr "Cargando…"
 
+msgid "Locked shut: the e-mail link is the only way in, and that form hands out passwords."
+msgstr "Cerrado con llave: el enlace por correo es la única forma de entrar, y ese formulario reparte contraseñas."
+
 msgid "Log settings"
 msgstr "Ajustes del registro"
 
@@ -2463,6 +2484,12 @@ msgstr "No llegó ningún archivo."
 msgid "No file uploaded."
 msgstr "No subiste ningún archivo."
 
+msgid "No form of the site’s own."
+msgstr "Ningún formulario propio del sitio."
+
+msgid "No form of the site’s own: WordPress has only its own."
+msgstr "Ningún formulario propio del sitio: WordPress solo tiene el suyo."
+
 msgid "No menu — the site places it with [diluxone_users_account_nav]"
 msgstr "Sin menú — lo pone el sitio con [diluxone_users_account_nav]"
 
@@ -2471,6 +2498,9 @@ msgstr "No tiene ninguna sesión abierta."
 
 msgid "No page chosen yet."
 msgstr "Todavía no elegiste ninguna página."
+
+msgid "No page holds it yet, so nobody can reach it."
+msgstr "Todavía no hay ninguna página que lo tenga, así que nadie puede llegar a él."
 
 msgid "No provider has been set up yet."
 msgstr "Todavía no hay ninguna red configurada."
@@ -2896,6 +2926,9 @@ msgstr "Abrir una puerta →"
 msgid "Open any of them to create the app, paste what it gives back and test it."
 msgstr "Abre cualquiera para crear la app, pegar lo que devuelve y probarla."
 
+msgid "Open for the whole network: Network Admin › Settings decides it."
+msgstr "Abierto para toda la red: lo decide Administración de la red › Ajustes."
+
 msgid "Open it"
 msgstr "Abrir"
 
@@ -2927,6 +2960,14 @@ msgstr "Abre la página donde va, o crea una: Páginas › Añadir página."
 
 msgid "Open your account"
 msgstr "Abre tu cuenta"
+
+#. translators: %s: the ways an account gets created, comma separated
+#, php-format
+msgid "Open: accounts are created by %s."
+msgstr "Abierto: las cuentas las crea %s."
+
+msgid "Open: wp-login.php takes new accounts, as Settings › General has it."
+msgstr "Abierto: wp-login.php acepta cuentas nuevas, como lo tiene Ajustes › Generales."
 
 msgid "Opening it lands them on the account page. One screen for their details, and it is the one this plugin knows the rules of."
 msgstr "Abrirlo los lleva a la página de la cuenta. Una sola pantalla para sus datos, y es la que este plugin sabe con qué reglas funciona."
@@ -3212,6 +3253,9 @@ msgstr "El registro está abierto"
 
 msgid "Registration is shut"
 msgstr "El registro está cerrado"
+
+msgid "Registration › Summary →"
+msgstr "Registro › Resumen →"
 
 msgid "Remember a browser"
 msgstr "Recordar un navegador"
@@ -3688,6 +3732,11 @@ msgstr "Entrar demuestra la cuenta además del correo. Que confirme por sí solo
 msgid "Signing in to confirm a request"
 msgstr "Entrar para confirmar una solicitud"
 
+#. translators: %s: the social providers working, comma separated
+#, php-format
+msgid "Signing in with %s for the first time creates the account."
+msgstr "Entrar con %s por primera vez crea la cuenta."
+
 msgid "Signing in with a network did not finish"
 msgstr "Acceder con una red no llegó a terminar"
 
@@ -3880,6 +3929,9 @@ msgstr "Subdominios"
 
 msgid "Subject"
 msgstr "Asunto"
+
+msgid "Subscriber, whichever door they came through."
+msgstr "Suscriptor, sea cual sea la puerta por la que llegó."
 
 msgid "Sudan"
 msgstr "Sudán"
@@ -4506,6 +4558,9 @@ msgstr "El nombre público además de la dirección de correo"
 msgid "The registration form, in the frame the sign-in tab chose for both."
 msgstr "El formulario de registro, en el marco que la pestaña de acceso eligió para los dos."
 
+msgid "The role given"
+msgstr "El rol que se da"
+
 msgid "The roles it is hidden from"
 msgstr "Los roles a los que se les esconde"
 
@@ -4576,6 +4631,9 @@ msgstr "La frase"
 msgid "The sentence under a field, a date, the help beside a tick box."
 msgstr "La frase debajo de un campo, una fecha, la ayuda al lado de una casilla."
 
+msgid "The sentences a person reads when creating an account does not work. Each one starts as the text the plugin ships in this language, so a site that changes nothing still reads correctly — and an update that improves a sentence improves it here too. Rewrite one and that is what is shown, until you put it back."
+msgstr "Las frases que lee una persona cuando crear una cuenta no funciona. Cada una arranca como el texto que el plugin trae en este idioma, así que un sitio que no cambia nada se lee bien igualmente, y una actualización que mejora una frase también la mejora aquí. Reescribe una y eso es lo que se muestra, hasta que la devuelvas."
+
 msgid "The sentences a person reads when the way in does not work. Each one starts as the text the plugin ships in this language, so a site that changes nothing still reads correctly — and an update that improves a sentence improves it here too. Rewrite one and that is what is shown, until you put it back."
 msgstr "Las frases que lee una persona cuando la forma de entrar no funciona. Cada una arranca como el texto que el plugin trae en este idioma, así que un sitio que no cambia nada se lee bien igualmente, y una actualización que mejora una frase también la mejora aquí. Reescribe una y eso es lo que se muestra, hasta que la devuelvas."
 
@@ -4594,8 +4652,8 @@ msgstr "La forma de la página"
 msgid "The short name that goes in the address of their profile. Without one, the site falls back to their first and last name."
 msgstr "El nombre corto que va en la dirección de su perfil. Sin él, el sitio usa su nombre y sus apellidos."
 
-msgid "The short version: the page, what the form takes, whether the e-mail this site depends on is going out, and whether any door is open at all."
-msgstr "La versión corta: la página, qué acepta el formulario, si está saliendo el correo del que depende este sitio, y si hay alguna puerta abierta."
+msgid "The short version: the page, what the form takes, whether the e-mail this site depends on is going out, whether any door is open at all, and whether anybody can register."
+msgstr "La versión corta: la página, qué acepta el formulario, si está saliendo el correo del que depende este sitio, si hay alguna puerta abierta y si alguien puede registrarse."
 
 msgid "The shortcode still works wherever somebody puts it."
 msgstr "El shortcode sigue funcionando allí donde alguien lo ponga."
@@ -4665,6 +4723,9 @@ msgstr "Lo escribe el sitio"
 
 msgid "The site’s logo."
 msgstr "El logo del sitio."
+
+msgid "The site’s own form"
+msgstr "El formulario propio del sitio"
 
 msgid "The site’s own switch"
 msgstr "El interruptor propio del sitio"
@@ -5594,6 +5655,9 @@ msgstr "Quién lo puede cambiar"
 msgid "Who can create an account on this site, and what that account is once it exists. First whether anybody can at all; then, if they can, through which doors — they are independent, and a site can open as many as it likes."
 msgstr "Quién puede crear una cuenta en este sitio, y qué es esa cuenta una vez que existe. Primero si alguien puede siquiera; después, si puede, por qué puertas — son independientes, y un sitio puede abrir las que quiera."
 
+msgid "Who can register"
+msgstr "Quién puede registrarse"
+
 msgid "Who can sign in with a network"
 msgstr "Quién puede entrar con una red"
 
@@ -5663,8 +5727,8 @@ msgstr "Con tres secciones el desplazamiento es más limpio. Con ocho esconde la
 msgid "With what"
 msgstr "Con qué"
 
-msgid "With what somebody who already has an account gets in. Every way in is a box: tick the ones this site offers. What each one does once it is on is set where that feature lives, and who gets an account at all is the Registration tab."
-msgstr "Con qué entra alguien que ya tiene una cuenta. Cada forma de entrar es una casilla: marca las que ofrece este sitio. Lo que hace cada una una vez activada se ajusta donde vive esa función, y quién llega a tener una cuenta es la pestaña Registro."
+msgid "With what somebody who already has an account gets in. Every way in is a box: tick the ones this site offers. What each one does once it is on is set where that feature lives, and who gets an account at all is the Registration screen."
+msgstr "Con qué entra alguien que ya tiene una cuenta. Cada forma de entrar es una casilla: marca las que ofrece este sitio. Lo que hace cada una una vez activada se ajusta donde vive esa función, y quién llega a tener una cuenta es la pantalla Registro."
 
 msgid "With “remember me”"
 msgstr "Con \"recordarme\""
@@ -6358,8 +6422,8 @@ msgstr "“%s” tiene que ser una clase, como .is-dark, o un atributo, como dat
 msgid "“%s” is not published, so nobody can reach it."
 msgstr "\"%s\" no está publicada, así que nadie puede llegar."
 
-msgid "“Anyone can register” is off and locked: on this site the e-mail link is the only way in, and that form would create accounts with a password. The same switch, and the reason, are on the Access screen."
-msgstr "«Cualquiera puede registrarse» está desactivado y bloqueado: en este sitio el enlace por correo es la única forma de entrar, y ese formulario crearía cuentas con contraseña. El mismo interruptor, y el motivo, están en la pantalla Acceso."
+msgid "“Anyone can register” is off and locked: on this site the e-mail link is the only way in, and that form would create accounts with a password. The same switch, and the reason, are on the Registration screen."
+msgstr "«Cualquiera puede registrarse» está desactivado y bloqueado: en este sitio el enlace por correo es la única forma de entrar, y ese formulario crearía cuentas con contraseña. El mismo interruptor, y el motivo, están en la pantalla Registro."
 
 msgid "“Country” shows the full list with its dial codes; “Phone with country code” splits the number in two and stores it in international format."
 msgstr "\"País\" muestra la lista completa con sus prefijos; \"Teléfono con prefijo de país\" parte el número en dos y lo guarda en formato internacional."

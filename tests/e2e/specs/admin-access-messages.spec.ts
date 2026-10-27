@@ -100,6 +100,24 @@ test.describe('Access › Messages', () => {
 		await expect(guest.locator(`[data-diluxone-users-message="${KEY}"]`)).toHaveText(MINE_EN);
 	});
 
+	test('holds no registration message, has no Registration tab, and its save leaves Registration’s sentences alone', async ({ page, site, options }) => {
+		await options.set({ diluxone_users_login_messages: { en_US: { register_taken: 'E2E: written on Registration.' } } });
+		await page.goto(adminUrl('diluxone-users-login', 'messages'));
+
+		await expect(page.locator('.nav-tab-wrapper a.nav-tab[href*="tab=register"]')).toHaveCount(0);
+		await expect(page.locator('textarea[name^="diluxone_users_message[register_"]')).toHaveCount(0);
+		await expect(page.locator('textarea[name^="diluxone_users_message[login_"]').first()).toBeAttached();
+
+		await (await messageField(page)).fill(MINE_EN);
+		await savePanel(page);
+
+		const stored = (await site.getOptions(['diluxone_users_login_messages'])).diluxone_users_login_messages as Record<string, Record<string, string>>;
+		const locale = await page.locator('input[name="diluxone_users_message_locale"]').inputValue();
+
+		expect(stored[locale][KEY]).toBe(MINE_EN);
+		expect(stored.en_US.register_taken, 'Access’s save wrote over a sentence of Registration').toBe('E2E: written on Registration.');
+	});
+
 	test('moving to another language with something typed asks first, and saves nothing', async ({ page, site }) => {
 		await page.goto(adminUrl('diluxone-users-login', 'messages'));
 

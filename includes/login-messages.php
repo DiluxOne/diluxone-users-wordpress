@@ -72,6 +72,44 @@ function diluxone_users_login_message_groups(): array {
 }
 
 /**
+ * Which groups of sentences a screen's Messages tab holds.
+ *
+ * Registration holds what creating an account says; Access holds the rest.
+ * The list is the one place that says it, so a screen's tab and its save
+ * cannot disagree about which sentences are theirs.
+ *
+ * @param string $screen Screen slug.
+ * @return array<int, string>
+ */
+function diluxone_users_login_message_screen_groups( string $screen ): array {
+	return 'diluxone-users-register' === $screen ? array( 'register' ) : array( 'login', 'two_step', 'reset' );
+}
+
+/**
+ * The sentences one screen's Messages tab draws and saves.
+ *
+ * Anything an add-on registered under a group of its own is Access's: it would
+ * otherwise be written, saved and never drawn, which is worse than an
+ * ungrouped box, and the way in is where those have always been.
+ *
+ * @param string $screen Screen slug.
+ * @return array<string, array<string, mixed>>
+ */
+function diluxone_users_login_messages_on( string $screen ): array {
+	$mine   = diluxone_users_login_message_screen_groups( $screen );
+	$groups = diluxone_users_login_message_groups();
+
+	return array_filter(
+		diluxone_users_login_messages(),
+		static function ( array $one ) use ( $mine, $groups, $screen ): bool {
+			$group = (string) ( $one['group'] ?? '' );
+
+			return in_array( $group, $mine, true ) || ( ! isset( $groups[ $group ] ) && 'diluxone-users-register' !== $screen );
+		}
+	);
+}
+
+/**
  * Every sentence the way in can show, what it is called, and how it reads.
  *
  * `shipped` is a callable and not a string for the same reason the e-mails'
@@ -452,15 +490,16 @@ function diluxone_users_login_notice( string $key, string $extra = '' ): void {
 /* ── The screen ────────────────────────────────────────────────────── */
 
 /**
- * The tab, on the Access screen and not on the social one.
+ * The tab, on the Access screen and on the Registration screen.
  *
  * It started as the message about the networks, which would have put it beside
- * them. It did not stay there: the other twelve sentences are in exactly the
- * same position — written into a template, unreachable without a theme — and
- * two mechanisms for one problem is the thing this plugin keeps refusing to
- * grow. So it is one tab, holding every sentence the way in can say, on the
- * screen the way in already lives on. The rail says where the networks
- * themselves are configured, for whoever arrived looking for them.
+ * them. It did not stay there: the other sentences are in exactly the same
+ * position — written into a template, unreachable without a theme — and two
+ * mechanisms for one problem is the thing this plugin keeps refusing to grow.
+ * So it is one tab, drawn by one renderer, on each screen the sentences belong
+ * to: Access holds what signing in says, Registration what creating an account
+ * says (`diluxone_users_login_message_screen_groups()`). They stay in one
+ * option, keyed the same: only where they are written moved.
  */
 function diluxone_users_login_messages_panel(): void {
 	diluxone_users_register_panel(
@@ -474,6 +513,17 @@ function diluxone_users_login_messages_panel(): void {
 			'position' => 40,
 			'render'   => 'diluxone_users_screen_login_messages',
 			'save'     => 'diluxone_users_login_messages_save',
+		)
+	);
+
+	diluxone_users_register_panel(
+		'diluxone-users-register',
+		'messages',
+		array(
+			'label'    => __( 'Messages', 'diluxone-users' ),
+			'position' => 20,
+			'render'   => 'diluxone_users_screen_register_messages',
+			'save'     => 'diluxone_users_register_messages_save',
 		)
 	);
 }
@@ -504,11 +554,14 @@ function diluxone_users_login_messages_locale(): string {
 
 /**
  * How many of these this site has written itself, in one language.
+ *
+ * @param string $locale The language.
+ * @param string $screen Only the sentences of this screen's tab; '' for all.
  */
-function diluxone_users_login_messages_own( string $locale ): int {
+function diluxone_users_login_messages_own( string $locale, string $screen = '' ): int {
 	$written = diluxone_users_login_messages_store()[ $locale ] ?? array();
 
-	return count( array_intersect_key( $written, diluxone_users_login_messages() ) );
+	return count( array_intersect_key( $written, '' === $screen ? diluxone_users_login_messages() : diluxone_users_login_messages_on( $screen ) ) );
 }
 
 /**
@@ -551,14 +604,22 @@ function diluxone_users_login_message_fields( string $key, array $message, strin
 	);
 }
 
-/** The tab itself. */
-function diluxone_users_screen_login_messages(): void {
+/**
+ * The tab itself, on one screen: that screen's sentences and no others.
+ *
+ * @param string $screen The screen it is drawn on.
+ */
+function diluxone_users_screen_login_messages( string $screen = 'diluxone-users-login' ): void {
 	diluxone_users_ui_aside_open();
 
 	$locale   = diluxone_users_login_messages_locale();
-	$messages = diluxone_users_login_messages();
+	$messages = diluxone_users_login_messages_on( $screen );
 
-	diluxone_users_intro( __( 'The sentences a person reads when the way in does not work. Each one starts as the text the plugin ships in this language, so a site that changes nothing still reads correctly — and an update that improves a sentence improves it here too. Rewrite one and that is what is shown, until you put it back.', 'diluxone-users' ) );
+	diluxone_users_intro(
+		'diluxone-users-register' === $screen
+			? __( 'The sentences a person reads when creating an account does not work. Each one starts as the text the plugin ships in this language, so a site that changes nothing still reads correctly — and an update that improves a sentence improves it here too. Rewrite one and that is what is shown, until you put it back.', 'diluxone-users' )
+			: __( 'The sentences a person reads when the way in does not work. Each one starts as the text the plugin ships in this language, so a site that changes nothing still reads correctly — and an update that improves a sentence improves it here too. Rewrite one and that is what is shown, until you put it back.', 'diluxone-users' )
+	);
 
 	printf(
 		'<input type="hidden" name="diluxone_users_message_locale" value="%s">',
@@ -600,8 +661,8 @@ function diluxone_users_screen_login_messages(): void {
 	}
 
 	diluxone_users_ui_aside_close(
-		static function () use ( $locale, $messages ): void {
-			$own = diluxone_users_login_messages_own( $locale );
+		static function () use ( $locale, $messages, $screen ): void {
+			$own = diluxone_users_login_messages_own( $locale, $screen );
 
 			diluxone_users_ui_aside_state(
 				0 === $own
@@ -625,9 +686,14 @@ function diluxone_users_screen_login_messages(): void {
 				'active'
 			);
 
-			diluxone_users_login_messages_languages( $locale );
+			diluxone_users_login_messages_languages( $locale, $screen );
 		}
 	);
+}
+
+/** The same tab, on the Registration screen. */
+function diluxone_users_screen_register_messages(): void {
+	diluxone_users_screen_login_messages( 'diluxone-users-register' );
 }
 
 /**
@@ -636,7 +702,7 @@ function diluxone_users_screen_login_messages(): void {
  * Only on a site that has more than one: a picker with a single entry is
  * furniture.
  */
-function diluxone_users_login_messages_languages( string $current ): void {
+function diluxone_users_login_messages_languages( string $current, string $screen = 'diluxone-users-login' ): void {
 	$languages = diluxone_users_mail_languages();
 
 	if ( count( $languages ) < 2 ) {
@@ -654,7 +720,7 @@ function diluxone_users_login_messages_languages( string $current ): void {
 				'<a href="%1$s">%2$s</a>',
 				esc_url(
 					diluxone_users_admin_url(
-						'diluxone-users-login',
+						$screen,
 						array(
 							'tab'  => 'messages',
 							'lang' => $locale,
@@ -682,9 +748,15 @@ function diluxone_users_login_messages_languages( string $current ): void {
  * said nothing, and recording it would freeze that site on today's wording.
  * What is compared is what is in the box against what the plugin would have
  * said in that language; equal means there is nothing to store.
+ *
+ * Only the sentences of the screen that sent it, behind that screen's nonce:
+ * a key of the other screen's tab is ignored, so one screen's save never
+ * touches the other's sentences.
+ *
+ * @param string $screen The screen whose tab sent it.
  */
-function diluxone_users_login_messages_save(): void {
-	check_admin_referer( 'diluxone_users_panel_diluxone-users-login', 'diluxone_users_panel_nonce' );
+function diluxone_users_login_messages_save( string $screen = 'diluxone-users-login' ): void {
+	check_admin_referer( 'diluxone_users_panel_' . $screen, 'diluxone_users_panel_nonce' );
 	diluxone_users_panel_allowed();
 
 	$locale = diluxone_users_login_messages_locale();
@@ -694,7 +766,7 @@ function diluxone_users_login_messages_save(): void {
 	/** @var array<string, mixed> $back */
 	$back = (array) map_deep( wp_unslash( $_POST['diluxone_users_message_shipped'] ?? array() ), 'sanitize_key' );
 
-	foreach ( array_keys( diluxone_users_login_messages() ) as $key ) {
+	foreach ( array_keys( diluxone_users_login_messages_on( $screen ) ) as $key ) {
 		$key = (string) $key;
 
 		if ( ! empty( $back[ $key ] ) ) {
@@ -723,4 +795,9 @@ function diluxone_users_login_messages_save(): void {
 			$text === trim( diluxone_users_login_message_shipped( $key, $locale ) ) ? '' : $text
 		);
 	}
+}
+
+/** The same save, from the Registration screen. */
+function diluxone_users_register_messages_save(): void {
+	diluxone_users_login_messages_save( 'diluxone-users-register' );
 }

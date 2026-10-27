@@ -25,6 +25,11 @@ export function accessTab(tab: string): string {
 	return adminUrl('diluxone-users-login', tab);
 }
 
+/** A tab of the Registration screen: who can register, unless another is named. */
+export function registerTab(tab = 'who'): string {
+	return adminUrl('diluxone-users-register', tab);
+}
+
 /** One input by its name and value. */
 export function control(page: Page, name: string, value?: string): Locator {
 	return page.locator(value === undefined ? `[name="${name}"]` : `[name="${name}"][value="${value}"]`);

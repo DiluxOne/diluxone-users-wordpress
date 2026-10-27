@@ -116,6 +116,7 @@ class CoverAdminNetworkTest extends IntegrationTestCase {
 		$this->assertContains( 'diluxone-users-security', $slugs );
 		$this->assertContains( 'diluxone-users-design', $slugs );
 		$this->assertNotContains( 'diluxone-users-membership', $slugs, 'membership is a network’s' );
+		$this->assertSame( 'diluxone-users-login', $slugs[ (int) array_search( 'diluxone-users-register', $slugs, true ) + 1 ] ?? '', 'Registration right above Access' );
 	}
 
 	public function test_on_a_network_the_hubs_menu_leaves_the_networks_screens_out(): void {
@@ -130,6 +131,40 @@ class CoverAdminNetworkTest extends IntegrationTestCase {
 		$this->assertContains( 'diluxone-users-design', $slugs );
 		$this->assertNotContains( 'diluxone-users-security', $slugs );
 		$this->assertNotContains( 'diluxone-users-fields', $slugs );
+	}
+
+	public function test_c6_on_the_hub_registration_is_right_above_access(): void {
+		$this->network_only( 'test_a_single_site_has_no_network_menu_and_the_whole_menu_on_its_own' );
+
+		$this->the_admin();
+		$GLOBALS['submenu'] = array();
+
+		diluxone_users_menu();
+		$slugs = array_column( $GLOBALS['submenu'][ DILUXONE_USERS_MENU ], 2 );
+		$at    = array_search( 'diluxone-users-register', $slugs, true );
+
+		$this->assertIsInt( $at, 'Registration is on the hub, where Access’s Registration tab was' );
+		$this->assertSame( 'diluxone-users-login', $slugs[ $at + 1 ] ?? '', 'right above Access' );
+
+		do_action( 'diluxone_users_register_panels' );
+		$this->assertSame( array( 'summary', 'who', 'messages' ), array_keys( diluxone_users_panels( 'diluxone-users-register' ) ), 'every tab drawn on the hub' );
+	}
+
+	public function test_c6_network_admin_and_another_site_have_neither_and_send_to_the_hub(): void {
+		$this->network_only( 'test_a_single_site_has_no_network_menu_and_the_whole_menu_on_its_own' );
+
+		$this->in_network_admin();
+		$this->the_admin();
+
+		diluxone_users_network_menu();
+		$slugs = array_column( $GLOBALS['submenu'][ DILUXONE_USERS_MENU ] ?? array(), 2 );
+
+		$this->assertNotContains( 'diluxone-users-register', $slugs, 'the hub’s, like Access' );
+		$this->assertNotContains( 'diluxone-users-login', $slugs );
+		$this->assertStringStartsWith( get_admin_url( diluxone_users_hub_site_id(), 'admin.php' ), diluxone_users_admin_url( 'diluxone-users-register' ), 'a link to it from here goes to the hub' );
+
+		$this->assertFalse( diluxone_users_screen_here( 'diluxone-users-register', 'site' ), 'another site of the network has no Registration either' );
+		$this->assertFalse( diluxone_users_screen_here( 'diluxone-users-login', 'site' ) );
 	}
 
 	/* ── The network's front page ─────────────────────────────────── */
