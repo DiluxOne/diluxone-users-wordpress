@@ -427,6 +427,54 @@ function diluxone_users_doors(): array {
 	return $rows;
 }
 
+/**
+ * Whether anybody can sign in right now, and through which ways.
+ *
+ * The rail of Access › Summary, in the shape of a summary row: the same
+ * reading the table does, folded into one sentence.
+ *
+ * @return array<string, string>
+ */
+function diluxone_users_login_state(): array {
+	$social = diluxone_users_sso_working_names();
+	$sso    = (bool) diluxone_users_option( 'diluxone_users_sso_login' );
+	$open   = array();
+
+	if ( diluxone_users_login_has_link() ) {
+		$open[] = __( 'the e-mail link', 'diluxone-users' );
+	}
+
+	if ( diluxone_users_login_has_password() ) {
+		$open[] = __( 'a username and password', 'diluxone-users' );
+	}
+
+	if ( $sso ) {
+		$open = array_merge( $open, $social );
+	}
+
+	$waiting = $sso && array() === $social;
+
+	return diluxone_users_summary_row(
+		array( 'diluxone_users_login_method', 'diluxone_users_sso_login' ),
+		array(
+			'label'  => __( 'Signing in', 'diluxone-users' ),
+			'state'  => $waiting ? 'pending' : ( array() !== $open ? 'active' : 'off' ),
+			'why'    => $waiting ? __( 'no provider is working yet', 'diluxone-users' ) : '',
+			'detail' => array() !== $open
+				? esc_html(
+					sprintf(
+						/* translators: %s: the ways people sign in, comma separated */
+						__( 'Open: people sign in with %s.', 'diluxone-users' ),
+						implode( ', ', $open )
+					)
+				)
+				: esc_html__( 'Nobody can sign in here.', 'diluxone-users' ),
+			'url'    => diluxone_users_admin_url( 'diluxone-users-login', array( 'tab' => 'ways' ) ),
+		),
+		esc_html__( 'Everybody signs in on wp-login.php with a username and password, as WordPress has it.', 'diluxone-users' )
+	);
+}
+
 /** The state of the whole door. Nothing is edited here. */
 function diluxone_users_screen_login_summary(): void {
 	diluxone_users_ui_aside_open();
@@ -435,11 +483,15 @@ function diluxone_users_screen_login_summary(): void {
 
 	diluxone_users_summary_table( diluxone_users_doors() );
 
-	/*
-	 * No rail: the table is the whole of what this tab says about the site,
-	 * and the way back in when locked out is the lockout tab of Maintenance.
-	 */
-	diluxone_users_ui_aside_close( static function (): void {} );
+	$now = diluxone_users_login_state();
+
+	// The rail says one thing: whether anybody can sign in right now, and
+	// through which ways. Registering is Registration's to report.
+	diluxone_users_ui_aside_close(
+		static function () use ( $now ): void {
+			diluxone_users_ui_aside_state( (string) $now['detail'], (string) $now['state'], (string) ( $now['why'] ?? '' ) );
+		}
+	);
 }
 
 /**
