@@ -180,6 +180,9 @@ msgstr ""
 msgid "A bar down the left"
 msgstr ""
 
+msgid "A bit more about you"
+msgstr ""
+
 msgid "A border and the text in the accent, on the page’s own ground. For a design where a block of colour would be too loud."
 msgstr ""
 
@@ -356,6 +359,9 @@ msgstr ""
 msgid "About"
 msgstr ""
 
+msgid "About you"
+msgstr ""
+
 msgid "Above all of them, always"
 msgstr ""
 
@@ -465,6 +471,9 @@ msgstr ""
 msgid "Address"
 msgstr ""
 
+msgid "Afghanistan"
+msgstr ""
+
 msgid "After sign-in"
 msgstr ""
 
@@ -478,6 +487,15 @@ msgid "After the link is sent"
 msgstr ""
 
 msgid "After what the plugin shows"
+msgstr ""
+
+msgid "Aland Islands"
+msgstr ""
+
+msgid "Albania"
+msgstr ""
+
+msgid "Algeria"
 msgstr ""
 
 msgid "All the doors"
@@ -507,6 +525,9 @@ msgstr ""
 msgid "Always stacked"
 msgstr ""
 
+msgid "American Samoa"
+msgstr ""
+
 msgid "An account belongs to the whole network; being a member of a site — having a role on it — is each site’s. This decides which sites an account is a member of, for every site of the network."
 msgstr ""
 
@@ -529,6 +550,21 @@ msgid "And the note under it"
 msgstr ""
 
 msgid "And then, here"
+msgstr ""
+
+msgid "Andorra"
+msgstr ""
+
+msgid "Angola"
+msgstr ""
+
+msgid "Anguilla"
+msgstr ""
+
+msgid "Antarctica"
+msgstr ""
+
+msgid "Antigua and Barbuda"
 msgstr ""
 
 msgid "Any code you can get for the second step: one of your backup codes, or the one we email you."
@@ -561,6 +597,15 @@ msgid "Apple signs its client secret with a JWT that has to be regenerated every
 msgstr ""
 
 msgid "Application type: “Web application”. Give it a name — this one is only for you."
+msgstr ""
+
+msgid "Argentina"
+msgstr ""
+
+msgid "Armenia"
+msgstr ""
+
+msgid "Aruba"
 msgstr ""
 
 msgid "As many as fit"
@@ -624,6 +669,15 @@ msgstr ""
 msgid "At the start"
 msgstr ""
 
+msgid "Australia"
+msgstr ""
+
+msgid "Austria"
+msgstr ""
+
+msgid "Azerbaijan"
+msgstr ""
+
 msgid "Back to all providers"
 msgstr ""
 
@@ -642,6 +696,18 @@ msgstr ""
 msgid "Background on hover"
 msgstr ""
 
+msgid "Bahamas"
+msgstr ""
+
+msgid "Bahrain"
+msgstr ""
+
+msgid "Bangladesh"
+msgstr ""
+
+msgid "Barbados"
+msgstr ""
+
 msgid "Before what the plugin shows"
 msgstr ""
 
@@ -654,6 +720,21 @@ msgstr ""
 msgid "Behind the whole area"
 msgstr ""
 
+msgid "Belarus"
+msgstr ""
+
+msgid "Belgium"
+msgstr ""
+
+msgid "Belize"
+msgstr ""
+
+msgid "Benin"
+msgstr ""
+
+msgid "Bermuda"
+msgstr ""
+
 msgid "Besides the e-mail address, which is the identity and is never optional, this is what the account area asks people for."
 msgstr ""
 
@@ -663,19 +744,52 @@ msgstr ""
 msgid "Between two of these side by side, such as “Join” and the person. In px or rem, up to 96px or 6rem. Empty: the theme’s spacing."
 msgstr ""
 
+msgid "Bhutan"
+msgstr ""
+
 msgid "Blue"
+msgstr ""
+
+msgid "Bolivia"
 msgstr ""
 
 msgid "Border"
 msgstr ""
 
+msgid "Bosnia and Herzegovina"
+msgstr ""
+
 msgid "Both come from the provider’s console, and changing either of them asks for the live test again."
+msgstr ""
+
+msgid "Botswana"
 msgstr ""
 
 msgid "Bottom"
 msgstr ""
 
+msgid "Brazil"
+msgstr ""
+
+msgid "British Indian Ocean Territory"
+msgstr ""
+
+msgid "British Virgin Islands"
+msgstr ""
+
+msgid "Brunei"
+msgstr ""
+
+msgid "Bulgaria"
+msgstr ""
+
+msgid "Burkina Faso"
+msgstr ""
+
 msgid "Burnt orange"
+msgstr ""
+
+msgid "Burundi"
 msgstr ""
 
 msgid "Buttons"
@@ -690,6 +804,15 @@ msgstr ""
 msgid "By invitation"
 msgstr ""
 
+msgid "Cambodia"
+msgstr ""
+
+msgid "Cameroon"
+msgstr ""
+
+msgid "Canada"
+msgstr ""
+
 msgid "Cancel"
 msgstr ""
 
@@ -699,7 +822,22 @@ msgstr ""
 msgid "Can’t get a code? Use one of your backup codes: they go in the same box."
 msgstr ""
 
+msgid "Cape Verde"
+msgstr ""
+
+msgid "Caribbean Netherlands"
+msgstr ""
+
 msgid "Carried out by you, it waits in Tools → Erase Personal Data: for a site that checks something first, such as a pending payment."
+msgstr ""
+
+msgid "Cayman Islands"
+msgstr ""
+
+msgid "Central African Republic"
+msgstr ""
+
+msgid "Chad"
 msgstr ""
 
 msgid "Change it →"
@@ -727,6 +865,12 @@ msgid "Check your email"
 msgstr ""
 
 msgid "Checking…"
+msgstr ""
+
+msgid "Chile"
+msgstr ""
+
+msgid "China"
 msgstr ""
 
 msgid "Choose a new password"
@@ -763,6 +907,9 @@ msgstr ""
 #. translators: 1: the stored choice, as a word in code, 2: what the site gets in its place today
 #, php-format
 msgid "Chosen while an add-on that is not active now offered it (%1$s). Until it is back, this site gets %2$s instead. It stays chosen until you pick another answer."
+msgstr ""
+
+msgid "Christmas Island"
 msgstr ""
 
 msgid "Clear"
@@ -810,10 +957,19 @@ msgstr ""
 msgid "Closing every session on the site signs you out too. That is on purpose: if you are doing this, the session you are least sure about might be your own."
 msgstr ""
 
+msgid "Cocos (Keeling) Islands"
+msgstr ""
+
+msgid "Colombia"
+msgstr ""
+
 msgid "Colours of the button"
 msgstr ""
 
 msgid "Comes from"
+msgstr ""
+
+msgid "Comoros"
 msgstr ""
 
 msgid "Complete your details"
@@ -867,12 +1023,21 @@ msgstr ""
 msgid "Confirms by itself"
 msgstr ""
 
+msgid "Congo"
+msgstr ""
+
+msgid "Congo (DRC)"
+msgstr ""
+
 #. translators: %s: name of the social network
 #, php-format
 msgid "Continue with %s"
 msgstr ""
 
 msgid "Controls"
+msgstr ""
+
+msgid "Cook Islands"
 msgstr ""
 
 msgid "Cookies"
@@ -888,6 +1053,9 @@ msgid "Copy this into a support message and half the back-and-forth disappears."
 msgstr ""
 
 msgid "Corners"
+msgstr ""
+
+msgid "Costa Rica"
 msgstr ""
 
 msgid "Counted one person at a time, and only for the changes they make themselves: saving the same thing again spends nothing, and an administrator fixing it spends nobody’s goes."
@@ -933,8 +1101,26 @@ msgstr ""
 msgid "Credentials are saved but the provider is off, so no button shows: %s."
 msgstr ""
 
+msgid "Croatia"
+msgstr ""
+
+msgid "Cuba"
+msgstr ""
+
+msgid "Curacao"
+msgstr ""
+
 #. Description of the plugin
 msgid "Custom user fields, a front-end account area, passwordless sign-in, social login, two-step verification and session control."
+msgstr ""
+
+msgid "Cyprus"
+msgstr ""
+
+msgid "Czechia"
+msgstr ""
+
+msgid "Côte d'Ivoire"
 msgstr ""
 
 msgid "Dark"
@@ -1000,6 +1186,9 @@ msgstr ""
 msgid "Deleting your account"
 msgstr ""
 
+msgid "Denmark"
+msgstr ""
+
 msgid "Depending on the provider it is called redirect URI, callback URL, return URL or authorized redirect URL."
 msgstr ""
 
@@ -1039,6 +1228,15 @@ msgid "DiluxOne Users+: the network’s membership policy has not been confirmed
 msgstr ""
 
 msgid "Discard the changes"
+msgstr ""
+
+msgid "Djibouti"
+msgstr ""
+
+msgid "Dominica"
+msgstr ""
+
+msgid "Dominican Republic"
 msgstr ""
 
 msgid "Done."
@@ -1097,6 +1295,9 @@ msgstr ""
 msgid "Each person sees where they are signed in, from their account, and can close it."
 msgstr ""
 
+msgid "Ecuador"
+msgstr ""
+
 msgid "Edge"
 msgstr ""
 
@@ -1107,6 +1308,12 @@ msgid "Edit profile"
 msgstr ""
 
 msgid "Edit the page →"
+msgstr ""
+
+msgid "Egypt"
+msgstr ""
+
+msgid "El Salvador"
 msgstr ""
 
 msgid "Email"
@@ -1136,6 +1343,12 @@ msgstr ""
 msgid "Environment"
 msgstr ""
 
+msgid "Equatorial Guinea"
+msgstr ""
+
+msgid "Eritrea"
+msgstr ""
+
 msgid "Error: the form expired. Load the page again and send it once more."
 msgstr ""
 
@@ -1147,6 +1360,15 @@ msgstr ""
 #. translators: %s: field name
 #, php-format
 msgid "Error: “%s” is required."
+msgstr ""
+
+msgid "Estonia"
+msgstr ""
+
+msgid "Eswatini"
+msgstr ""
+
+msgid "Ethiopia"
 msgstr ""
 
 msgid "Even with everybody sent to the page above, this one is still shown to somebody: an administrator coming in through the emergency door, and anybody finishing a password reset — WordPress builds that link and it goes here and nowhere else. Left alone it is a grey box with the WordPress logo on it."
@@ -1292,7 +1514,13 @@ msgstr ""
 msgid "Failing"
 msgstr ""
 
+msgid "Falkland Islands"
+msgstr ""
+
 msgid "Fall back to Gravatar when there is none"
+msgstr ""
+
+msgid "Faroe Islands"
 msgstr ""
 
 msgid "Field deleted. The data already stored was left alone."
@@ -1312,6 +1540,9 @@ msgstr ""
 msgid "Fields in use"
 msgstr ""
 
+msgid "Fiji"
+msgstr ""
+
 msgid "Filled"
 msgstr ""
 
@@ -1319,6 +1550,9 @@ msgid "Filled buttons, links, and the section of the menu somebody is reading."
 msgstr ""
 
 msgid "Finish"
+msgstr ""
+
+msgid "Finland"
 msgstr ""
 
 msgid "First name"
@@ -1365,6 +1599,18 @@ msgstr ""
 msgid "Forms are hard to read at full width; a list of courses is not. This holds the content only."
 msgstr ""
 
+msgid "France"
+msgstr ""
+
+msgid "French Guiana"
+msgstr ""
+
+msgid "French Polynesia"
+msgstr ""
+
+msgid "French Southern Territories"
+msgstr ""
+
 msgid "From"
 msgstr ""
 
@@ -1388,13 +1634,31 @@ msgstr ""
 msgid "From your theme — %s"
 msgstr ""
 
+msgid "Gabon"
+msgstr ""
+
+msgid "Gambia"
+msgstr ""
+
 msgid "Gender"
+msgstr ""
+
+msgid "Georgia"
+msgstr ""
+
+msgid "Germany"
 msgstr ""
 
 msgid "Get started"
 msgstr ""
 
 msgid "Getting started"
+msgstr ""
+
+msgid "Ghana"
+msgstr ""
+
+msgid "Gibraltar"
 msgstr ""
 
 msgid "Give it a name — this is what people see on the consent screen."
@@ -1439,7 +1703,40 @@ msgstr ""
 msgid "Gravatar is not asked: no address is sent anywhere to ask whether there is a picture for it."
 msgstr ""
 
+msgid "Greece"
+msgstr ""
+
 msgid "Green"
+msgstr ""
+
+msgid "Greenland"
+msgstr ""
+
+msgid "Grenada"
+msgstr ""
+
+msgid "Guadeloupe"
+msgstr ""
+
+msgid "Guam"
+msgstr ""
+
+msgid "Guatemala"
+msgstr ""
+
+msgid "Guernsey"
+msgstr ""
+
+msgid "Guinea"
+msgstr ""
+
+msgid "Guinea-Bissau"
+msgstr ""
+
+msgid "Guyana"
+msgstr ""
+
+msgid "Haiti"
 msgstr ""
 
 msgid "Have a public name"
@@ -1485,6 +1782,12 @@ msgid "Hide it on the site only for some roles"
 msgstr ""
 
 msgid "Home"
+msgstr ""
+
+msgid "Honduras"
+msgstr ""
+
+msgid "Hong Kong"
 msgstr ""
 
 msgid "How long a session lasts"
@@ -1538,6 +1841,9 @@ msgstr ""
 msgid "However you identify. Write anything you like, or leave it empty."
 msgstr ""
 
+msgid "Hungary"
+msgstr ""
+
 msgid "I already created the app"
 msgstr ""
 
@@ -1548,6 +1854,9 @@ msgid "I forgot my password"
 msgstr ""
 
 msgid "IP"
+msgstr ""
+
+msgid "Iceland"
 msgstr ""
 
 msgid "If somebody forgets their password"
@@ -1586,10 +1895,31 @@ msgstr ""
 msgid "In what order"
 msgstr ""
 
+msgid "India"
+msgstr ""
+
+msgid "Indonesia"
+msgstr ""
+
 msgid "Inside the dashboard the fields place themselves: they are on every profile, on the form for adding a person and on WordPress’s own registration form, with nothing to set up. On the pages visitors see, you say where they go — and that is what the lines below are for."
 msgstr ""
 
 msgid "Instead of it — your content replaces the section"
+msgstr ""
+
+msgid "Iran"
+msgstr ""
+
+msgid "Iraq"
+msgstr ""
+
+msgid "Ireland"
+msgstr ""
+
+msgid "Isle of Man"
+msgstr ""
+
+msgid "Israel"
 msgstr ""
 
 msgid "It cannot be an email address: that is how you sign in, not how people see you."
@@ -1670,6 +2000,9 @@ msgstr ""
 msgid "It works"
 msgstr ""
 
+msgid "Italy"
+msgstr ""
+
 msgid "Its address"
 msgstr ""
 
@@ -1687,10 +2020,25 @@ msgstr ""
 msgid "JPG, PNG, GIF or WebP, up to %s."
 msgstr ""
 
+msgid "Jamaica"
+msgstr ""
+
+msgid "Japan"
+msgstr ""
+
+msgid "Jersey"
+msgstr ""
+
+msgid "Jordan"
+msgstr ""
+
 msgid "Just this person:"
 msgstr ""
 
 msgid "KB"
+msgstr ""
+
+msgid "Kazakhstan"
 msgstr ""
 
 msgid "Keep a row for"
@@ -1705,6 +2053,9 @@ msgstr ""
 msgid "Keeping it leaves the request unconfirmed: the link in the e-mail works until it expires."
 msgstr ""
 
+msgid "Kenya"
+msgstr ""
+
 msgid "Kept out"
 msgstr ""
 
@@ -1714,6 +2065,21 @@ msgstr ""
 #. translators: %s: the key the answers are stored under
 #, php-format
 msgid "Key: <code>%s</code> — it cannot change: it is the name the data is stored under."
+msgstr ""
+
+msgid "Kiribati"
+msgstr ""
+
+msgid "Kosovo"
+msgstr ""
+
+msgid "Kuwait"
+msgstr ""
+
+msgid "Kyrgyzstan"
+msgstr ""
+
+msgid "Laos"
 msgstr ""
 
 msgid "Largest photo accepted"
@@ -1733,6 +2099,9 @@ msgstr ""
 msgid "Last sign-in"
 msgstr ""
 
+msgid "Latvia"
+msgstr ""
+
 msgid "Layout"
 msgstr ""
 
@@ -1743,6 +2112,9 @@ msgid "Leave it as WordPress ships it"
 msgstr ""
 
 msgid "Leave it on “None” unless this site really is behind a proxy: a header nobody is writing is a header the visitor can write. When there is one, pick the one it writes — X-Forwarded-For for nginx, Traefik and most load balancers, CF-Connecting-IP behind Cloudflare, True-Client-IP behind Akamai."
+msgstr ""
+
+msgid "Lebanon"
 msgstr ""
 
 msgid "Left"
@@ -1763,6 +2135,9 @@ msgstr ""
 msgid "Length"
 msgstr ""
 
+msgid "Lesotho"
+msgstr ""
+
 msgid "Let people choose their public name"
 msgstr ""
 
@@ -1770,6 +2145,15 @@ msgid "Let people upload their own"
 msgstr ""
 
 msgid "Letters, numbers and dashes. Sign in, registration, the second step and a new password are all answered there, and an address you used before keeps sending people to it."
+msgstr ""
+
+msgid "Liberia"
+msgstr ""
+
+msgid "Libya"
+msgstr ""
+
+msgid "Liechtenstein"
 msgstr ""
 
 msgid "Lines"
@@ -1808,6 +2192,9 @@ msgstr ""
 msgid "Links to “my account” from the rest of the site go to the front page."
 msgstr ""
 
+msgid "Lithuania"
+msgstr ""
+
 msgid "Loading…"
 msgstr ""
 
@@ -1823,6 +2210,15 @@ msgstr ""
 msgid "Long text"
 msgstr ""
 
+msgid "Luxembourg"
+msgstr ""
+
+msgid "Macao"
+msgstr ""
+
+msgid "Madagascar"
+msgstr ""
+
 msgid "Made by you, it waits in Tools → Export Personal Data."
 msgstr ""
 
@@ -1830,6 +2226,21 @@ msgid "Main block — what the site needs"
 msgstr ""
 
 msgid "Maintenance"
+msgstr ""
+
+msgid "Malawi"
+msgstr ""
+
+msgid "Malaysia"
+msgstr ""
+
+msgid "Maldives"
+msgstr ""
+
+msgid "Mali"
+msgstr ""
+
+msgid "Malta"
 msgstr ""
 
 msgid "Man"
@@ -1842,6 +2253,21 @@ msgid "Manage them"
 msgstr ""
 
 msgid "Managed by the network: one setting for every site, set in Network Admin."
+msgstr ""
+
+msgid "Marshall Islands"
+msgstr ""
+
+msgid "Martinique"
+msgstr ""
+
+msgid "Mauritania"
+msgstr ""
+
+msgid "Mauritius"
+msgstr ""
+
+msgid "Mayotte"
 msgstr ""
 
 #. translators: %s: month and year they joined
@@ -1858,10 +2284,34 @@ msgstr ""
 msgid "Messages"
 msgstr ""
 
+msgid "Mexico"
+msgstr ""
+
+msgid "Micronesia"
+msgstr ""
+
 msgid "Mist"
 msgstr ""
 
 msgid "Mobile (WhatsApp)"
+msgstr ""
+
+msgid "Moldova"
+msgstr ""
+
+msgid "Monaco"
+msgstr ""
+
+msgid "Mongolia"
+msgstr ""
+
+msgid "Montenegro"
+msgstr ""
+
+msgid "Montserrat"
+msgstr ""
+
+msgid "Morocco"
 msgstr ""
 
 msgid "Move down"
@@ -1870,10 +2320,16 @@ msgstr ""
 msgid "Move up"
 msgstr ""
 
+msgid "Mozambique"
+msgstr ""
+
 msgid "Multisite"
 msgstr ""
 
 msgid "My account"
+msgstr ""
+
+msgid "Myanmar"
 msgstr ""
 
 msgid "Name"
@@ -1885,7 +2341,19 @@ msgstr ""
 msgid "Names nobody can take"
 msgstr ""
 
+msgid "Namibia"
+msgstr ""
+
+msgid "Nauru"
+msgstr ""
+
 msgid "Neither downloading your data nor deleting your account is allowed, so there is nothing to do here."
+msgstr ""
+
+msgid "Nepal"
+msgstr ""
+
+msgid "Netherlands"
 msgstr ""
 
 msgid "Network Admin › Membership →"
@@ -1912,6 +2380,12 @@ msgstr ""
 msgid "Never: they see it, and whoever administers changes it"
 msgstr ""
 
+msgid "New Caledonia"
+msgstr ""
+
+msgid "New Zealand"
+msgstr ""
+
 msgid "New accounts and new sites follow the policy on their own. What existed before it is added with this. Removals made by an administrator stay."
 msgstr ""
 
@@ -1935,6 +2409,18 @@ msgstr ""
 #. translators: %s: site name
 #, php-format
 msgid "New sign-in to your account on %s"
+msgstr ""
+
+msgid "Nicaragua"
+msgstr ""
+
+msgid "Niger"
+msgstr ""
+
+msgid "Nigeria"
+msgstr ""
+
+msgid "Niue"
 msgstr ""
 
 msgid "No"
@@ -2070,6 +2556,21 @@ msgid "None."
 msgstr ""
 
 msgid "None: wp-login.php does the job."
+msgstr ""
+
+msgid "Norfolk Island"
+msgstr ""
+
+msgid "North Korea"
+msgstr ""
+
+msgid "North Macedonia"
+msgstr ""
+
+msgid "Northern Mariana Islands"
+msgstr ""
+
+msgid "Norway"
 msgstr ""
 
 msgid "Not asked"
@@ -2248,6 +2749,9 @@ msgstr ""
 #. translators: %s: who it applies to — a list of roles, or "everybody with an account"
 #, php-format
 msgid "Offered to %s, and asked of whoever turned it on from their own account."
+msgstr ""
+
+msgid "Oman"
 msgstr ""
 
 msgid "On"
@@ -2461,7 +2965,25 @@ msgstr ""
 msgid "Pablo Ariel Di Loreto"
 msgstr ""
 
+msgid "Pakistan"
+msgstr ""
+
+msgid "Palau"
+msgstr ""
+
+msgid "Palestine"
+msgstr ""
+
+msgid "Panama"
+msgstr ""
+
 msgid "Paper"
+msgstr ""
+
+msgid "Papua New Guinea"
+msgstr ""
+
+msgid "Paraguay"
 msgstr ""
 
 msgid "Passkeys"
@@ -2506,6 +3028,12 @@ msgstr ""
 msgid "Person"
 msgstr ""
 
+msgid "Peru"
+msgstr ""
+
+msgid "Philippines"
+msgstr ""
+
 msgid "Phone"
 msgstr ""
 
@@ -2530,6 +3058,9 @@ msgstr ""
 msgid "Pill"
 msgstr ""
 
+msgid "Pitcairn"
+msgstr ""
+
 msgid "Pixels around the menu, inside its strip. Empty for the plugin’s own — 10, 10, 0 and 0. Top and bottom equal is what keeps the menu in the middle of its strip whichever shape it has."
 msgstr ""
 
@@ -2549,6 +3080,12 @@ msgid "Plugin version"
 msgstr ""
 
 msgid "Pointing these at the site’s own tokens, from the site’s own stylesheet, is almost always enough on its own — and unlike a sheet written by hand it survives the plugin growing a component next month. That is worth trying before this answer."
+msgstr ""
+
+msgid "Poland"
+msgstr ""
+
+msgid "Portugal"
 msgstr ""
 
 msgid "Prefer not to say"
@@ -2590,10 +3127,16 @@ msgstr ""
 msgid "Publish the page and open it the way a visitor would. What the line stands for is what you see."
 msgstr ""
 
+msgid "Puerto Rico"
+msgstr ""
+
 msgid "Put the plugin’s own words back"
 msgstr ""
 
 msgid "Put the site’s name, mark and colour on wp-login.php"
+msgstr ""
+
+msgid "Qatar"
 msgstr ""
 
 msgid "Quiet text"
@@ -2701,6 +3244,9 @@ msgstr ""
 msgid "Restoring overwrites what is set right now. Only keys this plugin knows are read, so a file from somewhere else cannot write settings that are not ours."
 msgstr ""
 
+msgid "Reunion"
+msgstr ""
+
 msgid "Review"
 msgstr ""
 
@@ -2723,6 +3269,9 @@ msgstr ""
 msgid "Role of new accounts"
 msgstr ""
 
+msgid "Romania"
+msgstr ""
+
 msgid "Room before it"
 msgstr ""
 
@@ -2738,7 +3287,46 @@ msgstr ""
 msgid "Run the live test"
 msgstr ""
 
+msgid "Russia"
+msgstr ""
+
+msgid "Rwanda"
+msgstr ""
+
 msgid "Sage"
+msgstr ""
+
+msgid "Saint Barthelemy"
+msgstr ""
+
+msgid "Saint Helena"
+msgstr ""
+
+msgid "Saint Kitts and Nevis"
+msgstr ""
+
+msgid "Saint Lucia"
+msgstr ""
+
+msgid "Saint Martin"
+msgstr ""
+
+msgid "Saint Pierre and Miquelon"
+msgstr ""
+
+msgid "Saint Vincent and the Grenadines"
+msgstr ""
+
+msgid "Samoa"
+msgstr ""
+
+msgid "San Marino"
+msgstr ""
+
+msgid "Sao Tome and Principe"
+msgstr ""
+
+msgid "Saudi Arabia"
 msgstr ""
 
 msgid "Save"
@@ -2844,6 +3432,9 @@ msgstr ""
 msgid "Sends people to their account on the site."
 msgstr ""
 
+msgid "Senegal"
+msgstr ""
+
 msgid "Sent halfway through signing in, to somebody who is waiting for it. It has no switch either: a code that does not arrive locks them out."
 msgstr ""
 
@@ -2886,6 +3477,9 @@ msgstr ""
 msgid "Sent. Check your email."
 msgstr ""
 
+msgid "Serbia"
+msgstr ""
+
 msgid "Sessions"
 msgstr ""
 
@@ -2922,6 +3516,9 @@ msgid "Settings"
 msgstr ""
 
 msgid "Settings as a file"
+msgstr ""
+
+msgid "Seychelles"
 msgstr ""
 
 msgid "Shape"
@@ -3021,6 +3618,9 @@ msgstr ""
 msgid "Side gutter"
 msgstr ""
 
+msgid "Sierra Leone"
+msgstr ""
+
 msgid "Sign in"
 msgstr ""
 
@@ -3093,6 +3693,12 @@ msgstr ""
 msgid "Simple"
 msgstr ""
 
+msgid "Singapore"
+msgstr ""
+
+msgid "Sint Maarten"
+msgstr ""
+
 msgid "Site"
 msgstr ""
 
@@ -3119,6 +3725,12 @@ msgstr ""
 msgid "Sky"
 msgstr ""
 
+msgid "Slovakia"
+msgstr ""
+
+msgid "Slovenia"
+msgstr ""
+
 msgid "So nothing on this screen is asked of anybody: the only person who ever fills these in is whoever administers the site, creating an account by hand."
 msgstr ""
 
@@ -3141,6 +3753,12 @@ msgid "Social sign-in refused"
 msgstr ""
 
 msgid "Soft"
+msgstr ""
+
+msgid "Solomon Islands"
+msgstr ""
+
+msgid "Somalia"
 msgstr ""
 
 msgid "Some required fields are missing."
@@ -3181,16 +3799,34 @@ msgstr ""
 msgid "Something went wrong. Try again."
 msgstr ""
 
+msgid "South Africa"
+msgstr ""
+
+msgid "South Georgia"
+msgstr ""
+
+msgid "South Korea"
+msgstr ""
+
+msgid "South Sudan"
+msgstr ""
+
 msgid "Spaces"
 msgstr ""
 
 msgid "Spaces turn into dashes, because a web address cannot have them. Everything else that does not fit in an address is dropped."
 msgstr ""
 
+msgid "Spain"
+msgstr ""
+
 msgid "Split with a picture"
 msgstr ""
 
 msgid "Square corners"
+msgstr ""
+
+msgid "Sri Lanka"
 msgstr ""
 
 msgid "Stacked is every way in on the screen at once, one under the other. In tabs they share one place and the screen stops growing downwards, which is what a laptop notices."
@@ -3227,6 +3863,9 @@ msgstr ""
 msgid "Subject"
 msgstr ""
 
+msgid "Sudan"
+msgstr ""
+
 msgid "Suggested fields"
 msgstr ""
 
@@ -3239,10 +3878,25 @@ msgstr ""
 msgid "Surface"
 msgstr ""
 
+msgid "Suriname"
+msgstr ""
+
+msgid "Svalbard and Jan Mayen"
+msgstr ""
+
+msgid "Sweden"
+msgstr ""
+
 msgid "Switched on here, one by one, and none of them is needed: they are buttons under the form above, not a replacement for it."
 msgstr ""
 
+msgid "Switzerland"
+msgstr ""
+
 msgid "Sync everyone now"
+msgstr ""
+
+msgid "Syria"
 msgstr ""
 
 msgid "System"
@@ -3251,10 +3905,19 @@ msgstr ""
 msgid "Tabs across the top"
 msgstr ""
 
+msgid "Taiwan"
+msgstr ""
+
+msgid "Tajikistan"
+msgstr ""
+
 msgid "Take a way in off this account"
 msgstr ""
 
 msgid "Take the settings and the user fields from one site to another — staging to production, or a site you set up once and want to repeat. Social login credentials are deliberately left out: those are secrets, and a JSON file that travels by e-mail is no place for one."
+msgstr ""
+
+msgid "Tanzania"
 msgstr ""
 
 msgid "Teal"
@@ -3284,6 +3947,9 @@ msgid "Text, HTML, or the shortcode of another plugin — a course plugin, a mem
 msgstr ""
 
 msgid "Text, HTML, or the shortcode of another plugin. Leave it empty and the section stays as the plugin draws it."
+msgstr ""
+
+msgid "Thailand"
 msgstr ""
 
 msgid "That address already has an account"
@@ -4338,12 +5004,24 @@ msgstr ""
 msgid "Ticked here, it goes when the profile is saved."
 msgstr ""
 
+msgid "Timor-Leste"
+msgstr ""
+
 msgid "To"
 msgstr ""
 
 #. translators: %s: provider name
 #, php-format
 msgid "To let people sign in with their %s account you have to create an app there. Below is the whole thing, click by click."
+msgstr ""
+
+msgid "Togo"
+msgstr ""
+
+msgid "Tokelau"
+msgstr ""
+
+msgid "Tonga"
 msgstr ""
 
 msgid "Too many accounts, too fast"
@@ -4361,7 +5039,22 @@ msgstr ""
 msgid "Top"
 msgstr ""
 
+msgid "Trinidad and Tobago"
+msgstr ""
+
 msgid "Trusted proxies"
+msgstr ""
+
+msgid "Tunisia"
+msgstr ""
+
+msgid "Turkiye"
+msgstr ""
+
+msgid "Turkmenistan"
+msgstr ""
+
+msgid "Turks and Caicos"
 msgstr ""
 
 msgid "Turn it off"
@@ -4391,6 +5084,9 @@ msgid "Turned off, someone whose email is already registered simply cannot get i
 msgstr ""
 
 msgid "Turned off, the name comes from what they wrote as their first and last name, and the profile address is made from that."
+msgstr ""
+
+msgid "Tuvalu"
 msgstr ""
 
 msgid "Two per row"
@@ -4432,6 +5128,18 @@ msgstr ""
 msgid "Type"
 msgstr ""
 
+msgid "U.S. Minor Outlying Islands"
+msgstr ""
+
+msgid "U.S. Virgin Islands"
+msgstr ""
+
+msgid "Uganda"
+msgstr ""
+
+msgid "Ukraine"
+msgstr ""
+
 msgid "Under the strip"
 msgstr ""
 
@@ -4442,6 +5150,15 @@ msgid "Under “Redirect URI” pick the platform “Web” and paste the redire
 msgstr ""
 
 msgid "Underlined"
+msgstr ""
+
+msgid "United Arab Emirates"
+msgstr ""
+
+msgid "United Kingdom"
+msgstr ""
+
+msgid "United States"
 msgstr ""
 
 msgid "Unknown browser"
@@ -4462,6 +5179,9 @@ msgid "Unticked it leaves every form and keeps both its definition and everythin
 msgstr ""
 
 msgid "Up to date."
+msgstr ""
+
+msgid "Uruguay"
 msgstr ""
 
 msgid "Usage"
@@ -4543,10 +5263,22 @@ msgstr ""
 msgid "Users+ Pro on these screens"
 msgstr ""
 
+msgid "Uzbekistan"
+msgstr ""
+
 msgid "Values"
 msgstr ""
 
+msgid "Vanuatu"
+msgstr ""
+
+msgid "Venezuela"
+msgstr ""
+
 msgid "Verified and working, of the ones the plugin brings."
+msgstr ""
+
+msgid "Vietnam"
 msgstr ""
 
 msgid "Violet"
@@ -4556,6 +5288,9 @@ msgid "Wait between two requests"
 msgstr ""
 
 msgid "Waiting for you to confirm by email"
+msgstr ""
+
+msgid "Wallis and Futuna"
 msgstr ""
 
 msgid "Watch out:"
@@ -4609,6 +5344,9 @@ msgstr ""
 #. translators: %s: plugin name
 #, php-format
 msgid "Welcome to %s"
+msgstr ""
+
+msgid "Western Sahara"
 msgstr ""
 
 msgid "What a name may be"
@@ -4971,6 +5709,9 @@ msgstr ""
 msgid "Written by this site, in %s."
 msgstr ""
 
+msgid "Yemen"
+msgstr ""
+
 msgid "Yes"
 msgstr ""
 
@@ -5174,6 +5915,12 @@ msgstr ""
 msgid "Your theme publishes no palette, so the plugin takes the colours your theme paints: the colour of its links and buttons, of its text, its page ground and the edge of its fields, measured on the site itself. There is nothing else to choose."
 msgstr ""
 
+msgid "Zambia"
+msgstr ""
+
+msgid "Zimbabwe"
+msgstr ""
+
 msgid "a link sent to your email"
 msgstr ""
 
@@ -5249,11 +5996,11 @@ msgid "how they got in: a link, a password, a social account"
 msgstr ""
 
 #. Author URI of the plugin
-msgid "https://diluxone.com/plugins-wordpress"
+msgid "https://diluxone.com/wordpress-plugins/"
 msgstr ""
 
 #. Plugin URI of the plugin
-msgid "https://github.com/DiluxOne/diluxone-users-wordpress"
+msgid "https://diluxone.com/wordpress-plugins/users/"
 msgstr ""
 
 msgid "it has no page yet"

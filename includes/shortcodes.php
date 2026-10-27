@@ -163,6 +163,37 @@ function diluxone_users_fields_form( $atts = array() ): void {
 }
 
 /**
+ * The blocks of fields the "Your details" tab draws, each in a box of its own.
+ *
+ * Keyed by group, in the order diluxone_users_groups() gives, each with the
+ * title the person reads and the fields it holds. A block with no active
+ * field is left out, so it draws no empty box. The titles are written for
+ * the person, not the administrator's labels of the blocks.
+ *
+ * @return array<string, array{title: string, fields: array<int, array<string, mixed>>}>
+ */
+function diluxone_users_field_blocks(): array {
+	$titles = array(
+		'main'  => __( 'About you', 'diluxone-users' ),
+		'extra' => __( 'A bit more about you', 'diluxone-users' ),
+	);
+	$blocks = array();
+
+	foreach ( array_keys( diluxone_users_groups() ) as $group ) {
+		$fields = diluxone_users_fields( $group );
+
+		if ( array() !== $fields ) {
+			$blocks[ $group ] = array(
+				'title'  => $titles[ $group ] ?? '',
+				'fields' => $fields,
+			);
+		}
+	}
+
+	return $blocks;
+}
+
+/**
  * The same, returned for the shortcode.
  *
  * @param array<string, string>|string $atts WordPress sends '' when there are none.
