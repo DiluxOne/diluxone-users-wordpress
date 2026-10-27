@@ -1,6 +1,6 @@
 import { test, expect, signInFrom } from './support';
 import { freshEmail } from '../support/api';
-import { navigated } from '../support/ui';
+import { navigated, savePanel } from '../support/ui';
 import { NETWORK_ADMIN_STATE, NETWORK_URL } from '../../../playwright.network.config';
 
 /**
@@ -88,4 +88,24 @@ test('a field renamed in Network Admin keeps its key and the answer a member gav
 	await guest.goto(`${hub.pages.account.url.replace(/\/?$/, '/')}details/`);
 	await expect(guest.locator('input[name="diluxone_users_e2e_city"]')).toHaveValue('Rosario');
 	await expect(guest.locator('label[for="diluxone_users_e2e_city"]')).toContainText('E2E Town');
+});
+
+test('a block’s title typed in Network Admin titles its box on the hub’s account', async ({ page, guest, hub, alpha }) => {
+	await hub.keep(['diluxone_users_fields', 'diluxone_users_field_block_titles']);
+	await hub.set({ diluxone_users_fields: [field('first_name', 'First name'), { ...field('diluxone_users_e2e_hobby', 'E2E Hobby'), group: 'extra' }] });
+
+	await page.goto(FIELDS);
+	await page.locator('[name="diluxone_users_field_block_titles[main]"]').fill('Datos del curso');
+	await page.locator('[name="diluxone_users_field_block_titles[extra]"]').fill('');
+	await savePanel(page);
+	expect(new URL(page.url()).pathname, 'saved in Network Admin').toBe('/wp-admin/network/admin.php');
+	expect((await alpha.site.getOptions(['diluxone_users_field_block_titles'])).diluxone_users_field_block_titles, '/alpha/ reads the network’s titles').toMatchObject({ main: 'Datos del curso' });
+
+	const email = freshEmail('net-titles');
+
+	await alpha.site.makeUser({ email, password: PASSWORD });
+	await signInFrom(guest, alpha, hub, email, PASSWORD);
+	await guest.goto(`${hub.pages.account.url.replace(/\/?$/, '/')}details/`);
+
+	await expect(guest.locator('.diluxone-users-fields__block > h3')).toHaveText(['Datos del curso', 'A bit more about you']);
 });
