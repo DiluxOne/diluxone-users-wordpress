@@ -2623,6 +2623,9 @@ msgstr ""
 msgid "Not from here"
 msgstr ""
 
+msgid "Not in use now"
+msgstr ""
+
 msgid "Not in use: a code by e-mail is not one of the second steps this site offers."
 msgstr ""
 

@@ -943,18 +943,23 @@ function diluxone_users_login_arrangement_save(): void {
 
 	$known  = array_keys( diluxone_users_login_arrangeable() );
 	$layout = sanitize_key( wp_unslash( $_POST['diluxone_users_login_layout'] ?? 'auto' ) );
-	$open   = sanitize_key( wp_unslash( $_POST['diluxone_users_login_open'] ?? '' ) );
 	$order  = array_map( 'sanitize_key', (array) wp_unslash( $_POST['diluxone_users_login_order'] ?? array() ) );
-
-	diluxone_users_save_options(
-		array(
-			'diluxone_users_login_layout' => in_array( $layout, array( 'auto', 'stack', 'tabs' ), true ) ? $layout : 'auto',
-			// Empty is an answer — "whichever is first" — and it is the one a
-			// site keeps until it has a reason not to.
-			'diluxone_users_login_open'   => in_array( $open, $known, true ) ? $open : '',
-			'diluxone_users_login_order'  => array_values( array_intersect( array_unique( $order ), $known ) ),
-		)
+	$save   = array(
+		'diluxone_users_login_layout' => in_array( $layout, array( 'auto', 'stack', 'tabs' ), true ) ? $layout : 'auto',
+		'diluxone_users_login_order'  => array_values( array_intersect( array_unique( $order ), $known ) ),
 	);
+
+	// Stacked, "Which tab opens" is drawn disabled and a disabled box sends
+	// nothing: its saved answer stays for the day the ways in are in tabs.
+	if ( isset( $_POST['diluxone_users_login_open'] ) ) {
+		$open = sanitize_key( wp_unslash( $_POST['diluxone_users_login_open'] ) );
+
+		// Empty is an answer — "whichever is first" — and it is the one a
+		// site keeps until it has a reason not to.
+		$save['diluxone_users_login_open'] = in_array( $open, $known, true ) ? $open : '';
+	}
+
+	diluxone_users_save_options( $save );
 }
 
 /**
@@ -1073,21 +1078,27 @@ function diluxone_users_screen_login_arrangement(): void {
 	 * quietly open the first one instead.
 	 */
 	$in_tabs = array_diff_key( $offered, $outside );
+	$stacked = 'stack' === diluxone_users_way_layout( count( $in_tabs ) );
 
-	if ( 'stack' === diluxone_users_way_layout( count( $in_tabs ) ) ) {
+	if ( $stacked ) {
 		diluxone_users_not_now( __( 'The ways in are stacked on this site, so there are no tabs and none opens first. What is chosen here applies the day they are in tabs.', 'diluxone-users' ) );
 	}
 
 	diluxone_users_ui_select(
 		array(
-			'label'   => __( 'For somebody this site has never seen', 'diluxone-users' ),
-			'name'    => 'diluxone_users_login_open',
-			'value'   => isset( $in_tabs[ $open ] ) ? $open : '',
-			'options' => array( '' => __( 'The first one in the order above', 'diluxone-users' ) ) + array_map(
+			'label'    => __( 'For somebody this site has never seen', 'diluxone-users' ),
+			'name'     => 'diluxone_users_login_open',
+			'value'    => isset( $in_tabs[ $open ] ) ? $open : '',
+			'options'  => array( '' => __( 'The first one in the order above', 'diluxone-users' ) ) + array_map(
 				static fn( array $way ): string => (string) $way['label'],
 				array_intersect_key( $ways, $in_tabs )
 			),
-			'help'    => __( 'A screen that comes back from a refused attempt ignores this and shows the way in that was refused, whatever it says here: a message about an address, read over a password form, explains nothing.', 'diluxone-users' ),
+			'help'     => __( 'A screen that comes back from a refused attempt ignores this and shows the way in that was refused, whatever it says here: a message about an address, read over a password form, explains nothing.', 'diluxone-users' ),
+			// Stacked there is nothing to choose between, so the box is drawn
+			// disabled, and the save keeps its answer (it is not sent). The
+			// script enables it the moment the layout above puts them in tabs.
+			'disabled' => $stacked,
+			'data'     => array( 'tab-picker' => (string) count( $in_tabs ) ),
 		)
 	);
 

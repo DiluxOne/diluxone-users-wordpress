@@ -1698,6 +1698,9 @@ span.diluxone-users-state {
 /* Nobody decided this: no colour, because a colour is a verdict, and a
    dashed edge, which is the shape of a place something could go. */
 .diluxone-users-state--unset   { background: transparent; color: var(--du-muted); outline: 1px dashed currentColor; outline-offset: -1px; }
+/* Does not apply while the site is set up as it is: as quiet as nobody
+   having decided, without the dashed edge, since nothing goes there. */
+.diluxone-users-state--notnow  { background: transparent; color: var(--du-muted); outline: 1px solid currentColor; outline-offset: -1px; }
 .diluxone-users-state--pro     { background: var(--du-pro-wash, #efe7fb); color: var(--du-pro, #5b2a99); }
 .diluxone-users-state__why { color: #50575e; }
 

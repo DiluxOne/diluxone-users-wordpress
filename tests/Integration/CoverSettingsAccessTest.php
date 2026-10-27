@@ -531,6 +531,40 @@ class CoverSettingsAccessTest extends IntegrationTestCase {
 		$this->assertSame( array(), diluxone_users_option( 'diluxone_users_login_order' ) );
 	}
 
+	public function test_which_tab_opens_is_disabled_while_stacked_and_keeps_its_answer(): void {
+		$this->the_admin();
+		diluxone_users_update_option( 'diluxone_users_login_method', 'both' );
+		diluxone_users_update_option( 'diluxone_users_login_layout', 'stack' );
+		diluxone_users_update_option( 'diluxone_users_login_open', 'password' );
+
+		$html = $this->draw( 'diluxone_users_screen_login_arrangement' );
+
+		$this->assertStringContainsString( 'diluxone-users-state--notnow', $html, 'the line says it does not apply' );
+		$this->assertStringNotContainsString( 'diluxone-users-state--pending', $html, 'not a task left to do' );
+		$this->assertMatchesRegularExpression( '/<select id="diluxone_users_login_open" name="diluxone_users_login_open"[^>]*disabled/', $html );
+		$this->assertMatchesRegularExpression( '/<option value="password" selected/', $html, 'it shows the saved answer' );
+		$this->assertSame( 1, substr_count( $html, 'name="diluxone_users_login_open"' ), 'one control by that name' );
+
+		// A disabled box sends nothing: the save keeps the saved answer.
+		$this->send_panel( 'diluxone-users-login', array( 'diluxone_users_login_layout' => 'stack' ) );
+		diluxone_users_login_arrangement_save();
+
+		$this->assertSame( 'password', diluxone_users_option( 'diluxone_users_login_open' ) );
+
+		diluxone_users_update_option( 'diluxone_users_login_layout', 'tabs' );
+
+		$html = $this->draw( 'diluxone_users_screen_login_arrangement' );
+
+		$this->assertStringNotContainsString( 'diluxone-users-not-now', $html );
+		$this->assertDoesNotMatchRegularExpression( '/<select id="diluxone_users_login_open"[^>]*disabled/', $html );
+
+		// Sent, even empty, it is the answer.
+		$this->send_panel( 'diluxone-users-login', array( 'diluxone_users_login_layout' => 'tabs', 'diluxone_users_login_open' => '' ) );
+		diluxone_users_login_arrangement_save();
+
+		$this->assertSame( '', diluxone_users_option( 'diluxone_users_login_open' ) );
+	}
+
 	/* ── Registration ──────────────────────────────────────────────── */
 
 	public function test_registration_open_with_no_door_is_refused(): void {
