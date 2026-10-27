@@ -484,7 +484,7 @@ SITE_PLUGIN := $(SITE)/wp-content/plugins/diluxone-users
 SITE_LANGS  := $(SITE)/wp-content/languages/plugins
 
 .PHONY: deploy-test
-deploy-test: ## Copy the working tree into a real site for manual smoke-testing.
+deploy-test: i18n-mo ## Copy the working tree into a real site for manual smoke-testing, with the .mo compiled.
 	@if [ ! -d "$(SITE)/wp-content/plugins" ]; then \
 	  echo "no site at $(SITE). Override with SITE=/path/to/wordpress"; \
 	  exit 1; \
@@ -502,7 +502,8 @@ deploy-test: ## Copy the working tree into a real site for manual smoke-testing.
 	@# WordPress 4.6 — WordPress only reads plugin translations from
 	@# wp-content/languages/plugins/, which is where wordpress.org installs
 	@# its language packs. Until the plugin is published and those packs
-	@# exist, this puts the same files in the same place by hand.
+	@# exist, this puts the same files in the same place by hand. They are
+	@# compiled first (i18n-mo): since DiluxOne/.github#452 a checkout has none.
 	@mkdir -p "$(SITE_LANGS)"
 	@cp languages/*.mo "$(SITE_LANGS)/" 2>/dev/null || true
 	@echo "✔ Copied to $(SITE_PLUGIN) (+ $$(ls languages/*.mo 2>/dev/null | wc -l) locales in $(SITE_LANGS))"

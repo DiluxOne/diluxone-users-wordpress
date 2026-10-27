@@ -19,6 +19,10 @@
 # SVN /assets/, not /trunk/). Excluding it here prevents duplication in /trunk/.
 .wordpress-org
 
+# The changelog's fragments: the release folds them into readme.txt and
+# deletes them, so only a build between releases would carry them.
+changelog.d
+
 # Documentation (GitHub-only)
 README.md
 CONTRIBUTING.md
