@@ -759,7 +759,7 @@ function diluxone_users_account_avatar_size( string $template ): int {
 /** Draws the whole account area. */
 function diluxone_users_account_area(): void {
 	if ( ! is_user_logged_in() ) {
-		diluxone_users_template_part( 'account-guest', array( 'url' => diluxone_users_login_url() ) );
+		diluxone_users_template_part( 'account-guest', array( 'url' => diluxone_users_with_return( diluxone_users_login_url() ) ) );
 
 		return;
 	}
