@@ -212,7 +212,7 @@ test.describe('Account area › Public name', () => {
 			await expect(pro.locator('input'), `${where}: switched off`).toBeDisabled();
 			await expect(pro.locator('[name]'), `${where}: nothing in it posts`).toHaveCount(0);
 			await expect(pro.locator('.diluxone-users-state--pro'), `${where}: the badge`).toHaveCount(1);
-			await expect(pro.locator('a'), `${where}: the one link`).toHaveAttribute('href', /diluxone\.com\/users-pro\/.*utm_medium=account-handle/);
+			await expect(pro.locator('a'), `${where}: the one link`).toHaveAttribute('href', /diluxone\.com\/wordpress-plugins\/users\/.*utm_medium=account-handle/);
 		}
 
 		await expect(page.locator('[data-diluxone-users-pro="account/handle/cooldown"]')).toContainText('How often it can change');

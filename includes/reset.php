@@ -145,11 +145,13 @@ add_action( 'admin_post_diluxone_users_reset', 'diluxone_users_reset_save' );
  * list as open, naming devices that are no longer in, so they go too. On
  * `after_password_reset`, which WordPress fires for the site's own reset page
  * and for wp-login.php alike. A reset signs nobody in, so every session goes.
+ * Only while the sessions list is on: until then the records are WordPress's,
+ * and activating the plugin writes nothing into them.
  *
  * @param WP_User $user
  */
 function diluxone_users_reset_ends_sessions( $user ): void {
-	if ( ! $user instanceof WP_User ) {
+	if ( ! $user instanceof WP_User || ! diluxone_users_option( 'diluxone_users_sessions_show' ) ) {
 		return;
 	}
 

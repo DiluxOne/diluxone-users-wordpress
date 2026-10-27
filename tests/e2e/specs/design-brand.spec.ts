@@ -77,7 +77,7 @@ test.describe('Your brand › one question, and what hangs off the answer', () =
 		await expect(fromTheme(page).locator('input[type="radio"]')).toBeDisabled();
 		await expect(fromTheme(page).locator('[name]'), 'nothing in it posts').toHaveCount(0);
 		await expect(fromTheme(page).locator('.diluxone-users-state--pro'), 'the badge').toHaveCount(1);
-		await expect(fromTheme(page).locator('a')).toHaveAttribute('href', /diluxone\.com\/users-pro\/.*utm_medium=design/);
+		await expect(fromTheme(page).locator('a')).toHaveAttribute('href', /diluxone\.com\/wordpress-plugins\/users\/.*utm_medium=design/);
 
 		await look(page, 'site').check();
 

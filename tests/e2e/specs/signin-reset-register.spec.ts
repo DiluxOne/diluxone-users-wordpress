@@ -97,7 +97,9 @@ test.describe('Choosing a new password on the site’s page', () => {
 		await expect(resetScreen(page).locator('.diluxone-users-note--icon')).toHaveCount(0);
 	});
 
-	test('a new password ends every session the old one had open', async ({ browser, baseURL, page, site, pages }) => {
+	test('a new password ends every session the old one had open', async ({ browser, baseURL, page, site, pages, options }) => {
+		// With the sessions list on: until then the records are WordPress's own.
+		await options.set({ diluxone_users_sessions_show: 1 });
 		const email = freshEmail('rst-sessions');
 		await site.makeUser({ email, password: OLD });
 

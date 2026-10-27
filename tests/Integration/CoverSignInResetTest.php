@@ -226,6 +226,8 @@ class CoverSignInResetTest extends IntegrationTestCase {
 	 * devices out already; their records go with them.
 	 */
 	public function test_a_new_password_forgets_the_other_sessions(): void {
+		diluxone_users_update_option( 'diluxone_users_sessions_show', 1 );
+
 		$sessions = \WP_Session_Tokens::get_instance( $this->user );
 		$sessions->create( time() + HOUR_IN_SECONDS );
 		$sessions->create( time() + HOUR_IN_SECONDS );

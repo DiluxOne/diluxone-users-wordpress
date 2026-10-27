@@ -59,6 +59,19 @@ class NothingTurnedOnTest extends IntegrationTestCase {
 		$this->assertCount( 1, $manager->get_all() );
 	}
 
+	/** With the sessions list on, the records WordPress already signed out go (#188). */
+	public function test_with_the_sessions_list_on_a_reset_forgets_the_other_sessions(): void {
+		diluxone_users_update_option( 'diluxone_users_sessions_show', 1 );
+
+		$user    = $this->make_user();
+		$manager = \WP_Session_Tokens::get_instance( $user );
+		$manager->create( time() + HOUR_IN_SECONDS );
+
+		do_action( 'after_password_reset', get_userdata( $user ), 'new-pass' );
+
+		$this->assertCount( 0, $manager->get_all() );
+	}
+
 	public function test_wordpresss_registration_form_is_wordpresss(): void {
 		$this->assertSame( '', $this->printed( static fn() => do_action( 'register_form' ) ) );
 

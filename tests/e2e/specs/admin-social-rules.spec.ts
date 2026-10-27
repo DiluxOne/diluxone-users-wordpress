@@ -136,7 +136,7 @@ test.describe('Social login › Rules', () => {
 		await expect(pro.locator('input[type="radio"]')).toBeDisabled();
 		await expect(pro.locator('[name]'), 'nothing in it posts').toHaveCount(0);
 		await expect(pro.locator('.diluxone-users-state--pro')).toHaveCount(1);
-		await expect(pro.locator('a')).toHaveAttribute('href', /diluxone\.com\/users-pro\/.*utm_medium=social-general/);
+		await expect(pro.locator('a')).toHaveAttribute('href', /diluxone\.com\/wordpress-plugins\/users\/.*utm_medium=social-general/);
 
 		for (const role of ['administrator', 'editor', 'subscriber']) {
 			const email = freshEmail(`rules-${role}`);
