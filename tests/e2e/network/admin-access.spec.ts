@@ -213,13 +213,13 @@ test.describe('The hub’s Access', () => {
 
 		const rows = page.locator('table.diluxone-users-summary tbody tr');
 
-		await expect(rows, 'page, link, password, social, registration, after').toHaveCount(6);
-		await expectPill(rows.nth(5).locator('.diluxone-users-summary__state'), 'active');
-		await expect(rows.nth(5).locator('a'), 'the second step is set in Network Admin').toHaveAttribute('href', /\/wp-admin\/network\/admin\.php\?page=diluxone-users-security/);
+		await expect(rows, 'page, link, password, social, after: registration is on its own screen').toHaveCount(5);
+		await expectPill(rows.nth(4).locator('.diluxone-users-summary__state'), 'active');
+		await expect(rows.nth(4).locator('a'), 'the second step is set in Network Admin').toHaveAttribute('href', /\/wp-admin\/network\/admin\.php\?page=diluxone-users-security/);
 
 		await hub.set({ diluxone_users_2fa_mode: 'off' });
 		await page.reload();
-		await expectPill(rows.nth(5).locator('.diluxone-users-summary__state'), 'off');
+		await expectPill(rows.nth(4).locator('.diluxone-users-summary__state'), 'off');
 	});
 });
 

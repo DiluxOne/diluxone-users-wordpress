@@ -90,6 +90,9 @@ function diluxone_users_register_old_address(): void {
 	exit;
 }
 add_action( 'admin_init', 'diluxone_users_register_old_address' );
+// Network Admin has no Access screen, so WordPress refuses the old address
+// before admin_init runs; the redirect is asked there too.
+add_action( 'admin_page_access_denied', 'diluxone_users_register_old_address' );
 
 /**
  * The doors into an account that are open right now, named.

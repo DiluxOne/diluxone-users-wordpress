@@ -243,7 +243,7 @@ test.describe('A site’s menu keeps only what is its own', () => {
 		// And each of the main site's screens, with the way to it.
 		const onTheHub = page.locator('.diluxone-users-card').filter({ hasText: 'the site where people sign in' });
 
-		await expect(onTheHub).toHaveCount(4);
+		await expect(onTheHub, 'registration, access, account area, design and notices').toHaveCount(5);
 		await expect(onTheHub.first().locator('a')).toHaveAttribute('href', new RegExp(`^${NETWORK_URL}/wp-admin/admin\\.php\\?page=diluxone-users-`));
 
 		// And its Reports have the rows but not the rules about them — and the
