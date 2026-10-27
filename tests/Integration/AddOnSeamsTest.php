@@ -434,7 +434,7 @@ class AddOnSeamsTest extends IntegrationTestCase {
 		$this->assertSame( 1, (int) diluxone_users_raw_get( self::SWITCH ) );
 	}
 
-	public function test_an_addon_adds_its_door_to_the_summary_before_how_accounts_are_made(): void {
+	public function test_an_addon_adds_its_door_to_the_summary_of_signing_in(): void {
 		$this->hook(
 			'diluxone_users_doors',
 			static function ( array $rows ): array {
@@ -450,8 +450,7 @@ class AddOnSeamsTest extends IntegrationTestCase {
 		$labels = array_column( diluxone_users_doors(), 'label' );
 		$door   = array_search( 'The add-on’s door', $labels, true );
 
-		$this->assertNotFalse( $door );
-		$this->assertLessThan( array_search( 'Creating an account', $labels, true ), $door );
+		$this->assertNotContains( 'Creating an account', $labels, 'registration lives on its own screen' );
 	}
 
 	public function test_a_strong_way_in_goes_straight_in_and_the_rest_are_asked_the_second_step(): void {
