@@ -1212,6 +1212,14 @@ optional and read with a default, so a copy made before it keeps working:
 `templates/fields.php` takes `redirect` (where its save goes on to) and
 `skip` (a "Skip for now" link), both used by the step that asks for the
 required fields missing after a sign-in.
+`templates/fields.php` draws its fields with `templates/fields-list.php`
+(`user_id`, `fields`, and `refused`, the message under each phone the form
+came back for), and so does the "Your details" tab
+(`templates/account/details.php`): one fields form, the same action, nonce
+and save as `[diluxone_users_fields]` with no group, holding a
+`diluxone-users-panel` per block that has active fields, under the titles
+`diluxone_users_field_blocks()` gives ("About you" for main, "A bit more about
+you" for extra), each ending in a Save button that sends the whole form.
 `templates/login.php` has a `social-pending` state, the holding screen of a
 social sign-in waiting on its address: `$args['email']` is then that address
 already masked (`a•••@e•••.com`), and the form posts `diluxone_users_sso_resend`

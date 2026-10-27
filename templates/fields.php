@@ -54,29 +54,16 @@ $diluxone_users_refused = diluxone_users_phone_refused( $args['fields'] );
 			<input type="hidden" name="diluxone_users_redirect" value="<?php echo esc_url( $diluxone_users_redirect ); ?>">
 		<?php endif; ?>
 
-		<?php foreach ( $args['fields'] as $diluxone_users_field ) : ?>
-			<div class="diluxone-users-field diluxone-users-field--<?php echo esc_attr( $diluxone_users_field['type'] ); ?>">
-				<?php if ( 'checkbox' !== $diluxone_users_field['type'] ) : ?>
-					<label for="<?php echo esc_attr( $diluxone_users_field['key'] ); ?>">
-						<?php echo esc_html( $diluxone_users_field['label'] ); ?>
-						<?php if ( $diluxone_users_field['required'] ) : ?>
-							<span class="diluxone-users-field__required" aria-hidden="true">*</span>
-						<?php endif; ?>
-					</label>
-				<?php endif; ?>
-
-				<?php diluxone_users_field_input( $diluxone_users_field, diluxone_users_value( $args['user_id'], $diluxone_users_field['key'] ), '', (int) $args['user_id'], (string) ( $diluxone_users_refused[ $diluxone_users_field['key'] ] ?? '' ) ); ?>
-
-				<?php if ( '' !== $diluxone_users_field['help'] ) : ?>
-					<p class="diluxone-users-field__help"><?php echo esc_html( $diluxone_users_field['help'] ); ?></p>
-				<?php endif; ?>
-
-				<?php $diluxone_users_nota = diluxone_users_field_edit_note( $diluxone_users_field, $args['user_id'] ); ?>
-				<?php if ( '' !== $diluxone_users_nota ) : ?>
-					<p class="diluxone-users-field__help diluxone-users-field__limit"><?php echo esc_html( $diluxone_users_nota ); ?></p>
-				<?php endif; ?>
-			</div>
-		<?php endforeach; ?>
+		<?php
+		diluxone_users_template_part(
+			'fields-list.php',
+			array(
+				'user_id' => (int) $args['user_id'],
+				'fields'  => $args['fields'],
+				'refused' => $diluxone_users_refused,
+			)
+		);
+		?>
 
 		<button type="submit" class="diluxone-users-button"><?php esc_html_e( 'Save', 'diluxone-users' ); ?></button>
 
