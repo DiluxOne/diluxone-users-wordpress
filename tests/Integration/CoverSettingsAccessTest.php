@@ -1018,6 +1018,37 @@ class CoverSettingsAccessTest extends IntegrationTestCase {
 		$this->assertMatchesRegularExpression( '/name="diluxone_users_wp_screens" value="auto"[^>]*checked/', $html, 'the second door is shown moved to the answer in force' );
 	}
 
+	public function test_without_a_password_the_wp_login_choices_wait_and_a_save_keeps_their_answer(): void {
+		$this->the_admin();
+
+		$page = $this->page( 'Cover link-only page' );
+		diluxone_users_update_option( 'diluxone_users_login_page', $page );
+		diluxone_users_update_option( 'diluxone_users_login_method', 'link' );
+		diluxone_users_update_option( 'diluxone_users_lost_password', 'site' );
+		diluxone_users_update_option( 'diluxone_users_wp_screens', 'auto' );
+
+		$html = $this->screen( 'page' );
+
+		foreach ( array( 'mine', 'wp', 'auto' ) as $value ) {
+			$this->assertMatchesRegularExpression( '/name="diluxone_users_wp_screens" value="' . $value . '"[^>]*disabled/', $html, "\"{$value}\" waits for a password, like the lost-password choices" );
+		}
+		$this->assertMatchesRegularExpression( '/name="diluxone_users_wp_screens" value="auto"[^>]*checked/', $html, 'the answer in force is still drawn' );
+
+		// A disabled group sends nothing: the save keeps what is stored.
+		diluxone_users_update_option( 'diluxone_users_wp_screens', 'mine' );
+		$this->send_panel( 'diluxone-users-login', array( 'diluxone_users_login_page' => $page ) );
+		diluxone_users_login_page_save();
+
+		$this->assertSame( 'mine', diluxone_users_raw_get( 'diluxone_users_wp_screens' ) );
+
+		// A second door left from before the rule is written as it is shown.
+		diluxone_users_update_option( 'diluxone_users_wp_screens', 'wp' );
+		$this->send_panel( 'diluxone-users-login', array( 'diluxone_users_login_page' => $page ) );
+		diluxone_users_login_page_save();
+
+		$this->assertSame( 'auto', diluxone_users_raw_get( 'diluxone_users_wp_screens' ) );
+	}
+
 	public function test_the_page_tab_with_no_page_and_wp_login_branded(): void {
 		$this->the_admin();
 		diluxone_users_update_option( 'diluxone_users_wp_login_brand', 1 );

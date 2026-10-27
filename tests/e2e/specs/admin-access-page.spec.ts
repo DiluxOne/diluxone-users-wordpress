@@ -214,6 +214,10 @@ test.describe('Access › The sign-in page', () => {
 		await expect(notNow(page).filter({ has: page.locator('a[href*="tab=ways"]') })).toHaveCount(1);
 		await expect(notNow(page)).toHaveCount(2);
 		await expect(page.locator('label.du-choice').filter({ has: control(page, 'diluxone_users_lost_password', 'site') }).locator('.diluxone-users-state')).toHaveCount(0);
+		for (const value of ['mine', 'wp', 'auto']) {
+			await expect(control(page, 'diluxone_users_wp_screens', value), `“${value}” waits for a password`).toBeDisabled();
+		}
+		await expect(control(page, 'diluxone_users_wp_screens', 'auto')).toBeChecked();
 		await expect(rail(page).locator('.du-state')).toHaveCount(0);
 	});
 });
