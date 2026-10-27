@@ -1517,6 +1517,9 @@ msgstr ""
 msgid "Expires"
 msgstr ""
 
+msgid "Extra block"
+msgstr ""
+
 msgid "Extra block — “if you like, tell us more”"
 msgstr ""
 
@@ -2238,6 +2241,9 @@ msgid "Madagascar"
 msgstr ""
 
 msgid "Made by you, it waits in Tools → Export Personal Data."
+msgstr ""
+
+msgid "Main block"
 msgstr ""
 
 msgid "Main block — what the site needs"
@@ -5064,6 +5070,9 @@ msgstr ""
 msgid "Timor-Leste"
 msgstr ""
 
+msgid "Titles of the boxes"
+msgstr ""
+
 msgid "To"
 msgstr ""
 
@@ -5431,6 +5440,9 @@ msgid "What a name may be"
 msgstr ""
 
 msgid "What a shortcode is, if you have never used one"
+msgstr ""
+
+msgid "What each block is called on the account’s “Your details” tab. Left empty, it keeps the title shown in grey."
 msgstr ""
 
 msgid "What every site of the network writes down about what people do, and how long it keeps it. The rows are one table for the whole network: each site sees its own on its Reports › Activity, and the Activity tab beside this one has them all. A group that is not ticked here is not recorded on any site."
