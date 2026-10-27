@@ -1216,6 +1216,18 @@ optional and read with a default, so a copy made before it keeps working:
 `templates/fields.php` takes `redirect` (where its save goes on to) and
 `skip` (a "Skip for now" link), both used by the step that asks for the
 required fields missing after a sign-in.
+`templates/fields.php` draws its fields with `templates/fields-list.php`
+(`user_id`, `fields`, and `refused`, the message under each phone the form
+came back for), and so does the "Your details" tab
+(`templates/account/details.php`): one fields form, the same action, nonce
+and save as `[diluxone_users_fields]` with no group, holding a
+`diluxone-users-panel` per block that has active fields, under the titles
+`diluxone_users_field_blocks()` gives ("About you" for main, "A bit more about
+you" for extra), each ending in a Save button that sends the whole form.
+The tab no longer goes through `templates/fields.php`, so a theme's copy of
+that file stops applying there: to change how the fields look everywhere,
+copy `templates/fields-list.php`; to change the tab's boxes, copy
+`templates/account/details.php`.
 `templates/login.php` has a `social-pending` state, the holding screen of a
 social sign-in waiting on its address: `$args['email']` is then that address
 already masked (`a•••@e•••.com`), and the form posts `diluxone_users_sso_resend`
@@ -1394,7 +1406,9 @@ the control it would be, switched off: the radio or the tick box among the
 real answers, the button where the real one goes, the network's card beside
 Google and Microsoft, the shape in the row of shapes, the row of the summary.
 Each carries the "Pro" badge, a line about what it adds and one "Learn about
-Users+ Pro" link to diluxone.com, the same on every screen. Nothing in it has
+Users+ Pro" link to the plugin's page on diluxone.com in the admin's language
+(the Spanish page for any `es_*` locale, the English one for every other), the
+same on every screen. Nothing in it has
 a name, so nothing posts it; being disabled, a keyboard passes over it and a
 screen reader announces it as unavailable, and the link is what the keyboard
 lands on. Only administrators see them, only on the plugin's screens, never

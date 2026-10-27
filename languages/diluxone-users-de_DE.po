@@ -180,6 +180,9 @@ msgstr "2FA"
 msgid "A bar down the left"
 msgstr "Ein Balken links"
 
+msgid "A bit more about you"
+msgstr "Ein bisschen mehr über dich"
+
 msgid "A border and the text in the accent, on the page’s own ground. For a design where a block of colour would be too loud."
 msgstr "Ein Rand und der Text in der Akzentfarbe, auf dem Grund der Seite. Für ein Design, in dem ein Farbblock zu laut wäre."
 
@@ -356,6 +359,9 @@ msgstr "Ein Wort in eckigen Klammern, in eine Seite getippt. Niemand, der die We
 msgid "About"
 msgstr "Über uns"
 
+msgid "About you"
+msgstr "Über dich"
+
 msgid "Above all of them, always"
 msgstr "Über allen, immer"
 
@@ -465,6 +471,9 @@ msgstr "Zusätzliche Angaben"
 msgid "Address"
 msgstr "Adresse"
 
+msgid "Afghanistan"
+msgstr "Afghanistan"
+
 msgid "After sign-in"
 msgstr "Nach der Anmeldung"
 
@@ -479,6 +488,15 @@ msgstr "Nachdem der Link verschickt wurde"
 
 msgid "After what the plugin shows"
 msgstr "Nach dem, was das Plugin zeigt"
+
+msgid "Aland Islands"
+msgstr "Ålandinseln"
+
+msgid "Albania"
+msgstr "Albanien"
+
+msgid "Algeria"
+msgstr "Algerien"
 
 msgid "All the doors"
 msgstr "Alle Türen"
@@ -507,6 +525,9 @@ msgstr "Wird immer geschickt — kein Schalter für niemanden"
 msgid "Always stacked"
 msgstr "Immer gestapelt"
 
+msgid "American Samoa"
+msgstr "Amerikanisch-Samoa"
+
 msgid "An account belongs to the whole network; being a member of a site — having a role on it — is each site’s. This decides which sites an account is a member of, for every site of the network."
 msgstr "Ein Konto gehört dem ganzen Netzwerk; Mitglied einer Website zu sein – dort eine Rolle zu haben – ist Sache der jeweiligen Website. Hier wird entschieden, von welchen Websites ein Konto Mitglied ist, für jede Website des Netzwerks."
 
@@ -530,6 +551,21 @@ msgstr "Und die Notiz darunter"
 
 msgid "And then, here"
 msgstr "Und dann hier"
+
+msgid "Andorra"
+msgstr "Andorra"
+
+msgid "Angola"
+msgstr "Angola"
+
+msgid "Anguilla"
+msgstr "Anguilla"
+
+msgid "Antarctica"
+msgstr "Antarktis"
+
+msgid "Antigua and Barbuda"
+msgstr "Antigua und Barbuda"
 
 msgid "Any code you can get for the second step: one of your backup codes, or the one we email you."
 msgstr "Jeder Code, den du für den zweiten Schritt bekommen kannst: einer deiner Backup-Codes oder der, den wir dir per E-Mail schicken."
@@ -562,6 +598,15 @@ msgstr "Apple signiert sein Client-Secret mit einem JWT, das alle sechs Monate n
 
 msgid "Application type: “Web application”. Give it a name — this one is only for you."
 msgstr "Anwendungstyp: „Webanwendung“. Gib ihr einen Namen — der ist nur für dich."
+
+msgid "Argentina"
+msgstr "Argentinien"
+
+msgid "Armenia"
+msgstr "Armenien"
+
+msgid "Aruba"
+msgstr "Aruba"
 
 msgid "As many as fit"
 msgstr "So viele wie hineinpassen"
@@ -624,6 +669,15 @@ msgstr "Am Ende, bei den anderen Einträgen"
 msgid "At the start"
 msgstr "Am Anfang"
 
+msgid "Australia"
+msgstr "Australien"
+
+msgid "Austria"
+msgstr "Österreich"
+
+msgid "Azerbaijan"
+msgstr "Aserbaidschan"
+
 msgid "Back to all providers"
 msgstr "Zurück zu allen Anbietern"
 
@@ -642,6 +696,18 @@ msgstr "Hintergrund"
 msgid "Background on hover"
 msgstr "Hintergrund beim Überfahren"
 
+msgid "Bahamas"
+msgstr "Bahamas"
+
+msgid "Bahrain"
+msgstr "Bahrain"
+
+msgid "Bangladesh"
+msgstr "Bangladesch"
+
+msgid "Barbados"
+msgstr "Barbados"
+
 msgid "Before what the plugin shows"
 msgstr "Vor dem, was das Plugin zeigt"
 
@@ -654,6 +720,21 @@ msgstr "Hinter einem Proxy"
 msgid "Behind the whole area"
 msgstr "Hinter dem ganzen Bereich"
 
+msgid "Belarus"
+msgstr "Belarus"
+
+msgid "Belgium"
+msgstr "Belgien"
+
+msgid "Belize"
+msgstr "Belize"
+
+msgid "Benin"
+msgstr "Benin"
+
+msgid "Bermuda"
+msgstr "Bermuda"
+
 msgid "Besides the e-mail address, which is the identity and is never optional, this is what the account area asks people for."
 msgstr "Neben der E-Mail-Adresse, die die Identität ist und nie optional, ist dies das, was der Kontobereich von den Leuten verlangt."
 
@@ -663,20 +744,53 @@ msgstr "Zwischen den eigenen Einträgen des Menüs und dem ersten von diesen; ab
 msgid "Between two of these side by side, such as “Join” and the person. In px or rem, up to 96px or 6rem. Empty: the theme’s spacing."
 msgstr "Zwischen zwei von diesen nebeneinander, etwa „Beitreten“ und der Person. In px oder rem, bis 96px oder 6rem. Leer: der Abstand des Themes."
 
+msgid "Bhutan"
+msgstr "Bhutan"
+
 msgid "Blue"
 msgstr "Blau"
+
+msgid "Bolivia"
+msgstr "Bolivien"
 
 msgid "Border"
 msgstr "Rahmen"
 
+msgid "Bosnia and Herzegovina"
+msgstr "Bosnien und Herzegowina"
+
 msgid "Both come from the provider’s console, and changing either of them asks for the live test again."
 msgstr "Beide kommen aus der Konsole des Anbieters, und eines davon zu ändern verlangt den Live-Test erneut."
+
+msgid "Botswana"
+msgstr "Botsuana"
 
 msgid "Bottom"
 msgstr "Unten"
 
+msgid "Brazil"
+msgstr "Brasilien"
+
+msgid "British Indian Ocean Territory"
+msgstr "Britisches Territorium im Indischen Ozean"
+
+msgid "British Virgin Islands"
+msgstr "Britische Jungferninseln"
+
+msgid "Brunei"
+msgstr "Brunei"
+
+msgid "Bulgaria"
+msgstr "Bulgarien"
+
+msgid "Burkina Faso"
+msgstr "Burkina Faso"
+
 msgid "Burnt orange"
 msgstr "Gebranntes Orange"
+
+msgid "Burundi"
+msgstr "Burundi"
 
 msgid "Buttons"
 msgstr "Schaltflächen"
@@ -690,6 +804,15 @@ msgstr "Standardmäßig nichts. Die Einstellungen bleiben, das Aktivitätsprotok
 msgid "By invitation"
 msgstr "Auf Einladung"
 
+msgid "Cambodia"
+msgstr "Kambodscha"
+
+msgid "Cameroon"
+msgstr "Kamerun"
+
+msgid "Canada"
+msgstr "Kanada"
+
 msgid "Cancel"
 msgstr "Abbrechen"
 
@@ -699,8 +822,23 @@ msgstr "Nicht feststellbar"
 msgid "Can’t get a code? Use one of your backup codes: they go in the same box."
 msgstr "Kein Code erhalten? Nutze einen deiner Backup-Codes: Er kommt in dasselbe Feld."
 
+msgid "Cape Verde"
+msgstr "Kap Verde"
+
+msgid "Caribbean Netherlands"
+msgstr "Karibische Niederlande"
+
 msgid "Carried out by you, it waits in Tools → Erase Personal Data: for a site that checks something first, such as a pending payment."
 msgstr "Von dir ausgeführt, wartet sie unter Werkzeuge → Personenbezogene Daten löschen: für eine Website, die vorher etwas prüft, etwa eine offene Zahlung."
+
+msgid "Cayman Islands"
+msgstr "Kaimaninseln"
+
+msgid "Central African Republic"
+msgstr "Zentralafrikanische Republik"
+
+msgid "Chad"
+msgstr "Tschad"
 
 msgid "Change it →"
 msgstr "Ändern →"
@@ -728,6 +866,12 @@ msgstr "Sieh in deine E-Mail"
 
 msgid "Checking…"
 msgstr "Wird geprüft…"
+
+msgid "Chile"
+msgstr "Chile"
+
+msgid "China"
+msgstr "China"
 
 msgid "Choose a new password"
 msgstr "Wähle ein neues Passwort"
@@ -764,6 +908,9 @@ msgstr "Gewählt"
 #, php-format
 msgid "Chosen while an add-on that is not active now offered it (%1$s). Until it is back, this site gets %2$s instead. It stays chosen until you pick another answer."
 msgstr "Gewählt, als ein Add-on, das jetzt nicht aktiv ist, sie anbot (%1$s). Bis es zurück ist, bekommt diese Website stattdessen %2$s. Sie bleibt gewählt, bis du eine andere Antwort wählst."
+
+msgid "Christmas Island"
+msgstr "Weihnachtsinsel"
 
 msgid "Clear"
 msgstr "Leeren"
@@ -817,11 +964,20 @@ msgstr "Geschlossen: Auf dieser Website öffnet ein Passwort nichts."
 msgid "Closing every session on the site signs you out too. That is on purpose: if you are doing this, the session you are least sure about might be your own."
 msgstr "Alle Sitzungen der Website zu schließen, meldet auch dich ab. Das ist Absicht: Wenn du das tust, ist die Sitzung, bei der du am unsichersten bist, vielleicht deine eigene."
 
+msgid "Cocos (Keeling) Islands"
+msgstr "Kokosinseln"
+
+msgid "Colombia"
+msgstr "Kolumbien"
+
 msgid "Colours of the button"
 msgstr "Farben des Buttons"
 
 msgid "Comes from"
 msgstr "Kommt von"
+
+msgid "Comoros"
+msgstr "Komoren"
 
 msgid "Complete your details"
 msgstr "Angaben vervollständigen"
@@ -874,6 +1030,12 @@ msgstr "Die Löschung des eigenen Kontos bestätigen"
 msgid "Confirms by itself"
 msgstr "Bestätigt von selbst"
 
+msgid "Congo"
+msgstr "Kongo"
+
+msgid "Congo (DRC)"
+msgstr "Kongo (DR)"
+
 #. translators: %s: name of the social network
 #, php-format
 msgid "Continue with %s"
@@ -881,6 +1043,9 @@ msgstr "Weiter mit %s"
 
 msgid "Controls"
 msgstr "Bedienelemente"
+
+msgid "Cook Islands"
+msgstr "Cookinseln"
 
 msgid "Cookies"
 msgstr "Cookies"
@@ -896,6 +1061,9 @@ msgstr "Kopiere das in eine Support-Anfrage und die Hälfte des Hin und Her entf
 
 msgid "Corners"
 msgstr "Ecken"
+
+msgid "Costa Rica"
+msgstr "Costa Rica"
 
 msgid "Counted one person at a time, and only for the changes they make themselves: saving the same thing again spends nothing, and an administrator fixing it spends nobody’s goes."
 msgstr "Pro Person gezählt, und nur für die Änderungen, die sie selbst macht: dasselbe noch einmal zu speichern kostet nichts, und ein Administrator, der es richtigstellt, verbraucht niemandes Versuche."
@@ -940,9 +1108,27 @@ msgstr "Ein Konto anlegen"
 msgid "Credentials are saved but the provider is off, so no button shows: %s."
 msgstr "Die Zugangsdaten sind gespeichert, aber der Anbieter ist aus, also erscheint keine Schaltfläche: %s."
 
+msgid "Croatia"
+msgstr "Kroatien"
+
+msgid "Cuba"
+msgstr "Kuba"
+
+msgid "Curacao"
+msgstr "Curaçao"
+
 #. Description of the plugin
 msgid "Custom user fields, a front-end account area, passwordless sign-in, social login, two-step verification and session control."
 msgstr "Eigene Benutzerfelder, ein Kontobereich im Website-Frontend, Anmeldung ohne Passwort, Social Login, Zwei-Schritt-Verifizierung und Sitzungsverwaltung."
+
+msgid "Cyprus"
+msgstr "Zypern"
+
+msgid "Czechia"
+msgstr "Tschechien"
+
+msgid "Côte d'Ivoire"
+msgstr "Côte d’Ivoire"
 
 msgid "Dark"
 msgstr "Dunkel"
@@ -1007,6 +1193,9 @@ msgstr "Ab jetzt entfernt das Löschen des Plugins alles, was es geschrieben hat
 msgid "Deleting your account"
 msgstr "Dein Konto löschen"
 
+msgid "Denmark"
+msgstr "Dänemark"
+
 msgid "Depending on the provider it is called redirect URI, callback URL, return URL or authorized redirect URL."
 msgstr "Je nach Anbieter heißt sie redirect URI, callback URL, return URL oder authorized redirect URL."
 
@@ -1047,6 +1236,15 @@ msgstr "DiluxOne Users+: Die Mitgliedschaftsregel des Netzwerks ist nicht bestä
 
 msgid "Discard the changes"
 msgstr "Änderungen verwerfen"
+
+msgid "Djibouti"
+msgstr "Dschibuti"
+
+msgid "Dominica"
+msgstr "Dominica"
+
+msgid "Dominican Republic"
+msgstr "Dominikanische Republik"
 
 msgid "Done."
 msgstr "Fertig."
@@ -1104,6 +1302,9 @@ msgstr "Jede Person sieht, wo sie angemeldet ist, und kann es beenden"
 msgid "Each person sees where they are signed in, from their account, and can close it."
 msgstr "Jede Person sieht im eigenen Konto, wo sie angemeldet ist, und kann es beenden."
 
+msgid "Ecuador"
+msgstr "Ecuador"
+
 msgid "Edge"
 msgstr "Kante"
 
@@ -1115,6 +1316,12 @@ msgstr "Profil bearbeiten"
 
 msgid "Edit the page →"
 msgstr "Seite bearbeiten →"
+
+msgid "Egypt"
+msgstr "Ägypten"
+
+msgid "El Salvador"
+msgstr "El Salvador"
 
 msgid "Email"
 msgstr "E-Mail"
@@ -1143,6 +1350,12 @@ msgstr "Jetzt leeren"
 msgid "Environment"
 msgstr "Umgebung"
 
+msgid "Equatorial Guinea"
+msgstr "Äquatorialguinea"
+
+msgid "Eritrea"
+msgstr "Eritrea"
+
 msgid "Error: the form expired. Load the page again and send it once more."
 msgstr "Fehler: Das Formular ist abgelaufen. Lade die Seite neu und sende es noch einmal."
 
@@ -1155,6 +1368,15 @@ msgstr "Fehler: „%1$s“: %2$s"
 #, php-format
 msgid "Error: “%s” is required."
 msgstr "Fehler: „%s“ ist ein Pflichtfeld."
+
+msgid "Estonia"
+msgstr "Estland"
+
+msgid "Eswatini"
+msgstr "Eswatini"
+
+msgid "Ethiopia"
+msgstr "Äthiopien"
 
 msgid "Even with everybody sent to the page above, this one is still shown to somebody: an administrator coming in through the emergency door, and anybody finishing a password reset — WordPress builds that link and it goes here and nowhere else. Left alone it is a grey box with the WordPress logo on it."
 msgstr "Selbst wenn alle auf die Seite oben geschickt werden, sieht diesen hier immer noch jemand: eine Administratorin, die durch die Nottür hereinkommt, und jede Person, die ein Passwort zurücksetzt — diesen Link baut WordPress, und er führt hierher und sonst nirgendwohin. Unberührt ist das ein grauer Kasten mit dem WordPress-Logo darauf."
@@ -1299,8 +1521,14 @@ msgstr "Fehlgeschlagen"
 msgid "Failing"
 msgstr "Schlägt fehl"
 
+msgid "Falkland Islands"
+msgstr "Falklandinseln"
+
 msgid "Fall back to Gravatar when there is none"
 msgstr "Auf Gravatar zurückgreifen, wenn keines da ist"
+
+msgid "Faroe Islands"
+msgstr "Färöer"
 
 msgid "Field deleted. The data already stored was left alone."
 msgstr "Feld gelöscht. Die bereits gespeicherten Daten blieben unangetastet."
@@ -1319,6 +1547,9 @@ msgstr "Felder"
 msgid "Fields in use"
 msgstr "Genutzte Felder"
 
+msgid "Fiji"
+msgstr "Fidschi"
+
 msgid "Filled"
 msgstr "Gefüllt"
 
@@ -1327,6 +1558,9 @@ msgstr "Gefüllte Schaltflächen, Links und der Menüabschnitt, den jemand gerad
 
 msgid "Finish"
 msgstr "Ausführung"
+
+msgid "Finland"
+msgstr "Finnland"
 
 msgid "First name"
 msgstr "Vorname"
@@ -1372,6 +1606,18 @@ msgstr "Ein vergessenes Passwort geht ums Ändern, nicht ums Hineinkommen. Hier 
 msgid "Forms are hard to read at full width; a list of courses is not. This holds the content only."
 msgstr "Formulare sind über die volle Breite schwer zu lesen, eine Kursliste nicht. Das begrenzt nur den Inhalt."
 
+msgid "France"
+msgstr "Frankreich"
+
+msgid "French Guiana"
+msgstr "Französisch-Guayana"
+
+msgid "French Polynesia"
+msgstr "Französisch-Polynesien"
+
+msgid "French Southern Territories"
+msgstr "Französische Süd- und Antarktisgebiete"
+
 msgid "From"
 msgstr "Von"
 
@@ -1395,14 +1641,32 @@ msgstr "Aus dem Konto"
 msgid "From your theme — %s"
 msgstr "Von Ihrem Theme — %s"
 
+msgid "Gabon"
+msgstr "Gabun"
+
+msgid "Gambia"
+msgstr "Gambia"
+
 msgid "Gender"
 msgstr "Geschlecht"
+
+msgid "Georgia"
+msgstr "Georgien"
+
+msgid "Germany"
+msgstr "Deutschland"
 
 msgid "Get started"
 msgstr "Loslegen"
 
 msgid "Getting started"
 msgstr "Loslegen"
+
+msgid "Ghana"
+msgstr "Ghana"
+
+msgid "Gibraltar"
+msgstr "Gibraltar"
 
 msgid "Give it a name — this is what people see on the consent screen."
 msgstr "Gib ihr einen Namen — das ist, was die Leute auf dem Zustimmungsbildschirm sehen."
@@ -1446,8 +1710,41 @@ msgstr "Gravatar wird gefragt: Ein Hash der E-Mail-Adresse jedes Besuchers geht 
 msgid "Gravatar is not asked: no address is sent anywhere to ask whether there is a picture for it."
 msgstr "Gravatar wird nicht gefragt: Keine Adresse geht irgendwohin, um nach einem Bild zu fragen."
 
+msgid "Greece"
+msgstr "Griechenland"
+
 msgid "Green"
 msgstr "Grün"
+
+msgid "Greenland"
+msgstr "Grönland"
+
+msgid "Grenada"
+msgstr "Grenada"
+
+msgid "Guadeloupe"
+msgstr "Guadeloupe"
+
+msgid "Guam"
+msgstr "Guam"
+
+msgid "Guatemala"
+msgstr "Guatemala"
+
+msgid "Guernsey"
+msgstr "Guernsey"
+
+msgid "Guinea"
+msgstr "Guinea"
+
+msgid "Guinea-Bissau"
+msgstr "Guinea-Bissau"
+
+msgid "Guyana"
+msgstr "Guyana"
+
+msgid "Haiti"
+msgstr "Haiti"
 
 msgid "Have a public name"
 msgstr "Haben einen öffentlichen Namen"
@@ -1493,6 +1790,12 @@ msgstr "Auf der Website nur für manche Rollen ausblenden"
 
 msgid "Home"
 msgstr "Start"
+
+msgid "Honduras"
+msgstr "Honduras"
+
+msgid "Hong Kong"
+msgstr "Hongkong"
 
 msgid "How long a session lasts"
 msgstr "Wie lange eine Sitzung dauert"
@@ -1545,6 +1848,9 @@ msgstr "Wie „Anmelden“ aussieht"
 msgid "However you identify. Write anything you like, or leave it empty."
 msgstr "Wie du dich identifizierst. Schreib, was du willst, oder lass es leer."
 
+msgid "Hungary"
+msgstr "Ungarn"
+
 msgid "I already created the app"
 msgstr "Ich habe die App schon angelegt"
 
@@ -1556,6 +1862,9 @@ msgstr "Ich habe mein Passwort vergessen"
 
 msgid "IP"
 msgstr "IP"
+
+msgid "Iceland"
+msgstr "Island"
 
 msgid "If somebody forgets their password"
 msgstr "Wenn jemand sein Passwort vergisst"
@@ -1593,11 +1902,32 @@ msgstr "In ihrem Konto"
 msgid "In what order"
 msgstr "In welcher Reihenfolge"
 
+msgid "India"
+msgstr "Indien"
+
+msgid "Indonesia"
+msgstr "Indonesien"
+
 msgid "Inside the dashboard the fields place themselves: they are on every profile, on the form for adding a person and on WordPress’s own registration form, with nothing to set up. On the pages visitors see, you say where they go — and that is what the lines below are for."
 msgstr "Im Dashboard setzen sich die Felder von selbst: Sie stehen auf jedem Profil, auf dem Formular zum Hinzufügen einer Person und auf dem Registrierungsformular von WordPress selbst, ohne dass etwas einzurichten wäre. Auf den Seiten, die Besucher sehen, sagen Sie, wohin sie gehören — und dafür sind die Zeilen unten da."
 
 msgid "Instead of it — your content replaces the section"
 msgstr "Stattdessen — dein Inhalt ersetzt den Bereich"
+
+msgid "Iran"
+msgstr "Iran"
+
+msgid "Iraq"
+msgstr "Irak"
+
+msgid "Ireland"
+msgstr "Irland"
+
+msgid "Isle of Man"
+msgstr "Isle of Man"
+
+msgid "Israel"
+msgstr "Israel"
 
 msgid "It cannot be an email address: that is how you sign in, not how people see you."
 msgstr "Es kann keine E-Mail-Adresse sein: So meldest du dich an, nicht so sehen dich die Leute."
@@ -1674,6 +2004,9 @@ msgstr "Es ist dein kurzer Name auf der Website: der, der in der Adresse deines 
 msgid "It works"
 msgstr "Es funktioniert"
 
+msgid "Italy"
+msgstr "Italien"
+
 msgid "Its address"
 msgstr "Ihre Adresse"
 
@@ -1691,11 +2024,26 @@ msgstr "Ihr Benutzermenü"
 msgid "JPG, PNG, GIF or WebP, up to %s."
 msgstr "JPG, PNG, GIF oder WebP, bis %s."
 
+msgid "Jamaica"
+msgstr "Jamaika"
+
+msgid "Japan"
+msgstr "Japan"
+
+msgid "Jersey"
+msgstr "Jersey"
+
+msgid "Jordan"
+msgstr "Jordanien"
+
 msgid "Just this person:"
 msgstr "Nur diese Person:"
 
 msgid "KB"
 msgstr "KB"
+
+msgid "Kazakhstan"
+msgstr "Kasachstan"
 
 msgid "Keep a row for"
 msgstr "Jede Zeile aufbewahren für"
@@ -1709,6 +2057,9 @@ msgstr "Halte sie bereit: Einer der Schritte unten fragt danach, und sie muss ge
 msgid "Keeping it leaves the request unconfirmed: the link in the e-mail works until it expires."
 msgstr "Wenn du es behältst, bleibt die Anfrage unbestätigt: Der Link in der E-Mail funktioniert, bis er abläuft."
 
+msgid "Kenya"
+msgstr "Kenia"
+
 msgid "Kept out"
 msgstr "Gesperrt"
 
@@ -1719,6 +2070,21 @@ msgstr "Gespeichert, und hier nicht gezeigt"
 #, php-format
 msgid "Key: <code>%s</code> — it cannot change: it is the name the data is stored under."
 msgstr "Schlüssel: <code>%s</code> — er kann sich nicht ändern: Es ist der Name, unter dem die Daten gespeichert sind."
+
+msgid "Kiribati"
+msgstr "Kiribati"
+
+msgid "Kosovo"
+msgstr "Kosovo"
+
+msgid "Kuwait"
+msgstr "Kuwait"
+
+msgid "Kyrgyzstan"
+msgstr "Kirgisistan"
+
+msgid "Laos"
+msgstr "Laos"
 
 msgid "Largest photo accepted"
 msgstr "Größtes akzeptiertes Foto"
@@ -1737,6 +2103,9 @@ msgstr "Zuletzt gesehen"
 msgid "Last sign-in"
 msgstr "Letzte Anmeldung"
 
+msgid "Latvia"
+msgstr "Lettland"
+
 msgid "Layout"
 msgstr "Anordnung"
 
@@ -1748,6 +2117,9 @@ msgstr "So lassen, wie WordPress es ausliefert"
 
 msgid "Leave it on “None” unless this site really is behind a proxy: a header nobody is writing is a header the visitor can write. When there is one, pick the one it writes — X-Forwarded-For for nginx, Traefik and most load balancers, CF-Connecting-IP behind Cloudflare, True-Client-IP behind Akamai."
 msgstr "Lassen Sie „Keiner“ stehen, sofern diese Website nicht wirklich hinter einem Proxy läuft: einen Header, den niemand schreibt, schreibt der Besucher. Gibt es einen Proxy, wählen Sie den Header, den er schreibt — X-Forwarded-For für nginx, Traefik und die meisten Load Balancer, CF-Connecting-IP hinter Cloudflare, True-Client-IP hinter Akamai."
+
+msgid "Lebanon"
+msgstr "Libanon"
 
 msgid "Left"
 msgstr "Links"
@@ -1767,6 +2139,9 @@ msgstr "Bei 0 entscheidet WordPress – 2 Tage, oder 14 mit „Angemeldet bleibe
 msgid "Length"
 msgstr "Länge"
 
+msgid "Lesotho"
+msgstr "Lesotho"
+
 msgid "Let people choose their public name"
 msgstr "Die Leute ihren öffentlichen Namen wählen lassen"
 
@@ -1775,6 +2150,15 @@ msgstr "Die Leute ihr eigenes hochladen lassen"
 
 msgid "Letters, numbers and dashes. Sign in, registration, the second step and a new password are all answered there, and an address you used before keeps sending people to it."
 msgstr "Buchstaben, Ziffern und Bindestriche. Anmeldung, Registrierung, der zweite Schritt und ein neues Passwort werden alle dort beantwortet, und eine Adresse, die Sie vorher verwendet haben, leitet weiter dorthin."
+
+msgid "Liberia"
+msgstr "Liberia"
+
+msgid "Libya"
+msgstr "Libyen"
+
+msgid "Liechtenstein"
+msgstr "Liechtenstein"
 
 msgid "Lines"
 msgstr "Linien"
@@ -1812,6 +2196,9 @@ msgstr "Links sind erlaubt, und genau darum geht es: %s"
 msgid "Links to “my account” from the rest of the site go to the front page."
 msgstr "Links zu „Mein Konto“ aus dem Rest der Website führen zur Startseite."
 
+msgid "Lithuania"
+msgstr "Litauen"
+
 msgid "Loading…"
 msgstr "Wird geladen…"
 
@@ -1827,6 +2214,15 @@ msgstr "Nur Logo"
 msgid "Long text"
 msgstr "Langer Text"
 
+msgid "Luxembourg"
+msgstr "Luxemburg"
+
+msgid "Macao"
+msgstr "Macau"
+
+msgid "Madagascar"
+msgstr "Madagaskar"
+
 msgid "Made by you, it waits in Tools → Export Personal Data."
 msgstr "Von dir erstellt, wartet sie unter Werkzeuge → Personenbezogene Daten exportieren."
 
@@ -1835,6 +2231,21 @@ msgstr "Hauptblock — was die Website braucht"
 
 msgid "Maintenance"
 msgstr "Wartung"
+
+msgid "Malawi"
+msgstr "Malawi"
+
+msgid "Malaysia"
+msgstr "Malaysia"
+
+msgid "Maldives"
+msgstr "Malediven"
+
+msgid "Mali"
+msgstr "Mali"
+
+msgid "Malta"
+msgstr "Malta"
 
 msgid "Man"
 msgstr "Mann"
@@ -1847,6 +2258,21 @@ msgstr "Verwalten"
 
 msgid "Managed by the network: one setting for every site, set in Network Admin."
 msgstr "Vom Netzwerk verwaltet: eine Einstellung für alle Websites, festgelegt in der Netzwerkverwaltung."
+
+msgid "Marshall Islands"
+msgstr "Marshallinseln"
+
+msgid "Martinique"
+msgstr "Martinique"
+
+msgid "Mauritania"
+msgstr "Mauretanien"
+
+msgid "Mauritius"
+msgstr "Mauritius"
+
+msgid "Mayotte"
+msgstr "Mayotte"
 
 #. translators: %s: month and year they joined
 #, php-format
@@ -1862,11 +2288,35 @@ msgstr "Nachricht"
 msgid "Messages"
 msgstr "Meldungen"
 
+msgid "Mexico"
+msgstr "Mexiko"
+
+msgid "Micronesia"
+msgstr "Mikronesien"
+
 msgid "Mist"
 msgstr "Nebel"
 
 msgid "Mobile (WhatsApp)"
 msgstr "Mobil (WhatsApp)"
+
+msgid "Moldova"
+msgstr "Moldau"
+
+msgid "Monaco"
+msgstr "Monaco"
+
+msgid "Mongolia"
+msgstr "Mongolei"
+
+msgid "Montenegro"
+msgstr "Montenegro"
+
+msgid "Montserrat"
+msgstr "Montserrat"
+
+msgid "Morocco"
+msgstr "Marokko"
 
 msgid "Move down"
 msgstr "Nach unten"
@@ -1874,11 +2324,17 @@ msgstr "Nach unten"
 msgid "Move up"
 msgstr "Nach oben"
 
+msgid "Mozambique"
+msgstr "Mosambik"
+
 msgid "Multisite"
 msgstr "Multisite"
 
 msgid "My account"
 msgstr "Mein Konto"
+
+msgid "Myanmar"
+msgstr "Myanmar"
 
 msgid "Name"
 msgstr "Name"
@@ -1889,8 +2345,20 @@ msgstr "Nur Name"
 msgid "Names nobody can take"
 msgstr "Namen, die niemand nehmen kann"
 
+msgid "Namibia"
+msgstr "Namibia"
+
+msgid "Nauru"
+msgstr "Nauru"
+
 msgid "Neither downloading your data nor deleting your account is allowed, so there is nothing to do here."
 msgstr "Weder das Herunterladen deiner Daten noch das Löschen deines Kontos ist erlaubt, hier gibt es also nichts zu tun."
+
+msgid "Nepal"
+msgstr "Nepal"
+
+msgid "Netherlands"
+msgstr "Niederlande"
 
 msgid "Network Admin › Membership →"
 msgstr "Netzwerkverwaltung › Mitgliedschaft →"
@@ -1916,6 +2384,12 @@ msgstr "Wird nie geschickt"
 msgid "Never: they see it, and whoever administers changes it"
 msgstr "Nie: Sie sehen es, und wer verwaltet, ändert es"
 
+msgid "New Caledonia"
+msgstr "Neukaledonien"
+
+msgid "New Zealand"
+msgstr "Neuseeland"
+
 msgid "New accounts and new sites follow the policy on their own. What existed before it is added with this. Removals made by an administrator stay."
 msgstr "Neue Konten und neue Websites folgen der Richtlinie von selbst. Was vorher existierte, wird hiermit hinzugefügt. Entfernungen durch einen Administrator bleiben bestehen."
 
@@ -1940,6 +2414,18 @@ msgstr "Neues Passwort"
 #, php-format
 msgid "New sign-in to your account on %s"
 msgstr "Neue Anmeldung in deinem Konto auf %s"
+
+msgid "Nicaragua"
+msgstr "Nicaragua"
+
+msgid "Niger"
+msgstr "Niger"
+
+msgid "Nigeria"
+msgstr "Nigeria"
+
+msgid "Niue"
+msgstr "Niue"
 
 msgid "No"
 msgstr "Nein"
@@ -2075,6 +2561,21 @@ msgstr "Keine."
 
 msgid "None: wp-login.php does the job."
 msgstr "Keine: wp-login.php erledigt die Arbeit."
+
+msgid "Norfolk Island"
+msgstr "Norfolkinsel"
+
+msgid "North Korea"
+msgstr "Nordkorea"
+
+msgid "North Macedonia"
+msgstr "Nordmazedonien"
+
+msgid "Northern Mariana Islands"
+msgstr "Nördliche Marianen"
+
+msgid "Norway"
+msgstr "Norwegen"
 
 msgid "Not asked"
 msgstr "Wird nicht verlangt"
@@ -2253,6 +2754,9 @@ msgstr "Auf jeder Website angeboten"
 #, php-format
 msgid "Offered to %s, and asked of whoever turned it on from their own account."
 msgstr "Wird %s angeboten und von allen verlangt, die sie im eigenen Konto eingeschaltet haben."
+
+msgid "Oman"
+msgstr "Oman"
 
 msgid "On"
 msgstr "Ein"
@@ -2462,8 +2966,26 @@ msgstr "Überblick"
 msgid "Pablo Ariel Di Loreto"
 msgstr "Pablo Ariel Di Loreto"
 
+msgid "Pakistan"
+msgstr "Pakistan"
+
+msgid "Palau"
+msgstr "Palau"
+
+msgid "Palestine"
+msgstr "Palästina"
+
+msgid "Panama"
+msgstr "Panama"
+
 msgid "Paper"
 msgstr "Papier"
+
+msgid "Papua New Guinea"
+msgstr "Papua-Neuguinea"
+
+msgid "Paraguay"
+msgstr "Paraguay"
 
 msgid "Passkeys"
 msgstr "Passkeys"
@@ -2507,6 +3029,12 @@ msgstr "Permalinks"
 msgid "Person"
 msgstr "Person"
 
+msgid "Peru"
+msgstr "Peru"
+
+msgid "Philippines"
+msgstr "Philippinen"
+
 msgid "Phone"
 msgstr "Telefon"
 
@@ -2531,6 +3059,9 @@ msgstr "Wähle unter %s die Seite mit dem Shortcode [diluxone_users_account]. Bi
 msgid "Pill"
 msgstr "Pille"
 
+msgid "Pitcairn"
+msgstr "Pitcairninseln"
+
 msgid "Pixels around the menu, inside its strip. Empty for the plugin’s own — 10, 10, 0 and 0. Top and bottom equal is what keeps the menu in the middle of its strip whichever shape it has."
 msgstr "Pixel rund um das Menü, innerhalb seiner Leiste. Leer für die des Plugins — 10, 10, 0 und 0. Oben und unten gleich hält das Menü in der Mitte seiner Leiste, welche Form es auch hat."
 
@@ -2551,6 +3082,12 @@ msgstr "Plugin-Version"
 
 msgid "Pointing these at the site’s own tokens, from the site’s own stylesheet, is almost always enough on its own — and unlike a sheet written by hand it survives the plugin growing a component next month. That is worth trying before this answer."
 msgstr "Diese Eigenschaften aus dem eigenen Stylesheet der Website auf deren eigene Tokens zeigen zu lassen, genügt fast immer für sich allein — und anders als ein handgeschriebenes Stylesheet übersteht es, dass das Plugin nächsten Monat eine Komponente dazubekommt. Das ist einen Versuch wert, bevor man zu dieser Antwort greift."
+
+msgid "Poland"
+msgstr "Polen"
+
+msgid "Portugal"
+msgstr "Portugal"
 
 msgid "Prefer not to say"
 msgstr "Ich sage es lieber nicht"
@@ -2591,11 +3128,17 @@ msgstr "Öffentliche Namen sind aus, also nimmt das Feld nur die E-Mail-Adresse.
 msgid "Publish the page and open it the way a visitor would. What the line stands for is what you see."
 msgstr "Veröffentlichen Sie die Seite und öffnen Sie sie so, wie es ein Besucher täte. Wofür die Zeile steht, das sehen Sie."
 
+msgid "Puerto Rico"
+msgstr "Puerto Rico"
+
 msgid "Put the plugin’s own words back"
 msgstr "Die eigenen Worte des Plugins zurückholen"
 
 msgid "Put the site’s name, mark and colour on wp-login.php"
 msgstr "Name, Marke und Farbe der Website auf wp-login.php setzen"
+
+msgid "Qatar"
+msgstr "Katar"
 
 msgid "Quiet text"
 msgstr "Leiser Text"
@@ -2702,6 +3245,9 @@ msgstr "Wiederherstellen"
 msgid "Restoring overwrites what is set right now. Only keys this plugin knows are read, so a file from somewhere else cannot write settings that are not ours."
 msgstr "Das Wiederherstellen überschreibt, was gerade eingestellt ist. Gelesen werden nur Schlüssel, die dieses Plugin kennt, also kann eine Datei von woanders keine Einstellungen schreiben, die nicht unsere sind."
 
+msgid "Reunion"
+msgstr "Réunion"
+
 msgid "Review"
 msgstr "Prüfen"
 
@@ -2724,6 +3270,9 @@ msgstr "Gerade wird er nirgends verlangt: Der einzige Weg hinein, den du hast, i
 msgid "Role of new accounts"
 msgstr "Rolle neuer Konten"
 
+msgid "Romania"
+msgstr "Rumänien"
+
 msgid "Room before it"
 msgstr "Abstand davor"
 
@@ -2739,8 +3288,47 @@ msgstr "Regeln"
 msgid "Run the live test"
 msgstr "Live-Test starten"
 
+msgid "Russia"
+msgstr "Russland"
+
+msgid "Rwanda"
+msgstr "Ruanda"
+
 msgid "Sage"
 msgstr "Salbei"
+
+msgid "Saint Barthelemy"
+msgstr "St. Barthélemy"
+
+msgid "Saint Helena"
+msgstr "St. Helena"
+
+msgid "Saint Kitts and Nevis"
+msgstr "St. Kitts und Nevis"
+
+msgid "Saint Lucia"
+msgstr "St. Lucia"
+
+msgid "Saint Martin"
+msgstr "St. Martin"
+
+msgid "Saint Pierre and Miquelon"
+msgstr "St. Pierre und Miquelon"
+
+msgid "Saint Vincent and the Grenadines"
+msgstr "St. Vincent und die Grenadinen"
+
+msgid "Samoa"
+msgstr "Samoa"
+
+msgid "San Marino"
+msgstr "San Marino"
+
+msgid "Sao Tome and Principe"
+msgstr "São Tomé und Príncipe"
+
+msgid "Saudi Arabia"
+msgstr "Saudi-Arabien"
 
 msgid "Save"
 msgstr "Speichern"
@@ -2845,6 +3433,9 @@ msgstr "Code senden"
 msgid "Sends people to their account on the site."
 msgstr "Schickt die Leute zu ihrem Konto auf der Website."
 
+msgid "Senegal"
+msgstr "Senegal"
+
 msgid "Sent halfway through signing in, to somebody who is waiting for it. It has no switch either: a code that does not arrive locks them out."
 msgstr "Wird mitten in der Anmeldung verschickt, an jemanden, der darauf wartet. Auch sie hat keinen Schalter: Ein Code, der nicht ankommt, sperrt die Person aus."
 
@@ -2887,6 +3478,9 @@ msgstr "Wird verschickt, wenn sich der zweite Schritt, ein verknüpftes soziales
 msgid "Sent. Check your email."
 msgstr "Gesendet. Sieh in deine E-Mail."
 
+msgid "Serbia"
+msgstr "Serbien"
+
 msgid "Sessions"
 msgstr "Sitzungen"
 
@@ -2924,6 +3518,9 @@ msgstr "Einstellungen"
 
 msgid "Settings as a file"
 msgstr "Einstellungen als Datei"
+
+msgid "Seychelles"
+msgstr "Seychellen"
 
 msgid "Shape"
 msgstr "Form"
@@ -3022,6 +3619,9 @@ msgstr "Angezeigt, wie WordPress es macht."
 msgid "Side gutter"
 msgstr "Seitlicher Abstand"
 
+msgid "Sierra Leone"
+msgstr "Sierra Leone"
+
 msgid "Sign in"
 msgstr "Anmelden"
 
@@ -3094,6 +3694,12 @@ msgstr "Die Anmeldung mit dem E-Mail-Link legt das Konto an"
 msgid "Simple"
 msgstr "Schlicht"
 
+msgid "Singapore"
+msgstr "Singapur"
+
+msgid "Sint Maarten"
+msgstr "Sint Maarten"
+
 msgid "Site"
 msgstr "Website"
 
@@ -3120,6 +3726,12 @@ msgstr "Jetzt überspringen"
 msgid "Sky"
 msgstr "Himmel"
 
+msgid "Slovakia"
+msgstr "Slowakei"
+
+msgid "Slovenia"
+msgstr "Slowenien"
+
 msgid "So nothing on this screen is asked of anybody: the only person who ever fills these in is whoever administers the site, creating an account by hand."
 msgstr "Also wird nichts von diesem Bildschirm irgendwem abgefragt: Die einzige Person, die das je ausfüllt, ist wer die Website verwaltet und ein Konto von Hand anlegt."
 
@@ -3143,6 +3755,12 @@ msgstr "Anmeldung über soziale Netzwerke abgewiesen"
 
 msgid "Soft"
 msgstr "Sanft"
+
+msgid "Solomon Islands"
+msgstr "Salomonen"
+
+msgid "Somalia"
+msgstr "Somalia"
 
 msgid "Some required fields are missing."
 msgstr "Es fehlen Pflichtfelder."
@@ -3190,17 +3808,35 @@ msgstr "Ein Pflichtfeld blieb leer"
 msgid "Something went wrong. Try again."
 msgstr "Etwas ist schiefgegangen. Versuch es noch einmal."
 
+msgid "South Africa"
+msgstr "Südafrika"
+
+msgid "South Georgia"
+msgstr "Südgeorgien"
+
+msgid "South Korea"
+msgstr "Südkorea"
+
+msgid "South Sudan"
+msgstr "Südsudan"
+
 msgid "Spaces"
 msgstr "Leerzeichen"
 
 msgid "Spaces turn into dashes, because a web address cannot have them. Everything else that does not fit in an address is dropped."
 msgstr "Leerzeichen werden zu Bindestrichen, weil eine Webadresse keine enthalten darf. Alles andere, was nicht in eine Adresse passt, fällt weg."
 
+msgid "Spain"
+msgstr "Spanien"
+
 msgid "Split with a picture"
 msgstr "Geteilt, mit Bild"
 
 msgid "Square corners"
 msgstr "Gerade Ecken"
+
+msgid "Sri Lanka"
+msgstr "Sri Lanka"
 
 msgid "Stacked is every way in on the screen at once, one under the other. In tabs they share one place and the screen stops growing downwards, which is what a laptop notices."
 msgstr "Gestapelt heißt: alle Wege hinein gleichzeitig auf dem Bildschirm, einer unter dem anderen. In Reitern teilen sie sich einen Platz und der Bildschirm hört auf, nach unten zu wachsen — was ein Laptop merkt."
@@ -3236,6 +3872,9 @@ msgstr "Subdomains"
 msgid "Subject"
 msgstr "Betreff"
 
+msgid "Sudan"
+msgstr "Sudan"
+
 msgid "Suggested fields"
 msgstr "Vorgeschlagene Felder"
 
@@ -3248,11 +3887,26 @@ msgstr "Unterstützte Kontotypen: „Konten in einem beliebigen Organisationsver
 msgid "Surface"
 msgstr "Fläche"
 
+msgid "Suriname"
+msgstr "Suriname"
+
+msgid "Svalbard and Jan Mayen"
+msgstr "Svalbard und Jan Mayen"
+
+msgid "Sweden"
+msgstr "Schweden"
+
 msgid "Switched on here, one by one, and none of them is needed: they are buttons under the form above, not a replacement for it."
 msgstr "Werden hier einzeln eingeschaltet, und keine davon ist nötig: Sie sind Schaltflächen unter dem Formular oben, kein Ersatz dafür."
 
+msgid "Switzerland"
+msgstr "Schweiz"
+
 msgid "Sync everyone now"
 msgstr "Jetzt alle synchronisieren"
+
+msgid "Syria"
+msgstr "Syrien"
 
 msgid "System"
 msgstr "Vom System"
@@ -3260,11 +3914,20 @@ msgstr "Vom System"
 msgid "Tabs across the top"
 msgstr "Reiter oben"
 
+msgid "Taiwan"
+msgstr "Taiwan"
+
+msgid "Tajikistan"
+msgstr "Tadschikistan"
+
 msgid "Take a way in off this account"
 msgstr "Dem Konto einen Weg hinein nehmen"
 
 msgid "Take the settings and the user fields from one site to another — staging to production, or a site you set up once and want to repeat. Social login credentials are deliberately left out: those are secrets, and a JSON file that travels by e-mail is no place for one."
 msgstr "Nimm die Einstellungen und die Benutzerfelder von einer Website zur anderen mit — von Staging nach Produktion, oder zu einer Website, die du einmal aufgesetzt hast und wiederholen willst. Die Zugangsdaten des Social Logins bleiben mit Absicht draußen: Das sind Geheimnisse, und eine JSON-Datei, die per E-Mail reist, ist kein Ort dafür."
+
+msgid "Tanzania"
+msgstr "Tansania"
 
 msgid "Teal"
 msgstr "Petrol"
@@ -3294,6 +3957,9 @@ msgstr "Text, HTML oder der Shortcode eines anderen Plugins — ein Kurs-Plugin,
 
 msgid "Text, HTML, or the shortcode of another plugin. Leave it empty and the section stays as the plugin draws it."
 msgstr "Text, HTML oder der Shortcode eines anderen Plugins. Lass es leer und der Bereich bleibt so, wie das Plugin ihn zeichnet."
+
+msgid "Thailand"
+msgstr "Thailand"
 
 msgid "That address already has an account"
 msgstr "Diese Adresse hat bereits ein Konto"
@@ -4359,6 +5025,9 @@ msgstr "Haken Sie es an und speichern Sie: was oben steht, wird verworfen, und d
 msgid "Ticked here, it goes when the profile is saved."
 msgstr "Hier angehakt, verschwindet er beim Speichern des Profils."
 
+msgid "Timor-Leste"
+msgstr "Timor-Leste"
+
 msgid "To"
 msgstr "Bis"
 
@@ -4366,6 +5035,15 @@ msgstr "Bis"
 #, php-format
 msgid "To let people sign in with their %s account you have to create an app there. Below is the whole thing, click by click."
 msgstr "Damit die Leute sich mit ihrem %s-Konto anmelden können, musst du dort eine App anlegen. Hier steht alles, Klick für Klick."
+
+msgid "Togo"
+msgstr "Togo"
+
+msgid "Tokelau"
+msgstr "Tokelau"
+
+msgid "Tonga"
+msgstr "Tonga"
 
 msgid "Too many accounts, too fast"
 msgstr "Zu viele Konten, zu schnell"
@@ -4382,8 +5060,23 @@ msgstr "Werkzeuge"
 msgid "Top"
 msgstr "Oben"
 
+msgid "Trinidad and Tobago"
+msgstr "Trinidad und Tobago"
+
 msgid "Trusted proxies"
 msgstr "Vertrauenswürdige Proxys"
+
+msgid "Tunisia"
+msgstr "Tunesien"
+
+msgid "Turkiye"
+msgstr "Türkei"
+
+msgid "Turkmenistan"
+msgstr "Turkmenistan"
+
+msgid "Turks and Caicos"
+msgstr "Turks- und Caicosinseln"
 
 msgid "Turn it off"
 msgstr "Ausschalten"
@@ -4413,6 +5106,9 @@ msgstr "Ausgeschaltet kommt jemand, dessen E-Mail bereits registriert ist, schli
 
 msgid "Turned off, the name comes from what they wrote as their first and last name, and the profile address is made from that."
 msgstr "Ausgeschaltet kommt der Name aus dem, was sie als Vor- und Nachnamen geschrieben haben, und die Profiladresse wird daraus gebildet."
+
+msgid "Tuvalu"
+msgstr "Tuvalu"
 
 msgid "Two per row"
 msgstr "Zwei pro Zeile"
@@ -4453,6 +5149,18 @@ msgstr "Die Zwei-Schritt-Verifizierung wurde eingeschaltet."
 msgid "Type"
 msgstr "Typ"
 
+msgid "U.S. Minor Outlying Islands"
+msgstr "Amerikanische Überseeinseln"
+
+msgid "U.S. Virgin Islands"
+msgstr "Amerikanische Jungferninseln"
+
+msgid "Uganda"
+msgstr "Uganda"
+
+msgid "Ukraine"
+msgstr "Ukraine"
+
 msgid "Under the strip"
 msgstr "Unter der Leiste"
 
@@ -4464,6 +5172,15 @@ msgstr "Unter „Umleitungs-URI“ wähle die Plattform „Web“ und füge die 
 
 msgid "Underlined"
 msgstr "Unterstrichen"
+
+msgid "United Arab Emirates"
+msgstr "Vereinigte Arabische Emirate"
+
+msgid "United Kingdom"
+msgstr "Vereinigtes Königreich"
+
+msgid "United States"
+msgstr "Vereinigte Staaten"
 
 msgid "Unknown browser"
 msgstr "Unbekannter Browser"
@@ -4484,6 +5201,9 @@ msgstr "Nicht angehakt verlässt es jedes Formular und behält sowohl seine Defi
 
 msgid "Up to date."
 msgstr "Aktuell."
+
+msgid "Uruguay"
+msgstr "Uruguay"
 
 msgid "Usage"
 msgstr "Verwendung"
@@ -4567,11 +5287,23 @@ msgstr "Mit Users+ Pro wählst du, welche Farbe der Palette deines Themes welche
 msgid "Users+ Pro on these screens"
 msgstr "Users+ Pro auf diesen Bildschirmen"
 
+msgid "Uzbekistan"
+msgstr "Usbekistan"
+
 msgid "Values"
 msgstr "Werte"
 
+msgid "Vanuatu"
+msgstr "Vanuatu"
+
+msgid "Venezuela"
+msgstr "Venezuela"
+
 msgid "Verified and working, of the ones the plugin brings."
 msgstr "Geprüft und funktionierend, von denen, die das Plugin mitbringt."
+
+msgid "Vietnam"
+msgstr "Vietnam"
 
 msgid "Violet"
 msgstr "Violett"
@@ -4581,6 +5313,9 @@ msgstr "Wartezeit zwischen zwei Anfragen"
 
 msgid "Waiting for you to confirm by email"
 msgstr "Wartet auf deine Bestätigung per E-Mail"
+
+msgid "Wallis and Futuna"
+msgstr "Wallis und Futuna"
 
 msgid "Watch out:"
 msgstr "Achtung:"
@@ -4634,6 +5369,9 @@ msgstr "Willkommen"
 #, php-format
 msgid "Welcome to %s"
 msgstr "Willkommen bei %s"
+
+msgid "Western Sahara"
+msgstr "Westsahara"
 
 msgid "What a name may be"
 msgstr "Wie ein Name aussehen darf"
@@ -4995,6 +5733,9 @@ msgstr "Eine zu schreiben zeigt sie auch dann, wenn der Shortcode nicht nach ein
 msgid "Written by this site, in %s."
 msgstr "Von dieser Website geschrieben, auf %s."
 
+msgid "Yemen"
+msgstr "Jemen"
+
 msgid "Yes"
 msgstr "Ja"
 
@@ -5223,6 +5964,12 @@ msgstr "Dein Anmeldelink für %s"
 msgid "Your theme publishes no palette, so the plugin takes the colours your theme paints: the colour of its links and buttons, of its text, its page ground and the edge of its fields, measured on the site itself. There is nothing else to choose."
 msgstr "Dein Theme veröffentlicht keine Palette, also übernimmt das Plugin die Farben, die dein Theme malt: die Farbe seiner Links und Buttons, seines Textes, den Seitenhintergrund und den Rand seiner Felder, direkt auf der Website gemessen. Mehr gibt es nicht zu wählen."
 
+msgid "Zambia"
+msgstr "Sambia"
+
+msgid "Zimbabwe"
+msgstr "Simbabwe"
+
 msgid "a link sent to your email"
 msgstr "einem Link an deine E-Mail"
 
@@ -5298,12 +6045,12 @@ msgid "how they got in: a link, a password, a social account"
 msgstr "wie sie hereingekommen ist: ein Link, ein Passwort, ein soziales Konto"
 
 #. Author URI of the plugin
-msgid "https://diluxone.com/plugins-wordpress"
-msgstr "https://diluxone.com/plugins-wordpress"
+msgid "https://diluxone.com/wordpress-plugins/"
+msgstr "https://diluxone.com/wordpress-plugins/"
 
 #. Plugin URI of the plugin
-msgid "https://github.com/DiluxOne/diluxone-users-wordpress"
-msgstr "https://github.com/DiluxOne/diluxone-users-wordpress"
+msgid "https://diluxone.com/wordpress-plugins/users/"
+msgstr "https://diluxone.com/wordpress-plugins/users/"
 
 msgid "it has no page yet"
 msgstr "es hat noch keine Seite"
