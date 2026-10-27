@@ -79,6 +79,7 @@ ruleset) and this repository adds its own checks (`plugin-checks.yml`).
 ## Before you push
 
 ```bash
+make pre-pr              # everything the pull request and the merge queue run, from a fresh clone (long)
 make check               # PHPCS, PHPStan level 8, Psalm taint, unit tests
 make test-unit-min       # the unit suite on PHP 8.0, the minimum
 make env-multisite       # after make env: the tests site as a network

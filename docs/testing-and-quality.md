@@ -256,4 +256,4 @@ make release     # make check + version-alignment dry-run
 make test-all    # unit, integration (network and single site), single-site end-to-end
 ```
 
-`make check` is the pre-push habit; it does not replace CI. Integration, the two end-to-end suites, i18n and Plugin Check have their own targets, listed above.
+`make check` is the pre-push habit; it does not replace CI. `make pre-pr` is what does: it runs every check the pull request and the merge queue run, from a fresh clone, starting the wp-env sites it needs (DiluxOne/.github#479), so what the queue would find is found on the branch first. Each suite also has its own target, listed above.
