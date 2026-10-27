@@ -105,6 +105,7 @@ everybody, with the code by e-mail, and skips it for nobody.
 | Menu reaches every section, current tab marked | `account-area` › the menu reaches every section |
 | Your data / Linked accounts exist only while offered | `account-area` › The account page itself |
 | Details: fields saved, display name rebuilt, `missing` from the server | `account-area` › Your details |
+| Details: each block with fields in its own titled box (main, extra), in one form | `repro/issue-166` › each block with fields is drawn in its own box…; integration `AccountDetailsBlocksTest` |
 | Photo: upload, drawn, removed with its attachment, not-a-picture refused | `account-area` › Your photo |
 | Public name: saved, reserved refused | `account-area` › The public name |
 | Notifications: new device announced (link), switch off, rule `always` hides the switch | `account-area` › Notifications |
@@ -688,6 +689,7 @@ its row, and its spec, in the same pull request.
 | template | `templates/account/accounts.php` | `specs/sso` › linking from the account area… |
 | template | `templates/accounts.php` | `specs/account-pieces` › the social networks alone… |
 | template | `templates/fields.php` | `specs/account-pieces` › the fields alone… |
+| template | `templates/fields-list.php` | `specs/account-area` › Your details; `specs/account-pieces` › the fields alone… |
 | template | `templates/sessions.php` | `specs/account-pieces` › the sessions alone… |
 
 ## Not coverable in a browser

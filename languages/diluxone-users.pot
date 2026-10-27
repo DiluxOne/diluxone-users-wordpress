@@ -180,6 +180,9 @@ msgstr ""
 msgid "A bar down the left"
 msgstr ""
 
+msgid "A bit more about you"
+msgstr ""
+
 msgid "A border and the text in the accent, on the page’s own ground. For a design where a block of colour would be too loud."
 msgstr ""
 
@@ -354,6 +357,9 @@ msgid "A word between square brackets, typed into a page. Nobody visiting the si
 msgstr ""
 
 msgid "About"
+msgstr ""
+
+msgid "About you"
 msgstr ""
 
 msgid "Above all of them, always"
