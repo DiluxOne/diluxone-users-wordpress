@@ -82,12 +82,16 @@ the preview, or a rail of its own when the tab has neither — so it stays in
 view while the settings scroll, in the same place on every tab.
 
 Every screen takes panels, with no exceptions left: `diluxone-users`
-(Overview), `diluxone-users-login` (Access — sign-in page, ways in,
-registration), `diluxone-users-security`, `diluxone-users-social`,
-`diluxone-users-account`, `diluxone-users-fields`, `diluxone-users-design`,
-`diluxone-users-notices`, `diluxone-users-status` (Maintenance — status,
-tools, lockout). `diluxone-users-register` and `diluxone-users-tools` are not
-screens any more; their slugs redirect to the tab they became.
+(Overview), `diluxone-users-register` (Registration — summary, who can
+register, messages), `diluxone-users-login` (Access — summary, sign-in page,
+ways in, how they are arranged, messages), `diluxone-users-security`,
+`diluxone-users-social`, `diluxone-users-account`, `diluxone-users-fields`,
+`diluxone-users-design`, `diluxone-users-notices`, `diluxone-users-status`
+(Maintenance — status, tools, lockout). `diluxone-users-register` is a screen
+again, right above Access, and the old address of the tab it was,
+`page=diluxone-users-login&tab=register`, redirects to it;
+`diluxone-users-tools` is not a screen any more, and its slug redirects to the
+tab it became.
 
 A tab that draws its own markup — a list with its own actions, a form with a
 nonce of its own — registers with `'form' => false` and the screen stays out
@@ -322,8 +326,9 @@ only while the box is drawn, so an add-on that is off never has its setting
 turned off by somebody saving the tab. On a network a box whose setting is
 not editable from the hub is drawn as it stands, and switched where the
 add-on's own tab is (in Network Admin). `diluxone_users_doors` (filter)
-receives Access › Summary's rows before how an account is made; an add-on
-adds its way in there, as a summary row.
+receives Access › Summary's rows; an add-on adds its way in there, as a
+summary row. How an account is made is Registration › Summary's, not one of
+these rows.
 
 ### Doors on a network
 

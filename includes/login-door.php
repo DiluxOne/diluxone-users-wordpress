@@ -615,8 +615,8 @@ function diluxone_users_door_serve(): void {
 add_action( 'template_redirect', 'diluxone_users_door_serve', 2 );
 
 /**
- * A registration page still chosen in Access › Registration is not a second
- * door while this shape is on: it sends people to the page of its own. A
+ * A registration page still chosen in Registration › Who can register is not
+ * a second door while this shape is on: it sends people to the page of its own. A
  * 302, so choosing another shape gives the page back at once. The sign-in
  * page is not sent anywhere: the page of its own is drawn at its address.
  */
