@@ -1220,6 +1220,10 @@ and save as `[diluxone_users_fields]` with no group, holding a
 `diluxone-users-panel` per block that has active fields, under the titles
 `diluxone_users_field_blocks()` gives ("About you" for main, "A bit more about
 you" for extra), each ending in a Save button that sends the whole form.
+The tab no longer goes through `templates/fields.php`, so a theme's copy of
+that file stops applying there: to change how the fields look everywhere,
+copy `templates/fields-list.php`; to change the tab's boxes, copy
+`templates/account/details.php`.
 `templates/login.php` has a `social-pending` state, the holding screen of a
 social sign-in waiting on its address: `$args['email']` is then that address
 already masked (`a•••@e•••.com`), and the form posts `diluxone_users_sso_resend`
