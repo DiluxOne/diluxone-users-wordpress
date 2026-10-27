@@ -22,9 +22,14 @@ defined( 'ABSPATH' ) || exit;
  * @return array<string, array{0: string, 1: string}> ISO => [translated name, dialling code].
  */
 function diluxone_users_countries(): array {
-	static $countries = null;
+	// One list per language: a mail written in its recipient's language
+	// (switch_to_locale()) asks for it in the middle of a request drawn in
+	// another one, and must not get the names the first call translated.
+	static $cache = array();
 
-	if ( null === $countries ) {
+	$locale = get_locale();
+
+	if ( ! isset( $cache[ $locale ] ) ) {
 		$countries = array(
 			'AF' => array( __( 'Afghanistan', 'diluxone-users' ), '93' ),
 			'AL' => array( __( 'Albania', 'diluxone-users' ), '355' ),
@@ -283,10 +288,10 @@ function diluxone_users_countries(): array {
 		 *
 		 * @param array<string, array{0: string, 1: string}> $countries ISO => [translated name, dialling code].
 		 */
-		$countries = apply_filters( 'diluxone_users_countries', $countries );
+		$cache[ $locale ] = apply_filters( 'diluxone_users_countries', $countries );
 	}
 
-	return $countries;
+	return $cache[ $locale ];
 }
 
 /** A country's dialling code, without the "+". */
