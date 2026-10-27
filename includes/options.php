@@ -421,13 +421,6 @@ function diluxone_users_option_defaults_own(): array {
 		'diluxone_users_2fa_mode'              => 'off',
 		// The methods this site offers. Empty is equivalent to off.
 		'diluxone_users_2fa_methods'           => array( 'email' ),
-		// What to do when somebody comes in by e-mail link:
-		// 'auto'   ask only if the second step is NOT another e-mail. A code
-		// to the same inbox that was just opened proves nothing
-		// new; a method that does not arrive by e-mail does.
-		// 'always' always ask.
-		// 'never'  never ask.
-		'diluxone_users_2fa_link'              => 'auto',
 
 		// ── Privacy ─────────────────────────────────────────────────
 		// What somebody can do with their own data without asking anyone,

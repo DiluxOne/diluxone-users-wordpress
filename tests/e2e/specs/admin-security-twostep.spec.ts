@@ -45,12 +45,10 @@ const PASSWORD = 'e2e-Twostep-Ui-1!';
 const TWO_STEP_KEYS = [
 	'diluxone_users_2fa_mode',
 	'diluxone_users_2fa_methods',
-	'diluxone_users_2fa_link',
 ];
 
 const mode = (page: Page, value: string) => page.locator(`input[name="diluxone_users_2fa_mode"][value="${value}"]`);
 const method = (page: Page, value: string) => page.locator(`input[name="diluxone_users_2fa_methods[]"][value="${value}"]`);
-const linkRule = (page: Page, value: string) => page.locator(`input[name="diluxone_users_2fa_link"][value="${value}"]`);
 
 async function openTab(page: Page): Promise<void> {
 	await page.goto(adminUrl(SECURITY, '2fa'));
@@ -125,13 +123,14 @@ test.describe('Security › Two-step verification: each control writes what the 
 		expect(await stateIn(summaryRow(page, SECURITY, '2fa', 1))).toBe('off');
 	});
 
-	test('somebody who came by link: “always”, “never” and “work it out” each do what they say, and the summary agrees', async ({
+	test('somebody who came by link is asked the second step, even where “work it out” was saved, and the summary agrees', async ({
 		page,
 		guest,
 		site,
 		pages,
 		options,
 	}) => {
+		// A site that had "Let it decide" saved before it became Users+ Pro's.
 		await options.set({
 			diluxone_users_2fa_mode: 'optional',
 			diluxone_users_2fa_methods: ['email'],
@@ -143,47 +142,32 @@ test.describe('Security › Two-step verification: each control writes what the 
 
 		await site.makeUser({ email, meta: { diluxone_users_2fa_on: 1 } });
 
-		/** Saves one answer and reads back the screen, the side door, the rail and the summary. */
-		const choose = async (answer: string, expected: 'active' | 'off') => {
-			await openTab(page);
-			await linkRule(page, answer).check();
-			await savePanel(page);
-			await page.reload();
-			await expect(linkRule(page, answer)).toBeChecked();
-			expect((await site.getOptions(['diluxone_users_2fa_link'])).diluxone_users_2fa_link).toBe(answer);
-			expect(await stateIn(rail(page)), `the rail, on “${answer}”`).toBe(expected);
+		// The screen says it, and offers no choice of its own.
+		await openTab(page);
+		await expect(page.getByText('The second step is asked of somebody who came in by link, as on every other way in')).toBeVisible();
+		await expect(page.locator('input[name="diluxone_users_2fa_link"]')).toHaveCount(0);
+		expect(await stateIn(rail(page)), 'the rail').toBe('active');
 
-			await page.goto(adminUrl(SECURITY, 'summary'));
-			expect(await stateIn(summaryRow(page, SECURITY, '2fa', 2)), `the summary row, on “${answer}”`).toBe(expected);
-		};
+		await page.goto(adminUrl(SECURITY, 'summary'));
+		expect(await stateIn(summaryRow(page, SECURITY, '2fa', 2)), 'the summary row').toBe('active');
 
-		// Always: even a code to the same inbox is asked.
-		await choose('always', 'active');
+		// Even a code to the same inbox is asked.
 		await followLink(guest, site, pages.login.url, email);
-		await expect(challengeScreen(guest), '“always” asks for the second step after the link').toBeVisible();
+		await expect(challengeScreen(guest), 'the second step is asked after the link').toBeVisible();
 		await expectSignedOut(guest);
-
-		// Never: the link is the whole of it.
-		await choose('never', 'off');
-		await guest.context().clearCookies();
-		await followLink(guest, site, pages.login.url, email);
-		await expect(challengeScreen(guest)).toHaveCount(0);
-		await expectSignedIn(guest, email);
-
-		// Work it out: the only method is another e-mail, so it does not ask.
-		await choose('auto', 'off');
-		await guest.context().clearCookies();
-		await followLink(guest, site, pages.login.url, email);
-		await expect(challengeScreen(guest), '“work it out” does not send a code to the inbox the link came from').toHaveCount(0);
-		await expectSignedIn(guest, email);
 	});
 });
 
 test.describe('Security › Two-step verification: what the screen says about itself', () => {
-	test('Users+ Pro’s three answers sit inside their groups as the controls they would be: disabled, nameless, with the badge and the link', async ({ page }) => {
+	test('Users+ Pro’s four answers sit inside their groups as the controls they would be: disabled, nameless, with the badge and the link', async ({ page }) => {
 		await openTab(page);
 
-		const shapes = { 'security/2fa/roles': 'radio', 'security/2fa/app': 'checkbox', 'security/2fa/remember': 'checkbox' };
+		const shapes = {
+			'security/2fa/roles': 'radio',
+			'security/2fa/app': 'checkbox',
+			'security/2fa/link': 'radio',
+			'security/2fa/remember': 'checkbox',
+		};
 
 		for (const [where, type] of Object.entries(shapes)) {
 			const pro = page.locator(`[data-diluxone-users-pro="${where}"]`);
@@ -201,7 +185,8 @@ test.describe('Security › Two-step verification: what the screen says about it
 
 		await expect(groupOf('security/2fa/roles').locator('input[name="diluxone_users_2fa_mode"]'), 'with the three modes').toHaveCount(3);
 		await expect(groupOf('security/2fa/app').locator('input[name="diluxone_users_2fa_methods[]"]'), 'with the methods').toHaveCount(1);
-		await expect(groupOf('security/2fa/remember').locator('input[name="diluxone_users_2fa_link"]'), 'with the link rule').toHaveCount(3);
+		await expect(groupOf('security/2fa/remember').locator('[data-diluxone-users-pro="security/2fa/link"]'), 'with “Let it decide”').toHaveCount(1);
+		await expect(page.locator('input[name="diluxone_users_2fa_link"]'), 'the link rule is no choice').toHaveCount(0);
 		await expect(page.locator('.du-pro-card, .du-pro__picture'), 'no dashed box of text, no picture').toHaveCount(0);
 
 		await expect(page.locator('input[name="diluxone_users_2fa_scope"]')).toHaveCount(0);
@@ -227,7 +212,6 @@ test.describe('Security › Two-step verification: what the screen says about it
 		await expect(waits(page)).toHaveCount(2);
 		await expect(waitingBlocks(page)).toHaveCount(2);
 		await expect(method(page, 'email')).toBeDisabled();
-		await expect(page.locator('input[name="diluxone_users_2fa_link"]:checked')).toHaveCount(0);
 
 		// Turned on from the screen, both go on the spot, with nothing
 		// chosen in them yet; off again, they wait again.

@@ -37,12 +37,6 @@ const CONTROLS: Array<{
 	after: Record<string, unknown>;
 }> = [
 	{
-		tab: 'diluxone-users-security&tab=2fa',
-		keys: { diluxone_users_2fa_link: 'auto' },
-		act: (page) => page.locator('input[name="diluxone_users_2fa_link"][value="never"]').check(),
-		after: { diluxone_users_2fa_link: 'never' },
-	},
-	{
 		tab: 'diluxone-users-security&tab=sessions',
 		keys: { diluxone_users_session_short_days: 0, diluxone_users_sessions_show: 1 },
 		act: async (page) => {

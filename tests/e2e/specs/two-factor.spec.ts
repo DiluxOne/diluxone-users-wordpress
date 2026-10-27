@@ -186,9 +186,9 @@ test.describe('The second step by e-mail', () => {
 		await expectSignedOut(page);
 	});
 
-	test('the e-mail link does not ask for a code that goes to the same inbox', async ({ page, site, pages, options }) => {
-		// 'auto' is the whole point of the setting: a code sent to the inbox
-		// the person just opened to follow the link proves nothing new.
+	test('the e-mail link asks for the code too, even where “work it out” was saved', async ({ page, site, pages, options }) => {
+		// "Work it out" is Users+ Pro's now: a site that had it saved asks
+		// the second step after the link, as "always" did.
 		await options.set({ diluxone_users_2fa_link: 'auto', diluxone_users_2fa_methods: ['email'] });
 
 		const email = freshEmail('2falink');
@@ -204,8 +204,8 @@ test.describe('The second step by e-mail', () => {
 
 		await page.goto(link);
 
-		// Straight in, no second step.
-		await expectSignedIn(page, email);
+		await expect(challengeScreen(page)).toBeVisible();
+		await expectSignedOut(page);
 	});
 });
 

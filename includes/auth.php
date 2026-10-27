@@ -317,32 +317,25 @@ function diluxone_users_2fa_required( int $user_id, string $via ): bool {
 /**
  * Is it worth asking the second step of someone who came in by e-mail link?
  *
- * On automatic, yes only when there is a method that does NOT arrive by
- * e-mail. A code sent to the same inbox the person just opened to follow the
- * link proves nothing the link has not proved already; an authenticator app
- * or a key does.
- *
- * The site can force both answers, but automatic is the one that avoids both
- * the open door and the errand that serves no purpose.
+ * Yes: the plugin asks it on the link as on every other way in, whatever the
+ * method. Working it out — not asking when the code would go back to the
+ * inbox the person just opened — is an add-on's to answer, through
+ * `diluxone_users_2fa_on_link`. Nothing the plugin stores loosens it.
  */
 function diluxone_users_2fa_worth_it_on_link( int $user_id ): bool {
-	$mode = (string) diluxone_users_option( 'diluxone_users_2fa_link' );
-
-	if ( 'always' === $mode ) {
-		return true;
-	}
-
-	if ( 'never' === $mode ) {
-		return false;
-	}
-
-	foreach ( diluxone_users_2fa_available( $user_id ) as $method ) {
-		if ( 'email' !== ( $method['channel'] ?? 'email' ) ) {
-			return true;
-		}
-	}
-
-	return false;
+	/**
+	 * Filters whether the second step is asked of somebody who came in by
+	 * e-mail link.
+	 *
+	 * True, as the plugin has it: the link is one way in, and the second
+	 * step is asked on it as on the others. False lets the link alone in.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param bool $ask     Whether to ask it.
+	 * @param int  $user_id Who came in by the link.
+	 */
+	return (bool) apply_filters( 'diluxone_users_2fa_on_link', true, $user_id );
 }
 
 /**

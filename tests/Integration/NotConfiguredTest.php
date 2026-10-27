@@ -327,7 +327,6 @@ class NotConfiguredTest extends IntegrationTestCase {
 		$this->assertTrue( diluxone_users_2fa_save() );
 		$this->assertFalse( diluxone_users_option_is_set( 'diluxone_users_2fa_mode' ) );
 		$this->assertFalse( diluxone_users_option_is_set( 'diluxone_users_2fa_methods' ) );
-		$this->assertFalse( diluxone_users_option_is_set( 'diluxone_users_2fa_link' ) );
 
 		// Off, with the groups under it disabled: the mode alone.
 		$this->send_panel( DILUXONE_USERS_SECURITY, array( 'diluxone_users_2fa_mode' => 'off' ) );
@@ -342,13 +341,11 @@ class NotConfiguredTest extends IntegrationTestCase {
 				'diluxone_users_2fa_mode'    => 'optional',
 				'diluxone_users_panel_drawn' => array( 'diluxone_users_2fa_methods' ),
 				'diluxone_users_2fa_methods' => array( 'email' ),
-				'diluxone_users_2fa_link'    => 'never',
 			)
 		);
 		$this->assertTrue( diluxone_users_2fa_save() );
 		$this->assertSame( 'optional', diluxone_users_option( 'diluxone_users_2fa_mode' ) );
 		$this->assertSame( array( 'email' ), diluxone_users_option( 'diluxone_users_2fa_methods' ) );
-		$this->assertSame( 'never', diluxone_users_option( 'diluxone_users_2fa_link' ) );
 
 		// On, with the boxes drawn and none ticked: refused, as before.
 		$this->send_panel(

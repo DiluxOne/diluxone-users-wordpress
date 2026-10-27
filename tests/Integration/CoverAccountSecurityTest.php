@@ -188,7 +188,8 @@ class CoverAccountSecurityTest extends IntegrationTestCase {
 
 	public function test_the_screen_with_the_step_on_through_the_link_alone(): void {
 		diluxone_users_update_option( 'diluxone_users_login_method', 'link' );
-		diluxone_users_update_option( 'diluxone_users_2fa_link', 'never' );
+		// An add-on that lets the link alone in, as Users+ Pro's "Let it decide" does.
+		$this->hook( 'diluxone_users_2fa_on_link', '__return_false' );
 		update_user_meta( $this->user, 'diluxone_users_2fa_on', 1 );
 		diluxone_users_backup_generate( $this->user, 4 );
 
@@ -215,7 +216,7 @@ class CoverAccountSecurityTest extends IntegrationTestCase {
 
 	public function test_the_screen_where_the_site_requires_it(): void {
 		diluxone_users_update_option( 'diluxone_users_2fa_mode', 'required' );
-		diluxone_users_update_option( 'diluxone_users_2fa_link', 'never' );
+		$this->hook( 'diluxone_users_2fa_on_link', '__return_false' );
 
 		$html = $this->screen();
 

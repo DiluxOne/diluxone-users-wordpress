@@ -165,7 +165,6 @@ test.describe('The plugin’s own doors fire wp_login, once', () => {
 		await options.set({
 			diluxone_users_2fa_mode: 'required',
 			diluxone_users_2fa_methods: ['email'],
-			diluxone_users_2fa_link: 'always',
 			diluxone_e2e_wp_login: null,
 		});
 

@@ -275,7 +275,7 @@ everybody, with the code by e-mail, and skips it for nobody.
 | Access › Registration: nobody registers with every door unticked (all doors shut, public effects); social door through the tab; WordPress's own form ↔ `users_can_register`; locked while link-only (Settings › General notice); door notes and rail; the at-least-one sentence | `admin-access-register` |
 | Access › Messages: one wording per language, leaving with an edit asks, an emptied box is the plugin's words, the rail count | `admin-access-messages` |
 | Security › 2FA the e-mail method ticked on the screen is the account's, the app is the Users+ Pro card; off with none saved — (a method that is off cannot be ticked back on) | `admin-security-twostep` › with what |
-| Security › 2FA link rule always / never / auto through its radios, rail and summary agree | `admin-security-twostep` › somebody who came by link |
+| Security › 2FA: the e-mail link always asks the second step (a saved "work it out" or "never" is not read), said as a line; "Let it decide" a disabled Users+ Pro preview; rail and summary agree | `admin-security-twostep` › somebody who came by link · `signin-second-step` › the e-mail link asks · integration: `TwoFactorFlowTest`, `CoverSettingsSecurityTest`, `ProPreviewTest`; unit: `TwoFactorPolicyTest` |
 | Security › 2FA: the three Users+ Pro cards (roles, app, remember), nothing in them posts, no scope or days control | `admin-security-twostep` › Users+ Pro’s three cards |
 | Security › 2FA not-now lines; rail links; Summary rail links | `admin-security-twostep` › “not now”, the rail’s links, the Summary’s rail |
 | Security › Sessions “without it” days → session expiry | `admin-security-sessions` › “without it” |
@@ -510,7 +510,7 @@ In the browser, case by case:
 | A deleted site's rows leave the network log | `hub-admin` › a site deleted takes its rows out |
 | A site born leaves the hub's registration doors alone; network deactivation leaves no cron event | `hub-admin` › A site born, and the plugin switched off |
 | Network Admin › Users › Delete; network Edit user saves the plugin's field | `hub-admin` › The network’s Users screens |
-| Network Admin 2FA required asked from /alpha/ and /beta/ with the Users+ Pro cards, needs-one guard, link rule, summary | `admin-security-network` › (Two-step describe) |
+| Network Admin 2FA required asked from /alpha/ and /beta/ with the Users+ Pro cards, needs-one guard, the link asked from /beta/ with "Let it decide" a Pro preview, summary | `admin-security-network` › (Two-step describe) |
 | Network Admin session length, sessions box on the hub, proxy header and trusted range on /beta/, rail | `admin-security-network` › (Sessions and the proxy describe) |
 | Network Admin social provider: redirect, credentials, live test via hub, turn on/off, forget | `admin-social-network` › (a provider describe) |
 | Network Admin social rules: link by e-mail, verified only; some roles — | `admin-social-network` › (Rules describe) |

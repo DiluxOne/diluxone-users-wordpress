@@ -765,6 +765,10 @@ browser"):
   is a site that reaches nobody, and the summary says so.
 - `diluxone_users_2fa_skip` (filter, `( bool $skip, int $user_id, string $via )`,
   false) lets a sign-in that needs the step skip it.
+- `diluxone_users_2fa_on_link` (filter, `( bool $ask, int $user_id )`, true)
+  decides whether the step is asked of somebody who came in by e-mail link.
+  The plugin asks it on the link as on every other way in; Users+ Pro's
+  "Let it decide" answers false when the only method is another e-mail.
 - `diluxone_users_2fa_form` (action, `( int $user_id, string $screen )`) fires
   inside the second step's form, after the code box, on the sign-in page
   (`page`) and on wp-login.php (`wp-login`). Name your fields
@@ -778,7 +782,7 @@ browser"):
 
 On **Security → Two-step verification**, `diluxone_users_2fa_screen` (action,
 `( string $place )`) fires at `who` (under the three modes), `methods` (under
-the methods) and `end` (after the e-mail link's rule). What you draw there is
+the methods) and `end` (after the e-mail link's line). What you draw there is
 saved with the tab, on `diluxone_users_panel_saved`.
 
 ## Profile fields
@@ -1415,9 +1419,22 @@ them answers false for all. Each placeholder's outer element carries
 | `network/membership/rules` | Two disabled radios after the answers on Network Admin › Membership: "whoever asks" and "by invitation". One answer turns both off. |
 | `security/2fa/roles` | A disabled radio among the three modes on Security › Two-step verification: asking only some roles. |
 | `security/2fa/app` | A disabled tick box among the methods on Security › Two-step verification: the authenticator app. |
-| `security/2fa/remember` | A disabled tick box after the link rule on Security › Two-step verification: not asking again on a browser. |
+| `security/2fa/link` | A disabled radio under the e-mail link's line on Security › Two-step verification: "Let it decide", asking on the link only when the code proves something the link did not. |
+| `security/2fa/remember` | A disabled tick box after it on Security › Two-step verification: not asking again on a browser. |
 | `account/sections/more` | A disabled "Add a section" button beside the heading on Account › Sections, where `diluxone_users_account_sections_head` draws Pro's real one. |
 | `design/brand/color-map` | The rows under "From your theme" on Design › Your brand, their selects disabled: which colour of the theme's palette does what. |
+
+### The behaviours Users+ Pro brings back
+
+A few answers the plugin does not offer as settings: it has one behaviour,
+fixed, and the setting that would change it is Users+ Pro's, drawn as its
+preview where it would be. Each fixed behaviour is read through a filter
+whose default is that behaviour, so an add-on that answers it is what the site
+gets, and the plugin stores nothing for it and names no setting of Pro's.
+
+| Filter | Arguments | The plugin's answer |
+| --- | --- | --- |
+| `diluxone_users_2fa_on_link` | `( bool $ask, int $user_id )` | true: the second step is asked after the e-mail link too. |
 
 ## The emergency switch
 

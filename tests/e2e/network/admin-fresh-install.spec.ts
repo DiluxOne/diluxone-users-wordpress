@@ -30,7 +30,6 @@ const NOTHING_SAVED: Record<string, null> = Object.fromEntries(
 		'diluxone_users_lost_password',
 		'diluxone_users_2fa_mode',
 		'diluxone_users_2fa_methods',
-		'diluxone_users_2fa_link',
 		'diluxone_users_session_long_days',
 		'diluxone_users_session_short_days',
 		'diluxone_users_sessions_show',

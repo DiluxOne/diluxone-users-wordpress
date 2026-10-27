@@ -45,7 +45,6 @@ export const BASELINE = (pages: { login: number; register: number; account: numb
 
 	diluxone_users_2fa_mode: 'optional',
 	diluxone_users_2fa_methods: ['email'],
-	diluxone_users_2fa_link: 'auto',
 
 	diluxone_users_sso_login: 1,
 	diluxone_users_sso_register: 1,

@@ -112,7 +112,6 @@ class SavesKeepUnknownTest extends IntegrationTestCase {
 			array(
 				'diluxone_users_2fa_mode'    => 'optional',
 				'diluxone_users_2fa_methods' => array( 'email' ),
-				'diluxone_users_2fa_link'    => 'auto',
 			)
 		);
 		$this->assertTrue( diluxone_users_2fa_save() );
@@ -128,7 +127,6 @@ class SavesKeepUnknownTest extends IntegrationTestCase {
 			DILUXONE_USERS_SECURITY,
 			array(
 				'diluxone_users_2fa_mode'    => 'optional',
-				'diluxone_users_2fa_link'    => 'auto',
 				// The boxes were drawn and none ticked: the line the save reads.
 				'diluxone_users_panel_drawn' => array( 'diluxone_users_2fa_methods' ),
 			)

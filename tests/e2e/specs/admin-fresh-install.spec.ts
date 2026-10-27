@@ -35,7 +35,6 @@ const NOTHING_SAVED: Record<string, null> = Object.fromEntries(
 		'diluxone_users_lost_password',
 		'diluxone_users_2fa_mode',
 		'diluxone_users_2fa_methods',
-		'diluxone_users_2fa_link',
 		'diluxone_users_session_long_days',
 		'diluxone_users_session_short_days',
 		'diluxone_users_sessions_show',
@@ -169,26 +168,28 @@ test.describe('A fresh install says nothing was chosen', () => {
 		await expect(waits(page)).toHaveCount(2);
 		await expect(waitingBlocks(page)).toHaveCount(2);
 		await expect(control(page, 'diluxone_users_2fa_methods[]', 'email')).toBeDisabled();
-		await expect(control(page, 'diluxone_users_2fa_link', 'auto')).toBeDisabled();
+		await expect(page.locator('input[name="diluxone_users_2fa_link"]'), 'the link rule is no choice').toHaveCount(0);
 		await expect(notNow(page)).toHaveCount(0);
 		expect(await stateIn(rail(page)), 'the rail: nothing asked, nothing decided').toBe('unset');
 
-		// The two Pro answers in the waiting groups are not part of the wait:
+		// The three Pro answers in the waiting groups are not part of the wait:
 		// disabled for a reason of their own, badge on, nothing for the
 		// script to let go.
-		const pro = page.locator('[data-diluxone-users-pro="security/2fa/app"], [data-diluxone-users-pro="security/2fa/remember"]');
+		const pro = page.locator(
+			'[data-diluxone-users-pro="security/2fa/app"], [data-diluxone-users-pro="security/2fa/link"], [data-diluxone-users-pro="security/2fa/remember"]',
+		);
 
-		await expect(pro).toHaveCount(2);
-		await expect(pro.locator('input:disabled')).toHaveCount(2);
+		await expect(pro).toHaveCount(3);
+		await expect(pro.locator('input:disabled')).toHaveCount(3);
 		await expect(pro.locator('input[data-diluxone-users-waited]'), 'not marked as waiting').toHaveCount(0);
-		await expect(pro.locator('.diluxone-users-state--pro'), 'the badge, while the group waits').toHaveCount(2);
+		await expect(pro.locator('.diluxone-users-state--pro'), 'the badge, while the group waits').toHaveCount(3);
 
 		await control(page, 'diluxone_users_2fa_mode', 'optional').check();
 		await expect(waits(page)).toHaveCount(0);
 		await expect(control(page, 'diluxone_users_2fa_methods[]', 'email')).toBeEnabled();
 		await expect(control(page, 'diluxone_users_2fa_methods[]', 'email')).not.toBeChecked();
-		await expect(pro.locator('input:disabled'), 'and still disabled once the wait ends').toHaveCount(2);
-		await expect(pro.locator('.diluxone-users-state--pro')).toHaveCount(2);
+		await expect(pro.locator('input:disabled'), 'and still disabled once the wait ends').toHaveCount(3);
+		await expect(pro.locator('.diluxone-users-state--pro')).toHaveCount(3);
 	});
 
 	test('Security › Sessions: at 0 and 0 the tab and the rail say WordPress decides; saved so on purpose, that reads as Off', async ({ page, site }) => {

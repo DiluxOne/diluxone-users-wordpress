@@ -243,22 +243,20 @@ test.describe('Security › Two-step verification: the rail beside it', () => {
 		page,
 		options,
 	}) => {
-		// The link is a door and it is open; the second step is on, and the
-		// only thing that could carry its code is the same inbox the link was
-		// just opened in — so the step is not asked of somebody who came in
-		// that way. Two different facts, and the screen has to keep them apart.
+		// The link is a door and it is open; the second step is on, and it is
+		// asked of somebody who came in that way. Two different facts, and the
+		// screen has to keep them apart.
 		await options.set({
 			diluxone_users_login_method: 'both',
 			diluxone_users_2fa_mode: 'optional',
 			diluxone_users_2fa_methods: ['email'],
-			diluxone_users_2fa_link: 'auto',
 		});
 
 		await page.goto(adminUrl(ACCESS, 'ways'));
 		await expect(loginWay(page, 'link')).toBeChecked();
 
 		await page.goto(adminUrl(SECURITY, '2fa'));
-		await expect(railPill(page)).toHaveClass(/diluxone-users-state--off/);
+		await expect(railPill(page)).toHaveClass(/diluxone-users-state--active/);
 
 		const withTheDoorOpen = (await railPill(page).textContent())?.trim();
 
@@ -271,15 +269,15 @@ test.describe('Security › Two-step verification: the rail beside it', () => {
 		await expect(loginWay(page, 'link')).not.toBeChecked();
 
 		await page.goto(adminUrl(SECURITY, '2fa'));
-		await expect(railPill(page)).toHaveClass(/diluxone-users-state--off/);
+		await expect(railPill(page)).toHaveClass(/diluxone-users-state--active/);
 		expect((await railPill(page).textContent())?.trim()).toBe(withTheDoorOpen);
 
 		// And it does move when the thing it is about moves. The door is still
 		// shut, so the second step is the only thing that changed.
-		await options.set({ diluxone_users_2fa_link: 'always' });
+		await options.set({ diluxone_users_2fa_mode: 'off' });
 
 		await page.goto(adminUrl(SECURITY, '2fa'));
-		await expect(railPill(page)).toHaveClass(/diluxone-users-state--active/);
+		await expect(railPill(page)).toHaveClass(/diluxone-users-state--off/);
 		expect((await railPill(page).textContent())?.trim()).not.toBe(withTheDoorOpen);
 	});
 

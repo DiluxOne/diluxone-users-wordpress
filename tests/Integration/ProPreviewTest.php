@@ -242,6 +242,38 @@ class ProPreviewTest extends IntegrationTestCase {
 		$this->assertArrayNotHasKey( 'inert', diluxone_users_allowed_html()['div'], 'nothing the plugin prints is a picture any more' );
 	}
 
+	/* ── The settings that became Users+ Pro's ──────────────────────── */
+
+	/**
+	 * Each setting that left the plugin for Users+ Pro, as the preview drawn
+	 * where its control was: the place, the screen that draws it, and the
+	 * words it carries.
+	 *
+	 * @return array<string, array{0: callable, 1: string}>
+	 */
+	private function moved(): array {
+		return array(
+			'security/2fa/link' => array( 'diluxone_users_screen_login_2fa', 'Let it decide' ),
+		);
+	}
+
+	public function test_each_setting_that_became_users_pros_is_a_disabled_preview_where_it_was(): void {
+		$this->the_admin();
+
+		foreach ( $this->moved() as $where => list( $screen, $title ) ) {
+			$html = $this->draw( $screen );
+			$at   = strpos( $html, 'data-diluxone-users-pro="' . $where . '"' );
+
+			$this->assertNotFalse( $at, "$where: drawn" );
+
+			$pro = substr( $html, (int) $at, 3000 );
+			$this->assertStringContainsString( esc_html( $title ), $pro, "$where: its words" );
+			$this->assertMatchesRegularExpression( '/<(input|button|select)[^>]*\sdisabled/', $pro, "$where: switched off" );
+			$this->assertStringContainsString( 'diluxone-users-state--pro', $pro, "$where: the badge" );
+			$this->assertStringContainsString( 'utm_campaign=free', $pro, "$where: the way out" );
+		}
+	}
+
 	/* ── The setting ───────────────────────────────────────────────── */
 
 	public function test_the_setting_is_the_networks_and_on_by_default(): void {

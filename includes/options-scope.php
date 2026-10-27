@@ -52,7 +52,6 @@ defined( 'ABSPATH' ) || exit;
 function diluxone_users_option_scopes(): array {
 	return array(
 		// ── Network: who gets in, and how safely ─────────────────────
-		'diluxone_users_2fa_link'              => 'network',
 		'diluxone_users_2fa_methods'           => 'network',
 		'diluxone_users_2fa_mode'              => 'network',
 		'diluxone_users_fields'                => 'network',

@@ -49,7 +49,6 @@ class TwoFactorPolicyTest extends TestCase {
 		$base = array(
 			'diluxone_users_2fa_mode'          => 'required',
 			'diluxone_users_2fa_methods'       => array( 'email' ),
-			'diluxone_users_2fa_link'          => 'auto',
 		);
 
 		foreach ( array_merge( $base, $values ) as $key => $value ) {
@@ -69,8 +68,7 @@ class TwoFactorPolicyTest extends TestCase {
 	}
 
 	public function test_safe_mode_never_asks(): void {
-		// The link asked always, so that only safe mode can make it a no.
-		$this->settings( array( 'diluxone_users_2fa_link' => 'always' ) );
+		// The link asks it, so that only safe mode can make it a no.
 		$this->assertTrue( diluxone_users_2fa_required( self::USER_ID, 'link' ), 'the control: asked, without the switch' );
 
 		// DILUXONE_USERS_SAFE_MODE: WordPress's own sign-in and nothing after it.
@@ -97,10 +95,13 @@ class TwoFactorPolicyTest extends TestCase {
 		$this->assertFalse( diluxone_users_2fa_required( self::USER_ID, 'password' ) );
 	}
 
-	public function test_with_email_as_the_only_second_step_the_link_does_not_ask_for_it(): void {
-		// A code to the same inbox the person just opened to follow the link
-		// proves nothing the link has not proved already.
-		$this->assertFalse( diluxone_users_2fa_required( self::USER_ID, 'link' ) );
+	/**
+	 * The link asks it as every other way in does, even when the code goes
+	 * back to the inbox the person just opened: working that out is Users+
+	 * Pro's "Let it decide", not the plugin's.
+	 */
+	public function test_with_email_as_the_only_second_step_the_link_still_asks_for_it(): void {
+		$this->assertTrue( diluxone_users_2fa_required( self::USER_ID, 'link' ) );
 	}
 
 	/**
@@ -124,12 +125,17 @@ class TwoFactorPolicyTest extends TestCase {
 		$this->assertSame( array(), diluxone_users_2fa_methods() );
 	}
 
-	public function test_the_site_can_force_both_answers(): void {
-		$this->settings( array( 'diluxone_users_2fa_link' => 'always' ) );
-		$this->assertTrue( diluxone_users_2fa_required( self::USER_ID, 'link' ) );
+	/**
+	 * A rule for the link saved before it left the plugin is not read: a
+	 * site that had "Let it decide" or "never" saved asks it, as "always".
+	 */
+	public function test_a_rule_for_the_link_saved_before_is_not_read_and_the_link_asks(): void {
+		foreach ( array( 'auto', 'never', 'always' ) as $saved ) {
+			$this->settings( array( 'diluxone_users_2fa_link' => $saved ) );
 
-		$this->settings( array( 'diluxone_users_2fa_link' => 'never' ) );
-		$this->assertFalse( diluxone_users_2fa_required( self::USER_ID, 'link' ) );
+			$this->assertTrue( diluxone_users_2fa_worth_it_on_link( self::USER_ID ), $saved );
+			$this->assertTrue( diluxone_users_2fa_required( self::USER_ID, 'link' ), $saved );
+		}
 	}
 
 	/**
@@ -155,23 +161,21 @@ class TwoFactorPolicyTest extends TestCase {
 		$this->assertTrue( diluxone_users_2fa_required( self::USER_ID, 'password' ) );
 	}
 
-	public function test_with_the_link_as_the_only_door_it_is_asked_nowhere(): void {
-		// It is the case where the screen says "you are not being asked": it has
-		// to be true, and it only is when there is no other door.
+	public function test_with_the_link_as_the_only_door_it_is_asked_on_the_link(): void {
 		$this->settings( array( 'diluxone_users_login_method' => 'link' ) );
 
 		$this->assertSame( array( 'link' ), array_keys( diluxone_users_2fa_ways( self::USER_ID ) ) );
-		$this->assertSame( array(), diluxone_users_2fa_ways_asked( self::USER_ID ) );
+		$this->assertSame( array( 'the link we email you' ), diluxone_users_2fa_ways_asked( self::USER_ID ) );
 	}
 
-	public function test_with_the_password_on_the_link_is_skipped_but_the_password_is_not(): void {
+	public function test_with_the_password_on_both_ways_in_ask_it(): void {
 		$this->settings( array( 'diluxone_users_login_method' => 'both' ) );
 
 		$ways = diluxone_users_2fa_ways( self::USER_ID );
 
-		$this->assertFalse( $ways['link']['asked'] );
+		$this->assertTrue( $ways['link']['asked'] );
 		$this->assertTrue( $ways['password']['asked'] );
-		$this->assertSame( array( 'your password' ), diluxone_users_2fa_ways_asked( self::USER_ID ) );
+		$this->assertSame( array( 'the link we email you', 'your password' ), diluxone_users_2fa_ways_asked( self::USER_ID ) );
 	}
 
 	/** Nothing remembered lets anybody past the second step: that is an add-on's to answer. */

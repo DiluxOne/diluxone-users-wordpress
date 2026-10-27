@@ -173,21 +173,24 @@ test.describe('Who is asked, and on which door', () => {
 		});
 	});
 
-	test('with the link rule on “never”, the e-mail link is never asked for the step', async ({ page, site, pages, options }) => {
-		await options.set({ diluxone_users_2fa_mode: 'required', diluxone_users_2fa_link: 'never' });
+	test('the e-mail link asks for the step, even where a rule of “never” or “work it out” was saved', async ({ page, site, pages, options }) => {
+		for (const saved of ['never', 'auto']) {
+			await options.set({ diluxone_users_2fa_mode: 'required', diluxone_users_2fa_link: saved });
 
-		const email = freshEmail('2fa-never');
+			const email = freshEmail(`2fa-${saved}`);
 
-		await site.makeUser({ email, password: PASSWORD, meta: { diluxone_users_2fa_on: 1 } });
-		await withLink(page, site, pages.login.url, email);
+			await site.makeUser({ email, password: PASSWORD, meta: { diluxone_users_2fa_on: 1 } });
+			await page.context().clearCookies();
+			await withLink(page, site, pages.login.url, email);
 
-		await expect(challengeScreen(page)).toHaveCount(0);
-		await expectSignedIn(page, email);
+			await expect(challengeScreen(page), `with “${saved}” saved`).toBeVisible();
+			await expectSignedOut(page);
 
-		// And the password still is: the rule belongs to the link alone.
-		await page.context().clearCookies();
-		await withPassword(page, pages.login.url, email);
-		await expect(challengeScreen(page)).toBeVisible();
+			// And the password too: the link is one way in like the others.
+			await page.context().clearCookies();
+			await withPassword(page, pages.login.url, email);
+			await expect(challengeScreen(page)).toBeVisible();
+		}
 	});
 
 	test('with the step off, somebody who turned it on goes straight in', async ({ page, site, pages, options }) => {
