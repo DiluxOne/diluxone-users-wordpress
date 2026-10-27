@@ -281,6 +281,37 @@ class ProPreviewTest extends IntegrationTestCase {
 		}
 	}
 
+	/** #188 C7: with the setting off, none of them is drawn, and the screens still are. */
+	public function test_with_the_setting_off_none_of_the_settings_that_became_users_pros_is_drawn(): void {
+		$this->the_admin();
+		diluxone_users_update_option( 'diluxone_users_pro_previews', 0 );
+
+		foreach ( $this->moved() as $where => list( $screen ) ) {
+			$html = $this->draw( $screen );
+
+			$this->assertNotSame( '', $html, "$where: the screen is drawn" );
+			$this->assertStringNotContainsString( 'data-diluxone-users-pro="' . $where . '"', $html, "$where: not drawn" );
+			$this->assertStringNotContainsString( 'utm_campaign=free', $html, "$where: no way out to Pro either" );
+		}
+	}
+
+	/** And one answer of `diluxone_users_upsell` turns one of them off, the rest staying. */
+	public function test_an_add_on_turns_off_each_one_on_its_own(): void {
+		$this->the_admin();
+
+		foreach ( array_keys( $this->moved() ) as $off ) {
+			$hide = static fn( bool $show, string $where ): bool => $where !== $off && $show;
+			add_filter( 'diluxone_users_upsell', $hide, 10, 2 );
+
+			foreach ( $this->moved() as $where => list( $screen ) ) {
+				$drawn = str_contains( $this->draw( $screen ), 'data-diluxone-users-pro="' . $where . '"' );
+				$this->assertSame( $where !== $off, $drawn, "$off off: $where" );
+			}
+
+			remove_filter( 'diluxone_users_upsell', $hide, 10 );
+		}
+	}
+
 	/* ── The setting ───────────────────────────────────────────────── */
 
 	public function test_the_setting_is_the_networks_and_on_by_default(): void {
