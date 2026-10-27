@@ -19,6 +19,9 @@ class RegistrationScreenTest extends IntegrationTestCase {
 	/** @var array<string, mixed> The admin menu's globals before the test. */
 	private array $menu_globals = array();
 
+	/** @var mixed WordPress's own registration switch before the test. */
+	private $users_can_register;
+
 	protected function setUp(): void {
 		parent::setUp();
 
@@ -27,6 +30,8 @@ class RegistrationScreenTest extends IntegrationTestCase {
 		foreach ( array( 'menu', 'submenu', '_registered_pages', '_parent_pages', 'admin_page_hooks' ) as $global ) {
 			$this->menu_globals[ $global ] = $GLOBALS[ $global ] ?? null;
 		}
+
+		$this->users_can_register = get_option( 'users_can_register' );
 
 		do_action( 'diluxone_users_register_panels' );
 	}
@@ -40,6 +45,7 @@ class RegistrationScreenTest extends IntegrationTestCase {
 			}
 		}
 
+		update_option( 'users_can_register', $this->users_can_register );
 		$this->cover_settings_reset();
 
 		parent::tearDown();
@@ -174,5 +180,85 @@ class RegistrationScreenTest extends IntegrationTestCase {
 		$this->assertContains( 'Registration', $rows );
 		$this->assertMatchesRegularExpression( '#Open: accounts are created by the e-mail link[^<]*</td>\s*<td class="diluxone-users-summary__change">\s*<a href="[^"]*page=diluxone-users-register">Registration › Summary →</a>#u', $html );
 		$this->assertMatchesRegularExpression( '#<a href="[^"]*page=diluxone-users-login">Access › Summary →</a>#u', $html );
+	}
+
+	/* ── The old address ───────────────────────────────────────────── */
+
+	/** Where the old address of the tab sends the admin, or '' when it stays. */
+	private function old_address( array $get ): string {
+		$_GET = $get;
+
+		try {
+			diluxone_users_register_old_address();
+		} catch ( Support\RedirectException $e ) {
+			return $e->url;
+		}
+
+		return '';
+	}
+
+	public function test_c5_the_old_address_lands_on_the_registration_screen(): void {
+		$this->the_admin();
+
+		$to = $this->old_address(
+			array(
+				'page'  => 'diluxone-users-login',
+				'tab'   => 'register',
+				'other' => 'https://evil.example/',
+			)
+		);
+
+		$this->assertSame( diluxone_users_admin_url( 'diluxone-users-register', array( 'tab' => 'who' ) ), $to );
+		$this->assertStringStartsWith( admin_url( 'admin.php' ), $to, is_multisite() ? 'on the hub, which this is' : 'on this site' );
+		$this->assertSame( '', $this->queryArg( $to, 'other' ), 'nothing of the request travels on' );
+	}
+
+	public function test_c5_from_network_admin_the_old_address_lands_on_the_hubs_registration_screen(): void {
+		$this->network_only( 'test_c5_the_old_address_lands_on_the_registration_screen' );
+
+		$this->in_network_admin();
+		$this->the_admin();
+
+		$to = $this->old_address(
+			array(
+				'page' => 'diluxone-users-login',
+				'tab'  => 'register',
+			)
+		);
+
+		$this->assertSame( get_admin_url( diluxone_users_hub_site_id(), 'admin.php?page=diluxone-users-register&tab=who' ), $to );
+	}
+
+	public function test_c5_every_other_address_stays_where_it_is(): void {
+		$this->the_admin();
+
+		$this->assertSame( '', $this->old_address( array( 'page' => 'diluxone-users-login', 'tab' => 'ways' ) ) );
+		$this->assertSame( '', $this->old_address( array( 'page' => 'diluxone-users-login' ) ) );
+		$this->assertSame( '', $this->old_address( array( 'page' => 'diluxone-users-design', 'tab' => 'register' ) ), 'Design › Registration stays on Design' );
+
+		$_SERVER['REQUEST_METHOD'] = 'POST';
+		$this->assertSame( '', $this->old_address( array( 'page' => 'diluxone-users-login', 'tab' => 'register' ) ), 'only a GET' );
+		$_SERVER['REQUEST_METHOD'] = 'GET';
+
+		$this->not_allowed();
+		$this->assertSame( '', $this->old_address( array( 'page' => 'diluxone-users-login', 'tab' => 'register' ) ), 'not for somebody the screen is not for' );
+	}
+
+	public function test_c5_the_plugins_links_point_to_the_new_screen(): void {
+		$this->the_admin();
+
+		diluxone_users_update_option( 'diluxone_users_login_register', 0 );
+		diluxone_users_update_option( 'diluxone_users_sso_register', 0 );
+		diluxone_users_update_option( 'diluxone_users_register_form', 0 );
+		update_option( 'users_can_register', 0 );
+
+		if ( is_multisite() ) {
+			update_site_option( 'registration', 'none' );
+		}
+
+		$html = $this->draw( 'diluxone_users_nobody_registers_notice', 'fields' );
+
+		$this->assertStringContainsString( 'page=diluxone-users-register&amp;tab=who">Open a door →</a>', $html );
+		$this->assertStringNotContainsString( 'tab=register', $html );
 	}
 }

@@ -420,7 +420,7 @@ test.describe('User fields › the list itself', () => {
 		const warning = railNotice(page, 'warning');
 
 		await expect(warning).toHaveCount(1);
-		await expect(warning.locator('a')).toHaveAttribute('href', /page=diluxone-users-login&tab=register/);
+		await expect(warning.locator('a')).toHaveAttribute('href', /page=diluxone-users-register&tab=who/);
 
 		await options.set({ diluxone_users_register_form: 1 });
 		await page.goto(adminUrl('diluxone-users-fields'));

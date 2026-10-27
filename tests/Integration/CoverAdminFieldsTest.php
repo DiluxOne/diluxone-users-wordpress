@@ -402,7 +402,7 @@ class CoverAdminFieldsTest extends IntegrationTestCase {
 		$this->assertStringContainsString( 'No fields yet.', $html );
 		$this->assertStringContainsString( 'registration closed', $html );
 		$this->assertStringContainsString( 'Open a door', $html );
-		$this->assertStringContainsString( 'tab=register', $html );
+		$this->assertStringContainsString( 'page=diluxone-users-register&amp;tab=who', $html );
 
 		$html = $this->draw( 'diluxone_users_nobody_registers_notice', 'register' );
 		$this->assertStringContainsString( 'The fields it is about', $html );

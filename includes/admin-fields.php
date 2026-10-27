@@ -391,13 +391,14 @@ function diluxone_users_screen_fields_missing_save(): void {
  * where the questions are, rather than leaving somebody to wonder why the
  * form they spent the afternoon on never appears anywhere.
  *
- * The same sentence belongs on the registration tab, said from the other
- * side: there the doors are the subject and the fields are the consequence.
+ * The same sentence belongs on Registration › Who can register, said from
+ * the other side: there the doors are the subject and the fields are the
+ * consequence.
  * It is written once, here, so the two cannot drift apart — and what it asks
  * is the registration screen's own answer, `diluxone_users_register_doors_open()`,
  * rather than a second reading of the four options underneath it.
  *
- * @param string $from 'fields' on the fields screen, 'register' on the registration tab.
+ * @param string $from 'fields' on the fields screen, 'register' on Registration › Who can register.
  */
 function diluxone_users_nobody_registers_notice( string $from = 'fields' ): void {
 	if ( array() !== diluxone_users_register_doors_open() ) {
@@ -418,7 +419,7 @@ function diluxone_users_nobody_registers_notice( string $from = 'fields' ): void
 			esc_url(
 				$here
 					? diluxone_users_admin_url( 'diluxone-users-fields' )
-					: diluxone_users_admin_url( 'diluxone-users-login', array( 'tab' => 'register' ) )
+					: diluxone_users_admin_url( 'diluxone-users-register', array( 'tab' => 'who' ) )
 			),
 			$here
 				? esc_html__( 'The fields it is about →', 'diluxone-users' )

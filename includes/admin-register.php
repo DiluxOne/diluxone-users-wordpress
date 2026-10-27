@@ -60,6 +60,38 @@ function diluxone_users_register_panels(): void {
 add_action( 'diluxone_users_register_panels', 'diluxone_users_register_panels' );
 
 /**
+ * The old address of the tab this screen was, sent here.
+ *
+ * Registration was Access's tab, `page=diluxone-users-login&tab=register`,
+ * and a bookmark or a link written down somewhere still says so. Without this
+ * it would open Access's first tab, which says nothing about registering. The
+ * address is only compared with two fixed strings and the target is built
+ * from the screen's slug, so nothing from the request travels on; nothing is
+ * written either, so there is no request to forge. Only for whoever could
+ * open the screen it is sent to.
+ */
+function diluxone_users_register_old_address(): void {
+	$method = isset( $_SERVER['REQUEST_METHOD'] ) ? strtoupper( sanitize_key( wp_unslash( $_SERVER['REQUEST_METHOD'] ) ) ) : '';
+
+	if ( 'GET' !== $method || ! current_user_can( diluxone_users_admin_cap() ) ) {
+		return;
+	}
+
+	// phpcs:disable WordPress.Security.NonceVerification.Recommended -- an address compared with two fixed strings to send it to the screen it became; nothing from it is used and nothing is written.
+	$page = isset( $_GET['page'] ) ? sanitize_key( wp_unslash( $_GET['page'] ) ) : '';
+	$tab  = isset( $_GET['tab'] ) ? sanitize_key( wp_unslash( $_GET['tab'] ) ) : '';
+	// phpcs:enable
+
+	if ( 'diluxone-users-login' !== $page || 'register' !== $tab ) {
+		return;
+	}
+
+	wp_safe_redirect( diluxone_users_admin_url( 'diluxone-users-register', array( 'tab' => 'who' ) ) );
+	exit;
+}
+add_action( 'admin_init', 'diluxone_users_register_old_address' );
+
+/**
  * The doors into an account that are open right now, named.
  *
  * WordPress's own form is read through `get_option()` and not copied into an

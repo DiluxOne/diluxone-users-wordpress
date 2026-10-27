@@ -174,7 +174,7 @@ class CoverSignInPasswordlessTest extends IntegrationTestCase {
 		$html = (string) ob_get_clean();
 
 		$this->assertStringContainsString( '<div class="notice notice-info"><p>“Anyone can register” is off and locked', $html );
-		$this->assertStringContainsString( esc_url( diluxone_users_admin_url( 'diluxone-users-login', array( 'tab' => 'register' ) ) ), $html );
+		$this->assertStringContainsString( esc_url( diluxone_users_admin_url( 'diluxone-users-register', array( 'tab' => 'who' ) ) ), $html );
 		$this->assertSame( 0, diluxone_users_block_registration( 1 ) );
 
 		diluxone_users_update_option( 'diluxone_users_login_method', 'both' );

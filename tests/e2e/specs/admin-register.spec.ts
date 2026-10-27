@@ -34,6 +34,18 @@ test.describe('Registration in the menu', () => {
 		await expect(page.locator('.wrap.diluxone-users-admin h1')).toContainText('Registration');
 		await expect(page.locator('.nav-tab-wrapper a.nav-tab')).toHaveText(['Summary', 'Who can register', 'Messages']);
 	});
+
+	test('the old address of Access’s Registration tab lands on the Registration screen', async ({ page }) => {
+		await page.goto('/wp-admin/admin.php?page=diluxone-users-login&tab=register');
+
+		await expect(page).toHaveURL(/\/wp-admin\/admin\.php\?page=diluxone-users-register&tab=who$/);
+		await expect(page.locator('.nav-tab-active')).toHaveText('Who can register');
+		await expect(page.locator('input[name="diluxone_users_register_open"]').first()).toBeAttached();
+
+		// Design › Registration is Design's, and stays where it is.
+		await page.goto('/wp-admin/admin.php?page=diluxone-users-design&tab=register');
+		await expect(page).toHaveURL(/page=diluxone-users-design&tab=register/);
+	});
 });
 
 test.describe('Registration › Who can register', () => {
