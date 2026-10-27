@@ -3,35 +3,60 @@ import { signInMember } from '../support/admin-content';
 import { accountSection } from '../support/ui';
 
 /**
- * Issue #207, item 2: on the account area's "Your details" tab the phone
- * control takes the box's whole width, while the other fields (first name,
- * last name, country…) stop at about 390px. The reporter expects the phone
- * control to be no wider than the text fields beside it.
+ * Issue #207, item 1 (C1): on the account area's "Your details" tab, the
+ * "Your photo" box has a smaller title than the other boxes and folds with an
+ * arrow, while the boxes of the field blocks and "Your public name" have the
+ * larger heading and do not fold. The reporter expects the four box headings
+ * to have the same font size, and none to fold unless all do.
  */
 
 const FIELDS = [
 	{ key: 'first_name', label: 'First name', type: 'text', required: 0, active: 1, group: 'main', edit: 'always' },
 	{ key: 'last_name', label: 'Last name', type: 'text', required: 0, active: 1, group: 'main', edit: 'always' },
-	{ key: 'e2e_phone_207', label: 'Mobile', type: 'phone', options: ['AR'], required: 0, active: 1, group: 'main', edit: 'always' },
+	{ key: 'e2e_extra_207', label: 'Nickname', type: 'text', required: 0, active: 1, group: 'extra', edit: 'always' },
 ];
 
-test.describe('Issue 207: the fields of "Your details"', () => {
-	test('the phone control is no wider than the text fields beside it', async ({ page, site, pages, options }) => {
-		await options.set({ diluxone_users_2fa_mode: 'off', diluxone_users_fields: FIELDS });
+test.describe('Issue 207: the boxes of "Your details"', () => {
+	test('the four boxes share one heading size and none folds unless all do', async ({ page, site, pages, options }) => {
+		await options.set({
+			diluxone_users_2fa_mode: 'off',
+			diluxone_users_fields: FIELDS,
+			diluxone_users_avatar_upload: 1,
+			diluxone_users_handle_enabled: 1,
+		});
 
 		await signInMember(page, site, pages.login.url, 'repro-207');
 
 		await page.goto(accountSection(pages.account.url, 'details'));
 
-		const phone = page.locator('.diluxone-users-fields__block .diluxone-users-phone').first();
-		const text = page.locator('.diluxone-users-fields__block input[name="first_name"]').first();
+		const boxes = [
+			page.locator('.diluxone-users-avatar').first(),
+			page.locator('.diluxone-users-handle').first(),
+			page.locator('.diluxone-users-fields__block--main').first(),
+			page.locator('.diluxone-users-fields__block--extra').first(),
+		];
+		const titles = [
+			page.locator('.diluxone-users-avatar .diluxone-users-panel__title').first(),
+			page.locator('.diluxone-users-handle > h3').first(),
+			page.locator('.diluxone-users-fields__block--main > h3').first(),
+			page.locator('.diluxone-users-fields__block--extra > h3').first(),
+		];
 
-		await expect(phone, 'the phone control is drawn').toBeVisible();
-		await expect(text, 'the first name is drawn').toBeVisible();
+		for (const title of titles) {
+			await expect(title, 'each box draws its heading').toBeVisible();
+		}
 
-		const phoneBox = (await phone.boundingBox())!;
-		const textBox = (await text.boundingBox())!;
+		const sizes: string[] = [];
+		for (const title of titles) {
+			sizes.push(await title.evaluate((el) => getComputedStyle(el).fontSize));
+		}
 
-		expect(phoneBox.width, 'the phone control is no wider than the first name beside it').toBeLessThanOrEqual(textBox.width + 1);
+		const folds: boolean[] = [];
+		for (const box of boxes) {
+			folds.push(await box.evaluate((el) => el.tagName === 'DETAILS'));
+		}
+
+		expect(new Set(sizes).size, `the four headings have the same font size (photo, public name, main, extra: ${sizes.join(', ')})`).toBe(1);
+		expect(new Set(folds).size, `no box folds unless all do (photo, public name, main, extra: ${folds.join(', ')})`).toBe(1);
 	});
 });
