@@ -182,19 +182,12 @@ test.describe('The theme’s colours, remembered', () => {
 });
 
 test.describe('Security › Sessions: what a new password does', () => {
-	test('the other sessions stay open, said as a line; closing them is a disabled Users+ Pro preview that posts nothing', async ({ page }) => {
+	test('what WordPress does is said as a line, with nothing to choose', async ({ page }) => {
 		await page.goto(adminUrl('diluxone-users-security', 'sessions'));
 
-		await expect(page.getByText('A new password leaves the account’s other sessions open, as WordPress does.')).toBeVisible();
-		await expect(page.locator('input[name="diluxone_users_reset_ends_sessions"]'), 'no setting of its own').toHaveCount(0);
-
-		const pro = page.locator('[data-diluxone-users-pro="security/sessions/reset"]');
-
-		await expect(pro).toBeVisible();
-		await expect(pro.locator('input[type="checkbox"]')).toBeDisabled();
-		await expect(pro.locator('[name]'), 'nothing in it posts').toHaveCount(0);
-		await expect(pro.locator('.diluxone-users-state--pro'), 'the badge').toHaveCount(1);
-		await expect(pro.locator('a'), 'the one link').toHaveAttribute('href', /diluxone\.com\/users-pro\/.*utm_medium=security-sessions/);
+		await expect(page.getByText('A new password signs the account out on every other device, as WordPress does, and the list forgets them.')).toBeVisible();
+		await expect(page.locator('input[name="diluxone_users_reset_ends_sessions"]'), 'no setting').toHaveCount(0);
+		await expect(page.locator('[data-diluxone-users-pro="security/sessions/reset"]'), 'no Users+ Pro preview').toHaveCount(0);
 	});
 });
 

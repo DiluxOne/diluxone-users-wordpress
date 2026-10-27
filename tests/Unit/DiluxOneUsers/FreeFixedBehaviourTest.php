@@ -88,9 +88,6 @@ class FreeFixedBehaviourTest extends TestCase {
 		$this->assertFalse( diluxone_users_ask_missing_on(), 'no step asks for the missing fields' );
 		$this->assertFalse( diluxone_users_colors_from_theme(), 'the plugin’s own palette' );
 
-		// A new password ends nothing: with nothing hooked, the sessions are not touched.
-		diluxone_users_reset_ends_sessions( $GLOBALS['_test_wp_users'][ self::USER_ID ] );
-		$this->addToAssertionCount( 1 );
 	}
 
 	/** None of the six is a setting: no default, no scope. */
@@ -164,21 +161,5 @@ class FreeFixedBehaviourTest extends TestCase {
 		$this->answer( 'diluxone_users_colors_from_theme', static fn( bool $theme ): bool => ! $theme );
 
 		$this->assertTrue( diluxone_users_colors_from_theme() );
-	}
-
-	public function test_an_add_on_is_asked_about_a_new_password_with_the_account(): void {
-		$heard = array();
-		$this->answer(
-			'diluxone_users_reset_ends_sessions',
-			static function ( bool $end, $user ) use ( &$heard ): bool {
-				$heard = array( $end, $user->ID );
-
-				return false;
-			}
-		);
-
-		diluxone_users_reset_ends_sessions( $GLOBALS['_test_wp_users'][ self::USER_ID ] );
-
-		$this->assertSame( array( false, self::USER_ID ), $heard );
 	}
 }

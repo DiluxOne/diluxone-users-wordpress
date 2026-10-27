@@ -13,7 +13,6 @@ test.use({ storageState: ADMIN_STATE });
 /** Each preview, and the screen and tab it is drawn on. */
 const MOVED: Array<[string, string, string]> = [
 	['security/2fa/link', 'diluxone-users-security', '2fa'],
-	['security/sessions/reset', 'diluxone-users-security', 'sessions'],
 	['social/general/roles', 'diluxone-users-social', 'general'],
 	['account/handle/cooldown', 'diluxone-users-account', 'handle'],
 	['account/handle/locked', 'diluxone-users-account', 'handle'],

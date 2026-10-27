@@ -64,31 +64,15 @@ class ProSeamsFixedTest extends IntegrationTestCase {
 		$this->assertTrue( diluxone_users_2fa_required( $this->user, 'password' ), 'a password still asks it' );
 	}
 
-	/* ── 2. A new password and the other sessions ──────────────────── */
+	/* ── 2. A new password and the other sessions (the plugin's own) ── */
 
-	public function test_diluxone_users_reset_ends_sessions_decides_whether_a_new_password_closes_them(): void {
+	public function test_a_new_password_forgets_the_sessions_wordpress_signs_out(): void {
 		$sessions = \WP_Session_Tokens::get_instance( $this->user );
 		$sessions->create( time() + HOUR_IN_SECONDS );
 		$sessions->create( time() + HOUR_IN_SECONDS );
 
 		reset_password( get_userdata( $this->user ), 'a-new-password-1' );
-		$this->assertCount( 2, \WP_Session_Tokens::get_instance( $this->user )->get_all(), 'the plugin alone: they stay open' );
-
-		$heard = null;
-		$this->hook(
-			'diluxone_users_reset_ends_sessions',
-			static function ( bool $end, \WP_User $user ) use ( &$heard ): bool {
-				$heard = $user->ID;
-
-				return true;
-			},
-			10,
-			2
-		);
-
-		reset_password( get_userdata( $this->user ), 'a-new-password-2' );
-		$this->assertSame( array(), \WP_Session_Tokens::get_instance( $this->user )->get_all(), 'the add-on: every one closed' );
-		$this->assertSame( $this->user, $heard, 'asked with the account' );
+		$this->assertSame( array(), \WP_Session_Tokens::get_instance( $this->user )->get_all(), 'the plugin alone: the records go with the cookies WordPress no longer accepts' );
 	}
 
 	/* ── 3. Which roles sign in with a network ─────────────────────── */

@@ -1459,7 +1459,6 @@ them answers false for all. Each placeholder's outer element carries
 | `security/2fa/roles` | A disabled radio among the three modes on Security › Two-step verification: asking only some roles. |
 | `security/2fa/app` | A disabled tick box among the methods on Security › Two-step verification: the authenticator app. |
 | `security/2fa/link` | A disabled radio under the e-mail link's line on Security › Two-step verification: "Let it decide", asking on the link only when the code proves something the link did not. |
-| `security/sessions/reset` | A disabled tick box under "When a password changes" on Security › Sessions: a new password closes every session the account had open. |
 | `security/2fa/remember` | A disabled tick box after it on Security › Two-step verification: not asking again on a browser. |
 | `account/handle/cooldown` | The days between one change and the next, a disabled number box on Account area › Public name. |
 | `account/handle/locked` | A disabled tick box after it on Account area › Public name: once chosen, the name cannot be changed. |
@@ -1480,7 +1479,6 @@ gets, and the plugin stores nothing for it and names no setting of Pro's.
 | Filter | Arguments | The plugin's answer |
 | --- | --- | --- |
 | `diluxone_users_2fa_on_link` | `( bool $ask, int $user_id )` | true: the second step is asked after the e-mail link too. |
-| `diluxone_users_reset_ends_sessions` | `( bool $end, WP_User $user )` | false: a new password leaves the account's other sessions open, as WordPress does. |
 | `diluxone_users_handle_cooldown` | `( int $days, int $user_id )` | 0: a public name is changed whenever its owner likes; more days lock the box until then and refuse a change sent anyway. |
 | `diluxone_users_ask_missing` | `( bool $ask )` | false: a sign-in sends an account missing a required field straight to where it was going; true sends it first to the step on the account page (see Required fields missing after a sign-in). |
 | `diluxone_users_colors_from_theme` | `( bool $theme )` | false: the plugin paints itself with its own palette and the accent chosen on Design › Your brand, light and dark; true takes the theme's colours, measured where the palette cannot say them (see The theme's colours). |

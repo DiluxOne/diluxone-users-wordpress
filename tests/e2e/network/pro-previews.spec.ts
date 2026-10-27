@@ -14,7 +14,6 @@ test.use({ storageState: NETWORK_ADMIN_STATE });
 function moved(hubUrl: string): Array<[string, string]> {
 	return [
 		['security/2fa/link', networkScreen(NETWORK_URL, 'diluxone-users-security', '2fa')],
-		['security/sessions/reset', networkScreen(NETWORK_URL, 'diluxone-users-security', 'sessions')],
 		['social/general/roles', networkScreen(NETWORK_URL, 'diluxone-users-social', 'general')],
 		['fields/missing/ask', networkScreen(NETWORK_URL, 'diluxone-users-fields', 'missing')],
 		['fields/missing/skip', networkScreen(NETWORK_URL, 'diluxone-users-fields', 'missing')],

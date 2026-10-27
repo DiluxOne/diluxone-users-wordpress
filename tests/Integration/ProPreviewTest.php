@@ -254,7 +254,6 @@ class ProPreviewTest extends IntegrationTestCase {
 	private function moved(): array {
 		return array(
 			'security/2fa/link'       => array( 'diluxone_users_screen_login_2fa', 'Let it decide' ),
-			'security/sessions/reset' => array( 'diluxone_users_screen_sessions', 'A new password closes every session the account had open' ),
 			'social/general/roles'    => array( 'diluxone_users_screen_social_general', 'Only some roles' ),
 			'account/handle/cooldown' => array( 'diluxone_users_screen_account_handle', 'How often it can change' ),
 			'account/handle/locked'   => array( 'diluxone_users_screen_account_handle', 'Once chosen, it cannot be changed' ),

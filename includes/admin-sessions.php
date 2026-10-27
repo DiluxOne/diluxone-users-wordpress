@@ -205,26 +205,7 @@ function diluxone_users_screen_sessions(): void {
 
 	diluxone_users_ui_section( __( 'When a password changes', 'diluxone-users' ) );
 
-	diluxone_users_ui_note( '', __( 'A new password leaves the account’s other sessions open, as WordPress does.', 'diluxone-users' ) );
-
-	// The one Users+ Pro brings, as the box it would be: switched off, and
-	// gone once Pro answers false to it.
-	$pro = diluxone_users_ui_pro_choices(
-		array(),
-		array(
-			array(
-				'type'   => 'checkbox',
-				'where'  => 'security/sessions/reset',
-				'screen' => 'security-sessions',
-				'title'  => __( 'A new password closes every session the account had open', 'diluxone-users' ),
-				'text'   => __( 'Users+ Pro signs the account out everywhere when its password is reset: whoever reset it because the old one got out signs in again, and so would anybody who was using it.', 'diluxone-users' ),
-			),
-		)
-	);
-
-	if ( array() !== $pro ) {
-		diluxone_users_ui_choices( $pro );
-	}
+	diluxone_users_ui_note( '', __( 'A new password signs the account out on every other device, as WordPress does, and the list forgets them.', 'diluxone-users' ) );
 
 	/*
 	 * How long a session lasts today is a thing this screen tells rather than

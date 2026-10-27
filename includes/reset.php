@@ -137,14 +137,14 @@ add_action( 'admin_post_nopriv_diluxone_users_reset', 'diluxone_users_reset_save
 add_action( 'admin_post_diluxone_users_reset', 'diluxone_users_reset_save' );
 
 /**
- * A new password ends every session the old one opened, when an add-on says
- * so.
+ * A new password forgets every session the old one opened.
  *
- * The plugin leaves them open, as WordPress does: closing them is Users+
- * Pro's, through `diluxone_users_reset_ends_sessions`. On
+ * WordPress already signs them out: an auth cookie is signed with a fragment
+ * of the password's hash (`wp_validate_auth_cookie()`), so every other device
+ * is refused on its next request. Their records would stay in the account's
+ * list as open, naming devices that are no longer in, so they go too. On
  * `after_password_reset`, which WordPress fires for the site's own reset page
- * and for wp-login.php alike. A reset signs nobody in, so when they end every
- * session goes.
+ * and for wp-login.php alike. A reset signs nobody in, so every session goes.
  *
  * @param WP_User $user
  */
@@ -153,19 +153,6 @@ function diluxone_users_reset_ends_sessions( $user ): void {
 		return;
 	}
 
-	/**
-	 * Filters whether a new password closes every session the account had
-	 * open.
-	 *
-	 * False, as WordPress has it: the other sessions stay open.
-	 *
-	 * @since 1.0.0
-	 *
-	 * @param bool    $end  Whether to end them.
-	 * @param WP_User $user Whose password was reset.
-	 */
-	if ( (bool) apply_filters( 'diluxone_users_reset_ends_sessions', false, $user ) ) {
-		WP_Session_Tokens::get_instance( $user->ID )->destroy_all();
-	}
+	WP_Session_Tokens::get_instance( $user->ID )->destroy_all();
 }
 add_action( 'after_password_reset', 'diluxone_users_reset_ends_sessions' );
