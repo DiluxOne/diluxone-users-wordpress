@@ -44,6 +44,11 @@ class MissingFieldsTest extends TestCase {
 		$this->first_name_required( true );
 	}
 
+	/** An add-on asking for the fields, as Users+ Pro does. */
+	private function asked(): void {
+		$GLOBALS['_test_wp_filters']['diluxone_users_ask_missing'] = static fn(): bool => true;
+	}
+
 	protected function tearDown(): void {
 		Monkey\tearDown();
 		parent::tearDown();
@@ -77,6 +82,7 @@ class MissingFieldsTest extends TestCase {
 	}
 
 	public function test_a_required_field_with_no_answer_sends_to_the_step_carrying_the_destination(): void {
+		$this->asked();
 		$url = diluxone_users_ask_missing_url( self::USER_ID, self::GOING );
 
 		$this->assertStringStartsWith( self::ACCOUNT, $url );
@@ -95,6 +101,7 @@ class MissingFieldsTest extends TestCase {
 
 	/** An answer of spaces is no answer. */
 	public function test_an_answer_of_spaces_is_still_missing(): void {
+		$this->asked();
 		update_user_meta( self::USER_ID, 'first_name', '   ' );
 
 		$this->assertNotSame( self::GOING, diluxone_users_ask_missing_url( self::USER_ID, self::GOING ) );
@@ -102,6 +109,7 @@ class MissingFieldsTest extends TestCase {
 
 	/** C4: no field required, no step, whoever signs in. */
 	public function test_with_no_field_required_the_step_never_appears(): void {
+		$this->asked();
 		$this->first_name_required( false );
 
 		$this->assertFalse( diluxone_users_has_required_fields() );
@@ -109,22 +117,36 @@ class MissingFieldsTest extends TestCase {
 		$this->assertSame( self::GOING, diluxone_users_ask_missing_url( self::USER_ID, self::GOING ) );
 	}
 
-	/** C5: the setting off, no step. */
-	public function test_with_the_setting_off_the_step_does_not_appear(): void {
-		update_option( 'diluxone_users_ask_missing', 0 );
+	/**
+	 * The plugin alone asks nothing: an account missing a required field
+	 * goes straight on, even on a site that had the setting saved before it
+	 * became Users+ Pro's.
+	 */
+	public function test_the_plugin_alone_never_asks(): void {
+		update_option( 'diluxone_users_ask_missing', 1 );
 
+		$this->assertFalse( diluxone_users_ask_missing_on() );
+		$this->assertSame( array( 'first_name' ), array_column( diluxone_users_missing_required( self::USER_ID ), 'key' ), 'something is missing' );
 		$this->assertSame( self::GOING, diluxone_users_ask_missing_url( self::USER_ID, self::GOING ) );
+		$this->assertSame( self::GOING, diluxone_users_ask_missing_password( self::GOING, '', $GLOBALS['_test_wp_users'][ self::USER_ID ] ) );
 	}
 
-	/** On by default: nothing stored, and it acts as soon as a field is required. */
-	public function test_the_setting_is_on_by_default(): void {
-		$this->assertSame( 1, diluxone_users_option_defaults()['diluxone_users_ask_missing'] );
-		$this->assertSame( 'network', diluxone_users_option_scopes()['diluxone_users_ask_missing'] );
+	/** It is no setting of the plugin's any more: no default and no scope. */
+	public function test_it_is_no_setting(): void {
+		$this->assertArrayNotHasKey( 'diluxone_users_ask_missing', diluxone_users_option_defaults() );
+		$this->assertArrayNotHasKey( 'diluxone_users_ask_missing', diluxone_users_option_scopes() );
+	}
+
+	/** An add-on asking, and it is asked as soon as a field is required. */
+	public function test_an_add_on_turns_it_on(): void {
+		$this->asked();
+
 		$this->assertTrue( diluxone_users_ask_missing_on() );
 	}
 
 	/** With no account page there is nowhere to ask, and nobody is sent anywhere new. */
 	public function test_with_no_account_page_the_step_is_skipped(): void {
+		$this->asked();
 		update_option( 'diluxone_users_account_page', 0 );
 
 		$this->assertFalse( diluxone_users_ask_missing_on() );
@@ -157,6 +179,7 @@ class MissingFieldsTest extends TestCase {
 
 	/** A password sign-in that failed is left as WordPress had it. */
 	public function test_a_failed_password_is_left_alone(): void {
+		$this->asked();
 		$this->assertSame( self::GOING, diluxone_users_ask_missing_password( self::GOING, '', new \WP_Error( 'x', 'no' ) ) );
 		$this->assertNotSame( self::GOING, diluxone_users_ask_missing_password( self::GOING, '', $GLOBALS['_test_wp_users'][ self::USER_ID ] ) );
 	}

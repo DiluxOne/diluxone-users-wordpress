@@ -17,7 +17,8 @@ const FIRST_NAME_REQUIRED = [
 ];
 
 test('signing in by link from /beta/ asks for the name on the hub, and the save goes back to /beta/', async ({ guest, hub, beta }) => {
-	await hub.set({ diluxone_users_fields: FIRST_NAME_REQUIRED, diluxone_users_2fa_mode: 'off' });
+	// An add-on that asks for them, as Users+ Pro does: the plugin alone never asks.
+	await hub.set({ diluxone_users_fields: FIRST_NAME_REQUIRED, diluxone_users_2fa_mode: 'off', diluxone_e2e_ask_missing: 1 });
 
 	const email = freshEmail('net-missing');
 

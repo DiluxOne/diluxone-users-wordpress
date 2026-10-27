@@ -5,7 +5,8 @@
  * An account made by the e-mail link or by a social network was never shown
  * the registration form, so it has nothing in the fields the site marked as
  * required — the name a certificate needs, say. Nothing asked for them
- * afterwards either. Now, at the moment a sign-in hands the person their
+ * afterwards either. Asking is Users+ Pro's (`diluxone_users_ask_missing`,
+ * false here); when it asks, at the moment a sign-in hands the person their
  * destination, the destination is wrapped: they go first to a short step on
  * the account page that asks for those fields and nothing else, and from it on
  * to where they were going.
@@ -65,15 +66,25 @@ function diluxone_users_has_required_fields(): bool {
 /**
  * Is the step asked for at all?
  *
- * On by default, and only ever acting while a field is required: a site with
- * none never sees it, and the first field it marks required turns it on
- * without anything stored changing by itself. It needs the account page too,
- * which is where it is drawn. In safe mode nothing of the plugin's
- * redirects, so neither does this.
+ * Not, as the plugin has it: a sign-in sends somebody straight to where they
+ * were going. Asking is Users+ Pro's, through `diluxone_users_ask_missing`,
+ * and even then only while a field is required and an account page is
+ * chosen, which is where the step is drawn. In safe mode nothing of the
+ * plugin's redirects, so neither does this.
  */
 function diluxone_users_ask_missing_on(): bool {
+	/**
+	 * Filters whether a sign-in asks for the required fields an account has
+	 * no answer for.
+	 *
+	 * False, as the plugin has it: nobody is asked.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param bool $ask Whether to ask.
+	 */
 	return ! diluxone_users_safe_mode()
-		&& (bool) diluxone_users_option( 'diluxone_users_ask_missing' )
+		&& (bool) apply_filters( 'diluxone_users_ask_missing', false )
 		&& '' !== diluxone_users_page_url( 'diluxone_users_account_page' )
 		&& diluxone_users_has_required_fields();
 }
@@ -145,7 +156,7 @@ function diluxone_users_ask_missing_asked(): bool {
  * @return bool Whether it drew it; the account area draws its sections when not.
  */
 function diluxone_users_ask_missing_form(): bool {
-	if ( ! is_user_logged_in() || ! diluxone_users_ask_missing_asked() ) {
+	if ( ! is_user_logged_in() || ! diluxone_users_ask_missing_asked() || ! diluxone_users_ask_missing_on() ) {
 		return false;
 	}
 

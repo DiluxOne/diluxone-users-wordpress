@@ -876,7 +876,9 @@ the list is not offered again; one ticked is added at the end of the list by
 
 An account made by the e-mail link, a social network or an add-on's way in
 never saw the registration form, so it has nothing in the fields the site
-marked as required. Once it is signed in, it is sent first to the account
+marked as required. The plugin alone sends it straight on; asking is an
+add-on's (Users+ Pro's), through the filter `diluxone_users_ask_missing`
+(below). With one that asks, once it is signed in, it is sent first to the account
 page with `?diluxone-users-complete=1&redirect_to=<where it was going>`,
 which draws only those fields (`templates/fields.php`, the same form, checks
 and save as Details) in place of the sections and their nav, with a "Skip
@@ -899,9 +901,12 @@ priority 99 for a password with no second step. What an add-on may call:
 - `diluxone_users_ask_missing_url( $user_id, $redirect )` — the step's
   address carrying `$redirect`, or `$redirect` itself when nothing is owed.
 
-It is the setting `diluxone_users_ask_missing` (User fields › After sign-in,
-scope `network`), on by default and only ever acting while some field is
-required and an account page is chosen. In safe mode it is never asked.
+It is asked only while `diluxone_users_ask_missing` answers true (false in the
+plugin alone, so nothing is stored for it and no setting names it), some field
+is required and an account page is chosen; the account page asked for the
+step draws it only then. In safe mode it is never asked. User fields › After
+sign-in says people go straight on and draws Users+ Pro's two settings as
+previews (`fields/missing/ask`, `fields/missing/skip`).
 
 ## Looks
 
@@ -1425,6 +1430,8 @@ them answers false for all. Each placeholder's outer element carries
 | `security/2fa/remember` | A disabled tick box after it on Security › Two-step verification: not asking again on a browser. |
 | `account/handle/cooldown` | The days between one change and the next, a disabled number box on Account area › Public name. |
 | `account/handle/locked` | A disabled tick box after it on Account area › Public name: once chosen, the name cannot be changed. |
+| `fields/missing/ask` | A disabled tick box on User fields › After sign-in: asking an account for the required fields it has no answer for, right after it signs in. |
+| `fields/missing/skip` | A disabled tick box after it on User fields › After sign-in: letting them skip that step. |
 | `account/sections/more` | A disabled "Add a section" button beside the heading on Account › Sections, where `diluxone_users_account_sections_head` draws Pro's real one. |
 | `design/brand/color-map` | The rows under "From your theme" on Design › Your brand, their selects disabled: which colour of the theme's palette does what. |
 
@@ -1441,6 +1448,7 @@ gets, and the plugin stores nothing for it and names no setting of Pro's.
 | `diluxone_users_2fa_on_link` | `( bool $ask, int $user_id )` | true: the second step is asked after the e-mail link too. |
 | `diluxone_users_reset_ends_sessions` | `( bool $end, WP_User $user )` | false: a new password leaves the account's other sessions open, as WordPress does. |
 | `diluxone_users_handle_cooldown` | `( int $days, int $user_id )` | 0: a public name is changed whenever its owner likes; more days lock the box until then and refuse a change sent anyway. |
+| `diluxone_users_ask_missing` | `( bool $ask )` | false: a sign-in sends an account missing a required field straight to where it was going; true sends it first to the step on the account page (see Required fields missing after a sign-in). |
 | `diluxone_users_sso_role_allowed` | `( bool $allowed, int $user_id, string $context )` | true: every role may sign in with a social account. `$context` is `account` for an existing account, or `register` (with `$user_id` 0) for one about to be created with `diluxone_users_register_role()`; false there creates no account and logs `register_role`. |
 
 ## The emergency switch

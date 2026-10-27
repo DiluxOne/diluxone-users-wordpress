@@ -397,6 +397,12 @@ function diluxone_e2e_switches(): void {
 	if ( get_option( 'diluxone_e2e_no_wp_login_2fa' ) ) {
 		add_filter( 'diluxone_users_2fa_on_wp_login', '__return_false' );
 	}
+
+	// An add-on asking for the required fields an account has no answer
+	// for, as Users+ Pro does: the plugin alone never asks.
+	if ( get_option( 'diluxone_e2e_ask_missing' ) ) {
+		add_filter( 'diluxone_users_ask_missing', '__return_true' );
+	}
 }
 add_action( 'plugins_loaded', 'diluxone_e2e_switches' );
 

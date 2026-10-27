@@ -56,7 +56,6 @@ function diluxone_users_option_scopes(): array {
 		'diluxone_users_2fa_mode'              => 'network',
 		'diluxone_users_fields'                => 'network',
 		// Asking for them after a sign-in: the fields' own scope.
-		'diluxone_users_ask_missing'           => 'network',
 		'diluxone_users_ip_header'             => 'network',
 		'diluxone_users_log_days'              => 'network',
 		'diluxone_users_membership'            => 'network',

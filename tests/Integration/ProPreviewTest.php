@@ -258,6 +258,8 @@ class ProPreviewTest extends IntegrationTestCase {
 			'social/general/roles'    => array( 'diluxone_users_screen_social_general', 'Only some roles' ),
 			'account/handle/cooldown' => array( 'diluxone_users_screen_account_handle', 'How often it can change' ),
 			'account/handle/locked'   => array( 'diluxone_users_screen_account_handle', 'Once chosen, it cannot be changed' ),
+			'fields/missing/ask'      => array( 'diluxone_users_screen_fields_missing', 'ask for the required fields the account has no answer for' ),
+			'fields/missing/skip'     => array( 'diluxone_users_screen_fields_missing', 'Let them skip it' ),
 		);
 	}
 

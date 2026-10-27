@@ -310,6 +310,9 @@ class SsoPopupTest extends IntegrationTestCase {
 		);
 		unset( MockProvider::$profile['given_name'] );
 
+		// An add-on that asks for them, as Users+ Pro does.
+		$this->hook( 'diluxone_users_ask_missing', '__return_true' );
+
 		$this->back( $this->start( '1' ) );
 
 		$this->assertSame( 'next', $this->data( $this->bridge(), 'kind' ), 'signed in, but not yet where a sign-in ends' );

@@ -267,6 +267,8 @@ test.describe('Social sign-in in a popup', () => {
 				{ key: 'last_name', label: 'Last name', type: 'text', required: 0, group: 'main', active: 1 },
 			],
 			diluxone_users_login_role: 'subscriber',
+			// An add-on that asks for them, as Users+ Pro does.
+			diluxone_e2e_ask_missing: 1,
 		});
 
 		const email = freshEmail('popup-fields');

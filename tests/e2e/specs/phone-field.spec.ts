@@ -140,7 +140,7 @@ test.describe('The phone field is one control', () => {
 		await page.setViewportSize({ width: 1280, height: 900 });
 
 		// Required now and missing: the step draws the two of them alone.
-		await options.set({ diluxone_users_fields: REQUIRED });
+		await options.set({ diluxone_users_fields: REQUIRED, diluxone_e2e_ask_missing: 1 });
 		await page.goto(`${pages.account.url}${pages.account.url.includes('?') ? '&' : '?'}diluxone-users-complete=1`);
 
 		const step = page.locator('.diluxone-users-complete form.diluxone-users-form');
