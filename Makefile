@@ -432,6 +432,17 @@ review-rules: ## Run the organisation's review rules (wordpress-plugin pack) on 
 plugin-check: pcp-env ## Run wordpress.org's Plugin Check on the built dist.
 	@cd "$(PCP_DIR)" && npx @wordpress/env run cli wp plugin check diluxone-users --format=table --severity=5
 
+# As the pull request runs it (the wordpress-plugin pack's `plugin-check`):
+# strict, so a warning fails as an error does, the same categories, the
+# experimental checks included, and only stable_tag_mismatch left out.
+PCP_STRICT_CATEGORIES := plugin_repo,security,performance,accessibility,general
+
+.PHONY: plugin-check-strict
+plugin-check-strict: pcp-env ## Plugin Check as the pull request runs it: strict, a warning fails.
+	@cd "$(PCP_DIR)" && out=$$(npx @wordpress/env run cli wp plugin check diluxone-users --format=csv --fields=type,code,file,line,message --categories=$(PCP_STRICT_CATEGORIES) --include-experimental --ignore-codes=stable_tag_mismatch 2>/dev/null | grep -E '^(ERROR|WARNING),'); \
+	  if [ -n "$$out" ]; then echo "$$out"; echo "✗ Plugin Check (strict): $$(echo "$$out" | wc -l) finding(s)"; exit 1; fi; \
+	  echo "✔ Plugin Check (strict): nothing found."
+
 .PHONY: plugin-check-all
 plugin-check-all: pcp-env ## Plugin Check on the built dist, including warnings and notices.
 	@cd "$(PCP_DIR)" && npx @wordpress/env run cli wp plugin check diluxone-users --format=table
@@ -456,7 +467,7 @@ pre-pr: pre-pr-deps ## Every check the pull request and the merge queue run, fro
 	$(MAKE) lint stan psalm test test-unit-min
 	$(MAKE) i18n-form i18n-check
 	$(MAKE) design-lint review-rules
-	$(MAKE) plugin-check
+	$(MAKE) plugin-check-strict
 	$(MAKE) plugin-check-down
 	$(MAKE) test-integration-single
 	$(MAKE) test-integration-single-down
