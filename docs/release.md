@@ -36,7 +36,7 @@ The first version was not published by a tag. The maintainer uploaded a zip, the
 
 - **Check the slug wordpress.org assigned** before anything else. It is proposed from the plugin name, and the code assumes `diluxone-users`: the text domain must equal the slug or translate.wordpress.org's language packs never reach a site, and a slug cannot be changed once published. If it differs, stop and settle that first.
 - **1.0.0 is held until the maintainer decides.** The approval arrived on 4 October 2026 and the markers are at `1.0.0`, but `readme.txt` says `Unreleased.` under `= 1.0.0 =`, so every push to `main` ends as **Not ready** and nothing waits for approval. Publishing is the flow below: the maintainer removes that line in a pull request of its own, then approves the deployment the next push to `main` asks for in the `wordpress-org` environment. A tag `1.0.0` the maintainer pushes runs the same job ([`release.yml`](../.github/workflows/release.yml)), which refuses it while the `Unreleased.` line is there and otherwise accepts it only as the version it computes. The job starts as a rehearsal (`dry-run: true`): the maintainer turns it off, in a pull request of its own, after a rehearsal approved in the environment. The SVN credentials and the release App's key are already in the `wordpress-org` environment.
-- **Until 1.0.0 is published, a change a user notices adds its bullet under `= 1.0.0 =`**, below the `Unreleased.` line. After it, the next change that deserves a bullet opens the next entry, `= X.Y.Z =` with `Unreleased.` as its first line (below).
+- **A change a user notices adds its bullet in `changelog.d/<issue>.md`**, a file of its own, never in `readme.txt` (DiluxOne/.github#452): two pull requests never edit the same lines, and the release writes the fragments into the newest entry (`scripts/changelog-fragments.sh` in DiluxOne/.github). Until 1.0.0 is published that entry is `= 1.0.0 =`, below its `Unreleased.` line.
 
 ## After the approval
 
@@ -72,9 +72,9 @@ Unreleased.
 * What changed, for the person using the site.
 ```
 
-- **Write the notes as the changes merge.** A pull request that changes what a user sees adds its bullet under the `Unreleased.` line, in the same pull request.
+- **Write the notes as the changes merge.** A pull request that changes what a user sees adds its bullet in `changelog.d/<issue>.md`, in the same pull request; while a fragment waits, the version is held too.
 - **Never remove the `Unreleased.` line as part of another change.** The pull request that removes it is the release decision, made by a maintainer.
-- **After a release**, the next change that deserves a bullet opens the next entry above the released one.
+- **After a release**, the release opens the next entry above the released one when it writes the next fragments in.
 
 ### Secrets and approval
 
