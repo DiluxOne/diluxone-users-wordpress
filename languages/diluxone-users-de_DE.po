@@ -284,11 +284,8 @@ msgstr "Ein Menü an der Seite"
 msgid "A new account, %s, on every site"
 msgstr "Ein neues Konto, %s, auf jeder Website"
 
-msgid "A new password closes every session the account had open"
-msgstr "Ein neues Passwort beendet jede Sitzung, die das Konto offen hatte"
-
-msgid "A new password leaves the account’s other sessions open, as WordPress does."
-msgstr ""
+msgid "A new password signs the account out on every other device, as WordPress does, and the list forgets them."
+msgstr "Ein neues Passwort meldet das Konto auf allen anderen Geräten ab, wie WordPress es tut, und die Liste vergisst sie."
 
 msgid "A page of its own"
 msgstr "Eine eigene Seite"
@@ -481,7 +478,7 @@ msgid "After signing in, ask for the required fields the account has no answer f
 msgstr "Nach der Anmeldung nach den Pflichtfeldern fragen, für die das Konto keine Antwort hat"
 
 msgid "After signing in, people go straight to where they were going, whatever their account is missing."
-msgstr ""
+msgstr "Nach der Anmeldung gehen die Leute direkt dorthin, wohin sie wollten, egal was ihrem Konto fehlt."
 
 msgid "After the door"
 msgstr "Nach der Tür"
@@ -1431,9 +1428,8 @@ msgstr "Jedes der %1$s Konten wird Mitglied jeder der %2$s aktiven Websites, der
 msgid "Every return from a social network that signed nobody in, with the network and why. Already part of the ways in and out; this keeps them on their own."
 msgstr "Jede Rückkehr von einem sozialen Netzwerk, die niemanden angemeldet hat, mit dem Netzwerk und dem Grund. Sie gehören schon zu den Wegen hinein und hinaus; das hier hält sie für sich."
 
-#, fuzzy
 msgid "Every role can use the buttons, administrators included. Whoever would rather not signs in with the site’s other ways in."
-msgstr "Die angehakten Rollen können die Schaltflächen verwenden. Alle anderen melden sich auf den anderen Wegen der Website an."
+msgstr "Jede Rolle kann die Schaltflächen nutzen, Administratoren eingeschlossen. Wer das lieber nicht möchte, meldet sich auf den anderen Wegen der Website an."
 
 msgid "Every row goes, whatever its age, and the Activity tab starts again from nothing. What is recorded from then on follows the settings above."
 msgstr "Alle Zeilen gehen, egal wie alt, und der Tab Aktivität beginnt bei null. Was danach aufgezeichnet wird, folgt den Einstellungen oben."
@@ -2156,7 +2152,7 @@ msgid "Lesotho"
 msgstr "Lesotho"
 
 msgid "Let it decide"
-msgstr ""
+msgstr "Selbst entscheiden lassen"
 
 msgid "Let people choose their public name"
 msgstr "Die Leute ihren öffentlichen Namen wählen lassen"
@@ -2164,9 +2160,8 @@ msgstr "Die Leute ihren öffentlichen Namen wählen lassen"
 msgid "Let people upload their own"
 msgstr "Die Leute ihr eigenes hochladen lassen"
 
-#, fuzzy
 msgid "Let them skip it"
-msgstr "Einrichten"
+msgstr "Überspringen erlauben"
 
 msgid "Letters, numbers and dashes. Sign in, registration, the second step and a new password are all answered there, and an address you used before keeps sending people to it."
 msgstr "Buchstaben, Ziffern und Bindestriche. Anmeldung, Registrierung, der zweite Schritt und ein neues Passwort werden alle dort beantwortet, und eine Adresse, die Sie vorher verwendet haben, leitet weiter dorthin."
@@ -2835,9 +2830,8 @@ msgstr "In diesem Netzwerk gehören die Regeln über Personen dem Netzwerk: Sie 
 msgid "On this network these are switched on or off for every site at once, in Network Admin, where each feature lives: social accounts under Social login › Rules."
 msgstr "In diesem Netzwerk werden sie für alle Websites auf einmal ein- oder ausgeschaltet, in der Netzwerkverwaltung, dort, wo jede Funktion wohnt: Social-Konten unter Social Login › Regeln."
 
-#, fuzzy
 msgid "Once chosen, it cannot be changed"
-msgstr "Wie oft er sich ändern darf"
+msgstr "Einmal gewählt, lässt er sich nicht mehr ändern"
 
 msgid "Once it is done"
 msgstr "Wenn es fertig ist"
@@ -3049,9 +3043,8 @@ msgstr "Ausstehend"
 msgid "People can sign in with a social account"
 msgstr "Die Leute können sich mit einem Social-Konto anmelden"
 
-#, fuzzy
 msgid "People change their public name whenever they like."
-msgstr "Die Leute ihren öffentlichen Namen wählen lassen"
+msgstr "Die Leute ändern ihren öffentlichen Namen, wann sie wollen."
 
 msgid "People choose the short name they appear under."
 msgstr "Die Leute wählen den kurzen Namen, unter dem sie erscheinen."
@@ -4510,9 +4503,8 @@ msgstr "Das Foto ist zu schwer: höchstens %s."
 msgid "The photo is too large: at most %d pixels a side."
 msgstr "Das Foto ist zu groß: höchstens %d Pixel pro Seite."
 
-#, fuzzy
 msgid "The plugin’s stylesheet is not loaded and the plugin paints nothing: its panels, fields and buttons come out bare and the site’s own stylesheet dresses them. The most work, and the only way to match a design exactly."
-msgstr "Das Stylesheet des Plugins wird nicht geladen und das Plugin malt nichts: seine Panels, Felder und Schaltflächen kommen nackt heraus und das eigene Stylesheet der Website kleidet sie. Die aufwendigste der drei — und die einzige Art, ein Design exakt zu treffen."
+msgstr "Das Stylesheet des Plugins wird nicht geladen und das Plugin gestaltet nichts: Seine Bereiche, Felder und Schaltflächen erscheinen ungestaltet, und das Stylesheet der Website kleidet sie ein. Der meiste Aufwand, und der einzige Weg, ein Design exakt zu treffen."
 
 #. translators: %s: the name of the site where the network's accounts live
 #, php-format
@@ -4591,9 +4583,8 @@ msgstr "Der Bildschirm antwortet, dass er nicht verfügbar ist. Für eine Websit
 msgid "The screen somebody lands on once the e-mail is on its way."
 msgstr "Der Bildschirm, auf dem jemand landet, sobald die E-Mail unterwegs ist."
 
-#, fuzzy
 msgid "The second step is asked of somebody who came in by link, as on every other way in, whichever method they have."
-msgstr "Wer über einen Link hereingekommen ist, wird nach dem zweiten Schritt gefragt, egal welchen er hat."
+msgstr "Wer per Link kommt, wird nach dem zweiten Schritt gefragt, wie bei jedem anderen Weg, egal welche Methode die Person hat."
 
 msgid "The second step is asked of somebody who came in by link, whichever one they have."
 msgstr "Wer über einen Link hereingekommen ist, wird nach dem zweiten Schritt gefragt, egal welchen er hat."
@@ -5330,24 +5321,23 @@ msgstr "Users+ Pro fügt den Kontobereich mit Titelbild hinzu: die Person auf ei
 msgid "Users+ Pro adds the six digits that change every thirty seconds, from Google Authenticator, 1Password or Aegis: the code never travels, so it is asked on the e-mail link too."
 msgstr "Users+ Pro ergänzt die sechs Ziffern, die sich alle dreißig Sekunden ändern, aus Google Authenticator, 1Password oder Aegis: Der Code wird nie übertragen, deshalb wird er auch beim Link per E-Mail verlangt."
 
-#, fuzzy
 msgid "Users+ Pro asks accounts made by the e-mail link or a social network for what they were never asked: they are shown those fields alone on the account page, and then go on to where they were going."
-msgstr "Konten, die über den E-Mail-Link oder ein soziales Netzwerk entstanden sind, wurden nie danach gefragt. Nach der Anmeldung sehen sie auf der Kontoseite nur diese Felder und gehen dann weiter, wohin sie wollten. Der Schritt lässt sich überspringen und wird bei der nächsten Anmeldung wieder gezeigt."
+msgstr "Users+ Pro fragt Konten, die per E-Mail-Link oder über ein soziales Netzwerk erstellt wurden, nach dem, was nie gefragt wurde: Sie sehen nur diese Felder auf der Kontoseite und gehen dann weiter, wohin sie wollten."
 
 msgid "Users+ Pro asks it on the link only when it proves something the link did not: an app does, a code back to the inbox the person just opened does not."
-msgstr ""
+msgstr "Users+ Pro fragt ihn nach dem Link nur, wenn er etwas beweist, was der Link nicht bewiesen hat: eine App schon, ein Code an das Postfach, das die Person gerade geöffnet hat, nicht."
 
 msgid "Users+ Pro asks the second step of the roles you choose — the ones that can change things — and not of everybody with an account."
 msgstr "Users+ Pro verlangt den zweiten Schritt von den Rollen, die du auswählst – denen, die etwas ändern können – und nicht von allen mit einem Konto."
 
 msgid "Users+ Pro decides whether they can leave it for later, and are asked again at the next sign-in."
-msgstr ""
+msgstr "Users+ Pro entscheidet, ob sie es auf später verschieben können, und fragt bei der nächsten Anmeldung erneut."
 
 msgid "Users+ Pro keeps the first name somebody picks for good: the address it gives them never moves."
-msgstr ""
+msgstr "Users+ Pro behält den ersten Namen, den jemand wählt, für immer: Die Adresse, die er ihm gibt, ändert sich nie."
 
 msgid "Users+ Pro lets only the roles you pick use the buttons: an administrator who signs in with Google depends on that Google account never being taken over. Whoever is left out signs in with the email link as always."
-msgstr ""
+msgstr "Users+ Pro lässt nur die gewählten Rollen die Schaltflächen nutzen: Ein Administrator, der sich mit Google anmeldet, ist darauf angewiesen, dass dieses Google-Konto nie übernommen wird. Wer ausgeschlossen ist, meldet sich wie immer mit dem E-Mail-Link an."
 
 msgid "Users+ Pro lets people skip the second step for a few days on a browser that already passed it, with a signed cookie that lets nobody in on its own."
 msgstr "Users+ Pro lässt Menschen den zweiten Schritt für ein paar Tage in einem Browser überspringen, der ihn schon bestanden hat – mit einem signierten Cookie, das für sich allein niemanden hereinlässt."
@@ -5359,14 +5349,10 @@ msgid "Users+ Pro on these screens"
 msgstr "Users+ Pro auf diesen Bildschirmen"
 
 msgid "Users+ Pro paints the plugin with the palette your theme publishes, or with the colours it paints on the site, and follows the theme into its own dark mode."
-msgstr ""
+msgstr "Users+ Pro färbt das Plugin mit der Palette, die dein Theme veröffentlicht, oder mit den Farben, die es auf der Website malt, und folgt dem Theme in seinen eigenen Dunkelmodus."
 
-#, fuzzy
 msgid "Users+ Pro sets the days between one change and the next: a name that changes every day does not identify anybody, and the old address stops working each time."
-msgstr "0 heißt: wann immer sie wollen. Ein Name, der sich täglich ändert, identifiziert niemanden, und die alte Adresse funktioniert jedes Mal nicht mehr."
-
-msgid "Users+ Pro signs the account out everywhere when its password is reset: whoever reset it because the old one got out signs in again, and so would anybody who was using it."
-msgstr ""
+msgstr "Users+ Pro legt die Tage zwischen einer Änderung und der nächsten fest: Ein Name, der sich jeden Tag ändert, identifiziert niemanden, und die alte Adresse funktioniert jedes Mal nicht mehr."
 
 msgid "Uzbekistan"
 msgstr "Usbekistan"
@@ -6010,6 +5996,9 @@ msgstr "Dein Profil:"
 
 msgid "Your public name"
 msgstr "Dein öffentlicher Name"
+
+msgid "Your public name cannot be changed."
+msgstr "Dein öffentlicher Name kann nicht geändert werden."
 
 #. translators: %s: site name
 #, php-format

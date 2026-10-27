@@ -284,11 +284,8 @@ msgstr "Um menu na lateral"
 msgid "A new account, %s, on every site"
 msgstr "Uma conta nova, %s, em todos os sites"
 
-msgid "A new password closes every session the account had open"
-msgstr "Uma nova senha encerra todas as sessões que a conta tinha abertas"
-
-msgid "A new password leaves the account’s other sessions open, as WordPress does."
-msgstr ""
+msgid "A new password signs the account out on every other device, as WordPress does, and the list forgets them."
+msgstr "Uma nova senha desconecta a conta em todos os outros dispositivos, como o WordPress faz, e a lista os esquece."
 
 msgid "A page of its own"
 msgstr "Uma página própria"
@@ -481,7 +478,7 @@ msgid "After signing in, ask for the required fields the account has no answer f
 msgstr "Depois de entrar, pedir os campos obrigatórios que a conta não preencheu"
 
 msgid "After signing in, people go straight to where they were going, whatever their account is missing."
-msgstr ""
+msgstr "Depois de entrar, as pessoas vão direto para onde iam, falte o que faltar na conta."
 
 msgid "After the door"
 msgstr "Depois da porta"
@@ -1431,9 +1428,8 @@ msgstr "Cada uma das %1$s contas passa a ser membro de cada um dos %2$s sites at
 msgid "Every return from a social network that signed nobody in, with the network and why. Already part of the ways in and out; this keeps them on their own."
 msgstr "Cada volta de uma rede social que não fez ninguém entrar, com a rede e o motivo. Já fazem parte das entradas e saídas; isto os guarda à parte."
 
-#, fuzzy
 msgid "Every role can use the buttons, administrators included. Whoever would rather not signs in with the site’s other ways in."
-msgstr "Os papéis marcados podem usar os botões. Os demais entram pelas outras formas do site."
+msgstr "Todos os papéis podem usar os botões, administradores incluídos. Quem preferir não usar entra pelas outras formas do site."
 
 msgid "Every row goes, whatever its age, and the Activity tab starts again from nothing. What is recorded from then on follows the settings above."
 msgstr "Todas as linhas vão embora, seja qual for a idade, e a aba Atividade recomeça do zero. O que for registrado a partir daí segue os ajustes acima."
@@ -2156,7 +2152,7 @@ msgid "Lesotho"
 msgstr "Lesoto"
 
 msgid "Let it decide"
-msgstr ""
+msgstr "Deixar decidir"
 
 msgid "Let people choose their public name"
 msgstr "Deixar as pessoas escolherem o seu nome público"
@@ -2164,9 +2160,8 @@ msgstr "Deixar as pessoas escolherem o seu nome público"
 msgid "Let people upload their own"
 msgstr "Deixar as pessoas enviarem a sua"
 
-#, fuzzy
 msgid "Let them skip it"
-msgstr "Configurá-los"
+msgstr "Deixar pular"
 
 msgid "Letters, numbers and dashes. Sign in, registration, the second step and a new password are all answered there, and an address you used before keeps sending people to it."
 msgstr "Letras, números e hífens. O acesso, o cadastro, a segunda etapa e uma nova senha são todos atendidos ali, e um endereço que você usou antes continua levando as pessoas para lá."
@@ -2835,9 +2830,8 @@ msgstr "Nesta rede as regras sobre as pessoas são da rede: valem para todos os 
 msgid "On this network these are switched on or off for every site at once, in Network Admin, where each feature lives: social accounts under Social login › Rules."
 msgstr "Nesta rede eles são ativados ou desativados para todos os sites de uma vez, na Administração da rede, onde cada recurso vive: as contas sociais em Login social › Regras."
 
-#, fuzzy
 msgid "Once chosen, it cannot be changed"
-msgstr "Com que frequência pode mudar"
+msgstr "Depois de escolhido, não pode ser alterado"
 
 msgid "Once it is done"
 msgstr "Assim que estiver pronto"
@@ -3049,9 +3043,8 @@ msgstr "Pendente"
 msgid "People can sign in with a social account"
 msgstr "As pessoas podem entrar com uma conta social"
 
-#, fuzzy
 msgid "People change their public name whenever they like."
-msgstr "Deixar as pessoas escolherem o seu nome público"
+msgstr "As pessoas mudam o nome público quando quiserem."
 
 msgid "People choose the short name they appear under."
 msgstr "As pessoas escolhem o nome curto com que aparecem."
@@ -4510,9 +4503,8 @@ msgstr "A foto é pesada demais: no máximo %s."
 msgid "The photo is too large: at most %d pixels a side."
 msgstr "A foto é grande demais: no máximo %d pixels por lado."
 
-#, fuzzy
 msgid "The plugin’s stylesheet is not loaded and the plugin paints nothing: its panels, fields and buttons come out bare and the site’s own stylesheet dresses them. The most work, and the only way to match a design exactly."
-msgstr "A folha de estilos do plugin não é carregada e o plugin não pinta nada: seus painéis, campos e botões saem nus e é a folha de estilos do site que os veste. A que dá mais trabalho das três, e a única forma de encaixar em um desenho ao milímetro."
+msgstr "A folha de estilo do plugin não é carregada e o plugin não pinta nada: seus painéis, campos e botões saem crus e a folha de estilo do site os veste. O que dá mais trabalho, e a única forma de seguir um design à risca."
 
 #. translators: %s: the name of the site where the network's accounts live
 #, php-format
@@ -4591,9 +4583,8 @@ msgstr "A tela responde que não está disponível. Para um site onde o painel n
 msgid "The screen somebody lands on once the e-mail is on its way."
 msgstr "A tela onde alguém cai assim que o e-mail sai."
 
-#, fuzzy
 msgid "The second step is asked of somebody who came in by link, as on every other way in, whichever method they have."
-msgstr "A segunda etapa é pedida a quem entrou por link, seja qual for a que a pessoa tenha."
+msgstr "O segundo passo é pedido a quem entrou por link, como em qualquer outra forma de entrar, seja qual for o método."
 
 msgid "The second step is asked of somebody who came in by link, whichever one they have."
 msgstr "A segunda etapa é pedida a quem entrou por link, seja qual for a que a pessoa tenha."
@@ -5330,24 +5321,23 @@ msgstr "O Users+ Pro adiciona a área da conta com capa: a pessoa numa faixa da 
 msgid "Users+ Pro adds the six digits that change every thirty seconds, from Google Authenticator, 1Password or Aegis: the code never travels, so it is asked on the e-mail link too."
 msgstr "O Users+ Pro adiciona os seis dígitos que mudam a cada trinta segundos, do Google Authenticator, 1Password ou Aegis: o código nunca viaja, então também é pedido no link por e-mail."
 
-#, fuzzy
 msgid "Users+ Pro asks accounts made by the e-mail link or a social network for what they were never asked: they are shown those fields alone on the account page, and then go on to where they were going."
-msgstr "Contas criadas pelo link por e-mail ou por uma rede social nunca foram perguntadas. Depois de entrar, veem só esses campos na página da conta e então seguem para onde iam. Dá para pular, e é perguntado de novo na próxima entrada."
+msgstr "O Users+ Pro pede às contas criadas pelo link por e-mail ou por uma rede social o que nunca foi pedido: elas veem só esses campos na página da conta e depois seguem para onde iam."
 
 msgid "Users+ Pro asks it on the link only when it proves something the link did not: an app does, a code back to the inbox the person just opened does not."
-msgstr ""
+msgstr "O Users+ Pro pede depois do link só quando prova algo que o link não provou: um app prova, um código de volta à caixa que a pessoa acabou de abrir não."
 
 msgid "Users+ Pro asks the second step of the roles you choose — the ones that can change things — and not of everybody with an account."
 msgstr "O Users+ Pro pede a segunda etapa aos papéis que você escolher — os que podem mudar coisas — e não a todos que têm conta."
 
 msgid "Users+ Pro decides whether they can leave it for later, and are asked again at the next sign-in."
-msgstr ""
+msgstr "O Users+ Pro decide se podem deixar para depois, e é pedido de novo no próximo acesso."
 
 msgid "Users+ Pro keeps the first name somebody picks for good: the address it gives them never moves."
-msgstr ""
+msgstr "O Users+ Pro mantém para sempre o primeiro nome escolhido: o endereço que ele dá nunca muda."
 
 msgid "Users+ Pro lets only the roles you pick use the buttons: an administrator who signs in with Google depends on that Google account never being taken over. Whoever is left out signs in with the email link as always."
-msgstr ""
+msgstr "O Users+ Pro deixa só os papéis que você escolher usarem os botões: um administrador que entra com o Google depende de essa conta do Google nunca ser invadida. Quem fica de fora entra com o link por e-mail, como sempre."
 
 msgid "Users+ Pro lets people skip the second step for a few days on a browser that already passed it, with a signed cookie that lets nobody in on its own."
 msgstr "O Users+ Pro deixa as pessoas pularem a segunda etapa por alguns dias em um navegador que já passou por ela, com um cookie assinado que sozinho não deixa ninguém entrar."
@@ -5359,14 +5349,10 @@ msgid "Users+ Pro on these screens"
 msgstr "Users+ Pro nestas telas"
 
 msgid "Users+ Pro paints the plugin with the palette your theme publishes, or with the colours it paints on the site, and follows the theme into its own dark mode."
-msgstr ""
+msgstr "O Users+ Pro pinta o plugin com a paleta que seu tema publica, ou com as cores que ele pinta no site, e segue o tema no próprio modo escuro."
 
-#, fuzzy
 msgid "Users+ Pro sets the days between one change and the next: a name that changes every day does not identify anybody, and the old address stops working each time."
-msgstr "0 significa quando quiserem. Um nome que muda todo dia não identifica ninguém, e o endereço antigo deixa de funcionar a cada vez."
-
-msgid "Users+ Pro signs the account out everywhere when its password is reset: whoever reset it because the old one got out signs in again, and so would anybody who was using it."
-msgstr ""
+msgstr "O Users+ Pro define os dias entre uma mudança e a seguinte: um nome que muda todo dia não identifica ninguém, e o endereço antigo deixa de funcionar a cada vez."
 
 msgid "Uzbekistan"
 msgstr "Uzbequistão"
@@ -6010,6 +5996,9 @@ msgstr "Seu perfil:"
 
 msgid "Your public name"
 msgstr "Seu nome público"
+
+msgid "Your public name cannot be changed."
+msgstr "Seu nome público não pode ser alterado."
 
 #. translators: %s: site name
 #, php-format
