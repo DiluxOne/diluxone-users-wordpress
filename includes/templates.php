@@ -456,8 +456,10 @@ function diluxone_users_account_css(): string {
 		$ground = diluxone_users_ground_tint( $ground );
 	}
 
+	// With no ground the area's text is the page's (the sheet sets none); on
+	// a ground of the plugin's it is the plugin's text, which reads on it.
 	if ( '' !== $ground ) {
-		$css .= '.diluxone-users-account{background:var(--diluxone-users-ground,' . $ground . ');}';
+		$css .= '.diluxone-users-account{background:var(--diluxone-users-ground,' . $ground . ');color:var(--diluxone-users-text);}';
 	}
 
 	// The strip's own measurements ride as properties, because the sheet

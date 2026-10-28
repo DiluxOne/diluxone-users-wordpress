@@ -434,11 +434,11 @@ class DesignSeamsTest extends IntegrationTestCase {
 
 		diluxone_users_update_option( 'diluxone_users_account_ground', '#f4f5f9' );
 		$this->assertSame( '#f5f6f8', diluxone_users_account_ground() );
-		$this->assertStringContainsString( '.diluxone-users-account{background:var(--diluxone-users-ground,#f5f6f8);}', diluxone_users_account_css() );
+		$this->assertStringContainsString( '.diluxone-users-account{background:var(--diluxone-users-ground,#f5f6f8);color:var(--diluxone-users-text);}', diluxone_users_account_css() );
 
 		// With the theme's colours the shade is mixed from them, still through the property.
 		$this->theme_colors( true );
-		$this->assertStringContainsString( '.diluxone-users-account{background:var(--diluxone-users-ground,' . diluxone_users_ground_tint( '#f5f6f8' ) . ');}', diluxone_users_account_css() );
+		$this->assertStringContainsString( '.diluxone-users-account{background:var(--diluxone-users-ground,' . diluxone_users_ground_tint( '#f5f6f8' ) . ');color:var(--diluxone-users-text);}', diluxone_users_account_css() );
 		$this->assertStringContainsString( 'follow the theme’s dark mode', $this->draw( 'diluxone_users_screen_appearance_template' ) );
 		$this->theme_colors( false );
 		$this->assertStringNotContainsString( 'follow the theme’s dark mode', $this->draw( 'diluxone_users_screen_appearance_template' ) );

@@ -992,6 +992,9 @@ What is stored is the hex. With Colours › the theme's, a ground is not printed
 its hex but as `diluxone_users_ground_tint()`: a `color-mix()` of
 `--diluxone-users-surface`, 2% of `--diluxone-users-text` and 4% of the swatch's
 hue, so it turns with the theme's dark mode and its text still reads on it.
+With a ground the area's text is `--diluxone-users-text`, printed with it;
+with none, outside its boxes the area takes the page's text colour, and its
+quieter text (“Member since”, a section's intro) is that colour toned down.
 
 `diluxone_users_any_color` (filter, default false) makes any hex an answer, and
 `diluxone_users_color_choices` (action, `( string $name, string $value )`)
