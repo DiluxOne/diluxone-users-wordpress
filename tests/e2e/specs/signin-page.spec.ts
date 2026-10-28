@@ -1,5 +1,5 @@
 import { Page } from '@playwright/test';
-import { test, expect, expectSignedIn, expectSignedOut, stateOf } from '../support/fixtures';
+import { test, expect, expectSignedIn, stateOf } from '../support/fixtures';
 import { freshEmail, linkIn, waitForMail } from '../support/api';
 import {
 	askForLink,
@@ -433,22 +433,5 @@ test.describe('The link request, from the outside', () => {
 		await expectSignedIn(page, email);
 
 		expect((await site.user(email)).roles).toEqual(['subscriber']);
-	});
-
-	test('a public name nobody has answers like one somebody has, and mails nobody', async ({ page, site, pages, options }) => {
-		await options.set({ diluxone_users_handle_enabled: 1, diluxone_users_handle_login: 1 });
-		await site.clearMail();
-
-		const nobody = `nobody${Date.now().toString(36)}`;
-
-		await page.goto(pages.login.url);
-		await emailField(page).fill(nobody);
-		expect(await submitPluginForm(page, linkForm(page))).toBe('sent');
-
-		await expect(sentScreen(page)).toContainText(nobody);
-		await expectSignedOut(page);
-
-		const mailbox = await page.request.get('/wp-json/diluxone-e2e/v1/mail', { headers: { 'X-Diluxone-E2E': 'diluxone-e2e' } });
-		expect(await mailbox.json(), 'nothing was sent to anybody').toEqual([]);
 	});
 });

@@ -1335,9 +1335,6 @@ msgstr "E-mail"
 msgid "Email address"
 msgstr "Indirizzo e-mail"
 
-msgid "Email address or public name"
-msgstr "Indirizzo e-mail o nome pubblico"
-
 msgid "Email me a code"
 msgstr "Mandami un codice via e-mail"
 
@@ -3177,9 +3174,6 @@ msgstr "Nome pubblico"
 msgid "Public name changed"
 msgstr "Nome pubblico cambiato"
 
-msgid "Public names are off, so the box only takes the e-mail address."
-msgstr "I nomi pubblici sono disattivati, quindi il campo accetta solo l’indirizzo e-mail."
-
 msgid "Publish the page and open it the way a visitor would. What the line stands for is what you see."
 msgstr "Pubblichi la pagina e la apra come la aprirebbe un visitatore. Quello che la riga rappresenta è quello che vedrà."
 
@@ -4415,9 +4409,6 @@ msgstr "Il link scade dopo"
 msgid "The link in the confirmation e-mail"
 msgstr "Il link nell’e-mail di conferma"
 
-msgid "The link still goes to the address on the account, never to what was typed. It only saves people from remembering which address they used."
-msgstr "Il link va comunque all’indirizzo dell’account, mai a quello che è stato scritto. Serve solo a risparmiare alle persone di ricordare quale indirizzo hanno usato."
-
 msgid "The link that signs me in"
 msgstr "Il link che mi fa entrare"
 
@@ -4556,9 +4547,6 @@ msgstr "Il provider non ha consegnato nessun token di accesso. Controlla il clie
 #, php-format
 msgid "The provider handed over this email: %s"
 msgstr "Il provider ha consegnato questa e-mail: %s"
-
-msgid "The public name as well as the e-mail address"
-msgstr "Il nome pubblico oltre all’indirizzo e-mail"
 
 msgid "The registration form, in the frame the sign-in tab chose for both."
 msgstr "Il modulo di registrazione, nella cornice che la scheda di accesso ha scelto per entrambi."
@@ -5170,9 +5158,6 @@ msgstr "Accendilo →"
 msgid "Turn them into dashes: “Ana Gómez” becomes ana-gomez"
 msgstr "Trasformarli in trattini: «Ana Gómez» diventa ana-gomez"
 
-msgid "Turn them on →"
-msgstr "Accendili →"
-
 msgid "Turned off, someone whose email is already registered simply cannot get in with a social network. Only turn it off if you do not trust the provider to verify its own users’ email addresses."
 msgstr "Disattivato, chi ha l’e-mail già registrata semplicemente non può entrare con un social. Disattivalo solo se non ti fidi che il provider verifichi l’e-mail della propria gente."
 
@@ -5534,9 +5519,6 @@ msgstr "Che forma ha l'area account, e di cosa è fatta. La forma è un punto di
 
 msgid "What the app gave you"
 msgstr "Quello che ti ha dato l’app"
-
-msgid "What the box takes"
-msgstr "Che cosa accetta il campo"
 
 msgid "What the form does with it"
 msgstr "Cosa ne fa il modulo"

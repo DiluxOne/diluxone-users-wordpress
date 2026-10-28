@@ -15,7 +15,7 @@ import {
 	sentScreen,
 	submitPanelWithoutScript,
 } from '../support/ui';
-import { accessTab, control, notNow, storedNumbers } from '../support/admin-access';
+import { accessTab, control, storedNumbers } from '../support/admin-access';
 import { ADMIN_STATE } from '../../../playwright.config';
 
 /**
@@ -37,7 +37,6 @@ test.describe('Access › Ways in', () => {
 			'diluxone_users_login_method',
 			'diluxone_users_login_expiry',
 			'diluxone_users_login_throttle',
-			'diluxone_users_handle_login',
 			'diluxone_users_sso_login',
 			'diluxone_users_pro_previews',
 			'diluxone_users_wp_screens',
@@ -95,43 +94,22 @@ test.describe('Access › Ways in', () => {
 		expect(await site.mail(email)).toHaveLength(1);
 	});
 
-	test('the public name as well as the address: ticked, the box takes a name and mails the account; unticked, it takes none', async ({ page, guest, site, pages, options }) => {
-		await options.set({ diluxone_users_handle_enabled: 1, diluxone_users_handle_login: 0 });
+	test('the box takes an address only, public names on or off: a name typed is not an address and mails nobody (#228)', async ({ page, guest, site, pages, options }) => {
+		await options.set({ diluxone_users_handle_enabled: 1 });
 
 		const email = freshEmail('handle-ui');
 
 		await site.makeUser({ email, meta: { diluxone_users_handle: 'x' } });
 
-		// The public name is the account's nicename: the address it is
-		// reached at, and what the box looks up.
 		const handle = String((await site.user(email)).nicename);
 
 		expect(handle).not.toContain('@');
 
 		await page.goto(accessTab('ways'));
-		await expect(notNow(page).filter({ has: page.locator('a[href*="tab=handle"]') }), 'public names are on: nothing to point at').toHaveCount(0);
-		await control(page, 'diluxone_users_handle_login').check();
-		await savePanel(page);
-		expect((await storedNumbers(site, ['diluxone_users_handle_login'])).diluxone_users_handle_login).toBe(1);
+		await expect(control(page, 'diluxone_users_handle_login'), 'no setting to sign in with a public name').toHaveCount(0);
 
 		await guest.goto(pages.login.url);
-		await expect(emailField(guest)).toHaveAttribute('type', 'text');
-		await emailField(guest).fill(handle);
-		await linkForm(guest).locator('button[type="submit"]').click();
-		await expect(sentScreen(guest)).toContainText(handle);
-
-		const mail = await waitForMail(site, email);
-
-		expect(mail.to.toLowerCase(), 'the link goes to the address on the account').toBe(email.toLowerCase());
-
-		await page.goto(accessTab('ways'));
-		await control(page, 'diluxone_users_handle_login').uncheck();
-		await savePanel(page);
-		expect((await storedNumbers(site, ['diluxone_users_handle_login'])).diluxone_users_handle_login).toBe(0);
-
-		await site.clearMail();
-		await guest.goto(pages.login.url);
-		await expect(emailField(guest), 'the box asks for an address again').toHaveAttribute('type', 'email');
+		await expect(emailField(guest)).toHaveAttribute('type', 'email');
 
 		// Sent anyway, with the browser's own check stepped over: a name is
 		// not an address, and nothing goes out.
@@ -142,18 +120,6 @@ test.describe('Access › Ways in', () => {
 		await Promise.all([guest.waitForURL(/diluxone-users=/), linkForm(guest).locator('button[type="submit"]').click()]);
 		expect(new URL(guest.url()).searchParams.get('diluxone-users')).toBe('email');
 		expect(await site.mail(email)).toEqual([]);
-	});
-
-	test('with public names off, the link’s card says so and points to where they are turned on', async ({ page, options }) => {
-		await options.set({ diluxone_users_handle_enabled: 0 });
-
-		await page.goto(accessTab('ways'));
-
-		const note = notNow(page).filter({ has: page.locator('a[href*="page=diluxone-users-account"][href*="tab=handle"]') });
-
-		await expect(note).toHaveCount(1);
-		// It belongs to the link, and hangs off the link's card.
-		await expect(page.locator('.du-choice-group').filter({ has: loginWay(page, 'link') }).locator('.diluxone-users-not-now')).toHaveCount(1);
 	});
 
 	/*

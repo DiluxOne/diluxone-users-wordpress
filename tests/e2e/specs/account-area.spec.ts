@@ -259,14 +259,7 @@ test.describe('The public name', () => {
 		await options.set({ diluxone_users_handle_enabled: 1 });
 	});
 
-	test('chosen on the account, it is saved — and with “sign in with it” on, the link box takes it', async ({
-		page,
-		site,
-		pages,
-		options,
-	}) => {
-		await options.set({ diluxone_users_handle_login: 1 });
-
+	test('chosen on the account, it is saved', async ({ page, site, pages }) => {
 		const { email } = await signedIn(page, site, pages.login.url, 'handle');
 		const handle = `ada-${Date.now().toString(36)}`;
 
@@ -279,27 +272,6 @@ test.describe('The public name', () => {
 		expect(await send(page, form.locator('button[type="submit"]').first())).toBe('saved');
 
 		expect((await site.user(email, ['diluxone_users_handle'])).fields.diluxone_users_handle).toBe(handle);
-
-		// Out, and back in by typing the public name where the address goes:
-		// the link still goes to the address, which is the only place it can.
-		await page.context().clearCookies();
-		await page.goto(pages.login.url);
-
-		// A box that only takes an address cannot be given a name: the
-		// browser refuses to send it before the server is ever asked.
-		await expect(
-			page.locator('input[name="diluxone_users_email"]'),
-			'the sign-in box is type="email", so the browser refuses a public name'
-		).not.toHaveAttribute('type', 'email');
-
-		const asked = Date.now() / 1000;
-
-		await askForLink(page, pages.login.url, handle);
-
-		// The link for this request, to the address behind the name.
-		const mail = await waitForMail(site, email, { after: asked - 1, subject: /./ });
-		expect(mail.to).toContain(email);
-		expect(mail.body).toContain('diluxone_users_token');
 	});
 
 	test('a reserved name is refused and nothing is written', async ({ page, site, pages }) => {

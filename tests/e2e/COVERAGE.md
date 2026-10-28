@@ -39,7 +39,7 @@ everybody, with the code by e-mail, and skips it for nobody.
 | The three ways in as tabs or stacked, order, the tab that opens, no JS; nothing about passkeys on the page | `login-ways` |
 | A clicked button looks as it does at rest once the pointer has moved away, on a theme that paints `button:focus` like `button:hover` (Astra) | `repro/issue-102` |
 | Split-screen layout, messages rewritten in the dashboard | `login-screen` |
-| Sign in with the public name (handle login) | `account-area` › The public name |
+| The sign-in box takes an address only, public names on or off: a name typed mails nobody (#228) | `admin-access-ways` › the box takes an address only… |
 | Reset: `wp`, `site` (whole chain, reused key), `link` | `password-reset` |
 | Second step by e-mail: code, reuse, five tries, resend wait, timeout, link skip | `two-factor` › by e-mail |
 | Backup codes: handed over when the step is turned on, one gets in once, another still works | `two-factor` › Backup codes |
