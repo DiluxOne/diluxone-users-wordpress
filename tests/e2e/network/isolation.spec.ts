@@ -2,7 +2,8 @@ import { Page } from '@playwright/test';
 import { test, expect, whoOn, opensDashboard, signInFrom, toTheHub, SiteHandle } from './support';
 import { freshEmail } from '../support/api';
 import { wp } from '../support/cli';
-import { accountSection, adminUrl, challengeScreen, emailField, loginWay, navigated, openPanel, passwordForm, savePanel, signInWithPassword } from '../support/ui';
+import { reveal } from '../support/my-account';
+import { accountSection, adminUrl, challengeScreen, emailField, loginWay, navigated, passwordForm, savePanel, signInWithPassword } from '../support/ui';
 import { NETWORK_ADMIN_STATE } from '../../../playwright.network.config';
 
 /**
@@ -151,7 +152,7 @@ test.describe('A photo belongs to the person, and the person to the network', ()
 	async function photoForm(page: Page) {
 		const form = page.locator('form.diluxone-users-avatar__form');
 
-		await openPanel(page, 'form.diluxone-users-avatar__form');
+		await reveal(page, 'form.diluxone-users-avatar__form');
 
 		return form;
 	}
