@@ -68,7 +68,7 @@ function diluxone_users_2fa_email_send( int $user_id ): bool {
 		$code
 	);
 
-	return wp_mail( $user->user_email, (string) $mail['subject'], (string) $mail['body'] );
+	return diluxone_users_mail_sent( wp_mail( $user->user_email, (string) $mail['subject'], (string) $mail['body'] ) );
 }
 
 /** Is the code they typed the one that was sent, and is it still alive? */

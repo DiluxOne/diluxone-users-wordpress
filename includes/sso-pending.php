@@ -213,7 +213,7 @@ function diluxone_users_sso_pending_send( string $handle, array $record, string 
 	 */
 	$message = apply_filters( 'diluxone_users_sso_confirm_email', diluxone_users_mail_sso_confirm( $email, $url, $network ), $email, $url, $network );
 
-	wp_mail( $email, (string) $message['subject'], (string) $message['body'] );
+	diluxone_users_mail_sent( wp_mail( $email, (string) $message['subject'], (string) $message['body'] ) );
 
 	return true;
 }
