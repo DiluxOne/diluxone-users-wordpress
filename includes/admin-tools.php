@@ -539,16 +539,11 @@ function diluxone_users_mail_test(): void {
 		__( 'If this arrived, the site can send the sign-in links, the second-step codes and the data requests. If it did not, none of those work either.', 'diluxone-users' )
 	);
 
-	// wp_mail() only reports whether it handed the message to the server; the
-	// hook in mail.php recorded what really happened when the plugin is
-	// watching the site's mail. It is stored here in either case.
-	if ( ! $ok && 'fail' !== diluxone_users_mail_status()['state'] ) {
-		diluxone_users_mail_failed( new WP_Error( 'diluxone_users_mail', __( 'wp_mail() returned false and said nothing else.', 'diluxone-users' ) ) );
-	}
+	// The test is recorded whether or not the plugin watches the site's mail:
+	// somebody asked for the answer.
+	diluxone_users_mail_record( $ok );
 
 	if ( $ok ) {
-		diluxone_users_mail_ok();
-
 		diluxone_users_tool_done(
 			sprintf(
 				/* translators: %s: e-mail address */

@@ -81,6 +81,57 @@ class CoverSignInNoticesTest extends IntegrationTestCase {
 		$this->assertSame( '', diluxone_users_mail_status()['error'] );
 	}
 
+	/*
+	 * A mailer that answers `pre_wp_mail` itself, or replaces wp_mail(), fires
+	 * neither hook: the plugin's own sends record what wp_mail() returned (#207).
+	 */
+
+	public function test_a_send_of_the_plugin_s_own_refreshes_a_record_hours_old(): void {
+		diluxone_users_update_option( 'diluxone_users_login_method', 'both' );
+		diluxone_users_update_option( 'diluxone_users_mail_last', array( 'ok' => 1, 'time' => time() - 7 * HOUR_IN_SECONDS, 'error' => '' ), false );
+
+		$this->assertTrue( diluxone_users_mail_sent( true ) );
+
+		$status = diluxone_users_mail_status();
+		$this->assertSame( 'ok', $status['state'] );
+		$this->assertGreaterThanOrEqual( time() - 5, $status['time'] );
+	}
+
+	public function test_a_send_of_the_plugin_s_own_that_failed_is_recorded_and_keeps_the_mailer_s_words(): void {
+		diluxone_users_update_option( 'diluxone_users_login_method', 'both' );
+
+		// Nothing heard from the mailer: the reason says so.
+		$this->assertFalse( diluxone_users_mail_sent( false ) );
+		$this->assertSame( 'fail', diluxone_users_mail_status()['state'] );
+		$this->assertSame( 'wp_mail() returned false and said nothing else.', diluxone_users_mail_status()['error'] );
+
+		// The mailer's words, heard first, are kept.
+		diluxone_users_mail_heard_failed( new \WP_Error( 'wp_mail_failed', 'SMTP connect() failed.' ) );
+		diluxone_users_mail_sent( false );
+		$this->assertSame( 'SMTP connect() failed.', diluxone_users_mail_status()['error'] );
+
+		// They belong to that send only: the next silent failure says so.
+		diluxone_users_mail_sent( false );
+		$this->assertSame( 'wp_mail() returned false and said nothing else.', diluxone_users_mail_status()['error'] );
+	}
+
+	public function test_a_send_of_the_plugin_s_own_writes_nothing_while_nothing_is_watched(): void {
+		diluxone_users_update_option( 'diluxone_users_login_method', 'password' );
+		diluxone_users_update_option( 'diluxone_users_2fa_mode', 'off' );
+		diluxone_users_update_option(
+			'diluxone_users_notice_rules',
+			array(
+				'diluxone_users_notify_login'    => 'never',
+				'diluxone_users_notify_security' => 'never',
+			)
+		);
+		$this->assertFalse( diluxone_users_mail_watched() );
+
+		$this->assertTrue( diluxone_users_mail_sent( true ) );
+		$this->assertFalse( diluxone_users_mail_sent( false ) );
+		$this->assertFalse( diluxone_users_raw_get( 'diluxone_users_mail_last', false ) );
+	}
+
 	/* ── Notices ─────────────────────────────────────────────────────── */
 
 	public function test_a_notice_nobody_registered_is_not_sent(): void {

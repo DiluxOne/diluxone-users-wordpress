@@ -681,7 +681,7 @@ function diluxone_users_login_mail( string $email, string $url ): bool {
 	 */
 	$message = apply_filters( 'diluxone_users_login_email', diluxone_users_mail_login_link( $email, $url ), $email, $url );
 
-	return wp_mail( $email, $message['subject'], $message['body'] );
+	return diluxone_users_mail_sent( wp_mail( $email, $message['subject'], $message['body'] ) );
 }
 
 /**

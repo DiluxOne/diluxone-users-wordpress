@@ -239,7 +239,7 @@ function diluxone_users_notify( int $user_id, string $key, string $subject, stri
 		$key
 	);
 
-	return wp_mail( $user->user_email, (string) $mail['subject'], (string) $mail['body'] );
+	return diluxone_users_mail_sent( wp_mail( $user->user_email, (string) $mail['subject'], (string) $mail['body'] ) );
 }
 
 /** The site name, without the HTML entities WordPress stores. */

@@ -13,7 +13,11 @@
  * that made this screen say "ready" while nothing was going out.
  *
  * So nothing is guessed: what really happened the last time WordPress tried
- * to send something is recorded, and a button is offered to test it.
+ * to send something is recorded, and a button is offered to test it. It is
+ * heard twice: from WordPress's own hooks, and from what wp_mail() returned
+ * to the plugin's own sends. A mailer that answers `pre_wp_mail` itself, or
+ * replaces wp_mail(), fires neither hook, and the record would otherwise keep
+ * saying the last message went hours ago.
  *
  * @package DiluxOneUsers
  */
@@ -96,9 +100,60 @@ function diluxone_users_mail_failed( $error ): void {
 function diluxone_users_mail_heard_failed( $error ): void {
 	if ( $error instanceof WP_Error && diluxone_users_mail_watched() ) {
 		diluxone_users_mail_failed( $error );
+		diluxone_users_mail_reason_heard( true );
 	}
 }
 add_action( 'wp_mail_failed', 'diluxone_users_mail_heard_failed' );
+
+/**
+ * Whether the mailer's own words for a failure were heard since the last
+ * send the plugin recorded, in this request.
+ *
+ * @param bool|null $set True or false to set it, null to read it.
+ */
+function diluxone_users_mail_reason_heard( ?bool $set = null ): bool {
+	static $heard = false;
+
+	if ( null !== $set ) {
+		$heard = $set;
+	}
+
+	return $heard;
+}
+
+/**
+ * Records what wp_mail() returned to one of the plugin's own sends.
+ *
+ * Whatever the mailer: true means it took the message, false that it did not.
+ * A failure keeps the mailer's own words when wp_mail_failed gave them; when
+ * it did not, a reason that says so is written in their place.
+ *
+ * @param bool $ok What wp_mail() returned.
+ */
+function diluxone_users_mail_record( bool $ok ): void {
+	if ( $ok ) {
+		diluxone_users_mail_ok();
+	} elseif ( ! diluxone_users_mail_reason_heard() ) {
+		diluxone_users_mail_failed( new WP_Error( 'diluxone_users_mail', __( 'wp_mail() returned false and said nothing else.', 'diluxone-users' ) ) );
+	}
+
+	diluxone_users_mail_reason_heard( false );
+}
+
+/**
+ * One of the plugin's own sends is done: it is recorded while the plugin
+ * watches the site's mail, like the sends heard from WordPress.
+ *
+ * @param bool $ok What wp_mail() returned.
+ * @return bool The same, for the caller to return.
+ */
+function diluxone_users_mail_sent( bool $ok ): bool {
+	if ( diluxone_users_mail_watched() ) {
+		diluxone_users_mail_record( $ok );
+	}
+
+	return $ok;
+}
 
 /**
  * What is known about outgoing mail.

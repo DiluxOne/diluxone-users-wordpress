@@ -1,62 +1,52 @@
 import { test, expect } from '../support/fixtures';
-import { signInMember } from '../support/admin-content';
-import { accountSection } from '../support/ui';
+import { freshEmail, waitForMail } from '../support/api';
+import { adminUrl, askForLink } from '../support/ui';
+import { numbersIn } from '../support/admin-access';
+import { ADMIN_STATE } from '../../../playwright.config';
 
 /**
- * Issue #207, item 1 (C1): on the account area's "Your details" tab, the
- * "Your photo" box has a smaller title than the other boxes and folds with an
- * arrow, while the boxes of the field blocks and "Your public name" have the
- * larger heading and do not fold. The reporter expects the four box headings
- * to have the same font size, and none to fold unless all do.
+ * Issue #207, item 6 (C6): Overview's mail line says "Last message sent 7
+ * hours ago" while a sign-in link was sent a moment ago through a mailer that
+ * does not fire `wp_mail_succeeded` (the e2e mailer keeps the message and says
+ * nothing, like the SMTP plugin of the report). The reporter expects the line
+ * not to claim that the last message was sent before that one.
  */
 
-const FIELDS = [
-	{ key: 'first_name', label: 'First name', type: 'text', required: 0, active: 1, group: 'main', edit: 'always' },
-	{ key: 'last_name', label: 'Last name', type: 'text', required: 0, active: 1, group: 'main', edit: 'always' },
-	{ key: 'e2e_extra_207', label: 'Nickname', type: 'text', required: 0, active: 1, group: 'extra', edit: 'always' },
-];
+test.use({ storageState: ADMIN_STATE });
 
-test.describe('Issue 207: the boxes of "Your details"', () => {
-	test('the four boxes share one heading size and none folds unless all do', async ({ page, site, pages, options }) => {
+const HOURS_AGO = 7;
+
+test.describe('Issue 207: Overview › Mail delivery', () => {
+	test('after a link was sent through a mailer that says nothing, the line does not claim the last message was hours ago', async ({
+		page,
+		guest,
+		site,
+		pages,
+		options,
+	}) => {
 		await options.set({
+			WPLANG: '',
+			diluxone_users_login_method: 'both',
+			diluxone_users_login_page: pages.login.id,
 			diluxone_users_2fa_mode: 'off',
-			diluxone_users_fields: FIELDS,
-			diluxone_users_avatar_upload: 1,
-			diluxone_users_handle_enabled: 1,
+			diluxone_e2e_mail_outcome: '',
+			diluxone_users_mail_last: { ok: 1, time: Math.floor(Date.now() / 1000) - HOURS_AGO * 3600, error: '' },
 		});
 
-		await signInMember(page, site, pages.login.url, 'repro-207');
+		const email = freshEmail('repro-207');
 
-		await page.goto(accountSection(pages.account.url, 'details'));
+		await site.makeUser({ email, password: 'e2e-Repro-207!' });
+		await askForLink(guest, pages.login.url, email);
+		await waitForMail(site, email);
 
-		const boxes = [
-			page.locator('.diluxone-users-avatar').first(),
-			page.locator('.diluxone-users-handle').first(),
-			page.locator('.diluxone-users-fields__block--main').first(),
-			page.locator('.diluxone-users-fields__block--extra').first(),
-		];
-		const titles = [
-			page.locator('.diluxone-users-avatar .diluxone-users-panel__title').first(),
-			page.locator('.diluxone-users-handle > h3').first(),
-			page.locator('.diluxone-users-fields__block--main > h3').first(),
-			page.locator('.diluxone-users-fields__block--extra > h3').first(),
-		];
+		await page.goto(adminUrl('diluxone-users', 'doors'));
 
-		for (const title of titles) {
-			await expect(title, 'each box draws its heading').toBeVisible();
-		}
+		// Sign-in page, method, then the mail: the third row of the summary.
+		const detail = page.locator('table.diluxone-users-summary tbody tr').nth(2).locator('.diluxone-users-summary__detail');
+		const text = await detail.innerText();
 
-		const sizes: string[] = [];
-		for (const title of titles) {
-			sizes.push(await title.evaluate((el) => getComputedStyle(el).fontSize));
-		}
+		const claimsStaleLastMessage = /last message/i.test(text) && numbersIn(text).includes(HOURS_AGO);
 
-		const folds: boolean[] = [];
-		for (const box of boxes) {
-			folds.push(await box.evaluate((el) => el.tagName === 'DETAILS'));
-		}
-
-		expect(new Set(sizes).size, `the four headings have the same font size (photo, public name, main, extra: ${sizes.join(', ')})`).toBe(1);
-		expect(new Set(folds).size, `no box folds unless all do (photo, public name, main, extra: ${folds.join(', ')})`).toBe(1);
+		expect(claimsStaleLastMessage, `the mail line must not say the last message went ${HOURS_AGO} hours ago (it says: "${text}")`).toBe(false);
 	});
 });
