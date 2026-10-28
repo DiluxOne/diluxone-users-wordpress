@@ -118,6 +118,13 @@ class CoverSignInNoticesTest extends IntegrationTestCase {
 	public function test_a_send_of_the_plugin_s_own_writes_nothing_while_nothing_is_watched(): void {
 		diluxone_users_update_option( 'diluxone_users_login_method', 'password' );
 		diluxone_users_update_option( 'diluxone_users_2fa_mode', 'off' );
+		diluxone_users_update_option(
+			'diluxone_users_notice_rules',
+			array(
+				'diluxone_users_notify_login'    => 'never',
+				'diluxone_users_notify_security' => 'never',
+			)
+		);
 		$this->assertFalse( diluxone_users_mail_watched() );
 
 		$this->assertTrue( diluxone_users_mail_sent( true ) );
