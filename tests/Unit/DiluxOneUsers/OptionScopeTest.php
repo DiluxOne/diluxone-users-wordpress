@@ -106,6 +106,7 @@ class OptionScopeTest extends TestCase {
 			'diluxone_users_sso',
 			'diluxone_users_sso_link_by_email',
 			'diluxone_users_fields',
+			'diluxone_users_field_block_titles',
 			'diluxone_users_uninstall_wipe',
 		) as $key ) {
 			$this->assertSame( 'network', diluxone_users_option_scope( $key ), $key );

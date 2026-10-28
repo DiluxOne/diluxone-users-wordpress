@@ -26,6 +26,7 @@ class IntegrationTestCase extends TestCase {
 	 */
 	protected static array $options = array(
 		'diluxone_users_fields',
+		'diluxone_users_field_block_titles',
 		'diluxone_users_account_sections',
 		'diluxone_users_sso',
 		'diluxone_users_mail_last',

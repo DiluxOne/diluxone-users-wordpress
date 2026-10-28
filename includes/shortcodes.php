@@ -168,15 +168,13 @@ function diluxone_users_fields_form( $atts = array() ): void {
  * Keyed by group, in the order diluxone_users_groups() gives, each with the
  * title the person reads and the fields it holds. A block with no active
  * field is left out, so it draws no empty box. The titles are written for
- * the person, not the administrator's labels of the blocks.
+ * the person, not the administrator's labels of the blocks: the site's own
+ * when it typed them, the plugin's otherwise (diluxone_users_field_block_titles()).
  *
  * @return array<string, array{title: string, fields: array<int, array<string, mixed>>}>
  */
 function diluxone_users_field_blocks(): array {
-	$titles = array(
-		'main'  => __( 'About you', 'diluxone-users' ),
-		'extra' => __( 'A bit more about you', 'diluxone-users' ),
-	);
+	$titles = diluxone_users_field_block_titles();
 	$blocks = array();
 
 	foreach ( array_keys( diluxone_users_groups() ) as $group ) {

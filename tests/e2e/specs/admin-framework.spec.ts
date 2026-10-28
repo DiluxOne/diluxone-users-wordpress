@@ -1,7 +1,7 @@
 import type { Page } from '@playwright/test';
 import { test, expect, expectSignedIn } from '../support/fixtures';
 import { freshEmail } from '../support/api';
-import { adminSaved, adminUrl, answeringDialog, fillCredentials, navigated, saveButton, savePanel } from '../support/ui';
+import { adminSaved, adminUrl, answeringDialog, fillCredentials, navigated, saveButton, savePanel, setChoice } from '../support/ui';
 import { adminTabs } from '../support/screens';
 import { MOCK_SSO, accessTab, control, registerTab } from '../support/admin-access';
 import { ADMIN_STATE } from '../../../playwright.config';
@@ -222,7 +222,7 @@ test.describe('What hangs off an answer', () => {
 
 		await expect(roles).toBeHidden();
 
-		await picker.locator('[name="diluxone_users_wp_profile_scope"][value="some"]').check({ force: true });
+		await setChoice(picker.locator('[name="diluxone_users_wp_profile_scope"][value="some"]'));
 		await expect(roles).toBeVisible();
 
 		await roles.locator('input[name="diluxone_users_wp_profile_roles[]"][value="subscriber"]').check();
@@ -235,7 +235,7 @@ test.describe('What hangs off an answer', () => {
 		await expect(roles).toBeVisible();
 		await expect(roles.locator('input[value="subscriber"]')).toBeChecked();
 
-		await picker.locator('[name="diluxone_users_wp_profile_scope"][value="all"]').check({ force: true });
+		await setChoice(picker.locator('[name="diluxone_users_wp_profile_scope"][value="all"]'));
 		await expect(roles).toBeHidden();
 		await savePanel(page);
 

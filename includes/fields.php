@@ -251,6 +251,38 @@ function diluxone_users_groups(): array {
 }
 
 /**
+ * What each block's box is called on the "Your details" tab.
+ *
+ * The site's own words when it typed any (User fields › Fields), the
+ * plugin's translated ones for a block it left empty. Stored without a
+ * default, like the fields themselves, so the generic save never touches it.
+ *
+ * @return array<string, string> Group => title, for every group of diluxone_users_groups().
+ */
+function diluxone_users_field_block_titles(): array {
+	$stored = diluxone_users_raw_get( 'diluxone_users_field_block_titles', array() );
+	$stored = is_array( $stored ) ? $stored : array();
+	$titles = array();
+
+	foreach ( array_keys( diluxone_users_groups() ) as $group ) {
+		$title = $stored[ $group ] ?? '';
+
+		$titles[ $group ] = is_string( $title ) && '' !== trim( $title ) ? $title : diluxone_users_field_block_title_default( $group );
+	}
+
+	return $titles;
+}
+
+/**
+ * The plugin's own title of a block's box, the one it keeps while the site typed none.
+ *
+ * @param string $group 'main' or 'extra'.
+ */
+function diluxone_users_field_block_title_default( string $group ): string {
+	return 'main' === $group ? __( 'About you', 'diluxone-users' ) : __( 'A bit more about you', 'diluxone-users' );
+}
+
+/**
  * May a field be called this?
  *
  * A field's key is not a label: it is the user meta key the account form

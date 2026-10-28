@@ -408,3 +408,29 @@ export async function savePanel(page: Page): Promise<void> {
 	// runner found it). The button is the sign the script has had its say.
 	await expect(page.locator('.wrap .notice-success .notice-dismiss')).toBeVisible();
 }
+
+/**
+ * Ticks or unticks a radio or a tick box on a settings tab, once it has
+ * settled, and requires it to have taken.
+ *
+ * The tabs' script redraws as answers change: an answer's own choices appear
+ * under it and push down everything below, a block waits disabled and
+ * unticked until what it depends on is on. A click with `force` skips the
+ * checks that the control is enabled and still, so it can land where the box
+ * was a moment ago and leave it as it was — "Clicking the checkbox did not
+ * change its state", now and then. Here the control has to be enabled, and
+ * the click goes through Playwright's own wait for it to be visible and
+ * stable. An input the tab draws invisibly inside its card (a swatch) is
+ * reached through the label that holds it, which gets the same checks.
+ */
+export async function setChoice(control: Locator, on = true): Promise<void> {
+	await expect(control).toBeEnabled();
+
+	if (await control.isVisible()) {
+		await control.setChecked(on);
+	} else if ((await control.isChecked()) !== on) {
+		await control.locator('xpath=ancestor::label[1]').click();
+	}
+
+	await expect(control).toBeChecked({ checked: on });
+}

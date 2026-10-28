@@ -1,7 +1,7 @@
 import type { Page } from '@playwright/test';
 import { test, expect, expectSignedIn } from '../support/fixtures';
 import { freshEmail, linkIn, waitForMail } from '../support/api';
-import { accountSection, registerScreen, resetScreen, savePanel, signInWithPassword } from '../support/ui';
+import { accountSection, registerScreen, resetScreen, savePanel, setChoice, signInWithPassword } from '../support/ui';
 import { accessTab, control, expectPill, notNow, rail, summaryRow, waitingBlocks, waits } from '../support/admin-access';
 import { ADMIN_STATE } from '../../../playwright.config';
 
@@ -40,7 +40,7 @@ test.describe('Access › The sign-in page', () => {
 		try {
 			await page.goto(accessTab('page'));
 			await page.locator('#diluxone_users_login_page').selectOption(String(other.id));
-			await control(page, 'diluxone_users_wp_screens', 'mine').check({ force: true });
+			await setChoice(control(page, 'diluxone_users_wp_screens', 'mine'));
 			await savePanel(page);
 
 			expect(Number((await site.getOptions(['diluxone_users_login_page'])).diluxone_users_login_page)).toBe(other.id);
@@ -88,7 +88,7 @@ test.describe('Access › The sign-in page', () => {
 		await options.set({ diluxone_users_login_method: 'both', diluxone_users_wp_screens: 'mine' });
 
 		await page.goto(accessTab('page'));
-		await control(page, 'diluxone_users_wp_screens', 'auto').check({ force: true });
+		await setChoice(control(page, 'diluxone_users_wp_screens', 'auto'));
 		await savePanel(page);
 
 		expect((await site.getOptions(['diluxone_users_wp_screens'])).diluxone_users_wp_screens).toBe('auto');
@@ -131,7 +131,7 @@ test.describe('Access › The sign-in page', () => {
 			await options.set({ diluxone_users_login_method: 'both', diluxone_users_lost_password: row.answer === 'wp' ? 'site' : 'wp' });
 
 			await page.goto(accessTab('page'));
-			await control(page, 'diluxone_users_lost_password', row.answer).check({ force: true });
+			await setChoice(control(page, 'diluxone_users_lost_password', row.answer));
 			await savePanel(page);
 
 			expect((await site.getOptions(['diluxone_users_lost_password'])).diluxone_users_lost_password).toBe(row.answer);
@@ -160,7 +160,7 @@ test.describe('Access › The sign-in page', () => {
 		await expect(guest.locator('a[href*="action=lostpassword"]'), 'before the save, the way to a reset').toBeVisible();
 
 		await page.goto(accessTab('page'));
-		await control(page, 'diluxone_users_lost_password', 'link').check({ force: true });
+		await setChoice(control(page, 'diluxone_users_lost_password', 'link'));
 		await savePanel(page);
 
 		expect((await site.getOptions(['diluxone_users_lost_password'])).diluxone_users_lost_password).toBe('link');
@@ -194,7 +194,7 @@ test.describe('Access › The sign-in page', () => {
 		await page.locator('#diluxone_users_login_page').selectOption(String(pages.login.id));
 		await expect(waits(page)).toHaveCount(0);
 		await expect(control(page, 'diluxone_users_wp_screens', 'mine')).toBeEnabled();
-		await control(page, 'diluxone_users_wp_screens', 'mine').check({ force: true });
+		await setChoice(control(page, 'diluxone_users_wp_screens', 'mine'));
 		await page.locator('#diluxone_users_login_page').selectOption('0');
 		await expect(waits(page)).toHaveCount(2);
 		await expect(control(page, 'diluxone_users_wp_screens', 'mine')).toBeDisabled();
@@ -367,7 +367,7 @@ for (const [shape, label] of [
 			await expect(page.locator('#diluxone_users_login_page option[value="0"]')).toHaveText('— None: wp-login.php does the job —');
 
 			await page.locator('#diluxone_users_login_page').selectOption(String(pages.login.id));
-			await control(page, 'diluxone_users_wp_screens', 'mine').check({ force: true });
+			await setChoice(control(page, 'diluxone_users_wp_screens', 'mine'));
 			await savePanel(page);
 
 			const stored = await site.getOptions(['diluxone_users_login_page', 'diluxone_users_login_slug', 'diluxone_users_login_slug_old']);

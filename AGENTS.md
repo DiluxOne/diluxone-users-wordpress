@@ -79,6 +79,7 @@ ruleset) and this repository adds its own checks (`plugin-checks.yml`).
 ## Before you push
 
 ```bash
+make pre-pr              # everything the pull request and the merge queue run, from a fresh clone (long)
 make check               # PHPCS, PHPStan level 8, Psalm taint, unit tests
 make test-unit-min       # the unit suite on PHP 8.0, the minimum
 make env-multisite       # after make env: the tests site as a network
@@ -119,8 +120,10 @@ a change:
   its three markers (`Version:` and `DILUXONE_USERS_VERSION` in
   `diluxone-users.php`, `Stable tag:` in `readme.txt`); today that is `1.0.0`.
 - **Write the changelog in the same pull request.** A change a user notices
-  adds one bullet under the newest `= X.Y.Z =` entry of `readme.txt`, written
-  for users. That entry starts with the line `Unreleased.`, the maintainer's
+  adds its bullet, written for users, in a file of its own,
+  `changelog.d/<issue>.md`; `readme.txt`'s changelog is never edited by hand
+  (DiluxOne/.github#452), and the release writes the fragments into it. The
+  newest `= X.Y.Z =` entry of `readme.txt` starts with the line `Unreleased.`, the maintainer's
   release switch: while it is there the release workflow ends as "Not ready"
   and asks nobody for anything. Today it holds `1.0.0`. Never remove it as
   part of another change.

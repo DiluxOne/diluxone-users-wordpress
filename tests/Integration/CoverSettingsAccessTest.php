@@ -438,7 +438,6 @@ class CoverSettingsAccessTest extends IntegrationTestCase {
 
 	public function test_the_ways_save_writes_what_the_form_sent_and_nothing_it_did_not(): void {
 		$this->the_admin();
-		diluxone_users_update_option( 'diluxone_users_handle_login', 1 );
 		diluxone_users_update_option( 'diluxone_users_sso_login', 1 );
 		// What Users+ Pro stores when passkeys are a way in, with Pro off.
 		update_option( 'diluxone_users_passkey_enabled', 1 );
@@ -456,7 +455,6 @@ class CoverSettingsAccessTest extends IntegrationTestCase {
 		$this->assertSame( 'password', diluxone_users_option( 'diluxone_users_login_method' ) );
 		$this->assertSame( 30, (int) diluxone_users_raw_get( 'diluxone_users_login_expiry' ) );
 		$this->assertSame( 120, (int) diluxone_users_raw_get( 'diluxone_users_login_throttle' ) );
-		$this->assertSame( 0, (int) diluxone_users_raw_get( 'diluxone_users_handle_login' ), 'a box left unticked is off' );
 
 		// On a network these two are the network's, drawn here and switched
 		// in Network Admin: the hub's form leaves them as they stand.

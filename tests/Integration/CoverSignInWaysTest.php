@@ -210,23 +210,17 @@ class CoverSignInWaysTest extends IntegrationTestCase {
 
 	/* ── The e-mail box ──────────────────────────────────────────────── */
 
-	public function test_the_email_box_takes_a_public_name_when_the_site_allows_it(): void {
-		ob_start();
-		diluxone_users_way_email();
-		$plain = (string) ob_get_clean();
-
-		$this->assertStringContainsString( '<input type="email" id="diluxone-users-email"', $plain );
-
+	/** #228: the box takes an e-mail address and nothing else, public names on or off. */
+	public function test_the_email_box_takes_an_address_only(): void {
 		diluxone_users_update_option( 'diluxone_users_handle_enabled', 1 );
-		diluxone_users_update_option( 'diluxone_users_handle_login', 1 );
+		update_option( 'diluxone_users_handle_login', 1 );
 
 		ob_start();
 		diluxone_users_way_email();
-		$named = (string) ob_get_clean();
+		$html = (string) ob_get_clean();
 
-		$this->assertStringContainsString( 'Email address or public name', $named );
-		$this->assertStringContainsString( '<input type="text" inputmode="email"', $named );
-		$this->assertStringNotContainsString( 'type="email"', $named );
+		$this->assertStringContainsString( '<input type="email" id="diluxone-users-email"', $html );
+		$this->assertStringNotContainsString( 'public name', $html );
 	}
 
 	/* ── The tab script ──────────────────────────────────────────────── */

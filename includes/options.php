@@ -304,7 +304,6 @@ function diluxone_users_option_defaults_own(): array {
 		'diluxone_users_handle_enabled'        => 0,
 		// Besides the e-mail, the sign-in link can be requested by typing the
 		// public name. The link still goes to the account's e-mail address.
-		'diluxone_users_handle_login'          => 0,
 		'diluxone_users_handle_min'            => 3,
 		'diluxone_users_handle_max'            => 30,
 		// 'strict' = a-z 0-9 . _ - ; 'unicode' accepts accents and ñ.

@@ -498,6 +498,20 @@ function diluxone_users_create_account( string $email ): int {
 	// it is another matter.
 	$visible = diluxone_users_name_from_email( $email );
 
+	// The profile address must not answer to another account's: not its
+	// nicename, which WordPress already checks, and not its login either,
+	// which WordPress does not, and which an account made before the plugin
+	// can have as a plain name.
+	$base     = sanitize_title( $visible );
+	$nicename = $base;
+
+	$n = 2;
+
+	while ( '' !== $nicename && diluxone_users_handle_taken( $nicename, 0 ) ) {
+		$nicename = $base . '-' . $n;
+		++$n;
+	}
+
 	// The password is generated at random and nobody knows it, not even the
 	// person registering: WordPress needs the field, the site does not use it.
 	$id = wp_insert_user(
@@ -506,8 +520,7 @@ function diluxone_users_create_account( string $email ): int {
 			'user_email'    => $email,
 			'user_pass'     => wp_generate_password( 64, true, true ),
 			'display_name'  => $visible,
-			// wp_insert_user() adds a suffix if it is already taken.
-			'user_nicename' => sanitize_title( $visible ),
+			'user_nicename' => $nicename,
 			'role'          => diluxone_users_register_role(),
 		)
 	);
@@ -751,35 +764,24 @@ function diluxone_users_login_request(): void {
 		exit;
 	}
 
-	// What was typed can be an e-mail or, if the site allows it, somebody's
-	// public name. In the second case it goes on with that account's e-mail:
-	// the link never goes out to an address typed on the spot.
-	$typed  = sanitize_text_field( wp_unslash( $_POST['diluxone_users_email'] ?? '' ) );
-	$handle = ! is_email( $typed ) && diluxone_users_handle_login_on();
-	$email  = sanitize_email( diluxone_users_handle_login_email( $typed ) );
+	// An e-mail address and nothing else: WordPress signs in by its username,
+	// which here is the address, and a second name to type would only be a
+	// second way to land on somebody else's account.
+	$typed = sanitize_text_field( wp_unslash( $_POST['diluxone_users_email'] ?? '' ) );
+	$email = sanitize_email( $typed );
 
-	// Everything that follows ends on the same screen, account or no account,
-	// and that screen shows what the person typed — never the address a
-	// public name resolved to, which would hand anyone who knows a name the
-	// e-mail behind it. Nor does the address travel in the URL, where access
-	// logs, caches and analytics would keep it: it goes in a short cookie
-	// only this browser reads.
+	// Everything that follows ends on the same screen, account or no account.
+	// Nor does the address travel in the URL, where access logs, caches and
+	// analytics would keep it: it goes in a short cookie only this browser
+	// reads.
 	$done = add_query_arg( 'diluxone-users', 'sent', $redirect );
 
 	if ( '' === $email || ! is_email( $email ) ) {
-		// A name nobody has answers as a name somebody has: telling them
-		// apart would say which names exist.
-		if ( $handle && '' !== $typed ) {
-			diluxone_users_sent_to( $typed );
-			wp_safe_redirect( $done );
-			exit;
-		}
-
 		wp_safe_redirect( add_query_arg( 'diluxone-users', 'email', $redirect ) );
 		exit;
 	}
 
-	diluxone_users_sent_to( $typed );
+	diluxone_users_sent_to( $email );
 
 	// The inbox, not its spelling: `Ana@…` and `ana@…` are one inbox to wait for.
 	$throttle = 'diluxone_users_throttle_' . md5( strtolower( $email ) );

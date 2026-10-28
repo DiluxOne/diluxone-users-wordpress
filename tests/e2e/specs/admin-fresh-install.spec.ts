@@ -1,6 +1,6 @@
 import type { Page } from '@playwright/test';
 import { test, expect } from '../support/fixtures';
-import { adminUrl, savePanel, loginWay } from '../support/ui';
+import { adminUrl, loginWay, savePanel, setChoice } from '../support/ui';
 import { control, expectPill, notNow, rail, waitingBlocks, waits } from '../support/admin-access';
 import { stateIn, summaryRow, summaryRowAt } from '../support/admin-ops';
 import { ADMIN_STATE } from '../../../playwright.config';
@@ -115,7 +115,7 @@ test.describe('A fresh install says nothing was chosen', () => {
 		await expect(page.locator('label.du-choice').filter({ has: control(page, 'diluxone_users_sso_login') }).locator('.diluxone-users-state'), 'a box nobody ticked waits on nothing').toHaveCount(0);
 
 		// The one choice the plugin's own default would have made, made by a person.
-		await loginWay(page, 'password').check({ force: true });
+		await setChoice(loginWay(page, 'password'));
 		await savePanel(page);
 
 		const ways = await site.getOptions(['diluxone_users_login_method', 'diluxone_users_sso_login']);
@@ -156,8 +156,8 @@ test.describe('A fresh install says nothing was chosen', () => {
 		await expect(control(page, 'diluxone_users_wp_screens', 'auto')).toBeEnabled();
 		await expect(page.locator('[name="diluxone_users_wp_screens"]:checked'), 'let go, with nothing chosen yet').toHaveCount(0);
 
-		await control(page, 'diluxone_users_wp_screens', 'mine').check({ force: true });
-		await control(page, 'diluxone_users_lost_password', 'site').check({ force: true });
+		await setChoice(control(page, 'diluxone_users_wp_screens', 'mine'));
+		await setChoice(control(page, 'diluxone_users_lost_password', 'site'));
 		await savePanel(page);
 
 		const chosen = await site.getOptions(['diluxone_users_login_page', 'diluxone_users_wp_screens', 'diluxone_users_lost_password']);
@@ -244,12 +244,12 @@ test.describe('A fresh install says nothing was chosen', () => {
 		await expect(page.locator('input[name="diluxone_users_wp_profile_roles[]"]:enabled')).toHaveCount(0);
 		await expect(notNow(page)).toHaveCount(0);
 
-		await control(page, 'diluxone_users_wp_profile', 'redirect').check({ force: true });
+		await setChoice(control(page, 'diluxone_users_wp_profile', 'redirect'));
 		await expect(waits(page)).toHaveCount(0);
 		await expect(control(page, 'diluxone_users_wp_profile_scope', 'all')).toBeEnabled();
 		await expect(page.locator('input[name="diluxone_users_wp_profile_scope"]:checked')).toHaveCount(0);
 
-		await control(page, 'diluxone_users_wp_profile_scope', 'all').check({ force: true });
+		await setChoice(control(page, 'diluxone_users_wp_profile_scope', 'all'));
 		await savePanel(page);
 
 		expect(await site.getOptions(['diluxone_users_wp_profile', 'diluxone_users_wp_profile_scope'])).toEqual({

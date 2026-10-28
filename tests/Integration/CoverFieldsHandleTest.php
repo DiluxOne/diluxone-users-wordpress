@@ -144,10 +144,6 @@ class CoverFieldsHandleTest extends IntegrationTestCase {
 		$this->assertTrue( diluxone_users_handle_taken( $nice, $user ), 'By nicename' );
 		$this->assertFalse( diluxone_users_handle_taken( $nice, $other ), 'Their own' );
 		$this->assertSame( 'diluxone_users_handle_taken', $this->refusal( $nice, $user ) );
-
-		$this->assertSame( $other, diluxone_users_handle_user( $nice ) );
-		$this->assertSame( 0, diluxone_users_handle_user( '!!!' ) );
-		$this->assertSame( 0, diluxone_users_handle_user( 'nobody-has-this-one' ) );
 	}
 
 	/* ── The save and the cooldown ───────────────────────────────────── */
@@ -212,26 +208,6 @@ class CoverFieldsHandleTest extends IntegrationTestCase {
 		update_user_meta( $user, 'diluxone_users_handle_changed', time() );
 		$this->hook( 'diluxone_users_handle_cooldown', '__return_zero', 20 );
 		$this->assertTrue( diluxone_users_handle_can_change( $user ) );
-	}
-
-	/* ── Signing in with it ──────────────────────────────────────────── */
-
-	public function test_the_sign_in_box_resolves_a_name_only_when_both_switches_are_on(): void {
-		$user  = $this->make_user();
-		$email = get_userdata( $user )->user_email;
-		diluxone_users_handle_save( $user, 'ana-lopez' );
-
-		$this->assertSame( 'ana-lopez', diluxone_users_handle_login_email( 'ana-lopez' ), 'Off' );
-
-		diluxone_users_update_option( 'diluxone_users_handle_login', 1 );
-		$this->assertFalse( diluxone_users_handle_login_on(), 'Names themselves are off' );
-		$this->assertSame( 'ana-lopez', diluxone_users_handle_login_email( 'ana-lopez' ) );
-
-		$this->names_on();
-		$this->assertTrue( diluxone_users_handle_login_on() );
-		$this->assertSame( $email, diluxone_users_handle_login_email( 'ana-lopez' ) );
-		$this->assertSame( 'typed@example.test', diluxone_users_handle_login_email( 'typed@example.test' ) );
-		$this->assertSame( 'nobody-here', diluxone_users_handle_login_email( 'nobody-here' ) );
 	}
 
 	/* ── The field and the form ──────────────────────────────────────── */
@@ -436,28 +412,4 @@ class CoverFieldsHandleTest extends IntegrationTestCase {
 		$this->assertSame( trailingslashit( substr( $author, 0, (int) strrpos( $author, '/' ) ) ), diluxone_users_handle_base_url() );
 	}
 
-	/**
-	 * A name two accounts answer to — one's login, the other's public name —
-	 * always goes to the one whose public name it is.
-	 */
-	public function test_a_name_two_accounts_answer_to_goes_to_its_public_owner(): void {
-		global $wpdb;
-
-		$this->names_on();
-		diluxone_users_update_option( 'diluxone_users_handle_login', 1 );
-		$name = 'ana' . strtolower( wp_generate_password( 6, false ) );
-
-		// One account logs in as the name and chose another public name; the
-		// other was given the name as its public name outside the plugin.
-		$by_login = (int) wp_insert_user( array( 'user_login' => $name, 'user_email' => $name . '-login@example.test', 'user_pass' => wp_generate_password() ) );
-		$by_name  = $this->make_user();
-		$wpdb->update( $wpdb->users, array( 'user_nicename' => 'someone-else-' . $name ), array( 'ID' => $by_login ) );
-		$wpdb->update( $wpdb->users, array( 'user_nicename' => $name ), array( 'ID' => $by_name ) );
-		clean_user_cache( $by_login );
-		clean_user_cache( $by_name );
-
-		$this->assertGreaterThan( $by_login, $by_name, 'the one made second, so the first found is not the answer by luck' );
-		$this->assertSame( $by_name, diluxone_users_handle_user( $name ) );
-		$this->assertSame( get_userdata( $by_name )->user_email, diluxone_users_handle_login_email( $name ) );
-	}
 }

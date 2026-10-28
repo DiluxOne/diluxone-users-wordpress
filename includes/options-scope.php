@@ -55,6 +55,8 @@ function diluxone_users_option_scopes(): array {
 		'diluxone_users_2fa_methods'           => 'network',
 		'diluxone_users_2fa_mode'              => 'network',
 		'diluxone_users_fields'                => 'network',
+		// What the account's boxes of fields are called: the fields' own scope.
+		'diluxone_users_field_block_titles'    => 'network',
 		// Asking for them after a sign-in: the fields' own scope.
 		'diluxone_users_ip_header'             => 'network',
 		'diluxone_users_log_days'              => 'network',
@@ -119,7 +121,6 @@ function diluxone_users_option_scopes(): array {
 		'diluxone_users_dark_follows'          => 'hub',
 		'diluxone_users_dark_signal'           => 'hub',
 		'diluxone_users_handle_enabled'        => 'hub',
-		'diluxone_users_handle_login'          => 'hub',
 		'diluxone_users_handle_max'            => 'hub',
 		'diluxone_users_handle_min'            => 'hub',
 		'diluxone_users_handle_reserved'       => 'hub',

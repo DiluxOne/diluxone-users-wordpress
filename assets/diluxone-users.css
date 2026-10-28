@@ -134,7 +134,14 @@
 	background: var(--diluxone-users-surface);
 	border: 1px solid var(--diluxone-users-border);
 	border-radius: var(--diluxone-users-radius);
+	color: var(--diluxone-users-text);
 }
+/* The box paints its own ground, so it sets the colour of the text on it too:
+   a theme that colours its headings directly (`html.is-dark h3`, at 0,1,2)
+   beats plain inheritance and would put a white heading on the box's white.
+   This outranks such a rule without !important; text with a colour of its
+   own on purpose is raised to match (the danger box's heading, below). */
+.diluxone-users-account .diluxone-users-panel :is(h1, h2, h3, h4, h5, h6, legend, label) { color: inherit; }
 .diluxone-users-panel > :first-child { margin-top: 0; }
 .diluxone-users-panel > :last-child { margin-bottom: 0; }
 
@@ -275,7 +282,8 @@ details.diluxone-users-panel[open] > .diluxone-users-panel__head .diluxone-users
    there every box takes the card's width, the address as the password. */
 .diluxone-users-panel .diluxone-users-form input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]),
 .diluxone-users-panel .diluxone-users-form select,
-.diluxone-users-panel .diluxone-users-form textarea { max-width: 34rem; }
+.diluxone-users-panel .diluxone-users-form textarea,
+.diluxone-users-panel .diluxone-users-form .diluxone-users-phone { max-width: 34rem; }
 .diluxone-users-form label { font-weight: 600; }
 /* The "Your details" tab: one form holding a box per block of fields. The
    boxes keep the panel's own spacing between them, and each lays its fields
@@ -286,7 +294,8 @@ details.diluxone-users-panel[open] > .diluxone-users-panel__head .diluxone-users
 .diluxone-users-fields__block > .diluxone-users-panel__save { margin-bottom: 0; }
 .diluxone-users-fields__block input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]),
 .diluxone-users-fields__block select,
-.diluxone-users-fields__block textarea { max-width: 34rem; }
+.diluxone-users-fields__block textarea,
+.diluxone-users-fields__block .diluxone-users-phone { max-width: 34rem; }
 /* A button inside a column form stretches to the full width and looks like a
    banner. It takes the room it says, and starts on the left. */
 .diluxone-users-form > .diluxone-users-button,
@@ -1367,7 +1376,8 @@ body.diluxone-users-door {
 /* The block that deletes the account is set apart from the one that
    downloads: they are two very different things and cannot look alike. */
 .diluxone-users-panel--danger { border-color: color-mix( in srgb, var(--diluxone-users-danger) 35%, var(--diluxone-users-border) ); }
-.diluxone-users-panel--danger h3 { color: var(--diluxone-users-danger); }
+.diluxone-users-panel--danger h3,
+.diluxone-users-account .diluxone-users-panel--danger h3 { color: var(--diluxone-users-danger); }
 
 .diluxone-users-list-plain { margin: 10px 0 14px; padding-left: 20px; }
 .diluxone-users-list-plain li { margin-bottom: 6px; }

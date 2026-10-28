@@ -153,35 +153,43 @@ class LoginRequestTest extends IntegrationTestCase {
 	}
 
 	/**
-	 * A public name goes on with the address behind it, and the screen that
-	 * follows must not hand that address to whoever typed the name: it shows
-	 * what was typed, and nothing about the account travels in the URL.
+	 * #228: a public name is not a way in. Typed in the box, it is not an
+	 * address, so nothing is sent to the account it belongs to, and the
+	 * answer is the one anything that is not an address gets.
 	 */
-	public function test_a_public_name_never_reveals_the_address_behind_it(): void {
+	public function test_a_public_name_typed_sends_no_link(): void {
 		diluxone_users_update_option( 'diluxone_users_handle_enabled', 1 );
-		diluxone_users_update_option( 'diluxone_users_handle_login', 1 );
+		update_option( 'diluxone_users_handle_login', 1 );
 
-		$user = get_userdata( $this->make_user() );
-		$name = $user->user_nicename;
+		$user = $this->make_user();
+		diluxone_users_handle_save( $user, 'juan-' . $this->run );
 
-		$url = $this->ask( $name );
+		$url = $this->ask( 'juan-' . $this->run );
 
-		$this->assertSame( 'sent', $this->redirectState( $url ) );
-		$this->assertStringNotContainsString( rawurlencode( $user->user_email ), $url );
-		$this->assertStringNotContainsString( 'email=', $url );
-		$this->assertSame( $name, self::$cookies['diluxone_users_sent']['value'] ?? null, 'The screen shows back what was typed' );
-		$this->assertSame( $user->user_email, $this->lastMail()['to'] ?? null, 'The link still goes to the account' );
+		$this->assertSame( 'email', $this->redirectState( $url ) );
+		$this->assertCount( 0, self::$mail, 'no link to the account the name belongs to' );
 	}
 
-	/** A name nobody has gets the answer a name somebody has gets. */
-	public function test_an_unknown_public_name_answers_like_a_known_one(): void {
-		diluxone_users_update_option( 'diluxone_users_handle_enabled', 1 );
-		diluxone_users_update_option( 'diluxone_users_handle_login', 1 );
+	/**
+	 * #228: a new account's profile address never answers to another
+	 * account's login, which WordPress itself does not check.
+	 */
+	public function test_a_new_accounts_public_name_avoids_another_accounts_login(): void {
+		$login = 'juan' . $this->run;
+		wp_insert_user(
+			array(
+				'user_login'    => $login,
+				'user_email'    => $login . '-classic@example.test',
+				'user_pass'     => wp_generate_password(),
+				'user_nicename' => 'classic-' . $login,
+			)
+		);
 
-		$url = $this->ask( 'nobody-called-this-' . $this->run );
+		$id = diluxone_users_create_account( $login . '@example.org' );
 
-		$this->assertSame( 'sent', $this->redirectState( $url ) );
-		$this->assertCount( 0, self::$mail );
+		$this->assertGreaterThan( 0, $id );
+		$this->assertNotSame( $login, get_userdata( $id )->user_nicename );
+		$this->assertFalse( diluxone_users_handle_taken( get_userdata( $id )->user_nicename, $id ), 'and no other account answers to it' );
 	}
 
 	/** The address is not in the URL either when it was typed as one. */

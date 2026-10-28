@@ -8,7 +8,7 @@ Say which WordPress and PHP, single site or network, and which way in (e-mail li
 
 ## A change carries its tests at every layer it touches
 
-Unit, integration on a single site and on a network, end-to-end on a single site and on a network, and the listing screenshots when a screen changes ([`docs/testing-and-quality.md`](docs/testing-and-quality.md#the-rule-tests-at-every-layer-a-change-touches)). Update any doc that describes what you changed, and the eight translations when you add or change a string. A change a user notices adds one bullet to the newest `= X.Y.Z =` entry of `readme.txt` ([`docs/release.md`](docs/release.md)). `make check` runs PHPCS, PHPStan, Psalm and the unit tests; the other suites have their own targets ([`docs/development.md`](docs/development.md)).
+Unit, integration on a single site and on a network, end-to-end on a single site and on a network, and the listing screenshots when a screen changes ([`docs/testing-and-quality.md`](docs/testing-and-quality.md#the-rule-tests-at-every-layer-a-change-touches)). Update any doc that describes what you changed, and the eight translations when you add or change a string. A change a user notices adds its bullet in `changelog.d/<issue>.md`, never in `readme.txt` ([`docs/release.md`](docs/release.md)). `make check` runs PHPCS, PHPStan, Psalm and the unit tests; the other suites have their own targets ([`docs/development.md`](docs/development.md)).
 
 Changes to sign-in, two-step, social login, sessions, privacy, the templates and the other paths in [`.github/review-policy.yml`](.github/review-policy.yml) are always high risk and always merged by a person.
 

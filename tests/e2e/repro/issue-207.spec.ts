@@ -1,26 +1,62 @@
 import { test, expect } from '../support/fixtures';
-import { accessTab, rail } from '../support/admin-access';
-import { ADMIN_STATE } from '../../../playwright.config';
+import { signInMember } from '../support/admin-content';
+import { accountSection } from '../support/ui';
 
 /**
- * Issue #207, item 5: Access › Summary has an empty "Right now" rail since
- * Registration moved out, while Registration's has its own. The reporter
- * expects Access to keep a "Right now" of its own, with the state of signing
- * in, on any site.
+ * Issue #207, item 1 (C1): on the account area's "Your details" tab, the
+ * "Your photo" box has a smaller title than the other boxes and folds with an
+ * arrow, while the boxes of the field blocks and "Your public name" have the
+ * larger heading and do not fold. The reporter expects the four box headings
+ * to have the same font size, and none to fold unless all do.
  */
 
-test.use({ storageState: ADMIN_STATE });
+const FIELDS = [
+	{ key: 'first_name', label: 'First name', type: 'text', required: 0, active: 1, group: 'main', edit: 'always' },
+	{ key: 'last_name', label: 'Last name', type: 'text', required: 0, active: 1, group: 'main', edit: 'always' },
+	{ key: 'e2e_extra_207', label: 'Nickname', type: 'text', required: 0, active: 1, group: 'extra', edit: 'always' },
+];
 
-test.describe('Issue 207: the summary of Access', () => {
-	test('it has a "Right now" rail of its own that says something', async ({ page }) => {
-		await page.goto(accessTab('summary'));
+test.describe('Issue 207: the boxes of "Your details"', () => {
+	test('the four boxes share one heading size and none folds unless all do', async ({ page, site, pages, options }) => {
+		await options.set({
+			diluxone_users_2fa_mode: 'off',
+			diluxone_users_fields: FIELDS,
+			diluxone_users_avatar_upload: 1,
+			diluxone_users_handle_enabled: 1,
+		});
 
-		// The table of ways in is drawn, so this is the right screen.
-		await expect(page.locator('table.diluxone-users-summary')).toBeVisible();
+		await signInMember(page, site, pages.login.url, 'repro-207');
 
-		// The rail exists and is not empty.
-		await expect(rail(page), 'the summary has a rail').toHaveCount(1);
-		await expect(rail(page).locator('.du-state'), 'the rail says the state of signing in').toHaveCount(1);
-		await expect(rail(page).locator('.du-state__line'), 'and says it in words').not.toHaveText('');
+		await page.goto(accountSection(pages.account.url, 'details'));
+
+		const boxes = [
+			page.locator('.diluxone-users-avatar').first(),
+			page.locator('.diluxone-users-handle').first(),
+			page.locator('.diluxone-users-fields__block--main').first(),
+			page.locator('.diluxone-users-fields__block--extra').first(),
+		];
+		const titles = [
+			page.locator('.diluxone-users-avatar .diluxone-users-panel__title').first(),
+			page.locator('.diluxone-users-handle > h3').first(),
+			page.locator('.diluxone-users-fields__block--main > h3').first(),
+			page.locator('.diluxone-users-fields__block--extra > h3').first(),
+		];
+
+		for (const title of titles) {
+			await expect(title, 'each box draws its heading').toBeVisible();
+		}
+
+		const sizes: string[] = [];
+		for (const title of titles) {
+			sizes.push(await title.evaluate((el) => getComputedStyle(el).fontSize));
+		}
+
+		const folds: boolean[] = [];
+		for (const box of boxes) {
+			folds.push(await box.evaluate((el) => el.tagName === 'DETAILS'));
+		}
+
+		expect(new Set(sizes).size, `the four headings have the same font size (photo, public name, main, extra: ${sizes.join(', ')})`).toBe(1);
+		expect(new Set(folds).size, `no box folds unless all do (photo, public name, main, extra: ${folds.join(', ')})`).toBe(1);
 	});
 });
