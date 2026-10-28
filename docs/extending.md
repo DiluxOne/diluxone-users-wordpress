@@ -1246,8 +1246,13 @@ came back for), and so does the "Your details" tab
 (`templates/account/details.php`): one fields form, the same action, nonce
 and save as `[diluxone_users_fields]` with no group, holding a
 `diluxone-users-panel` per block that has active fields, under the titles
-`diluxone_users_field_blocks()` gives ("About you" for main, "A bit more about
-you" for extra), each ending in a Save button that sends the whole form.
+`diluxone_users_field_blocks()` gives, each ending in a Save button that sends
+the whole form. The titles are the site's, typed on User fields › Fields and
+stored in the network-scoped `diluxone_users_field_block_titles` (a map
+`main`/`extra` => text, read through `diluxone_users_field_block_titles()`); a
+block left empty keeps the translated default, "About you" for main and "A bit
+more about you" for extra. They are text: the template prints them with
+`esc_html()`.
 The tab no longer goes through `templates/fields.php`, so a theme's copy of
 that file stops applying there: to change how the fields look everywhere,
 copy `templates/fields-list.php`; to change the tab's boxes, copy

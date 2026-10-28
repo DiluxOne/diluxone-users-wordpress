@@ -106,6 +106,7 @@ everybody, with the code by e-mail, and skips it for nobody.
 | Your data / Linked accounts exist only while offered | `account-area` › The account page itself |
 | Details: fields saved, display name rebuilt, `missing` from the server | `account-area` › Your details |
 | Details: each block with fields in its own titled box (main, extra), in one form | `repro/issue-166` › each block with fields is drawn in its own box…; integration `AccountDetailsBlocksTest` |
+| Details: the boxes' titles typed on User fields › Fields (the site's, as text; empty keeps "About you" and "A bit more about you", translated), on a single site and from Network Admin on a network | `admin-fields-block-titles` · `network/admin-fields-network` › a block’s title typed in Network Admin…; integration `FieldBlockTitlesTest` |
 | Photo: upload, drawn, removed with its attachment, not-a-picture refused; its box on "Your details" has the same heading size as the other boxes and does not fold | `account-area` › Your photo; `repro/issue-207` |
 | Public name: saved, reserved refused | `account-area` › The public name |
 | Notifications: new device announced (link), switch off, rule `always` hides the switch | `account-area` › Notifications |

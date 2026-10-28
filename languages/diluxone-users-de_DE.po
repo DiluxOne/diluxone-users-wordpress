@@ -1524,6 +1524,9 @@ msgstr "Abgelaufen"
 msgid "Expires"
 msgstr "Läuft ab"
 
+msgid "Extra block"
+msgstr "Zusatzblock"
+
 msgid "Extra block — “if you like, tell us more”"
 msgstr "Zusatzblock — „wenn du magst, erzähl uns mehr“"
 
@@ -2246,6 +2249,9 @@ msgstr "Madagaskar"
 
 msgid "Made by you, it waits in Tools → Export Personal Data."
 msgstr "Von dir erstellt, wartet sie unter Werkzeuge → Personenbezogene Daten exportieren."
+
+msgid "Main block"
+msgstr "Hauptblock"
 
 msgid "Main block — what the site needs"
 msgstr "Hauptblock — was die Website braucht"
@@ -5091,6 +5097,9 @@ msgstr "Hier angehakt, verschwindet er beim Speichern des Profils."
 msgid "Timor-Leste"
 msgstr "Timor-Leste"
 
+msgid "Titles of the boxes"
+msgstr "Titel der Kästen"
+
 msgid "To"
 msgstr "Bis"
 
@@ -5459,6 +5468,9 @@ msgstr "Wie ein Name aussehen darf"
 
 msgid "What a shortcode is, if you have never used one"
 msgstr "Was ein Shortcode ist, falls Sie noch nie einen benutzt haben"
+
+msgid "What each block is called on the account’s “Your details” tab. Left empty, it keeps the title shown in grey."
+msgstr "Wie jeder Block im Tab „Deine Angaben“ des Kontos heißt. Leer gelassen, behält er den grau angezeigten Titel."
 
 msgid "What every site of the network writes down about what people do, and how long it keeps it. The rows are one table for the whole network: each site sees its own on its Reports › Activity, and the Activity tab beside this one has them all. A group that is not ticked here is not recorded on any site."
 msgstr "Was jede Website des Netzwerks darüber aufzeichnet, was Personen tun, und wie lange sie es behält. Die Zeilen sind eine einzige Tabelle für das ganze Netzwerk: Jede Website sieht ihre eigenen unter Berichte › Aktivität, und der Tab Aktivität neben diesem hat sie alle. Eine Gruppe, die hier nicht angehakt ist, wird auf keiner Website aufgezeichnet."
