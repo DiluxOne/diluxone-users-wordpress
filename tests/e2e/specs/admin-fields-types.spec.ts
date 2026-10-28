@@ -322,7 +322,7 @@ test.describe('User fields › the rows the form shows for each type', () => {
 		{ type: 'select', shown: ['options'] },
 		{ type: 'datalist', shown: ['placeholder', 'options'] },
 		{ type: 'country', shown: ['preferred'] },
-		{ type: 'phone', shown: ['placeholder', 'default_country'] },
+		{ type: 'phone', shown: ['placeholder', 'default_country', 'mobile'] },
 		{ type: 'checkbox', shown: [] },
 	];
 
@@ -335,7 +335,7 @@ test.describe('User fields › the rows the form shows for each type', () => {
 		for (const { type, shown } of ROWS_BY_TYPE) {
 			await form.locator('#diluxone-users-type').selectOption(type);
 
-			for (const name of ['placeholder', 'options', 'preferred', 'default_country']) {
+			for (const name of ['placeholder', 'options', 'preferred', 'default_country', 'mobile']) {
 				if (shown.includes(name)) {
 					await expect(row(name), `${name} is shown for ${type}`).toBeVisible();
 				} else {
