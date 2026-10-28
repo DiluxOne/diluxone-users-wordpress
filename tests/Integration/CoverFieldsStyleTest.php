@@ -124,7 +124,7 @@ class CoverFieldsStyleTest extends IntegrationTestCase {
 		$css = diluxone_users_account_css();
 
 		$this->assertStringContainsString( '.diluxone-users-account .diluxone-users-account__body{max-width:var(--diluxone-users-row-w,1100px);margin-inline:auto;padding-inline:var(--diluxone-users-row-pad,24px);}', $css, 'as strong as the sheet\'s rule for a contained area' );
-		$this->assertStringContainsString( '.diluxone-users-account{background:var(--diluxone-users-ground,#eef6f1);}', $css );
+		$this->assertStringContainsString( '.diluxone-users-account{background:var(--diluxone-users-ground,#eef6f1);color:var(--diluxone-users-text);}', $css, 'with a ground of its own, the text colour that reads on it' );
 		$this->assertStringContainsString( ':root{--diluxone-users-nav-top:8px;--diluxone-users-bar-gap:12px;}', $css );
 		$this->assertStringNotContainsString( 'nav-bottom', $css, 'Unanswered, unprinted' );
 		$this->assertStringContainsString( '.diluxone-users-account__bar .diluxone-users-account__nav{padding-inline:16px 0px;}', $css );

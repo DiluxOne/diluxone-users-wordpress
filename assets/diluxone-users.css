@@ -118,8 +118,13 @@
 .diluxone-users,
 .diluxone-users-account {
 	font-family: var(--diluxone-users-font);
-	color: var(--diluxone-users-text);
 }
+/* The sign-in keeps the plugin's text colour, as it always has. The
+   account area paints no ground unless Design › Account area gives it one (and
+   then the text colour is printed with it): outside its boxes it sits on the
+   theme's page, so it takes the page's text colour and turns with the
+   theme's light and dark schemes. Every box in it sets its own. */
+.diluxone-users { color: var(--diluxone-users-text); }
 
 .diluxone-users *,
 .diluxone-users-login-page,
@@ -142,6 +147,12 @@
    This outranks such a rule without !important; text with a colour of its
    own on purpose is raised to match (the danger box's heading, below). */
 .diluxone-users-account .diluxone-users-panel :is(h1, h2, h3, h4, h5, h6, legend, label) { color: inherit; }
+/* The same for its links: a theme's `html.is-dark a` would put its dark-scheme
+   link colour (a light one) on the box's white. Buttons drawn as links keep
+   their own ink. */
+.diluxone-users-account .diluxone-users-panel a:not(.diluxone-users-button),
+.diluxone-users-account .diluxone-users-panel a:not(.diluxone-users-button):hover,
+.diluxone-users-account .diluxone-users-panel a:not(.diluxone-users-button):focus { color: var(--diluxone-users-accent); }
 .diluxone-users-panel > :first-child { margin-top: 0; }
 .diluxone-users-panel > :last-child { margin-bottom: 0; }
 
@@ -915,7 +926,12 @@ body.diluxone-users-door {
 	line-height: 1.6;
 	color: var(--diluxone-users-muted);
 }
-.diluxone-users-account__intro { margin: 0 0 18px; color: var(--diluxone-users-muted); }
+/* Outside the boxes the area's text is the page's, so its quieter text is the
+   page's toned down rather than the plugin's grey, which is dark on a dark page.
+   Toned down by opacity and not by `color-mix()` of `currentColor`: Chromium
+   keeps that mix from the colour the page had when it was first drawn, so a
+   site's dark-mode switch left it dark on the dark page. */
+.diluxone-users-account__intro { margin: 0 0 18px; color: inherit; opacity: .72; }
 
 /* ── The account area ───────────────────────────────────────────────── */
 
@@ -965,7 +981,8 @@ body.diluxone-users-door {
    Margins are another matter — those are the layout of this header, and the
    layout is the plugin's. */
 .diluxone-users-account__name { margin: 0; }
-.diluxone-users-account__since { margin: 2px 0 0; color: var(--diluxone-users-muted); }
+/* Toned down as the section's intro is, and for the same reason. */
+.diluxone-users-account__since { margin: 2px 0 0; color: inherit; opacity: .72; }
 
 /* ── The menu ────────────────────────────────────────────────────────────
    Two questions, asked separately and answered separately: where it goes —
@@ -1178,8 +1195,11 @@ body.diluxone-users-door {
 	border: 1px solid var(--diluxone-users-border);
 	border-radius: var(--diluxone-users-radius);
 	text-decoration: none;
-	color: inherit;
+	color: var(--diluxone-users-text);
 }
+/* A card paints its own ground, so it sets its text colour, strong enough to
+   beat a theme's `html.is-dark a`. */
+.diluxone-users-account a.diluxone-users-card-summary { color: var(--diluxone-users-text); }
 .diluxone-users-card-summary:hover { border-color: var(--diluxone-users-accent); }
 .diluxone-users-card-summary__label { font-size: 0.8em; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--diluxone-users-muted); }
 .diluxone-users-card-summary__value { font-size: 1.9em; font-weight: 800; line-height: 1.15; margin-top: 4px; }
