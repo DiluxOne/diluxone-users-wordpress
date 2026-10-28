@@ -192,6 +192,27 @@ class CoverFieldsPhoneTest extends IntegrationTestCase {
 		$this->assertSame( '+56961234567', get_user_meta( $user, 'test_mobile', true ) );
 	}
 
+	public function test_a_mobile_sent_without_javascript_is_checked_and_stored_with_its_lead(): void {
+		$this->markMobile( true );
+		$user = $this->make_user();
+
+		// What a form without the script posts: the number as typed, and the
+		// country from the native list.
+		$sent = array(
+			'test_city'        => 'Mendoza',
+			'test_mobile'      => '11 4123 4567',
+			'test_mobile_dial' => 'AR',
+		);
+
+		$this->assertSame( array(), diluxone_users_phone_codes( $sent, diluxone_users_fields() ), 'the length checked is the one stored' );
+
+		wp_set_current_user( $user );
+		$this->postAs( $user, array( '_wpnonce' => wp_create_nonce( 'update-user_' . $user ) ) + $sent );
+		diluxone_users_profile_save( $user );
+
+		$this->assertSame( '+5491141234567', get_user_meta( $user, 'test_mobile', true ) );
+	}
+
 	public function test_a_field_key_in_the_address_that_is_not_a_phone_being_drawn_shows_nothing(): void {
 		wp_set_current_user( $this->make_user() );
 

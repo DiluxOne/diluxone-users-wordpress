@@ -575,4 +575,31 @@ test.describe('With JavaScript off', () => {
 			await context.close();
 		}
 	});
+
+	test('a field marked “It is a mobile” stores the 9 of an Argentine mobile all the same', async ({ browser, baseURL, site, pages, options }) => {
+		await options.set({ diluxone_users_2fa_mode: 'off', diluxone_users_fields: [NAME, MAIL, { ...PHONE, mobile: 1 }] });
+
+		const context = await browser.newContext({ baseURL, storageState: undefined, javaScriptEnabled: false });
+		const page = await context.newPage();
+
+		try {
+			const { email } = await signedIn(page, site, pages.login.url, 'phone-nojs-lead');
+
+			await page.goto(accountSection(pages.account.url, 'details'));
+			await reveal(page, 'input[name="e2e_phone"]');
+
+			const form = formOf(page, 'diluxone_users_fields_save');
+
+			await form.locator('select[name="e2e_phone_dial"]').selectOption('AR');
+			await form.locator('input[name="e2e_phone"]').fill('11 4123 4567');
+			await Promise.all([page.waitForURL(/diluxone-users=saved/), form.locator('button[type="submit"]').first().click()]);
+
+			expect((await site.user(email, ['e2e_phone'])).fields.e2e_phone, 'the lead added on the server').toBe('+5491141234567');
+
+			await reveal(page, 'input[name="e2e_phone"]');
+			await expect(page.locator('input[name="e2e_phone"]')).toHaveValue('9 11 4123 4567');
+		} finally {
+			await context.close();
+		}
+	});
 });
