@@ -38,6 +38,9 @@ composer.json
 composer.lock
 
 # Dev environment
+# The organisation's shared tooling, checked out untracked by its workflows
+# and the autopilot: it must not ship from a dist built in that checkout.
+.dx-central
 .wp-env.json
 .wp-env.override.json
 
