@@ -9,8 +9,8 @@
  *
  * Every country's rule — its dialling code, how long its numbers are, how
  * they are grouped, the trunk prefix people dial at home, the token a mobile
- * is written with there — rides on its
- * <option>, and the words the picker says on the box, translated by the
+ * is written with there and the lead it carries — rides on its <option>;
+ * whether the field is a mobile's rides on the box (data-mobile-field), and the words the picker says on the box, translated by the
  * server. Nothing is asked of anybody and nothing comes from elsewhere.
  *
  * The picker is a button that opens a search box (a combobox) over a list of
@@ -64,14 +64,16 @@
 	 * prefix goes only when what is left is still long enough to be a number
 	 * of the country. A mobile token typed right after the area code goes too,
 	 * and the lead a mobile carries goes in front: `typed` is the number as it
-	 * was written, `token` the token and `area` how long the area code is. The
-	 * same rule as diluxone_users_phone_national().
+	 * was written, `token` the token and `area` how long the area code is. On
+	 * a mobile's field (`rule.field`) a bare national number gets the lead in
+	 * front as well, and `lead` says which. The same rule as
+	 * diluxone_users_phone_national().
 	 */
 	function split( rule, number ) {
 		var digits = digitsOf( number );
 		var trunk = '';
 		var parts = rule.mobile.indexOf( ':' ) > 0 ? rule.mobile.split( ':' ) : null;
-		var length, area, mobile;
+		var length, area, mobile, lead;
 
 		if ( rule.trunk && 0 === digits.indexOf( rule.trunk ) && digits.length - rule.trunk.length >= rule.min ) {
 			trunk = rule.trunk;
@@ -86,12 +88,25 @@
 				mobile = parts[ 1 ] + digits.slice( 0, area ) + digits.slice( area + parts[ 0 ].length );
 
 				if ( digits.substr( area, parts[ 0 ].length ) === parts[ 0 ] && mobile.length <= rule.max ) {
-					return { trunk: trunk, digits: mobile, typed: digits, token: parts[ 0 ], area: area };
+					return { trunk: trunk, digits: mobile, typed: digits, token: parts[ 0 ], area: area, lead: '' };
 				}
 			}
 		}
 
-		return { trunk: trunk, digits: digits, typed: digits, token: '', area: 0 };
+		lead = rule.field ? leadOf( rule, digits ) : '';
+
+		return { trunk: trunk, digits: lead + digits, typed: digits, token: '', area: 0, lead: lead };
+	}
+
+	/** The lead a mobile's bare national number takes, or '': diluxone_users_phone_mobile_lead(). */
+	function leadOf( rule, digits ) {
+		var lead = rule.mobile.indexOf( ':' ) >= 0 ? rule.mobile.split( ':' )[ 1 ] : '';
+
+		if ( ! lead || 0 === digits.indexOf( lead ) || ( rule.trunk && 0 === digits.indexOf( rule.trunk ) ) || digits.length < rule.min || digits.length + lead.length > rule.max ) {
+			return '';
+		}
+
+		return lead;
 	}
 
 	/** The sizes of the groups: diluxone_users_phone_groups(). */
@@ -156,10 +171,12 @@
 	/**
 	 * The number written in groups: diluxone_users_phone_format(), with a
 	 * typed trunk prefix kept in front, and a typed mobile token kept after the
-	 * area code, as the person wrote them.
+	 * area code, as the person wrote them. A lead a mobile's field puts in
+	 * front shows, and the trunk prefix goes, as the number is stored.
 	 */
 	function format( rule, number ) {
 		var parts = split( rule, number );
+		var trunk = parts.lead ? '' : parts.trunk;
 		var digits = parts.token ? parts.typed.slice( 0, parts.area ) + parts.typed.slice( parts.area + parts.token.length ) : parts.digits;
 		var out = [];
 		var at = 0;
@@ -179,7 +196,7 @@
 			out.splice( 1, 0, parts.token );
 		}
 
-		return ( parts.trunk && out.length ? parts.trunk + ' ' : parts.trunk ) + out.join( ' ' );
+		return ( trunk && out.length ? trunk + ' ' : trunk ) + out.join( ' ' );
 	}
 
 	function enhance( box ) {
@@ -192,8 +209,18 @@
 
 		box.setAttribute( 'data-diluxone-users-phone-ready', '' );
 
+		// The lead this script put in front of a mobile's number, while it is
+		// there: the person may still be typing a longer way of writing the
+		// same number ("11 15 4123 4567" is ten digits before it is twelve),
+		// so it is taken back before the number is read again.
+		var added = '';
+
 		function rule() {
-			return ruleOf( select.options[ select.selectedIndex ] );
+			var r = ruleOf( select.options[ select.selectedIndex ] );
+
+			r.field = box.hasAttribute( 'data-mobile-field' );
+
+			return r;
 		}
 
 		/** Groups what is in the box again, keeping the caret after the same digit. */
@@ -201,13 +228,32 @@
 			var value = input.value;
 			var caret = null === input.selectionStart ? value.length : input.selectionStart;
 			var before = digitsOf( value.slice( 0, caret ) ).length;
-			var next = format( rule(), value );
+			var r = rule();
+			var typed = value;
+			var parts, next;
 			var at = 0;
 			var seen = 0;
 
 			// A number written with its "+" or "00" waits as it is, until its
 			// dialling code picks the country (dial()) or nothing ever could.
-			if ( next === value || input.readOnly || international( value ) ) {
+			if ( input.readOnly || international( value ) ) {
+				return;
+			}
+
+			if ( added && 0 === digitsOf( value ).indexOf( added ) ) {
+				typed = digitsOf( value ).slice( added.length );
+				before = Math.max( 0, before - added.length );
+			}
+
+			parts = split( r, typed );
+			added = parts.lead;
+			next = format( r, typed );
+
+			if ( parts.lead ) {
+				before = Math.max( 0, before + parts.lead.length - parts.trunk.length );
+			}
+
+			if ( next === value ) {
 				return;
 			}
 
@@ -278,6 +324,7 @@
 			}
 
 			input.value = digits.slice( best.getAttribute( 'data-dial' ).length );
+			added = '';
 
 			if ( document.activeElement === input ) {
 				input.setSelectionRange( input.value.length, input.value.length );

@@ -126,6 +126,37 @@ class CoverFieldsPhoneTest extends IntegrationTestCase {
 		$this->assertSame( 'Mendoza', get_user_meta( $user, 'test_city', true ) );
 	}
 
+	/** The phone field marked "It is a mobile", or not, with the country it comes with. */
+	private function markMobile( bool $mobile, string $country = 'AR' ): void {
+		$fields                = self::FIELDS;
+		$fields[1]['mobile']   = $mobile ? 1 : 0;
+		$fields[1]['options']  = array( $country );
+		diluxone_users_update_option( 'diluxone_users_fields', $fields );
+	}
+
+	public function test_a_field_marked_as_a_mobile_stores_the_lead_its_country_puts_in_front(): void {
+		$this->markMobile( true );
+		$user = $this->make_user();
+
+		$url = $this->sendFields(
+			$user,
+			array(
+				'test_city'        => 'Mendoza',
+				'test_mobile'      => '11 4123 4567',
+				'test_mobile_dial' => 'AR',
+			)
+		);
+
+		$this->assertSame( 'saved', $this->redirectState( $url ) );
+		$this->assertSame( '+5491141234567', get_user_meta( $user, 'test_mobile', true ) );
+
+		wp_set_current_user( $user );
+		$html = diluxone_users_shortcode_fields();
+
+		$this->assertStringContainsString( 'value="9 11 4123 4567"', $html, 'drawn back as it is stored' );
+		$this->assertMatchesRegularExpression( '/<span class="diluxone-users-phone" data-diluxone-users-phone [^>]* data-mobile-field="1">/', $html, 'and the script is told the field is a mobile' );
+	}
+
 	public function test_a_field_key_in_the_address_that_is_not_a_phone_being_drawn_shows_nothing(): void {
 		wp_set_current_user( $this->make_user() );
 

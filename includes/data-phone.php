@@ -31,7 +31,10 @@
  *   mobile's number, and what the number carries in front instead when it is
  *   dialled from anywhere, as `token:lead`. `15:9` reads "011 15 4123 4567"
  *   as 9 11 4123 4567. The token counts only right after the area code, and
- *   only when the number without it is a number of the country.
+ *   only when the number without it is a number of the country. The lead has
+ *   a second use: a field the site marked as a mobile puts it in front of a
+ *   bare national number too ("11 4123 4567" is stored as 9 11 4123 4567),
+ *   and a country with no lead stores the number as it is.
  *
  * Plain functions over a static table, without WordPress, so it is tested
  * as it is.
@@ -354,9 +357,14 @@ function diluxone_users_phone_rule( string $iso ): array {
  *
  * A mobile written with the country's token after the area code ("011 15
  * 4123 4567" in Argentina) is the number as it is dialled from anywhere:
- * 9 11 4123 4567.
+ * 9 11 4123 4567. For a field marked as a mobile, a bare national number gets
+ * the country's lead as well: "11 4123 4567" is 9 11 4123 4567.
+ *
+ * @param string $iso    The country.
+ * @param string $number The number as typed.
+ * @param bool   $mobile Whether the field is a mobile's.
  */
-function diluxone_users_phone_national( string $iso, string $number ): string {
+function diluxone_users_phone_national( string $iso, string $number, bool $mobile = false ): string {
 	$digits = (string) preg_replace( '/\D/', '', $number );
 	$rule   = diluxone_users_phone_rule( $iso );
 	$trunk  = $rule['trunk'];
@@ -365,7 +373,29 @@ function diluxone_users_phone_national( string $iso, string $number ): string {
 		$digits = substr( $digits, strlen( $trunk ) );
 	}
 
-	return diluxone_users_phone_mobile( $rule, $digits );
+	$digits = diluxone_users_phone_mobile( $rule, $digits );
+
+	return $mobile ? diluxone_users_phone_mobile_lead( $rule, $digits ) : $digits;
+}
+
+/**
+ * A mobile's bare national number with the lead its country puts in front of
+ * a mobile; the number as it was when the country has no lead, when it already
+ * starts with it, when it is too short to be a whole number of the country
+ * yet, when it still starts with the trunk prefix (what follows was too short
+ * to take it out), or when the lead would make it too long.
+ *
+ * @param array{min: int, max: int, group: string, trunk: string, mobile: string} $rule   The country's rule.
+ * @param string                                                                  $digits The national number, digits only, as diluxone_users_phone_mobile() left it.
+ */
+function diluxone_users_phone_mobile_lead( array $rule, string $digits ): string {
+	$lead = false === strpos( $rule['mobile'], ':' ) ? '' : explode( ':', $rule['mobile'], 2 )[1];
+
+	if ( '' === $lead || 0 === strpos( $digits, $lead ) || ( '' !== $rule['trunk'] && 0 === strpos( $digits, $rule['trunk'] ) ) || strlen( $digits ) < $rule['min'] || strlen( $digits ) + strlen( $lead ) > $rule['max'] ) {
+		return $digits;
+	}
+
+	return $lead . $digits;
 }
 
 /**
@@ -405,10 +435,11 @@ function diluxone_users_phone_mobile( array $rule, string $digits ): string {
  *
  * @param string $iso      The country chosen.
  * @param string $national The number as typed, with or without spaces and the trunk prefix.
+ * @param bool   $mobile   Whether the field is a mobile's: the number checked is the one stored.
  * @return string '' when it is (or when nothing was typed), 'short' or 'long'.
  */
-function diluxone_users_phone_check( string $iso, string $national ): string {
-	$digits = diluxone_users_phone_national( $iso, $national );
+function diluxone_users_phone_check( string $iso, string $national, bool $mobile = false ): string {
+	$digits = diluxone_users_phone_national( $iso, $national, $mobile );
 
 	if ( '' === $digits ) {
 		return '';

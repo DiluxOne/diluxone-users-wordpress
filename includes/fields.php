@@ -432,6 +432,9 @@ function diluxone_users_normalize_field( array $field ): array {
 			? (string) $field['edit']
 			: 'always',
 		'edit_max'    => max( 1, (int) $word( $field['edit_max'] ?? 1 ) ),
+		// A phone the site means for a mobile: stored with the lead its
+		// country puts in front of one (diluxone_users_phone_mobile_lead()).
+		'mobile'      => 'phone' === $type && ! empty( $field['mobile'] ) ? 1 : 0,
 	);
 }
 
@@ -772,7 +775,7 @@ function diluxone_users_phone_codes( array $sent, array $fields ): array {
 			continue;
 		}
 
-		$code = diluxone_users_phone_check( $iso, $number );
+		$code = diluxone_users_phone_check( $iso, $number, ! empty( $field['mobile'] ) );
 
 		if ( '' !== $code ) {
 			$wrong[ $key ] = $code;
@@ -972,12 +975,13 @@ function diluxone_users_save( int $user_id, array $input, string $group = '' ): 
 			$iso                  = sanitize_text_field( (string) ( $input[ $key . '_dial' ] ?? '' ) );
 			list( $iso, $number ) = diluxone_users_phone_resolve( $iso, $raw );
 			$dial                 = diluxone_users_country_dial( $iso );
-			$raw                  = '+' . $dial . ( '' === $dial ? preg_replace( '/\D/', '', $number ) : diluxone_users_phone_national( $iso, $number ) );
+			$mobile               = ! empty( $field['mobile'] );
+			$raw                  = '+' . $dial . ( '' === $dial ? preg_replace( '/\D/', '', $number ) : diluxone_users_phone_national( $iso, $number, $mobile ) );
 
 			// A number the wrong length for its country is not saved, whoever
 			// called: the forms check first and say so, and a caller that does
 			// not (Users → Add New, an add-on) keeps what was there.
-			if ( '' !== $dial && '' !== diluxone_users_phone_check( $iso, $number ) ) {
+			if ( '' !== $dial && '' !== diluxone_users_phone_check( $iso, $number, $mobile ) ) {
 				continue;
 			}
 		}

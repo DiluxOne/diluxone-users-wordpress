@@ -459,6 +459,45 @@ class CoverAdminFieldsTest extends IntegrationTestCase {
 		$this->assertMatchesRegularExpression( '/<option value="UY"\s+selected/', $html, 'the default country is picked' );
 	}
 
+	public function test_a_phone_is_marked_as_a_mobile_and_no_other_type_is(): void {
+		$this->seed();
+
+		diluxone_users_field_save(
+			array(
+				'key'    => 'diluxone_users_team',
+				'label'  => 'Team phone',
+				'type'   => 'phone',
+				'mobile' => '1',
+			)
+		);
+		$this->assertSame( 1, diluxone_users_field( 'diluxone_users_team' )['mobile'], 'the box ticked is kept' );
+
+		$this->where_network_screens_are();
+		$this->the_admin();
+		$html = $this->draw( 'diluxone_users_screen_field_edit', 'diluxone_users_team' );
+		$this->assertMatchesRegularExpression( '/<input\s+type="checkbox"\s+name="diluxone_users_field\[mobile\]"\s+value="1"[^>]*checked/', $html, 'and drawn ticked' );
+		$this->assertStringContainsString( 'It is a mobile', $html );
+
+		diluxone_users_field_save(
+			array(
+				'key'   => 'diluxone_users_team',
+				'label' => 'Team phone',
+				'type'  => 'phone',
+			)
+		);
+		$this->assertSame( 0, diluxone_users_field( 'diluxone_users_team' )['mobile'], 'unticked, it is not' );
+
+		diluxone_users_field_save(
+			array(
+				'key'    => 'diluxone_users_team',
+				'label'  => 'Team motto',
+				'type'   => 'text',
+				'mobile' => '1',
+			)
+		);
+		$this->assertSame( 0, diluxone_users_field( 'diluxone_users_team' )['mobile'], 'only a phone is a mobile' );
+	}
+
 	public function test_a_new_field_and_a_field_that_does_not_exist(): void {
 		$this->seed();
 		$this->where_network_screens_are();
