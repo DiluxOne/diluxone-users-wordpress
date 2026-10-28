@@ -927,8 +927,11 @@ body.diluxone-users-door {
 	color: var(--diluxone-users-muted);
 }
 /* Outside the boxes the area's text is the page's, so its quieter text is the
-   page's toned down rather than the plugin's grey, which is dark on a dark page. */
-.diluxone-users-account__intro { margin: 0 0 18px; color: color-mix(in srgb, currentColor 72%, transparent); }
+   page's toned down rather than the plugin's grey, which is dark on a dark page.
+   Toned down by opacity and not by `color-mix()` of `currentColor`: Chromium
+   keeps that mix from the colour the page had when it was first drawn, so a
+   site's dark-mode switch left it dark on the dark page. */
+.diluxone-users-account__intro { margin: 0 0 18px; color: inherit; opacity: .72; }
 
 /* ── The account area ───────────────────────────────────────────────── */
 
@@ -978,7 +981,8 @@ body.diluxone-users-door {
    Margins are another matter — those are the layout of this header, and the
    layout is the plugin's. */
 .diluxone-users-account__name { margin: 0; }
-.diluxone-users-account__since { margin: 2px 0 0; color: color-mix(in srgb, currentColor 72%, transparent); }
+/* Toned down as the section's intro is, and for the same reason. */
+.diluxone-users-account__since { margin: 2px 0 0; color: inherit; opacity: .72; }
 
 /* ── The menu ────────────────────────────────────────────────────────────
    Two questions, asked separately and answered separately: where it goes —
