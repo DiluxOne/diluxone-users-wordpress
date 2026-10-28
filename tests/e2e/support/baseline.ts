@@ -55,7 +55,6 @@ export const BASELINE = (pages: { login: number; register: number; account: numb
 	// has not are the ones that say so. On a single site it means nothing.
 	diluxone_users_membership_confirmed: 1,
 	diluxone_users_handle_enabled: 0,
-	diluxone_users_handle_login: 0,
 
 	// What the specs walk is the plugin turned on, and a fresh activation
 	// turns nothing on (`make test-noop` is the check for that). These are the

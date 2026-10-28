@@ -39,7 +39,7 @@ everybody, with the code by e-mail, and skips it for nobody.
 | The three ways in as tabs or stacked, order, the tab that opens, no JS; nothing about passkeys on the page | `login-ways` |
 | A clicked button looks as it does at rest once the pointer has moved away, on a theme that paints `button:focus` like `button:hover` (Astra) | `repro/issue-102` |
 | Split-screen layout, messages rewritten in the dashboard | `login-screen` |
-| Sign in with the public name (handle login) | `account-area` › The public name |
+| The sign-in box takes an address only, public names on or off: a name typed mails nobody (#228) | `admin-access-ways` › the box takes an address only… |
 | Reset: `wp`, `site` (whole chain, reused key), `link` | `password-reset` |
 | Second step by e-mail: code, reuse, five tries, resend wait, timeout, link skip | `two-factor` › by e-mail |
 | Backup codes: handed over when the step is turned on, one gets in once, another still works | `two-factor` › Backup codes |
@@ -106,7 +106,8 @@ everybody, with the code by e-mail, and skips it for nobody.
 | Your data / Linked accounts exist only while offered | `account-area` › The account page itself |
 | Details: fields saved, display name rebuilt, `missing` from the server | `account-area` › Your details |
 | Details: each block with fields in its own titled box (main, extra), in one form | `repro/issue-166` › each block with fields is drawn in its own box…; integration `AccountDetailsBlocksTest` |
-| Photo: upload, drawn, removed with its attachment, not-a-picture refused | `account-area` › Your photo |
+| Details: the boxes' titles typed on User fields › Fields (the site's, as text; empty keeps "About you" and "A bit more about you", translated), on a single site and from Network Admin on a network | `admin-fields-block-titles` · `network/admin-fields-network` › a block’s title typed in Network Admin…; integration `FieldBlockTitlesTest` |
+| Photo: upload, drawn, removed with its attachment, not-a-picture refused; its box on "Your details" has the same heading size as the other boxes and does not fold | `account-area` › Your photo; `repro/issue-207` |
 | Public name: saved, reserved refused | `account-area` › The public name |
 | Notifications: new device announced (link), switch off, rule `always` hides the switch | `account-area` › Notifications |
 | New device announced after a password sign-in | `account-area` › …with the password, too |
@@ -159,6 +160,7 @@ everybody, with the code by e-mail, and skips it for nobody.
 | The phone's country picker: “arg” and “54” narrow the list, the live count; keyboard only (open, arrows, Home/End, Enter, Escape, Tab), its roles and `aria-activedescendant`; a pointer and a click outside | `phone-field` › The country picker |
 | The phone grouped as it is typed (AR `11 2345 6789`), the caret kept, saved as `+541123456789`; a trunk prefix typed out of habit shown apart and not saved | `phone-field` › The number as it is typed and saved |
 | The phone grouped by its area code (AR `221 412 3456`, not `22 1412 3456`); a mobile typed with its 15 (`0 11 15 4123 4567`) accepted, saved as `+5491141234567` and drawn back `9 11 4123 4567` | `phone-field` › The number as it is typed and saved |
+| A phone field marked “It is a mobile”: AR `11 4123 456` as typed, `9 11 4123 4567` once whole (caret kept), saved as `+5491141234567` and drawn back with the 9, on a single site and a network; typed with its 15 (`11 15 4123 4567`) still one 9; not marked, `+541141234567`; JavaScript off, the server adds the 9; the box shows only for a phone | `phone-field` › A field marked “It is a mobile” · `phone-field` › With JavaScript off · network `phone-field` · `admin-fields-types` › the rows the form shows for each type |
 | A phone too short or too long: the server refuses the whole form (`diluxone-users=phone`), the error under the number with `aria-invalid`, nothing saved; the browser stops it first with the same words; on the registration form no account is made | `phone-field` › A number the wrong length for its country |
 | The phone written with `+` and its dialling code, pasted or typed: the longest code that matches picks the country (`+54 9 11 4123 4567` → AR, `9 11 4123 4567` left in the box; `+56` typed with AR picked → CL) | `repro/issue-168` |
 | The phone written with `00` in place of the `+` reads the same (`0054 9 11 4123 4567` → AR, `9 11 4123 4567` left in the box); a Chilean mobile grouped as Chile writes it (`9 6123 4567`) | `repro/issue-193` |

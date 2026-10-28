@@ -1,7 +1,7 @@
 import type { Page } from '@playwright/test';
 import { test, expect, expectSignedIn } from '../support/fixtures';
 import { E2E_HEADER, E2E_NS, freshEmail } from '../support/api';
-import { adminUrl, savePanel, signInWithPassword } from '../support/ui';
+import { adminUrl, savePanel, setChoice, signInWithPassword } from '../support/ui';
 import { ADMIN_STATE } from '../../../playwright.config';
 
 /**
@@ -281,7 +281,7 @@ test.describe('The trial page', () => {
 	async function trial(page: Page): Promise<string> {
 		await page.goto(adminUrl('diluxone-users-design', 'wp'));
 		await page.locator('input[name="diluxone_users_wp_login_brand"]').check();
-		await page.locator('input[name="diluxone_users_wp_login_bg"][value="#6d28d9"]').check({ force: true });
+		await setChoice(page.locator('input[name="diluxone_users_wp_login_bg"][value="#6d28d9"]'));
 
 		const [answer] = await Promise.all([
 			page.waitForResponse((response) => response.url().includes('diluxone-users-try=')),

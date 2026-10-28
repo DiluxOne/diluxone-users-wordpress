@@ -1335,9 +1335,6 @@ msgstr "Correo"
 msgid "Email address"
 msgstr "Correo electrónico"
 
-msgid "Email address or public name"
-msgstr "Correo electrónico o nombre público"
-
 msgid "Email me a code"
 msgstr "Enviarme un código por correo"
 
@@ -1523,6 +1520,9 @@ msgstr "Vencida"
 
 msgid "Expires"
 msgstr "Vence"
+
+msgid "Extra block"
+msgstr "Bloque adicional"
 
 msgid "Extra block — “if you like, tell us more”"
 msgstr "Bloque adicional — \"si quieres, cuéntanos un poco más\""
@@ -1968,6 +1968,9 @@ msgstr "Va junto al formulario de correo, esté donde esté la página de acceso
 msgid "It has its credentials and the live test has not been run. Until that round trip works the button cannot go up."
 msgstr "Tiene sus credenciales y todavía no se ejecutó la prueba en vivo. Hasta que esa ida y vuelta funcione, el botón no puede salir."
 
+msgid "It is a mobile"
+msgstr "Es un celular"
+
 msgid "It is also one of the things asked for on the registration form, before the account exists."
 msgstr "También es una de las cosas que se piden en el formulario de registro, antes de que la cuenta exista."
 
@@ -2246,6 +2249,9 @@ msgstr "Madagascar"
 
 msgid "Made by you, it waits in Tools → Export Personal Data."
 msgstr "Si lo generas tú, espera en Herramientas → Exportar datos personales."
+
+msgid "Main block"
+msgstr "Bloque principal"
 
 msgid "Main block — what the site needs"
 msgstr "Bloque principal — lo que el sitio necesita"
@@ -3170,9 +3176,6 @@ msgstr "Nombre público"
 
 msgid "Public name changed"
 msgstr "Cambió el nombre público"
-
-msgid "Public names are off, so the box only takes the e-mail address."
-msgstr "Los nombres públicos están desactivados, así que el campo solo acepta la dirección de correo."
 
 msgid "Publish the page and open it the way a visitor would. What the line stands for is what you see."
 msgstr "Publica la página y ábrela como la abriría un visitante. Lo que la línea representa es lo que verás."
@@ -4409,9 +4412,6 @@ msgstr "El enlace vence a los"
 msgid "The link in the confirmation e-mail"
 msgstr "El enlace del correo de confirmación"
 
-msgid "The link still goes to the address on the account, never to what was typed. It only saves people from remembering which address they used."
-msgstr "El enlace sigue yendo a la dirección de la cuenta, nunca a lo que se escribió. Solo le ahorra a la gente tener que recordar qué dirección usó."
-
 msgid "The link that signs me in"
 msgstr "El enlace que me hace entrar"
 
@@ -4458,6 +4458,9 @@ msgstr "Las redes"
 
 msgid "The network’s settings, every site’s settings and activity log, and what the plugin keeps in people’s profiles. It cannot be undone, and it runs on delete, not on deactivate."
 msgstr "Los ajustes de la red, los ajustes y el registro de actividad de cada sitio, y lo que el plugin guarda en los perfiles. No se puede deshacer, y se ejecuta al borrar, no al desactivar."
+
+msgid "The number is stored as a mobile is dialled from anywhere: in a country whose mobiles carry a digit in front (a 9 in Argentina), that digit is added when the person leaves it out. Elsewhere the number is stored as typed."
+msgstr "El número se guarda como se marca un celular desde cualquier lugar: en un país cuyos celulares llevan un dígito adelante (un 9 en Argentina), ese dígito se agrega si la persona no lo escribe. En los demás, el número se guarda como se escribió."
 
 #. translators: %s: a date.
 #, php-format
@@ -4550,9 +4553,6 @@ msgstr "El proveedor no entregó un token de acceso. Revisa el ID de cliente y e
 #, php-format
 msgid "The provider handed over this email: %s"
 msgstr "El proveedor entregó este correo: %s"
-
-msgid "The public name as well as the e-mail address"
-msgstr "El nombre público además de la dirección de correo"
 
 msgid "The registration form, in the frame the sign-in tab chose for both."
 msgstr "El formulario de registro, en el marco que la pestaña de acceso eligió para los dos."
@@ -5091,6 +5091,9 @@ msgstr "Marcada aquí, se va cuando se guarda el perfil."
 msgid "Timor-Leste"
 msgstr "Timor Oriental"
 
+msgid "Titles of the boxes"
+msgstr "Títulos de las cajas"
+
 msgid "To"
 msgstr "Hasta"
 
@@ -5160,9 +5163,6 @@ msgstr "Activarlo →"
 
 msgid "Turn them into dashes: “Ana Gómez” becomes ana-gomez"
 msgstr "Cambiarlos por guiones: \"Ana Gómez\" queda ana-gomez"
-
-msgid "Turn them on →"
-msgstr "Activarlos →"
 
 msgid "Turned off, someone whose email is already registered simply cannot get in with a social network. Only turn it off if you do not trust the provider to verify its own users’ email addresses."
 msgstr "Desactivada, alguien cuyo correo ya está registrado directamente no puede entrar con una red social. Desactívala solo si no confías en que el proveedor verifique el correo de su propia gente."
@@ -5460,6 +5460,9 @@ msgstr "Cómo puede ser un nombre"
 msgid "What a shortcode is, if you have never used one"
 msgstr "Qué es un shortcode, si nunca has usado uno"
 
+msgid "What each block is called on the account’s “Your details” tab. Left empty, it keeps the title shown in grey."
+msgstr "Cómo se llama cada bloque en la pestaña “Datos personales” de la cuenta. Si lo dejas vacío, conserva el título que se ve en gris."
+
 msgid "What every site of the network writes down about what people do, and how long it keeps it. The rows are one table for the whole network: each site sees its own on its Reports › Activity, and the Activity tab beside this one has them all. A group that is not ticked here is not recorded on any site."
 msgstr "Lo que cada sitio de la red anota sobre lo que hace la gente, y cuánto tiempo lo guarda. Las filas son una sola tabla para toda la red: cada sitio ve las suyas en su Informes › Actividad, y la pestaña Actividad, junto a esta, las tiene todas. Un grupo que no está marcado aquí no se registra en ningún sitio."
 
@@ -5522,9 +5525,6 @@ msgstr "Qué forma tiene el área de cuenta, y de qué está hecha. La forma es 
 
 msgid "What the app gave you"
 msgstr "Lo que te dio la app"
-
-msgid "What the box takes"
-msgstr "Qué acepta el campo"
 
 msgid "What the form does with it"
 msgstr "Qué hace el formulario con él"

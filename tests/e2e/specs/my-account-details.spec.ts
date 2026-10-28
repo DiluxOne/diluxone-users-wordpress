@@ -452,7 +452,6 @@ test.describe('Public name', () => {
 			diluxone_users_handle_max: 50,
 			diluxone_users_handle_spaces: 'dash',
 			diluxone_users_handle_reserved: '',
-			diluxone_users_handle_login: 0,
 		});
 	});
 

@@ -227,9 +227,8 @@ function diluxone_users_handle_validate( string $handle, int $user_id ) {
  * The lookup is against `user_nicename` and also against `user_login`. The
  * second one looks superfluous and is not: accounts made elsewhere — by the
  * site before this plugin, or by another plugin — can have a user_login that
- * is a person's name, and if signing in by typing the public name is also
- * allowed, two different people answering to the same text makes the sign-in
- * link go to the wrong account.
+ * is a person's name, and a profile address that answers to another
+ * account's login is a profile somebody can mistake for theirs.
  */
 function diluxone_users_handle_taken( string $handle, int $user_id ): bool {
 	global $wpdb;
@@ -294,31 +293,6 @@ function diluxone_users_handle_save( int $user_id, string $handle ) {
 	update_user_meta( $user_id, 'diluxone_users_handle_changed', time() );
 
 	return true;
-}
-
-/** Who answers to this public name. 0 when nobody. */
-function diluxone_users_handle_user( string $handle ): int {
-	global $wpdb;
-
-	$clean = sanitize_title( remove_accents( $handle ) );
-
-	if ( '' === $clean ) {
-		return 0;
-	}
-
-	// One answer, always the same one: a public name before a login name.
-	// Two accounts can answer — one whose login is `ana`, another whose public
-	// name is — and without an order the database picked either, so a link
-	// asked for "ana" could go to a different person from one day to the next.
-	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- same again: two columns, and it is the query that decides who a sign-in link goes to.
-	return (int) $wpdb->get_var(
-		$wpdb->prepare(
-			"SELECT ID FROM {$wpdb->users} WHERE user_nicename = %s OR user_login = %s ORDER BY ( user_nicename = %s ) DESC, ID ASC LIMIT 1",
-			$clean,
-			$clean,
-			$clean
-		)
-	);
 }
 
 /* ── The form ──────────────────────────────────────────────────────── */
@@ -451,42 +425,6 @@ function diluxone_users_handle_check(): void {
 	);
 }
 add_action( 'wp_ajax_diluxone_users_handle_check', 'diluxone_users_handle_check' );
-
-/**
- * Does the sign-in box take a public name today?
- *
- * Its switch on the Ways in tab, and public names being on at all, which is
- * the account screen's switch. With names off nobody has chosen one and none
- * is shown anywhere, so a box that still resolved them would answer to the
- * login name WordPress made up — a name the site stopped showing.
- */
-function diluxone_users_handle_login_on(): bool {
-	return (bool) diluxone_users_option( 'diluxone_users_handle_login' ) && (bool) diluxone_users_option( 'diluxone_users_handle_enabled' );
-}
-
-/**
- * Signing in by typing the public name.
- *
- * The sign-in form asks for an e-mail; if what arrived is not one and this is
- * turned on, who it belongs to is looked up and it goes on with THEIR e-mail.
- * The link never goes to an address the person typed at that moment: it goes
- * to the account's, which is what stops this from opening a new door.
- */
-function diluxone_users_handle_login_email( string $typed ): string {
-	if ( is_email( $typed ) || ! diluxone_users_handle_login_on() ) {
-		return $typed;
-	}
-
-	$user_id = diluxone_users_handle_user( $typed );
-
-	if ( $user_id <= 0 ) {
-		return $typed;
-	}
-
-	$user = get_userdata( $user_id );
-
-	return $user instanceof WP_User ? $user->user_email : $typed;
-}
 
 /**
  * The script that shows what the typing turns into.

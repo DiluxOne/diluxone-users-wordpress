@@ -860,12 +860,24 @@ is written apart (`11:2 4 4|221,341:3 3 4|4 2 4`; the one with no prefix is
 for every other number of that length). The mobile token is the one written
 at home between the area code and a mobile's number, with what the number
 carries in front instead (`15:9`: "011 15 4123 4567" is stored as
-`+5491141234567`). `diluxone_users_phone_check( $iso, $number )`
+`+5491141234567`). `diluxone_users_phone_check( $iso, $number, $mobile )`
 answers `''`, `'short'` or `'long'`, `diluxone_users_phone_format( $iso,
 $number )` writes it in groups, and `diluxone_users_phone_errors( $sent,
 $fields )` gives the message for each phone of a form that is the wrong
 length. Each `<option>` carries its rule as `data-dial`, `data-min`,
 `data-max`, `data-group`, `data-trunk` and `data-mobile`; the server reads its own table.
+
+A phone field marked "It is a mobile" on User fields has `mobile` set to `1`
+in its array (`0` otherwise, and on every other type). For it, a bare
+national number gets the lead of the country's mobile token in front when it
+is a whole number without it and is still one with it: in Argentina "11 4123
+4567" is stored as `+5491141234567`. A country whose row has no lead stores
+the number as typed, and adding a country is adding its `token:lead` to its
+row. `diluxone_users_phone_national( $iso, $number, $mobile )` and
+`diluxone_users_phone_check()` take the flag as an optional last argument,
+`false` by default; the field's box carries `data-mobile-field="1"`, and the
+script shows the lead in the box once the number is whole. Numbers stored
+before the box was ticked are not rewritten.
 
 A number the wrong length refuses the whole form it was sent with, before
 anything on it is saved. The plugin's forms come back with
@@ -1249,8 +1261,13 @@ came back for), and so does the "Your details" tab
 (`templates/account/details.php`): one fields form, the same action, nonce
 and save as `[diluxone_users_fields]` with no group, holding a
 `diluxone-users-panel` per block that has active fields, under the titles
-`diluxone_users_field_blocks()` gives ("About you" for main, "A bit more about
-you" for extra), each ending in a Save button that sends the whole form.
+`diluxone_users_field_blocks()` gives, each ending in a Save button that sends
+the whole form. The titles are the site's, typed on User fields › Fields and
+stored in the network-scoped `diluxone_users_field_block_titles` (a map
+`main`/`extra` => text, read through `diluxone_users_field_block_titles()`); a
+block left empty keeps the translated default, "About you" for main and "A bit
+more about you" for extra. They are text: the template prints them with
+`esc_html()`.
 The tab no longer goes through `templates/fields.php`, so a theme's copy of
 that file stops applying there: to change how the fields look everywhere,
 copy `templates/fields-list.php`; to change the tab's boxes, copy

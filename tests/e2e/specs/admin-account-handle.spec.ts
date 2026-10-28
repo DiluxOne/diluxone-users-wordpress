@@ -1,7 +1,7 @@
 import { Page } from '@playwright/test';
 import { test, expect } from '../support/fixtures';
 import { Site } from '../support/api';
-import { accountSection, adminUrl, navigated, savePanel } from '../support/ui';
+import { accountSection, adminUrl, navigated, savePanel, setChoice } from '../support/ui';
 import { railNotice, signInMember } from '../support/admin-content';
 import { ADMIN_STATE } from '../../../playwright.config';
 
@@ -77,7 +77,7 @@ async function setRules(page: Page, rules: { enabled?: boolean; min?: number; ma
 	await page.goto(adminUrl('diluxone-users-account', 'handle'));
 
 	if (rules.enabled !== undefined) {
-		await page.locator('input[type="checkbox"][name="diluxone_users_handle_enabled"]').setChecked(rules.enabled, { force: true });
+		await setChoice(page.locator('input[type="checkbox"][name="diluxone_users_handle_enabled"]'), rules.enabled);
 	}
 
 	if (rules.min !== undefined) {
@@ -89,7 +89,7 @@ async function setRules(page: Page, rules: { enabled?: boolean; min?: number; ma
 	}
 
 	if (rules.spaces !== undefined) {
-		await page.locator(`input[name="diluxone_users_handle_spaces"][value="${rules.spaces}"]`).check({ force: true });
+		await setChoice(page.locator(`input[name="diluxone_users_handle_spaces"][value="${rules.spaces}"]`));
 	}
 
 	if (rules.reserved !== undefined) {

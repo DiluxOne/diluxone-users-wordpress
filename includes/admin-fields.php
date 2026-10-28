@@ -121,6 +121,7 @@ function diluxone_users_field_save( array $input ): string {
 			'required'    => ! empty( $input['required'] ),
 			'group'       => (string) ( $input['group'] ?? 'extra' ),
 			'active'      => ! empty( $input['active'] ),
+			'mobile'      => ! empty( $input['mobile'] ),
 		)
 	);
 
@@ -275,8 +276,9 @@ function diluxone_users_screen_fields(): void {
 /**
  * Its tabs, by the registry, so an add-on can add one of its own.
  *
- * Both of them draw their own markup and neither is a settings form — the
- * list has its own actions and the other only explains — so both go in with
+ * The list is a form for the titles of the account's boxes above it; its
+ * rows keep their own actions, links with their own nonces. The others draw
+ * their own markup and are not settings forms, so they go in with
  * `form => false`.
  */
 function diluxone_users_fields_panels(): void {
@@ -287,7 +289,7 @@ function diluxone_users_fields_panels(): void {
 			'label'    => __( 'Fields', 'diluxone-users' ),
 			'position' => 10,
 			'render'   => 'diluxone_users_screen_fields_list',
-			'form'     => false,
+			'save'     => 'diluxone_users_screen_fields_list_save',
 		)
 	);
 
@@ -329,6 +331,43 @@ function diluxone_users_fields_panels(): void {
 	);
 }
 add_action( 'diluxone_users_register_panels', 'diluxone_users_fields_panels' );
+
+/**
+ * Saves User fields › Fields: what each block's box is called.
+ *
+ * Only the known blocks, only text: tags and line breaks are stripped, and a
+ * title is cut at 100 characters, so a pasted page cannot become a heading.
+ * Both empty, the setting goes, and the boxes keep the plugin's titles.
+ */
+function diluxone_users_screen_fields_list_save(): bool {
+	check_admin_referer( 'diluxone_users_panel_diluxone-users-fields', 'diluxone_users_panel_nonce' );
+	diluxone_users_panel_allowed();
+
+	if ( ! isset( $_POST['diluxone_users_field_block_titles'] ) || ! is_array( $_POST['diluxone_users_field_block_titles'] ) || ! diluxone_users_option_editable_here( 'diluxone_users_field_block_titles' ) ) {
+		return true;
+	}
+
+	$titles = array();
+
+	foreach ( array_keys( diluxone_users_groups() ) as $group ) {
+		$title = '';
+
+		// An array sent as a title is no title, not "Array".
+		if ( isset( $_POST['diluxone_users_field_block_titles'][ $group ] ) && is_scalar( $_POST['diluxone_users_field_block_titles'][ $group ] ) ) {
+			$title = mb_substr( sanitize_text_field( wp_unslash( (string) $_POST['diluxone_users_field_block_titles'][ $group ] ) ), 0, 100 );
+		}
+
+		$titles[ $group ] = $title;
+	}
+
+	if ( array() === array_filter( $titles, static fn( string $title ): bool => '' !== $title ) ) {
+		diluxone_users_delete_option( 'diluxone_users_field_block_titles' );
+	} else {
+		diluxone_users_update_option( 'diluxone_users_field_block_titles', $titles );
+	}
+
+	return true;
+}
 
 /**
  * What a sign-in does about the required fields an account has no answer for.
@@ -479,6 +518,8 @@ function diluxone_users_screen_fields_list(): void {
 	$groups = diluxone_users_groups();
 
 	diluxone_users_ui_aside_open();
+
+	diluxone_users_field_block_titles_inputs();
 	?>
 	<p class="diluxone-users-admin__actions">
 		<a class="button button-primary"
@@ -625,9 +666,55 @@ function diluxone_users_screen_fields_list(): void {
 			diluxone_users_nobody_registers_notice();
 		}
 	);
-
-	diluxone_users_field_dialog();
 }
+
+/**
+ * The two boxes the titles of the account's blocks are typed in.
+ *
+ * Empty is an answer: the placeholder is the title the box keeps then.
+ */
+function diluxone_users_field_block_titles_inputs(): void {
+	$stored = diluxone_users_raw_get( 'diluxone_users_field_block_titles', array() );
+	$stored = is_array( $stored ) ? $stored : array();
+	$labels = array(
+		'main'  => __( 'Main block', 'diluxone-users' ),
+		'extra' => __( 'Extra block', 'diluxone-users' ),
+	);
+
+	diluxone_users_ui_section(
+		__( 'Titles of the boxes', 'diluxone-users' ),
+		__( 'What each block is called on the account’s “Your details” tab. Left empty, it keeps the title shown in grey.', 'diluxone-users' )
+	);
+
+	foreach ( $labels as $group => $label ) {
+		$value = $stored[ $group ] ?? '';
+
+		diluxone_users_ui_text(
+			array(
+				'label'       => $label,
+				'name'        => 'diluxone_users_field_block_titles[' . $group . ']',
+				'id'          => 'diluxone_users_field_block_titles_' . $group,
+				'value'       => is_string( $value ) ? $value : '',
+				'placeholder' => diluxone_users_field_block_title_default( $group ),
+			)
+		);
+	}
+}
+
+/**
+ * The field dialog, after the Fields tab and outside its form.
+ *
+ * The form it holds is fetched and dropped in by JavaScript, and a form
+ * inside the tab's form would be thrown away by the browser.
+ *
+ * @param string $screen The screen the tab is on.
+ */
+function diluxone_users_fields_list_dialog( $screen ): void {
+	if ( 'diluxone-users-fields' === $screen ) {
+		diluxone_users_field_dialog();
+	}
+}
+add_action( 'diluxone_users_after_panel_list', 'diluxone_users_fields_list_dialog' );
 
 /**
  * The suggested fields that are not on the list yet.
@@ -976,6 +1063,19 @@ function diluxone_users_screen_field_edit( string $key ): void {
 					'value'   => (string) ( $field['options'][0] ?? '' ),
 					'options' => $diluxone_users_dials,
 					'help'    => __( 'The dial code the field comes with. The person can change it: the full list is always there.', 'diluxone-users' ),
+				)
+			);
+
+			diluxone_users_ui_choices(
+				array(
+					array(
+						'type'    => 'checkbox',
+						'name'    => 'diluxone_users_field[mobile]',
+						'value'   => '1',
+						'checked' => (bool) $field['mobile'],
+						'title'   => __( 'It is a mobile', 'diluxone-users' ),
+						'help'    => __( 'The number is stored as a mobile is dialled from anywhere: in a country whose mobiles carry a digit in front (a 9 in Argentina), that digit is added when the person leaves it out. Elsewhere the number is stored as typed.', 'diluxone-users' ),
+					),
 				)
 			);
 			?>

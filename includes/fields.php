@@ -251,6 +251,38 @@ function diluxone_users_groups(): array {
 }
 
 /**
+ * What each block's box is called on the "Your details" tab.
+ *
+ * The site's own words when it typed any (User fields › Fields), the
+ * plugin's translated ones for a block it left empty. Stored without a
+ * default, like the fields themselves, so the generic save never touches it.
+ *
+ * @return array<string, string> Group => title, for every group of diluxone_users_groups().
+ */
+function diluxone_users_field_block_titles(): array {
+	$stored = diluxone_users_raw_get( 'diluxone_users_field_block_titles', array() );
+	$stored = is_array( $stored ) ? $stored : array();
+	$titles = array();
+
+	foreach ( array_keys( diluxone_users_groups() ) as $group ) {
+		$title = $stored[ $group ] ?? '';
+
+		$titles[ $group ] = is_string( $title ) && '' !== trim( $title ) ? $title : diluxone_users_field_block_title_default( $group );
+	}
+
+	return $titles;
+}
+
+/**
+ * The plugin's own title of a block's box, the one it keeps while the site typed none.
+ *
+ * @param string $group 'main' or 'extra'.
+ */
+function diluxone_users_field_block_title_default( string $group ): string {
+	return 'main' === $group ? __( 'About you', 'diluxone-users' ) : __( 'A bit more about you', 'diluxone-users' );
+}
+
+/**
  * May a field be called this?
  *
  * A field's key is not a label: it is the user meta key the account form
@@ -432,6 +464,9 @@ function diluxone_users_normalize_field( array $field ): array {
 			? (string) $field['edit']
 			: 'always',
 		'edit_max'    => max( 1, (int) $word( $field['edit_max'] ?? 1 ) ),
+		// A phone the site means for a mobile: stored with the lead its
+		// country puts in front of one (diluxone_users_phone_mobile_lead()).
+		'mobile'      => 'phone' === $type && ! empty( $field['mobile'] ) ? 1 : 0,
 	);
 }
 
@@ -772,7 +807,7 @@ function diluxone_users_phone_codes( array $sent, array $fields ): array {
 			continue;
 		}
 
-		$code = diluxone_users_phone_check( $iso, $number );
+		$code = diluxone_users_phone_check( $iso, $number, ! empty( $field['mobile'] ) );
 
 		if ( '' !== $code ) {
 			$wrong[ $key ] = $code;
@@ -972,12 +1007,13 @@ function diluxone_users_save( int $user_id, array $input, string $group = '' ): 
 			$iso                  = sanitize_text_field( (string) ( $input[ $key . '_dial' ] ?? '' ) );
 			list( $iso, $number ) = diluxone_users_phone_resolve( $iso, $raw );
 			$dial                 = diluxone_users_country_dial( $iso );
-			$raw                  = '+' . $dial . ( '' === $dial ? preg_replace( '/\D/', '', $number ) : diluxone_users_phone_national( $iso, $number ) );
+			$mobile               = ! empty( $field['mobile'] );
+			$raw                  = '+' . $dial . ( '' === $dial ? preg_replace( '/\D/', '', $number ) : diluxone_users_phone_national( $iso, $number, $mobile ) );
 
 			// A number the wrong length for its country is not saved, whoever
 			// called: the forms check first and say so, and a caller that does
 			// not (Users → Add New, an add-on) keeps what was there.
-			if ( '' !== $dial && '' !== diluxone_users_phone_check( $iso, $number ) ) {
+			if ( '' !== $dial && '' !== diluxone_users_phone_check( $iso, $number, $mobile ) ) {
 				continue;
 			}
 		}
