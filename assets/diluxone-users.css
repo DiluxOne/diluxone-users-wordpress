@@ -119,8 +119,8 @@
 .diluxone-users-account {
 	font-family: var(--diluxone-users-font);
 }
-/* The sign-in box paints its own ground, so it sets its own text colour. The
-   account area paints none unless Design › Account area gives it one (and
+/* The sign-in keeps the plugin's text colour, as it always has. The
+   account area paints no ground unless Design › Account area gives it one (and
    then the text colour is printed with it): outside its boxes it sits on the
    theme's page, so it takes the page's text colour and turns with the
    theme's light and dark schemes. Every box in it sets its own. */
