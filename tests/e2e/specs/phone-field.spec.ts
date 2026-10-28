@@ -411,6 +411,23 @@ test.describe('A field marked “It is a mobile”', () => {
 		await expect(back.phone.locator('input.diluxone-users-phone__number'), 'drawn back as it was shown').toHaveValue('9 11 4123 4567');
 	});
 
+	test('the same field not marked shows and saves the number as it was typed', async ({ page, site, pages, options }) => {
+		await options.set({ diluxone_users_fields: [NAME, MAIL, PHONE] });
+
+		const { email } = await signedIn(page, site, pages.login.url, 'phone-nolead');
+		const area = await details(page, pages.account.url);
+		const number = area.phone.locator('input.diluxone-users-phone__number');
+
+		await expect(area.phone).not.toHaveAttribute('data-mobile-field', /.*/);
+
+		await number.click();
+		await number.pressSequentially('1141234567');
+		await expect(number).toHaveValue('11 4123 4567');
+
+		await Promise.all([page.waitForURL(/diluxone-users=saved/), formOf(page, 'diluxone_users_fields_save').locator('button[type="submit"]').first().click()]);
+		expect((await site.user(email, ['e2e_phone'])).fields.e2e_phone).toBe('+541141234567');
+	});
+
 	test('a mobile typed with its 15 is still read as one: the lead shown on the way goes again', async ({ page, site, pages }) => {
 		const { email } = await signedIn(page, site, pages.login.url, 'phone-lead15');
 		const area = await details(page, pages.account.url);

@@ -157,6 +157,25 @@ class CoverFieldsPhoneTest extends IntegrationTestCase {
 		$this->assertMatchesRegularExpression( '/<span class="diluxone-users-phone" data-diluxone-users-phone [^>]* data-mobile-field="1">/', $html, 'and the script is told the field is a mobile' );
 	}
 
+	public function test_a_field_not_marked_as_a_mobile_stores_the_number_as_typed(): void {
+		$this->markMobile( false );
+		$user = $this->make_user();
+
+		$this->sendFields(
+			$user,
+			array(
+				'test_city'        => 'Mendoza',
+				'test_mobile'      => '11 4123 4567',
+				'test_mobile_dial' => 'AR',
+			)
+		);
+
+		$this->assertSame( '+541141234567', get_user_meta( $user, 'test_mobile', true ) );
+
+		wp_set_current_user( $user );
+		$this->assertStringNotContainsString( 'data-mobile-field', diluxone_users_shortcode_fields() );
+	}
+
 	public function test_a_field_key_in_the_address_that_is_not_a_phone_being_drawn_shows_nothing(): void {
 		wp_set_current_user( $this->make_user() );
 
