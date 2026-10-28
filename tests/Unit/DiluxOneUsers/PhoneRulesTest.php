@@ -83,6 +83,12 @@ class PhoneRulesTest extends TestCase {
 		$this->assertSame( '1141234567', diluxone_users_phone_national( 'AR', '11 4123 4567', false ) );
 	}
 
+	public function test_a_country_with_no_lead_stores_a_mobile_as_typed(): void {
+		$this->assertSame( '961234567', diluxone_users_phone_national( 'CL', '9 6123 4567', true ) );
+		$this->assertSame( '612345678', diluxone_users_phone_national( 'FR', '06 12 34 56 78', true ) );
+		$this->assertSame( '', diluxone_users_phone_check( 'CL', '9 6123 4567', true ) );
+	}
+
 	public function test_the_lead_comes_from_the_row_and_never_makes_a_number_too_long(): void {
 		$rule = array( 'min' => 6, 'max' => 8, 'group' => '', 'trunk' => '', 'mobile' => '15:7' );
 

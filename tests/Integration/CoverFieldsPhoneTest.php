@@ -176,6 +176,22 @@ class CoverFieldsPhoneTest extends IntegrationTestCase {
 		$this->assertStringNotContainsString( 'data-mobile-field', diluxone_users_shortcode_fields() );
 	}
 
+	public function test_a_field_marked_as_a_mobile_in_a_country_with_no_lead_stores_the_number_as_typed(): void {
+		$this->markMobile( true, 'CL' );
+		$user = $this->make_user();
+
+		$this->sendFields(
+			$user,
+			array(
+				'test_city'        => 'Valparaíso',
+				'test_mobile'      => '9 6123 4567',
+				'test_mobile_dial' => 'CL',
+			)
+		);
+
+		$this->assertSame( '+56961234567', get_user_meta( $user, 'test_mobile', true ) );
+	}
+
 	public function test_a_field_key_in_the_address_that_is_not_a_phone_being_drawn_shows_nothing(): void {
 		wp_set_current_user( $this->make_user() );
 
