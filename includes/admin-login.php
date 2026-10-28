@@ -269,9 +269,6 @@ function diluxone_users_login_ways_save(): bool {
 		'diluxone_users_login_method'   => $link && $password ? 'both' : ( $password ? 'password' : 'link' ),
 		'diluxone_users_login_expiry'   => ( isset( $_POST['diluxone_users_login_expiry'] ) && is_scalar( $_POST['diluxone_users_login_expiry'] ) ? absint( wp_unslash( $_POST['diluxone_users_login_expiry'] ) ) : 15 ),
 		'diluxone_users_login_throttle' => ( isset( $_POST['diluxone_users_login_throttle'] ) && is_scalar( $_POST['diluxone_users_login_throttle'] ) ? absint( wp_unslash( $_POST['diluxone_users_login_throttle'] ) ) : 60 ),
-		// It is about what the sign-in box accepts, so it is decided here;
-		// what a public name is, is decided on the account screen.
-		'diluxone_users_handle_login'   => isset( $_POST['diluxone_users_handle_login'] ) ? 1 : 0,
 		'diluxone_users_sso_login'      => isset( $_POST['diluxone_users_sso_login'] ) ? 1 : 0,
 	);
 
@@ -780,7 +777,6 @@ function diluxone_users_screen_login_ways(): void {
 	diluxone_users_ui_aside_open();
 
 	$social   = diluxone_users_sso_working_names();
-	$handles  = (bool) diluxone_users_option( 'diluxone_users_handle_enabled' );
 	$switches = diluxone_users_way_switches();
 
 	/*
@@ -823,7 +819,7 @@ function diluxone_users_screen_login_ways(): void {
 				'title'    => __( 'A link e-mailed to the address on the account', 'diluxone-users' ),
 				'help'     => __( 'The form takes an address and sends a single-use link. Nothing to remember, and nothing on the site worth stealing.', 'diluxone-users' ),
 				// What the link does belongs to the link, and appears with it.
-				'children' => static function () use ( $handles ): void {
+				'children' => static function (): void {
 					diluxone_users_ui_fields_open();
 
 					diluxone_users_ui_number(
@@ -849,28 +845,6 @@ function diluxone_users_screen_login_ways(): void {
 					);
 
 					diluxone_users_ui_fields_close();
-
-					if ( ! $handles ) {
-						diluxone_users_not_now(
-							__( 'Public names are off, so the box only takes the e-mail address.', 'diluxone-users' ),
-							diluxone_users_admin_url( 'diluxone-users-account', array( 'tab' => 'handle' ) ),
-							__( 'Turn them on →', 'diluxone-users' )
-						);
-					}
-
-					diluxone_users_ui_inline_choices(
-						__( 'What the box takes', 'diluxone-users' ),
-						array(
-							array(
-								'type'    => 'checkbox',
-								'name'    => 'diluxone_users_handle_login',
-								'value'   => '1',
-								'checked' => (bool) diluxone_users_option( 'diluxone_users_handle_login' ),
-								'title'   => __( 'The public name as well as the e-mail address', 'diluxone-users' ),
-							),
-						),
-						__( 'The link still goes to the address on the account, never to what was typed. It only saves people from remembering which address they used.', 'diluxone-users' )
-					);
 				},
 			),
 			array(

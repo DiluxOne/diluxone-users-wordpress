@@ -55,16 +55,6 @@ class ConsistentSettingsTest extends IntegrationTestCase {
 		$this->assertNotContains( __( 'a social account', 'diluxone-users' ), diluxone_users_register_doors_open() );
 	}
 
-	public function test_public_names_off_means_the_box_takes_none(): void {
-		$user = get_userdata( $this->make_user() );
-
-		diluxone_users_update_option( 'diluxone_users_handle_login', 1 );
-		diluxone_users_update_option( 'diluxone_users_handle_enabled', 0 );
-
-		$this->assertFalse( diluxone_users_handle_login_on() );
-		$this->assertSame( $user->user_login, diluxone_users_handle_login_email( $user->user_login ) );
-	}
-
 	public function test_turning_the_password_off_moves_the_second_door_to_the_third_answer(): void {
 		diluxone_users_update_option( 'diluxone_users_wp_screens', 'wp' );
 		$this->postPanel( 'diluxone-users-login', array( 'diluxone_users_login_method' => array( 'link' ) ) );

@@ -1335,9 +1335,6 @@ msgstr "E-mail"
 msgid "Email address"
 msgstr "Endereço de e-mail"
 
-msgid "Email address or public name"
-msgstr "Endereço de e-mail ou nome público"
-
 msgid "Email me a code"
 msgstr "Enviar um código por e-mail"
 
@@ -3177,9 +3174,6 @@ msgstr "Nome público"
 msgid "Public name changed"
 msgstr "Nome público alterado"
 
-msgid "Public names are off, so the box only takes the e-mail address."
-msgstr "Os nomes públicos estão desativados, então o campo só aceita o endereço de e-mail."
-
 msgid "Publish the page and open it the way a visitor would. What the line stands for is what you see."
 msgstr "Publique a página e abra ela como um visitante abriria. O que a linha representa é o que você vai ver."
 
@@ -4415,9 +4409,6 @@ msgstr "O link expira em"
 msgid "The link in the confirmation e-mail"
 msgstr "O link do e-mail de confirmação"
 
-msgid "The link still goes to the address on the account, never to what was typed. It only saves people from remembering which address they used."
-msgstr "O link continua indo para o endereço da conta, nunca para o que foi digitado. Só poupa as pessoas de lembrar qual endereço usaram."
-
 msgid "The link that signs me in"
 msgstr "O link que me faz entrar"
 
@@ -4556,9 +4547,6 @@ msgstr "O provedor não entregou um token de acesso. Confira o ID de cliente e o
 #, php-format
 msgid "The provider handed over this email: %s"
 msgstr "O provedor entregou este e-mail: %s"
-
-msgid "The public name as well as the e-mail address"
-msgstr "O nome público além do endereço de e-mail"
 
 msgid "The registration form, in the frame the sign-in tab chose for both."
 msgstr "O formulário de cadastro, na moldura que a aba de acesso escolheu para os dois."
@@ -5170,9 +5158,6 @@ msgstr "Ligá-lo →"
 msgid "Turn them into dashes: “Ana Gómez” becomes ana-gomez"
 msgstr "Transformá-los em hifens: “Ana Gómez” vira ana-gomez"
 
-msgid "Turn them on →"
-msgstr "Ligá-los →"
-
 msgid "Turned off, someone whose email is already registered simply cannot get in with a social network. Only turn it off if you do not trust the provider to verify its own users’ email addresses."
 msgstr "Desativado, alguém cujo e-mail já está cadastrado simplesmente não consegue entrar com uma rede social. Só desative se você não confiar que o provedor verifique o e-mail da sua própria gente."
 
@@ -5534,9 +5519,6 @@ msgstr "Que forma a área de conta tem, e do que ela é feita. A forma é um pon
 
 msgid "What the app gave you"
 msgstr "O que o app te deu"
-
-msgid "What the box takes"
-msgstr "O que o campo aceita"
 
 msgid "What the form does with it"
 msgstr "O que o formulário faz com ele"

@@ -1328,9 +1328,6 @@ msgstr ""
 msgid "Email address"
 msgstr ""
 
-msgid "Email address or public name"
-msgstr ""
-
 msgid "Email me a code"
 msgstr ""
 
@@ -3170,9 +3167,6 @@ msgstr ""
 msgid "Public name changed"
 msgstr ""
 
-msgid "Public names are off, so the box only takes the e-mail address."
-msgstr ""
-
 msgid "Publish the page and open it the way a visitor would. What the line stands for is what you see."
 msgstr ""
 
@@ -4395,9 +4389,6 @@ msgstr ""
 msgid "The link in the confirmation e-mail"
 msgstr ""
 
-msgid "The link still goes to the address on the account, never to what was typed. It only saves people from remembering which address they used."
-msgstr ""
-
 msgid "The link that signs me in"
 msgstr ""
 
@@ -4535,9 +4526,6 @@ msgstr ""
 #. translators: %s: e-mail address
 #, php-format
 msgid "The provider handed over this email: %s"
-msgstr ""
-
-msgid "The public name as well as the e-mail address"
 msgstr ""
 
 msgid "The registration form, in the frame the sign-in tab chose for both."
@@ -5143,9 +5131,6 @@ msgstr ""
 msgid "Turn them into dashes: “Ana Gómez” becomes ana-gomez"
 msgstr ""
 
-msgid "Turn them on →"
-msgstr ""
-
 msgid "Turned off, someone whose email is already registered simply cannot get in with a social network. Only turn it off if you do not trust the provider to verify its own users’ email addresses."
 msgstr ""
 
@@ -5506,9 +5491,6 @@ msgid "What the account area is shaped like, and what it is made of. The shape i
 msgstr ""
 
 msgid "What the app gave you"
-msgstr ""
-
-msgid "What the box takes"
 msgstr ""
 
 msgid "What the form does with it"

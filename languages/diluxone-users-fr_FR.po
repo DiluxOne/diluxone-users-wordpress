@@ -1335,9 +1335,6 @@ msgstr "E-mail"
 msgid "Email address"
 msgstr "Adresse e-mail"
 
-msgid "Email address or public name"
-msgstr "Adresse e-mail ou nom public"
-
 msgid "Email me a code"
 msgstr "M’envoyer un code par e-mail"
 
@@ -3177,9 +3174,6 @@ msgstr "Nom public"
 msgid "Public name changed"
 msgstr "Nom public modifié"
 
-msgid "Public names are off, so the box only takes the e-mail address."
-msgstr "Les noms publics sont désactivés, donc le champ n’accepte que l’adresse e-mail."
-
 msgid "Publish the page and open it the way a visitor would. What the line stands for is what you see."
 msgstr "Publiez la page et ouvrez-la comme le ferait un visiteur. Ce que la ligne représente est ce que vous voyez."
 
@@ -4415,9 +4409,6 @@ msgstr "Le lien expire au bout de"
 msgid "The link in the confirmation e-mail"
 msgstr "Le lien de l’e-mail de confirmation"
 
-msgid "The link still goes to the address on the account, never to what was typed. It only saves people from remembering which address they used."
-msgstr "Le lien va toujours à l’adresse du compte, jamais à ce qui a été saisi. Cela évite seulement aux gens d’avoir à se rappeler quelle adresse ils ont utilisée."
-
 msgid "The link that signs me in"
 msgstr "Le lien qui me connecte"
 
@@ -4556,9 +4547,6 @@ msgstr "Le fournisseur n’a pas délivré de jeton d’accès. Vérifiez l’id
 #, php-format
 msgid "The provider handed over this email: %s"
 msgstr "Le fournisseur a délivré cet e-mail : %s"
-
-msgid "The public name as well as the e-mail address"
-msgstr "Le nom public aussi bien que l’adresse e-mail"
 
 msgid "The registration form, in the frame the sign-in tab chose for both."
 msgstr "Le formulaire d’inscription, dans le cadre que l’onglet de connexion a choisi pour les deux."
@@ -5170,9 +5158,6 @@ msgstr "L’activer →"
 msgid "Turn them into dashes: “Ana Gómez” becomes ana-gomez"
 msgstr "Les transformer en tirets : « Ana Gómez » devient ana-gomez"
 
-msgid "Turn them on →"
-msgstr "Les activer →"
-
 msgid "Turned off, someone whose email is already registered simply cannot get in with a social network. Only turn it off if you do not trust the provider to verify its own users’ email addresses."
 msgstr "Désactivé, quelqu’un dont l’e-mail est déjà inscrit ne peut tout simplement pas entrer avec un réseau social. Ne le désactivez que si vous ne faites pas confiance au fournisseur pour vérifier l’e-mail de ses propres utilisateurs."
 
@@ -5534,9 +5519,6 @@ msgstr "Quelle forme a l'espace compte, et de quoi il est fait. La forme est un 
 
 msgid "What the app gave you"
 msgstr "Ce que l’application vous a donné"
-
-msgid "What the box takes"
-msgstr "Ce que le champ accepte"
 
 msgid "What the form does with it"
 msgstr "Ce que le formulaire en fait"

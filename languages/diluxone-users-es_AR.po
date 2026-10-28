@@ -1335,9 +1335,6 @@ msgstr "Correo"
 msgid "Email address"
 msgstr "Correo electrónico"
 
-msgid "Email address or public name"
-msgstr "Correo electrónico o nombre público"
-
 msgid "Email me a code"
 msgstr "Mandame un código por correo"
 
@@ -3177,9 +3174,6 @@ msgstr "Nombre público"
 msgid "Public name changed"
 msgstr "Cambió el nombre público"
 
-msgid "Public names are off, so the box only takes the e-mail address."
-msgstr "Los nombres públicos están apagados, así que el campo sólo acepta la dirección de correo."
-
 msgid "Publish the page and open it the way a visitor would. What the line stands for is what you see."
 msgstr "Publicá la página y abrila como la abriría un visitante. Lo que la línea representa es lo que vas a ver."
 
@@ -4415,9 +4409,6 @@ msgstr "El enlace vence a los"
 msgid "The link in the confirmation e-mail"
 msgstr "El enlace del correo de confirmación"
 
-msgid "The link still goes to the address on the account, never to what was typed. It only saves people from remembering which address they used."
-msgstr "El enlace sigue yendo a la dirección de la cuenta, nunca a lo que se escribió. Solo le ahorra a la gente tener que recordar qué dirección usó."
-
 msgid "The link that signs me in"
 msgstr "El enlace que me hace entrar"
 
@@ -4556,9 +4547,6 @@ msgstr "El proveedor no entregó un token de acceso. Revisá el ID de cliente y 
 #, php-format
 msgid "The provider handed over this email: %s"
 msgstr "El proveedor entregó este correo: %s"
-
-msgid "The public name as well as the e-mail address"
-msgstr "El nombre público además de la dirección de correo"
 
 msgid "The registration form, in the frame the sign-in tab chose for both."
 msgstr "El formulario de registro, en el marco que la solapa de acceso eligió para los dos."
@@ -5170,9 +5158,6 @@ msgstr "Prenderlo →"
 msgid "Turn them into dashes: “Ana Gómez” becomes ana-gomez"
 msgstr "Cambiarlos por guiones: \"Ana Gómez\" queda ana-gomez"
 
-msgid "Turn them on →"
-msgstr "Prenderlos →"
-
 msgid "Turned off, someone whose email is already registered simply cannot get in with a social network. Only turn it off if you do not trust the provider to verify its own users’ email addresses."
 msgstr "Apagada, alguien cuyo correo ya está registrado directamente no puede entrar con una red social. Apagala sólo si no confiás en que el proveedor verifique el correo de su propia gente."
 
@@ -5534,9 +5519,6 @@ msgstr "Qué forma tiene el área de cuenta, y de qué está hecha. La forma es 
 
 msgid "What the app gave you"
 msgstr "Lo que te dio la app"
-
-msgid "What the box takes"
-msgstr "Qué acepta el campo"
 
 msgid "What the form does with it"
 msgstr "Qué hace el formulario con él"
