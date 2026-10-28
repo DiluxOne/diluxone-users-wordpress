@@ -15,6 +15,11 @@
 .env
 .env.*
 
+# The autopilot's checkout of DiluxOne/.github and its inputs, untracked in
+# the working tree while it works.
+.dx-central
+.dx-io
+
 # wp.org listing assets — handled separately by the deploy action (uploaded to
 # SVN /assets/, not /trunk/). Excluding it here prevents duplication in /trunk/.
 .wordpress-org
