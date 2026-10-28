@@ -10,8 +10,9 @@
  * Every country's rule — its dialling code, how long its numbers are, how
  * they are grouped, the trunk prefix people dial at home, the token a mobile
  * is written with there and the lead it carries — rides on its <option>;
- * whether the field is a mobile's rides on the box (data-mobile-field), and the words the picker says on the box, translated by the
- * server. Nothing is asked of anybody and nothing comes from elsewhere.
+ * whether the field is a mobile's (data-mobile-field) and the words the
+ * picker says ride on the box, translated by the server. Nothing is asked of
+ * anybody and nothing comes from elsewhere.
  *
  * The picker is a button that opens a search box (a combobox) over a list of
  * countries (a listbox): typing narrows the list by name or by code, the
