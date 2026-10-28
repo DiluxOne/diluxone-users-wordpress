@@ -1968,6 +1968,9 @@ msgstr "Va junto al formulario de correo, esté donde esté la página de acceso
 msgid "It has its credentials and the live test has not been run. Until that round trip works the button cannot go up."
 msgstr "Tiene sus credenciales y todavía no se corrió la prueba en vivo. Hasta que esa ida y vuelta funcione, el botón no puede salir."
 
+msgid "It is a mobile"
+msgstr "Es un celular"
+
 msgid "It is also one of the things asked for on the registration form, before the account exists."
 msgstr "También es una de las cosas que se piden en el formulario de registro, antes de que la cuenta exista."
 
@@ -4455,6 +4458,9 @@ msgstr "Las redes"
 
 msgid "The network’s settings, every site’s settings and activity log, and what the plugin keeps in people’s profiles. It cannot be undone, and it runs on delete, not on deactivate."
 msgstr "Los ajustes de la red, los ajustes y el registro de actividad de cada sitio, y lo que el plugin guarda en los perfiles de la gente. No se puede deshacer, y corre al borrar, no al desactivar."
+
+msgid "The number is stored as a mobile is dialled from anywhere: in a country whose mobiles carry a digit in front (a 9 in Argentina), that digit is added when the person leaves it out. Elsewhere the number is stored as typed."
+msgstr "El número se guarda como se marca un celular desde cualquier lugar: en un país cuyos celulares llevan un dígito adelante (un 9 en la Argentina), ese dígito se agrega si la persona no lo escribe. En los demás, el número se guarda como se escribió."
 
 #. translators: %s: a date.
 #, php-format

@@ -860,12 +860,24 @@ is written apart (`11:2 4 4|221,341:3 3 4|4 2 4`; the one with no prefix is
 for every other number of that length). The mobile token is the one written
 at home between the area code and a mobile's number, with what the number
 carries in front instead (`15:9`: "011 15 4123 4567" is stored as
-`+5491141234567`). `diluxone_users_phone_check( $iso, $number )`
+`+5491141234567`). `diluxone_users_phone_check( $iso, $number, $mobile )`
 answers `''`, `'short'` or `'long'`, `diluxone_users_phone_format( $iso,
 $number )` writes it in groups, and `diluxone_users_phone_errors( $sent,
 $fields )` gives the message for each phone of a form that is the wrong
 length. Each `<option>` carries its rule as `data-dial`, `data-min`,
 `data-max`, `data-group`, `data-trunk` and `data-mobile`; the server reads its own table.
+
+A phone field marked "It is a mobile" on User fields has `mobile` set to `1`
+in its array (`0` otherwise, and on every other type). For it, a bare
+national number gets the lead of the country's mobile token in front when it
+is a whole number without it and is still one with it: in Argentina "11 4123
+4567" is stored as `+5491141234567`. A country whose row has no lead stores
+the number as typed, and adding a country is adding its `token:lead` to its
+row. `diluxone_users_phone_national( $iso, $number, $mobile )` and
+`diluxone_users_phone_check()` take the flag as an optional last argument,
+`false` by default; the field's box carries `data-mobile-field="1"`, and the
+script shows the lead in the box once the number is whole. Numbers stored
+before the box was ticked are not rewritten.
 
 A number the wrong length refuses the whole form it was sent with, before
 anything on it is saved. The plugin's forms come back with

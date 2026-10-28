@@ -67,6 +67,38 @@ class PhoneRulesTest extends TestCase {
 		$this->assertSame( '111523456', diluxone_users_phone_national( 'FR', '11 15 23 45 6' ), 'a country without the token reads none' );
 	}
 
+	public function test_a_field_marked_as_a_mobile_stores_the_lead_its_country_puts_in_front(): void {
+		$this->assertSame( '91141234567', diluxone_users_phone_national( 'AR', '11 4123 4567', true ), 'a bare national number gets the 9' );
+		$this->assertSame( '91141234567', diluxone_users_phone_national( 'AR', '011 4123 4567', true ), 'after the trunk prefix goes' );
+		$this->assertSame( '91141234567', diluxone_users_phone_national( 'AR', '9 11 4123 4567', true ), 'one that has it keeps one' );
+		$this->assertSame( '91141234567', diluxone_users_phone_national( 'AR', '011 15 4123 4567', true ), 'nor a second after the token' );
+		$this->assertSame( '114123', diluxone_users_phone_national( 'AR', '11 4123', true ), 'still being typed: no lead yet' );
+		$this->assertSame( '0114123456', diluxone_users_phone_national( 'AR', '011 4123 456', true ), 'nor while the trunk prefix is still there' );
+		$this->assertSame( '', diluxone_users_phone_check( 'AR', '11 4123 4567', true ) );
+		$this->assertSame( '9 11 4123 4567', diluxone_users_phone_format( 'AR', diluxone_users_phone_national( 'AR', '11 4123 4567', true ) ) );
+	}
+
+	public function test_a_field_not_marked_as_a_mobile_stores_the_number_as_typed(): void {
+		$this->assertSame( '1141234567', diluxone_users_phone_national( 'AR', '11 4123 4567' ) );
+		$this->assertSame( '1141234567', diluxone_users_phone_national( 'AR', '11 4123 4567', false ) );
+	}
+
+	public function test_a_country_with_no_lead_stores_a_mobile_as_typed(): void {
+		$this->assertSame( '961234567', diluxone_users_phone_national( 'CL', '9 6123 4567', true ) );
+		$this->assertSame( '612345678', diluxone_users_phone_national( 'FR', '06 12 34 56 78', true ) );
+		$this->assertSame( '', diluxone_users_phone_check( 'CL', '9 6123 4567', true ) );
+	}
+
+	public function test_the_lead_comes_from_the_row_and_never_makes_a_number_too_long(): void {
+		$rule = array( 'min' => 6, 'max' => 8, 'group' => '', 'trunk' => '', 'mobile' => '15:7' );
+
+		$this->assertSame( '7123456', diluxone_users_phone_mobile_lead( $rule, '123456' ) );
+		$this->assertSame( '12345678', diluxone_users_phone_mobile_lead( $rule, '12345678' ), 'past the longest with it' );
+		$this->assertSame( '12345', diluxone_users_phone_mobile_lead( $rule, '12345' ), 'shorter than the shortest' );
+		$this->assertSame( '123456', diluxone_users_phone_mobile_lead( array( 'mobile' => '15:' ) + $rule, '123456' ), 'a token with no lead' );
+		$this->assertSame( '123456', diluxone_users_phone_mobile_lead( array( 'mobile' => '' ) + $rule, '123456' ), 'no row' );
+	}
+
 	public function test_a_trunk_prefix_typed_out_of_habit_is_not_part_of_the_number(): void {
 		$this->assertSame( '1123456789', diluxone_users_phone_national( 'AR', '011 2345-6789' ) );
 		$this->assertSame( '11 2345 6789', diluxone_users_phone_format( 'AR', '011 2345 6789' ) );

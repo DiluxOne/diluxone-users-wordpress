@@ -121,6 +121,7 @@ function diluxone_users_field_save( array $input ): string {
 			'required'    => ! empty( $input['required'] ),
 			'group'       => (string) ( $input['group'] ?? 'extra' ),
 			'active'      => ! empty( $input['active'] ),
+			'mobile'      => ! empty( $input['mobile'] ),
 		)
 	);
 
@@ -1062,6 +1063,19 @@ function diluxone_users_screen_field_edit( string $key ): void {
 					'value'   => (string) ( $field['options'][0] ?? '' ),
 					'options' => $diluxone_users_dials,
 					'help'    => __( 'The dial code the field comes with. The person can change it: the full list is always there.', 'diluxone-users' ),
+				)
+			);
+
+			diluxone_users_ui_choices(
+				array(
+					array(
+						'type'    => 'checkbox',
+						'name'    => 'diluxone_users_field[mobile]',
+						'value'   => '1',
+						'checked' => (bool) $field['mobile'],
+						'title'   => __( 'It is a mobile', 'diluxone-users' ),
+						'help'    => __( 'The number is stored as a mobile is dialled from anywhere: in a country whose mobiles carry a digit in front (a 9 in Argentina), that digit is added when the person leaves it out. Elsewhere the number is stored as typed.', 'diluxone-users' ),
+					),
 				)
 			);
 			?>

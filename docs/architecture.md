@@ -26,7 +26,7 @@ Procedural, no classes, no namespace, everything prefixed `diluxone_users_` / `D
 | Options, their defaults and where each is stored on a network | `options.php`, `options-scope.php` |
 | Looks: the tokens the admin's answers become, the theme's colours, the short palette | `templates.php`, `theme-colors.php`, `theme-measure.php`, `palette.php` |
 | User fields (definition, values, edit policy), and WordPress's own user meta keys no field may take | `fields.php`, `fields-forms.php`, `core-meta.php` |
-| The countries, and each one's phone rule: length, grouping by leading digits, trunk prefix, mobile token (data only); the phone's picker | `data-countries.php`, `data-phone.php`, `assets/diluxone-users-phone.js` |
+| The countries, and each one's phone rule: length, grouping by leading digits, trunk prefix, mobile token and lead (data only); the phone's picker | `data-countries.php`, `data-phone.php`, `assets/diluxone-users-phone.js` |
 | The required fields missing, asked after a sign-in | `fields-missing.php` |
 | Account area, sections registry | `account.php`, `account-sections.php`, `account-security.php` |
 | Sign-in: link, password, passwordless mode, the ways in, the page of its own | `login.php`, `login-ways.php`, `login-messages.php`, `passwordless.php`, `login-door.php` |

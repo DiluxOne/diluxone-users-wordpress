@@ -1,5 +1,8 @@
 import { Locator } from '@playwright/test';
-import { test, expect } from './support';
+import { test, expect, whoOn } from './support';
+import { freshEmail } from '../support/api';
+import { accountSection, signInWithPassword } from '../support/ui';
+import { formOf, reveal } from '../support/my-account';
 
 /**
  * The phone field on a network: the hub's registration form and account area
@@ -52,4 +55,28 @@ test('on the hub’s registration form an area code of three digits is written a
 	await number.pressSequentially('0111541234567');
 	await expect(number, 'the trunk prefix and the 15 kept where they were typed').toHaveValue('0 11 15 4123 4567');
 	expect(await number.evaluate((input: HTMLInputElement) => input.validity.valid), 'not too long for the browser').toBe(true);
+});
+
+test('in the hub’s account area a field marked as a mobile shows the 9 once the number is whole, and saves it', async ({ guest, hub }) => {
+	const email = freshEmail('net-phone-lead');
+	const password = 'e2e-NetPhone-1!';
+
+	await hub.set({ diluxone_users_fields: [{ ...FIELDS[0], required: 0 }, { ...FIELDS[1], required: 0, mobile: 1 }], diluxone_users_2fa_mode: 'off' });
+	await hub.site.makeUser({ email, password });
+	await guest.goto(hub.pages.login.url);
+	await signInWithPassword(guest, email, password);
+	await guest.waitForLoadState('domcontentloaded');
+	expect(await whoOn(guest, hub.url)).toBe(email);
+
+	await guest.goto(accountSection(hub.pages.account.url, 'details'));
+	await reveal(guest, 'input[name="e2e_phone"]');
+
+	const number = formOf(guest, 'diluxone_users_fields_save').locator('input.diluxone-users-phone__number');
+
+	await number.click();
+	await number.pressSequentially('1141234567');
+	await expect(number).toHaveValue('9 11 4123 4567');
+
+	await Promise.all([guest.waitForURL(/diluxone-users=saved/), formOf(guest, 'diluxone_users_fields_save').locator('button[type="submit"]').first().click()]);
+	expect((await hub.site.user(email, ['e2e_phone'])).fields.e2e_phone).toBe('+5491141234567');
 });

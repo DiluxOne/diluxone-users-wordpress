@@ -248,14 +248,16 @@ function diluxone_users_field_input( array $field, string $value, string $id = '
 			diluxone_users_phone_enqueue();
 
 			printf(
-				'<span class="diluxone-users-phone" data-diluxone-users-phone data-search="%1$s" data-list="%2$s" data-found="%3$s" data-none="%4$s" data-short="%5$s" data-long="%6$s">',
+				'<span class="diluxone-users-phone" data-diluxone-users-phone data-search="%1$s" data-list="%2$s" data-found="%3$s" data-none="%4$s" data-short="%5$s" data-long="%6$s"%7$s>',
 				esc_attr__( 'Search for a country or a code', 'diluxone-users' ),
 				esc_attr__( 'Countries', 'diluxone-users' ),
 				/* translators: %d: how many countries match what was typed */
 				esc_attr__( 'Countries found: %d', 'diluxone-users' ),
 				esc_attr__( 'No country matches that.', 'diluxone-users' ),
 				esc_attr( diluxone_users_phone_message( 'short' ) ),
-				esc_attr( diluxone_users_phone_message( 'long' ) )
+				esc_attr( diluxone_users_phone_message( 'long' ) ),
+				// A mobile's field: the script puts the country's lead in front, as the save does.
+				empty( $field['mobile'] ) ? '' : ' data-mobile-field="1"'
 			);
 			printf(
 				'<select id="%1$s-dial" name="%2$s_dial" class="diluxone-users-phone__dial" aria-label="%3$s"%4$s>',
