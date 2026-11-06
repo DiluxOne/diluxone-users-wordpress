@@ -66,4 +66,48 @@ class ReadmeListingTest extends TestCase {
 	public function test_c3_the_readme_is_short_enough_to_be_read(): void {
 		$this->assertLessThan( 14000, strlen( self::readme() ) );
 	}
+
+	/**
+	 * A caption as the readme and the spec both write it: no capital to
+	 * start, one kind of apostrophe, no full stop to end.
+	 */
+	private static function caption( string $caption ): string {
+		$caption = rtrim( str_replace( "\u{2019}", "'", trim( $caption ) ), '.' );
+
+		return strtolower( substr( $caption, 0, 1 ) ) . substr( $caption, 1 );
+	}
+
+	public function test_c5_each_of_the_thirteen_pictures_has_the_caption_its_spec_gives_it(): void {
+		$readme = self::readme();
+
+		$this->assertSame( 1, preg_match( '/^== Screenshots ==\n(.*?)(?=^== )/ms', $readme, $section ) );
+		preg_match_all( '/^(\d+)\. (.+)$/m', $section[1], $lines, PREG_SET_ORDER );
+
+		$readme_captions = array();
+		foreach ( $lines as $line ) {
+			$readme_captions[ (int) $line[1] ] = self::caption( $line[2] );
+		}
+
+		$this->assertSame( range( 1, 13 ), array_keys( $readme_captions ) );
+
+		$spec = file_get_contents( DILUXONE_USERS_DIR . 'tests/e2e/specs/listing-screenshots.spec.ts' );
+		$this->assertIsString( $spec );
+
+		// The dashboard's pictures, from the SCREENS table; the rest, from the
+		// titles of their own tests.
+		preg_match_all( "/n: (\\d+),\\s*screen: '[^']*',\\s*tab: '[^']*',\\s*caption: '([^']*)'/", $spec, $rows, PREG_SET_ORDER );
+		preg_match_all( "/test\\('(\\d+) · ([^']*)'/u", $spec, $titles, PREG_SET_ORDER );
+
+		$spec_captions = array();
+		foreach ( array_merge( $rows, $titles ) as $match ) {
+			$spec_captions[ (int) $match[1] ] = self::caption( $match[2] );
+		}
+		ksort( $spec_captions );
+
+		$this->assertSame( $spec_captions, $readme_captions );
+
+		foreach ( array_keys( $readme_captions ) as $n ) {
+			$this->assertFileExists( DILUXONE_USERS_DIR . ".wordpress-org/screenshot-{$n}.png" );
+		}
+	}
 }

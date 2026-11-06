@@ -207,19 +207,19 @@ can write.
 
 == Screenshots ==
 
-1. The sign-in page: a social account, a link by email, or the WordPress password — whichever ones the site turned on.
-2. The account area on the front end, in the site's own theme.
-3. Security: two-step verification and every browser that is signed in.
-4. The second step at sign-in, for whoever turned it on.
-5. Overview: how many accounts, how they get in, and the first steps until there are none left.
-6. Every way into the site in one table, read from the settings the other tabs write.
-7. Two-step verification: when it is asked for, with what, and to whom.
-8. Social login: each network with its own credentials and a live test.
-9. User fields: what is asked of a person, where it shows and who can change it.
-10. How the account area looks, with a live preview of the real markup.
-11. Open sessions across the site, with the button to close them.
+1. The sign-in page in the site's theme: social networks, a link by email or a password, a tab each.
+2. The account area on the front end, in the site's own theme: its sections and the cards of its home.
+3. Security in the account area: how you get in, two-step verification and where you are signed in.
+4. The second step at sign-in: a six-digit code sent by email, or a backup code in the same box.
+5. Overview: accounts, open sessions, fields in use and social providers, and what people use.
+6. Access › Summary: every way into the site and the state it is in, with the “Right now” box.
+7. Two-step verification: when it is asked for and with what, with Users+ Pro's choices shown off.
+8. Social login: Google and Microsoft set up and active, beside the networks Users+ Pro adds.
+9. User fields: the titles of the boxes, and each field with its type, where it goes and who can change it.
+10. Design › Account area: the shape, the header and the menu, with a live preview.
+11. Reports › Open sessions: who is signed in, from where and until when, with a button to close them.
 12. The Access column WordPress's own Users list gains.
-13. Maintenance: every check, including the ones that fail.
+13. Maintenance › Status: each check and its state, the usage and the environment.
 
 == Changelog ==
 

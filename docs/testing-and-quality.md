@@ -225,7 +225,7 @@ Three decisions keep it from crying wolf:
 make screenshots
 ```
 
-The pictures the wordpress.org listing shows, written into [`.wordpress-org/`](../.wordpress-org/) by [`tests/e2e/specs/listing-screenshots.spec.ts`](../tests/e2e/specs/listing-screenshots.spec.ts), in a Playwright project of its own that exists only when `DU_LISTING=1` is set: nothing that writes the shop window should run as a side effect of `make test-e2e`. The captions under `== Screenshots ==` in `readme.txt` are what they answer to. Retake them in the pull request that changes one of those screens, and read the diff before committing.
+The pictures the wordpress.org listing shows, written into [`.wordpress-org/`](../.wordpress-org/) by [`tests/e2e/specs/listing-screenshots.spec.ts`](../tests/e2e/specs/listing-screenshots.spec.ts), in a Playwright project of its own that exists only when `DU_LISTING=1` is set: nothing that writes the shop window should run as a side effect of `make test-e2e`. The captions under `== Screenshots ==` in `readme.txt` are what they answer to: caption N is, word for word, the caption the spec gives picture N, and describes what that picture shows. `tests/Unit/ReadmeListingTest.php`, in `make check`, fails when the two differ or a picture is missing, and holds the rest of the listing too: the first release's changelog and the readme's size, under 14,000 bytes. Retake them in the pull request that changes one of those screens, and read the diff before committing.
 
 ## Coverage
 
