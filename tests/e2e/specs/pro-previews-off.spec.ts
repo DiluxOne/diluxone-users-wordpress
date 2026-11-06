@@ -46,3 +46,32 @@ test.describe('The settings that became Users+ Pro’s, with the previews off', 
 		}
 	});
 });
+
+/** Every Summary that carries Users+ Pro rows (#241). */
+const SUMMARIES = [
+	'diluxone-users-login',
+	'diluxone-users-security',
+	'diluxone-users-account',
+	'diluxone-users-fields',
+	'diluxone-users-social',
+	'diluxone-users-design',
+];
+
+test.describe('Every Summary, with the previews off', () => {
+	test.beforeEach(async ({ options }) => {
+		await options.keep(['diluxone_users_pro_previews']);
+		await options.set({ diluxone_users_pro_previews: 0 });
+	});
+
+	for (const screen of SUMMARIES) {
+		test(`${screen} › summary: no Pro row, and no row mentions Users+ Pro`, async ({ page }) => {
+			await page.goto(adminUrl(screen, 'summary'));
+
+			const table = page.locator('table.diluxone-users-summary');
+
+			await expect(table.first(), 'the summary itself').toBeVisible();
+			await expect(table.locator('tr.du-pro--row, .diluxone-users-state--pro'), 'no Pro row').toHaveCount(0);
+			await expect(table.locator('a[href*="utm_campaign=free"], a[href*="diluxone.com"]'), 'no way out to Pro').toHaveCount(0);
+		});
+	}
+});

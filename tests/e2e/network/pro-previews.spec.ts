@@ -77,3 +77,15 @@ test('Social login and User fields open on a Summary in Network Admin, with thei
 		}
 	}
 });
+
+test('with the previews off, Security’s Summary and Membership’s rail in Network Admin have no Pro row', async ({ page, hub }) => {
+	await hub.keep(['diluxone_users_pro_previews']);
+	await hub.set({ diluxone_users_pro_previews: 0 });
+
+	for (const url of [networkScreen(NETWORK_URL, 'diluxone-users-security', 'summary'), networkScreen(NETWORK_URL, 'diluxone-users-membership')]) {
+		await page.goto(url);
+		await expect(page.locator('.wrap.diluxone-users-admin'), `${url}: the screen`).toBeVisible();
+		await expect(page.locator('table.diluxone-users-summary tr.du-pro--row'), `${url}: no Pro row`).toHaveCount(0);
+		await expect(page.locator('table.diluxone-users-summary a[href*="utm_campaign=free"]'), `${url}: no row mentions Users+ Pro`).toHaveCount(0);
+	}
+});

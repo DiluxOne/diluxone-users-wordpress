@@ -288,4 +288,47 @@ class SummaryProRowsTest extends IntegrationTestCase {
 		$this->assertGreaterThan( $rail, (int) strpos( $html, 'data-diluxone-users-pro="network/summary/whoever-asks"' ), 'in the rail, where the screen reports its state' );
 		$this->assertSame( 2, substr_count( $html, 'data-diluxone-users-pro="network/membership/rules"' ), 'the two radios inside the tab are unchanged' );
 	}
+
+	/* ── With the previews off ─────────────────────────────────────── */
+
+	/**
+	 * Every Summary, and Membership's rail on a network, with
+	 * `diluxone_users_pro_previews` off: no Pro row, and no row of them
+	 * names Users+ Pro or leads to it.
+	 */
+	public function test_with_the_previews_off_no_summary_row_mentions_users_pro(): void {
+		$this->where_network_screens_are();
+		$this->the_admin();
+
+		diluxone_users_update_option( 'diluxone_users_pro_previews', 0 );
+
+		$drawn = array();
+
+		foreach ( $this->summaries() as $screen => $summary ) {
+			$drawn[ $screen ] = $this->draw( $summary[0] );
+		}
+
+		if ( is_multisite() ) {
+			$drawn['membership'] = $this->draw( 'diluxone_users_screen_membership_policy' );
+		}
+
+		foreach ( $drawn as $screen => $html ) {
+			preg_match_all( '/<table class="widefat striped diluxone-users-summary">.*?<\/table>/s', $html, $tables );
+
+			if ( 'membership' === $screen ) {
+				// The rail's table is only ever its Pro rows: none at all.
+				$this->assertSame( array(), $tables[0], 'membership: no table of Pro rows in the rail' );
+				$this->assertStringNotContainsString( 'du-pro--row', $html );
+				continue;
+			}
+
+			$this->assertNotSame( array(), $tables[0], "{$screen}: its summary is drawn" );
+
+			foreach ( $tables[0] as $table ) {
+				$this->assertStringNotContainsString( 'du-pro', $table, "{$screen}: no Pro row" );
+				$this->assertStringNotContainsString( 'Users+ Pro', $table, "{$screen}: no row mentions Users+ Pro" );
+				$this->assertStringNotContainsString( 'utm_campaign=free', $table, "{$screen}: no way out to it" );
+			}
+		}
+	}
 }
