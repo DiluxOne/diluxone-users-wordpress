@@ -389,7 +389,7 @@ function diluxone_users_doors(): array {
 			'detail' => array() !== $social
 				? esc_html( implode( ', ', $social ) )
 				: esc_html__( 'The buttons are switched on but there is nothing to show.', 'diluxone-users' ),
-			'url'    => diluxone_users_admin_url( 'diluxone-users-social' ),
+			'url'    => diluxone_users_admin_url( 'diluxone-users-social', array( 'tab' => 'providers' ) ),
 		),
 		esc_html__( 'No buttons: WordPress has none of its own.', 'diluxone-users' )
 	);

@@ -330,7 +330,7 @@ test.describe('User fields', () => {
 
 		const label = `Favourite colour ${Date.now().toString(36)}`;
 
-		await page.goto(adminUrl('diluxone-users-fields') + '&diluxone_users_new=1');
+		await page.goto(adminUrl('diluxone-users-fields', 'list') + '&diluxone_users_new=1');
 		await page.locator('[name="diluxone_users_field[label]"]').fill(label);
 		await page.locator('[name="diluxone_users_field[type]"]').selectOption('text');
 		// Required, because the registration form asks only for what is
@@ -360,7 +360,7 @@ test.describe('User fields', () => {
 		// Deleted from the list. The link lives in the row actions WordPress
 		// only shows on hover, behind a "are you sure"; following its address
 		// is the same request the click makes once both are out of the way.
-		await page.goto(adminUrl('diluxone-users-fields'));
+		await page.goto(adminUrl('diluxone-users-fields', 'list'));
 
 		const remove = page.locator(`a[href*="diluxone_users_action=delete"][href*="field=${added!.key}"]`);
 

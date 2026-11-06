@@ -227,7 +227,7 @@ test.describe('A fresh site asks for a name, and the rest is suggested', () => {
 	test('only the first and last name are there, neither required and nothing stored; the suggested fields are added from their tab', async ({ page, site, options }) => {
 		await options.set({ diluxone_users_fields: null });
 
-		await page.goto(adminUrl('diluxone-users-fields'));
+		await page.goto(adminUrl('diluxone-users-fields', 'list'));
 
 		// The starter list is a default, read and not written: opening the
 		// screen stores nothing.

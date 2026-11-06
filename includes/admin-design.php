@@ -298,6 +298,16 @@ function diluxone_users_design_wp_save(): void {
 function diluxone_users_design_panels(): void {
 	diluxone_users_register_panel(
 		DILUXONE_USERS_DESIGN,
+		'summary',
+		array(
+			'label'    => __( 'Summary', 'diluxone-users' ),
+			'position' => 0,
+			'render'   => 'diluxone_users_screen_design_summary',
+			'form'     => false,
+		)
+	);
+	diluxone_users_register_panel(
+		DILUXONE_USERS_DESIGN,
 		'brand',
 		array(
 			'label'    => __( 'Your brand', 'diluxone-users' ),
@@ -388,6 +398,155 @@ function diluxone_users_design_panels(): void {
 	);
 }
 add_action( 'diluxone_users_register_panels', 'diluxone_users_design_panels' );
+
+/**
+ * What everything the plugin draws looks like, one row a tab. Nothing is
+ * edited here, and nothing is drawn beside it: the tabs it points at carry
+ * their previews.
+ */
+function diluxone_users_screen_design_summary(): void {
+	$tab = static fn( string $id ): string => diluxone_users_admin_url( DILUXONE_USERS_DESIGN, array( 'tab' => $id ) );
+
+	// The colour by its name in the palette; one kept from a time any colour
+	// was an answer, by itself.
+	$accent = diluxone_users_hex( (string) diluxone_users_option( 'diluxone_users_style_accent' ) );
+	$accent = '' !== $accent ? $accent : diluxone_users_accent_default();
+	$name   = $accent;
+
+	foreach ( diluxone_users_accent_palette() as $swatch ) {
+		if ( diluxone_users_hex( (string) $swatch['color'] ) === $accent ) {
+			$name = (string) $swatch['name'];
+		}
+	}
+
+	$styles   = (bool) diluxone_users_option( 'diluxone_users_styles' );
+	$login    = (string) diluxone_users_option( 'diluxone_users_login_template' );
+	$account  = (string) diluxone_users_option( 'diluxone_users_account_template' );
+	$skin     = (string) diluxone_users_option( 'diluxone_users_sso_button_skin' );
+	$skins    = diluxone_users_sso_button_skins();
+	$sources  = array_filter(
+		array(
+			diluxone_users_option( 'diluxone_users_avatar_upload' ) ? __( 'a photo they upload', 'diluxone-users' ) : '',
+			diluxone_users_option( 'diluxone_users_avatar_gravatar' ) ? __( 'Gravatar', 'diluxone-users' ) : '',
+			diluxone_users_option( 'diluxone_users_avatar_initials' ) ? __( 'their initials', 'diluxone-users' ) : '',
+		)
+	);
+	$wp_brand = (bool) diluxone_users_option( 'diluxone_users_wp_login_brand' );
+
+	diluxone_users_intro( __( 'How everything the plugin draws looks, read from the settings the other tabs write. Nothing is edited here.', 'diluxone-users' ) );
+
+	diluxone_users_summary_table(
+		array_merge(
+			array(
+				diluxone_users_summary_row(
+					array( 'diluxone_users_styles', 'diluxone_users_style_accent' ),
+					array(
+						'label'  => __( 'Your brand', 'diluxone-users' ),
+						'state'  => $styles ? 'active' : 'off',
+						'word'   => $styles ? $name : __( 'The site’s own', 'diluxone-users' ),
+						'detail' => $styles
+							? esc_html__( 'The plugin’s stylesheet, in your colour.', 'diluxone-users' )
+							: esc_html__( 'No stylesheet of the plugin’s: the theme draws everything.', 'diluxone-users' ),
+						'url'    => $tab( 'brand' ),
+					),
+					esc_html__( 'The plugin’s stylesheet, in its own blue.', 'diluxone-users' )
+				),
+				diluxone_users_summary_row(
+					'diluxone_users_login_template',
+					array(
+						'label'  => __( 'The sign-in page', 'diluxone-users' ),
+						'state'  => 'active',
+						'word'   => (string) ( diluxone_users_login_templates()[ $login ]['label'] ?? $login ),
+						'detail' => esc_html( (string) ( diluxone_users_login_templates()[ $login ]['help'] ?? '' ) ),
+						'url'    => $tab( 'login' ),
+					),
+					esc_html__( 'The form where the theme put it, with nothing around it.', 'diluxone-users' )
+				),
+				diluxone_users_summary_row(
+					array( 'diluxone_users_account_template', 'diluxone_users_account_layout' ),
+					array(
+						'label'  => __( 'Account area', 'diluxone-users' ),
+						'state'  => 'active',
+						'word'   => (string) ( diluxone_users_account_templates()[ $account ]['label'] ?? $account ),
+						'detail' => esc_html( (string) ( diluxone_users_account_layouts()[ diluxone_users_account_layout() ] ?? '' ) ),
+						'url'    => $tab( 'account' ),
+					),
+					esc_html__( 'A panel in the page, with tabs across the top.', 'diluxone-users' )
+				),
+				diluxone_users_summary_row(
+					'diluxone_users_sso_button_skin',
+					array(
+						'label'  => __( 'Social login', 'diluxone-users' ),
+						'state'  => 'active',
+						'word'   => (string) ( $skins[ $skin ] ?? $skins['brand'] ),
+						'detail' => esc_html__( 'The finish of the buttons on the sign-in page.', 'diluxone-users' ),
+						'url'    => $tab( 'social' ),
+					),
+					esc_html__( 'Each brand’s colour.', 'diluxone-users' )
+				),
+				diluxone_users_summary_row(
+					array( 'diluxone_users_avatar_upload', 'diluxone_users_avatar_gravatar', 'diluxone_users_avatar_initials' ),
+					array(
+						'label'  => __( 'Profile photo', 'diluxone-users' ),
+						'state'  => array() !== $sources ? 'active' : 'off',
+						'detail' => array() !== $sources
+							? esc_html(
+								sprintf(
+									/* translators: %s: where the photo comes from, comma separated */
+									__( 'From %s.', 'diluxone-users' ),
+									implode( ', ', $sources )
+								)
+							)
+							: esc_html__( 'WordPress’s own picture, as it has it.', 'diluxone-users' ),
+						'url'    => $tab( 'photo' ),
+					),
+					esc_html__( 'Gravatar, and their initials when there is none, as WordPress does.', 'diluxone-users' )
+				),
+				diluxone_users_summary_row(
+					'diluxone_users_wp_login_brand',
+					array(
+						'label'  => 'wp-login.php',
+						'state'  => $wp_brand ? 'active' : 'off',
+						'word'   => $wp_brand ? __( 'Your brand', 'diluxone-users' ) : __( 'As WordPress ships it', 'diluxone-users' ),
+						'detail' => $wp_brand
+							? esc_html__( 'WordPress’s own sign-in screen carries your mark and your colour.', 'diluxone-users' )
+							: esc_html__( 'WordPress’s own sign-in screen keeps its look.', 'diluxone-users' ),
+						'url'    => $tab( 'wp' ),
+					),
+					esc_html__( 'WordPress’s own sign-in screen keeps its look.', 'diluxone-users' )
+				),
+			),
+			diluxone_users_summary_pro_rows(
+				array(
+					array(
+						'where'  => 'design/summary/account-cover',
+						'screen' => 'design',
+						'title'  => __( 'The account area with a cover', 'diluxone-users' ),
+						'text'   => __( 'Users+ Pro adds the account area with a cover: the person on a band the full width of the window, in a colour or a picture, with the menu in a strip of its own underneath.', 'diluxone-users' ),
+					),
+					array(
+						'where'  => 'design/summary/any-color',
+						'screen' => 'design',
+						'title'  => __( 'Any colour', 'diluxone-users' ),
+						'text'   => __( 'Users+ Pro adds a picker for any colour at all, here and wherever the plugin asks for one.', 'diluxone-users' ),
+					),
+					array(
+						'where'  => 'design/summary/theme',
+						'screen' => 'design',
+						'title'  => __( 'The colours from your theme', 'diluxone-users' ),
+						'text'   => __( 'Users+ Pro paints the plugin with the palette your theme publishes, or with the colours it paints on the site, and follows the theme into its own dark mode.', 'diluxone-users' ),
+					),
+					array(
+						'where'  => 'design/summary/color-map',
+						'screen' => 'design',
+						'title'  => __( 'Which theme colour plays each part', 'diluxone-users' ),
+						'text'   => __( 'Users+ Pro lets you choose which colour of your theme’s palette plays each part, for a theme that numbers its colours instead of naming them.', 'diluxone-users' ),
+					),
+				)
+			)
+		)
+	);
+}
 
 /**
  * What the registration form says.

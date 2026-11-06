@@ -22,7 +22,17 @@ const SUMMARIES: Array<[string, string, string[]]> = [
 		'summary',
 		['security/summary/more', 'security/summary/app', 'security/summary/roles', 'security/summary/link', 'security/summary/remember'],
 	],
+	['diluxone-users-fields', 'summary', ['fields/summary/missing', 'fields/summary/skip']],
+	['diluxone-users-social', 'summary', ['social/summary/providers', 'social/summary/roles']],
+	[
+		'diluxone-users-design',
+		'summary',
+		['design/summary/account-cover', 'design/summary/any-color', 'design/summary/theme', 'design/summary/color-map'],
+	],
 ];
+
+/** The screens that had no Summary before #241, and now open on one. */
+const NEW_SUMMARIES = ['diluxone-users-fields', 'diluxone-users-social', 'diluxone-users-design'];
 
 /** The keys of the Pro rows of the Summary table, in order. */
 async function proRows(page: Page): Promise<string[]> {
@@ -49,6 +59,30 @@ test.describe('Every Summary says what Users+ Pro would add to it', () => {
 				await expect(row.locator('.diluxone-users-state--pro'), `${key}: the badge`).toBeVisible();
 				await expect(row.locator('a[href*="diluxone.com/wordpress-plugins/users/"][href*="utm_campaign=free"][target="_blank"]'), `${key}: the link`).toHaveCount(1);
 			}
+		});
+	}
+});
+
+test.describe('User fields, Social login and Design open on a Summary of their own', () => {
+	test.beforeEach(async ({ options }) => {
+		await options.keep(['diluxone_users_pro_previews']);
+		await options.set({ diluxone_users_pro_previews: 1 });
+	});
+
+	for (const screen of NEW_SUMMARIES) {
+		test(`${screen}, opened without a tab, is on its Summary`, async ({ page }) => {
+			await page.goto(adminUrl(screen));
+
+			await expect(page.locator('.nav-tab-wrapper a.nav-tab').first(), 'Summary is the first tab').toHaveAttribute('href', /[?&]tab=summary\b/);
+			await expect(page.locator('.nav-tab-wrapper a.nav-tab-active'), 'and the one open').toHaveAttribute('href', /[?&]tab=summary\b/);
+
+			// What the screen has set up now, then what Pro would add: real
+			// rows first, each with a way to the tab that changes it.
+			const real = page.locator('table.diluxone-users-summary tr:not(.du-pro--row)');
+
+			expect(await real.count(), 'it reports the screen as it is').toBeGreaterThan(0);
+			await expect(real.first().locator('a[href*="page=diluxone-users-"]')).toHaveCount(1);
+			await expect(page.locator('form#diluxone-users-panel-form, p.submit'), 'nothing to save').toHaveCount(0);
 		});
 	}
 });

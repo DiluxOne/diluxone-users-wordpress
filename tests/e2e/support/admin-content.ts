@@ -184,7 +184,7 @@ export async function fillField(page: Page, field: Partial<NewField>): Promise<v
  * back what was stored.
  */
 export async function addField(page: Page, site: Site, field: NewField): Promise<StoredField> {
-	await page.goto(adminUrl('diluxone-users-fields') + '&diluxone_users_new=1');
+	await page.goto(adminUrl('diluxone-users-fields', 'list') + '&diluxone_users_new=1');
 	await fillField(page, field);
 
 	expect(await submitField(page), `the field “${field.label}” is saved`).toBe('saved');
@@ -198,7 +198,7 @@ export async function addField(page: Page, site: Site, field: NewField): Promise
 
 /** Opens one field's own screen and saves what `change` filled in. */
 export async function editField(page: Page, key: string, change: Partial<NewField>): Promise<string> {
-	await page.goto(adminUrl('diluxone-users-fields') + `&field=${key}`);
+	await page.goto(adminUrl('diluxone-users-fields', 'list') + `&field=${key}`);
 	await fillField(page, change);
 
 	return submitField(page);

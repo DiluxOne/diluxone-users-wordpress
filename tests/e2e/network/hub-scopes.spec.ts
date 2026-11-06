@@ -160,7 +160,7 @@ test.describe('The network’s settings, saved through their controls, are every
 		await navigated(page, () => page.locator('#submit').click());
 
 		// Moved below the last name with the list's own arrow.
-		await page.goto(network('admin.php?page=diluxone-users-fields'));
+		await page.goto(network('admin.php?page=diluxone-users-fields&tab=list'));
 		await navigated(page, () => page.locator('a[href*="field=first_name"][href*="diluxone_users_action=down"]').first().click());
 
 		const fields = (await beta.site.getOptions(['diluxone_users_fields'])).diluxone_users_fields as Array<{ key: string; label: string; required: number }>;
