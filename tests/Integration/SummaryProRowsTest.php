@@ -331,4 +331,43 @@ class SummaryProRowsTest extends IntegrationTestCase {
 			}
 		}
 	}
+
+	/* ── One row answered away ─────────────────────────────────────── */
+
+	/**
+	 * `diluxone_users_upsell` false for one row's key, and nothing on
+	 * `diluxone_users_summary_pro_row`: that row is gone, every other row of
+	 * the Summary stays, in order. Asked of every key of every Summary.
+	 */
+	public function test_the_upsell_filter_false_for_one_key_takes_that_row_away_and_leaves_the_rest(): void {
+		$this->where_network_screens_are();
+		$this->the_admin();
+
+		$this->assertFalse( has_filter( 'diluxone_users_summary_pro_row' ), 'nothing hooked on the summary row filter' );
+
+		$summaries = $this->summaries();
+
+		if ( is_multisite() ) {
+			$summaries['membership'] = array( 'diluxone_users_screen_membership_policy', array( 'network/summary/whoever-asks', 'network/summary/invitation' ) );
+		}
+
+		foreach ( $summaries as $screen => $summary ) {
+			$before = $this->draw( $summary[0] );
+
+			foreach ( $summary[1] as $gone ) {
+				$filter = static fn( bool $show, string $where ): bool => $where === $gone ? false : $show;
+
+				add_filter( 'diluxone_users_upsell', $filter, 10, 2 );
+				$html = $this->draw( $summary[0] );
+				remove_filter( 'diluxone_users_upsell', $filter, 10 );
+
+				$this->assertSame( array_values( array_diff( $summary[1], array( $gone ) ) ), $this->pro_rows( $html ), "{$screen}: {$gone} gone, the other Pro rows stay" );
+				$this->assertSame(
+					substr_count( $before, '<tr' ) - 1,
+					substr_count( $html, '<tr' ),
+					"{$screen}: one row fewer, the real ones all there"
+				);
+			}
+		}
+	}
 }
