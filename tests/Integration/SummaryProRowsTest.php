@@ -44,6 +44,7 @@ class SummaryProRowsTest extends IntegrationTestCase {
 	private function summaries(): array {
 		return array(
 			'access'   => array( 'diluxone_users_screen_login_summary', array( 'login/summary/passkeys', 'login/summary/shapes' ) ),
+			'account'  => array( 'diluxone_users_screen_account_summary', array( 'account/summary/sections', 'account/summary/handle' ) ),
 			'security' => array( 'diluxone_users_screen_security_summary', array( 'security/summary/more', 'security/summary/app', 'security/summary/roles', 'security/summary/link', 'security/summary/remember' ) ),
 		);
 	}
@@ -112,5 +113,19 @@ class SummaryProRowsTest extends IntegrationTestCase {
 		$this->assertStringContainsString( 'Passkeys', $this->row( $html, 'security/summary/more' ) );
 		$this->assertStringContainsString( 'An authenticator app', $this->row( $html, 'security/summary/app' ) );
 		$this->assertStringContainsString( 'Remember a browser', $this->row( $html, 'security/summary/remember' ) );
+	}
+
+	/* ── Account area ──────────────────────────────────────────────── */
+
+	public function test_account_has_a_pro_row_for_sections_of_its_own_and_one_for_how_the_public_name_changes(): void {
+		$this->the_admin();
+
+		$html = $this->summary( 'account' );
+
+		$this->assertSame( array( 'account/summary/sections', 'account/summary/handle' ), $this->pro_rows( $html ) );
+		$this->assert_pro_row( $html, 'account/summary/sections', 'account' );
+		$this->assert_pro_row( $html, 'account/summary/handle', 'account' );
+		$this->assertMatchesRegularExpression( '/days between one change.*keeps the first one/s', $this->row( $html, 'account/summary/handle' ), 'how often, and keeping it once chosen, in one row' );
+		$this->assertGreaterThan( strpos( $html, 'section=privacy' ), strpos( $html, 'du-pro--row' ), 'after the real rows' );
 	}
 }

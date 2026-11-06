@@ -16,6 +16,7 @@ test.use({ storageState: ADMIN_STATE });
 /** Each Summary, the tab it is on, and the key of every Pro row it draws, in order. */
 const SUMMARIES: Array<[string, string, string[]]> = [
 	['diluxone-users-login', 'summary', ['login/summary/passkeys', 'login/summary/shapes']],
+	['diluxone-users-account', 'summary', ['account/summary/sections', 'account/summary/handle']],
 	[
 		'diluxone-users-security',
 		'summary',

@@ -1225,115 +1225,133 @@ function diluxone_users_screen_account_summary(): void {
 	 * did decide.
 	 */
 	diluxone_users_summary_table(
-		array(
-			diluxone_users_summary_row(
-				'diluxone_users_account_page',
-				array(
-					'label'  => __( 'The page', 'diluxone-users' ),
-					// Pending and not off, which is the word the status screen has
-					// always used for a page nobody has chosen yet: off says
-					// somebody turned it off, and there is no switch to turn.
-					'state'  => $page > 0 ? 'active' : 'pending',
-					'why'    => $page > 0 ? '' : __( 'No page chosen yet.', 'diluxone-users' ),
-					'detail' => $page > 0
-						? sprintf( '<a href="%s">%s</a>', esc_url( (string) get_permalink( $page ) ), esc_html( (string) get_the_title( $page ) ) )
-						: esc_html__( 'This site has no account area.', 'diluxone-users' ),
-					'url'    => $tab( 'page' ),
-				),
-				esc_html__( 'No account area: people edit their details on the dashboard profile, as WordPress has it.', 'diluxone-users' )
-			),
-			diluxone_users_summary_row(
-				'diluxone_users_account_sections',
-				array(
-					'label'  => __( 'Sections', 'diluxone-users' ),
-					'state'  => array() !== $on ? 'active' : 'off',
-					'detail' => esc_html(
-						sprintf(
-						/* translators: 1: sections shown, 2: sections there are */
-							__( '%1$d of %2$d shown.', 'diluxone-users' ),
-							count( $on ),
-							count( $sections )
-						)
+		array_merge(
+			array(
+				diluxone_users_summary_row(
+					'diluxone_users_account_page',
+					array(
+						'label'  => __( 'The page', 'diluxone-users' ),
+						// Pending and not off, which is the word the status screen has
+						// always used for a page nobody has chosen yet: off says
+						// somebody turned it off, and there is no switch to turn.
+						'state'  => $page > 0 ? 'active' : 'pending',
+						'why'    => $page > 0 ? '' : __( 'No page chosen yet.', 'diluxone-users' ),
+						'detail' => $page > 0
+							? sprintf( '<a href="%s">%s</a>', esc_url( (string) get_permalink( $page ) ), esc_html( (string) get_the_title( $page ) ) )
+							: esc_html__( 'This site has no account area.', 'diluxone-users' ),
+						'url'    => $tab( 'page' ),
 					),
-					'url'    => $tab( 'sections' ),
+					esc_html__( 'No account area: people edit their details on the dashboard profile, as WordPress has it.', 'diluxone-users' )
 				),
-				esc_html__( 'As the plugin ships them, in an account area this site has not made yet: WordPress has none.', 'diluxone-users' )
-			),
-			diluxone_users_summary_row(
-				'diluxone_users_handle_enabled',
-				array(
-					'label'  => __( 'Public name', 'diluxone-users' ),
-					'state'  => diluxone_users_option( 'diluxone_users_handle_enabled' ) ? 'active' : 'off',
-					'detail' => diluxone_users_option( 'diluxone_users_handle_enabled' )
-						? esc_html__( 'People choose the short name they appear under.', 'diluxone-users' )
-						: esc_html__( 'The name comes from their first and last name.', 'diluxone-users' ),
-					'url'    => $tab( 'handle' ),
+				diluxone_users_summary_row(
+					'diluxone_users_account_sections',
+					array(
+						'label'  => __( 'Sections', 'diluxone-users' ),
+						'state'  => array() !== $on ? 'active' : 'off',
+						'detail' => esc_html(
+							sprintf(
+							/* translators: 1: sections shown, 2: sections there are */
+								__( '%1$d of %2$d shown.', 'diluxone-users' ),
+								count( $on ),
+								count( $sections )
+							)
+						),
+						'url'    => $tab( 'sections' ),
+					),
+					esc_html__( 'As the plugin ships them, in an account area this site has not made yet: WordPress has none.', 'diluxone-users' )
 				),
-				esc_html__( 'The name comes from their first and last name, as WordPress has it.', 'diluxone-users' )
-			),
+				diluxone_users_summary_row(
+					'diluxone_users_handle_enabled',
+					array(
+						'label'  => __( 'Public name', 'diluxone-users' ),
+						'state'  => diluxone_users_option( 'diluxone_users_handle_enabled' ) ? 'active' : 'off',
+						'detail' => diluxone_users_option( 'diluxone_users_handle_enabled' )
+							? esc_html__( 'People choose the short name they appear under.', 'diluxone-users' )
+							: esc_html__( 'The name comes from their first and last name.', 'diluxone-users' ),
+						'url'    => $tab( 'handle' ),
+					),
+					esc_html__( 'The name comes from their first and last name, as WordPress has it.', 'diluxone-users' )
+				),
 
-			/*
-			 * These two rows are named after WordPress's own things — the
-			 * profile screen and the toolbar — and both used to be measured
-			 * the other way round: the pill said Active when the setting was
-			 * "keep people out of the profile", so a site with the profile
-			 * wide open read "The dashboard profile — Off". Every row in this
-			 * table reports on the thing in its first column, so these two do
-			 * too, and the word says which way, because neither of them is a
-			 * switch of this plugin's.
-			 */
-			diluxone_users_summary_row(
-				'diluxone_users_wp_profile',
-				array(
-					'label'  => __( 'The dashboard profile', 'diluxone-users' ),
-					'state'  => 'allow' === $profile ? 'active' : 'off',
-					'word'   => 'allow' === $profile ? __( 'Reachable', 'diluxone-users' ) : __( 'Kept out', 'diluxone-users' ),
-					'detail' => esc_html( $profiles[ $profile ] ?? $profiles['allow'] ),
-					'url'    => $tab( 'dashboard' ),
+				/*
+				 * These two rows are named after WordPress's own things — the
+				 * profile screen and the toolbar — and both used to be measured
+				 * the other way round: the pill said Active when the setting was
+				 * "keep people out of the profile", so a site with the profile
+				 * wide open read "The dashboard profile — Off". Every row in this
+				 * table reports on the thing in its first column, so these two do
+				 * too, and the word says which way, because neither of them is a
+				 * switch of this plugin's.
+				 */
+				diluxone_users_summary_row(
+					'diluxone_users_wp_profile',
+					array(
+						'label'  => __( 'The dashboard profile', 'diluxone-users' ),
+						'state'  => 'allow' === $profile ? 'active' : 'off',
+						'word'   => 'allow' === $profile ? __( 'Reachable', 'diluxone-users' ) : __( 'Kept out', 'diluxone-users' ),
+						'detail' => esc_html( $profiles[ $profile ] ?? $profiles['allow'] ),
+						'url'    => $tab( 'dashboard' ),
+					),
+					esc_html__( 'Left as WordPress ships it: anybody who can reach the dashboard edits their details there.', 'diluxone-users' )
 				),
-				esc_html__( 'Left as WordPress ships it: anybody who can reach the dashboard edits their details there.', 'diluxone-users' )
-			),
-			diluxone_users_summary_row(
-				'diluxone_users_admin_bar',
-				array(
-					'label'  => __( 'The WordPress toolbar', 'diluxone-users' ),
-					'state'  => 'hide' === $bar ? 'off' : 'active',
-					'word'   => 'hide' === $bar
-						? _x( 'Hidden', 'the WordPress toolbar, on the summary of the account area', 'diluxone-users' )
-						: _x( 'Shown', 'the WordPress toolbar, on the summary of the account area', 'diluxone-users' ),
-					'detail' => 'hide' === $bar
-						? ( 'some' === (string) diluxone_users_option( 'diluxone_users_admin_bar_scope' ) ? esc_html__( 'Hidden on the site for some roles.', 'diluxone-users' ) : esc_html__( 'Hidden on the site for everybody.', 'diluxone-users' ) )
-						: esc_html__( 'Shown, as WordPress does.', 'diluxone-users' ),
-					'url'    => $tab( 'dashboard' ),
+				diluxone_users_summary_row(
+					'diluxone_users_admin_bar',
+					array(
+						'label'  => __( 'The WordPress toolbar', 'diluxone-users' ),
+						'state'  => 'hide' === $bar ? 'off' : 'active',
+						'word'   => 'hide' === $bar
+							? _x( 'Hidden', 'the WordPress toolbar, on the summary of the account area', 'diluxone-users' )
+							: _x( 'Shown', 'the WordPress toolbar, on the summary of the account area', 'diluxone-users' ),
+						'detail' => 'hide' === $bar
+							? ( 'some' === (string) diluxone_users_option( 'diluxone_users_admin_bar_scope' ) ? esc_html__( 'Hidden on the site for some roles.', 'diluxone-users' ) : esc_html__( 'Hidden on the site for everybody.', 'diluxone-users' ) )
+							: esc_html__( 'Shown, as WordPress does.', 'diluxone-users' ),
+						'url'    => $tab( 'dashboard' ),
+					),
+					esc_html__( 'Shown to everybody signed in, as WordPress does.', 'diluxone-users' )
 				),
-				esc_html__( 'Shown to everybody signed in, as WordPress does.', 'diluxone-users' )
-			),
-			diluxone_users_summary_row(
-				array( 'diluxone_users_privacy_export', 'diluxone_users_privacy_delete' ),
-				array(
-					'label'  => __( 'Their data', 'diluxone-users' ),
-					'state'  => ( diluxone_users_option( 'diluxone_users_privacy_export' ) || diluxone_users_option( 'diluxone_users_privacy_delete' ) ) ? 'active' : 'off',
-					'detail' => esc_html(
-						implode(
-							' · ',
-							array_filter(
-								array(
-									diluxone_users_option( 'diluxone_users_privacy_export' ) ? __( 'can ask for a copy', 'diluxone-users' ) : '',
-									diluxone_users_option( 'diluxone_users_privacy_delete' ) ? __( 'can ask to be deleted', 'diluxone-users' ) : '',
+				diluxone_users_summary_row(
+					array( 'diluxone_users_privacy_export', 'diluxone_users_privacy_delete' ),
+					array(
+						'label'  => __( 'Their data', 'diluxone-users' ),
+						'state'  => ( diluxone_users_option( 'diluxone_users_privacy_export' ) || diluxone_users_option( 'diluxone_users_privacy_delete' ) ) ? 'active' : 'off',
+						'detail' => esc_html(
+							implode(
+								' · ',
+								array_filter(
+									array(
+										diluxone_users_option( 'diluxone_users_privacy_export' ) ? __( 'can ask for a copy', 'diluxone-users' ) : '',
+										diluxone_users_option( 'diluxone_users_privacy_delete' ) ? __( 'can ask to be deleted', 'diluxone-users' ) : '',
+									)
 								)
 							)
-						)
+						),
+						'url'    => diluxone_users_admin_url(
+							'diluxone-users-account',
+							array(
+								'tab'     => 'sections',
+								'section' => 'privacy',
+							)
+						),
 					),
-					'url'    => diluxone_users_admin_url(
-						'diluxone-users-account',
-						array(
-							'tab'     => 'sections',
-							'section' => 'privacy',
-						)
-					),
+					esc_html__( 'Nothing is offered on the site: WordPress’s own tools under Users do it, by an administrator’s hand.', 'diluxone-users' )
 				),
-				esc_html__( 'Nothing is offered on the site: WordPress’s own tools under Users do it, by an administrator’s hand.', 'diluxone-users' )
 			),
+			diluxone_users_summary_pro_rows(
+				array(
+					array(
+						'where'  => 'account/summary/sections',
+						'screen' => 'account',
+						'title'  => __( 'Sections of the site’s own', 'diluxone-users' ),
+						'text'   => __( 'Users+ Pro adds sections of the site’s own: your text, or the shortcode of a course, a membership or a support desk, each with its name, address and who sees it.', 'diluxone-users' ),
+					),
+					array(
+						'where'  => 'account/summary/handle',
+						'screen' => 'account',
+						'title'  => __( 'How the public name may change', 'diluxone-users' ),
+						'text'   => __( 'Users+ Pro sets the days between one change of the public name and the next, or keeps the first one somebody picks for good.', 'diluxone-users' ),
+					),
+				)
+			)
 		)
 	);
 }
