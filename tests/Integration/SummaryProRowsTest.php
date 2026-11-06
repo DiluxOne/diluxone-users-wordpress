@@ -370,4 +370,95 @@ class SummaryProRowsTest extends IntegrationTestCase {
 			}
 		}
 	}
+
+	/* ── The add-on's real row, in the Pro row's place ─────────────── */
+
+	/** Markup with the white space between its tags taken out. */
+	private function squeezed( string $html ): string {
+		return (string) preg_replace( '/>\s+</', '><', $html );
+	}
+
+	/** The real row of a feature, as Users+ Pro would answer it. */
+	private function real_row( string $for ): callable {
+		return static function ( $row, string $where ) use ( $for ) {
+			if ( $where !== $for ) {
+				return $row;
+			}
+
+			return array(
+				'label'    => 'The real feature',
+				'state'    => 'active',
+				'word'     => 'On',
+				'url'      => 'https://example.test/wp-admin/admin.php?page=pro-feature',
+				'change'   => 'Change it',
+				// A badge that is not a preview's is dropped.
+				'pro'      => $where,
+				'external' => '1',
+				'extra'    => '<script>nope</script>',
+			);
+		};
+	}
+
+	/**
+	 * A callback that answers one key with its real row: drawn where the Pro
+	 * row was, with the callback's name, state and link and no badge, with
+	 * the previews on and with them off; every other row as it was.
+	 */
+	public function test_an_add_on_answers_one_row_with_its_real_one_in_the_same_place_previews_on_or_off(): void {
+		$this->where_network_screens_are();
+		$this->the_admin();
+
+		$summaries = $this->summaries();
+
+		if ( is_multisite() ) {
+			$summaries['membership'] = array( 'diluxone_users_screen_membership_policy', array( 'network/summary/whoever-asks', 'network/summary/invitation' ) );
+		}
+
+		$real_tr = '/<tr>\s*<th scope="row" class="diluxone-users-summary__what">The real feature<\/th>.*?<\/tr>/s';
+
+		foreach ( array( 1, 0 ) as $previews ) {
+			diluxone_users_update_option( 'diluxone_users_pro_previews', $previews );
+
+			foreach ( $summaries as $screen => $summary ) {
+				$keys   = $summary[1];
+				$for    = $keys[ count( $keys ) > 1 ? 1 : 0 ];
+				$say    = "{$screen}, previews " . ( $previews ? 'on' : 'off' );
+				$before = $this->draw( $summary[0] );
+				$filter = $this->real_row( $for );
+
+				add_filter( 'diluxone_users_summary_pro_row', $filter, 10, 2 );
+				$html = $this->draw( $summary[0] );
+				remove_filter( 'diluxone_users_summary_pro_row', $filter, 10 );
+
+				$this->assertSame( 1, preg_match( $real_tr, $html, $found ), "{$say}: the real row is drawn" );
+
+				$row = $found[0];
+
+				$this->assertStringNotContainsString( 'du-pro', $row, "{$say}: no Pro class" );
+				$this->assertStringNotContainsString( 'diluxone-users-state--pro', $row, "{$say}: no Pro pill" );
+				$this->assertStringNotContainsString( 'Learn about Users+ Pro', $row );
+				$this->assertStringNotContainsString( 'target="_blank"', $row, 'not the way out of a preview' );
+				$this->assertStringNotContainsString( 'nope', $row, 'only the keys a row has' );
+				$this->assertStringContainsString( 'diluxone-users-state--active">On</span>', $row, "{$say}: its state, in its word" );
+				$this->assertMatchesRegularExpression( '#href="https://example\.test/wp-admin/admin\.php\?page=pro-feature">Change it</a>#', $row, "{$say}: its link" );
+
+				// The other Pro rows are the ones there were, and the real one
+				// is where its preview was: after the one before it.
+				$this->assertSame( array_values( array_diff( $this->pro_rows( $before ), array( $for ) ) ), $this->pro_rows( $html ), "{$say}: the other Pro rows unchanged" );
+
+				if ( $previews ) {
+					$this->assertSame( (int) strpos( $before, 'data-diluxone-users-pro="' . $for . '"' ) > 0, true );
+					$this->assertGreaterThan( (int) strpos( $html, 'data-diluxone-users-pro="' . $keys[0] . '"' ), (int) strpos( $html, 'The real feature' ), "{$say}: in the Pro row's place" );
+
+					if ( isset( $keys[2] ) ) {
+						$this->assertLessThan( (int) strpos( $html, 'data-diluxone-users-pro="' . $keys[2] . '"' ), (int) strpos( $html, 'The real feature' ), "{$say}: before the next one" );
+					}
+
+					$this->assertSame( $this->squeezed( (string) preg_replace( '/<tr class="du-pro du-pro--row" data-diluxone-users-pro="' . preg_quote( $for, '/' ) . '">.*?<\/tr>/s', '', $before ) ), $this->squeezed( (string) preg_replace( $real_tr, '', $html ) ), "{$say}: every other row as it was" );
+				} elseif ( 'membership' !== $screen ) {
+					$this->assertSame( $this->squeezed( $before ), $this->squeezed( (string) preg_replace( $real_tr, '', $html ) ), "{$say}: every other row as it was" );
+				}
+			}
+		}
+	}
 }
