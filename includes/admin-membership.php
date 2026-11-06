@@ -321,6 +321,32 @@ function diluxone_users_screen_membership_policy(): void {
 			if ( $confirmed ) {
 				diluxone_users_ui_aside_state( $line, array() !== $queue ? 'pending' : 'active' );
 			}
+
+			// Under the state, what Users+ Pro would add to it, a row each:
+			// the screen has no Summary, and this is where it says how it
+			// stands. In a note, one of the rail's own blocks.
+			$pro = diluxone_users_summary_pro_rows(
+				array(
+					array(
+						'where'  => 'network/summary/whoever-asks',
+						'screen' => 'network-membership',
+						'title'  => __( 'Whoever asks', 'diluxone-users' ),
+						'text'   => __( 'Users+ Pro lets an account join any other site with a click on “Join this site”.', 'diluxone-users' ),
+					),
+					array(
+						'where'  => 'network/summary/invitation',
+						'screen' => 'network-membership',
+						'title'  => __( 'By invitation', 'diluxone-users' ),
+						'text'   => __( 'Users+ Pro lets only a site’s administrators add an account to it.', 'diluxone-users' ),
+					),
+				)
+			);
+
+			if ( array() !== $pro ) {
+				echo '<div class="du-note">';
+				diluxone_users_summary_table( $pro );
+				echo '</div>';
+			}
 		}
 	);
 }

@@ -81,7 +81,9 @@ class SummaryProRowsTest extends IntegrationTestCase {
 
 		$this->assertStringContainsString( 'diluxone-users-state--pro', $row, "{$where}: the Pro badge" );
 		$this->assertMatchesRegularExpression( '/<td class="diluxone-users-summary__detail">\s*Users\+ Pro [^<]+<\/td>/', $row, "{$where}: one sentence about what it adds" );
-		$this->assertStringContainsString( 'href="' . esc_url( diluxone_users_pro_url( $screen ) ) . '" target="_blank" rel="noopener noreferrer"', $row, "{$where}: the link, as every Pro link" );
+		// The same address however the ampersands were written: a rail goes
+		// through wp_kses(), which writes them as `&amp;`.
+		$this->assertStringContainsString( 'href="' . esc_url( diluxone_users_pro_url( $screen ) ) . '" target="_blank" rel="noopener noreferrer"', str_replace( '&amp;', '&#038;', $row ), "{$where}: the link, as every Pro link" );
 		$this->assertSame( 1, substr_count( $row, 'Learn about Users+ Pro' ), "{$where}: one way out" );
 	}
 
@@ -257,5 +259,33 @@ class SummaryProRowsTest extends IntegrationTestCase {
 
 		$this->assertStringContainsString( 'cover', $this->row( $html, 'design/summary/account-cover' ) );
 		$this->assertStringContainsString( 'Which theme colour plays each part', $this->row( $html, 'design/summary/color-map' ) );
+	}
+
+	/* ── Network Admin › Membership ────────────────────────────────── */
+
+	/**
+	 * The screen has no Summary: its rail is where it says how it stands,
+	 * and the two policies Users+ Pro brings are rows under that state.
+	 *
+	 * @group multisite
+	 */
+	public function test_membership_reports_whoever_asks_and_by_invitation_as_pro_rows_under_its_state(): void {
+		$this->network_only( 'none: Membership is a network screen' );
+		$this->in_network_admin();
+		$this->the_admin();
+
+		$html = $this->draw( 'diluxone_users_screen_membership_policy' );
+
+		$this->assertSame( array( 'network/summary/whoever-asks', 'network/summary/invitation' ), $this->pro_rows( $html ) );
+		$this->assert_pro_row( $html, 'network/summary/whoever-asks', 'network-membership' );
+		$this->assert_pro_row( $html, 'network/summary/invitation', 'network-membership' );
+		$this->assertStringContainsString( 'Whoever asks', $this->row( $html, 'network/summary/whoever-asks' ) );
+		$this->assertStringContainsString( 'By invitation', $this->row( $html, 'network/summary/invitation' ) );
+
+		$rail = (int) strpos( $html, 'diluxone-users-studio__aside' );
+
+		$this->assertGreaterThan( 0, $rail, 'the rail' );
+		$this->assertGreaterThan( $rail, (int) strpos( $html, 'data-diluxone-users-pro="network/summary/whoever-asks"' ), 'in the rail, where the screen reports its state' );
+		$this->assertSame( 2, substr_count( $html, 'data-diluxone-users-pro="network/membership/rules"' ), 'the two radios inside the tab are unchanged' );
 	}
 }
