@@ -58,4 +58,8 @@ class ReadmeListingTest extends TestCase {
 			}
 		}
 	}
+
+	public function test_c2_no_fragment_waits_to_be_added_to_the_first_release(): void {
+		$this->assertSame( array(), glob( DILUXONE_USERS_DIR . 'changelog.d/*.md' ) );
+	}
 }
