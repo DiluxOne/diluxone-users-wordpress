@@ -28,27 +28,32 @@ Only the plugin's own screens appear, in the dashboard.
   Security, Notifications and Your data, as tabs or a side menu. Sections can
   be renamed, reordered and turned off, and take the site's own words or
   another plugin's shortcode before, after or instead of what they show.
-* **How people get in**: a link sent to their e-mail with no password, username
-  and password, or both, plus control over WordPress's own registration and
-  profile screens.
+* **How people get in**: a sign-in link sent to the e-mail address they type
+  (the box takes an address only), WordPress's own password form, or both;
+  a registration form of the plugin's own; and control over WordPress's own
+  registration and profile screens.
 * **Social login** with Google and Microsoft, a step-by-step guide for each
   console and a live test before one is turned on. DiluxOne Users+ Pro, a
   separate add-on, adds ten more providers.
-* **Two-step verification**: a code by e-mail and backup codes, optional or
-  required, asked after the e-mail link as after a password. DiluxOne
-  Users+ Pro adds an authenticator app, asking it of some roles only,
-  deciding on the link whether the code proves anything new, and not asking
-  again on a browser that passed it.
+* **Two-step verification**: a code by e-mail, with backup codes for when the
+  inbox is out of reach, optional or required, asked after the e-mail link as
+  after a password. DiluxOne Users+ Pro adds an authenticator app, asking it
+  of some roles only, and not asking again on a browser that passed it.
+* **Sessions**: how long they last (WordPress's own length until you choose
+  one), every open session on **Reports → Open sessions** with a button to
+  close them, and, once you show it, each person's own list on their
+  account's Security tab.
 * **Design**: the sign-in page left in your page, in a centred card or on a
-  screen of its own at an address you choose, a
-  simple account area, the colours from a short palette that always reads,
-  light and dark (DiluxOne Users+ Pro adds the colours from your theme), and the sizes and spacing — or no stylesheet at all, for
-  a site that styles everything itself.
+  screen of its own at an address you choose, and the colours from a short
+  palette that reads in light and dark (DiluxOne Users+ Pro adds the colours
+  from your theme), or no stylesheet at all, for a site that styles
+  everything itself.
 * **An activity log** of its own, off until you tick what to record: who
   signed in, who was refused and what changed. It records IP addresses; see
   Privacy below.
 * **Privacy**: WordPress's own export and erasure requests answer for
-  everything this plugin stores, and people can delete their own account.
+  everything this plugin stores and, once you turn it on, people can ask for
+  their data or delete their account from the account area.
 
 == External services ==
 
@@ -109,9 +114,9 @@ the **IP address** and the browser's user-agent; for a refused sign-in, the
 name typed; for a changed account, the old and new e-mail or public name.
 Rows are kept 90 days unless you choose otherwise.
 
-Cookies: short-lived ones while somebody signs in (or signs in to confirm a
-request), one for a browser that need not be asked the second step again, and
-one for the way in used last.
+Cookies: short-lived ones while somebody signs in, links a social account,
+chooses a new password or confirms a request; on a network, one that holds the
+page to go back to for twenty minutes; and one for the way in used last.
 
 The plugin itself sends nothing anywhere: no telemetry, no licence check.
 
@@ -152,8 +157,9 @@ their own too: `[diluxone_users_fields]`, `[diluxone_users_avatar]`,
 `[diluxone_users_sessions]` and `[diluxone_users_notifications]`. On a
 network they are the main site's: placed on another site, each one draws a
 button to the main site's page, which brings people back afterwards. On a
-network, `[diluxone_users_join]` tells somebody signed in who is not a member
-that the site is by invitation; it draws nothing on a single site.
+network, `[diluxone_users_join]` tells somebody signed in whom an administrator
+removed from that site that they are not a member of it; it draws nothing on a
+single site.
 
 = Does it work on multisite? =
 
@@ -181,7 +187,8 @@ its own is not supported in this version. The rest is in
 Add `define( 'DILUXONE_USERS_SAFE_MODE', true );` to `wp-config.php`. While it
 is there the plugin steps aside: nothing redirects, wp-login.php signs people
 in the way WordPress does on every site, nobody is asked for the second step, and
-social sign-in and every add-on's door are off, so your username and password get you in.
+social sign-in and every add-on's door are off, so your WordPress username (or
+e-mail address) and password get you in.
 Every dashboard page says safe mode is on; fix the cause and remove the line.
 With no sign-in page chosen, the second step is asked on wp-login.php itself.
 
@@ -226,6 +233,6 @@ First public release.
 * Ways in: a sign-in link sent by e-mail, a password, or both, on a sign-in page inside the site or on a page of its own, with the plugin's own registration form.
 * Social login with Google and Microsoft, with a guide for each console and a live test.
 * Two-step verification by e-mail code and backup codes, optional or required.
-* Sessions: every browser signed in, for the person on their account and for administrators across the site, with a button to close them.
+* Sessions: how long they last, and every open session, for administrators and, once shown, for each person on their account, with a button to close them.
 * Design: the sign-in page and the account area in a short palette that reads in light and dark, or with no stylesheet at all.
 * An activity log, off until you choose what to record; WordPress's export and erasure requests for everything the plugin stores; and multisite, one set of rules for the whole network.
