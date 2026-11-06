@@ -461,4 +461,41 @@ class SummaryProRowsTest extends IntegrationTestCase {
 			}
 		}
 	}
+
+	/* ── The documentation ─────────────────────────────────────────── */
+
+	/**
+	 * docs/extending.md documents the filter (its heading, its arguments,
+	 * what it returns, an example) and lists every Summary row's key: every
+	 * one the tests above draw, and every one written in the plugin's code.
+	 */
+	public function test_extending_documents_the_filter_and_every_summary_key(): void {
+		$root = dirname( __DIR__, 2 );
+		$doc  = (string) file_get_contents( $root . '/docs/extending.md' );
+
+		$this->assertMatchesRegularExpression( '/^### A Summary row of a feature Users\+ Pro brings$/m', $doc, 'its heading' );
+		$this->assertStringContainsString( '`diluxone_users_summary_pro_row` (filter)', $doc );
+		$this->assertMatchesRegularExpression( '/- `\$row` \(array\): .*diluxone_users_summary_table\(\)/s', $doc, 'its first argument' );
+		$this->assertMatchesRegularExpression( '/- `\$where` \(string\): /', $doc, 'its second argument' );
+		$this->assertStringContainsString( 'It returns the row to draw', $doc, 'what it returns' );
+		$this->assertStringContainsString( 'It runs even while the previews are off', $doc );
+		$this->assertMatchesRegularExpression( "/```php\nadd_filter\( 'diluxone_users_summary_pro_row', function \( array \\\$row, string \\\$where \): array \{.*'state'  => 'active',.*\}, 10, 2 \);\n```/s", $doc, 'an example' );
+
+		$keys = array( 'network/summary/whoever-asks', 'network/summary/invitation' );
+
+		foreach ( $this->summaries() as $summary ) {
+			$keys = array_merge( $keys, $summary[1] );
+		}
+
+		foreach ( glob( $root . '/includes/*.php' ) ?: array() as $file ) {
+			preg_match_all( "#'where'\s*=>\s*'([a-z-]+/summary/[a-z-]+)'#", (string) file_get_contents( $file ), $found );
+			$keys = array_merge( $keys, $found[1] );
+		}
+
+		$this->assertGreaterThanOrEqual( 19, count( array_unique( $keys ) ) );
+
+		foreach ( array_unique( $keys ) as $where ) {
+			$this->assertMatchesRegularExpression( '/^\| `' . preg_quote( $where, '/' ) . '` \| /m', $doc, "{$where}: a row of the table of keys" );
+		}
+	}
 }

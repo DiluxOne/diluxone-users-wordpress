@@ -1483,7 +1483,25 @@ where the add-on saves what it drew.
 | --- | --- |
 | `social/providers/<network>` | One greyed card per network on Social login › Providers, after Google and Microsoft: `linkedin`, `twitter` (X), `facebook`, `github`, `wordpress`, `yahoo`, `twitch`, `discord`, `gitlab` and `amazon`, each with its logo and its name and nothing to open. Pro answers false for each one it brings. |
 | `login/ways/more` | A disabled tick box after the ways in on Access › Ways in: signing in with a passkey. |
+| `login/summary/passkeys` | A row of the table on Access › Summary: passkeys. |
+| `login/summary/shapes` | A row of the table on Access › Summary: the two more shapes of the sign-in page, split with a picture and on a full background. |
 | `security/summary/more` | A row of the table on Security › Summary: passkeys. |
+| `security/summary/app` | A row of the table on Security › Summary: the authenticator app. |
+| `security/summary/roles` | A row of the table on Security › Summary: the second step for only some roles. |
+| `security/summary/link` | A row of the table on Security › Summary: letting it decide on the e-mail link. |
+| `security/summary/remember` | A row of the table on Security › Summary: remembering a browser. |
+| `account/summary/sections` | A row of the table on Account area › Summary: sections of the site's own. |
+| `account/summary/handle` | A row of the table on Account area › Summary: how a public name may change, how often and keeping it once chosen. |
+| `fields/summary/missing` | A row of the table on User fields › Summary: asking for the missing required fields after sign-in. |
+| `fields/summary/skip` | A row of the table on User fields › Summary: letting people skip it. |
+| `social/summary/providers` | A row of the table on Social login › Summary: the ten more networks, named. |
+| `social/summary/roles` | A row of the table on Social login › Summary: only some roles may use the buttons. |
+| `design/summary/account-cover` | A row of the table on Design › Summary: the account area with a cover. |
+| `design/summary/any-color` | A row of the table on Design › Summary: any colour. |
+| `design/summary/theme` | A row of the table on Design › Summary: the colours from the theme. |
+| `design/summary/color-map` | A row of the table on Design › Summary: which theme colour plays each part. |
+| `network/summary/whoever-asks` | A row of the table in the rail of Network Admin › Membership, under the policy's state: "whoever asks". |
+| `network/summary/invitation` | A row of the table in the rail of Network Admin › Membership, under the policy's state: "by invitation". |
 | `design/login/shapes` | Two disabled shapes after the real ones on Design › The sign-in page: split with a picture, and on a full background. One answer turns both off. |
 | `design/account/shapes` | A disabled shape after the real ones on Design › Account area: the account area with a cover. |
 | `design/brand/any-color` | A disabled colour picker after the accent's swatches on Design › Your brand: any colour. |
@@ -1500,6 +1518,42 @@ where the add-on saves what it drew.
 | `account/sections/more` | A disabled "Add a section" button beside the heading on Account › Sections, where `diluxone_users_account_sections_head` draws Pro's real one. |
 | `design/brand/theme` | A disabled radio after the two answers to where the look comes from on Design › Your brand: "From your theme", the plugin painted with the theme's colours. |
 | `design/brand/color-map` | The rows right after "From your theme" on Design › Your brand, while the theme publishes a palette, their selects disabled: which colour of the theme's palette does what. `diluxone_users_design_theme_colors` ( `$palette` ) fires after them, whether they are drawn or not. |
+
+### A Summary row of a feature Users+ Pro brings
+
+Every Pro feature of a screen is also one row of that screen's Summary (the
+`*/summary/*` keys above): its name, the "Pro" badge, one sentence and the
+link. Each passes through `diluxone_users_summary_pro_row` (filter) before it
+is drawn, so the add-on that brings the feature says how it stands in the
+same place, and the Summary is complete with or without it:
+
+- `$row` (array): the preview row, as `diluxone_users_summary_table()` takes
+  one, or `array()` while the preview is not shown here (the previews are
+  off, or `diluxone_users_upsell` answered false for it).
+- `$where` (string): which row, one of the `*/summary/*` keys.
+
+It returns the row to draw: `label` and `state` (`active`, `pending`, `off`,
+`unknown`, `unset` or `notnow`) and optionally `why`, `word`, `detail` (HTML,
+through `wp_kses_post()`), `url` and `change`; any other key is dropped, every
+value is a string, and the badge is kept only on a row whose state is still
+`pro`. An empty array draws nothing. It runs even while the previews are off,
+so the real row shows on a site that turned them off.
+
+```php
+add_filter( 'diluxone_users_summary_pro_row', function ( array $row, string $where ): array {
+	if ( 'security/summary/more' !== $where ) {
+		return $row;
+	}
+
+	return array(
+		'label'  => __( 'Passkeys', 'my-add-on' ),
+		'state'  => 'active',
+		'word'   => __( 'On', 'my-add-on' ),
+		'url'    => admin_url( 'admin.php?page=diluxone-users-security&tab=passkeys' ),
+		'change' => __( 'Change it', 'my-add-on' ),
+	);
+}, 10, 2 );
+```
 
 ### The behaviours Users+ Pro brings back
 
