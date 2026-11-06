@@ -1,15 +1,16 @@
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: DiluxOne Users+ 1.0.0\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/diluxone-users\n"
+"POT-Creation-Date: 1970-01-01 00:00+0000\n"
+"PO-Revision-Date: 1970-01-01 00:00+0000\n"
 "Last-Translator: Pablo Ariel Di Loreto\n"
 "Language-Team: Spanish (Argentina)\n"
+"Language: es_AR\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 1970-01-01 00:00+0000\n"
-"PO-Revision-Date: 1970-01-01 00:00+0000\n"
-"Language: es_AR\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Domain: diluxone-users\n"
 
@@ -17,6 +18,11 @@ msgstr ""
 #, php-format
 msgid "%1$d of %2$d shown."
 msgstr "Se muestran %1$d de %2$d."
+
+#. translators: 1: fields shown, 2: of them required, 3: fields hidden
+#, php-format
+msgid "%1$d shown, %2$d of them required; %3$d hidden."
+msgstr "%1$d visibles, %2$d de ellos obligatorios; %3$d ocultos."
 
 #. translators: 1: how long ago, 2: device and browser, 3: IP address
 #, php-format
@@ -43,7 +49,8 @@ msgstr "%1$s personas con la sesión abierta · página %2$d de %3$d"
 msgid "%1$s rows · page %2$d of %3$d"
 msgstr "%1$s filas · página %2$d de %3$d"
 
-#. translators: 1: how long with "remember me" (a number of days, or what WordPress decides), 2: the same without it
+#. translators: 1: how long with "remember me" (a number of days, or what
+#. WordPress decides), 2: the same without it
 #, php-format
 msgid "%1$s with “remember me”, %2$s without. The e-mail link always counts as “remember me”."
 msgstr "%1$s con “recordarme”, %2$s sin. El enlace por correo siempre cuenta como “recordarme”."
@@ -54,7 +61,8 @@ msgctxt "title of a dashboard screen"
 msgid "%1$s | %2$s"
 msgstr "%1$s | %2$s"
 
-#. translators: 1: percentage done, 2: additions looked at, 3: additions in all
+#. translators: 1: percentage done, 2: additions looked at, 3: additions in
+#. all
 #, php-format
 msgid "%1$s%% (%2$s of %3$s)"
 msgstr "%1$s%% (%2$s de %3$s)"
@@ -298,6 +306,9 @@ msgstr "Una página propia, en %s."
 msgid "A panel in the page, the way a settings screen looks. It sits quietly inside whatever the theme already draws."
 msgstr "Un panel dentro de la página, como se ve una pantalla de ajustes. Se queda quieta adentro de lo que ya dibuja el tema."
 
+msgid "A panel in the page, with tabs across the top."
+msgstr "Un panel en la página, con pestañas arriba."
+
 msgid "A phone number of the wrong length"
 msgstr "Un teléfono con una cantidad de dígitos incorrecta"
 
@@ -498,6 +509,9 @@ msgstr "Albania"
 msgid "Algeria"
 msgstr "Argelia"
 
+msgid "All added"
+msgstr "Todos agregados"
+
 msgid "All the doors"
 msgstr "Todas las puertas"
 
@@ -531,11 +545,20 @@ msgstr "Una cuenta pertenece a toda la red; ser miembro de un sitio —tener un 
 msgid "An account with admin permissions cannot ask for its own deletion."
 msgstr "Una cuenta con permisos de administración no puede pedir que la borren."
 
+msgid "An address the provider does not vouch for can create an account straight away."
+msgstr "Una dirección que el proveedor no garantiza puede crear una cuenta en el momento."
+
+msgid "An address the provider does not vouch for is confirmed by mail first."
+msgstr "Una dirección que el proveedor no garantiza se confirma antes por correo."
+
 msgid "An address the site has never seen gets a link, and the account exists by the time they are in."
 msgstr "Una dirección que el sitio nunca vio recibe un enlace, y la cuenta existe para cuando la persona entra."
 
 msgid "An authenticator app"
 msgstr "Una aplicación autenticadora"
+
+msgid "An e-mail already registered"
+msgstr "Un correo ya registrado"
 
 msgid "An icon inside the buttons of the doors: an envelope on the link"
 msgstr "Un icono adentro de los botones de las puertas: un sobre en el enlace"
@@ -608,6 +631,9 @@ msgstr "Armenia"
 msgid "Aruba"
 msgstr "Aruba"
 
+msgid "As WordPress ships it"
+msgstr "Como viene de WordPress"
+
 msgid "As many as fit"
 msgstr "Los que entren"
 
@@ -628,6 +654,9 @@ msgstr "Pedirlo de nuevo, actualizado"
 
 msgid "Ask for my data"
 msgstr "Pedir mis datos"
+
+msgid "Ask for the missing required fields"
+msgstr "Pedir los campos obligatorios que faltan"
 
 msgid "Ask to delete my account"
 msgstr "Pedir que borren mi cuenta"
@@ -904,7 +933,8 @@ msgctxt "the public name of one account"
 msgid "Chosen"
 msgstr "Elegido"
 
-#. translators: 1: the stored choice, as a word in code, 2: what the site gets in its place today
+#. translators: 1: the stored choice, as a word in code, 2: what the site gets
+#. in its place today
 #, php-format
 msgid "Chosen while an add-on that is not active now offered it (%1$s). Until it is back, this site gets %2$s instead. It stays chosen until you pick another answer."
 msgstr "Elegida cuando la ofrecía un complemento que ahora no está activo (%1$s). Hasta que vuelva, este sitio recibe %2$s en su lugar. Sigue elegida hasta que elijas otra respuesta."
@@ -1106,6 +1136,9 @@ msgstr "Crear la página"
 msgid "Create your account"
 msgstr "Creá tu cuenta"
 
+msgid "Creating accounts"
+msgstr "Creación de cuentas"
+
 msgid "Creating an account"
 msgstr "Crearse una cuenta"
 
@@ -1273,7 +1306,8 @@ msgstr "Descargar tus datos"
 msgid "Drag them. It is the order of the tabs and, stacked, the order down the page — so it is what somebody sees first either way. A way in that is switched off keeps its place here, so turning it off for a week does not move it to the end."
 msgstr "Arrastralas. Es el orden de las pestañas y, apiladas, el orden hacia abajo en la página: o sea, lo que alguien ve primero en cualquiera de los dos casos. Una forma de entrar apagada conserva su lugar acá, así que apagarla una semana no la manda al final."
 
-#. translators: %s: the address the sign-in page of its own is drawn at, as a link
+#. translators: %s: the address the sign-in page of its own is drawn at, as a
+#. link
 #, php-format
 msgid "Drawn at %s"
 msgstr "Se muestra en %s"
@@ -1292,6 +1326,9 @@ msgstr "Avisos por correo"
 
 msgid "Each brand’s colour"
 msgstr "El color de cada marca"
+
+msgid "Each brand’s colour."
+msgstr "El color de cada marca."
 
 msgid "Each language keeps its own wording, and one nobody has touched sends the text the plugin ships. Moving to another one here does not save what is on screen."
 msgstr "Cada idioma guarda su propia redacción, y el que nadie tocó manda el texto que trae el plugin. Pasar a otro desde acá no guarda lo que hay en pantalla."
@@ -1470,6 +1507,9 @@ msgstr "Todos los sitios mandan a la gente a %s para iniciar sesión, registrars
 msgid "Every site sends people to the hub to sign in."
 msgstr "Todos los sitios mandan a la gente al sitio principal para iniciar sesión."
 
+msgid "Every social network this site can sign people in with and the rules they follow, read from the settings the other tabs write. Nothing is edited here."
+msgstr "Cada red social con la que este sitio puede hacer entrar a la gente y las reglas que siguen, leído de los ajustes que escriben las otras pestañas. Acá no se edita nada."
+
 msgid "Every suggested field is already on the list."
 msgstr "Todos los campos sugeridos ya están en la lista."
 
@@ -1630,6 +1670,11 @@ msgstr "Territorios Australes Franceses"
 msgid "From"
 msgstr "Desde"
 
+#. translators: %s: where the photo comes from, comma separated
+#, php-format
+msgid "From %s."
+msgstr "De %s."
+
 msgid "From a link in the e-mail"
 msgstr "Desde un enlace en el correo"
 
@@ -1713,11 +1758,17 @@ msgstr "Google y Microsoft quedan siempre en blanco con su propio logo: lo piden
 msgid "Graphite"
 msgstr "Grafito"
 
+msgid "Gravatar"
+msgstr "Gravatar"
+
 msgid "Gravatar is asked: a hash of every visitor’s e-mail address is sent to a third party to ask whether it has a picture for them."
 msgstr "Se consulta a Gravatar: un hash de la dirección de correo de cada visitante se envía a un tercero para preguntarle si tiene una foto."
 
 msgid "Gravatar is not asked: no address is sent anywhere to ask whether there is a picture for it."
 msgstr "No se consulta a Gravatar: ninguna dirección se envía a ningún lado para preguntar si hay una foto."
+
+msgid "Gravatar, and their initials when there is none, as WordPress does."
+msgstr "Gravatar, y sus iniciales cuando no hay, como hace WordPress."
 
 msgid "Greece"
 msgstr "Grecia"
@@ -1806,6 +1857,9 @@ msgstr "Honduras"
 msgid "Hong Kong"
 msgstr "Hong Kong"
 
+msgid "How everything the plugin draws looks, read from the settings the other tabs write. Nothing is edited here."
+msgstr "Cómo se ve todo lo que dibuja el plugin, leído de los ajustes que escriben las otras pestañas. Acá no se edita nada."
+
 msgid "How long a session lasts"
 msgstr "Cuánto dura una sesión"
 
@@ -1829,6 +1883,9 @@ msgstr "Cómo llega el código"
 
 msgid "How the person looks"
 msgstr "Cómo se ve la persona"
+
+msgid "How the public name may change"
+msgstr "Cómo puede cambiar el nombre público"
 
 msgid "How the sites are addressed"
 msgstr "Cómo se direccionan los sitios"
@@ -2190,6 +2247,9 @@ msgstr "Alinearlo con el sitio"
 msgid "Link"
 msgstr "Vincular"
 
+msgid "Linked"
+msgstr "Se vincula"
+
 msgctxt "the social networks on one account"
 msgid "Linked"
 msgstr "Vinculadas"
@@ -2341,6 +2401,12 @@ msgstr "Montenegro"
 
 msgid "Montserrat"
 msgstr "Montserrat"
+
+msgid "More networks"
+msgstr "Más redes"
+
+msgid "More shapes for the sign-in page"
+msgstr "Más formas para la página de acceso"
 
 msgid "Morocco"
 msgstr "Marruecos"
@@ -2514,11 +2580,17 @@ msgstr "Todavía ninguna sección ofrece un cuadro, así que la portada está va
 msgid "No spaces: this goes in a web address. Letters, numbers, dots, dashes and underscores."
 msgstr "Sin espacios: esto va en una dirección web. Letras, números, puntos, guiones y guiones bajos."
 
+msgid "No stylesheet of the plugin’s: the theme draws everything."
+msgstr "Sin la hoja de estilos del plugin: el tema lo dibuja todo."
+
 msgid "No way in is chosen yet: the sign-in form is WordPress’s own, a username and a password on wp-login.php, until one is ticked here and saved."
 msgstr "Todavía no elegiste ninguna forma de entrar: el formulario de acceso es el propio de WordPress, usuario y contraseña en wp-login.php, hasta que marques una acá y guardes."
 
 msgid "No, keep it"
 msgstr "No, conservarla"
+
+msgid "Nobody"
+msgstr "A nadie"
 
 msgid "Nobody can ask for a link."
 msgstr "Nadie puede pedir un enlace."
@@ -2619,7 +2691,8 @@ msgstr "Sin configurar"
 msgid "Not confirmed yet: until it is, none of this happens and WordPress’s own memberships stand. The button beside confirms the answer that is ticked; under “Every site”, confirming it adds every account to every live site."
 msgstr "Todavía sin confirmar: hasta que se confirme, nada de esto pasa y valen las membresías propias de WordPress. El botón de al lado confirma la respuesta marcada; con “Todos los sitios”, confirmarla agrega cada cuenta a cada sitio activo."
 
-#. translators: 1: the rule the plugin ships with for this notice, 2: where the notice comes from
+#. translators: 1: the rule the plugin ships with for this notice, 2: where
+#. the notice comes from
 #, php-format
 msgid "Not decided on this site. As the plugin ships it: %1$s · %2$s"
 msgstr "Sin decidir en este sitio. Como viene del plugin: %1$s · %2$s"
@@ -2654,13 +2727,22 @@ msgstr "No se ofrece: WordPress no tiene un enlace de acceso propio."
 msgid "Not offered: people sign in to this site with a password only."
 msgstr "No se ofrece: en este sitio la gente entra solo con contraseña."
 
+#. translators: %s: the suggested fields not on the list, comma separated
+#, php-format
+msgid "Not on the list yet: %s."
+msgstr "Todavía no están en la lista: %s."
+
 msgid "Not rewritten for this version yet."
 msgstr "Todavía no reescritas para esta versión."
 
-#. translators: %s: the address of the registration form on the sign-in page of its own
+#. translators: %s: the address of the registration form on the sign-in page
+#. of its own
 #, php-format
 msgid "Not used while the shape of the sign-in page is “A page of its own”: the form is at %s, and a page chosen here sends people there."
 msgstr "No se usa mientras la forma de la página de acceso sea «Una página propia»: el formulario está en %s, y una página elegida acá manda a la gente ahí."
+
+msgid "Nothing asked"
+msgstr "No se pide nada"
 
 msgid "Nothing beyond the e-mail address."
 msgstr "Nada más allá de la dirección de correo."
@@ -2710,7 +2792,8 @@ msgstr "No se restablece nada y la contraseña queda como estaba. En un sitio do
 msgid "Nothing is sent: there is no second step."
 msgstr "No se manda nada: no hay segundo paso."
 
-#. translators: %s: the address this site sees for the person reading the screen
+#. translators: %s: the address this site sees for the person reading the
+#. screen
 #, php-format
 msgid "Nothing is set up: the address is the one the connection came from, and it sees %s for you."
 msgstr "No hay nada configurado: la dirección es la de donde vino la conexión, y para vos ve %s."
@@ -2780,7 +2863,8 @@ msgstr "Apagado: no se ofrece"
 msgid "Offered on every site"
 msgstr "Se ofrecen en todos los sitios"
 
-#. translators: %s: who it applies to — a list of roles, or "everybody with an account"
+#. translators: %s: who it applies to — a list of roles, or "everybody with an
+#. account"
 #, php-format
 msgid "Offered to %s, and asked of whoever turned it on from their own account."
 msgstr "Se le ofrece a %s, y se le pide a quien la haya activado desde su propia cuenta."
@@ -2910,6 +2994,9 @@ msgstr "Solo los fallos: unas pocas filas por día mientras se configura una red
 
 msgid "Only the first time. After that it is whichever one that person used last, which their browser remembers — one id in a cookie, nothing about who they are."
 msgstr "Solo la primera vez. Después es la que esa persona usó por última vez, que se la acuerda su navegador: un id en una cookie, nada sobre quién es."
+
+msgid "Only verified addresses"
+msgstr "Sólo direcciones verificadas"
 
 msgid "Only verified addresses: confirm by mail an address the provider does not vouch for"
 msgstr "Solo direcciones verificadas: confirmar por correo una dirección que el proveedor no garantiza"
@@ -3066,6 +3153,9 @@ msgstr "La gente cambia su nombre público cuando quiere."
 msgid "People choose the short name they appear under."
 msgstr "La gente elige el nombre corto con el que aparece."
 
+msgid "People go straight to where they were going, whatever their account is missing."
+msgstr "La gente va directo adonde iba, le falte lo que le falte a su cuenta."
+
 msgid "People have to sign in again on these sites: a session opened on the rest of the network does not reach a domain of its own. That is not supported in this version."
 msgstr "En estos sitios la gente tiene que volver a iniciar sesión: una sesión abierta en el resto de la red no llega a un dominio propio. Eso no está soportado en esta versión."
 
@@ -3106,7 +3196,8 @@ msgstr "Foto y nombre"
 msgid "Photo only"
 msgstr "Solo foto"
 
-#. translators: %s: link to the tab where the account page is chosen, labelled with that tab's name.
+#. translators: %s: link to the tab where the account page is chosen, labelled
+#. with that tab's name.
 #, php-format
 msgid "Pick the page that has the [diluxone_users_account] shortcode, on %s. Until then the links beside this go nowhere."
 msgstr "Elegí la página que tiene el shortcode [diluxone_users_account], en %s. Hasta entonces los enlaces de al lado no llevan a ningún lado."
@@ -3204,7 +3295,8 @@ msgstr "Se puede abrir"
 msgid "Read only"
 msgstr "Sólo lectura"
 
-#. translators: 1: the header being read, e.g. X-Forwarded-For; 2: the address this site sees for the person reading the screen
+#. translators: 1: the header being read, e.g. X-Forwarded-For; 2: the address
+#. this site sees for the person reading the screen
 #, php-format
 msgid "Reading %1$s from a proxy it trusts, and it sees %2$s for you."
 msgstr "Lee %1$s de un proxy en el que confía, y para vos ve %2$s."
@@ -3250,6 +3342,9 @@ msgstr "Registro"
 msgid "Registration is closed"
 msgstr "El registro está cerrado"
 
+msgid "Registration is closed: only whoever administers the site fills them in, creating an account by hand."
+msgstr "El registro está cerrado: sólo los completa quien administra el sitio, creando una cuenta a mano."
+
 msgid "Registration is open"
 msgstr "El registro está abierto"
 
@@ -3283,7 +3378,8 @@ msgstr "Informes › Sesiones abiertas →"
 msgid "Required"
 msgstr "Obligatorio"
 
-#. translators: %s: who it applies to — a list of roles, or "everybody with an account"
+#. translators: %s: who it applies to — a list of roles, or "everybody with an
+#. account"
 #, php-format
 msgid "Required of %s: they are walked through it the next time they sign in, and there is no way past."
 msgstr "Se le exige a %s: la próxima vez que entren los llevamos paso a paso y no hay forma de saltearlo."
@@ -3435,6 +3531,9 @@ msgstr "Sección guardada."
 
 msgid "Sections"
 msgstr "Secciones"
+
+msgid "Sections of the site’s own"
+msgstr "Secciones propias del sitio"
 
 msgid "Security"
 msgstr "Seguridad"
@@ -3835,7 +3934,8 @@ msgctxt "how many people have a session open"
 msgid "Somebody is"
 msgstr "Hay alguien"
 
-#. translators: 1: device and browser, 2: date and time, 3: how they signed in, 4: address of the account area
+#. translators: 1: device and browser, 2: date and time, 3: how they signed
+#. in, 4: address of the account area
 #, php-format
 msgid ""
 "Somebody just signed in to your account.\n"
@@ -3861,6 +3961,9 @@ msgstr "Alguien escribe una dirección que el sitio nunca vio, recibe un enlace,
 
 msgid "Someone"
 msgstr "Alguien"
+
+msgid "Someone whose e-mail is already registered cannot get in with a network."
+msgstr "Quien ya tiene su correo registrado no puede entrar con una red."
 
 msgid "Something else went wrong"
 msgstr "Algo más salió mal"
@@ -4139,6 +4242,9 @@ msgstr "El área de cuenta tal como la verías vos, con tu nombre y tu foto y la
 msgid "The account area is %s."
 msgstr "El área de cuenta es %s."
 
+msgid "The account area with a cover"
+msgstr "El área de cuenta con portada"
+
 msgid "The account is closed"
 msgstr "La cuenta se cierra"
 
@@ -4162,7 +4268,8 @@ msgstr "Se vació el registro de actividad: se borraron %s filas."
 msgid "The add-ons’ own settings"
 msgstr "Los ajustes propios de los add-ons"
 
-#. translators: 1: the address, as /about/, 2: what has it, as: the page “About us”
+#. translators: 1: the address, as /about/, 2: what has it, as: the page
+#. “About us”
 #, php-format
 msgid "The address %1$s is already %2$s. Choose another, or give that one another address first."
 msgstr "La dirección %1$s ya la usa %2$s. Elegí otra, o primero dale otra dirección a ese contenido."
@@ -4227,13 +4334,17 @@ msgstr "El código del segundo paso"
 msgid "The code is not right"
 msgstr "El código no es el correcto"
 
-#. translators: 1: the stored colour, as a hex, 2: the name of the colour of the palette drawn instead
+#. translators: 1: the stored colour, as a hex, 2: the name of the colour of
+#. the palette drawn instead
 #, php-format
 msgid "The colour %1$s was chosen while Users+ Pro offered any colour. Until it is back, this site draws %2$s instead. It stays chosen until you pick another one."
 msgstr "El color %1$s se eligió cuando Users+ Pro ofrecía cualquier color. Hasta que vuelva, este sitio dibuja %2$s en su lugar. Sigue elegido hasta que elijas otro."
 
 msgid "The colour there"
 msgstr "El color ahí"
+
+msgid "The colours from your theme"
+msgstr "Los colores de tu tema"
 
 msgid "The confirmation WordPress sends when somebody asks to download their data or delete their account. It is WordPress that sends it, so this screen cannot tell whether it arrives."
 msgstr "La confirmación que manda WordPress cuando alguien pide descargar sus datos o borrar su cuenta. La manda WordPress, así que esta pantalla no puede saber si llega."
@@ -4292,6 +4403,9 @@ msgstr "El campo se cierra cuando gastaron sus cambios. Para lo que no debería 
 msgid "The field stays open in their account area, and they correct it the day it changes."
 msgstr "El campo queda abierto en su área de cuenta, y lo corrigen el día que cambia."
 
+msgid "The fields"
+msgstr "Los campos"
+
 msgid "The fields it is about →"
 msgstr "Los campos de los que habla →"
 
@@ -4323,6 +4437,12 @@ msgstr ""
 msgid "The finish"
 msgstr "El acabado"
 
+msgid "The finish of the buttons on the sign-in page."
+msgstr "El acabado de los botones de la página de acceso."
+
+msgid "The first and last name, as the plugin starts with them."
+msgstr "El nombre y el apellido, tal como los trae el plugin al empezar."
+
 msgid "The first one in the order above"
 msgstr "La primera del orden de arriba"
 
@@ -4348,6 +4468,9 @@ msgstr "El formulario en una caja en el medio de la página. La respuesta segura
 
 msgid "The form takes an address and sends a single-use link. Nothing to remember, and nothing on the site worth stealing."
 msgstr "El formulario toma una dirección y manda un enlace de un solo uso. Nada que recordar, y nada en el sitio que valga la pena robar."
+
+msgid "The form where the theme put it, with nothing around it."
+msgstr "El formulario donde lo puso el tema, sin nada alrededor."
 
 msgid "The form where the theme put it, with nothing around it. For a site that already designed this page."
 msgstr "El formulario donde lo puso el tema, sin nada alrededor. Para un sitio que ya diseñó esta página."
@@ -4453,6 +4576,9 @@ msgstr "El nombre está siempre: una cabecera sin él es una banda de color con 
 msgid "The network"
 msgstr "La red"
 
+msgid "The network is added to the account that has that address."
+msgstr "La red se agrega a la cuenta que tiene esa dirección."
+
 msgid "The networks"
 msgstr "Las redes"
 
@@ -4523,6 +4649,12 @@ msgstr "La foto es demasiado grande: como mucho %d píxeles por lado."
 msgid "The plugin’s stylesheet is not loaded and the plugin paints nothing: its panels, fields and buttons come out bare and the site’s own stylesheet dresses them. The most work, and the only way to match a design exactly."
 msgstr "La hoja de estilos del plugin no se carga y el plugin no pinta nada: sus paneles, campos y botones salen desnudos y los viste la hoja de estilos del sitio. La que más trabajo da, y la única forma de calzar con un diseño al milímetro."
 
+msgid "The plugin’s stylesheet, in its own blue."
+msgstr "La hoja de estilos del plugin, en su propio azul."
+
+msgid "The plugin’s stylesheet, in your colour."
+msgstr "La hoja de estilos del plugin, en tu color."
+
 #. translators: %s: the name of the site where the network's accounts live
 #, php-format
 msgid "The policy chosen is not active: accounts are members of %s only, and nobody is added to any other site until a policy is chosen again."
@@ -4553,6 +4685,9 @@ msgstr "El proveedor no entregó un token de acceso. Revisá el ID de cliente y 
 #, php-format
 msgid "The provider handed over this email: %s"
 msgstr "El proveedor entregó este correo: %s"
+
+msgid "The questions an account answers and who is asked them, read from the settings the other tabs write. Nothing is edited here."
+msgstr "Las preguntas que responde una cuenta y a quién se le hacen, leído de los ajustes que escriben las otras pestañas. Acá no se edita nada."
 
 msgid "The registration form, in the frame the sign-in tab chose for both."
 msgstr "El formulario de registro, en el marco que la solapa de acceso eligió para los dos."
@@ -4597,6 +4732,9 @@ msgstr "La pantalla responde que no está disponible. Para un sitio donde el esc
 msgid "The screen somebody lands on once the e-mail is on its way."
 msgstr "La pantalla donde cae alguien una vez que el correo salió."
 
+msgid "The second step for only some roles"
+msgstr "El segundo paso sólo para algunos perfiles"
+
 msgid "The second step is asked of somebody who came in by link, as on every other way in, whichever method they have."
 msgstr "A quien entró por enlace se le pide el segundo paso, como en cualquier otra forma de entrar, sea cual sea el método que tenga."
 
@@ -4605,6 +4743,9 @@ msgstr "A quien entró por enlace se le pide el segundo paso, sea cual sea el qu
 
 msgid "The second step is off, so nothing below is asked of anybody. Turn it on above and this applies."
 msgstr "El segundo paso está apagado, así que nada de lo de abajo se le pide a nadie. Prendelo arriba y esto se aplica."
+
+msgid "The second step on the e-mail link"
+msgstr "El segundo paso en el enlace por correo"
 
 msgid "The second step, for somebody who came in by link."
 msgstr "El segundo paso, para quien entró por link."
@@ -4716,6 +4857,9 @@ msgstr "Lo escribe el sitio"
 
 msgid "The site’s logo."
 msgstr "El logo del sitio."
+
+msgid "The site’s own"
+msgstr "El del sitio"
 
 msgid "The site’s own form"
 msgstr "El formulario propio del sitio"
@@ -4917,7 +5061,8 @@ msgstr "Esta cuenta fue cerrada."
 msgid "This cannot be undone."
 msgstr "Esto no se puede deshacer."
 
-#. translators: 1: what changed, 2: date and time, 3: address of the account area
+#. translators: 1: what changed, 2: date and time, 3: address of the account
+#. area
 #, php-format
 msgid ""
 "This changed in your account:\n"
@@ -5031,7 +5176,8 @@ msgstr "Este sitio tiene el registro cerrado: no hay ninguna puerta abierta haci
 msgid "This site is by invitation"
 msgstr "Este sitio es por invitación"
 
-#. translators: 1: this site's domain, 2: the name of the site where the network's accounts live
+#. translators: 1: this site's domain, 2: the name of the site where the
+#. network's accounts live
 #, php-format
 msgid "This site is on a domain of its own (%1$s). People must sign in again on this site: signing in on %2$s does not carry over to it. A domain of its own is not supported by DiluxOne Users+ in this version."
 msgstr "Este sitio tiene un dominio propio (%1$s). Acá la gente tiene que volver a iniciar sesión: entrar en %2$s no se traslada a este sitio. DiluxOne Users+ no admite dominios propios en esta versión."
@@ -5063,7 +5209,8 @@ msgstr "En este sitio se entra sin contraseña: con tu correo o con una red soci
 msgid "This site uses DiluxOne Users+ to hold accounts and sign people in."
 msgstr "Este sitio usa DiluxOne Users+ para guardar las cuentas y hacer ingresar a las personas."
 
-#. translators: 1: how many messages this site wrote, 2: how many there are, 3: the name of a language, in <code>
+#. translators: 1: how many messages this site wrote, 2: how many there are,
+#. 3: the name of a language, in <code>
 #, php-format
 msgid "This site writes %1$d of the %2$d messages itself, in %3$s."
 msgid_plural "This site writes %1$d of the %2$d messages themselves, in %3$s."
@@ -5298,6 +5445,11 @@ msgstr "Solo usuario y contraseña, el de WordPress."
 msgid "Users+ Pro"
 msgstr "Users+ Pro"
 
+#. translators: %s: the networks, comma separated
+#, php-format
+msgid "Users+ Pro adds %s, each with its guide and its live test."
+msgstr "Users+ Pro agrega %s, cada una con su guía y su prueba en vivo."
+
 msgid "Users+ Pro adds a picker for any colour at all, here and wherever the plugin asks for one."
 msgstr "Users+ Pro suma un selector para cualquier color, acá y donde sea que el plugin pida uno."
 
@@ -5335,8 +5487,14 @@ msgstr "Users+ Pro suma el área de cuenta con portada: la persona sobre una fra
 msgid "Users+ Pro adds the six digits that change every thirty seconds, from Google Authenticator, 1Password or Aegis: the code never travels, so it is asked on the e-mail link too."
 msgstr "Users+ Pro suma los seis dígitos que cambian cada treinta segundos, de Google Authenticator, 1Password o Aegis: el código nunca viaja, así que también se pide con el enlace por correo."
 
+msgid "Users+ Pro adds two shapes: split with a picture, and on a full background, with the picture behind the form."
+msgstr "Users+ Pro suma dos formas: dividida con una imagen, y a fondo completo, con la imagen detrás del formulario."
+
 msgid "Users+ Pro asks accounts made by the e-mail link or a social network for what they were never asked: they are shown those fields alone on the account page, and then go on to where they were going."
 msgstr "Users+ Pro les pide a las cuentas creadas con el enlace por correo o con una red social lo que nunca se les pidió: ven solo esos campos en la página de cuenta y después siguen adonde iban."
+
+msgid "Users+ Pro asks accounts made by the e-mail link or a social network, after they sign in, for the required fields they were never asked."
+msgstr "Users+ Pro pide a las cuentas creadas con el enlace por correo o con una red social, después de entrar, los campos obligatorios que nunca se les pidieron."
 
 msgid "Users+ Pro asks it on the link only when it proves something the link did not: an app does, a code back to the inbox the person just opened does not."
 msgstr "Users+ Pro lo pide después del enlace solo cuando prueba algo que el enlace no probó: una app sí, un código al mismo correo que la persona acaba de abrir no."
@@ -5347,8 +5505,20 @@ msgstr "Users+ Pro pide el segundo paso a los roles que elijas —los que pueden
 msgid "Users+ Pro decides whether they can leave it for later, and are asked again at the next sign-in."
 msgstr "Users+ Pro decide si pueden dejarlo para después, y se les vuelve a pedir en la próxima entrada."
 
+msgid "Users+ Pro decides whether they can leave it for later, and asks again at the next sign-in."
+msgstr "Users+ Pro decide si pueden dejarlo para más tarde, y lo vuelve a pedir la próxima vez que entran."
+
 msgid "Users+ Pro keeps the first name somebody picks for good: the address it gives them never moves."
 msgstr "Users+ Pro deja para siempre el primer nombre que alguien elige: la dirección que le da nunca cambia."
+
+msgid "Users+ Pro lets an account join any other site with a click on “Join this site”."
+msgstr "Users+ Pro deja que una cuenta se sume a cualquier otro sitio con un clic en «Unirme a este sitio»."
+
+msgid "Users+ Pro lets only a site’s administrators add an account to it."
+msgstr "Users+ Pro hace que sólo los administradores de un sitio puedan agregarle una cuenta."
+
+msgid "Users+ Pro lets only the roles you pick use the buttons, so an administrator’s account does not depend on a social account never being taken over."
+msgstr "Users+ Pro deja usar los botones sólo a los roles que elijas, para que la cuenta de un administrador no dependa de que nunca le roben a nadie una cuenta social."
 
 msgid "Users+ Pro lets only the roles you pick use the buttons: an administrator who signs in with Google depends on that Google account never being taken over. Whoever is left out signs in with the email link as always."
 msgstr "Users+ Pro deja usar los botones solo a los roles que elijas: un administrador que entra con Google depende de que nadie le robe esa cuenta de Google. Quien queda afuera entra con el enlace por correo, como siempre."
@@ -5367,6 +5537,9 @@ msgstr "Users+ Pro pinta el plugin con la paleta que publica tu tema, o con los 
 
 msgid "Users+ Pro sets the days between one change and the next: a name that changes every day does not identify anybody, and the old address stops working each time."
 msgstr "Users+ Pro fija los días entre un cambio y el siguiente: un nombre que cambia todos los días no identifica a nadie, y la dirección vieja deja de funcionar cada vez."
+
+msgid "Users+ Pro sets the days between one change of the public name and the next, or keeps the first one somebody picks for good."
+msgstr "Users+ Pro fija los días entre un cambio del nombre público y el siguiente, o deja para siempre el primero que alguien elija."
 
 msgid "Uzbekistan"
 msgstr "Uzbekistán"
@@ -5648,6 +5821,9 @@ msgstr "Qué página es «mi cuenta». Declararla acá es lo que permite que tod
 msgid "Which tab opens"
 msgstr "Qué pestaña se abre"
 
+msgid "Which theme colour plays each part"
+msgstr "Qué color del tema hace cada parte"
+
 msgid "Whichever suits how many there are"
 msgstr "Lo que convenga según cuántas haya"
 
@@ -5678,6 +5854,9 @@ msgstr "Quién puede entrar con una red"
 msgid "Who is a member of which site"
 msgstr "Quién es miembro de qué sitio"
 
+msgid "Who is asked them"
+msgstr "A quién se le hacen"
+
 msgid "Who is in this site, what is asked of them and how they get in."
 msgstr "Quién está en este sitio, qué se le pide y cómo entra."
 
@@ -5698,6 +5877,11 @@ msgstr "A quien puede editar usuarios nunca lo alcanza: es la persona que tiene 
 
 msgid "Whoever is signed in sees the strip on the site, with the way back to the dashboard in it."
 msgstr "Quien inició sesión ve la franja en el sitio, con el camino de vuelta al escritorio adentro."
+
+#. translators: %s: the ways an account is made, comma separated
+#, php-format
+msgid "Whoever makes an account with %s."
+msgstr "Quien se crea una cuenta con %s."
 
 msgid "Why we are asking. Shown under the field."
 msgstr "Por qué se lo pedimos. Se muestra debajo del campo."
@@ -5789,6 +5973,15 @@ msgstr "El formulario propio de WordPress, debajo del enlace."
 msgid "WordPress’s own form: a username and a password on wp-login.php."
 msgstr "El formulario propio de WordPress: usuario y contraseña en wp-login.php."
 
+msgid "WordPress’s own picture, as it has it."
+msgstr "La imagen propia de WordPress, tal como la tiene."
+
+msgid "WordPress’s own sign-in screen carries your mark and your colour."
+msgstr "La pantalla de acceso propia de WordPress lleva tu marca y tu color."
+
+msgid "WordPress’s own sign-in screen keeps its look."
+msgstr "La pantalla de acceso propia de WordPress conserva su aspecto."
+
 msgid "WordPress’s screen"
 msgstr "La pantalla de WordPress"
 
@@ -5829,7 +6022,8 @@ msgstr "Ya las tenés todas vinculadas."
 msgid "You already used up the changes for this one. Write to us if it is wrong."
 msgstr "Ya usaste los cambios de éste. Escribinos si está mal."
 
-#. translators: 1: the name of this site, 2: the name of the site where the network's accounts live
+#. translators: 1: the name of this site, 2: the name of the site where the
+#. network's accounts live
 #, php-format
 msgid "You are a member of %1$s now, with your account from %2$s."
 msgstr "Ahora sos miembro de %1$s, con tu cuenta de %2$s."
@@ -5837,7 +6031,8 @@ msgstr "Ahora sos miembro de %1$s, con tu cuenta de %2$s."
 msgid "You are not allowed to do this."
 msgstr "No tenés permiso para hacer esto."
 
-#. translators: 1: the name of this site, 2: the name of the site where the network's accounts live
+#. translators: 1: the name of this site, 2: the name of the site where the
+#. network's accounts live
 #, php-format
 msgid "You are signed in with your account from %2$s, and you are not a member of %1$s. Only its administrators add people to it."
 msgstr "Iniciaste sesión con tu cuenta de %2$s y no sos miembro de %1$s. Solo sus administradores agregan gente."
@@ -6047,6 +6242,9 @@ msgstr "Zimbabue"
 
 msgid "a link sent to your email"
 msgstr "un enlace mandado a tu correo"
+
+msgid "a photo they upload"
+msgstr "una foto que suben"
 
 msgid "a return nobody started here"
 msgstr "una vuelta que nadie inició acá"
@@ -6334,6 +6532,9 @@ msgstr "los seis dígitos que tienen que escribir — sin ellos el correo no sir
 msgid "their e-mail address"
 msgstr "su dirección de correo"
 
+msgid "their initials"
+msgstr "sus iniciales"
+
 msgid "there is nowhere to type the code"
 msgstr "no hay dónde escribir el código"
 
@@ -6415,7 +6616,8 @@ msgstr "— el propio del plugin"
 msgid "“%1$s” does not contain %2$s. If your theme draws it from a template, this is fine; if not, the page renders empty."
 msgstr "«%1$s» no tiene %2$s. Si tu tema lo pinta desde una plantilla, está bien; si no, la página sale vacía."
 
-#. translators: 1: the name of one of the e-mails, 2: one or more placeholders, e.g. {link}
+#. translators: 1: the name of one of the e-mails, 2: one or more
+#. placeholders, e.g. {link}
 #, php-format
 msgid "“%1$s” was left as it was: it cannot go out without %2$s."
 msgstr "«%1$s» quedó como estaba: no puede salir sin %2$s."
