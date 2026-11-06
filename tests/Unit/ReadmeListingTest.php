@@ -62,4 +62,8 @@ class ReadmeListingTest extends TestCase {
 	public function test_c2_no_fragment_waits_to_be_added_to_the_first_release(): void {
 		$this->assertSame( array(), glob( DILUXONE_USERS_DIR . 'changelog.d/*.md' ) );
 	}
+
+	public function test_c3_the_readme_is_short_enough_to_be_read(): void {
+		$this->assertLessThan( 14000, strlen( self::readme() ) );
+	}
 }

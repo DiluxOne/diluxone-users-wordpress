@@ -86,15 +86,12 @@ photo**, the plugin draws them instead and nobody's browser asks gravatar.com.
 == Installation ==
 
 1. Upload the plugin folder to `/wp-content/plugins/` and activate it.
-2. Go to **DiluxOne Users+ → Access** and pick (or create) the sign-in page,
-   or choose the shape "A page of its own", which needs no page.
-3. Go to **DiluxOne Users+ → Account area** and pick (or create) the account page.
+2. On **DiluxOne Users+ → Access**, pick (or create) the sign-in page, or
+   choose the shape "A page of its own", which needs no page.
+3. On **DiluxOne Users+ → Account area**, pick (or create) the account page.
 
-Nothing changes on the site until you turn something on: WordPress's own
-sign-in and registration keep working as they did, and the plugin's ways in
-(the e-mail link, social accounts, its own registration form, two-step
-verification) all start off. Turn each one on where it lives, on
-**Access**, **Security** and **Social login**.
+Every way in the plugin adds starts off; turn each one on where it lives, on
+**Access**, **Registration**, **Security** and **Social login**.
 
 == Privacy ==
 
@@ -102,18 +99,15 @@ verification) all start off. Turn each one on where it lives, on
 
 In each person's profile: the answers to your fields, their public name and
 picture, which social accounts are linked, whether two-step verification is
-on, a hash of each browser they signed in from (so "a new
-device signed in" is said once), their notification choices and, on a
-network, the sites an administrator removed them from.
+on, a hash of each browser they signed in from (so "a new device signed in"
+is said once), their notification choices and, on a network, the sites an
+administrator removed them from.
 
-In its own table, `{prefix}diluxone_users_log` (one for the whole network, on
-a network): one row per event with the date, the account, the **IP address**
-and the browser's user-agent. When a sign-in is refused, the name typed in the
-username box is kept with it; when an account changes, what changed (an old
-and a new e-mail address or public name). Out of the box it records nothing
-and the table does not exist: it is made when you tick the first group to
-record, on **DiluxOne Users+ → Reports → Log settings**, where how long rows
-are kept (90 days to start) is set too.
+In its own table, `{prefix}diluxone_users_log`, once you tick what to record
+on **Reports → Log settings**: one row per event with the date, the account,
+the **IP address** and the browser's user-agent; for a refused sign-in, the
+name typed; for a changed account, the old and new e-mail or public name.
+Rows are kept 90 days unless you choose otherwise.
 
 Cookies: short-lived ones while somebody signs in (or signs in to confirm a
 request), one for a browser that need not be asked the second step again, and
@@ -124,29 +118,19 @@ The plugin itself sends nothing anywhere: no telemetry, no licence check.
 = Export and erasure =
 
 **Tools → Export / Erase Personal Data** answer for all of the above. The
-export leaves out credentials (backup-code hashes, an add-on's keys); the erasure removes them, and everything an add-on kept under
-the plugin's prefix with them. Refused sign-ins that typed a name are
-exported, and kept on erasure as security evidence until the log removes them.
-On a network, the sites an administrator removed somebody from are exported
-and kept on erasure: that list is what keeps them from being added back.
-
-Once you turn it on (**Account area → Your data**), people ask on their
-account. The e-mail's link has them sign in, deleting asks
-once more, and then it is done (or waits in **Tools**, if the site says so).
-The file is downloaded from the account, signed in. Erasing deletes the account
-too, or, if they published something or belong to another site of the network,
-leaves it with no name, e-mail, password or role. Administrators cannot ask.
-Each step can be set to WordPress's own way.
+export leaves out credentials such as backup-code hashes, which the erasure
+removes. Refused sign-ins that typed a name are exported, and kept on erasure
+as security evidence until the log removes them; so is, on a network, the list
+of sites an administrator removed somebody from, which keeps them from being
+added back. Turned on (**Account area → Your data**), people can also ask for
+their data, or delete their account, from the account area.
 
 = Deleting the plugin =
 
-By default deleting the plugin leaves everything in place, so a plugin deleted
-by accident does not lose anybody's account. To remove it all, tick **Remove
-everything this plugin wrote** on **DiluxOne Users+ → Maintenance → Tools**
-first. On a network where the plugin is on for every site it is one box, in
-**Network Admin → DiluxOne Users+ → Overview → Deleting the plugin**, and
-ticked it takes everything, on every site. The pages it created for you
-(sign-in, registration, account) are your content and stay either way.
+Deleting the plugin leaves everything in place unless **Remove everything this
+plugin wrote** was ticked first, on **Maintenance → Tools** (on a network, on
+**Network Admin → DiluxOne Users+ → Overview**). The pages it created are your
+content and stay either way.
 
 == Third-party resources ==
 
@@ -173,54 +157,24 @@ that the site is by invitation; it draws nothing on a single site.
 
 = Does it work on multisite? =
 
-Yes. Activated for the whole network, the plugin applies one set of rules to
-every site: the second step, sessions, the proxy, the social sign-in
-apps and their rules, the user fields and what the activity log keeps are set
-once, in **Network Admin → DiluxOne Users+**, and a site administrator cannot
-change them for their own site. The sign-in, registration and account pages, and how they look
-and what they say, are set on the main site, and every site uses them. Each
-site keeps its own menus, admin bar, reports and maintenance. The activity
-log is one table for the whole network: each site's Reports › Activity shows
-and empties that site's rows, and **Network Admin → DiluxOne Users+ → Activity
-log** shows every site's, with the site each row happened on, and empties
-them all.
-Once you tick **Network Admin → DiluxOne Users+ → Overview → Signing in
-across the network** (until then every site keeps its own wp-login.php),
-people sign in, register and keep their account on the main site. On every
-other site the doors lead there — the "Sign in" in its menu, the plugin's
-shortcodes, its wp-login.php, WordPress's own sign-in links — and, whichever
-way the person gets in (e-mail link, password, social account, second
-step), they are sent back to the page they started from. The way back
-is only ever an address on a site of the network, kept for twenty minutes in
-a cookie of the main site and used once; a sign-in link opened on another
-device lands on the main site, signed in. Social sign-in works on the main
-site only: register one redirect address per network in the
-providers' consoles. Whether new accounts may be created at all is the
-network's **Allow new registrations**. Which sites an account is a member of
-is one decision for the network, on **Network Admin → DiluxOne Users+ →
-Membership**, and nothing is added until you confirm it there (Network Admin
-says so; until then WordPress's own memberships stand): every live site (the default: a new account joins every site, a
-new site gets every account, big networks in the background, and "Sync
-everyone now" or `wp diluxone-users network membership sync` for what was
-there before). DiluxOne Users+ Pro adds two more answers: whoever asks (a "Join
-this site" button) and by invitation (only administrators add people). The role is each site's own New
-User Default Role, and on the main site the role new accounts get. Somebody an
-administrator removed from a site is not added back until an administrator
-does. Each site's Reports › Activity also lists the sign-ins on the main site
-that came from it. On a network that used
-the plugin before, the main site's settings become the network's, and Network
-Admin lists what the other sites had set differently. Subdirectory and
-subdomain networks are supported. On a subdomain network WordPress sets the
-session cookie for the network's domain, which is what lets a sign-in on the
-main site reach every subdomain: do not pin `COOKIE_DOMAIN` to one host in
-`wp-config.php`. A site on a domain of its own (not the network's or one of its
-subdomains) does not share that cookie, so people must sign in again there;
-that is not supported in this version, and Network Admin and that site's
-dashboard say so.
-On a network the plugin is activated for the whole network or not at all:
-WordPress offers only **Network Activate**, and a site it was left on for
-alone does nothing and asks the network's administrator to activate it for
-the whole network.
+Yes, activated for the whole network: WordPress offers only **Network
+Activate**. The second step, sessions, the proxy, social sign-in, the user
+fields and the activity log are set once, in **Network Admin → DiluxOne
+Users+**; the sign-in, registration and account pages, and how they look, on
+the main site. Each site keeps its own menus, reports and maintenance.
+
+Ticking **Network Admin → DiluxOne Users+ → Overview → Signing in across the
+network** has people sign in, register and keep their account on the main
+site, and sends them back to the site they came from; until then every site
+keeps its own wp-login.php. Social sign-in works on the main site only. Which
+sites an account belongs to is decided on **Network Admin → DiluxOne Users+ →
+Membership**; the free answer is every live site, and nothing is added until
+you confirm it there.
+
+Subdirectory and subdomain networks are supported; on a subdomain network, do
+not pin `COOKIE_DOMAIN` to one host in `wp-config.php`. A site on a domain of
+its own is not supported in this version. The rest is in
+[docs/multisite.md](https://github.com/DiluxOne/diluxone-users-wordpress/blob/main/docs/multisite.md).
 
 = I'm locked out. How do I get back in? =
 
