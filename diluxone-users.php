@@ -41,6 +41,9 @@ define( 'DILUXONE_USERS_DIR', plugin_dir_path( __FILE__ ) );
 define( 'DILUXONE_USERS_URL', plugin_dir_url( __FILE__ ) );
 define( 'DILUXONE_USERS_FILE', __FILE__ );
 
+// Where every "Learn about Users+ Pro" link goes, whatever the admin's language.
+defined( 'DILUXONE_USERS_PRO_URL' ) || define( 'DILUXONE_USERS_PRO_URL', 'https://diluxone.com/wordpress-plugins/users/' );
+
 /*
  * On a network the plugin is on for the whole network or it does nothing: the
  * gate is read first, and a site it was left on for alone gets a notice and no

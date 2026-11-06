@@ -200,6 +200,25 @@ class ProPreviewTest extends IntegrationTestCase {
 		);
 	}
 
+	public function test_the_address_is_one_whatever_the_admins_language(): void {
+		$this->the_admin();
+
+		foreach ( array( 'es_ES', 'es_MX', 'en_US' ) as $locale ) {
+			update_user_meta( get_current_user_id(), 'locale', $locale );
+			clean_user_cache( get_current_user_id() );
+
+			$this->assertSame( $locale, get_user_locale(), "{$locale}: the admin's language" );
+			$this->assertSame(
+				DILUXONE_USERS_PRO_URL . '?utm_source=diluxone-users&utm_medium=diluxone-users-design&utm_campaign=free',
+				diluxone_users_pro_url( 'diluxone-users-design' ),
+				"{$locale}: the plugin's page, with its utm parameters"
+			);
+			$this->assertSame( diluxone_users_pro_url( 'diluxone-users-design' ), diluxone_users_ui_pro_row( self::ARGS )['url'], "{$locale}: the link a row carries" );
+		}
+
+		$this->assertSame( 'https://diluxone.com/wordpress-plugins/users/', DILUXONE_USERS_PRO_URL );
+	}
+
 	public function test_nothing_when_the_setting_is_off(): void {
 		$this->the_admin();
 		diluxone_users_update_option( 'diluxone_users_pro_previews', 0 );
