@@ -112,7 +112,7 @@ test.describe('Security › Summary', () => {
 	 * and gone with the setting that turns the previews off. None of the
 	 * real rows is about them.
 	 */
-	test('the last row of the table is what Users+ Pro adds, with the badge and the link, and none of the real rows is about it', async ({ page, options }) => {
+	test('the rows after the real ones are what Users+ Pro adds, passkeys first, with the badge and the link, and none of the real rows is about it', async ({ page, options }) => {
 		await options.keep(['diluxone_users_pro_previews']);
 		await options.set({ diluxone_users_pro_previews: 1 });
 
@@ -122,7 +122,9 @@ test.describe('Security › Summary', () => {
 
 		await expect(pro).toHaveCount(1);
 		await expect(pro, 'a row of the one table').toHaveClass(/du-pro--row/);
-		await expect(summary(page).locator('tr').last(), 'after the real rows').toHaveAttribute('data-diluxone-users-pro', 'security/summary/more');
+		await expect(summary(page).locator('tr.du-pro--row').first(), 'the first of the Pro rows').toHaveAttribute('data-diluxone-users-pro', 'security/summary/more');
+		await expect(summary(page).locator('tr').last(), 'after the real rows').toHaveClass(/du-pro--row/);
+		await expect(summary(page).locator('tr.du-pro--row ~ tr:not(.du-pro--row)'), 'no real row after them').toHaveCount(0);
 		await expect(pro.locator('.diluxone-users-state--pro'), 'the badge where the state goes').toHaveCount(1);
 		await expect(pro.locator('[name]'), 'nothing in it is sent').toHaveCount(0);
 		await expect(pro.locator('a')).toHaveAttribute('href', /diluxone\.com\/wordpress-plugins\/users\/.*utm_medium=security/);

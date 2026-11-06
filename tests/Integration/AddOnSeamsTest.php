@@ -569,6 +569,6 @@ class AddOnSeamsTest extends IntegrationTestCase {
 		$this->hook( 'diluxone_users_upsell', static fn( bool $show, string $where ): bool => ! in_array( $where, array( 'login/ways/more', 'security/summary/more' ), true ) && $show, 10, 2 );
 
 		$this->assertStringNotContainsString( 'data-diluxone-users-pro', $this->draw( 'diluxone_users_screen_login_ways' ) );
-		$this->assertStringNotContainsString( 'data-diluxone-users-pro', $this->draw( 'diluxone_users_screen_security_summary' ) );
+		$this->assertStringNotContainsString( 'data-diluxone-users-pro="security/summary/more"', $this->draw( 'diluxone_users_screen_security_summary' ) );
 	}
 }

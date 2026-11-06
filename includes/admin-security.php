@@ -126,21 +126,44 @@ function diluxone_users_screen_security_summary(): void {
 	 * Where passkeys would add their line, the line itself: the summary is
 	 * where a feature of this screen says how it stands, so the one Users+
 	 * Pro brings is one more row of it, with the badge where the state goes,
-	 * and not a tab of its own for an upsell. Users+ Pro answers false to it
-	 * once it brings them.
+	 * and not a tab of its own for an upsell. The same for the second step's
+	 * features. Users+ Pro answers its real rows through
+	 * `diluxone_users_summary_pro_row` once it brings them.
 	 */
 	diluxone_users_summary_table(
 		array_merge(
 			diluxone_users_security_rows(),
-			array_filter(
+			diluxone_users_summary_pro_rows(
 				array(
-					diluxone_users_ui_pro_row(
-						array(
-							'where'  => 'security/summary/more',
-							'screen' => 'security',
-							'title'  => __( 'Passkeys', 'diluxone-users' ),
-							'text'   => __( 'Users+ Pro adds passkeys: which ones are accepted, whether the fingerprint, the face or the PIN is required, and who has one.', 'diluxone-users' ),
-						)
+					array(
+						'where'  => 'security/summary/more',
+						'screen' => 'security',
+						'title'  => __( 'Passkeys', 'diluxone-users' ),
+						'text'   => __( 'Users+ Pro adds passkeys: which ones are accepted, whether the fingerprint, the face or the PIN is required, and who has one.', 'diluxone-users' ),
+					),
+					array(
+						'where'  => 'security/summary/app',
+						'screen' => 'security',
+						'title'  => __( 'An authenticator app', 'diluxone-users' ),
+						'text'   => __( 'Users+ Pro adds the six digits that change every thirty seconds, from Google Authenticator, 1Password or Aegis: the code never travels, so it is asked on the e-mail link too.', 'diluxone-users' ),
+					),
+					array(
+						'where'  => 'security/summary/roles',
+						'screen' => 'security',
+						'title'  => __( 'The second step for only some roles', 'diluxone-users' ),
+						'text'   => __( 'Users+ Pro asks the second step of the roles you choose — the ones that can change things — and not of everybody with an account.', 'diluxone-users' ),
+					),
+					array(
+						'where'  => 'security/summary/link',
+						'screen' => 'security',
+						'title'  => __( 'The second step on the e-mail link', 'diluxone-users' ),
+						'text'   => __( 'Users+ Pro asks it on the link only when it proves something the link did not: an app does, a code back to the inbox the person just opened does not.', 'diluxone-users' ),
+					),
+					array(
+						'where'  => 'security/summary/remember',
+						'screen' => 'security',
+						'title'  => __( 'Remember a browser', 'diluxone-users' ),
+						'text'   => __( 'Users+ Pro lets people skip the second step for a few days on a browser that already passed it, with a signed cookie that lets nobody in on its own.', 'diluxone-users' ),
 					),
 				)
 			)

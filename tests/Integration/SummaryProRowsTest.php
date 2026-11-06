@@ -43,7 +43,8 @@ class SummaryProRowsTest extends IntegrationTestCase {
 	 */
 	private function summaries(): array {
 		return array(
-			'access' => array( 'diluxone_users_screen_login_summary', array( 'login/summary/passkeys', 'login/summary/shapes' ) ),
+			'access'   => array( 'diluxone_users_screen_login_summary', array( 'login/summary/passkeys', 'login/summary/shapes' ) ),
+			'security' => array( 'diluxone_users_screen_security_summary', array( 'security/summary/more', 'security/summary/app', 'security/summary/roles', 'security/summary/link', 'security/summary/remember' ) ),
 		);
 	}
 
@@ -92,5 +93,24 @@ class SummaryProRowsTest extends IntegrationTestCase {
 		$this->assert_pro_row( $html, 'login/summary/shapes', 'login' );
 		$this->assertStringContainsString( 'Passkeys', $this->row( $html, 'login/summary/passkeys' ) );
 		$this->assertGreaterThan( strpos( $html, 'page=diluxone-users-login&#038;tab=ways' ), strpos( $html, 'du-pro--row' ), 'after the real rows' );
+	}
+
+	/* ── Security ──────────────────────────────────────────────────── */
+
+	public function test_security_has_a_pro_row_for_passkeys_and_each_feature_of_the_second_step(): void {
+		$this->where_network_screens_are();
+		$this->the_admin();
+
+		$html = $this->summary( 'security' );
+
+		$this->assertSame( $this->summaries()['security'][1], $this->pro_rows( $html ), 'passkeys, the app, only some roles, the e-mail link, remembering a browser' );
+
+		foreach ( $this->summaries()['security'][1] as $where ) {
+			$this->assert_pro_row( $html, $where, 'security' );
+		}
+
+		$this->assertStringContainsString( 'Passkeys', $this->row( $html, 'security/summary/more' ) );
+		$this->assertStringContainsString( 'An authenticator app', $this->row( $html, 'security/summary/app' ) );
+		$this->assertStringContainsString( 'Remember a browser', $this->row( $html, 'security/summary/remember' ) );
 	}
 }

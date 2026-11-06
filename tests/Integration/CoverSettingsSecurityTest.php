@@ -344,7 +344,7 @@ class CoverSettingsSecurityTest extends IntegrationTestCase {
 
 	/* ── Where passkeys would go ─────────────────────────────────── */
 
-	public function test_there_is_no_passkeys_tab_and_the_summary_ends_with_their_row(): void {
+	public function test_there_is_no_passkeys_tab_and_the_pro_rows_end_the_summary_with_theirs_first(): void {
 		$this->where_the_network_is_set();
 		$this->the_admin();
 
@@ -357,6 +357,7 @@ class CoverSettingsSecurityTest extends IntegrationTestCase {
 		$this->assertStringContainsString( 'diluxone-users-state--pro', $row, 'the badge where the state goes' );
 		$this->assertStringContainsString( 'Learn about Users+ Pro', $row );
 		$this->assertStringNotContainsString( 'name="', $row, 'and nothing in it sends' );
-		$this->assertStringNotContainsString( '<tr', $row, 'the last row' );
+		$this->assertSame( substr_count( $row, '<tr' ), substr_count( $row, '<tr class="du-pro du-pro--row"' ), 'only Pro rows after it' );
+		$this->assertStringNotContainsString( 'data-diluxone-users-pro=', substr( $html, 0, (int) strpos( $html, 'data-diluxone-users-pro="security/summary/more"' ) ), 'the first of them' );
 	}
 }
