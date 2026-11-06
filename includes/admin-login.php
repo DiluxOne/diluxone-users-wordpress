@@ -472,13 +472,38 @@ function diluxone_users_login_state(): array {
 	);
 }
 
+/**
+ * What Users+ Pro would add to Access › Summary, one row a feature, after
+ * the real ones: passkeys, and the two more shapes of the sign-in page.
+ *
+ * @return array<int, array<string, string>>
+ */
+function diluxone_users_login_summary_pro_rows(): array {
+	return diluxone_users_summary_pro_rows(
+		array(
+			array(
+				'where'  => 'login/summary/passkeys',
+				'screen' => 'login',
+				'title'  => __( 'Passkeys', 'diluxone-users' ),
+				'text'   => __( 'Users+ Pro adds passkeys: the fingerprint, the face or the PIN of the person’s own device, nothing to type and nothing to phish, and it counts as both steps at once.', 'diluxone-users' ),
+			),
+			array(
+				'where'  => 'login/summary/shapes',
+				'screen' => 'login',
+				'title'  => __( 'More shapes for the sign-in page', 'diluxone-users' ),
+				'text'   => __( 'Users+ Pro adds two shapes: split with a picture, and on a full background, with the picture behind the form.', 'diluxone-users' ),
+			),
+		)
+	);
+}
+
 /** The state of the whole door. Nothing is edited here. */
 function diluxone_users_screen_login_summary(): void {
 	diluxone_users_ui_aside_open();
 
 	diluxone_users_intro( __( 'Every way into this site and the state each one is in, read from the settings the other tabs write. Nothing is edited here.', 'diluxone-users' ) );
 
-	diluxone_users_summary_table( diluxone_users_doors() );
+	diluxone_users_summary_table( array_merge( diluxone_users_doors(), diluxone_users_login_summary_pro_rows() ) );
 
 	$now = diluxone_users_login_state();
 
