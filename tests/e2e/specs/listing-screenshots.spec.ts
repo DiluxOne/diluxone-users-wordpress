@@ -160,7 +160,7 @@ const ADMIN_BLOCK = '.wrap.diluxone-users-admin';
 test.describe('The front end', () => {
 	test.use({ storageState: { cookies: [], origins: [] } });
 
-	test('1 · the sign-in page, with every way in the site turned on', async ({ page, pages, options }) => {
+	test('1 · the sign-in page in the site’s theme: social networks, a link by email or a password, a tab each', async ({ page, pages, options }) => {
 		await options.set({
 			...SHOP_WINDOW,
 			diluxone_users_login_method: 'both',
@@ -176,7 +176,7 @@ test.describe('The front end', () => {
 		await shootWindow(page, 1);
 	});
 
-	test('4 · the second step at sign-in, for whoever turned it on', async ({ page, site, pages, options }) => {
+	test('4 · the second step at sign-in: a six-digit code sent by email, or a backup code in the same box', async ({ page, site, pages, options }) => {
 		await options.set({
 			...SHOP_WINDOW,
 			diluxone_users_login_method: 'both',
@@ -231,7 +231,7 @@ test.describe('The account area', () => {
 		return pages.account.url;
 	}
 
-	test('2 · the account area on the front end, in the site’s own theme', async ({ page, site, pages, options }) => {
+	test('2 · the account area on the front end, in the site’s own theme: its sections and the cards of its home', async ({ page, site, pages, options }) => {
 		await options.set({ ...SHOP_WINDOW, diluxone_users_login_method: 'both' });
 
 		const account = await asMember(page, site, pages);
@@ -242,7 +242,7 @@ test.describe('The account area', () => {
 		await shootWindow(page, 2);
 	});
 
-	test('3 · security: two-step verification and every browser signed in', async ({
+	test('3 · security in the account area: how you get in, two-step verification and where you are signed in', async ({
 		page,
 		site,
 		pages,
@@ -291,49 +291,49 @@ test.describe('The dashboard', () => {
 			n: 5,
 			screen: 'diluxone-users',
 			tab: 'usage',
-			caption: 'how many accounts, how they get in, and the first steps until there are none left',
+			caption: 'overview: accounts, open sessions, fields in use and social providers, and what people use',
 		},
 		{
 			n: 6,
 			screen: 'diluxone-users-login',
 			tab: 'summary',
-			caption: 'every way into the site in one table, read from the settings the other tabs write',
+			caption: 'access › Summary: every way into the site and the state it is in, with the “Right now” box',
 		},
 		{
 			n: 7,
 			screen: 'diluxone-users-security',
 			tab: '2fa',
-			caption: 'two-step verification: when it is asked for, with what, and to whom',
+			caption: 'two-step verification: when it is asked for and with what, with Users+ Pro’s choices shown off',
 		},
 		{
 			n: 8,
 			screen: 'diluxone-users-social',
 			tab: 'providers',
-			caption: 'social login: each network with its own credentials and a live test',
+			caption: 'social login: Google and Microsoft set up and active, beside the networks Users+ Pro adds',
 		},
 		{
 			n: 9,
 			screen: 'diluxone-users-fields',
 			tab: 'list',
-			caption: 'user fields: what is asked of a person, where it shows and who can change it',
+			caption: 'user fields: the titles of the boxes, and each field with its type, where it goes and who can change it',
 		},
 		{
 			n: 10,
 			screen: 'diluxone-users-design',
 			tab: 'account',
-			caption: 'how the account area looks, with a live preview of the real markup',
+			caption: 'design › Account area: the shape, the header and the menu, with a live preview',
 		},
 		{
 			n: 11,
 			screen: 'diluxone-users-reports',
 			tab: 'sessions',
-			caption: 'open sessions across the site, with the button to close them',
+			caption: 'reports › Open sessions: who is signed in, from where and until when, with a button to close them',
 		},
 		{
 			n: 13,
 			screen: 'diluxone-users-status',
 			tab: 'status',
-			caption: 'maintenance: every check, including the ones that fail',
+			caption: 'maintenance › Status: each check and its state, the usage and the environment',
 		},
 	];
 
