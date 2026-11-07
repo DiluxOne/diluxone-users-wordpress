@@ -403,9 +403,10 @@ function diluxone_users_panel_asked(): void {
  *
  * @param string $screen Screen slug.
  * @param string $label  What the link says.
+ * @param string $tab    The tab it opens, when not the screen's first.
  * @return array<int, array<string, string>>
  */
-function diluxone_users_home_card_link( string $screen, string $label ): array {
+function diluxone_users_home_card_link( string $screen, string $label, string $tab = '' ): array {
 	$scope = diluxone_users_panel_scope( $screen );
 
 	if ( ! diluxone_users_admin_owns( $scope ) && ! diluxone_users_admin_can_open( $scope ) ) {
@@ -414,7 +415,7 @@ function diluxone_users_home_card_link( string $screen, string $label ): array {
 
 	return array(
 		array(
-			'url'   => diluxone_users_admin_url( $screen ),
+			'url'   => diluxone_users_admin_url( $screen, '' !== $tab ? array( 'tab' => $tab ) : array() ),
 			'label' => $label,
 		),
 	);
@@ -483,7 +484,7 @@ function diluxone_users_screen_home(): void {
 			'title'  => __( 'Fields in use', 'diluxone-users' ),
 			'value'  => number_format_i18n( count( $active ) ) . ' / ' . number_format_i18n( count( $fields ) ),
 			'detail' => __( 'Of the ones defined, how many people are actually asked for.', 'diluxone-users' ),
-			'links'  => diluxone_users_home_card_link( 'diluxone-users-fields', __( 'Manage them', 'diluxone-users' ) ),
+			'links'  => diluxone_users_home_card_link( 'diluxone-users-fields', __( 'Manage them', 'diluxone-users' ), 'list' ),
 		)
 	);
 
@@ -493,7 +494,7 @@ function diluxone_users_screen_home(): void {
 			'title'  => __( 'Social providers', 'diluxone-users' ),
 			'value'  => number_format_i18n( count( $ready ) ) . ' / ' . number_format_i18n( count( $providers ) ),
 			'detail' => __( 'Verified and working, of the ones the plugin brings.', 'diluxone-users' ),
-			'links'  => diluxone_users_home_card_link( 'diluxone-users-social', __( 'Set them up', 'diluxone-users' ) ),
+			'links'  => diluxone_users_home_card_link( 'diluxone-users-social', __( 'Set them up', 'diluxone-users' ), 'providers' ),
 		)
 	);
 

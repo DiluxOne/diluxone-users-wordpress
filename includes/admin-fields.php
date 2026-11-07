@@ -179,7 +179,15 @@ function diluxone_users_fields_actions(): void {
 	if ( isset( $_POST['diluxone_users_suggested_nonce'] ) && wp_verify_nonce( sanitize_key( wp_unslash( $_POST['diluxone_users_suggested_nonce'] ) ), 'diluxone_users_suggested' ) ) {
 		$added = diluxone_users_add_suggested_fields( array_map( 'sanitize_key', (array) wp_unslash( $_POST['diluxone_users_suggested'] ?? array() ) ) );
 
-		wp_safe_redirect( diluxone_users_admin_url( 'diluxone-users-fields', array( 'diluxone_users_done' => $added > 0 ? 'suggested' : 'nosuggested' ) ) );
+		wp_safe_redirect(
+			diluxone_users_admin_url(
+				'diluxone-users-fields',
+				array(
+					'tab'                 => 'list',
+					'diluxone_users_done' => $added > 0 ? 'suggested' : 'nosuggested',
+				)
+			)
+		);
 		exit;
 	}
 
@@ -188,7 +196,15 @@ function diluxone_users_fields_actions(): void {
 		// a list are one per line), and typed again field by field on save.
 		$key = diluxone_users_field_save( (array) map_deep( wp_unslash( $_POST['diluxone_users_field'] ?? array() ), 'sanitize_textarea_field' ) );
 
-		wp_safe_redirect( diluxone_users_admin_url( 'diluxone-users-fields', array( 'diluxone_users_done' => '' === $key ? 'nolabel' : 'saved' ) ) );
+		wp_safe_redirect(
+			diluxone_users_admin_url(
+				'diluxone-users-fields',
+				array(
+					'tab'                 => 'list',
+					'diluxone_users_done' => '' === $key ? 'nolabel' : 'saved',
+				)
+			)
+		);
 		exit;
 	}
 
@@ -209,7 +225,15 @@ function diluxone_users_fields_actions(): void {
 		diluxone_users_field_move( $key, 1 );
 	}
 
-	wp_safe_redirect( diluxone_users_admin_url( 'diluxone-users-fields', array( 'diluxone_users_done' => $action ) ) );
+	wp_safe_redirect(
+		diluxone_users_admin_url(
+			'diluxone-users-fields',
+			array(
+				'tab'                 => 'list',
+				'diluxone_users_done' => $action,
+			)
+		)
+	);
 	exit;
 }
 add_action( 'admin_init', 'diluxone_users_fields_actions' );
@@ -284,6 +308,17 @@ function diluxone_users_screen_fields(): void {
 function diluxone_users_fields_panels(): void {
 	diluxone_users_register_panel(
 		'diluxone-users-fields',
+		'summary',
+		array(
+			'label'    => __( 'Summary', 'diluxone-users' ),
+			'position' => 0,
+			'render'   => 'diluxone_users_screen_fields_summary',
+			'form'     => false,
+		)
+	);
+
+	diluxone_users_register_panel(
+		'diluxone-users-fields',
 		'list',
 		array(
 			'label'    => __( 'Fields', 'diluxone-users' ),
@@ -331,6 +366,114 @@ function diluxone_users_fields_panels(): void {
 	);
 }
 add_action( 'diluxone_users_register_panels', 'diluxone_users_fields_panels' );
+
+/**
+ * The state of the user fields: how many, who is asked them, and what a
+ * sign-in does about the ones an account has no answer for. Nothing is
+ * edited here.
+ *
+ * Who registers is the hub's, so in Network Admin that row is left to the
+ * hub's screens.
+ */
+function diluxone_users_screen_fields_summary(): void {
+	$fields   = diluxone_users_fields( '', false );
+	$active   = array_filter( $fields, static fn( array $f ): bool => (bool) $f['active'] );
+	$required = array_filter( $active, static fn( array $f ): bool => (bool) $f['required'] );
+	$missing  = diluxone_users_suggested_missing();
+	$tab      = static fn( string $id ): string => diluxone_users_admin_url( 'diluxone-users-fields', array( 'tab' => $id ) );
+	$rows     = array();
+
+	diluxone_users_intro( __( 'The questions an account answers and who is asked them, read from the settings the other tabs write. Nothing is edited here.', 'diluxone-users' ) );
+
+	$rows[] = diluxone_users_summary_row(
+		'diluxone_users_fields',
+		array(
+			'label'  => __( 'The fields', 'diluxone-users' ),
+			'state'  => array() !== $active ? 'active' : 'off',
+			'word'   => (string) count( $active ),
+			'detail' => esc_html(
+				sprintf(
+					/* translators: 1: fields shown, 2: of them required, 3: fields hidden */
+					__( '%1$d shown, %2$d of them required; %3$d hidden.', 'diluxone-users' ),
+					count( $active ),
+					count( $required ),
+					count( $fields ) - count( $active )
+				)
+			),
+			'url'    => $tab( 'list' ),
+		),
+		esc_html__( 'The first and last name, as the plugin starts with them.', 'diluxone-users' )
+	);
+
+	if ( diluxone_users_admin_owns( 'hub' ) ) {
+		$doors  = diluxone_users_register_doors_open();
+		$rows[] = array(
+			'label'  => __( 'Who is asked them', 'diluxone-users' ),
+			'state'  => array() !== $doors ? 'active' : 'off',
+			'word'   => array() !== $doors ? __( 'Asked', 'diluxone-users' ) : __( 'Nobody', 'diluxone-users' ),
+			'detail' => array() !== $doors
+				? esc_html(
+					sprintf(
+						/* translators: %s: the ways an account is made, comma separated */
+						__( 'Whoever makes an account with %s.', 'diluxone-users' ),
+						implode( ', ', $doors )
+					)
+				)
+				: esc_html__( 'Registration is closed: only whoever administers the site fills them in, creating an account by hand.', 'diluxone-users' ),
+			'url'    => diluxone_users_admin_url( 'diluxone-users-register', array( 'tab' => 'who' ) ),
+		);
+	}
+
+	$rows[] = array(
+		'label'  => __( 'Suggested fields', 'diluxone-users' ),
+		'state'  => array() !== $missing ? 'pending' : 'active',
+		'word'   => array() !== $missing ? (string) count( $missing ) : __( 'All added', 'diluxone-users' ),
+		'detail' => array() !== $missing
+			? esc_html(
+				sprintf(
+					/* translators: %s: the suggested fields not on the list, comma separated */
+					__( 'Not on the list yet: %s.', 'diluxone-users' ),
+					implode( ', ', array_map( static fn( array $f ): string => (string) ( $f['label'] ?? '' ), $missing ) )
+				)
+			)
+			: esc_html__( 'Every suggested field is on the list.', 'diluxone-users' ),
+		'url'    => $tab( 'suggested' ),
+	);
+
+	// What the plugin alone does, said where the tab says it: once an add-on
+	// draws there, the add-on's row says what a sign-in does instead.
+	if ( diluxone_users_free_note_shown( 'fields/missing/ask' ) ) {
+		$rows[] = array(
+			'label'  => __( 'After sign-in', 'diluxone-users' ),
+			'state'  => 'off',
+			'word'   => __( 'Nothing asked', 'diluxone-users' ),
+			'detail' => esc_html__( 'People go straight to where they were going, whatever their account is missing.', 'diluxone-users' ),
+			'url'    => $tab( 'missing' ),
+		);
+	}
+
+	diluxone_users_summary_table(
+		array_merge(
+			$rows,
+			diluxone_users_summary_pro_rows(
+				array(
+					array(
+						'where'  => 'fields/summary/missing',
+						'screen' => 'fields',
+						'title'  => __( 'Ask for the missing required fields', 'diluxone-users' ),
+						'text'   => __( 'Users+ Pro asks accounts made by the e-mail link or a social network, after they sign in, for the required fields they were never asked.', 'diluxone-users' ),
+					),
+					array(
+						'where'  => 'fields/summary/skip',
+						'screen' => 'fields',
+						'title'  => __( 'Let them skip it', 'diluxone-users' ),
+						'text'   => __( 'Users+ Pro decides whether they can leave it for later, and asks again at the next sign-in.', 'diluxone-users' ),
+					),
+				)
+			)
+		)
+	);
+}
 
 /**
  * Saves User fields › Fields: what each block's box is called.
@@ -482,7 +625,7 @@ function diluxone_users_nobody_registers_notice( string $from = 'fields' ): void
 			' <a href="%s">%s</a>',
 			esc_url(
 				$here
-					? diluxone_users_admin_url( 'diluxone-users-fields' )
+					? diluxone_users_admin_url( 'diluxone-users-fields', array( 'tab' => 'list' ) )
 					: diluxone_users_admin_url( 'diluxone-users-register', array( 'tab' => 'who' ) )
 			),
 			$here
@@ -756,7 +899,7 @@ function diluxone_users_screen_fields_suggested(): void {
 	if ( array() === $missing ) {
 		diluxone_users_not_now(
 			__( 'Every suggested field is already on the list.', 'diluxone-users' ),
-			diluxone_users_admin_url( 'diluxone-users-fields' ),
+			diluxone_users_admin_url( 'diluxone-users-fields', array( 'tab' => 'list' ) ),
 			__( 'The fields →', 'diluxone-users' )
 		);
 	} else {
@@ -851,7 +994,7 @@ function diluxone_users_screen_field_edit( string $key ): void {
 		: sprintf( /* translators: %s: field name */ __( 'Field: %s', 'diluxone-users' ), $field['label'] )
 	);
 	?>
-	<p><a href="<?php echo esc_url( diluxone_users_admin_url( 'diluxone-users-fields' ) ); ?>">&larr; <?php esc_html_e( 'Back to the list', 'diluxone-users' ); ?></a></p>
+	<p><a href="<?php echo esc_url( diluxone_users_admin_url( 'diluxone-users-fields', array( 'tab' => 'list' ) ) ); ?>">&larr; <?php esc_html_e( 'Back to the list', 'diluxone-users' ); ?></a></p>
 
 	<?php
 	/*

@@ -28,7 +28,7 @@ async function boxTitles(guest: Page, accountUrl: string): Promise<string[]> {
 
 /** Types both titles on User fields › Fields and saves the tab. */
 async function typeTitles(page: Page, main: string, extra: string): Promise<void> {
-	await page.goto(adminUrl('diluxone-users-fields'));
+	await page.goto(adminUrl('diluxone-users-fields', 'list'));
 	await page.locator(`[name="${TITLES}[main]"]`).fill(main);
 	await page.locator(`[name="${TITLES}[extra]"]`).fill(extra);
 	await savePanel(page);

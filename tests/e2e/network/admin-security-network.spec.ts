@@ -170,7 +170,13 @@ test.describe('Network Admin › Security › Summary: what Users+ Pro adds', ()
 
 		await expect(pro).toHaveCount(1);
 		await expect(pro, 'a row of the one table').toHaveClass(/du-pro--row/);
-		await expect(page.locator('table.diluxone-users-summary tr').last(), 'after the real rows').toHaveAttribute('data-diluxone-users-pro', 'security/summary/more');
+		await expect(page.locator('table.diluxone-users-summary tr.du-pro--row').first(), 'the first of the Pro rows').toHaveAttribute('data-diluxone-users-pro', 'security/summary/more');
+		await expect(page.locator('table.diluxone-users-summary tr').last(), 'after the real rows').toHaveClass(/du-pro--row/);
+		await expect(page.locator('table.diluxone-users-summary tr.du-pro--row ~ tr:not(.du-pro--row)'), 'no real row after them').toHaveCount(0);
+		expect(
+			await page.locator('table.diluxone-users-summary tr.du-pro--row').evaluateAll((rows) => rows.map((row) => row.getAttribute('data-diluxone-users-pro'))),
+			'the second step’s features in Network Admin too'
+		).toEqual(['security/summary/more', 'security/summary/app', 'security/summary/roles', 'security/summary/link', 'security/summary/remember']);
 		await expect(pro.locator('[name]'), 'nothing in it is sent').toHaveCount(0);
 		await expect(page.locator('table.diluxone-users-summary'), 'one table').toHaveCount(1);
 

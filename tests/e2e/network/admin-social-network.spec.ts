@@ -22,7 +22,7 @@ const PASSWORD = 'e2e-Net-Social-1!';
 type Stored = { active?: number; id?: string; secret?: string; tested?: number; pkce?: number };
 
 const provider = (tab = '') => networkScreen(NETWORK_URL, SOCIAL, undefined, tab ? { provider: 'mock', tab } : { provider: 'mock' });
-const grid = () => networkScreen(NETWORK_URL, SOCIAL);
+const grid = () => networkScreen(NETWORK_URL, SOCIAL, 'providers');
 
 async function stored(one: SiteHandle): Promise<Stored | undefined> {
 	return ((await one.site.getOptions(['diluxone_users_sso'])).diluxone_users_sso as Record<string, Stored> | null)?.mock;

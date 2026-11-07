@@ -77,7 +77,7 @@ test.describe('User fields › editing a field', () => {
 
 		const renamed = unique('E2E Localidad');
 
-		await page.goto(adminUrl('diluxone-users-fields') + `&field=${field.key}`);
+		await page.goto(adminUrl('diluxone-users-fields', 'list') + `&field=${field.key}`);
 		await expect(fieldForm(page).locator('input[type="hidden"][name="diluxone_users_field[key]"]')).toHaveValue(field.key);
 		await fieldForm(page).locator('[name="diluxone_users_field[label]"]').fill(renamed);
 		await fieldForm(page).locator('[name="diluxone_users_field[help]"]').fill('e2e-renamed-help');
@@ -105,7 +105,7 @@ test.describe('User fields › editing a field', () => {
 	test('a field nobody named is not saved, and the list says so', async ({ page, site }) => {
 		const before = await storedFields(site);
 
-		await page.goto(adminUrl('diluxone-users-fields') + '&diluxone_users_new=1');
+		await page.goto(adminUrl('diluxone-users-fields', 'list') + '&diluxone_users_new=1');
 		await fieldForm(page).locator('[name="diluxone_users_field[label]"]').evaluate((box: HTMLInputElement) => box.removeAttribute('required'));
 		await fieldForm(page).locator('[name="diluxone_users_field[label]"]').fill('   ');
 
@@ -118,7 +118,7 @@ test.describe('User fields › editing a field', () => {
 		test(`a key WordPress or the plugin keeps for itself (${reserved}) cannot be given to a field`, async ({ page, site }) => {
 			const before = await storedFields(site);
 
-			await page.goto(adminUrl('diluxone-users-fields') + '&diluxone_users_new=1');
+			await page.goto(adminUrl('diluxone-users-fields', 'list') + '&diluxone_users_new=1');
 			await fieldForm(page).locator('input[type="hidden"][name="diluxone_users_field[key]"]').evaluate((box: HTMLInputElement, key) => {
 				box.value = key;
 			}, reserved);
@@ -137,7 +137,7 @@ test.describe('User fields › editing a field', () => {
 	test('a name whose key the plugin keeps is made in the fields’ own corner instead', async ({ page, site }) => {
 		// "Avatar" would be diluxone_users_avatar, where the photo is stored:
 		// a new field's key is made in diluxone_users_field_, out of its reach.
-		await page.goto(adminUrl('diluxone-users-fields') + '&diluxone_users_new=1');
+		await page.goto(adminUrl('diluxone-users-fields', 'list') + '&diluxone_users_new=1');
 		await fieldForm(page).locator('[name="diluxone_users_field[label]"]').fill('Avatar');
 		expect(await submitField(page)).toBe('saved');
 
@@ -147,7 +147,7 @@ test.describe('User fields › editing a field', () => {
 	});
 
 	test('a field that does not exist is said so, with no form to fill', async ({ page }) => {
-		await page.goto(adminUrl('diluxone-users-fields') + '&field=diluxone_users_nope_e2e');
+		await page.goto(adminUrl('diluxone-users-fields', 'list') + '&field=diluxone_users_nope_e2e');
 
 		await expect(adminError(page)).toBeVisible();
 		await expect(fieldForm(page)).toHaveCount(0);
@@ -192,7 +192,7 @@ test.describe('User fields › required and active', () => {
 
 		expect(await editField(page, field.key, { active: false })).toBe('saved');
 
-		await page.goto(adminUrl('diluxone-users-fields'));
+		await page.goto(adminUrl('diluxone-users-fields', 'list'));
 		const row = page.locator('table.diluxone-users-list tr').filter({ has: page.locator(`code:text-is("${field.key}")`) });
 		await expect(row.locator('.diluxone-users-pill'), 'the list says it is hidden').toHaveClass(/diluxone-users-pill--off/);
 
@@ -217,7 +217,7 @@ test.describe('User fields › required and active', () => {
 
 test.describe('User fields › who can change it', () => {
 	test('“only a few times”: each change spends one, the same answer spends none, and then it closes', async ({ page, guest, site, pages }) => {
-		await page.goto(adminUrl('diluxone-users-fields') + '&diluxone_users_new=1');
+		await page.goto(adminUrl('diluxone-users-fields', 'list') + '&diluxone_users_new=1');
 
 		const max = fieldForm(page).locator('[name="diluxone_users_field[edit_max]"]');
 
@@ -309,7 +309,7 @@ test.describe('User fields › who can change it', () => {
 
 test.describe('User fields › WordPress’s own two', () => {
 	test('the first name keeps its type and cannot be deleted, not even by a link built by hand', async ({ page, site }) => {
-		await page.goto(adminUrl('diluxone-users-fields') + '&field=first_name');
+		await page.goto(adminUrl('diluxone-users-fields', 'list') + '&field=first_name');
 
 		await expect(fieldForm(page).locator('#diluxone-users-type')).toBeDisabled();
 
@@ -344,7 +344,7 @@ test.describe('User fields › deleting', () => {
 		await guest.locator(`[name="${field.key}"]`).fill('Ajedrez');
 		expect(await saveFieldsForm(guest)).toBe('saved');
 
-		await page.goto(adminUrl('diluxone-users-fields'));
+		await page.goto(adminUrl('diluxone-users-fields', 'list'));
 
 		const row = page.locator('table.diluxone-users-list tr').filter({ has: page.locator(`code:text-is("${field.key}")`) });
 		const remove = row.locator('.trash a');
@@ -375,7 +375,7 @@ test.describe('User fields › the order', () => {
 		const mine = (fields: StoredField[]) => keyOf(fields).filter((key) => [a.key, b.key, c.key].includes(key));
 
 		const press = async (key: string, way: 'up' | 'down') => {
-			await page.goto(adminUrl('diluxone-users-fields'));
+			await page.goto(adminUrl('diluxone-users-fields', 'list'));
 			await navigated(page, () => page.locator(`a[href*="diluxone_users_action=${way}"][href*="field=${key}"]`).click());
 			expect(new URL(page.url()).searchParams.get('diluxone_users_done')).toBe(way);
 		};
@@ -415,7 +415,7 @@ test.describe('User fields › the list itself', () => {
 			diluxone_users_sso_register: 0,
 			users_can_register: 0,
 		});
-		await page.goto(adminUrl('diluxone-users-fields'));
+		await page.goto(adminUrl('diluxone-users-fields', 'list'));
 
 		const warning = railNotice(page, 'warning');
 
@@ -423,12 +423,12 @@ test.describe('User fields › the list itself', () => {
 		await expect(warning.locator('a')).toHaveAttribute('href', /page=diluxone-users-register&tab=who/);
 
 		await options.set({ diluxone_users_register_form: 1 });
-		await page.goto(adminUrl('diluxone-users-fields'));
+		await page.goto(adminUrl('diluxone-users-fields', 'list'));
 		await expect(railNotice(page, 'warning'), 'with a door open there is nothing to say').toHaveCount(0);
 	});
 
 	test('“Add field” opens the form over the list; Cancel, the close button and Escape close it; saving from it saves', async ({ page, site }) => {
-		await page.goto(adminUrl('diluxone-users-fields'));
+		await page.goto(adminUrl('diluxone-users-fields', 'list'));
 
 		const before = page.url();
 		const dialog = page.locator('dialog[data-diluxone-users-dialog]');
@@ -480,7 +480,7 @@ test.describe('User fields › the list itself', () => {
 		test.use({ viewport: { width: 400, height: 800 } });
 
 		test('the dialog takes the whole width of the screen', async ({ page }) => {
-			await page.goto(adminUrl('diluxone-users-fields'));
+			await page.goto(adminUrl('diluxone-users-fields', 'list'));
 			await page.locator('.diluxone-users-admin__actions a[data-diluxone-users-field-dialog]').click();
 
 			const dialog = page.locator('dialog[data-diluxone-users-dialog]');

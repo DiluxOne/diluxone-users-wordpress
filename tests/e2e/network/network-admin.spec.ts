@@ -186,7 +186,7 @@ test.describe('Every tab that moved saves from Network Admin, for every site', (
 		await toTheHub(guest, alpha, hub, 'register');
 		await expect(guest.locator(`[name="${added!.key}"]`), 'asked for of whoever registers from /alpha/').toHaveCount(1);
 
-		await page.goto(network('admin.php?page=diluxone-users-fields'));
+		await page.goto(network('admin.php?page=diluxone-users-fields&tab=list'));
 
 		const remove = page.locator(`a[href*="diluxone_users_action=delete"][href*="field=${added!.key}"]`);
 

@@ -56,6 +56,17 @@ function diluxone_users_screen_social(): void {
 function diluxone_users_social_panels(): void {
 	diluxone_users_register_panel(
 		'diluxone-users-social',
+		'summary',
+		array(
+			'label'    => __( 'Summary', 'diluxone-users' ),
+			'position' => 0,
+			'render'   => 'diluxone_users_screen_social_summary',
+			'form'     => false,
+		)
+	);
+
+	diluxone_users_register_panel(
+		'diluxone-users-social',
 		'providers',
 		array(
 			'label'    => __( 'Providers', 'diluxone-users' ),
@@ -77,6 +88,104 @@ function diluxone_users_social_panels(): void {
 	);
 }
 add_action( 'diluxone_users_register_panels', 'diluxone_users_social_panels' );
+
+/**
+ * The state of social login: each network, and the rules every one follows.
+ * Nothing is edited here.
+ *
+ * A network's own state is never undecided: no app is a state of its own,
+ * Pending, with what is missing beside it. The rules are settings, and read
+ * Not configured until somebody decides them. Whether a network creates the
+ * account is the hub's, so in Network Admin it is left to the hub's screens.
+ */
+function diluxone_users_screen_social_summary(): void {
+	$rules = diluxone_users_admin_url( 'diluxone-users-social', array( 'tab' => 'general' ) );
+	$rows  = array();
+
+	diluxone_users_intro( __( 'Every social network this site can sign people in with and the rules they follow, read from the settings the other tabs write. Nothing is edited here.', 'diluxone-users' ) );
+
+	foreach ( diluxone_users_sso_providers() as $id => $provider ) {
+		$state = diluxone_users_sso_state( (string) $id );
+
+		$rows[] = array(
+			'label'  => (string) $provider['name'],
+			'state'  => diluxone_users_sso_pill_state( $state ),
+			'detail' => esc_html( diluxone_users_sso_says( $state ) ),
+			'url'    => diluxone_users_admin_url( 'diluxone-users-social', array( 'provider' => (string) $id ) ),
+		);
+	}
+
+	if ( diluxone_users_admin_owns( 'hub' ) ) {
+		$creates = (bool) diluxone_users_option( 'diluxone_users_sso_register' );
+		$rows[]  = diluxone_users_summary_row(
+			'diluxone_users_sso_register',
+			array(
+				'label'  => __( 'Creating accounts', 'diluxone-users' ),
+				'state'  => $creates ? 'active' : 'off',
+				'detail' => $creates
+					? esc_html__( 'Signing in with a social account creates the account when there is none.', 'diluxone-users' )
+					: esc_html__( 'A social account only signs in people who already have one here.', 'diluxone-users' ),
+				'url'    => diluxone_users_admin_url( 'diluxone-users-register', array( 'tab' => 'who' ) ),
+			),
+			esc_html__( 'A social account only signs in people who already have one here.', 'diluxone-users' )
+		);
+	}
+
+	$links  = (bool) diluxone_users_option( 'diluxone_users_sso_link_by_email' );
+	$rows[] = diluxone_users_summary_row(
+		'diluxone_users_sso_link_by_email',
+		array(
+			'label'  => __( 'An e-mail already registered', 'diluxone-users' ),
+			'state'  => $links ? 'active' : 'off',
+			'word'   => $links ? __( 'Linked', 'diluxone-users' ) : __( 'Kept out', 'diluxone-users' ),
+			'detail' => $links
+				? esc_html__( 'The network is added to the account that has that address.', 'diluxone-users' )
+				: esc_html__( 'Someone whose e-mail is already registered cannot get in with a network.', 'diluxone-users' ),
+			'url'    => $rules,
+		),
+		esc_html__( 'The network is added to the account that has that address.', 'diluxone-users' )
+	);
+
+	$verified = (bool) diluxone_users_option( 'diluxone_users_sso_verified_only' );
+	$rows[]   = diluxone_users_summary_row(
+		'diluxone_users_sso_verified_only',
+		array(
+			'label'  => __( 'Only verified addresses', 'diluxone-users' ),
+			'state'  => $verified ? 'active' : 'off',
+			'detail' => $verified
+				? esc_html__( 'An address the provider does not vouch for is confirmed by mail first.', 'diluxone-users' )
+				: esc_html__( 'An address the provider does not vouch for can create an account straight away.', 'diluxone-users' ),
+			'url'    => $rules,
+		),
+		esc_html__( 'An address the provider does not vouch for is confirmed by mail first.', 'diluxone-users' )
+	);
+
+	diluxone_users_summary_table(
+		array_merge(
+			$rows,
+			diluxone_users_summary_pro_rows(
+				array(
+					array(
+						'where'  => 'social/summary/providers',
+						'screen' => 'social',
+						'title'  => __( 'More networks', 'diluxone-users' ),
+						'text'   => sprintf(
+							/* translators: %s: the networks, comma separated */
+							__( 'Users+ Pro adds %s, each with its guide and its live test.', 'diluxone-users' ),
+							implode( ', ', diluxone_users_sso_pro_networks() )
+						),
+					),
+					array(
+						'where'  => 'social/summary/roles',
+						'screen' => 'social',
+						'title'  => __( 'Only some roles', 'diluxone-users' ),
+						'text'   => __( 'Users+ Pro lets only the roles you pick use the buttons, so an administrator’s account does not depend on a social account never being taken over.', 'diluxone-users' ),
+					),
+				)
+			)
+		)
+	);
+}
 
 /** Saves the rules that hold for every network. */
 function diluxone_users_social_rules_save(): void {
@@ -660,7 +769,7 @@ function diluxone_users_screen_provider( string $id, array $provider ): void {
 
 	diluxone_users_ui_aside_open();
 	?>
-	<p><a href="<?php echo esc_url( diluxone_users_admin_url( 'diluxone-users-social' ) ); ?>">&larr; <?php esc_html_e( 'Back to all providers', 'diluxone-users' ); ?></a></p>
+	<p><a href="<?php echo esc_url( diluxone_users_admin_url( 'diluxone-users-social', array( 'tab' => 'providers' ) ) ); ?>">&larr; <?php esc_html_e( 'Back to all providers', 'diluxone-users' ); ?></a></p>
 	<?php
 
 	diluxone_users_screen_provider_actions( $id, $state );
@@ -1054,7 +1163,7 @@ function diluxone_users_social_toggle(): void {
 	// grid is where it now starts from.
 	$back = 'forget' === $action ? '' : (string) wp_get_referer();
 
-	wp_safe_redirect( '' !== $back ? $back : diluxone_users_admin_url( 'diluxone-users-social' ) );
+	wp_safe_redirect( '' !== $back ? $back : diluxone_users_admin_url( 'diluxone-users-social', array( 'tab' => 'providers' ) ) );
 	exit;
 }
 add_action( 'admin_action_diluxone_users_social_toggle', 'diluxone_users_social_toggle' );

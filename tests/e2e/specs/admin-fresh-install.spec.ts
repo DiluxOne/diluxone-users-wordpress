@@ -54,9 +54,10 @@ const NOTHING_SAVED: Record<string, null> = Object.fromEntries(
 
 const SECURITY = 'diluxone-users-security';
 
-/** Every state pill of the first summary table, in order. */
+/** Every state pill of the first summary table's settings, in order. */
 async function pills(page: Page): Promise<string[]> {
-	const rows = page.locator('table.diluxone-users-summary').first().locator('tbody > tr');
+	// The settings' rows: a Users+ Pro preview has no setting to decide.
+	const rows = page.locator('table.diluxone-users-summary').first().locator('tbody > tr:not(.du-pro--row)');
 	const states: string[] = [];
 
 	for (let at = 0; at < (await rows.count()); at += 1) {

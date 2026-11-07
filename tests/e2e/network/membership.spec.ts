@@ -92,6 +92,33 @@ test.describe('Network Admin › Membership', () => {
 		await expect(page.locator('[data-diluxone-users-sync]')).toBeVisible();
 	});
 
+	test('the rail reports the policy, and under it “Whoever asks” and “By invitation” as Users+ Pro rows (#241)', async ({ page, hub }) => {
+		await hub.keep(['diluxone_users_pro_previews', 'diluxone_users_membership']);
+		await hub.set({ diluxone_users_pro_previews: 1, diluxone_users_membership: 'all', diluxone_users_membership_confirmed: 1 });
+
+		await page.goto(SCREEN);
+
+		const rail = page.locator('.diluxone-users-studio__aside');
+		const rows = rail.locator('table.diluxone-users-summary tr.du-pro--row');
+
+		await expect(rail.locator('.diluxone-users-state').first(), 'the state the screen reports').toBeVisible();
+		expect(await rows.evaluateAll((all) => all.map((row) => row.getAttribute('data-diluxone-users-pro') ?? ''))).toEqual([
+			'network/summary/whoever-asks',
+			'network/summary/invitation',
+		]);
+
+		for (const key of ['network/summary/whoever-asks', 'network/summary/invitation']) {
+			const row = rail.locator(`tr[data-diluxone-users-pro="${key}"]`);
+
+			await expect(row.locator('.diluxone-users-state--pro'), `${key}: the badge`).toBeVisible();
+			await expect(row.locator('a[href*="diluxone.com/wordpress-plugins/users/"][href*="utm_medium=network-membership"][target="_blank"]'), `${key}: the link`).toHaveCount(1);
+		}
+
+		await hub.set({ diluxone_users_pro_previews: 0 });
+		await page.goto(SCREEN);
+		await expect(rail.locator('tr.du-pro--row'), 'previews off: none').toHaveCount(0);
+	});
+
 	test('a site’s menu has no Membership: it is the network’s', async ({ page, alpha }) => {
 		await page.goto(alpha.admin('admin.php?page=diluxone-users'));
 		await expect(page.locator('#adminmenu a[href*="page=diluxone-users-membership"]')).toHaveCount(0);

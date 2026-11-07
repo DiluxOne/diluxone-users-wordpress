@@ -82,7 +82,8 @@ test.describe('Access › Summary', () => {
 
 			await page.goto(accessTab('summary'));
 
-			const rows = page.locator('table.diluxone-users-summary tbody tr');
+			// The settings' rows; Users+ Pro's previews come after them.
+			const rows = page.locator('table.diluxone-users-summary tbody tr:not(.du-pro--row)');
 
 			await expect(rows).toHaveCount(ROWS.length);
 

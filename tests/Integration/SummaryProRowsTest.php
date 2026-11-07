@@ -1,0 +1,501 @@
+<?php
+/**
+ * What Users+ Pro would add to each screen's Summary: one row a feature.
+ *
+ * Every Pro feature of a screen is a row of the Summary of that screen,
+ * drawn as Security's Passkeys row is (the name, the Pro badge, one sentence
+ * and the one link), so an administrator who never opens the tab where its
+ * disabled control sits still learns it exists. Each row has a `where` key
+ * of its own, is gated by diluxone_users_pro_shown() like every other
+ * preview, and passes through `diluxone_users_summary_pro_row`, so the
+ * add-on that brings the feature draws its real row in the same place.
+ *
+ * The rows are found by their `where` key, never by their label: the labels
+ * are translated, the keys are the plugin's own.
+ */
+
+namespace Tests\Integration;
+
+use Tests\Integration\Support\CoverAdminSupport;
+
+class SummaryProRowsTest extends IntegrationTestCase {
+
+	use CoverAdminSupport;
+
+	protected function setUp(): void {
+		parent::setUp();
+
+		// The panels are registered on an admin request, which a test is not.
+		do_action( 'diluxone_users_register_panels' );
+	}
+
+	protected function tearDown(): void {
+		diluxone_users_delete_option( 'diluxone_users_pro_previews' );
+		$this->cover_admin_reset();
+		parent::tearDown();
+	}
+
+	/**
+	 * Each Summary that carries Pro rows: the renderer, and the `where` key
+	 * of every Pro row it draws.
+	 *
+	 * @return array<string, array{0: callable, 1: array<int, string>}>
+	 */
+	private function summaries(): array {
+		return array(
+			'access'   => array( 'diluxone_users_screen_login_summary', array( 'login/summary/passkeys', 'login/summary/shapes' ) ),
+			'account'  => array( 'diluxone_users_screen_account_summary', array( 'account/summary/sections', 'account/summary/handle' ) ),
+			'security' => array( 'diluxone_users_screen_security_summary', array( 'security/summary/more', 'security/summary/app', 'security/summary/roles', 'security/summary/link', 'security/summary/remember' ) ),
+			'fields'   => array( 'diluxone_users_screen_fields_summary', array( 'fields/summary/missing', 'fields/summary/skip' ) ),
+			'social'   => array( 'diluxone_users_screen_social_summary', array( 'social/summary/providers', 'social/summary/roles' ) ),
+			'design'   => array( 'diluxone_users_screen_design_summary', array( 'design/summary/account-cover', 'design/summary/any-color', 'design/summary/theme', 'design/summary/color-map' ) ),
+		);
+	}
+
+	/** A Summary as the admin sees it. */
+	private function summary( string $screen ): string {
+		return $this->draw( $this->summaries()[ $screen ][0] );
+	}
+
+	/**
+	 * The `where` key of every Pro row a Summary drew, in order.
+	 *
+	 * @return array<int, string>
+	 */
+	private function pro_rows( string $html ): array {
+		preg_match_all( '/<tr class="du-pro du-pro--row" data-diluxone-users-pro="([^"]+)">/', $html, $found );
+
+		return $found[1];
+	}
+
+	/** One row of a Summary, by its key. */
+	private function row( string $html, string $where ): string {
+		$this->assertSame( 1, preg_match( '/<tr[^>]*data-diluxone-users-pro="' . preg_quote( $where, '/' ) . '">.*?<\/tr>/s', $html, $found ), "{$where}: one row" );
+
+		return $found[0];
+	}
+
+	/** A row is the Pro row: the badge, a sentence, the one link that leaves. */
+	private function assert_pro_row( string $html, string $where, string $screen ): void {
+		$row = $this->row( $html, $where );
+
+		$this->assertStringContainsString( 'diluxone-users-state--pro', $row, "{$where}: the Pro badge" );
+		$this->assertMatchesRegularExpression( '/<td class="diluxone-users-summary__detail">\s*Users\+ Pro [^<]+<\/td>/', $row, "{$where}: one sentence about what it adds" );
+		// The same address however the ampersands were written: a rail goes
+		// through wp_kses(), which writes them as `&amp;`.
+		$this->assertStringContainsString( 'href="' . esc_url( diluxone_users_pro_url( $screen ) ) . '" target="_blank" rel="noopener noreferrer"', str_replace( '&amp;', '&#038;', $row ), "{$where}: the link, as every Pro link" );
+		$this->assertSame( 1, substr_count( $row, 'Learn about Users+ Pro' ), "{$where}: one way out" );
+	}
+
+	/* ── Access ────────────────────────────────────────────────────── */
+
+	public function test_access_has_a_pro_row_for_passkeys_and_one_for_the_sign_in_shapes(): void {
+		$this->the_admin();
+
+		$html = $this->summary( 'access' );
+
+		$this->assertSame( array( 'login/summary/passkeys', 'login/summary/shapes' ), $this->pro_rows( $html ) );
+		$this->assert_pro_row( $html, 'login/summary/passkeys', 'login' );
+		$this->assert_pro_row( $html, 'login/summary/shapes', 'login' );
+		$this->assertStringContainsString( 'Passkeys', $this->row( $html, 'login/summary/passkeys' ) );
+		$this->assertGreaterThan( strpos( $html, 'page=diluxone-users-login&#038;tab=ways' ), strpos( $html, 'du-pro--row' ), 'after the real rows' );
+	}
+
+	/* ── Security ──────────────────────────────────────────────────── */
+
+	public function test_security_has_a_pro_row_for_passkeys_and_each_feature_of_the_second_step(): void {
+		$this->where_network_screens_are();
+		$this->the_admin();
+
+		$html = $this->summary( 'security' );
+
+		$this->assertSame( $this->summaries()['security'][1], $this->pro_rows( $html ), 'passkeys, the app, only some roles, the e-mail link, remembering a browser' );
+
+		foreach ( $this->summaries()['security'][1] as $where ) {
+			$this->assert_pro_row( $html, $where, 'security' );
+		}
+
+		$this->assertStringContainsString( 'Passkeys', $this->row( $html, 'security/summary/more' ) );
+		$this->assertStringContainsString( 'An authenticator app', $this->row( $html, 'security/summary/app' ) );
+		$this->assertStringContainsString( 'Remember a browser', $this->row( $html, 'security/summary/remember' ) );
+	}
+
+	/* ── Account area ──────────────────────────────────────────────── */
+
+	public function test_account_has_a_pro_row_for_sections_of_its_own_and_one_for_how_the_public_name_changes(): void {
+		$this->the_admin();
+
+		$html = $this->summary( 'account' );
+
+		$this->assertSame( array( 'account/summary/sections', 'account/summary/handle' ), $this->pro_rows( $html ) );
+		$this->assert_pro_row( $html, 'account/summary/sections', 'account' );
+		$this->assert_pro_row( $html, 'account/summary/handle', 'account' );
+		$this->assertMatchesRegularExpression( '/days between one change.*keeps the first one/s', $this->row( $html, 'account/summary/handle' ), 'how often, and keeping it once chosen, in one row' );
+		$this->assertGreaterThan( strpos( $html, 'section=privacy' ), strpos( $html, 'du-pro--row' ), 'after the real rows' );
+	}
+
+	/* ── User fields, Social login, Design: a Summary of their own ─────── */
+
+	/**
+	 * The screen, its Summary's key in summaries(), and whether its tabs are
+	 * the network's.
+	 *
+	 * @return array<string, array{0: string, 1: string, 2: bool}>
+	 */
+	public function new_summaries(): array {
+		return array(
+			'fields' => array( 'diluxone-users-fields', 'fields', true ),
+			'social' => array( 'diluxone-users-social', 'social', true ),
+			'design' => array( DILUXONE_USERS_DESIGN, 'design', false ),
+		);
+	}
+
+	/**
+	 * Opened without a tab, the screen lands on Summary: the first of its
+	 * tabs, with nothing to save, where the screen's other tabs are.
+	 *
+	 * @dataProvider new_summaries
+	 */
+	public function test_the_screen_opens_on_a_summary_with_nothing_to_save( string $screen, string $key, bool $network ): void {
+		if ( $network ) {
+			$this->where_network_screens_are();
+		}
+
+		$this->the_admin();
+
+		$panels = diluxone_users_panels( $screen );
+
+		$this->assertSame( 'summary', array_key_first( $panels ), 'Summary is the first tab, the one the screen opens on' );
+		$this->assertFalse( $panels['summary']['form'], 'nothing is edited on it' );
+		$this->assertSame( '', $panels['summary']['save'] );
+		$this->assertSame( '', $panels['summary']['preview'], 'no stage beside it' );
+		$this->assertSame( 'summary', diluxone_users_tab( array_map( static fn( array $p ): string => (string) $p['label'], $panels ) ), 'no tab asked for: Summary' );
+	}
+
+	/** @dataProvider new_summaries */
+	public function test_its_summary_ends_with_a_pro_row_for_each_feature( string $screen, string $key, bool $network ): void {
+		if ( $network ) {
+			$this->where_network_screens_are();
+		}
+
+		$this->the_admin();
+
+		$html = $this->summary( $key );
+
+		$this->assertStringContainsString( 'Nothing is edited here.', $html, 'the intro of every Summary' );
+		$this->assertSame( $this->summaries()[ $key ][1], $this->pro_rows( $html ) );
+
+		foreach ( $this->summaries()[ $key ][1] as $where ) {
+			$this->assert_pro_row( $html, $where, $key );
+		}
+
+		$this->assertGreaterThan( 0, strpos( $html, 'du-pro--row' ), 'after the real rows' );
+		$this->assertGreaterThan( substr_count( $html, 'du-pro--row' ), substr_count( $html, '<tr' ), 'it reports the screen as it is, not only what Pro adds' );
+	}
+
+	public function test_social_reports_each_network_and_the_rules_and_names_the_ten_more(): void {
+		$this->where_network_screens_are();
+		$this->the_admin();
+
+		diluxone_users_update_option( 'diluxone_users_sso_verified_only', 0 );
+
+		$html = $this->summary( 'social' );
+
+		foreach ( diluxone_users_sso_providers() as $id => $provider ) {
+			$this->assertStringContainsString( '>' . esc_html( (string) $provider['name'] ) . '</th>', $html, "{$id}: a row of its own" );
+			$this->assertStringContainsString( esc_url( diluxone_users_admin_url( 'diluxone-users-social', array( 'provider' => (string) $id ) ) ), $html, "{$id}: a way to its screen" );
+		}
+
+		$this->assertMatchesRegularExpression( '/Only verified addresses<\/th>\s*<td[^>]*><span class="diluxone-users-state diluxone-users-state--off">/', $html, 'read from the setting the Rules tab saves' );
+
+		$row = $this->row( $html, 'social/summary/providers' );
+
+		foreach ( diluxone_users_sso_pro_networks() as $name ) {
+			$this->assertStringContainsString( esc_html( $name ), $row, "the ten more: {$name}" );
+		}
+
+		$this->assertCount( 10, diluxone_users_sso_pro_networks() );
+		$this->assertStringContainsString( 'Only some roles', $this->row( $html, 'social/summary/roles' ) );
+	}
+
+	public function test_fields_reports_how_many_there_are_and_what_a_sign_in_does(): void {
+		$this->where_network_screens_are();
+		$this->the_admin();
+
+		diluxone_users_update_option(
+			'diluxone_users_fields',
+			array(
+				array( 'key' => 'first_name', 'label' => 'First name', 'type' => 'text', 'required' => 1 ),
+				array( 'key' => 'phone', 'label' => 'Phone', 'type' => 'text' ),
+				array( 'key' => 'city', 'label' => 'City', 'type' => 'text', 'active' => 0 ),
+			)
+		);
+
+		$html = $this->summary( 'fields' );
+
+		$this->assertStringContainsString( '2 shown, 1 of them required; 1 hidden.', $html, 'read from the fields stored' );
+		$this->assertStringContainsString( esc_url( diluxone_users_admin_url( 'diluxone-users-fields', array( 'tab' => 'list' ) ) ), $html, 'a way to the list' );
+		$this->assertStringContainsString( 'People go straight to where they were going', $html, 'what the plugin alone does after sign-in' );
+		$this->assertStringContainsString( 'missing required fields', $this->row( $html, 'fields/summary/missing' ) );
+		$this->assertStringContainsString( 'skip', $this->row( $html, 'fields/summary/skip' ) );
+	}
+
+	public function test_design_reports_each_tab_from_the_setting_it_saves(): void {
+		$this->the_admin();
+
+		diluxone_users_update_option( 'diluxone_users_login_template', 'card' );
+		diluxone_users_update_option( 'diluxone_users_style_accent', '#15803d' );
+		diluxone_users_update_option( 'diluxone_users_wp_login_brand', 0 );
+
+		$html = $this->summary( 'design' );
+
+		$this->assertStringContainsString( 'A centred card', $html, 'the sign-in page shape' );
+		$this->assertStringContainsString( '>Green</span>', $html, 'the brand colour, by its name' );
+		$this->assertMatchesRegularExpression( '/wp-login\.php<\/th>\s*<td[^>]*><span class="diluxone-users-state diluxone-users-state--off">/', $html, 'wp-login.php branding off' );
+
+		foreach ( array( 'brand', 'login', 'account', 'social', 'photo', 'wp' ) as $tab ) {
+			$this->assertStringContainsString( esc_url( diluxone_users_admin_url( DILUXONE_USERS_DESIGN, array( 'tab' => $tab ) ) ), $html, "a way to {$tab}" );
+		}
+
+		$this->assertStringContainsString( 'cover', $this->row( $html, 'design/summary/account-cover' ) );
+		$this->assertStringContainsString( 'Which theme colour plays each part', $this->row( $html, 'design/summary/color-map' ) );
+	}
+
+	/* ── Network Admin › Membership ────────────────────────────────── */
+
+	/**
+	 * The screen has no Summary: its rail is where it says how it stands,
+	 * and the two policies Users+ Pro brings are rows under that state.
+	 *
+	 * @group multisite
+	 */
+	public function test_membership_reports_whoever_asks_and_by_invitation_as_pro_rows_under_its_state(): void {
+		$this->network_only( 'none: Membership is a network screen' );
+		$this->in_network_admin();
+		$this->the_admin();
+
+		$html = $this->draw( 'diluxone_users_screen_membership_policy' );
+
+		$this->assertSame( array( 'network/summary/whoever-asks', 'network/summary/invitation' ), $this->pro_rows( $html ) );
+		$this->assert_pro_row( $html, 'network/summary/whoever-asks', 'network-membership' );
+		$this->assert_pro_row( $html, 'network/summary/invitation', 'network-membership' );
+		$this->assertStringContainsString( 'Whoever asks', $this->row( $html, 'network/summary/whoever-asks' ) );
+		$this->assertStringContainsString( 'By invitation', $this->row( $html, 'network/summary/invitation' ) );
+
+		$rail = (int) strpos( $html, 'diluxone-users-studio__aside' );
+
+		$this->assertGreaterThan( 0, $rail, 'the rail' );
+		$this->assertGreaterThan( $rail, (int) strpos( $html, 'data-diluxone-users-pro="network/summary/whoever-asks"' ), 'in the rail, where the screen reports its state' );
+		$this->assertSame( 2, substr_count( $html, 'data-diluxone-users-pro="network/membership/rules"' ), 'the two radios inside the tab are unchanged' );
+	}
+
+	/* ── With the previews off ─────────────────────────────────────── */
+
+	/**
+	 * Every Summary, and Membership's rail on a network, with
+	 * `diluxone_users_pro_previews` off: no Pro row, and no row of them
+	 * names Users+ Pro or leads to it.
+	 */
+	public function test_with_the_previews_off_no_summary_row_mentions_users_pro(): void {
+		$this->where_network_screens_are();
+		$this->the_admin();
+
+		diluxone_users_update_option( 'diluxone_users_pro_previews', 0 );
+
+		$drawn = array();
+
+		foreach ( $this->summaries() as $screen => $summary ) {
+			$drawn[ $screen ] = $this->draw( $summary[0] );
+		}
+
+		if ( is_multisite() ) {
+			$drawn['membership'] = $this->draw( 'diluxone_users_screen_membership_policy' );
+		}
+
+		foreach ( $drawn as $screen => $html ) {
+			preg_match_all( '/<table class="widefat striped diluxone-users-summary">.*?<\/table>/s', $html, $tables );
+
+			if ( 'membership' === $screen ) {
+				// The rail's table is only ever its Pro rows: none at all.
+				$this->assertSame( array(), $tables[0], 'membership: no table of Pro rows in the rail' );
+				$this->assertStringNotContainsString( 'du-pro--row', $html );
+				continue;
+			}
+
+			$this->assertNotSame( array(), $tables[0], "{$screen}: its summary is drawn" );
+
+			foreach ( $tables[0] as $table ) {
+				$this->assertStringNotContainsString( 'du-pro', $table, "{$screen}: no Pro row" );
+				$this->assertStringNotContainsString( 'Users+ Pro', $table, "{$screen}: no row mentions Users+ Pro" );
+				$this->assertStringNotContainsString( 'utm_campaign=free', $table, "{$screen}: no way out to it" );
+			}
+		}
+	}
+
+	/* ── One row answered away ─────────────────────────────────────── */
+
+	/**
+	 * `diluxone_users_upsell` false for one row's key, and nothing on
+	 * `diluxone_users_summary_pro_row`: that row is gone, every other row of
+	 * the Summary stays, in order. Asked of every key of every Summary.
+	 */
+	public function test_the_upsell_filter_false_for_one_key_takes_that_row_away_and_leaves_the_rest(): void {
+		$this->where_network_screens_are();
+		$this->the_admin();
+
+		$this->assertFalse( has_filter( 'diluxone_users_summary_pro_row' ), 'nothing hooked on the summary row filter' );
+
+		$summaries = $this->summaries();
+
+		if ( is_multisite() ) {
+			$summaries['membership'] = array( 'diluxone_users_screen_membership_policy', array( 'network/summary/whoever-asks', 'network/summary/invitation' ) );
+		}
+
+		foreach ( $summaries as $screen => $summary ) {
+			$before = $this->draw( $summary[0] );
+
+			foreach ( $summary[1] as $gone ) {
+				$filter = static fn( bool $show, string $where ): bool => $where === $gone ? false : $show;
+
+				add_filter( 'diluxone_users_upsell', $filter, 10, 2 );
+				$html = $this->draw( $summary[0] );
+				remove_filter( 'diluxone_users_upsell', $filter, 10 );
+
+				$this->assertSame( array_values( array_diff( $summary[1], array( $gone ) ) ), $this->pro_rows( $html ), "{$screen}: {$gone} gone, the other Pro rows stay" );
+				$this->assertSame(
+					substr_count( $before, '<tr' ) - 1,
+					substr_count( $html, '<tr' ),
+					"{$screen}: one row fewer, the real ones all there"
+				);
+			}
+		}
+	}
+
+	/* ── The add-on's real row, in the Pro row's place ─────────────── */
+
+	/** Markup with the white space between its tags taken out. */
+	private function squeezed( string $html ): string {
+		return (string) preg_replace( '/>\s+</', '><', $html );
+	}
+
+	/** The real row of a feature, as Users+ Pro would answer it. */
+	private function real_row( string $for ): callable {
+		return static function ( $row, string $where ) use ( $for ) {
+			if ( $where !== $for ) {
+				return $row;
+			}
+
+			return array(
+				'label'    => 'The real feature',
+				'state'    => 'active',
+				'word'     => 'On',
+				'url'      => 'https://example.test/wp-admin/admin.php?page=pro-feature',
+				'change'   => 'Change it',
+				// A badge that is not a preview's is dropped.
+				'pro'      => $where,
+				'external' => '1',
+				'extra'    => '<script>nope</script>',
+			);
+		};
+	}
+
+	/**
+	 * A callback that answers one key with its real row: drawn where the Pro
+	 * row was, with the callback's name, state and link and no badge, with
+	 * the previews on and with them off; every other row as it was.
+	 */
+	public function test_an_add_on_answers_one_row_with_its_real_one_in_the_same_place_previews_on_or_off(): void {
+		$this->where_network_screens_are();
+		$this->the_admin();
+
+		$summaries = $this->summaries();
+
+		if ( is_multisite() ) {
+			$summaries['membership'] = array( 'diluxone_users_screen_membership_policy', array( 'network/summary/whoever-asks', 'network/summary/invitation' ) );
+		}
+
+		$real_tr = '/<tr>\s*<th scope="row" class="diluxone-users-summary__what">The real feature<\/th>.*?<\/tr>/s';
+
+		foreach ( array( 1, 0 ) as $previews ) {
+			diluxone_users_update_option( 'diluxone_users_pro_previews', $previews );
+
+			foreach ( $summaries as $screen => $summary ) {
+				$keys   = $summary[1];
+				$for    = $keys[ count( $keys ) > 1 ? 1 : 0 ];
+				$say    = "{$screen}, previews " . ( $previews ? 'on' : 'off' );
+				$before = $this->draw( $summary[0] );
+				$filter = $this->real_row( $for );
+
+				add_filter( 'diluxone_users_summary_pro_row', $filter, 10, 2 );
+				$html = $this->draw( $summary[0] );
+				remove_filter( 'diluxone_users_summary_pro_row', $filter, 10 );
+
+				$this->assertSame( 1, preg_match( $real_tr, $html, $found ), "{$say}: the real row is drawn" );
+
+				$row = $found[0];
+
+				$this->assertStringNotContainsString( 'du-pro', $row, "{$say}: no Pro class" );
+				$this->assertStringNotContainsString( 'diluxone-users-state--pro', $row, "{$say}: no Pro pill" );
+				$this->assertStringNotContainsString( 'Learn about Users+ Pro', $row );
+				$this->assertStringNotContainsString( 'target="_blank"', $row, 'not the way out of a preview' );
+				$this->assertStringNotContainsString( 'nope', $row, 'only the keys a row has' );
+				$this->assertStringContainsString( 'diluxone-users-state--active">On</span>', $row, "{$say}: its state, in its word" );
+				$this->assertMatchesRegularExpression( '#href="https://example\.test/wp-admin/admin\.php\?page=pro-feature">Change it</a>#', $row, "{$say}: its link" );
+
+				// The other Pro rows are the ones there were, and the real one
+				// is where its preview was: after the one before it.
+				$this->assertSame( array_values( array_diff( $this->pro_rows( $before ), array( $for ) ) ), $this->pro_rows( $html ), "{$say}: the other Pro rows unchanged" );
+
+				if ( $previews ) {
+					$this->assertSame( (int) strpos( $before, 'data-diluxone-users-pro="' . $for . '"' ) > 0, true );
+					$this->assertGreaterThan( (int) strpos( $html, 'data-diluxone-users-pro="' . $keys[0] . '"' ), (int) strpos( $html, 'The real feature' ), "{$say}: in the Pro row's place" );
+
+					if ( isset( $keys[2] ) ) {
+						$this->assertLessThan( (int) strpos( $html, 'data-diluxone-users-pro="' . $keys[2] . '"' ), (int) strpos( $html, 'The real feature' ), "{$say}: before the next one" );
+					}
+
+					$this->assertSame( $this->squeezed( (string) preg_replace( '/<tr class="du-pro du-pro--row" data-diluxone-users-pro="' . preg_quote( $for, '/' ) . '">.*?<\/tr>/s', '', $before ) ), $this->squeezed( (string) preg_replace( $real_tr, '', $html ) ), "{$say}: every other row as it was" );
+				} elseif ( 'membership' !== $screen ) {
+					$this->assertSame( $this->squeezed( $before ), $this->squeezed( (string) preg_replace( $real_tr, '', $html ) ), "{$say}: every other row as it was" );
+				}
+			}
+		}
+	}
+
+	/* ── The documentation ─────────────────────────────────────────── */
+
+	/**
+	 * docs/extending.md documents the filter (its heading, its arguments,
+	 * what it returns, an example) and lists every Summary row's key: every
+	 * one the tests above draw, and every one written in the plugin's code.
+	 */
+	public function test_extending_documents_the_filter_and_every_summary_key(): void {
+		$root = dirname( __DIR__, 2 );
+		$doc  = (string) file_get_contents( $root . '/docs/extending.md' );
+
+		$this->assertMatchesRegularExpression( '/^### A Summary row of a feature Users\+ Pro brings$/m', $doc, 'its heading' );
+		$this->assertStringContainsString( '`diluxone_users_summary_pro_row` (filter)', $doc );
+		$this->assertMatchesRegularExpression( '/- `\$row` \(array\): .*diluxone_users_summary_table\(\)/s', $doc, 'its first argument' );
+		$this->assertMatchesRegularExpression( '/- `\$where` \(string\): /', $doc, 'its second argument' );
+		$this->assertStringContainsString( 'It returns the row to draw', $doc, 'what it returns' );
+		$this->assertStringContainsString( 'It runs even while the previews are off', $doc );
+		$this->assertMatchesRegularExpression( "/```php\nadd_filter\( 'diluxone_users_summary_pro_row', function \( array \\\$row, string \\\$where \): array \{.*'state'  => 'active',.*\}, 10, 2 \);\n```/s", $doc, 'an example' );
+
+		$keys = array( 'network/summary/whoever-asks', 'network/summary/invitation' );
+
+		foreach ( $this->summaries() as $summary ) {
+			$keys = array_merge( $keys, $summary[1] );
+		}
+
+		foreach ( glob( $root . '/includes/*.php' ) ?: array() as $file ) {
+			preg_match_all( "#'where'\s*=>\s*'([a-z-]+/summary/[a-z-]+)'#", (string) file_get_contents( $file ), $found );
+			$keys = array_merge( $keys, $found[1] );
+		}
+
+		$this->assertGreaterThanOrEqual( 19, count( array_unique( $keys ) ) );
+
+		foreach ( array_unique( $keys ) as $where ) {
+			$this->assertMatchesRegularExpression( '/^\| `' . preg_quote( $where, '/' ) . '` \| /m', $doc, "{$where}: a row of the table of keys" );
+		}
+	}
+}

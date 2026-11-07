@@ -18,6 +18,11 @@ msgstr ""
 msgid "%1$d of %2$d shown."
 msgstr ""
 
+#. translators: 1: fields shown, 2: of them required, 3: fields hidden
+#, php-format
+msgid "%1$d shown, %2$d of them required; %3$d hidden."
+msgstr ""
+
 #. translators: 1: how long ago, 2: device and browser, 3: IP address
 #, php-format
 msgid "%1$s ago, from %2$s (%3$s)"
@@ -298,6 +303,9 @@ msgstr ""
 msgid "A panel in the page, the way a settings screen looks. It sits quietly inside whatever the theme already draws."
 msgstr ""
 
+msgid "A panel in the page, with tabs across the top."
+msgstr ""
+
 msgid "A phone number of the wrong length"
 msgstr ""
 
@@ -498,6 +506,9 @@ msgstr ""
 msgid "Algeria"
 msgstr ""
 
+msgid "All added"
+msgstr ""
+
 msgid "All the doors"
 msgstr ""
 
@@ -531,10 +542,19 @@ msgstr ""
 msgid "An account with admin permissions cannot ask for its own deletion."
 msgstr ""
 
+msgid "An address the provider does not vouch for can create an account straight away."
+msgstr ""
+
+msgid "An address the provider does not vouch for is confirmed by mail first."
+msgstr ""
+
 msgid "An address the site has never seen gets a link, and the account exists by the time they are in."
 msgstr ""
 
 msgid "An authenticator app"
+msgstr ""
+
+msgid "An e-mail already registered"
 msgstr ""
 
 msgid "An icon inside the buttons of the doors: an envelope on the link"
@@ -608,6 +628,9 @@ msgstr ""
 msgid "Aruba"
 msgstr ""
 
+msgid "As WordPress ships it"
+msgstr ""
+
 msgid "As many as fit"
 msgstr ""
 
@@ -627,6 +650,9 @@ msgid "Ask for it again, up to date"
 msgstr ""
 
 msgid "Ask for my data"
+msgstr ""
+
+msgid "Ask for the missing required fields"
 msgstr ""
 
 msgid "Ask to delete my account"
@@ -1099,6 +1125,9 @@ msgstr ""
 msgid "Create your account"
 msgstr ""
 
+msgid "Creating accounts"
+msgstr ""
+
 msgid "Creating an account"
 msgstr ""
 
@@ -1286,6 +1315,9 @@ msgstr ""
 msgid "Each brand’s colour"
 msgstr ""
 
+msgid "Each brand’s colour."
+msgstr ""
+
 msgid "Each language keeps its own wording, and one nobody has touched sends the text the plugin ships. Moving to another one here does not save what is on screen."
 msgstr ""
 
@@ -1463,6 +1495,9 @@ msgstr ""
 msgid "Every site sends people to the hub to sign in."
 msgstr ""
 
+msgid "Every social network this site can sign people in with and the rules they follow, read from the settings the other tabs write. Nothing is edited here."
+msgstr ""
+
 msgid "Every suggested field is already on the list."
 msgstr ""
 
@@ -1623,6 +1658,11 @@ msgstr ""
 msgid "From"
 msgstr ""
 
+#. translators: %s: where the photo comes from, comma separated
+#, php-format
+msgid "From %s."
+msgstr ""
+
 msgid "From a link in the e-mail"
 msgstr ""
 
@@ -1706,10 +1746,16 @@ msgstr ""
 msgid "Graphite"
 msgstr ""
 
+msgid "Gravatar"
+msgstr ""
+
 msgid "Gravatar is asked: a hash of every visitor’s e-mail address is sent to a third party to ask whether it has a picture for them."
 msgstr ""
 
 msgid "Gravatar is not asked: no address is sent anywhere to ask whether there is a picture for it."
+msgstr ""
+
+msgid "Gravatar, and their initials when there is none, as WordPress does."
 msgstr ""
 
 msgid "Greece"
@@ -1799,6 +1845,9 @@ msgstr ""
 msgid "Hong Kong"
 msgstr ""
 
+msgid "How everything the plugin draws looks, read from the settings the other tabs write. Nothing is edited here."
+msgstr ""
+
 msgid "How long a session lasts"
 msgstr ""
 
@@ -1821,6 +1870,9 @@ msgid "How the code arrives"
 msgstr ""
 
 msgid "How the person looks"
+msgstr ""
+
+msgid "How the public name may change"
 msgstr ""
 
 msgid "How the sites are addressed"
@@ -2183,6 +2235,9 @@ msgstr ""
 msgid "Link"
 msgstr ""
 
+msgid "Linked"
+msgstr ""
+
 msgctxt "the social networks on one account"
 msgid "Linked"
 msgstr ""
@@ -2333,6 +2388,12 @@ msgid "Montenegro"
 msgstr ""
 
 msgid "Montserrat"
+msgstr ""
+
+msgid "More networks"
+msgstr ""
+
+msgid "More shapes for the sign-in page"
 msgstr ""
 
 msgid "Morocco"
@@ -2507,10 +2568,16 @@ msgstr ""
 msgid "No spaces: this goes in a web address. Letters, numbers, dots, dashes and underscores."
 msgstr ""
 
+msgid "No stylesheet of the plugin’s: the theme draws everything."
+msgstr ""
+
 msgid "No way in is chosen yet: the sign-in form is WordPress’s own, a username and a password on wp-login.php, until one is ticked here and saved."
 msgstr ""
 
 msgid "No, keep it"
+msgstr ""
+
+msgid "Nobody"
 msgstr ""
 
 msgid "Nobody can ask for a link."
@@ -2647,12 +2714,20 @@ msgstr ""
 msgid "Not offered: people sign in to this site with a password only."
 msgstr ""
 
+#. translators: %s: the suggested fields not on the list, comma separated
+#, php-format
+msgid "Not on the list yet: %s."
+msgstr ""
+
 msgid "Not rewritten for this version yet."
 msgstr ""
 
 #. translators: %s: the address of the registration form on the sign-in page of its own
 #, php-format
 msgid "Not used while the shape of the sign-in page is “A page of its own”: the form is at %s, and a page chosen here sends people there."
+msgstr ""
+
+msgid "Nothing asked"
 msgstr ""
 
 msgid "Nothing beyond the e-mail address."
@@ -2904,6 +2979,9 @@ msgstr ""
 msgid "Only the first time. After that it is whichever one that person used last, which their browser remembers — one id in a cookie, nothing about who they are."
 msgstr ""
 
+msgid "Only verified addresses"
+msgstr ""
+
 msgid "Only verified addresses: confirm by mail an address the provider does not vouch for"
 msgstr ""
 
@@ -3057,6 +3135,9 @@ msgid "People change their public name whenever they like."
 msgstr ""
 
 msgid "People choose the short name they appear under."
+msgstr ""
+
+msgid "People go straight to where they were going, whatever their account is missing."
 msgstr ""
 
 msgid "People have to sign in again on these sites: a session opened on the rest of the network does not reach a domain of its own. That is not supported in this version."
@@ -3243,6 +3324,9 @@ msgstr ""
 msgid "Registration is closed"
 msgstr ""
 
+msgid "Registration is closed: only whoever administers the site fills them in, creating an account by hand."
+msgstr ""
+
 msgid "Registration is open"
 msgstr ""
 
@@ -3427,6 +3511,9 @@ msgid "Section saved."
 msgstr ""
 
 msgid "Sections"
+msgstr ""
+
+msgid "Sections of the site’s own"
 msgstr ""
 
 msgid "Security"
@@ -3847,6 +3934,9 @@ msgstr ""
 msgid "Someone"
 msgstr ""
 
+msgid "Someone whose e-mail is already registered cannot get in with a network."
+msgstr ""
+
 msgid "Something else went wrong"
 msgstr ""
 
@@ -4124,6 +4214,9 @@ msgstr ""
 msgid "The account area is %s."
 msgstr ""
 
+msgid "The account area with a cover"
+msgstr ""
+
 msgid "The account is closed"
 msgstr ""
 
@@ -4220,6 +4313,9 @@ msgstr ""
 msgid "The colour there"
 msgstr ""
 
+msgid "The colours from your theme"
+msgstr ""
+
 msgid "The confirmation WordPress sends when somebody asks to download their data or delete their account. It is WordPress that sends it, so this screen cannot tell whether it arrives."
 msgstr ""
 
@@ -4277,6 +4373,9 @@ msgstr ""
 msgid "The field stays open in their account area, and they correct it the day it changes."
 msgstr ""
 
+msgid "The fields"
+msgstr ""
+
 msgid "The fields it is about →"
 msgstr ""
 
@@ -4303,6 +4402,12 @@ msgstr ""
 msgid "The finish"
 msgstr ""
 
+msgid "The finish of the buttons on the sign-in page."
+msgstr ""
+
+msgid "The first and last name, as the plugin starts with them."
+msgstr ""
+
 msgid "The first one in the order above"
 msgstr ""
 
@@ -4327,6 +4432,9 @@ msgid "The form in a box in the middle of the page. The safe answer when there i
 msgstr ""
 
 msgid "The form takes an address and sends a single-use link. Nothing to remember, and nothing on the site worth stealing."
+msgstr ""
+
+msgid "The form where the theme put it, with nothing around it."
 msgstr ""
 
 msgid "The form where the theme put it, with nothing around it. For a site that already designed this page."
@@ -4433,6 +4541,9 @@ msgstr ""
 msgid "The network"
 msgstr ""
 
+msgid "The network is added to the account that has that address."
+msgstr ""
+
 msgid "The networks"
 msgstr ""
 
@@ -4503,6 +4614,12 @@ msgstr ""
 msgid "The plugin’s stylesheet is not loaded and the plugin paints nothing: its panels, fields and buttons come out bare and the site’s own stylesheet dresses them. The most work, and the only way to match a design exactly."
 msgstr ""
 
+msgid "The plugin’s stylesheet, in its own blue."
+msgstr ""
+
+msgid "The plugin’s stylesheet, in your colour."
+msgstr ""
+
 #. translators: %s: the name of the site where the network's accounts live
 #, php-format
 msgid "The policy chosen is not active: accounts are members of %s only, and nobody is added to any other site until a policy is chosen again."
@@ -4532,6 +4649,9 @@ msgstr ""
 #. translators: %s: e-mail address
 #, php-format
 msgid "The provider handed over this email: %s"
+msgstr ""
+
+msgid "The questions an account answers and who is asked them, read from the settings the other tabs write. Nothing is edited here."
 msgstr ""
 
 msgid "The registration form, in the frame the sign-in tab chose for both."
@@ -4577,6 +4697,9 @@ msgstr ""
 msgid "The screen somebody lands on once the e-mail is on its way."
 msgstr ""
 
+msgid "The second step for only some roles"
+msgstr ""
+
 msgid "The second step is asked of somebody who came in by link, as on every other way in, whichever method they have."
 msgstr ""
 
@@ -4584,6 +4707,9 @@ msgid "The second step is asked of somebody who came in by link, whichever one t
 msgstr ""
 
 msgid "The second step is off, so nothing below is asked of anybody. Turn it on above and this applies."
+msgstr ""
+
+msgid "The second step on the e-mail link"
 msgstr ""
 
 msgid "The second step, for somebody who came in by link."
@@ -4695,6 +4821,9 @@ msgid "The site writes it"
 msgstr ""
 
 msgid "The site’s logo."
+msgstr ""
+
+msgid "The site’s own"
 msgstr ""
 
 msgid "The site’s own form"
@@ -5271,6 +5400,11 @@ msgstr ""
 msgid "Users+ Pro"
 msgstr ""
 
+#. translators: %s: the networks, comma separated
+#, php-format
+msgid "Users+ Pro adds %s, each with its guide and its live test."
+msgstr ""
+
 msgid "Users+ Pro adds a picker for any colour at all, here and wherever the plugin asks for one."
 msgstr ""
 
@@ -5308,7 +5442,13 @@ msgstr ""
 msgid "Users+ Pro adds the six digits that change every thirty seconds, from Google Authenticator, 1Password or Aegis: the code never travels, so it is asked on the e-mail link too."
 msgstr ""
 
+msgid "Users+ Pro adds two shapes: split with a picture, and on a full background, with the picture behind the form."
+msgstr ""
+
 msgid "Users+ Pro asks accounts made by the e-mail link or a social network for what they were never asked: they are shown those fields alone on the account page, and then go on to where they were going."
+msgstr ""
+
+msgid "Users+ Pro asks accounts made by the e-mail link or a social network, after they sign in, for the required fields they were never asked."
 msgstr ""
 
 msgid "Users+ Pro asks it on the link only when it proves something the link did not: an app does, a code back to the inbox the person just opened does not."
@@ -5320,7 +5460,19 @@ msgstr ""
 msgid "Users+ Pro decides whether they can leave it for later, and are asked again at the next sign-in."
 msgstr ""
 
+msgid "Users+ Pro decides whether they can leave it for later, and asks again at the next sign-in."
+msgstr ""
+
 msgid "Users+ Pro keeps the first name somebody picks for good: the address it gives them never moves."
+msgstr ""
+
+msgid "Users+ Pro lets an account join any other site with a click on “Join this site”."
+msgstr ""
+
+msgid "Users+ Pro lets only a site’s administrators add an account to it."
+msgstr ""
+
+msgid "Users+ Pro lets only the roles you pick use the buttons, so an administrator’s account does not depend on a social account never being taken over."
 msgstr ""
 
 msgid "Users+ Pro lets only the roles you pick use the buttons: an administrator who signs in with Google depends on that Google account never being taken over. Whoever is left out signs in with the email link as always."
@@ -5339,6 +5491,9 @@ msgid "Users+ Pro paints the plugin with the palette your theme publishes, or wi
 msgstr ""
 
 msgid "Users+ Pro sets the days between one change and the next: a name that changes every day does not identify anybody, and the old address stops working each time."
+msgstr ""
+
+msgid "Users+ Pro sets the days between one change of the public name and the next, or keeps the first one somebody picks for good."
 msgstr ""
 
 msgid "Uzbekistan"
@@ -5621,6 +5776,9 @@ msgstr ""
 msgid "Which tab opens"
 msgstr ""
 
+msgid "Which theme colour plays each part"
+msgstr ""
+
 msgid "Whichever suits how many there are"
 msgstr ""
 
@@ -5651,6 +5809,9 @@ msgstr ""
 msgid "Who is a member of which site"
 msgstr ""
 
+msgid "Who is asked them"
+msgstr ""
+
 msgid "Who is in this site, what is asked of them and how they get in."
 msgstr ""
 
@@ -5670,6 +5831,11 @@ msgid "Whoever can edit users is never reached: they are the person who has to b
 msgstr ""
 
 msgid "Whoever is signed in sees the strip on the site, with the way back to the dashboard in it."
+msgstr ""
+
+#. translators: %s: the ways an account is made, comma separated
+#, php-format
+msgid "Whoever makes an account with %s."
 msgstr ""
 
 msgid "Why we are asking. Shown under the field."
@@ -5760,6 +5926,15 @@ msgid "WordPress’s own form, underneath the link."
 msgstr ""
 
 msgid "WordPress’s own form: a username and a password on wp-login.php."
+msgstr ""
+
+msgid "WordPress’s own picture, as it has it."
+msgstr ""
+
+msgid "WordPress’s own sign-in screen carries your mark and your colour."
+msgstr ""
+
+msgid "WordPress’s own sign-in screen keeps its look."
 msgstr ""
 
 msgid "WordPress’s screen"
@@ -5994,6 +6169,9 @@ msgid "Zimbabwe"
 msgstr ""
 
 msgid "a link sent to your email"
+msgstr ""
+
+msgid "a photo they upload"
 msgstr ""
 
 msgid "a return nobody started here"
@@ -6280,6 +6458,9 @@ msgid "the six digits they have to type — the e-mail is useless without them"
 msgstr ""
 
 msgid "their e-mail address"
+msgstr ""
+
+msgid "their initials"
 msgstr ""
 
 msgid "there is nowhere to type the code"

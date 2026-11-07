@@ -12,7 +12,7 @@ import { NETWORK_ADMIN_STATE, NETWORK_URL } from '../../../playwright.network.co
 test.use({ storageState: NETWORK_ADMIN_STATE });
 
 const PASSWORD = 'e2e-Network-Fields-1!';
-const FIELDS = `${NETWORK_URL}/wp-admin/network/admin.php?page=diluxone-users-fields`;
+const FIELDS = `${NETWORK_URL}/wp-admin/network/admin.php?page=diluxone-users-fields&tab=list`;
 
 const field = (key: string, label: string) => ({ key, label, type: 'text', required: 0, active: 1, group: 'main', edit: 'always' });
 

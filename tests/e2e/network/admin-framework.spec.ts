@@ -25,7 +25,7 @@ test.describe('The field editor in Network Admin', () => {
 	test('opens over the list, Cancel saves nothing, and a change sent from it is what every site reads', async ({ page, hub, alpha }) => {
 		await hub.set({ diluxone_users_fields: [...PLAIN, TOWN] });
 
-		await page.goto(network('admin.php?page=diluxone-users-fields'));
+		await page.goto(network('admin.php?page=diluxone-users-fields&tab=list'));
 
 		const edit = page.locator(`.row-actions .edit a[href*="field=${TOWN.key}"]`);
 		const dialog = page.locator('dialog[data-diluxone-users-dialog]');

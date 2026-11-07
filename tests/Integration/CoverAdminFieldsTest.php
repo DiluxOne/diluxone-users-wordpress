@@ -363,6 +363,7 @@ class CoverAdminFieldsTest extends IntegrationTestCase {
 
 		$_GET = array(
 			'page'                => 'diluxone-users-fields',
+			'tab'                 => 'list',
 			'diluxone_users_done' => 'delete',
 		);
 		$html = $this->draw( 'diluxone_users_screen_fields' );
