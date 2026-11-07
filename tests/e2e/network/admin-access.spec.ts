@@ -211,7 +211,8 @@ test.describe('The hub’s Access', () => {
 
 		await page.goto(accessOnHub('summary'));
 
-		const rows = page.locator('table.diluxone-users-summary tbody tr');
+		// The settings' rows; Users+ Pro's previews come after them.
+		const rows = page.locator('table.diluxone-users-summary tbody tr:not(.du-pro--row)');
 
 		await expect(rows, 'page, link, password, social, after: registration is on its own screen').toHaveCount(5);
 		await expectPill(rows.nth(4).locator('.diluxone-users-summary__state'), 'active');
