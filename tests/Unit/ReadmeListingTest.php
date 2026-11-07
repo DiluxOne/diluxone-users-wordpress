@@ -34,11 +34,33 @@ class ReadmeListingTest extends TestCase {
 		return explode( "\n", trim( $entry[1] ) );
 	}
 
-	public function test_c1_the_first_release_starts_unreleased_and_says_it_is_the_first(): void {
+	/**
+	 * Whether 1.0.0 is still waiting to be published: its entry is the
+	 * newest and starts with the maintainer's `Unreleased.` line. The pull
+	 * request that removes the line publishes it, and from there the
+	 * fragments of later changes wait in `changelog.d/` for the next entry.
+	 */
+	private static function first_release_is_unpublished( string $readme ): bool {
+		return 1 === preg_match( '/^== Changelog ==\n\s*= 1\.0\.0 =\nUnreleased\.\n/m', $readme );
+	}
+
+	public function test_c1_the_first_release_says_it_is_the_first(): void {
 		$lines = self::first_release();
 
-		$this->assertSame( 'Unreleased.', $lines[0] );
-		$this->assertContains( 'First public release.', $lines );
+		if ( self::first_release_is_unpublished( self::readme() ) ) {
+			$this->assertSame( 'Unreleased.', array_shift( $lines ) );
+		}
+
+		$lines = array_values( array_filter( $lines, static fn ( string $line ): bool => '' !== $line ) );
+		$this->assertSame( 'First public release.', $lines[0] );
+	}
+
+	public function test_c1_the_pins_hold_only_until_the_maintainer_publishes_1_0_0(): void {
+		$entry = "\n\nFirst public release.\n\n* User fields.\n";
+
+		$this->assertTrue( self::first_release_is_unpublished( "== Changelog ==\n\n= 1.0.0 =\nUnreleased." . $entry ) );
+		$this->assertFalse( self::first_release_is_unpublished( "== Changelog ==\n\n= 1.0.0 =" . $entry ) );
+		$this->assertFalse( self::first_release_is_unpublished( "== Changelog ==\n\n= 1.0.1 =\nUnreleased.\n\n* A fix.\n\n= 1.0.0 =\nUnreleased." . $entry ) );
 	}
 
 	public function test_c1_the_first_release_names_what_it_brings_in_eight_bullets_or_fewer(): void {
@@ -60,7 +82,15 @@ class ReadmeListingTest extends TestCase {
 	}
 
 	public function test_c2_no_fragment_waits_to_be_added_to_the_first_release(): void {
-		$this->assertSame( array(), glob( DILUXONE_USERS_DIR . 'changelog.d/*.md' ) );
+		$fragments = glob( DILUXONE_USERS_DIR . 'changelog.d/*.md' );
+
+		if ( ! self::first_release_is_unpublished( self::readme() ) ) {
+			// Published: a later change's fragment waits for the next entry.
+			$this->assertIsArray( $fragments );
+			return;
+		}
+
+		$this->assertSame( array(), $fragments );
 	}
 
 	public function test_c3_the_readme_is_short_enough_to_be_read(): void {
