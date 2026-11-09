@@ -23,7 +23,7 @@
         "phpunit/phpcov": "^8.2",
         "phpunit/phpunit": "^9.6",
         "szepeviktor/phpstan-wordpress": "^2.0",
-        "vimeo/psalm": "^6.20",
+        "vimeo/psalm": "^7.0",
         "wp-coding-standards/wpcs": "^3.1"
     },
     "autoload-dev": {
