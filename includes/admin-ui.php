@@ -2044,8 +2044,8 @@ function diluxone_users_pro_shown( string $where ): bool {
 /**
  * Where "Learn about Users+ Pro" goes, saying which screen it came from.
  *
- * The link follows the admin's locale: the plugin's Spanish page on
- * diluxone.com for any `es_*` locale, its English page for every other.
+ * One address for every admin, whatever their language:
+ * DILUXONE_USERS_PRO_URL, with the campaign's utm parameters added.
  *
  * @param string $screen The screen the link is on: it becomes the campaign's medium.
  */
@@ -2056,9 +2056,7 @@ function diluxone_users_pro_url( string $screen ): string {
 			'utm_medium'   => sanitize_key( $screen ),
 			'utm_campaign' => 'free',
 		),
-		0 === strpos( get_user_locale(), 'es_' )
-			? 'https://diluxone.com/es/wordpress/users/'
-			: 'https://diluxone.com/wordpress-plugins/users/'
+		DILUXONE_USERS_PRO_URL
 	);
 }
 
@@ -2312,6 +2310,78 @@ function diluxone_users_ui_pro_row( array $args ): array {
 		'external' => '1',
 		'pro'      => $where,
 	);
+}
+
+/**
+ * A row of a screen's Summary for a feature Users+ Pro brings: the preview
+ * row while the plugin is alone, the feature's real row once an add-on
+ * answers it.
+ *
+ * The preview is diluxone_users_ui_pro_row(), so it is drawn only where
+ * diluxone_users_pro_shown() allows it. Whatever it is, empty included, it
+ * goes through `diluxone_users_summary_pro_row`, which runs even while the
+ * previews are off: the add-on that brings the feature says how it stands
+ * ("Passkeys · On · Change it") in the same place. What comes back is cut
+ * down to the keys a summary row has, each a string, and keeps the badge
+ * (`pro`, `external`) only while its state is still `pro`.
+ *
+ * @param array<string, mixed> $args where (the row's own key, `<screen>/summary/<feature>`), screen, title and text.
+ * @return array<string, string> A row for diluxone_users_summary_table(), or nothing.
+ */
+function diluxone_users_summary_pro_row( array $args ): array {
+	$where = (string) ( $args['where'] ?? '' );
+
+	/**
+	 * Filters a Users+ Pro row of a screen's Summary.
+	 *
+	 * Asked for every such row, whether the preview is drawn or not. An
+	 * add-on that brings the feature returns its real row, as
+	 * diluxone_users_summary_table() takes one (label, state, and optionally
+	 * why, word, detail, url, change); an empty array draws nothing.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param array<string, string> $row   The preview row, or an empty array while it is not shown here.
+	 * @param string                $where Which row.
+	 */
+	$row = apply_filters( 'diluxone_users_summary_pro_row', diluxone_users_ui_pro_row( $args ), $where );
+
+	if ( ! is_array( $row ) ) {
+		return array();
+	}
+
+	$clean = array();
+
+	foreach ( array( 'label', 'state', 'why', 'word', 'detail', 'url', 'change' ) as $key ) {
+		if ( isset( $row[ $key ] ) && is_scalar( $row[ $key ] ) && '' !== (string) $row[ $key ] ) {
+			$clean[ $key ] = (string) $row[ $key ];
+		}
+	}
+
+	// A row with nothing to say and no state to say it in is not a row.
+	if ( ! isset( $clean['label'], $clean['state'] ) ) {
+		return array();
+	}
+
+	if ( 'pro' === $clean['state'] ) {
+		foreach ( array( 'external', 'pro' ) as $key ) {
+			if ( isset( $row[ $key ] ) && is_scalar( $row[ $key ] ) && '' !== (string) $row[ $key ] ) {
+				$clean[ $key ] = (string) $row[ $key ];
+			}
+		}
+	}
+
+	return $clean;
+}
+
+/**
+ * Several of those rows, in order, leaving out the ones with nothing to say.
+ *
+ * @param array<int, array<string, mixed>> $each Each as diluxone_users_summary_pro_row() takes it.
+ * @return array<int, array<string, string>>
+ */
+function diluxone_users_summary_pro_rows( array $each ): array {
+	return array_values( array_filter( array_map( 'diluxone_users_summary_pro_row', $each ) ) );
 }
 
 /**

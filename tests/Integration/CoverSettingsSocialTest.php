@@ -242,7 +242,10 @@ class CoverSettingsSocialTest extends IntegrationTestCase {
 		$this->the_admin();
 		$this->four_states();
 
-		$_GET = array( 'page' => 'diluxone-users-social' );
+		$_GET = array(
+			'page' => 'diluxone-users-social',
+			'tab'  => 'providers',
+		);
 		$html = $this->draw( 'diluxone_users_screen_social' );
 
 		$this->assertStringContainsString( 'Its button is on the sign-in page.', $html );
@@ -263,7 +266,10 @@ class CoverSettingsSocialTest extends IntegrationTestCase {
 		$this->where_the_network_is_set();
 		$this->the_admin();
 
-		$_GET = array( 'page' => 'diluxone-users-social' );
+		$_GET = array(
+			'page' => 'diluxone-users-social',
+			'tab'  => 'providers',
+		);
 		$html = $this->draw( 'diluxone_users_screen_social' );
 
 		$first = strpos( $html, 'data-diluxone-users-pro="social/providers/linkedin"' );
@@ -291,7 +297,10 @@ class CoverSettingsSocialTest extends IntegrationTestCase {
 	public function test_the_pro_card_goes_when_the_add_on_or_the_site_says_so(): void {
 		$this->where_the_network_is_set();
 		$this->the_admin();
-		$_GET = array( 'page' => 'diluxone-users-social' );
+		$_GET = array(
+			'page' => 'diluxone-users-social',
+			'tab'  => 'providers',
+		);
 
 		add_filter( 'diluxone_users_upsell', '__return_false' );
 		$this->assertStringNotContainsString( 'data-diluxone-users-pro=', $this->draw( 'diluxone_users_screen_social' ), 'Users+ Pro brings them' );
@@ -326,7 +335,10 @@ class CoverSettingsSocialTest extends IntegrationTestCase {
 		$all['gone'] = $gone;
 		diluxone_users_update_option( 'diluxone_users_sso', $all, false );
 
-		$_GET = array( 'page' => 'diluxone-users-social' );
+		$_GET = array(
+			'page' => 'diluxone-users-social',
+			'tab'  => 'providers',
+		);
 		$html = $this->draw( 'diluxone_users_screen_social' );
 
 		$this->assertStringContainsString( '<h3>gone</h3>', $html );
@@ -345,7 +357,7 @@ class CoverSettingsSocialTest extends IntegrationTestCase {
 		$this->assertSame( $gone, ( (array) diluxone_users_raw_get( 'diluxone_users_sso', array() ) )['gone'] ?? null, 'kept as it was' );
 	}
 
-	public function test_a_provider_that_does_not_exist_shows_the_grid(): void {
+	public function test_a_provider_that_does_not_exist_shows_the_screen(): void {
 		$this->where_the_network_is_set();
 		$this->the_admin();
 
@@ -355,7 +367,7 @@ class CoverSettingsSocialTest extends IntegrationTestCase {
 		);
 		$html = $this->draw( 'diluxone_users_screen_social' );
 
-		$this->assertStringContainsString( 'The networks', $html );
+		$this->assertStringContainsString( 'data-diluxone-users-pro="social/summary/providers"', $html, 'its first tab, the Summary' );
 		$this->assertStringNotContainsString( 'Back to all providers', $html );
 	}
 
@@ -695,7 +707,7 @@ class CoverSettingsSocialTest extends IntegrationTestCase {
 
 		list( , $to ) = $this->press( 'elsewhere', 'forget' );
 
-		$this->assertSame( diluxone_users_admin_url( 'diluxone-users-social' ), $to, 'the settings are gone: the grid' );
+		$this->assertSame( diluxone_users_admin_url( 'diluxone-users-social', array( 'tab' => 'providers' ) ), $to, 'the settings are gone: the grid' );
 		$this->assertSame( 'not-configured', diluxone_users_sso_state( 'elsewhere' ) );
 		$this->assertSame( 'enabled', diluxone_users_sso_state( 'google' ), 'the others are untouched' );
 	}

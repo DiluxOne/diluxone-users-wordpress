@@ -41,6 +41,10 @@ if (!defined('DILUXONE_USERS_URL')) {
 	define('DILUXONE_USERS_URL', 'https://example.test/wp-content/plugins/diluxone-users/');
 }
 
+if (!defined('DILUXONE_USERS_PRO_URL')) {
+	define('DILUXONE_USERS_PRO_URL', 'https://diluxone.com/wordpress-plugins/users/');
+}
+
 if (!defined('DILUXONE_USERS_VERSION')) {
 	define('DILUXONE_USERS_VERSION', '0.0.0-test');
 }

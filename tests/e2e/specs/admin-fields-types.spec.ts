@@ -327,7 +327,7 @@ test.describe('User fields › the rows the form shows for each type', () => {
 	];
 
 	test('switching the type shows the rows that type needs and hides the rest', async ({ page }) => {
-		await page.goto(adminUrl('diluxone-users-fields') + '&diluxone_users_new=1');
+		await page.goto(adminUrl('diluxone-users-fields', 'list') + '&diluxone_users_new=1');
 
 		const form = fieldForm(page);
 		const row = (name: string) => form.locator('.diluxone-users-if-type').filter({ has: page.locator(`[name^="diluxone_users_field[${name}]"]`) });

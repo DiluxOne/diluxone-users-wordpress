@@ -26,7 +26,7 @@ test.describe('The field editor', () => {
 	});
 
 	test('opens over the list, Cancel closes it with nothing saved, and a change sent from it is in the list', async ({ page, site }) => {
-		await page.goto(adminUrl('diluxone-users-fields'));
+		await page.goto(adminUrl('diluxone-users-fields', 'list'));
 
 		const edit = page.locator(`.row-actions .edit a[href*="field=${TOWN.key}"]`);
 		const dialog = page.locator('dialog[data-diluxone-users-dialog]');
@@ -58,12 +58,12 @@ test.describe('The field editor', () => {
 		await navigated(page, () => form.locator('p.submit [type="submit"]').first().click());
 
 		expect(await stored()).toBe('E2E City');
-		await page.goto(adminUrl('diluxone-users-fields'));
+		await page.goto(adminUrl('diluxone-users-fields', 'list'));
 		await expect(page.locator(`a[data-diluxone-users-field-dialog][href*="field=${TOWN.key}"]`).first()).toHaveText('E2E City');
 	});
 
 	test('when the form cannot be fetched, the link goes to the field’s own screen instead', async ({ page }) => {
-		await page.goto(adminUrl('diluxone-users-fields'));
+		await page.goto(adminUrl('diluxone-users-fields', 'list'));
 
 		let failed = false;
 
@@ -87,7 +87,7 @@ test.describe('The field editor', () => {
 	});
 
 	test('a new field shows only the rows its type uses', async ({ page }) => {
-		await page.goto(adminUrl('diluxone-users-fields'));
+		await page.goto(adminUrl('diluxone-users-fields', 'list'));
 		await page.locator('a.button-primary[data-diluxone-users-field-dialog]').click();
 
 		const form = page.locator('dialog[data-diluxone-users-dialog] form.diluxone-users-form-admin');

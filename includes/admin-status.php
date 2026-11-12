@@ -502,7 +502,7 @@ function diluxone_users_check_social(): ?array {
 			implode( ', ', $dormant )
 		),
 		__( 'Provider off.', 'diluxone-users' ),
-		diluxone_users_admin_url( 'diluxone-users-social' ),
+		diluxone_users_admin_url( 'diluxone-users-social', array( 'tab' => 'providers' ) ),
 		__( 'Turn it on →', 'diluxone-users' )
 	);
 }

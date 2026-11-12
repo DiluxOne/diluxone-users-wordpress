@@ -1,10 +1,11 @@
 <?php
 /**
- * Issue #172: the Users+ Pro link leads to a page that does not exist.
+ * Issue #172, and #241 after it: where the Users+ Pro link leads.
  *
- * The expectation: "Learn about Users+ Pro" goes to the plugin's page on
- * diluxone.com in the language of the admin (any `es_*` locale to the Spanish
- * page, every other to the English one), keeping its utm parameters.
+ * The expectation: "Learn about Users+ Pro" goes to one address,
+ * DILUXONE_USERS_PRO_URL, whatever the admin's language (the Spanish page
+ * #172 sent `es_*` admins to does not present Users+ Pro), keeping its utm
+ * parameters.
  */
 
 namespace Tests\Unit\Repro;
@@ -36,25 +37,20 @@ class Issue172Test extends TestCase {
 		return diluxone_users_pro_url( 'access' );
 	}
 
-	public function test_the_pro_link_of_a_spanish_admin_goes_to_the_spanish_page_of_the_plugin(): void {
-		foreach ( array( 'es_AR', 'es_ES', 'es_MX' ) as $locale ) {
-			$url = $this->link_in( $locale );
-
-			$this->assertStringStartsWith( 'https://diluxone.com/es/wordpress/users/?', $url, "{$locale}: the Spanish page" );
-			$this->assertStringContainsString( 'utm_source=diluxone-users', $url, "{$locale}: keeps its utm parameters" );
-			$this->assertStringContainsString( 'utm_medium=access', $url );
-			$this->assertStringContainsString( 'utm_campaign=free', $url );
-		}
+	public function test_the_address_is_the_plugin_page(): void {
+		$this->assertSame( 'https://diluxone.com/wordpress-plugins/users/', DILUXONE_USERS_PRO_URL );
 	}
 
-	public function test_the_pro_link_of_any_other_admin_goes_to_the_english_page_of_the_plugin(): void {
-		foreach ( array( 'en_US', 'de_DE', 'fr_FR' ) as $locale ) {
+	public function test_every_admin_whatever_the_language_gets_the_same_address(): void {
+		foreach ( array( 'es_ES', 'es_MX', 'es_AR', 'en_US', 'de_DE' ) as $locale ) {
 			$url = $this->link_in( $locale );
 
-			$this->assertStringStartsWith( 'https://diluxone.com/wordpress-plugins/users/?', $url, "{$locale}: the English page" );
-			$this->assertStringContainsString( 'utm_source=diluxone-users', $url, "{$locale}: keeps its utm parameters" );
-			$this->assertStringContainsString( 'utm_medium=access', $url );
-			$this->assertStringContainsString( 'utm_campaign=free', $url );
+			$this->assertSame(
+				DILUXONE_USERS_PRO_URL . '?utm_source=diluxone-users&utm_medium=access&utm_campaign=free',
+				$url,
+				"{$locale}: the plugin's page, with its utm parameters"
+			);
+			$this->assertStringNotContainsString( '/es/', $url, "{$locale}: never a page by language" );
 		}
 	}
 }

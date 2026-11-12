@@ -53,7 +53,8 @@ test.describe('A fresh network says nothing was chosen', () => {
 	test('the hub’s Access › Summary and the account area read Not configured, with no reason beside the pill', async ({ page }) => {
 		await page.goto(onHub('admin.php?page=diluxone-users-login&tab=summary'));
 
-		const rows = page.locator('table.diluxone-users-summary').first().locator('tbody > tr');
+		// The settings' rows: a Users+ Pro preview has no setting to decide.
+		const rows = page.locator('table.diluxone-users-summary').first().locator('tbody > tr:not(.du-pro--row)');
 
 		for (let at = 0; at < (await rows.count()); at += 1) {
 			await expectPill(rows.nth(at), 'unset');

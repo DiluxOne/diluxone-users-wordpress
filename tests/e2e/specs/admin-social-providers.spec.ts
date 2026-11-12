@@ -63,7 +63,7 @@ test.describe('Social login › a provider’s own screen', () => {
 
 		await options.keep(['diluxone_users_pro_previews']);
 		await options.set({ diluxone_users_sso: { gone }, diluxone_users_pro_previews: 1 });
-		await page.goto(`/wp-admin/admin.php?page=${SOCIAL}`);
+		await page.goto(adminUrl(SOCIAL, 'providers'));
 
 		const grid = page.locator('.diluxone-users-cards');
 		const pro = grid.locator('[data-diluxone-users-pro^="social/providers/"]');
@@ -103,7 +103,7 @@ test.describe('Social login › a provider’s own screen', () => {
 
 		// And the site that turns the previews off sees the networks and no card.
 		await options.set({ diluxone_users_pro_previews: 0 });
-		await page.goto(`/wp-admin/admin.php?page=${SOCIAL}`);
+		await page.goto(adminUrl(SOCIAL, 'providers'));
 		await expect(page.locator('[data-diluxone-users-pro]')).toHaveCount(0);
 		await expect(card(page)).toHaveCount(1);
 	});
@@ -130,7 +130,7 @@ test.describe('Social login › a provider’s own screen', () => {
 		expect(new URL(page.url()).searchParams.get('tab')).toBe('settings');
 
 		// And back to the grid.
-		await navigated(page, () => page.locator(`a[href$="page=${SOCIAL}"]`).first().click());
+		await navigated(page, () => page.locator(`a[href$="page=${SOCIAL}&tab=providers"]`).first().click());
 		await expect(card(page)).toHaveCount(1);
 	});
 
@@ -167,7 +167,7 @@ test.describe('Social login › a provider’s own screen', () => {
 		expect((await stored(site))?.id).toBe(ID);
 
 		// The grid says it has credentials and has not been tested.
-		await page.goto(adminUrl(SOCIAL));
+		await page.goto(adminUrl(SOCIAL, 'providers'));
 		expect(await stateIn(card(page))).toBe('pending');
 		await expect(card(page).locator('a.button-primary')).toHaveAttribute('href', /provider=mock/);
 	});
@@ -303,7 +303,7 @@ test.describe('Social login › turning a provider’s button on and off', () =>
 
 		for (const row of rows) {
 			await options.set({ diluxone_users_sso: row.seed ? { mock: row.seed } : {} });
-			await page.goto(adminUrl(SOCIAL));
+			await page.goto(adminUrl(SOCIAL, 'providers'));
 
 			const label = JSON.stringify(row.seed);
 
@@ -333,7 +333,7 @@ test.describe('Social login › turning a provider’s button on and off', () =>
 		await guest.goto(pages.login.url);
 		await expect(ssoButton(guest, 'mock')).toHaveCount(0);
 
-		await page.goto(adminUrl(SOCIAL));
+		await page.goto(adminUrl(SOCIAL, 'providers'));
 
 		const on = card(page).locator('a[href*="diluxone_users_action=on"]');
 
@@ -417,7 +417,7 @@ test.describe('Social login › turning a provider’s button on and off', () =>
 	test('a provider that has not passed the test is not turned on, even by its own link', async ({ page, site, options }) => {
 		// A real "Turn it on" link, while the provider is tested…
 		await options.set({ diluxone_users_sso: { mock: { active: 0, id: ID, secret: SECRET, tested: 1 } } });
-		await page.goto(adminUrl(SOCIAL));
+		await page.goto(adminUrl(SOCIAL, 'providers'));
 
 		const href = (await card(page).locator('a[href*="diluxone_users_action=on"]').getAttribute('href'))!;
 

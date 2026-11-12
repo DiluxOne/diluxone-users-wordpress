@@ -181,7 +181,7 @@ test.describe('The network’s fields: a name, and the rest suggested', () => {
 	test('a fresh network reads the first and last name; suggested fields are added in Network Admin and reach /beta/', async ({ page, hub, beta }) => {
 		await hub.set({ diluxone_users_fields: null });
 
-		await page.goto(networkAdmin('diluxone-users-fields'));
+		await page.goto(networkAdmin('diluxone-users-fields', 'list'));
 
 		// Opening the screen stores nothing: the starter list is a default, read.
 		expect((await hub.site.getOptions(['diluxone_users_fields'])).diluxone_users_fields, 'nothing written by looking').toBeNull();

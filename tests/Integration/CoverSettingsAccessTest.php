@@ -977,7 +977,7 @@ class CoverSettingsAccessTest extends IntegrationTestCase {
 
 		$this->assertStringContainsString( 'Everybody signs in on wp-login.php, as WordPress has it.', $html, 'no page decided' );
 		$this->assertStringContainsString( 'No buttons: WordPress has none of its own.', $html, 'the buttons not decided' );
-		$this->assertStringNotContainsStringIgnoringCase( 'passkey', $html, 'a door the plugin does not have is not a row' );
+		$this->assertStringNotContainsStringIgnoringCase( 'passkey', (string) preg_replace( '/<tr class="du-pro du-pro--row".*?<\/tr>/s', '', $html ), 'a door the plugin does not have is not a row of its doors: only the Pro row names it' );
 
 		// "None" chosen, and the buttons on with nothing to show.
 		diluxone_users_update_option( 'diluxone_users_login_page', 0 );
